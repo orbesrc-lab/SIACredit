@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIAC - Registro de Usuario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .auth-container { display: flex; min-height: 100vh; align-items: center; justify-content: center; background-color: var(--secondary-bg); padding: 20px; }
+        .auth-card { background: var(--white); padding: 40px; border-radius: 12px; box-shadow: var(--shadow-lg); width: 100%; max-width: 500px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group.full { grid-column: span 2; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem; }
+        .form-group input, .form-group select { width: 100%; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; }
+        .btn-full { width: 100%; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2 style="text-align: center; margin-bottom: 30px;">Crear Cuenta Institucional</h2>
+            <form id="registerForm">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Nombre Completo</label>
+                        <input type="text" id="fullName" required placeholder="Ej. Dr. Juan Pérez">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Institucional</label>
+                        <input type="email" id="emailInst" required placeholder="juan@universidad.edu.co">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Personal (Recuperación)</label>
+                        <input type="email" id="emailPers" required placeholder="juan.personal@gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Institución</label>
+                        <input type="text" id="institution" required placeholder="Nombre de la Universidad">
+                    </div>
+                    <div class="form-group">
+                        <label>Rol Solicitado</label>
+                        <select id="role">
+                            <option value="operativo">Operativo (Dependencia)</option>
+                            <option value="lider">Líder de Factor</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label>Contraseña</label>
+                        <input type="password" id="password" required placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary large btn-full">Registrarse</button>
+            </form>
+            <p style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: var(--text-muted);">
+                ¿Ya tienes cuenta? <a href="login.html" style="color: var(--primary-color); text-decoration: none;">Inicia sesión aquí</a>
+            </p>
+        </div>
+    </div>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('fullName').value,
+                email: document.getElementById('emailInst').value,
+                personal_email: document.getElementById('emailPers').value,
+                institution: document.getElementById('institution').value,
+                role: document.getElementById('role').value,
+                password: document.getElementById('password').value
+            };
+            
+            // Guardar en simulación (localStorage)
+            localStorage.setItem('siac_registered_user', JSON.stringify(data));
+            alert('¡Registro exitoso! Ahora puedes iniciar sesión.');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIAC - Ingreso</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .auth-container { display: flex; height: 100vh; align-items: center; justify-content: center; background-color: var(--secondary-bg); }
+        .auth-card { background: var(--white); padding: 40px; border-radius: 12px; box-shadow: var(--shadow-lg); width: 100%; max-width: 400px; }
+        .auth-logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 30px; font-size: 1.5rem; font-weight: 700; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-main); }
+        .form-group input, .form-group select { width: 100%; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-family: var(--font-main); font-size: 1rem; }
+        .btn-full { width: 100%; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>SIACredit</span>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Correo Institucional</label>
+                    <input type="email" id="email" required placeholder="usuario@universidad.edu.co">
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                    <label for="role">Ingresar como:</label>
+                    <select id="role">
+                        <option value="admin">Administrador (Control Total)</option>
+                        <option value="lider">Líder de Factor (Evaluación y Revisión)</option>
+                        <option value="operativo">Operativo (Carga de Evidencias)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary large btn-full">Ingresar al Sistema</button>
+                <button type="button" onclick="guestLogin()" class="btn-ghost btn-full" style="margin-top: 10px; border: 1px solid var(--border-color);">Ingresar como Invitado (Lectura)</button>
+            </form>
+            <div style="text-align: center; margin-top: 25px; font-size: 0.9rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 10px;">
+                <a href="registro.html" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">¿No tienes cuenta? Regístrate aquí</a>
+                <a href="#" onclick="alert('Se ha enviado un código de recuperación a tu email personal registrado.')" style="color: var(--text-muted); text-decoration: none;">Olvidé mi contraseña</a>
+                <a href="index.html" style="color: var(--text-muted); text-decoration: none; margin-top: 10px;">← Volver al inicio</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        function guestLogin() {
+            localStorage.setItem('siac_user', JSON.stringify({ email: 'invitado@siac.edu.co', role: 'operativo' }));
+            window.location.href = 'dashboard.html';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const role = document.getElementById('role').value;
+            localStorage.setItem('siac_user', JSON.stringify({ email, role }));
+            window.location.href = 'dashboard.html';
+        });
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

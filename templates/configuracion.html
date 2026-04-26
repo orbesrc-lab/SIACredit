@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración - SIACredit</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body { background-color: var(--secondary-bg); display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 250px; background: #0f172a; color: #94a3b8; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; font-size: 1.25rem; font-weight: 700; color: var(--white); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-menu { flex: 1; padding: 20px 0; }
+        .sidebar-item { padding: 12px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; transition: 0.2s; }
+        .sidebar-item:hover, .sidebar-item.active { background: rgba(255, 255, 255, 0.1); color: var(--white); border-left: 3px solid var(--primary-color); }
+        .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: hidden; }
+        .topbar { background: var(--white); padding: 15px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        
+        .content-area { padding: 30px; max-width: 1000px; margin: 0 auto; width: 100%; overflow-y: auto; }
+        
+        .settings-card { background: var(--white); border-radius: 12px; padding: 30px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 30px; }
+        .settings-card h3 { font-size: 1.2rem; margin-bottom: 20px; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group.full-width { grid-column: span 2; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem; }
+        .form-group input, .form-group select { width: 100%; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-family: var(--font-main); font-size: 0.95rem; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary-color); }
+        
+        .user-list { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; }
+        .user-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid var(--border-color); background: #fafafa; }
+        .user-item:last-child { border-bottom: none; }
+        .user-info { display: flex; flex-direction: column; }
+        .user-name { font-weight: 600; font-size: 0.95rem; }
+        .user-role { font-size: 0.8rem; color: var(--text-muted); }
+        
+        .role-badge { padding: 4px 10px; border-radius: 15px; font-size: 0.75rem; font-weight: 600; }
+        .role-admin { background: #fee2e2; color: #b91c1c; }
+        .role-leader { background: #e0e7ff; color: #4338ca; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--primary-color)" stroke-width="2"/>
+            </svg>
+            SIACredit
+        </div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
+            <a href="evidencias.html" class="sidebar-item">📁 Evidencias</a>
+            <a href="autoevaluacion.html" class="sidebar-item">📝 Autoevaluación</a>
+            <a href="informes.html" class="sidebar-item">📄 Informes</a>
+            <a href="estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
+            <a href="configuracion.html" class="sidebar-item active">⚙️ Configuración</a>
+        </div>
+        <div class="sidebar-footer">
+            <button class="btn-ghost" onclick="logout()" style="color: #ef4444; width: 100%; text-align: left;">🚪 Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div><h2 style="font-size: 1.25rem; margin: 0;">Configuración de Plataforma</h2></div>
+            <div id="userInfo" style="font-weight: 500;"></div>
+        </header>
+
+        <div class="content-area">
+            <h1 style="font-size: 1.8rem; margin-bottom: 30px;">Configuración del Sistema</h1>
+
+            <!-- Generalidades -->
+            <div class="settings-card">
+                <h3>Generalidades de la Institución</h3>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Nombre de la Institución</label>
+                        <input type="text" id="inst_name" placeholder="Ej: Universidad Nacional de Ejemplo">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>URL del Logo (o base64)</label>
+                        <input type="text" id="inst_logo" placeholder="URL de la imagen del logo">
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">Este logo aparecerá en los encabezados de todos los informes.</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre del Programa</label>
+                        <input type="text" id="inst_program" placeholder="Ej: Ingeniería de Sistemas">
+                    </div>
+                    <div class="form-group">
+                        <label>Periodo del Proceso (Acreditación / Autoevaluación)</label>
+                        <input type="text" id="inst_period" placeholder="Ej: 2026 - 2032">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="saveInstitution()">Guardar Generalidades</button>
+            </div>
+
+            <!-- Inyección de Modelo y Articulación -->
+            <div class="settings-card" style="border-left: 5px solid var(--primary-color);">
+                <h3>Inyección de Modelo y Articulación de Líderes</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">Sube el archivo JSON del modelo CNA y asigna los líderes responsables de cada factor.</p>
+                
+                <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+                    <h4 style="margin-bottom: 10px; font-size: 0.9rem;">1. Seleccionar Archivo del Modelo</h4>
+                    <input type="file" id="modelFile" style="margin-bottom: 15px;">
+                    
+                    <h4 style="margin-bottom: 10px; font-size: 0.9rem;">2. Articular Líderes por Factor</h4>
+                    <div id="articulationList" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85rem;">
+                        <div style="padding: 10px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+                            <strong>Factor 1:</strong> 
+                            <select style="width: 100%; margin-top: 5px;">
+                                <option>Juan Pérez (Líder Factor 1)</option>
+                                <option>María López (Líder Factor 2)</option>
+                                <option>Sin asignar</option>
+                            </select>
+                        </div>
+                        <div style="padding: 10px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+                            <strong>Factor 2:</strong> 
+                            <select style="width: 100%; margin-top: 5px;">
+                                <option>María López (Líder Factor 2)</option>
+                                <option>Juan Pérez (Líder Factor 1)</option>
+                                <option>Sin asignar</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button class="btn-secondary" onclick="exportModel()">Exportar JSON</button>
+                    <button class="btn-primary" onclick="injectModel()">Inyectar y Articular Modelo</button>
+                </div>
+                <div id="syncStatus" style="margin-top: 10px; font-size: 0.85rem; text-align: right;"></div>
+            </div>
+
+            <!-- Apariencia y Temas -->
+            <div class="settings-card">
+                <h3>Apariencia de la Interfaz</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">Personaliza el aspecto visual de tu plataforma de acreditación.</p>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                    <div onclick="setTheme('default')" style="cursor:pointer; border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; text-align: center; background: #fff;">
+                        <div style="width: 100%; height: 50px; background: #5b45ff; border-radius: 4px; margin-bottom: 10px;"></div>
+                        <span style="font-weight: 600; font-size: 0.85rem; color: #111827;">Original SIAC</span>
+                    </div>
+                    <div onclick="setTheme('dark')" style="cursor:pointer; border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; text-align: center; background: #0f172a;">
+                        <div style="width: 100%; height: 50px; background: #6366f1; border-radius: 4px; margin-bottom: 10px;"></div>
+                        <span style="font-weight: 600; font-size: 0.85rem; color: #f8fafc;">Noche Profunda</span>
+                    </div>
+                    <div onclick="setTheme('emerald')" style="cursor:pointer; border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; text-align: center; background: #f0fdf4;">
+                        <div style="width: 100%; height: 50px; background: #059669; border-radius: 4px; margin-bottom: 10px;"></div>
+                        <span style="font-weight: 600; font-size: 0.85rem; color: #064e3b;">Esmeralda Premium</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gestión de Usuarios -->
+            <div class="settings-card">
+
+            <div class="settings-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                    <h3 style="margin: 0; border: none; padding: 0;">Gestión de Usuarios</h3>
+                    <button class="btn-secondary">Invitar Usuario</button>
+                </div>
+                
+                <div class="user-list" id="usersTable">
+                    <div class="user-item">
+                        <div class="user-info">
+                            <span class="user-name">Administrador Principal</span>
+                            <span class="user-role">admin@universidad.edu.co | Factores: Todos</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:15px">
+                            <span class="role-badge role-admin">Admin</span>
+                            <button onclick="resetPass('admin@universidad.edu.co')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color)">Resetear Clave</button>
+                        </div>
+                    </div>
+                    <div class="user-item">
+                        <div class="user-info">
+                            <span class="user-name">Juan Pérez (Líder Demo)</span>
+                            <span class="user-role">lider@universidad.edu.co | Asignado: Factores 1, 2</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:15px">
+                            <span class="role-badge role-leader">LÍDER</span>
+                            <button onclick="assignFactors('lider@universidad.edu.co')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color)">Asignar Factores</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                    <h3 style="margin: 0; border: none; padding: 0;">Gestión del Modelo de Evaluación</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-secondary" onclick="syncModelWithBackend()">💾 Guardar Cambios en Servidor</button>
+                        <button class="btn-primary" onclick="addFactor()">+ Añadir Factor</button>
+                    </div>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
+                    Administra dinámicamente la estructura de Factores, Características y Aspectos a evaluar. Los cambios se reflejarán automáticamente en los módulos de Evidencias y Autoevaluación.
+                </p>
+                <div id="modelEditorContainer">
+                    <!-- Dynamic Editor Injected via JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='data.js') }}"></script>
+    <script>
+        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'admin@universidad.edu.co', role: 'admin' };
+        document.getElementById('userInfo').textContent = user.email;
+
+        function logout() {
+            localStorage.removeItem('siac_user');
+            window.location.href = 'index.html';
+        }
+
+        // --- Lógica del Gestor de Modelo ---
+        function renderModelEditor() {
+            const container = document.getElementById('modelEditorContainer');
+            const data = getDataModel();
+            let html = '';
+
+            if (data.length === 0) {
+                html = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">No hay factores definidos. Haz clic en "Añadir Factor" para comenzar.</p>';
+            } else {
+                const totalFactorWeight = data.reduce((sum, f) => sum + (f.weight || 0), 0);
+                if (totalFactorWeight !== 100) {
+                    html += `<div style="background: #fee2e2; color: #b91c1c; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem;">
+                                ⚠️ <strong>Advertencia:</strong> La suma del peso de todos los factores es ${totalFactorWeight}%. Debe ser exactamente 100%.
+                             </div>`;
+                }
+            }
+
+            data.forEach((factor, fIndex) => {
+                const totalCharWeight = factor.characteristics.reduce((sum, c) => sum + (c.weight || 0), 0);
+                
+                html += `
+                    <div style="border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 15px; background: #fafafa;">
+                        <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; border-top-left-radius: 8px; border-top-right-radius: 8px; border-bottom: 1px solid var(--border-color);">
+                            <div style="font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 15px;">
+                                Factor ${factor.number}: ${factor.name}
+                                <div style="font-weight: normal; font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
+                                    Peso: <input type="number" min="0" max="100" style="width: 60px; padding: 3px; text-align: center; border: 1px solid var(--border-color); border-radius: 4px;" value="${factor.weight || 0}" onchange="updateFactorWeight('${factor.id}', this.value)"> %
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn-ghost" style="font-size: 0.8rem; padding: 5px 10px; color: var(--primary-color);" onclick="addCharacteristic('${factor.id}')">+ Característica</button>
+                                <button class="btn-ghost" style="font-size: 0.8rem; padding: 5px 10px; color: var(--primary-color);" onclick="editFactor('${factor.id}')">Editar</button>
+                                <button class="btn-ghost" style="font-size: 0.8rem; padding: 5px 10px; color: #ef4444;" onclick="deleteFactor('${factor.id}')">Eliminar</button>
+                            </div>
+                        </div>
+                        <div style="padding: 15px;">
+                `;
+
+                if (factor.characteristics.length > 0 && totalCharWeight !== 100) {
+                    html += `<div style="color: #b91c1c; font-size: 0.85rem; margin-bottom: 15px;">
+                                ⚠️ La suma de las características en este factor es ${totalCharWeight}%. Debe sumar 100%.
+                             </div>`;
+                }
+
+                if (factor.characteristics.length === 0) {
+                    html += '<div style="font-size: 0.85rem; color: var(--text-muted);">Sin características asignadas.</div>';
+                }
+
+                factor.characteristics.forEach((char, cIndex) => {
+                    html += `
+                        <div style="margin-left: 20px; margin-bottom: 15px; border-left: 2px solid var(--border-color); padding-left: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-main); display: flex; align-items: center; gap: 15px;">
+                                    Caract. ${char.number}: ${char.name}
+                                    <div style="font-weight: normal; font-size: 0.8rem; display: flex; align-items: center; gap: 5px; color: var(--text-muted);">
+                                        Peso: <input type="number" min="0" max="100" style="width: 50px; padding: 2px; text-align: center; border: 1px solid var(--border-color); border-radius: 4px;" value="${char.weight || 0}" onchange="updateCharWeight('${factor.id}', '${char.id}', this.value)"> %
+                                    </div>
+                                </div>
+                                <div>
+                                    <button class="btn-ghost" style="font-size: 0.75rem; padding: 4px 8px; color: var(--primary-color);" onclick="addAspect('${factor.id}', '${char.id}')">+ Aspecto</button>
+                                    <button class="btn-ghost" style="font-size: 0.75rem; padding: 4px 8px; color: var(--primary-color);" onclick="editCharacteristic('${factor.id}', '${char.id}')">Editar</button>
+                                    <button class="btn-ghost" style="font-size: 0.75rem; padding: 4px 8px; color: #ef4444;" onclick="deleteCharacteristic('${factor.id}', '${char.id}')">Eliminar</button>
+                                </div>
+                            </div>
+                            <div style="margin-left: 15px;">
+                    `;
+
+                    if (char.aspects.length === 0) {
+                        html += '<div style="font-size: 0.8rem; color: var(--text-muted);">Sin aspectos asignados.</div>';
+                    }
+
+                    char.aspects.forEach((asp, aIndex) => {
+                        html += `
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); background: var(--white); padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 5px;">
+                                <div>• Aspecto ${aIndex + 1}: ${asp.text}</div>
+                                <div>
+                                    <button class="btn-ghost" style="font-size: 0.75rem; padding: 2px 6px; color: var(--primary-color);" onclick="editAspect('${factor.id}', '${char.id}', '${asp.id}')">Editar</button>
+                                    <button class="btn-ghost" style="font-size: 0.75rem; padding: 2px 6px; color: #ef4444;" onclick="deleteAspect('${factor.id}', '${char.id}', '${asp.id}')">X</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                <table class="evidence-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre del Archivo</th>
+                            <th>Subido por</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="evidenceList">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // Acciones Actualización de Pesos
+        function updateFactorWeight(factorId, weightValue) {
+            const model = getDataModel();
+            const factor = model.find(f => f.id === factorId);
+            if (factor) {
+                factor.weight = parseFloat(weightValue) || 0;
+                saveDataModel(model);
+                renderModelEditor();
+            }
+        }
+
+        function updateCharWeight(factorId, charId, weightValue) {
+            const model = getDataModel();
+            const factor = model.find(f => f.id === factorId);
+            if (factor) {
+                const char = factor.characteristics.find(c => c.id === charId);
+                if (char) {
+                    char.weight = parseFloat(weightValue) || 0;
+                    saveDataModel(model);
+                    renderModelEditor();
+                }
+            }
+        }
+
+        // Acciones Actualización de Pesos
+        const cnaTemplate = [
+            { number: "1", name: "Proyecto Educativo e Identidad Institucional", characteristics: [{number: "1.1", name: "Misión y visión", aspects: [{text: "Coherencia de la misión"}]}] },
+            { number: "2", name: "Estudiantes", characteristics: [{number: "2.1", name: "Mecanismos de ingreso", aspects: [{text: "Reglamento de admisiones"}]}, {number: "2.2", name: "Participación estudiantil", aspects: [{text: "Representación en consejos"}]}] },
+            { number: "3", name: "Profesores", characteristics: [{number: "3.1", name: "Selección y evaluación", aspects: [{text: "Estatuto docente"}]}] },
+            { number: "4", name: "Egresados", characteristics: [{number: "4.1", name: "Impacto de los egresados", aspects: [{text: "Seguimiento a graduados"}]}] },
+            { number: "5", name: "Aspectos Académicos y Resultados", characteristics: [{number: "5.1", name: "Plan de estudios", aspects: [{text: "Flexibilidad curricular"}]}] },
+            { number: "6", name: "Permanencia y Graduación", characteristics: [{number: "6.1", name: "Estrategias de permanencia", aspects: [{text: "Tutorías y apoyos"}]}] },
+            { number: "7", name: "Interacción con el Entorno", characteristics: [{number: "7.1", name: "Extensión y proyección social", aspects: [{text: "Proyectos de impacto"}]}] },
+            { number: "8", name: "Aportes de la Investigación", characteristics: [{number: "8.1", name: "Grupos y proyectos", aspects: [{text: "Publicaciones"}]}] },
+            { number: "9", name: "Bienestar Institucional", characteristics: [{number: "9.1", name: "Programas de bienestar", aspects: [{text: "Cobertura de servicios"}]}] },
+            { number: "10", name: "Medios Educativos y Ambientes", characteristics: [{number: "10.1", name: "Recursos bibliográficos", aspects: [{text: "Bases de datos"}]}, {number: "10.2", name: "Aulas y laboratorios", aspects: [{text: "Equipamiento"}]}] },
+            { number: "11", name: "Organización, Administración y Financiación", characteristics: [{number: "11.1", name: "Gestión administrativa", aspects: [{text: "Estructura organizacional"}]}] },
+            { number: "12", name: "Recursos Físicos y Tecnológicos", characteristics: [{number: "12.1", name: "Infraestructura", aspects: [{text: "Mantenimiento"}]}] }
+        ];
+
+        // Acciones CRUD
+        function addFactor() {
+            let promptText = "Opciones para añadir Factor:\n\n";
+            promptText += "Ingrese un número del 1 al 12 para importar la plantilla oficial del CNA (ej. '2' para Estudiantes).\n";
+            promptText += "Deje el campo en blanco y presione 'Aceptar' para crear un factor personalizado.";
+            
+            const selection = prompt(promptText);
+            const model = getDataModel();
+
+            if (selection === null) return; // Canceló
+
+            const numSel = parseInt(selection);
+            if (!isNaN(numSel) && numSel >= 1 && numSel <= 12) {
+                // Importar de plantilla
+                const tmpl = cnaTemplate[numSel - 1];
+                
+                const newFactor = {
+                    id: 'f' + generateId(),
+                    number: tmpl.number,
+                    name: tmpl.name,
+                    weight: 0,
+                    characteristics: tmpl.characteristics.map(c => ({
+                        id: 'c' + generateId(),
+                        number: c.number,
+                        name: c.name,
+                        weight: 0,
+                        aspects: c.aspects.map(a => ({
+                            id: 'a' + generateId(),
+                            text: a.text
+                        }))
+                    }))
+                };
+                
+                model.push(newFactor);
+                saveDataModel(model);
+                renderModelEditor();
+            } else {
+                // Factor personalizado
+                const num = prompt("Número del Factor (ej. 13):");
+                if (!num) return;
+                const name = prompt("Nombre del Factor:");
+                if (!name) return;
+
+                model.push({ id: 'f' + generateId(), number: num, name: name, weight: 0, characteristics: [] });
+                saveDataModel(model);
+                renderModelEditor();
+            }
+        }
+
+
+        function deleteFactor(factorId) {
+            if(!confirm("¿Seguro que desea eliminar este factor y todo su contenido?")) return;
+            let model = getDataModel();
+            model = model.filter(f => f.id !== factorId);
+            saveDataModel(model);
+            renderModelEditor();
+        }
+
+        function addCharacteristic(factorId) {
+            const num = prompt("Número de la característica (ej. 2.1):");
+            if (!num) return;
+            const name = prompt("Nombre de la característica:");
+            if (!name) return;
+
+            const model = getDataModel();
+            const factor = model.find(f => f.id === factorId);
+            if (factor) {
+                factor.characteristics.push({ id: 'c' + generateId(), number: num, name: name, weight: 0, aspects: [] });
+                saveDataModel(model);
+                renderModelEditor();
+            }
+        }
+
+        function deleteCharacteristic(factorId, charId) {
+            if(!confirm("¿Eliminar característica?")) return;
+            const model = getDataModel();
+            const factor = model.find(f => f.id === factorId);
+            if (factor) {
+                factor.characteristics = factor.characteristics.filter(c => c.id !== charId);
+                saveDataModel(model);
+                renderModelEditor();
+            }
+        }
+
+        function addAspect(factorId, charId) {
+            const text = prompt("Ingrese el texto a evaluar del aspecto:");
+            if (!text) return;
+
+            const model = getDataModel();
+            const factor = model.find(f => f.id === factorId);
+            if (factor) {
+                const char = factor.characteristics.find(c => c.id === charId);
+                if (char) {
+                    char.aspects.push({ id: 'a' + generateId(), text: text });
+                    saveDataModel(model);
+                    renderModelEditor();
+                }
+            }
+        }
+
+        function deleteAspect(factorId, charId, aspectId) {
+            if(!confirm("¿Eliminar aspecto?")) return;
+            const model = getDataModel();
+            const factor = model.find(f => f.id === factorId);
+            if (factor) {
+                const char = factor.characteristics.find(c => c.id === charId);
+                if (char) {
+                    char.aspects = char.aspects.filter(a => a.id !== aspectId);
+                    saveDataModel(model);
+                    renderModelEditor();
+                }
+            }
+        }
+
+        // Acciones de Edición
+        function editFactor(factorId) {
+            const model = getDataModel();
+            const factor = model.find(f => f.id === factorId);
+            if (factor) {
+                const num = prompt("Número del Factor:", factor.number);
+                if (num === null) return; // Cancelado
+                const name = prompt("Nombre del Factor:", factor.name);
+                if (name === null) return; // Cancelado
+                
+                factor.number = num || factor.number;
+                factor.name = name || factor.name;
+                saveDataModel(model);
+                renderModelEditor();
+            }
+        }
+
+        function editCharacteristic(factorId, charId) {
+            const model = getDataModel();
+            const factor = model.find(f => f.id === factorId);
+            if (factor) {
+                const char = factor.characteristics.find(c => c.id === charId);
+                if (char) {
+                    const num = prompt("Número de la característica:", char.number);
+                    if (num === null) return;
+                    const name = prompt("Nombre de la característica:", char.name);
+                    if (name === null) return;
+
+                    char.number = num || char.number;
+                    char.name = name || char.name;
+                    saveDataModel(model);
+                    renderModelEditor();
+                }
+            }
+        }
+
+        function editAspect(factorId, charId, aspectId) {
+            const model = getDataModel();
+            const factor = model.find(f => f.id === factorId);
+            if (factor) {
+                const char = factor.characteristics.find(c => c.id === charId);
+                if (char) {
+                    const aspect = char.aspects.find(a => a.id === aspectId);
+                    if (aspect) {
+                        const text = prompt("Texto del aspecto:", aspect.text);
+                        if (text === null) return;
+
+                        aspect.text = text || aspect.text;
+                        saveDataModel(model);
+                        renderModelEditor();
+                    }
+                }
+            }
+        }
+
+        // --- Nuevas Funciones para Acreditación Dinámica ---
+
+        async function syncModelWithBackend() {
+            const statusDiv = document.getElementById('syncStatus');
+            statusDiv.innerHTML = '<span style="color: var(--primary-color)">⏳ Sincronizando con Supabase...</span>';
+            
+            const model = getDataModel();
+            try {
+                const resp = await fetch('/api/model', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(model)
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    statusDiv.innerHTML = '<span style="color: #10b981;">✅ Modelo sincronizado correctamente.</span>';
+                    setTimeout(() => statusDiv.innerHTML = '', 3000);
+                } else {
+                    statusDiv.innerHTML = `<span style="color: #ef4444;">❌ Error: ${res.message}</span>`;
+                }
+            } catch (err) {
+                statusDiv.innerHTML = '<span style="color: #ef4444;">❌ Error de conexión con el servidor.</span>';
+            }
+        }
+
+        function injectModel() {
+            const fileInput = document.getElementById('modelFile');
+            if (!fileInput.files[0]) {
+                alert("Por favor selecciona un archivo JSON primero.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedModel = JSON.parse(e.target.result);
+                    
+                    // Validar estructura mínima
+                    if (!Array.isArray(importedModel)) throw new Error("El archivo debe ser un Array de factores.");
+                    
+                    // Asegurar IDs para evitar duplicados si vienen de otro sistema o asignar nuevos si faltan
+                    importedModel.forEach(f => {
+                        if (!f.id) f.id = 'f' + generateId();
+                        f.characteristics?.forEach(c => {
+                            if (!c.id) c.id = 'c' + generateId();
+                            c.aspects?.forEach(a => {
+                                if (!a.id) a.id = 'a' + generateId();
+                            });
+                        });
+                    });
+
+                    if (confirm(`Se han detectado ${importedModel.length} factores. ¿Deseas reemplazar el modelo actual?`)) {
+                        saveDataModel(importedModel);
+                        renderModelEditor();
+                        syncModelWithBackend();
+                    }
+                } catch (err) {
+                    alert("Error al procesar el archivo: " + err.message);
+                }
+            };
+            reader.readAsText(fileInput.files[0]);
+        }
+
+        function exportModel() {
+            const data = getDataModel();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'modelo_siacredit.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Sobrescribir saveDataModel para que sea síncrono en local pero podamos llamar al sync manualmente
+        // o llamarlo automáticamente en cada cambio. Para evitar spam de red, usaremos el botón manual y
+        // algunos automáticos en cambios importantes.
+
+        function assignFactors(email) {
+            const factors = prompt("Ingrese los números de los factores asignados separados por coma (ej: 1,2,5):");
+            if (factors !== null) {
+                const factorsArray = factors.split(',').map(f => parseInt(f.trim())).filter(f => !isNaN(f));
+                
+                // Si es el usuario logueado, actualizar su localStorage
+                if (user.email === email) {
+                    user.assigned_factors = factorsArray;
+                    localStorage.setItem('siac_user', JSON.stringify(user));
+                }
+
+                // Actualizar en el registro de usuarios simulado
+                const regUser = JSON.parse(localStorage.getItem('siac_registered_user'));
+                if (regUser && regUser.email === email) {
+                    regUser.assigned_factors = factorsArray;
+                    localStorage.setItem('siac_registered_user', JSON.stringify(regUser));
+                }
+
+                alert(`Factores [${factorsArray.join(', ')}] asignados a ${email}`);
+                location.reload(); // Recargar para ver cambios
+            }
+        }
+
+        async function init() {
+            await loadDataFromAPI();
+            renderModelEditor();
+        }
+        async function loadInstitution() {
+            const resp = await fetch('/api/institution');
+            const data = await resp.json();
+            document.getElementById('inst_name').value = data.name || '';
+            document.getElementById('inst_logo').value = data.logo_url || '';
+            document.getElementById('inst_program').value = data.program || '';
+            document.getElementById('inst_period').value = data.period || '';
+        }
+
+        async function saveInstitution() {
+            const name = document.getElementById('inst_name').value;
+            const logo_url = document.getElementById('inst_logo').value;
+            const program = document.getElementById('inst_program').value;
+            const period = document.getElementById('inst_period').value;
+            
+            const resp = await fetch('/api/institution', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, logo_url, program, period })
+            });
+            
+            if (resp.ok) {
+                alert('Generalidades guardadas correctamente.');
+                loadInstitution(); // Recargar
+            }
+        }
+
+        // Cargar al inicio
+        loadInstitution();
+
+        function setTheme(themeName) {
+            localStorage.setItem('siac_theme', themeName);
+            document.documentElement.setAttribute('data-theme', themeName);
+        }
+
+        function resetPass(email) {
+            if(confirm(`¿Está seguro de resetear la contraseña del usuario ${email}? Se enviará una clave temporal a su email personal.`)) {
+                alert("Acción completada. Clave reseteada.");
+            }
+        }
+
+        function loadRegisteredUsers() {
+            const regUser = JSON.parse(localStorage.getItem('siac_registered_user'));
+            if(regUser) {
+                const container = document.getElementById('usersTable');
+                const div = document.createElement('div');
+                div.className = 'user-item';
+                div.innerHTML = `
+                    <div class="user-info">
+                        <span class="user-name">${regUser.name}</span>
+                        <span class="user-role">${regUser.email} | Personal: ${regUser.personal_email}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:15px">
+                        <span class="role-badge ${regUser.role === 'admin' ? 'role-admin' : 'role-leader'}">${regUser.role.toUpperCase()}</span>
+                        <button onclick="assignFactors('${regUser.email}')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color)">Asignar Factores</button>
+                        <button onclick="resetPass('${regUser.email}')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color)">Resetear Clave</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        function renderEvidenceList(evidences) {
+            const container = document.getElementById('evidenceList');
+            container.innerHTML = '';
+            evidences.forEach(ev => {
+                const showActions = (user.role === 'admin' || user.role === 'lider') && ev.status === 'pendiente';
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><a href="${ev.file_url}" target="_blank" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">${ev.name}</a></td>
+                    <td style="font-size: 0.85rem; color: var(--text-muted);">${ev.uploaded_by || 'Operativo de Dependencia'}</td>
+                    <td style="font-size: 0.85rem;">${new Date(ev.created_at).toLocaleDateString()}</td>
+                    <td><span class="status-badge status-${ev.status}">${ev.status.toUpperCase()}</span></td>
+                    <td>
+                        ${showActions ? `
+                            <button onclick="updateEvidenceStatus('${ev.id}', 'aprobado')" class="btn-primary" style="padding: 4px 8px; font-size: 0.75rem; background: #10b981;">Aprobar</button>
+                            <button onclick="updateEvidenceStatus('${ev.id}', 'rechazado')" class="btn-secondary" style="padding: 4px 8px; font-size: 0.75rem; background: #ef4444; border-color: #ef4444;">Rechazar</button>
+                        ` : (ev.status === 'aprobado' ? '<span style="color: #10b981; font-size: 0.8rem;">✓ Validado por Líder</span>' : '-')}
+                    </td>
+                `;
+                container.appendChild(tr);
+            });
+        }
+        
+        loadRegisteredUsers();
+
+        function inviteUser() {
+            const email = prompt("Ingrese el correo institucional del invitado:");
+            if (email) {
+                alert(`Invitación enviada a ${email}. Se le ha asignado el rol de Operativo por defecto.`);
+            }
+        }
+
+        init();
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

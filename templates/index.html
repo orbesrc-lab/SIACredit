@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIAC - Gestión de Evidencias CESU 2025</title>
+    <meta name="description" content="Plataforma de Gestión de Evidencias para Acreditación de Programas Académicos - Acuerdo 01 de 2025 CESU">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="announcement-bar">
+        <span>Basado en el modelo de evaluación: Acuerdo 01 de 2025 del CESU. <a href="#">Conocer más →</a></span>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>SIACredit</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Módulos</a>
+                <a href="#factors">Factores (12)</a>
+                <a href="#resources">Recursos</a>
+                <a href="#faq">FAQ</a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-ghost" onclick="window.location.href='login.html'">Ingresar</button>
+                <button class="btn-primary" onclick="window.location.href='login.html'">Solicitar Demo</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <div class="trust-badge">
+                    <span class="dot"></span> Cumplimiento normativo 2025
+                </div>
+                <h1>Acreditación Académica.<br>Organizada y Trazable.</h1>
+                <p>La plataforma definitiva para gestionar las evidencias del proceso de autoevaluación de programas de educación superior en Colombia. Todo en un solo lugar.</p>
+                
+                <ul class="hero-checklist">
+                    <li><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg> 12 Factores del CNA</li>
+                    <li><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg> Almacenamiento seguro en la nube</li>
+                    <li><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg> Generación automática de informes</li>
+                    <li><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg> Gestión por roles (Administrador, Líder)</li>
+                </ul>
+
+                <div class="hero-cta">
+                    <button class="btn-primary large" onclick="window.location.href='login.html'">Comenzar ahora →</button>
+                    <button class="btn-secondary large">Ver presentación</button>
+                </div>
+            </div>
+            
+            <div class="hero-visual">
+                <div class="mockup-window">
+                    <div class="mockup-header">
+                        <span class="mockup-dot red"></span>
+                        <span class="mockup-dot yellow"></span>
+                        <span class="mockup-dot green"></span>
+                    </div>
+                    <div class="mockup-sidebar">
+                        <div class="sidebar-item active">Dashboard</div>
+                        <div class="sidebar-item">Instituciones</div>
+                        <div class="sidebar-item">Evidencias</div>
+                        <div class="sidebar-item">Autoevaluación</div>
+                        <div class="sidebar-item">Informes</div>
+                    </div>
+                    <div class="mockup-content">
+                        <div class="mockup-title">Visión General - Prog. Ing. Sistemas</div>
+                        <div class="dashboard-grid">
+                            <div class="dash-card">
+                                <h3>Avance Global</h3>
+                                <div class="progress-circle">72%</div>
+                            </div>
+                            <div class="dash-card">
+                                <h3>Evidencias</h3>
+                                <p><strong>345</strong> Subidas</p>
+                                <p><strong>120</strong> Aprobadas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features-section">
+            <div class="section-header">
+                <span class="badge">Módulos Principales</span>
+                <h2>Todo lo necesario para tu acreditación.<br>Nada que no necesites.</h2>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📁</div>
+                    <h3>Gestión de Evidencias</h3>
+                    <p>Sube, clasifica y aprueba documentos probatorios. Soporte para PDF, DOCX, imágenes y más, con control de versiones.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Autoevaluación</h3>
+                    <p>Califica los aspectos en escala 1-5, justifica y detecta fortalezas o debilidades con un dashboard visual tipo semáforo.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📑</div>
+                    <h3>Generación de Informes</h3>
+                    <p>Exporta el cuadro de autoevaluación y planes de mejora en los formatos oficiales requeridos por el CNA (PDF/Excel).</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>Gestión por Roles</h3>
+                    <p>Delega tareas fácilmente a Líderes de Factor y Usuarios Operativos manteniendo control total como Administrador.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-it-works" class="steps-section">
+            <div class="section-header align-left">
+                <span class="badge">Cómo Funciona</span>
+                <h2>Configura. Asigna. Entrega.</h2>
+                <p>Deja de perder tiempo buscando documentos. SIACredit te permite organizar tu equipo en minutos.</p>
+            </div>
+            
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-icon">1</div>
+                    <h3>Configura tu programa</h3>
+                    <p>Crea el programa e importa automáticamente los 12 factores y 48 características del Acuerdo 01.</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-icon">2</div>
+                    <h3>Asigna roles</h3>
+                    <p>Invita a líderes de factor y personal operativo para empezar la recolección distribuida.</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-icon">3</div>
+                    <h3>Evalúa y aprueba</h3>
+                    <p>Revisa las evidencias, realiza la ponderación y monitorea el avance en tiempo real.</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-icon">4</div>
+                    <h3>Genera el informe</h3>
+                    <p>Exporta todo el consolidado listo para ser presentado ante el Consejo Nacional de Acreditación.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="bottom-cta">
+            <div class="cta-content">
+                <h2>Tu mejor trabajo<br>empieza hoy.</h2>
+                <button class="btn-primary large" onclick="window.location.href='login.html'">Comenzar Gratis →</button>
+                <div class="cta-guarantees">
+                    <span><svg viewBox="0 0 20 20" fill="currentColor" width="16"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg> Sin tarjeta de crédito</span>
+                    <span><svg viewBox="0 0 20 20" fill="currentColor" width="16"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg> Setup inmediato</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>SIACredit</span>
+                </div>
+                <p>Desarrollado para instituciones de educación superior en Colombia.</p>
+            </div>
+            <div class="footer-links">
+                <div class="link-group">
+                    <h4>Producto</h4>
+                    <a href="#">Módulos</a>
+                    <a href="#">Precios</a>
+                    <a href="#">Seguridad</a>
+                </div>
+                <div class="link-group">
+                    <h4>Recursos</h4>
+                    <a href="#">Guía Acuerdo 01</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Soporte</a>
+                </div>
+                <div class="link-group">
+                    <h4>Legal</h4>
+                    <a href="#">Privacidad</a>
+                    <a href="#">Términos</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

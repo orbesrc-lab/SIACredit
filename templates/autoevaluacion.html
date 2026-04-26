@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autoevaluación - SIACredit</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body { background-color: var(--secondary-bg); display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 250px; background: #0f172a; color: #94a3b8; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; font-size: 1.25rem; font-weight: 700; color: var(--white); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-menu { flex: 1; padding: 20px 0; }
+        .sidebar-item { padding: 12px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; transition: 0.2s; }
+        .sidebar-item:hover, .sidebar-item.active { background: rgba(255, 255, 255, 0.1); color: var(--white); border-left: 3px solid var(--primary-color); }
+        
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: hidden; }
+        .topbar { background: var(--white); padding: 15px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        
+        .layout-split { display: flex; flex: 1; overflow: hidden; }
+        .left-panel { width: 350px; background: var(--white); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow-y: auto; }
+        .right-panel { flex: 1; padding: 30px; overflow-y: auto; background: var(--secondary-bg); }
+        
+        .factor-header { padding: 15px 20px; font-weight: 600; background: #f8fafc; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-size: 0.95rem; }
+        .char-item { padding: 15px 20px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; }
+        .char-item:hover { background: #f1f5f9; }
+        .char-item.active { background: #eef2ff; border-left: 3px solid var(--primary-color); }
+        .char-title { font-weight: 600; color: var(--text-main); font-size: 0.95rem; margin-bottom: 5px; }
+        
+        .eval-card { background: var(--white); border-radius: 12px; padding: 30px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 25px; }
+        .eval-card h4 { font-size: 1.1rem; margin-bottom: 15px; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        
+        .rating-group { display: flex; gap: 15px; margin-bottom: 20px; }
+        .rating-btn { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--border-color); background: transparent; font-size: 1.1rem; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .rating-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+        .rating-btn.selected { background: var(--primary-color); color: var(--white); border-color: var(--primary-color); }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem; }
+        .form-group textarea { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-family: var(--font-main); resize: vertical; min-height: 80px; }
+        
+        .evidence-tag { display: inline-block; padding: 4px 10px; background: #f1f5f9; border: 1px solid var(--border-color); border-radius: 15px; font-size: 0.75rem; color: var(--text-muted); margin-right: 5px; margin-bottom: 15px; }
+        .evidence-tag svg { width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 3px; }
+        
+        .save-btn { float: right; margin-top: 10px; }
+        .clearfix::after { content: ""; clear: both; display: table; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--primary-color)" stroke-width="2"/>
+            </svg>
+            SIACredit
+        </div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
+            <a href="evidencias.html" class="sidebar-item">📁 Evidencias</a>
+            <a href="autoevaluacion.html" class="sidebar-item active">📝 Autoevaluación</a>
+            <a href="informes.html" class="sidebar-item">📄 Informes</a>
+            <a href="estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
+            <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div><h2 style="font-size: 1.25rem; margin: 0;">Autoevaluación (Ponderación 1 a 5)</h2></div>
+            <div id="userInfo" style="font-weight: 500;"></div>
+        </header>
+
+        <div class="layout-split">
+            <!-- Panel izquierdo: Estructura del CNA -->
+            <div class="left-panel" id="sidebarFactors">
+                <!-- Dynamically populated via JS -->
+            </div>
+
+            <!-- Panel derecho: Cuestionario de evaluación por aspecto -->
+            <div class="right-panel" id="evalContainer">
+                <!-- Se inyecta por JS -->
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='data.js') }}"></script>
+    <script>
+        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'admin@universidad.edu.co', role: 'admin' };
+        document.getElementById('userInfo').textContent = user.email;
+
+        // Ratings interactivos (Estado UI)
+        const currentRatingsUI = {};
+
+        // Renderizar el panel izquierdo
+        function renderSidebar() {
+            const container = document.getElementById('sidebarFactors');
+            const model = getDataModel();
+            const evaluations = getEvaluations();
+            let html = '';
+
+            if (model.length === 0) {
+                html = '<div style="padding: 20px; color: var(--text-muted); text-align: center;">No hay factores configurados en el modelo.</div>';
+            }
+
+            const assignedFactors = user.assigned_factors || [1, 2]; // Demo
+
+            model.forEach(factor => {
+                // Filtrar por líder: si tiene factores asignados, solo mostrar esos. Si no tiene ninguno, mostrar mensaje o nada.
+                if (user.role === 'lider' && assignedFactors.length > 0 && !assignedFactors.includes(parseInt(factor.number))) {
+                    return;
+                }
+                html += `<div class="factor-header">Factor ${factor.number}: ${factor.name}</div>`;
+                
+                let factorScore = 0;
+                
+                factor.characteristics.forEach(char => {
+                    const evalData = evaluations[char.id];
+                    const charScore = (evalData && evalData.rating > 0) ? parseFloat(evalData.rating) : 0;
+                    const charWeighted = (charScore * (char.weight || 0) / 100).toFixed(2);
+                    factorScore += parseFloat(charWeighted);
+
+                    const color = charScore > 0 ? '#10b981' : 'var(--text-muted)';
+                    const evaluatedText = charScore > 0 ? 'Evaluada' : 'Pendiente';
+
+                    html += `
+                        <div class="char-item" onclick="loadEvaluation('${factor.id}', '${char.id}')" id="char_tab_${char.id}">
+                            <div class="char-title" style="display:flex; justify-content:space-between;">
+                                <span>${char.number} ${char.name}</span>
+                                <span style="font-size: 0.8rem; color: var(--primary-color);">${charScore.toFixed(2)} / 5.0</span>
+                            </div>
+                            <div style="font-size: 0.8rem; color: ${color};">${evaluatedText} | Peso: ${char.weight||0}%</div>
+                        </div>
+                    `;
+                });
+                
+                const factorWeighted = (factorScore * (factor.weight || 0) / 100).toFixed(2);
+                html = html.replace(`Factor ${factor.number}: ${factor.name}`, `Factor ${factor.number}: ${factor.name} <div style="font-size:0.8rem; margin-top:5px; color:var(--primary-color);">Nota: ${factorScore.toFixed(2)} | Aporta: ${factorWeighted} al Global</div>`);
+            });
+
+            container.innerHTML = html;
+        }
+
+        function loadEvaluation(factorId, charId) {
+            document.querySelectorAll('.char-item').forEach(el => el.classList.remove('active'));
+            const tab = document.getElementById(`char_tab_${charId}`);
+            if (tab) tab.classList.add('active');
+
+            const container = document.getElementById('evalContainer');
+            const model = getDataModel();
+            const evalsData = getEvaluations();
+            const evidencesData = getEvidences();
+            const reportsData = getExternalReports();
+            
+            let characteristic = null;
+            model.forEach(f => {
+                if (f.id === factorId) {
+                    const found = f.characteristics.find(c => c.id === charId);
+                    if (found) characteristic = found;
+                }
+            });
+
+            if(!characteristic) {
+                container.innerHTML = '<h2>Característica no encontrada</h2>';
+                return;
+            }
+
+            const extReport = reportsData[charId];
+            const reportHtml = extReport 
+                ? `<div style="margin-top: 10px; font-size: 0.9rem; color: #10b981;">✅ Informe adjunto: <strong>${extReport.name}</strong></div>` 
+                : `<div style="margin-top: 10px; font-size: 0.9rem; color: var(--text-muted);">Sin informe estadístico externo adjunto.</div>`;
+
+            let html = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; margin-bottom: 5px;">Característica ${characteristic.number}: ${characteristic.name}</h2>
+                        ${reportHtml}
+                    </div>
+                    <div>
+                        <label class="btn-secondary" style="cursor: pointer; display: inline-block; text-align: center;">
+                            <input type="file" style="display:none;" onchange="uploadExternalReport(this, '${charId}')">
+                            📎 Adjuntar Informe Externo
+                        </label>
+                    </div>
+                </div>
+            `;
+            
+            const isOperativo = user.role === 'operativo';
+            const charEval = evalsData[charId] || { rating: 0, just: '' };
+
+            let aspectsHtml = '<div style="margin-bottom: 25px;"><h3 style="font-size: 1.2rem; margin-bottom: 15px;">Contexto a Evaluar (Aspectos y Evidencias)</h3>';
+            if (characteristic.aspects.length === 0) {
+                aspectsHtml += '<p style="color: var(--text-muted);">No hay aspectos configurados.</p>';
+            } else {
+                characteristic.aspects.forEach((aspect, index) => {
+                    const aspectEvs = evidencesData.filter(ev => ev.aspect_id === aspect.id);
+                    let evList = '';
+                    if (aspectEvs.length === 0) {
+                        evList = '<div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Sin evidencias adjuntas.</div>';
+                    } else {
+                        evList = '<ul style="margin: 5px 0 0 20px; font-size: 0.85rem; color: var(--primary-color);">';
+                        aspectEvs.forEach(ev => {
+                            evList += `<li>📄 <a href="${ev.file_url}" target="_blank" style="color:inherit; text-decoration:none;">${ev.name}</a> <span style="color:var(--text-muted); font-size:0.75rem;">(${ev.status.toUpperCase()})</span></li>`;
+                        });
+                        evList += '</ul>';
+                    }
+
+                    aspectsHtml += `
+                        <div style="background: var(--white); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 10px;">
+                            <div style="font-weight: 500; font-size: 0.95rem;">Aspecto ${index + 1}: ${aspect.text}</div>
+                            ${evList}
+                        </div>
+                    `;
+                });
+            }
+            aspectsHtml += '</div>';
+
+            html += aspectsHtml;
+
+            html += `
+                <div class="eval-card clearfix" id="card_${charId}">
+                    <h4>Calificación General de la Característica</h4>
+                    ${isOperativo ? '<p style="color: #ef4444; font-size: 0.85rem; margin-bottom: 15px;">⚠️ Modo Lectura: No tienes permisos para calificar.</p>' : ''}
+                    
+                    <div class="form-group">
+                        <label>Calificación Cuantitativa (0.0 a 5.0)</label>
+                        <div class="rating-group">
+                            <input type="number" id="rating_${charId}" min="0" max="5" step="0.1" 
+                                value="${charEval.rating > 0 ? charEval.rating : ''}" 
+                                placeholder="Ej. 4.5" 
+                                ${isOperativo ? 'disabled' : ''}
+                                style="width: 150px; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-family: var(--font-main); font-size: 1.1rem; text-align: center; ${isOperativo ? 'background:#f1f5f9; cursor:not-allowed;' : ''}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Justificación del Juicio de Valor (Análisis Integral)</label>
+                        <textarea id="just_${charId}" 
+                            ${isOperativo ? 'disabled' : ''}
+                            style="${isOperativo ? 'background:#f1f5f9; cursor:not-allowed;' : ''}"
+                            placeholder="Justifique la calificación asignada a esta característica...">${charEval.just}</textarea>
+                    </div>
+                    
+                    ${isOperativo ? '' : `<button class="btn-primary save-btn" onclick="saveCharEval('${charId}')">Guardar Calificación</button>`}
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        async function uploadExternalReport(input, charId) {
+            if(user.role === 'operativo') {
+                alert('No tienes permisos para adjuntar informes externos.');
+                return;
+            }
+            if(input.files && input.files[0]) {
+                const file = input.files[0];
+                const reportsData = getExternalReports();
+                reportsData[charId] = { name: file.name, date: new Date().toISOString().split('T')[0] };
+                saveExternalReports(reportsData);
+                
+                // Recargar vista
+                const activeTab = document.querySelector('.char-item.active');
+                if (activeTab) activeTab.click();
+            }
+        }
+
+        function saveCharEval(charId) {
+            const just = document.getElementById(`just_${charId}`).value;
+            const evalsData = getEvaluations();
+            const ratingInput = document.getElementById(`rating_${charId}`).value;
+            const rating = parseFloat(ratingInput) || 0;
+
+            if(!rating) {
+                alert("Seleccione una calificación antes de guardar.");
+                return;
+            }
+
+            evalsData[charId] = { rating, just };
+            saveEvaluations(evalsData);
+
+            const btn = document.querySelector(`#card_${charId} .save-btn`);
+            btn.textContent = "¡Guardado!";
+            btn.style.background = "#10b981";
+            
+            // Renderizar la barra para actualizar los contadores
+            renderSidebar();
+            
+            setTimeout(() => {
+                btn.textContent = "Guardar Calificación";
+                btn.style.background = "";
+                // Mantener el tab activo
+                const activeTab = document.querySelector('.char-item.active');
+                if (activeTab) {
+                    activeTab.classList.add('active');
+                }
+            }, 2000);
+        }
+
+        async function init() {
+            await loadDataFromAPI();
+            renderSidebar();
+            setTimeout(() => {
+                const firstTab = document.querySelector('.char-item');
+                if(firstTab) firstTab.click();
+            }, 100);
+        }
+        init();
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+flask
+flask-cors
+python-dotenv
+supabase
+postgrest
+httpx
+storage3
+realtime
