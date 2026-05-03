@@ -170,7 +170,7 @@
 
         async function loadSummary() {
             try {
-                const response = await fetch('/api/reports/summary');
+                const response = await fetch(`/api/reports/summary?inst_id=${getInstId()}`);
                 const data = await response.json();
                 const tbody = document.getElementById('summaryBody');
                 tbody.innerHTML = '';
@@ -226,7 +226,7 @@
 
         async function loadInstitution() {
             try {
-                const resp = await fetch('/api/institution');
+                const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
                 const data = await resp.json();
                 document.getElementById('inst_name_display').textContent = data.name;
                 if (data.logo_url) {

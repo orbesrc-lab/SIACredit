@@ -144,7 +144,7 @@
             const model = getDataModel();
             
             // Obtener evidencias desde API
-            const response = await fetch(`/api/evidences`);
+            const response = await fetch(`/api/evidences?inst_id=${getInstId()}`);
             currentEvidences = await response.json();
             
             let characteristic = null;
@@ -226,6 +226,7 @@
             formData.append('aspect_id', aspectId);
             formData.append('period', period);
             formData.append('email', user.email);
+            formData.append('inst_id', getInstId());
             formData.append('dependency', 'Dirección Académica'); // Simulado por ahora
 
             input.parentElement.innerHTML = 'Subiendo archivo...';
@@ -249,7 +250,7 @@
         async function deleteEvidence(id) {
             if(!confirm('¿Estás seguro de eliminar esta evidencia? Esta acción no se puede deshacer.')) return;
             try {
-                const response = await fetch(`/api/evidences/${id}`, { method: 'DELETE' });
+                const response = await fetch(`/api/evidences/${id}?inst_id=${getInstId()}`, { method: 'DELETE' });
                 const result = await response.json();
                 if(result.status === 'success') {
                     loadAspects(document.querySelector('.char-item.active').id.replace('char_tab_', ''));
@@ -261,7 +262,7 @@
 
         async function updateStatus(id, status) {
 
-            await fetch('/api/evidences/status', {
+            await fetch(`/api/evidences/status?inst_id=${getInstId()}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id, status })

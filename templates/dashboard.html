@@ -214,7 +214,7 @@
         });
         async function loadInstitution() {
             try {
-                const resp = await fetch('/api/institution');
+                const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
                 const data = await resp.json();
                 if (data.program) document.getElementById('header_program').textContent = data.program;
                 if (data.period) document.getElementById('header_period').textContent = data.period;

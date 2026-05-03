@@ -224,6 +224,20 @@
 
         <div class="content-area">
             <h1 style="font-size: 1.8rem; margin-bottom: 30px;">Configuración del Sistema</h1>
+            
+            <!-- Selección de Institución (Solo para Admins) -->
+            <div id="instSelectorCard" class="settings-card" style="display: none; border-bottom: 3px solid var(--primary-color);">
+                <h3>Seleccionar Organización</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Como administrador, puedes cambiar entre instituciones o crear una nueva.</p>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <select id="instSelect" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <!-- Dinámico -->
+                    </select>
+                    <button class="btn-primary" onclick="changeCurrentInst()">Cambiar</button>
+                    <button class="btn-secondary" onclick="addNewInstitution()">+ Nueva Institución</button>
+                </div>
+            </div>
+
 
             <!-- Generalidades -->
             <div class="settings-card">
@@ -739,7 +753,7 @@
 
             const model = getDataModel();
             try {
-                const resp = await fetch('/api/model', {
+                const resp = await fetch(`/api/model?inst_id=${getInstId()}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(model)
@@ -835,9 +849,11 @@
         async function init() {
             await loadDataFromAPI();
             renderModelEditor();
+            loadAllInstitutions();
         }
+
         async function loadInstitution() {
-            const resp = await fetch('/api/institution');
+            const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
             const data = await resp.json();
             document.getElementById('inst_name').value = data.name || '';
             document.getElementById('inst_logo').value = data.logo_url || '';
@@ -851,7 +867,7 @@
             const program = document.getElementById('inst_program').value;
             const period = document.getElementById('inst_period').value;
 
-            const resp = await fetch('/api/institution', {
+            const resp = await fetch(`/api/institution?inst_id=${getInstId()}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, logo_url, program, period })
@@ -930,7 +946,87 @@
             }
         }
 
+        async function loadAllInstitutions() {
+            if (user.role === 'admin') {
+                document.getElementById('instSelectorCard').style.display = 'block';
+                const resp = await fetch('/api/institutions');
+                const list = await resp.json();
+                const select = document.getElementById('instSelect');
+                select.innerHTML = '';
+                list.forEach(inst => {
+                    const opt = document.createElement('option');
+                    opt.value = inst.id;
+                    opt.textContent = `${inst.name} (${inst.program})`;
+                    if (inst.id === getInstId()) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        function changeCurrentInst() {
+            const newId = document.getElementById('instSelect').value;
+            const userData = JSON.parse(localStorage.getItem('siac_user'));
+            userData.inst_id = parseInt(newId);
+            localStorage.setItem('siac_user', JSON.stringify(userData));
+            location.reload();
+        }
+
+        async function addNewInstitution() {
+            const name = prompt("Nombre de la nueva Institución:");
+            if (!name) return;
+            const program = prompt("Programa Académico:");
+            if (!program) return;
+
+            try {
+                const resp = await fetch('/api/institutions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, program })
+                });
+                const result = await resp.json();
+                if (result.status === 'success') {
+                    alert(`Institución '${name}' creada. ID: ${result.data.id}`);
+                    loadAllInstitutions();
+                }
+            } catch (err) {
+                alert("Error al crear institución");
+            }
+        }
+
+        async function updatePassword() {
+
+            const old_password = document.getElementById('old_password').value;
+            const new_password = document.getElementById('new_password').value;
+            if (!old_password || !new_password) {
+                alert("Por favor complete ambos campos.");
+                return;
+            }
+            try {
+                const response = await fetch(`/api/change-password?inst_id=${getInstId()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email: user.email,
+                        old_password: old_password,
+                        new_password: new_password
+                    })
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    alert("Contraseña actualizada correctamente.");
+                    document.getElementById('old_password').value = '';
+                    document.getElementById('new_password').value = '';
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error al actualizar contraseña.");
+            }
+        }
+
         init();
+
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
