@@ -29,6 +29,11 @@ def index():
 def login():
     return render_template('login.html')
 
+@app.route('/registro.html')
+@app.route('/registro')
+def registro():
+    return render_template('registro.html')
+
 @app.route('/dashboard.html')
 def dashboard():
     return render_template('dashboard.html')

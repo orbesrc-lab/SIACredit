@@ -59,21 +59,51 @@
         </div>
     </div>
     <script>
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const data = {
-                name: document.getElementById('fullName').value,
-                email: document.getElementById('emailInst').value,
-                personal_email: document.getElementById('emailPers').value,
-                institution: document.getElementById('institution').value,
-                role: document.getElementById('role').value,
-                password: document.getElementById('password').value
-            };
+            const btn = document.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.textContent = 'Registrando...';
             
-            // Guardar en simulación (localStorage)
-            localStorage.setItem('siac_registered_user', JSON.stringify(data));
-            alert('¡Registro exitoso! Ahora puedes iniciar sesión.');
-            window.location.href = 'login.html';
+            const name = document.getElementById('fullName').value;
+            const email = document.getElementById('emailInst').value;
+            const institution = document.getElementById('institution').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                // 1. Crear institución
+                const instResp = await fetch('/api/institutions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: institution, program: 'General', period: '2024-2026' })
+                });
+                const instResult = await instResp.json();
+                
+                if (instResult.status !== 'success') {
+                    alert('Error creando institución: ' + instResult.message);
+                    btn.disabled = false; return;
+                }
+                const newInstId = instResult.data.id;
+
+                // 2. Crear usuario como inst_admin
+                const userResp = await fetch(`/api/users?inst_id=${newInstId}&program_id=0`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, email: email, role: 'inst_admin', password: password })
+                });
+                const userResult = await userResp.json();
+
+                if (userResult.status === 'success') {
+                    alert('¡Registro exitoso! Tu institución ha sido creada. Ahora puedes iniciar sesión con tu correo y contraseña.');
+                    window.location.href = 'login.html';
+                } else {
+                    alert('Error creando usuario: ' + userResult.message);
+                }
+            } catch (err) {
+                alert('Error de conexión con el servidor.');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Registrarse';
         });
     </script>
 </body>
