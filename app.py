@@ -69,10 +69,17 @@ def handle_model():
             for f in data:
                 incoming_f_ids.add(f['id'])
                 # Upsert Factor
-                supabase.table('factors').upsert({
-                    "id": f['id'], "number": f['number'], "name": f['name'], 
-                    "weight": f.get('weight', 0), "inst_id": inst_id
-                }).execute()
+                try:
+                    supabase.table('factors').upsert({
+                        "id": f['id'], "number": f['number'], "name": f['name'], 
+                        "weight": f.get('weight', 0), "inst_id": inst_id,
+                        "leader_id": f.get('leader_id') or None
+                    }).execute()
+                except Exception:
+                    supabase.table('factors').upsert({
+                        "id": f['id'], "number": f['number'], "name": f['name'], 
+                        "weight": f.get('weight', 0), "inst_id": inst_id
+                    }).execute()
                 
                 for c in f.get('characteristics', []):
                     supabase.table('characteristics').upsert({
@@ -96,7 +103,11 @@ def handle_model():
             return jsonify({"status": "error", "message": str(e)}), 500
 
     try:
-        res = supabase.table('factors').select("*, characteristics(*, aspects(*))").eq("inst_id", inst_id).execute()
+        try:
+            res = supabase.table('factors').select("*, characteristics(*, aspects(*)), leader_id").eq("inst_id", inst_id).execute()
+        except Exception:
+            res = supabase.table('factors').select("*, characteristics(*, aspects(*))").eq("inst_id", inst_id).execute()
+            
         sorted_data = sorted(res.data, key=lambda x: float(x['number']))
         return jsonify(sorted_data)
     except Exception as e:
