@@ -14,14 +14,29 @@
 }
 
 [data-theme="dark"] {
-    --primary-color: #6366f1;
-    --primary-hover: #818cf8;
+    --primary-color: #818cf8;
+    --primary-hover: #a5b4fc;
     --secondary-bg: #0f172a;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
     --border-color: #334155;
     --white: #1e293b;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
 }
+
+body {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
 
 [data-theme="emerald"] {
     --primary-color: #059669;

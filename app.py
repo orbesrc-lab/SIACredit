@@ -123,11 +123,20 @@ def handle_model():
 def handle_evaluations():
     if request.method == 'POST':
         data = request.json
-        supabase.table('evaluations').upsert({
-            "char_id": data['char_id'],
-            "rating": data['rating'],
-            "just": data['just']
-        }).execute()
+        # Support both single evaluation and batch dictionary
+        if isinstance(data, dict) and "char_id" in data:
+            supabase.table('evaluations').upsert({
+                "char_id": data['char_id'],
+                "rating": data['rating'],
+                "just": data['just']
+            }).execute()
+        else:
+            for char_id, eval_data in data.items():
+                supabase.table('evaluations').upsert({
+                    "char_id": char_id,
+                    "rating": eval_data.get('rating', 0),
+                    "just": eval_data.get('just', '')
+                }).execute()
         return jsonify({"status": "success"})
 
     try:
@@ -162,7 +171,9 @@ def handle_institution():
         supabase.table('institution').upsert({
             "id": 1,
             "name": data.get('name'),
-            "logo_url": data.get('logo_url')
+            "logo_url": data.get('logo_url'),
+            "program": data.get('program'),
+            "period": data.get('period')
         }).execute()
         return jsonify({"status": "success"})
 
@@ -172,25 +183,44 @@ def handle_institution():
             return jsonify(inst.data[0])
     except:
         pass
-    return jsonify({"name": "Nombre Institución", "logo_url": ""})
+    return jsonify({"name": "Nombre Institución", "logo_url": "", "program": "Ingeniería de Sistemas", "period": "2026-1"})
 
 @app.route('/api/reports/summary')
 def report_summary():
-    # Simulación de resumen para no fallar si no hay tablas
-    return jsonify([
-        {"name": "Factor 1", "avg": 4.5, "cumplimiento": 90},
-        {"name": "Factor 2", "avg": 3.2, "cumplimiento": 64}
-    ])
+    try:
+        # Dynamic summary based on factors and evaluations
+        factors = supabase.table('factors').select("*, characteristics(id, weight)").execute().data
+        evals = supabase.table('evaluations').select("char_id, rating").execute().data
+        eval_map = {e['char_id']: e['rating'] for e in evals}
+        
+        summary = []
+        for f in factors:
+            factor_score = 0
+            total_weight = 0
+            for c in f.get('characteristics', []):
+                rating = eval_map.get(c['id'], 0)
+                weight = c.get('weight', 0)
+                factor_score += rating * (weight / 100)
+                total_weight += weight
+            
+            summary.append({
+                "name": f"Factor {f['number']}: {f['name']}",
+                "avg": round(factor_score, 2),
+                "cumplimiento": round((factor_score / 5) * 100, 1) if factor_score > 0 else 0
+            })
+        return jsonify(summary)
+    except Exception as e:
+        print(f"Error in summary: {e}")
+        return jsonify([])
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze_stats():
     req_data = request.json
     table_id = req_data.get('table_id')
-    all_data = req_data.get('all_data', {})
     analysis = ["**Análisis por API de Supabase:** Datos procesados correctamente."]
-    
     if table_id == 'table_estudiantes':
         analysis.append("Se observa tendencia estable en la matrícula.")
+    return jsonify({"analysis": analysis})
     
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
@@ -205,22 +235,15 @@ def upload_file():
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
-    # Subir a Supabase Storage
     file_path = f"{aspect_id}/{file.filename}"
     try:
-        # Leer contenido del archivo
         file_content = file.read()
-        # Subir a Storage
-        storage_res = supabase.storage.from_('evidencias').upload(
+        supabase.storage.from_('evidencias').upload(
             path=file_path,
             file=file_content,
             file_options={"content-type": file.content_type}
         )
-        
-        # Obtener URL pública
         file_url = supabase.storage.from_('evidencias').get_public_url(file_path)
-        
-        # Registrar en la tabla de evidencias
         supabase.table('evidences').insert({
             "aspect_id": aspect_id,
             "name": file.filename,
@@ -229,7 +252,6 @@ def upload_file():
             "dependency": dependency,
             "status": "pendiente"
         }).execute()
-        
         return jsonify({"status": "success", "url": file_url})
     except Exception as e:
         print(f"Error uploading: {e}")
@@ -241,9 +263,22 @@ def get_evidences():
     query = supabase.table('evidences').select("*")
     if aspect_id:
         query = query.eq("aspect_id", aspect_id)
-    
     res = query.execute()
     return jsonify(res.data)
+
+@app.route('/api/evidences/<int:evidence_id>', methods=['DELETE'])
+def delete_evidence(evidence_id):
+    try:
+        # Get file info to delete from storage too if possible
+        ev = supabase.table('evidences').select("*").eq("id", evidence_id).execute().data
+        if ev:
+            # Optionally delete from storage (need path)
+            # For now just database
+            supabase.table('evidences').delete().eq("id", evidence_id).execute()
+            return jsonify({"status": "success"})
+        return jsonify({"error": "Not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/evidences/status', methods=['POST'])
 def update_evidence_status():
@@ -255,3 +290,4 @@ def update_evidence_status():
 
 if __name__ == '__main__':
     app.run(debug=True)
+

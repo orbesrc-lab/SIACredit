@@ -5,8 +5,19 @@
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Theme Toggle Handler
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'default' : 'dark';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            localStorage.setItem('siac_theme', currentTheme);
+        });
+    }
+
     // Control de visibilidad por roles en el menú
     const user = JSON.parse(localStorage.getItem('siac_user'));
+
     if (user && user.role) {
         const role = user.role.toLowerCase();
         const menuItems = document.querySelectorAll('.sidebar-item');

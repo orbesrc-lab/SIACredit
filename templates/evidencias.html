@@ -70,10 +70,14 @@
     <main class="main-content">
         <header class="topbar">
             <div><h2 style="font-size: 1.25rem; margin: 0;">Gestión de Evidencias (Modelo Acuerdo 01/2025)</h2></div>
-            <div id="userInfo" style="font-weight: 500;"></div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <button id="themeToggle" class="btn-ghost" style="padding: 5px 10px; font-size: 1.2rem;" title="Cambiar Tema">🌓</button>
+                <div id="userInfo" style="font-weight: 500;"></div>
+            </div>
         </header>
 
-        <div class="layout-split">
+        <div class="layout-split fade-in">
+
             <!-- Panel izquierdo: Estructura del CNA -->
             <div class="left-panel" id="sidebarFactors">
                 <!-- Dynamically populated via JS -->
@@ -173,6 +177,10 @@
                                         <button onclick="updateStatus(${ev.id}, 'aprobado')" class="btn-ghost" style="padding:2px 8px; color:green; border:1px solid green">Aprobar</button>
                                         <button onclick="updateStatus(${ev.id}, 'rechazado')" class="btn-ghost" style="padding:2px 8px; color:red; border:1px solid red">Rechazar</button>
                                     ` : ''}
+                                    ${(user.role === 'admin' || ev.user_email === user.email) ? `
+                                        <button onclick="deleteEvidence(${ev.id})" class="btn-ghost" style="padding:2px 8px; color:#ef4444; border:1px solid #ef4444">Eliminar</button>
+                                    ` : ''}
+
                                 </div>
                             </div>
                         `;
@@ -238,7 +246,21 @@
             }
         }
 
+        async function deleteEvidence(id) {
+            if(!confirm('¿Estás seguro de eliminar esta evidencia? Esta acción no se puede deshacer.')) return;
+            try {
+                const response = await fetch(`/api/evidences/${id}`, { method: 'DELETE' });
+                const result = await response.json();
+                if(result.status === 'success') {
+                    loadAspects(document.querySelector('.char-item.active').id.replace('char_tab_', ''));
+                } else {
+                    alert('Error al eliminar: ' + (result.error || 'Desconocido'));
+                }
+            } catch (e) { console.error(e); }
+        }
+
         async function updateStatus(id, status) {
+
             await fetch('/api/evidences/status', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

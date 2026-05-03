@@ -66,10 +66,14 @@
     <main class="main-content">
         <header class="topbar">
             <div><h2 style="font-size: 1.25rem; margin: 0;">Autoevaluación (Ponderación 1 a 5)</h2></div>
-            <div id="userInfo" style="font-weight: 500;"></div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <button id="themeToggle" class="btn-ghost" style="padding: 5px 10px; font-size: 1.2rem;" title="Cambiar Tema">🌓</button>
+                <div id="userInfo" style="font-weight: 500;"></div>
+            </div>
         </header>
 
-        <div class="layout-split">
+        <div class="layout-split fade-in">
+
             <!-- Panel izquierdo: Estructura del CNA -->
             <div class="left-panel" id="sidebarFactors">
                 <!-- Dynamically populated via JS -->
@@ -269,10 +273,16 @@
             const ratingInput = document.getElementById(`rating_${charId}`).value;
             const rating = parseFloat(ratingInput) || 0;
 
-            if(!rating) {
-                alert("Seleccione una calificación antes de guardar.");
+            if(rating < 0 || rating > 5) {
+                alert("La calificación debe estar entre 0.0 y 5.0");
                 return;
             }
+
+            if(!ratingInput) {
+                alert("Ingrese una calificación antes de guardar.");
+                return;
+            }
+
 
             evalsData[charId] = { rating, just };
             saveEvaluations(evalsData);
