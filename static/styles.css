@@ -42,8 +42,10 @@ body {
     color: var(--text-main);
     line-height: 1.6;
     background-color: var(--secondary-bg);
-    overflow-x: hidden;
+    overflow: hidden;
     transition: background-color 0.3s, color 0.3s;
+    display: flex;
+    height: 100vh;
 }
 
 /* Animations */

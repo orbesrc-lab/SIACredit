@@ -249,13 +249,17 @@ def handle_institution():
     if request.method == 'POST':
         data = request.json
         try:
-            supabase.table('institution').upsert({
-                "id": inst_id,
+            update_data = {
                 "name": data.get('name'),
-                "logo_url": data.get('logo_url'),
-                "description": data.get('program', ''),
-                "code": data.get('period', '')
-            }).execute()
+                "logo_url": data.get('logo_url')
+            }
+            # Only update description/code if they are provided, otherwise leave them alone
+            if 'program' in data:
+                update_data["description"] = data['program']
+            if 'period' in data:
+                update_data["code"] = data['period']
+                
+            supabase.table('institution').update(update_data).eq("id", inst_id).execute()
             return jsonify({"status": "success"})
         except Exception as e:
             return jsonify({"status": "error", "message": str(e)}), 500

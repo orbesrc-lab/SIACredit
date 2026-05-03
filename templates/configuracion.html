@@ -980,10 +980,8 @@
         async function loadInstitution() {
             const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
             const data = await resp.json();
-            document.getElementById('inst_name').value = data.name || '';
-            document.getElementById('inst_logo').value = data.logo_url || '';
-            document.getElementById('inst_program').value = data.program || '';
-            document.getElementById('inst_period').value = data.period || '';
+            if(document.getElementById('inst_name')) document.getElementById('inst_name').value = data.name || '';
+            if(document.getElementById('inst_logo')) document.getElementById('inst_logo').value = data.logo_url || '';
         }
 
         async function saveInstitution() {
