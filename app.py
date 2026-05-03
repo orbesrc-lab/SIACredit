@@ -262,13 +262,22 @@ def handle_users():
         temp_password = data.get('password', 'SIACTemp2025!')
         password_hash = generate_password_hash(temp_password)
         try:
-            res = supabase.table('users').insert({
-                "email": email,
-                "password_hash": password_hash,
-                "role": data.get('role', 'lider'),
-                "inst_id": inst_id,
-                "name": data.get('name', email.split('@')[0])
-            }).execute()
+            try:
+                res = supabase.table('users').insert({
+                    "email": email,
+                    "password_hash": password_hash,
+                    "role": data.get('role', 'lider'),
+                    "inst_id": inst_id,
+                    "name": data.get('name', email.split('@')[0])
+                }).execute()
+            except Exception:
+                # Fallback without name column
+                res = supabase.table('users').insert({
+                    "email": email,
+                    "password_hash": password_hash,
+                    "role": data.get('role', 'lider'),
+                    "inst_id": inst_id
+                }).execute()
             return jsonify({"status": "success", "data": res.data[0], "temp_password": temp_password})
         except Exception as e:
             return jsonify({"status": "error", "message": str(e)}), 500
@@ -278,7 +287,14 @@ def handle_users():
         # Super-admin can see all users or filter by inst
         if inst_id != 0:
             query = query.eq("inst_id", inst_id)
-        res = query.execute()
+        try:
+            res = query.execute()
+        except Exception:
+            # Fallback if 'name' column doesn't exist yet
+            query2 = supabase.table('users').select("id, email, role, inst_id")
+            if inst_id != 0:
+                query2 = query2.eq("inst_id", inst_id)
+            res = query2.execute()
         return jsonify(res.data)
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
