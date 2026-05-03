@@ -162,7 +162,14 @@ def handle_all_institutions():
     if request.method == 'POST':
         data = request.json
         try:
+            # Fallback for tables without auto-increment identity
+            max_id_res = supabase.table('institution').select("id").order("id", desc=True).limit(1).execute()
+            next_id = 1
+            if max_id_res.data:
+                next_id = int(max_id_res.data[0]['id']) + 1
+
             res = supabase.table('institution').insert({
+                "id": next_id,
                 "name": data.get('name'),
                 "logo_url": data.get('logo_url', ''),
                 "description": data.get('program', ''),
