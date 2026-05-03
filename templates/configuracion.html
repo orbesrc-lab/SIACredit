@@ -305,19 +305,31 @@
                                 <option>María López (Líder Factor 2)</option>
                                 <option>Sin asignar</option>
                             </select>
-                        </div>
-                        <div style="padding: 10px; background: white; border-radius: 4px; border: 1px solid #ddd;">
-                            <strong>Factor 2:</strong>
-                            <select style="width: 100%; margin-top: 5px;">
-                                <option>María López (Líder Factor 2)</option>
-                                <option>Juan Pérez (Líder Factor 1)</option>
-                                <option>Sin asignar</option>
-                            </select>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
+                    Sube la estructura de acreditación. Puedes descargar nuestra plantilla de Excel/CSV, llenarla con tus datos y subirla para configurar todo el sistema en segundos.
+                </p>
+                
+                <div style="background: var(--bg-secondary); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <button class="btn-ghost" onclick="downloadCSVTemplate()" style="color: var(--primary-color); border: 1px dashed var(--primary-color);">
+                            📥 Descargar Plantilla Excel/CSV
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>1. Seleccionar Archivo del Modelo (CSV o JSON)</label>
+                        <input type="file" id="modelFile" accept=".csv, .json" style="padding: 10px; background: white; border-radius: 8px; width: 100%;">
+                    </div>
+                    
+                    <div id="articulationArea" style="margin-top: 20px; display: none;">
+                        <label>2. Articular Líderes por Factor</label>
+                        <div id="factorLeadersGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 10px;">
+                            <!-- Se llena al cargar el archivo -->
                         </div>
                     </div>
                 </div>
 
-                <div style="text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button class="btn-secondary" onclick="exportModel()">Exportar JSON</button>
                     <button class="btn-primary" onclick="injectModel()">Inyectar y Articular Modelo</button>
                 </div>
@@ -770,42 +782,86 @@
             }
         }
 
+        function downloadCSVTemplate() {
+            const headers = "Factor_Num;Factor_Nombre;Char_Num;Char_Nombre;Aspecto_Texto";
+            const sample = "1;Proyecto Institucional;1.1;Misión y Proyecto;La institución cuenta con una misión claramente definida...\n1;Proyecto Institucional;1.2;Gobierno y Gestión;La estructura de gobierno garantiza la autonomía...";
+            const blob = new Blob([`${headers}\n${sample}`], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "plantilla_modelo_siac.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const factorsMap = {};
+            
+            // Skip header
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(';');
+                if (cols.length < 4) continue;
+                
+                const fNum = cols[0].trim();
+                const fName = cols[1].trim();
+                const cNum = cols[2].trim();
+                const cName = cols[3].trim();
+                const aText = cols[4] ? cols[4].trim() : "";
+
+                if (!factorsMap[fNum]) {
+                    factorsMap[fNum] = { id: 'f' + generateId(), number: fNum, name: fName, characteristics: {} };
+                }
+                
+                if (!factorsMap[fNum].characteristics[cNum]) {
+                    factorsMap[fNum].characteristics[cNum] = { id: 'c' + generateId(), factor_id: factorsMap[fNum].id, number: cNum, name: cName, aspects: [] };
+                }
+                
+                if (aText) {
+                    factorsMap[fNum].characteristics[cNum].aspects.push({ id: 'a' + generateId(), char_id: factorsMap[fNum].characteristics[cNum].id, text: aText });
+                }
+            }
+            
+            // Convert maps to arrays
+            return Object.values(factorsMap).map(f => {
+                f.characteristics = Object.values(f.characteristics);
+                return f;
+            });
+        }
+
         function injectModel() {
             const fileInput = document.getElementById('modelFile');
             if (!fileInput.files[0]) {
-                alert("Por favor selecciona un archivo JSON primero.");
+                alert("Por favor selecciona un archivo (CSV o JSON) primero.");
                 return;
             }
 
+            const file = fileInput.files[0];
             const reader = new FileReader();
             reader.onload = function (e) {
                 try {
-                    const importedModel = JSON.parse(e.target.result);
+                    let importedModel;
+                    if (file.name.endsWith('.csv')) {
+                        importedModel = parseCSV(e.target.result);
+                    } else {
+                        importedModel = JSON.parse(e.target.result);
+                    }
 
-                    // Validar estructura mínima
-                    if (!Array.isArray(importedModel)) throw new Error("El archivo debe ser un Array de factores.");
-
-                    // Asegurar IDs para evitar duplicados si vienen de otro sistema o asignar nuevos si faltan
-                    importedModel.forEach(f => {
-                        if (!f.id) f.id = 'f' + generateId();
-                        f.characteristics?.forEach(c => {
-                            if (!c.id) c.id = 'c' + generateId();
-                            c.aspects?.forEach(a => {
-                                if (!a.id) a.id = 'a' + generateId();
-                            });
-                        });
-                    });
+                    if (!Array.isArray(importedModel) || importedModel.length === 0) throw new Error("Formato inválido o archivo vacío.");
 
                     if (confirm(`Se han detectado ${importedModel.length} factores. ¿Deseas reemplazar el modelo actual?`)) {
                         saveDataModel(importedModel);
                         renderModelEditor();
                         syncModelWithBackend();
+                        alert("Modelo inyectado correctamente.");
                     }
                 } catch (err) {
                     alert("Error al procesar el archivo: " + err.message);
                 }
             };
-            reader.readAsText(fileInput.files[0]);
+            reader.readAsText(file);
         }
 
         function exportModel() {
