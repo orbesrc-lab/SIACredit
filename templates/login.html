@@ -35,14 +35,7 @@
                     <label for="password">Contraseña</label>
                     <input type="password" id="password" required placeholder="••••••••">
                 </div>
-                <div class="form-group">
-                    <label for="role">Ingresar como:</label>
-                    <select id="role">
-                        <option value="admin">Administrador (Control Total)</option>
-                        <option value="lider">Líder de Factor (Evaluación y Revisión)</option>
-                        <option value="operativo">Operativo (Carga de Evidencias)</option>
-                    </select>
-                </div>
+
                 <button type="submit" class="btn-primary large btn-full">Ingresar al Sistema</button>
                 <button type="button" onclick="guestLogin()" class="btn-ghost btn-full" style="margin-top: 10px; border: 1px solid var(--border-color);">Ingresar como Invitado (Lectura)</button>
             </form>
@@ -59,13 +52,31 @@
             window.location.href = 'dashboard.html';
         }
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const email = document.getElementById('email').value;
-            const role = document.getElementById('role').value;
-            localStorage.setItem('siac_user', JSON.stringify({ email, role }));
-            window.location.href = 'dashboard.html';
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    localStorage.setItem('siac_user', JSON.stringify(result.user));
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error de conexión al servidor.');
+            }
         });
+
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>

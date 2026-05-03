@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import json
 from dotenv import load_dotenv
@@ -8,7 +9,9 @@ from supabase import create_client, Client
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY", "siacredit_secret_key")
 CORS(app)
+
 
 # Inicializar Cliente Supabase
 url: str = os.getenv("SUPABASE_URL")
@@ -184,6 +187,60 @@ def handle_institution():
     except:
         pass
     return jsonify({"name": "Nombre Institución", "logo_url": "", "program": "Ingeniería de Sistemas", "period": "2026-1"})
+
+@app.route('/api/login', methods=['POST'])
+def handle_login():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+    try:
+        res = supabase.table('users').select("*").eq("email", email).execute()
+        if not res.data:
+            return jsonify({"status": "error", "message": "Usuario no encontrado"}), 404
+        user = res.data[0]
+        if check_password_hash(user['password_hash'], password):
+            return jsonify({
+                "status": "success",
+                "user": { "email": user['email'], "role": user['role'] }
+            })
+        return jsonify({"status": "error", "message": "Contraseña incorrecta"}), 401
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/change-password', methods=['POST'])
+def change_password():
+    data = request.json
+    email = data.get('email')
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+    try:
+        res = supabase.table('users').select("*").eq("email", email).execute()
+        if not res.data:
+            return jsonify({"status": "error", "message": "Usuario no encontrado"}), 404
+        user = res.data[0]
+        if check_password_hash(user['password_hash'], old_password):
+            new_hash = generate_password_hash(new_password)
+            supabase.table('users').update({"password_hash": new_hash}).eq("email", email).execute()
+            return jsonify({"status": "success", "message": "Contraseña actualizada"})
+        return jsonify({"status": "error", "message": "Contraseña actual incorrecta"}), 401
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/init-admin', methods=['GET'])
+def init_admin():
+    try:
+        res = supabase.table('users').select("*").eq("email", "admin@siacredit.edu.co").execute()
+        if not res.data:
+            admin_hash = generate_password_hash("admin123")
+            supabase.table('users').insert({
+                "email": "admin@siacredit.edu.co",
+                "password_hash": admin_hash,
+                "role": "admin"
+            }).execute()
+            return jsonify({"status": "success", "message": "Admin inicializado. Email: admin@siacredit.edu.co, Pass: admin123"})
+        return jsonify({"status": "info", "message": "Admin ya existe"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/reports/summary')
 def report_summary():
