@@ -72,10 +72,11 @@
             
             try {
                 // 1. Crear institución
+                const uniqueCode = 'ORG-' + Date.now().toString(36);
                 const instResp = await fetch('/api/institutions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: institution, program: 'General', period: '2024-2026' })
+                    body: JSON.stringify({ name: institution, program: 'Sede Principal', period: uniqueCode })
                 });
                 const instResult = await instResp.json();
                 
