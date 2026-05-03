@@ -317,6 +317,7 @@ def handle_users():
         password_hash = generate_password_hash(temp_password)
         try:
             try:
+                # Intento con todos los campos (name y program_id)
                 res = supabase.table('users').insert({
                     "email": email,
                     "password_hash": password_hash,
@@ -326,14 +327,23 @@ def handle_users():
                     "name": data.get('name', email.split('@')[0])
                 }).execute()
             except Exception:
-                # Fallback without name column
-                res = supabase.table('users').insert({
-                    "email": email,
-                    "password_hash": password_hash,
-                    "role": data.get('role', 'lider'),
-                    "inst_id": inst_id,
-                    "program_id": program_id
-                }).execute()
+                try:
+                    # Fallback sin program_id pero con name
+                    res = supabase.table('users').insert({
+                        "email": email,
+                        "password_hash": password_hash,
+                        "role": data.get('role', 'lider'),
+                        "inst_id": inst_id,
+                        "name": data.get('name', email.split('@')[0])
+                    }).execute()
+                except Exception:
+                    # Fallback extremo: sin program_id y sin name
+                    res = supabase.table('users').insert({
+                        "email": email,
+                        "password_hash": password_hash,
+                        "role": data.get('role', 'lider'),
+                        "inst_id": inst_id
+                    }).execute()
             return jsonify({"status": "success", "data": res.data[0], "temp_password": temp_password})
         except Exception as e:
             return jsonify({"status": "error", "message": str(e)}), 500
