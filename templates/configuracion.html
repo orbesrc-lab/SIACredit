@@ -225,37 +225,18 @@
         <div class="content-area">
             <h1 style="font-size: 1.8rem; margin-bottom: 30px;">Configuración del Sistema</h1>
             
-            <!-- Selección de Institución (Solo para Admins) -->
-            <div id="instSelectorCard" class="settings-card" style="display: none; border-bottom: 3px solid var(--primary-color);">
-                <h3>Seleccionar Organización</h3>
-                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Como administrador, puedes cambiar entre instituciones o crear una nueva.</p>
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <select id="instSelect" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <!-- Dinámico -->
-                    </select>
+            <!-- Gestión de Institución (Solo para Admins) -->
+            <div id="instSelectorCard" class="settings-card premium-border" style="display: none;">
+                <h3>Gestión de Organización</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Selecciona, crea o elimina la institución actual.</p>
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+                    <select id="instSelect" style="flex: 1; min-width: 200px;"></select>
                     <button class="btn-primary" onclick="changeCurrentInst()">Cambiar</button>
                     <button class="btn-secondary" onclick="addNewInstitution()">+ Nueva Institución</button>
+                    <button class="btn-danger-solid" onclick="deleteInstitution()">🗑️ Eliminar</button>
                 </div>
-            </div>
-
-            <!-- Selección de Programa (Admins e Inst_Admins) -->
-            <div id="progSelectorCard" class="settings-card" style="display: none; border-bottom: 3px solid var(--secondary-color);">
-                <h3>Seleccionar Programa Académico</h3>
-                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Gestiona los múltiples programas académicos de tu institución.</p>
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <select id="progSelect" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <!-- Dinámico -->
-                    </select>
-                    <button class="btn-primary" onclick="changeCurrentProg()">Cambiar</button>
-                    <button class="btn-secondary" onclick="addNewProgram()">+ Nuevo Programa</button>
-                </div>
-            </div>
-
-
-            <!-- Generalidades -->
-            <div class="settings-card">
-                <h3>Generalidades de la Institución</h3>
-                <div class="form-grid">
+                
+                <div class="form-grid" style="padding-top: 15px; border-top: 1px solid var(--border-color);">
                     <div class="form-group full-width">
                         <label>Nombre de la Institución</label>
                         <input type="text" id="inst_name" placeholder="Ej: Universidad Nacional de Ejemplo">
@@ -263,19 +244,34 @@
                     <div class="form-group full-width">
                         <label>URL del Logo (o base64)</label>
                         <input type="text" id="inst_logo" placeholder="URL de la imagen del logo">
-                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">Este logo aparecerá en
-                            los encabezados de todos los informes.</p>
-                    </div>
-                    <div class="form-group">
-                        <label>Nombre del Programa</label>
-                        <input type="text" id="inst_program" placeholder="Ej: Ingeniería de Sistemas">
-                    </div>
-                    <div class="form-group">
-                        <label>Periodo del Proceso (Acreditación / Autoevaluación)</label>
-                        <input type="text" id="inst_period" placeholder="Ej: 2026 - 2032">
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">Aparecerá en los encabezados de los informes.</p>
                     </div>
                 </div>
-                <button class="btn-primary" onclick="saveInstitution()">Guardar Generalidades</button>
+                <button class="btn-primary" onclick="saveInstitution()" style="margin-top: 10px;">Guardar Institución</button>
+            </div>
+
+            <!-- Gestión de Programa (Admins e Inst_Admins) -->
+            <div id="progSelectorCard" class="settings-card" style="display: none;">
+                <h3>Gestión de Programas Académicos</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Administra los programas de autoevaluación dentro de esta institución.</p>
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+                    <select id="progSelect" style="flex: 1; min-width: 200px;"></select>
+                    <button class="btn-primary" onclick="changeCurrentProg()">Cambiar</button>
+                    <button class="btn-secondary" onclick="addNewProgram()">+ Nuevo Programa</button>
+                    <button class="btn-danger-solid" onclick="deleteProgram()">🗑️ Eliminar</button>
+                </div>
+
+                <div class="form-grid" style="padding-top: 15px; border-top: 1px solid var(--border-color);">
+                    <div class="form-group">
+                        <label>Nombre del Programa</label>
+                        <input type="text" id="prog_name" placeholder="Ej: Ingeniería de Sistemas">
+                    </div>
+                    <div class="form-group">
+                        <label>Periodo del Proceso</label>
+                        <input type="text" id="prog_period" placeholder="Ej: 2026 - 2032">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="saveProgram()" style="margin-top: 10px;">Guardar Programa</button>
             </div>
 
             <!-- Seguridad y Contraseña -->
@@ -992,19 +988,40 @@
 
         async function saveInstitution() {
             const name = document.getElementById('inst_name').value;
-            const logo_url = document.getElementById('inst_logo').value;
-            const program = document.getElementById('inst_program').value;
-            const period = document.getElementById('inst_period').value;
+            const logo = document.getElementById('inst_logo').value;
 
             const resp = await fetch(`/api/institution?inst_id=${getInstId()}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, logo_url, program, period })
+                body: JSON.stringify({ name: name, logo_url: logo })
             });
 
             if (resp.ok) {
-                alert('Generalidades guardadas correctamente.');
+                alert('Institución guardada correctamente.');
                 loadInstitution(); // Recargar
+                if (user.role === 'admin') loadAllInstitutions();
+            }
+        }
+
+        async function saveProgram() {
+            const name = document.getElementById('prog_name').value;
+            const period = document.getElementById('prog_period').value;
+            
+            if(!getProgramId() || getProgramId() == 0) {
+                alert("Seleccione o cree un programa primero."); return;
+            }
+
+            const resp = await fetch(`/api/programs/${getProgramId()}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, period: period })
+            });
+
+            if (resp.ok) {
+                alert('Programa guardado correctamente.');
+                loadAllPrograms();
+            } else {
+                alert('Error al guardar el programa.');
             }
         }
 
@@ -1145,18 +1162,17 @@
         async function addNewInstitution() {
             const name = prompt("Nombre de la nueva Institución:");
             if (!name) return;
-            const program = prompt("Descripción breve de la Institución:");
-            if (!program) return;
 
             try {
+                const uniqueCode = 'ORG-' + Date.now().toString(36);
                 const resp = await fetch('/api/institutions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, program })
+                    body: JSON.stringify({ name: name, program: 'General', period: uniqueCode })
                 });
                 const result = await resp.json();
                 if (result.status === 'success') {
-                    alert(`Institución '${name}' creada. ID: ${result.data.id}`);
+                    alert("Institución creada exitosamente.");
                     loadAllInstitutions();
                 }
             } catch (err) {
@@ -1175,7 +1191,12 @@
                     const opt = document.createElement('option');
                     opt.value = prog.id;
                     opt.textContent = `${prog.name} (${prog.period})`;
-                    if (prog.id == getProgramId()) opt.selected = true;
+                    if (prog.id == getProgramId()) {
+                        opt.selected = true;
+                        // Populate fields
+                        document.getElementById('prog_name').value = prog.name || '';
+                        document.getElementById('prog_period').value = prog.period || '';
+                    }
                     select.appendChild(opt);
                 });
             }
@@ -1216,6 +1237,27 @@
                 }
             } catch (err) {
                 alert("Error al crear programa");
+            }
+        }
+
+        async function deleteProgram() {
+            const progId = getProgramId();
+            if (!progId || progId == 0) { alert("Selecciona un programa válido."); return; }
+            if (!confirm(`⚠️ ¿Estás seguro de eliminar este programa académico? Se borrarán sus factores, evidencias y evaluaciones correspondientes. ESTA ACCIÓN ES IRREVERSIBLE.`)) return;
+            
+            try {
+                const resp = await fetch(`/api/programs/${progId}`, { method: 'DELETE' });
+                if (resp.ok) {
+                    alert("Programa eliminado.");
+                    const userData = JSON.parse(localStorage.getItem('siac_user'));
+                    userData.program_id = 0;
+                    localStorage.setItem('siac_user', JSON.stringify(userData));
+                    location.reload();
+                } else {
+                    alert("Error al eliminar.");
+                }
+            } catch (e) {
+                alert("Error de conexión.");
             }
         }
 

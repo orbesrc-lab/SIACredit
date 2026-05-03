@@ -188,6 +188,25 @@ def handle_programs():
     except:
         return jsonify([])
 
+@app.route('/api/programs/<int:prog_id>', methods=['DELETE', 'PUT'])
+def handle_program_specific(prog_id):
+    if request.method == 'DELETE':
+        try:
+            supabase.table('programs').delete().eq("id", prog_id).execute()
+            return jsonify({"status": "success"})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
+    elif request.method == 'PUT':
+        data = request.json
+        try:
+            supabase.table('programs').update({
+                "name": data.get('name'),
+                "period": data.get('period')
+            }).eq("id", prog_id).execute()
+            return jsonify({"status": "success"})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/api/institutions', methods=['GET', 'POST'])
 def handle_all_institutions():
     if request.method == 'POST':
@@ -215,6 +234,14 @@ def handle_all_institutions():
         return jsonify(res.data)
     except:
         return jsonify([])
+
+@app.route('/api/institutions/<int:inst_id>', methods=['DELETE'])
+def delete_institution(inst_id):
+    try:
+        supabase.table('institution').delete().eq("id", inst_id).execute()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/institution', methods=['GET', 'POST'])
 def handle_institution():
