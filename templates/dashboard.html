@@ -155,23 +155,23 @@
             <div class="grid-cards">
                 <div class="card">
                     <h3>Avance Global</h3>
-                    <div class="value">72%</div>
-                    <div class="trend">↑ 5% esta semana</div>
+                    <div class="value" id="stat_progress">-</div>
+                    <div class="trend" id="stat_progress_sub">Basado en autoevaluaciones</div>
                 </div>
                 <div class="card">
                     <h3>Evidencias Subidas</h3>
-                    <div class="value" id="totalEvidences">345</div>
-                    <div class="trend">12 pendientes de revisión</div>
+                    <div class="value" id="stat_evidences">-</div>
+                    <div class="trend" id="stat_evidences_sub">Cargando...</div>
                 </div>
                 <div class="card">
-                    <h3>Factores Evaluados</h3>
-                    <div class="value">8 / 12</div>
-                    <div class="trend">En progreso</div>
+                    <h3>Factores Configurados</h3>
+                    <div class="value" id="stat_factors">-</div>
+                    <div class="trend">En el modelo actual</div>
                 </div>
                 <div class="card">
-                    <h3>Días Restantes</h3>
-                    <div class="value">45</div>
-                    <div class="trend" style="color: #f59e0b;">Fecha límite: Oct 2026</div>
+                    <h3>Usuarios Activos</h3>
+                    <div class="value" id="stat_users">-</div>
+                    <div class="trend">En esta institución</div>
                 </div>
             </div>
 
@@ -184,6 +184,7 @@
         </div>
     </main>
 
+    <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
         // Check Auth
         const user = JSON.parse(localStorage.getItem('siac_user'));
@@ -198,20 +199,44 @@
             window.location.href = 'index.html';
         }
 
-        // Mock Activity
-        const activities = [
-            { text: "Juan Pérez subió 'PEP_2025.pdf' al Factor 1", time: "Hace 2 horas" },
-            { text: "María López aprobó 'Estudio_Egresados.xlsx' (Factor 4)", time: "Hace 5 horas" },
-            { text: "Carlos Ruiz autoevaluó la característica 2.1 (Calificación: 4.5)", time: "Ayer" }
-        ];
+        async function loadDashboardStats() {
+            try {
+                const resp = await fetch(`/api/dashboard/stats?inst_id=${getInstId()}`);
+                const stats = await resp.json();
+                document.getElementById('stat_progress').textContent = stats.global_progress + '%';
+                document.getElementById('stat_evidences').textContent = stats.total_evidences;
+                document.getElementById('stat_evidences_sub').textContent = stats.pending_evidences + ' pendientes de revisión';
+                document.getElementById('stat_factors').textContent = stats.total_factors + ' factores';
+                document.getElementById('stat_users').textContent = stats.total_users;
+            } catch(e) {
+                console.error('Error cargando stats:', e);
+            }
+        }
 
-        const activityList = document.getElementById('activityList');
-        activities.forEach(act => {
-            const div = document.createElement('div');
-            div.className = 'activity-item';
-            div.innerHTML = `<div>${act.text}</div><div style="color: var(--text-muted); font-size: 0.85rem;">${act.time}</div>`;
-            activityList.appendChild(div);
-        });
+        // Recent Activity from evidences
+        async function loadRecentActivity() {
+            try {
+                const resp = await fetch(`/api/evidences?inst_id=${getInstId()}`);
+                const evidences = await resp.json();
+                const activityList = document.getElementById('activityList');
+                activityList.innerHTML = '';
+                if (!evidences.length) {
+                    activityList.innerHTML = '<div class="activity-item"><div style="color:var(--text-muted);">No hay actividad reciente. Comienza subiendo tu primera evidencia.</div></div>';
+                    return;
+                }
+                const recent = evidences.slice(-5).reverse();
+                recent.forEach(ev => {
+                    const div = document.createElement('div');
+                    div.className = 'activity-item';
+                    const statusIcon = ev.status === 'aprobado' ? '✅' : ev.status === 'rechazado' ? '❌' : '⏳';
+                    div.innerHTML = `<div>${statusIcon} <strong>${ev.name}</strong> &mdash; ${ev.user_email || 'Usuario'}</div><div style="color: var(--text-muted); font-size: 0.85rem;">${new Date(ev.created_at).toLocaleDateString('es-CO')}</div>`;
+                    activityList.appendChild(div);
+                });
+            } catch(e) {
+                document.getElementById('activityList').innerHTML = '<div class="activity-item"><div style="color:var(--text-muted);">No se pudo cargar la actividad reciente.</div></div>';
+            }
+        }
+
         async function loadInstitution() {
             try {
                 const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
@@ -222,7 +247,10 @@
                 console.error("Error cargando datos de cabecera:", err);
             }
         }
+
         loadInstitution();
+        loadDashboardStats();
+        loadRecentActivity();
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>

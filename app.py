@@ -24,6 +24,7 @@ def index():
     return render_template('index.html')
 
 @app.route('/login.html')
+@app.route('/login')
 def login():
     return render_template('login.html')
 
@@ -243,6 +244,99 @@ def init_admin():
         return jsonify({"status": "info", "message": "Admin ya existe"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# --- Gestión de Usuarios por Institución ---
+
+@app.route('/api/users', methods=['GET', 'POST'])
+def handle_users():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    if request.method == 'POST':
+        data = request.json
+        email = data.get('email')
+        if not email:
+            return jsonify({"status": "error", "message": "Email requerido"}), 400
+        # Check if user exists
+        existing = supabase.table('users').select("id").eq("email", email).execute()
+        if existing.data:
+            return jsonify({"status": "error", "message": "El usuario ya existe"}), 409
+        temp_password = data.get('password', 'SIACTemp2025!')
+        password_hash = generate_password_hash(temp_password)
+        try:
+            res = supabase.table('users').insert({
+                "email": email,
+                "password_hash": password_hash,
+                "role": data.get('role', 'lider'),
+                "inst_id": inst_id,
+                "name": data.get('name', email.split('@')[0])
+            }).execute()
+            return jsonify({"status": "success", "data": res.data[0], "temp_password": temp_password})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
+
+    try:
+        query = supabase.table('users').select("id, email, role, name, inst_id")
+        # Super-admin can see all users or filter by inst
+        if inst_id != 0:
+            query = query.eq("inst_id", inst_id)
+        res = query.execute()
+        return jsonify(res.data)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/api/users/<int:user_id>/reset-password', methods=['POST'])
+def reset_user_password(user_id):
+    data = request.json
+    new_password = data.get('new_password', 'SIACTemp2025!')
+    try:
+        new_hash = generate_password_hash(new_password)
+        supabase.table('users').update({"password_hash": new_hash}).eq("id", user_id).execute()
+        return jsonify({"status": "success", "temp_password": new_password})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/api/users/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    try:
+        supabase.table('users').delete().eq("id", user_id).execute()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# --- Dashboard Stats ---
+
+@app.route('/api/dashboard/stats')
+def dashboard_stats():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    try:
+        evidences = supabase.table('evidences').select("id, status").eq("inst_id", inst_id).execute().data
+        factors = supabase.table('factors').select("id").eq("inst_id", inst_id).execute().data
+        evals = supabase.table('evaluations').select("char_id, rating").eq("inst_id", inst_id).execute().data
+        users_count = supabase.table('users').select("id").eq("inst_id", inst_id).execute().data
+
+        total_ev = len(evidences)
+        pending_ev = len([e for e in evidences if e['status'] == 'pendiente'])
+        approved_ev = len([e for e in evidences if e['status'] == 'aprobado'])
+        total_factors = len(factors)
+        evaluated_factors = len(set(e['char_id'] for e in evals))
+        avg_rating = round(sum(e['rating'] for e in evals) / len(evals), 2) if evals else 0
+        global_progress = round((avg_rating / 5) * 100, 1) if avg_rating > 0 else 0
+
+        return jsonify({
+            "total_evidences": total_ev,
+            "pending_evidences": pending_ev,
+            "approved_evidences": approved_ev,
+            "total_factors": total_factors,
+            "evaluated_chars": evaluated_factors,
+            "global_progress": global_progress,
+            "total_users": len(users_count)
+        })
+    except Exception as e:
+        print(f"Stats error: {e}")
+        return jsonify({"global_progress": 0, "total_evidences": 0, "pending_evidences": 0, "approved_evidences": 0, "total_factors": 0, "evaluated_chars": 0, "total_users": 0})
+
 
 @app.route('/api/reports/summary')
 def report_summary():

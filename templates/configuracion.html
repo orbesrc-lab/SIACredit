@@ -368,41 +368,49 @@
 
             <!-- Gestión de Usuarios -->
             <div class="settings-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                    <h3 style="margin: 0; border: none; padding: 0;">Gestión de Usuarios</h3>
+                    <button class="btn-secondary" onclick="openInviteModal()">+ Invitar Usuario</button>
+                </div>
+                <div class="user-list" id="usersTable">
+                    <div style="padding: 20px; text-align: center; color: var(--text-muted);">Cargando usuarios...</div>
+                </div>
+            </div>
 
-                <div class="settings-card">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                        <h3 style="margin: 0; border: none; padding: 0;">Gestión de Usuarios</h3>
-                        <button class="btn-secondary">Invitar Usuario</button>
+            <!-- Modal Invitar Usuario -->
+            <div id="inviteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+                <div style="background:white; border-radius:16px; padding:30px; width:460px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                    <h3 style="margin-bottom:20px; font-size:1.2rem;">Invitar Nuevo Usuario</h3>
+                    <div class="form-group">
+                        <label>Nombre Completo</label>
+                        <input type="text" id="inv_name" placeholder="Ej: Juan Pérez" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
                     </div>
-
-                    <div class="user-list" id="usersTable">
-                        <div class="user-item">
-                            <div class="user-info">
-                                <span class="user-name">Administrador Principal</span>
-                                <span class="user-role">admin@universidad.edu.co | Factores: Todos</span>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:15px">
-                                <span class="role-badge role-admin">Admin</span>
-                                <button onclick="resetPass('admin@universidad.edu.co')" class="btn-ghost"
-                                    style="font-size:0.7rem; color:var(--primary-color)">Resetear Clave</button>
-                            </div>
-                        </div>
-                        <div class="user-item">
-                            <div class="user-info">
-                                <span class="user-name">Juan Pérez (Líder Demo)</span>
-                                <span class="user-role">lider@universidad.edu.co | Asignado: Factores 1, 2</span>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:15px">
-                                <span class="role-badge role-leader">LÍDER</span>
-                                <button onclick="assignFactors('lider@universidad.edu.co')" class="btn-ghost"
-                                    style="font-size:0.7rem; color:var(--primary-color)">Asignar Factores</button>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label>Correo Institucional</label>
+                        <input type="email" id="inv_email" placeholder="usuario@institucion.edu.co" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Rol</label>
+                        <select id="inv_role" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                            <option value="lider">Líder de Factor</option>
+                            <option value="operativo">Operativo</option>
+                            <option value="inst_admin">Administrador Institucional</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña Temporal</label>
+                        <input type="text" id="inv_password" value="SIACTemp2025!" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">El usuario deberá cambiarla en su primer acceso.</p>
+                    </div>
+                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                        <button class="btn-ghost" onclick="closeInviteModal()">Cancelar</button>
+                        <button class="btn-primary" onclick="submitInviteUser()">Crear Usuario</button>
                     </div>
                 </div>
+            </div>
 
-                <div class="settings-card">
+
+            <div class="settings-card">
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                         <h3 style="margin: 0; border: none; padding: 0;">Gestión del Modelo de Evaluación</h3>
@@ -425,8 +433,9 @@
 
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
-        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'admin@universidad.edu.co', role: 'admin' };
-        document.getElementById('userInfo').textContent = user.email;
+        const user = JSON.parse(localStorage.getItem('siac_user'));
+        if (!user) { window.location.href = 'login.html'; }
+        document.getElementById('userInfo').textContent = user ? user.email : '';
 
         function logout() {
             localStorage.removeItem('siac_user');
@@ -906,6 +915,7 @@
             await loadDataFromAPI();
             renderModelEditor();
             loadAllInstitutions();
+            loadUsersFromAPI();
         }
 
         async function loadInstitution() {
@@ -949,58 +959,100 @@
             }
         }
 
-        function loadRegisteredUsers() {
-            const regUser = JSON.parse(localStorage.getItem('siac_registered_user'));
-            if (regUser) {
-                const container = document.getElementById('usersTable');
-                const div = document.createElement('div');
-                div.className = 'user-item';
-                div.innerHTML = `
-                    <div class="user-info">
-                        <span class="user-name">${regUser.name}</span>
-                        <span class="user-role">${regUser.email} | Personal: ${regUser.personal_email}</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:15px">
-                        <span class="role-badge ${regUser.role === 'admin' ? 'role-admin' : 'role-leader'}">${regUser.role.toUpperCase()}</span>
-                        <button onclick="assignFactors('${regUser.email}')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color)">Asignar Factores</button>
-                        <button onclick="resetPass('${regUser.email}')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color)">Resetear Clave</button>
-                    </div>
-                `;
-                container.appendChild(div);
+        // ========== Gestión de Usuarios Dinámica ==========
+
+        async function loadUsersFromAPI() {
+            const container = document.getElementById('usersTable');
+            try {
+                const resp = await fetch(`/api/users?inst_id=${getInstId()}`);
+                const users = await resp.json();
+                if (!Array.isArray(users) || users.length === 0) {
+                    container.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">No hay usuarios registrados para esta institución.</div>';
+                    return;
+                }
+                container.innerHTML = users.map(u => {
+                    const roleBadge = u.role === 'admin' || u.role === 'inst_admin' ? 'role-admin' : 'role-leader';
+                    const roleLabel = { admin: 'Super Admin', inst_admin: 'Admin Inst.', lider: 'Líder', operativo: 'Operativo' }[u.role] || u.role;
+                    const isCurrentUser = u.email === user.email;
+                    return `<div class="user-item">
+                        <div class="user-info">
+                            <span class="user-name">${u.name || u.email.split('@')[0]}</span>
+                            <span class="user-role">${u.email} &middot; <em>${roleLabel}</em>${isCurrentUser ? ' • (Tú)' : ''}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span class="role-badge ${roleBadge}">${roleLabel.toUpperCase()}</span>
+                            ${!isCurrentUser ? `<button onclick="resetUserPass(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color);">Resetear Clave</button>` : ''}
+                            ${!isCurrentUser && user.role === 'admin' ? `<button onclick="deleteUserFromList(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:#ef4444;">Eliminar</button>` : ''}
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch(e) {
+                container.innerHTML = '<div style="padding:20px; color:#ef4444;">Error al cargar usuarios.</div>';
             }
         }
 
-        function renderEvidenceList(evidences) {
-            const container = document.getElementById('evidenceList');
-            container.innerHTML = '';
-            evidences.forEach(ev => {
-                const showActions = (user.role === 'admin' || user.role === 'lider') && ev.status === 'pendiente';
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><a href="${ev.file_url}" target="_blank" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">${ev.name}</a></td>
-                    <td style="font-size: 0.85rem; color: var(--text-muted);">${ev.uploaded_by || 'Operativo de Dependencia'}</td>
-                    <td style="font-size: 0.85rem;">${new Date(ev.created_at).toLocaleDateString()}</td>
-                    <td><span class="status-badge status-${ev.status}">${ev.status.toUpperCase()}</span></td>
-                    <td>
-                        ${showActions ? `
-                            <button onclick="updateEvidenceStatus('${ev.id}', 'aprobado')" class="btn-primary" style="padding: 4px 8px; font-size: 0.75rem; background: #10b981;">Aprobar</button>
-                            <button onclick="updateEvidenceStatus('${ev.id}', 'rechazado')" class="btn-secondary" style="padding: 4px 8px; font-size: 0.75rem; background: #ef4444; border-color: #ef4444;">Rechazar</button>
-                        ` : (ev.status === 'aprobado' ? '<span style="color: #10b981; font-size: 0.8rem;">✓ Validado por Líder</span>' : '-')}
-                    </td>
-                `;
-                container.appendChild(tr);
-            });
+        function openInviteModal() {
+            document.getElementById('inviteModal').style.display = 'flex';
         }
 
-        loadRegisteredUsers();
+        function closeInviteModal() {
+            document.getElementById('inviteModal').style.display = 'none';
+        }
 
-        function inviteUser() {
-            const email = prompt("Ingrese el correo institucional del invitado:");
-            if (email) {
-                alert(`Invitación enviada a ${email}. Se le ha asignado el rol de Operativo por defecto.`);
+        async function submitInviteUser() {
+            const name = document.getElementById('inv_name').value.trim();
+            const email = document.getElementById('inv_email').value.trim();
+            const role = document.getElementById('inv_role').value;
+            const password = document.getElementById('inv_password').value.trim();
+            if (!email) { alert('El correo es obligatorio.'); return; }
+            try {
+                const resp = await fetch(`/api/users?inst_id=${getInstId()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, role, password })
+                });
+                const result = await resp.json();
+                if (result.status === 'success') {
+                    alert(`✅ Usuario creado.\n\nEmail: ${email}\nContraseña temporal: ${result.temp_password}`);
+                    closeInviteModal();
+                    loadUsersFromAPI();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch(e) {
+                alert('Error de conexión.');
             }
         }
+
+        async function resetUserPass(userId, email) {
+            if (!confirm(`¿Resetear contraseña de ${email}? Se asignará una temporal.`)) return;
+            try {
+                const resp = await fetch(`/api/users/${userId}/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const result = await resp.json();
+                if (result.status === 'success') {
+                    alert(`✅ Contraseña reseteada.\n\nNueva contraseña temporal: ${result.temp_password}\n\nCompartirla de forma segura con el usuario.`);
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch(e) {
+                alert('Error de conexión.');
+            }
+        }
+
+        async function deleteUserFromList(userId, email) {
+            if (!confirm(`¿Eliminar al usuario ${email}? Esta acción no se puede deshacer.`)) return;
+            try {
+                await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+                loadUsersFromAPI();
+            } catch(e) {
+                alert('Error al eliminar usuario.');
+            }
+        }
+
 
         async function loadAllInstitutions() {
             if (user.role === 'admin') {
