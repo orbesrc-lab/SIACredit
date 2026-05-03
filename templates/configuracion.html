@@ -1113,8 +1113,8 @@
                 list.forEach(inst => {
                     const opt = document.createElement('option');
                     opt.value = inst.id;
-                    opt.textContent = `${inst.name} (${inst.program})`;
-                    if (inst.id === getInstId()) opt.selected = true;
+                    opt.textContent = `${inst.name} (${inst.description || 'Sin programa'})`;
+                    if (inst.id == getInstId()) opt.selected = true;
                     select.appendChild(opt);
                 });
             }
