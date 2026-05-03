@@ -161,13 +161,16 @@ def handle_stats():
 def handle_all_institutions():
     if request.method == 'POST':
         data = request.json
-        res = supabase.table('institution').insert({
-            "name": data.get('name'),
-            "logo_url": data.get('logo_url', ''),
-            "program": data.get('program', 'Nuevo Programa'),
-            "period": data.get('period', '2026-1')
-        }).execute()
-        return jsonify({"status": "success", "data": res.data[0]})
+        try:
+            res = supabase.table('institution').insert({
+                "name": data.get('name'),
+                "logo_url": data.get('logo_url', ''),
+                "description": data.get('program', ''),
+                "code": data.get('period', '')
+            }).execute()
+            return jsonify({"status": "success", "data": res.data[0]})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
 
     try:
         res = supabase.table('institution').select("*").execute()
@@ -180,19 +183,25 @@ def handle_institution():
     inst_id = request.args.get('inst_id', 1, type=int)
     if request.method == 'POST':
         data = request.json
-        supabase.table('institution').upsert({
-            "id": inst_id,
-            "name": data.get('name'),
-            "logo_url": data.get('logo_url'),
-            "program": data.get('program'),
-            "period": data.get('period')
-        }).execute()
-        return jsonify({"status": "success"})
+        try:
+            supabase.table('institution').upsert({
+                "id": inst_id,
+                "name": data.get('name'),
+                "logo_url": data.get('logo_url'),
+                "description": data.get('program', ''),
+                "code": data.get('period', '')
+            }).execute()
+            return jsonify({"status": "success"})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
 
     try:
         inst = supabase.table('institution').select("*").eq("id", inst_id).execute()
         if inst.data:
-            return jsonify(inst.data[0])
+            data = inst.data[0]
+            data['program'] = data.get('description', '')
+            data['period'] = data.get('code', '')
+            return jsonify(data)
     except:
         pass
     return jsonify({"name": "Nueva Institución", "logo_url": "", "program": "Programa Académico", "period": "2026-1"})
