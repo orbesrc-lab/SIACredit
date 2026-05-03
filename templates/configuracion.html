@@ -916,7 +916,56 @@
             renderModelEditor();
             loadAllInstitutions();
             loadUsersFromAPI();
+            renderFactorLeaders();
         }
+
+        async function renderFactorLeaders() {
+            const grid = document.getElementById('factorLeadersGrid');
+            const area = document.getElementById('articulationArea');
+            const model = getDataModel();
+            
+            if (!model || model.length === 0) {
+                area.style.display = 'none';
+                return;
+            }
+            
+            area.style.display = 'block';
+            grid.innerHTML = '<div style="grid-column: 1/-1; color: var(--text-muted);">Cargando líderes...</div>';
+            
+            try {
+                const resp = await fetch(`/api/users?inst_id=${getInstId()}`);
+                const users = await resp.json();
+                const leaders = users.filter(u => u.role === 'lider' || u.role === 'admin' || u.role === 'inst_admin');
+                
+                let html = '';
+                model.forEach(factor => {
+                    const assignedTo = factor.leader_id || '';
+                    html += `
+                        <div style="padding: 10px; background: white; border-radius: 6px; border: 1px solid var(--border-color);">
+                            <strong>Factor ${factor.number}:</strong>
+                            <div style="font-size:0.8rem; margin-bottom:5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${factor.name}">${factor.name}</div>
+                            <select onchange="assignLeaderToFactor('${factor.id}', this.value)" style="width: 100%; padding: 5px; border-radius: 4px; border: 1px solid var(--border-color);">
+                                <option value="">-- Sin Asignar --</option>
+                                ${leaders.map(l => `<option value="${l.id}" ${assignedTo == l.id ? 'selected' : ''}>${l.name || l.email.split('@')[0]}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                });
+                grid.innerHTML = html;
+            } catch(e) {
+                grid.innerHTML = '<div style="color: #ef4444;">Error cargando líderes</div>';
+            }
+        }
+
+        function assignLeaderToFactor(factorId, userId) {
+            const model = getDataModel();
+            const factor = model.find(f => f.id === factorId);
+            if (factor) {
+                factor.leader_id = userId;
+                saveDataModel(model);
+            }
+        }
+
 
         async function loadInstitution() {
             const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
