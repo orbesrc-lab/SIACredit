@@ -20,6 +20,7 @@ supabase: Client = create_client(url, key)
 
 # --- Rutas para servir las páginas HTML ---
 @app.route('/')
+@app.route('/index.html')
 def index():
     return render_template('index.html')
 
