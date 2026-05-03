@@ -238,6 +238,19 @@
                 </div>
             </div>
 
+            <!-- Selección de Programa (Admins e Inst_Admins) -->
+            <div id="progSelectorCard" class="settings-card" style="display: none; border-bottom: 3px solid var(--secondary-color);">
+                <h3>Seleccionar Programa Académico</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Gestiona los múltiples programas académicos de tu institución.</p>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <select id="progSelect" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <!-- Dinámico -->
+                    </select>
+                    <button class="btn-primary" onclick="changeCurrentProg()">Cambiar</button>
+                    <button class="btn-secondary" onclick="addNewProgram()">+ Nuevo Programa</button>
+                </div>
+            </div>
+
 
             <!-- Generalidades -->
             <div class="settings-card">
@@ -915,6 +928,7 @@
             await loadDataFromAPI();
             renderModelEditor();
             loadAllInstitutions();
+            loadAllPrograms();
             loadUsersFromAPI();
             renderFactorLeaders();
         }
@@ -933,7 +947,7 @@
             grid.innerHTML = '<div style="grid-column: 1/-1; color: var(--text-muted);">Cargando líderes...</div>';
             
             try {
-                const resp = await fetch(`/api/users?inst_id=${getInstId()}`);
+                const resp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const users = await resp.json();
                 const leaders = users.filter(u => u.role === 'lider' || u.role === 'admin' || u.role === 'inst_admin');
                 
@@ -1013,7 +1027,7 @@
         async function loadUsersFromAPI() {
             const container = document.getElementById('usersTable');
             try {
-                const resp = await fetch(`/api/users?inst_id=${getInstId()}`);
+                const resp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const users = await resp.json();
                 if (!Array.isArray(users) || users.length === 0) {
                     container.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">No hay usuarios registrados para esta institución.</div>';
@@ -1055,7 +1069,7 @@
             const password = document.getElementById('inv_password').value.trim();
             if (!email) { alert('El correo es obligatorio.'); return; }
             try {
-                const resp = await fetch(`/api/users?inst_id=${getInstId()}`, {
+                const resp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email, role, password })
@@ -1131,7 +1145,7 @@
         async function addNewInstitution() {
             const name = prompt("Nombre de la nueva Institución:");
             if (!name) return;
-            const program = prompt("Programa Académico:");
+            const program = prompt("Descripción breve de la Institución:");
             if (!program) return;
 
             try {
@@ -1147,6 +1161,61 @@
                 }
             } catch (err) {
                 alert("Error al crear institución");
+            }
+        }
+
+        async function loadAllPrograms() {
+            if (user.role === 'inst_admin' || user.role === 'admin') {
+                document.getElementById('progSelectorCard').style.display = 'block';
+                const resp = await fetch(`/api/programs?inst_id=${getInstId()}`);
+                const list = await resp.json();
+                const select = document.getElementById('progSelect');
+                select.innerHTML = '<option value="0">-- Seleccione un Programa --</option>';
+                list.forEach(prog => {
+                    const opt = document.createElement('option');
+                    opt.value = prog.id;
+                    opt.textContent = `${prog.name} (${prog.period})`;
+                    if (prog.id == getProgramId()) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        function changeCurrentProg() {
+            const newId = document.getElementById('progSelect').value;
+            if (newId === "0") {
+                alert("Por favor seleccione un programa válido.");
+                return;
+            }
+            const userData = JSON.parse(localStorage.getItem('siac_user'));
+            userData.program_id = parseInt(newId);
+            localStorage.setItem('siac_user', JSON.stringify(userData));
+            location.reload();
+        }
+
+        async function addNewProgram() {
+            const name = prompt("Nombre del Programa Académico (Ej. Contaduría Pública):");
+            if (!name) return;
+            const period = prompt("Periodo de Evaluación (Ej. 2024-2026):");
+            if (!period) return;
+
+            try {
+                const resp = await fetch(`/api/programs?inst_id=${getInstId()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, period })
+                });
+                const result = await resp.json();
+                if (result.status === 'success') {
+                    alert(`Programa '${name}' creado correctamente.`);
+                    // Auto-select the newly created program
+                    const userData = JSON.parse(localStorage.getItem('siac_user'));
+                    userData.program_id = parseInt(result.data.id);
+                    localStorage.setItem('siac_user', JSON.stringify(userData));
+                    location.reload();
+                }
+            } catch (err) {
+                alert("Error al crear programa");
             }
         }
 

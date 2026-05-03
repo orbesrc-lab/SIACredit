@@ -58,12 +58,14 @@ def configuracion():
 @app.route('/api/model', methods=['GET', 'POST'])
 def handle_model():
     inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
     if request.method == 'POST':
         data = request.json # Lista de factores
         inst_id = request.args.get('inst_id', 1, type=int) # Re-get for safety
+        program_id = request.args.get('program_id', 0, type=int)
         
         try:
-            curr_factors = supabase.table('factors').select("id").eq("inst_id", inst_id).execute().data
+            curr_factors = supabase.table('factors').select("id").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
             curr_f_ids = {f['id'] for f in curr_factors}
             
             incoming_f_ids = set()
@@ -73,13 +75,13 @@ def handle_model():
                 try:
                     supabase.table('factors').upsert({
                         "id": f['id'], "number": f['number'], "name": f['name'], 
-                        "weight": f.get('weight', 0), "inst_id": inst_id,
+                        "weight": f.get('weight', 0), "inst_id": inst_id, "program_id": program_id,
                         "leader_id": f.get('leader_id') or None
                     }).execute()
                 except Exception:
                     supabase.table('factors').upsert({
                         "id": f['id'], "number": f['number'], "name": f['name'], 
-                        "weight": f.get('weight', 0), "inst_id": inst_id
+                        "weight": f.get('weight', 0), "inst_id": inst_id, "program_id": program_id
                     }).execute()
                 
                 for c in f.get('characteristics', []):
@@ -96,18 +98,18 @@ def handle_model():
             # Delete factors (cascades) not in incoming
             diff_f = curr_f_ids - incoming_f_ids
             if diff_f:
-                supabase.table('factors').delete().in_("id", list(diff_f)).eq("inst_id", inst_id).execute()
+                supabase.table('factors').delete().in_("id", list(diff_f)).eq("inst_id", inst_id).eq("program_id", program_id).execute()
 
-            return jsonify({"status": "success", "message": "Modelo sincronizado para institución " + str(inst_id)})
+            return jsonify({"status": "success", "message": "Modelo sincronizado para programa " + str(program_id)})
         except Exception as e:
             print(f"Error during sync: {e}")
             return jsonify({"status": "error", "message": str(e)}), 500
 
     try:
         try:
-            res = supabase.table('factors').select("*, characteristics(*, aspects(*)), leader_id").eq("inst_id", inst_id).execute()
+            res = supabase.table('factors').select("*, characteristics(*, aspects(*)), leader_id").eq("inst_id", inst_id).eq("program_id", program_id).execute()
         except Exception:
-            res = supabase.table('factors').select("*, characteristics(*, aspects(*))").eq("inst_id", inst_id).execute()
+            res = supabase.table('factors').select("*, characteristics(*, aspects(*))").eq("inst_id", inst_id).eq("program_id", program_id).execute()
             
         sorted_data = sorted(res.data, key=lambda x: float(x['number']))
         return jsonify(sorted_data)
@@ -118,23 +120,24 @@ def handle_model():
 @app.route('/api/evaluations', methods=['GET', 'POST'])
 def handle_evaluations():
     inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
     if request.method == 'POST':
         data = request.json
         if isinstance(data, dict) and "char_id" in data:
             supabase.table('evaluations').upsert({
                 "char_id": data['char_id'], "rating": data['rating'], 
-                "just": data['just'], "inst_id": inst_id
+                "just": data['just'], "inst_id": inst_id, "program_id": program_id
             }).execute()
         else:
             for char_id, eval_data in data.items():
                 supabase.table('evaluations').upsert({
                     "char_id": char_id, "rating": eval_data.get('rating', 0), 
-                    "just": eval_data.get('just', ''), "inst_id": inst_id
+                    "just": eval_data.get('just', ''), "inst_id": inst_id, "program_id": program_id
                 }).execute()
         return jsonify({"status": "success"})
 
     try:
-        evals = supabase.table('evaluations').select("*").eq("inst_id", inst_id).execute()
+        evals = supabase.table('evaluations').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
         eval_dict = {e['char_id']: {"rating": e['rating'], "just": e['just']} for e in evals.data}
         return jsonify(eval_dict)
     except:
@@ -143,20 +146,42 @@ def handle_evaluations():
 @app.route('/api/estadisticas', methods=['GET', 'POST'])
 def handle_stats():
     inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
     if request.method == 'POST':
         data = request.json
         for table_id, rows in data.items():
             supabase.table('statistics').upsert({
-                "table_id": table_id, "data_json": json.dumps(rows), "inst_id": inst_id
+                "table_id": table_id, "data_json": json.dumps(rows), "inst_id": inst_id, "program_id": program_id
             }).execute()
         return jsonify({"status": "success"})
 
     try:
-        stats = supabase.table('statistics').select("*").eq("inst_id", inst_id).execute()
+        stats = supabase.table('statistics').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
         result = {s['table_id']: json.loads(s['data_json']) for s in stats.data}
         return jsonify(result)
     except:
         return jsonify({})
+
+@app.route('/api/programs', methods=['GET', 'POST'])
+def handle_programs():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    if request.method == 'POST':
+        data = request.json
+        try:
+            res = supabase.table('programs').insert({
+                "name": data.get('name'),
+                "period": data.get('period', ''),
+                "inst_id": inst_id
+            }).execute()
+            return jsonify({"status": "success", "data": res.data[0]})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
+
+    try:
+        res = supabase.table('programs').select("*").eq("inst_id", inst_id).execute()
+        return jsonify(res.data)
+    except:
+        return jsonify([])
 
 @app.route('/api/institutions', methods=['GET', 'POST'])
 def handle_all_institutions():
@@ -278,6 +303,7 @@ def init_admin():
 @app.route('/api/users', methods=['GET', 'POST'])
 def handle_users():
     inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
     if request.method == 'POST':
         data = request.json
         email = data.get('email')
@@ -296,6 +322,7 @@ def handle_users():
                     "password_hash": password_hash,
                     "role": data.get('role', 'lider'),
                     "inst_id": inst_id,
+                    "program_id": program_id,
                     "name": data.get('name', email.split('@')[0])
                 }).execute()
             except Exception:
@@ -304,21 +331,23 @@ def handle_users():
                     "email": email,
                     "password_hash": password_hash,
                     "role": data.get('role', 'lider'),
-                    "inst_id": inst_id
+                    "inst_id": inst_id,
+                    "program_id": program_id
                 }).execute()
             return jsonify({"status": "success", "data": res.data[0], "temp_password": temp_password})
         except Exception as e:
             return jsonify({"status": "error", "message": str(e)}), 500
 
     try:
-        query = supabase.table('users').select("id, email, role, name, inst_id")
-        # Super-admin can see all users or filter by inst
+        query = supabase.table('users').select("id, email, role, name, inst_id, program_id")
         if inst_id != 0:
             query = query.eq("inst_id", inst_id)
+        if program_id != 0:
+            query = query.eq("program_id", program_id)
         try:
             res = query.execute()
         except Exception:
-            # Fallback if 'name' column doesn't exist yet
+            # Fallback if 'name' or 'program_id' columns don't exist yet
             query2 = supabase.table('users').select("id, email, role, inst_id")
             if inst_id != 0:
                 query2 = query2.eq("inst_id", inst_id)
@@ -354,11 +383,16 @@ def delete_user(user_id):
 @app.route('/api/dashboard/stats')
 def dashboard_stats():
     inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
     try:
-        evidences = supabase.table('evidences').select("id, status").eq("inst_id", inst_id).execute().data
-        factors = supabase.table('factors').select("id").eq("inst_id", inst_id).execute().data
-        evals = supabase.table('evaluations').select("char_id, rating").eq("inst_id", inst_id).execute().data
-        users_count = supabase.table('users').select("id").eq("inst_id", inst_id).execute().data
+        evidences = supabase.table('evidences').select("id, status").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
+        factors = supabase.table('factors').select("id").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
+        evals = supabase.table('evaluations').select("char_id, rating").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
+        
+        users_query = supabase.table('users').select("id").eq("inst_id", inst_id)
+        if program_id != 0:
+            users_query = users_query.eq("program_id", program_id)
+        users_count = users_query.execute().data
 
         total_ev = len(evidences)
         pending_ev = len([e for e in evidences if e['status'] == 'pendiente'])
@@ -385,9 +419,10 @@ def dashboard_stats():
 @app.route('/api/reports/summary')
 def report_summary():
     inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
     try:
-        factors = supabase.table('factors').select("*, characteristics(id, weight)").eq("inst_id", inst_id).execute().data
-        evals = supabase.table('evaluations').select("char_id, rating").eq("inst_id", inst_id).execute().data
+        factors = supabase.table('factors').select("*, characteristics(id, weight)").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
+        evals = supabase.table('evaluations').select("char_id, rating").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
         eval_map = {e['char_id']: e['rating'] for e in evals}
         
         summary = []
@@ -420,6 +455,7 @@ def analyze_stats():
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     inst_id = request.form.get('inst_id', 1, type=int)
+    program_id = request.form.get('program_id', 0, type=int)
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
     
@@ -431,7 +467,7 @@ def upload_file():
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
-    file_path = f"inst_{inst_id}/{aspect_id}/{file.filename}"
+    file_path = f"inst_{inst_id}/prog_{program_id}/{aspect_id}/{file.filename}"
     try:
         file_content = file.read()
         supabase.storage.from_('evidencias').upload(
@@ -447,7 +483,8 @@ def upload_file():
             "user_email": email,
             "dependency": dependency,
             "status": "pendiente",
-            "inst_id": inst_id
+            "inst_id": inst_id,
+            "program_id": program_id
         }).execute()
         return jsonify({"status": "success", "url": file_url})
     except Exception as e:
@@ -457,8 +494,9 @@ def upload_file():
 @app.route('/api/evidences', methods=['GET'])
 def get_evidences():
     inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
     aspect_id = request.args.get('aspect_id')
-    query = supabase.table('evidences').select("*").eq("inst_id", inst_id)
+    query = supabase.table('evidences').select("*").eq("inst_id", inst_id).eq("program_id", program_id)
     if aspect_id:
         query = query.eq("aspect_id", aspect_id)
     res = query.execute()
@@ -467,8 +505,9 @@ def get_evidences():
 @app.route('/api/evidences/<int:evidence_id>', methods=['DELETE'])
 def delete_evidence(evidence_id):
     inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
     try:
-        supabase.table('evidences').delete().eq("id", evidence_id).eq("inst_id", inst_id).execute()
+        supabase.table('evidences').delete().eq("id", evidence_id).eq("inst_id", inst_id).eq("program_id", program_id).execute()
         return jsonify({"status": "success"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -477,10 +516,14 @@ def delete_evidence(evidence_id):
 def update_evidence_status():
     data = request.json
     inst_id = request.args.get('inst_id', 1, type=int)
-    supabase.table('evidences').update({
-        "status": data['status']
-    }).eq("id", data['id']).eq("inst_id", inst_id).execute()
-    return jsonify({"status": "success"})
+    program_id = request.args.get('program_id', 0, type=int)
+    try:
+        supabase.table('evidences').update({
+            "status": data['status']
+        }).eq("id", data['id']).eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
