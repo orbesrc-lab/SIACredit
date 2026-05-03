@@ -233,6 +233,7 @@
                     <select id="instSelect" style="flex: 1; min-width: 200px;"></select>
                     <button class="btn-primary" onclick="changeCurrentInst()">Cambiar</button>
                     <button class="btn-secondary" onclick="addNewInstitution()">+ Nueva Institución</button>
+                    <button class="btn-secondary" onclick="suspendInstitution()" style="color: #f59e0b; border-color: #f59e0b;">⏸️ Suspender</button>
                     <button class="btn-danger-solid" onclick="deleteInstitution()">🗑️ Eliminar</button>
                 </div>
                 
@@ -256,8 +257,8 @@
                 <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Administra los programas de autoevaluación dentro de esta institución.</p>
                 <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
                     <select id="progSelect" style="flex: 1; min-width: 200px;"></select>
-                    <button class="btn-primary" onclick="changeCurrentProg()">Cambiar</button>
-                    <button class="btn-secondary" onclick="addNewProgram()">+ Nuevo Programa</button>
+                    <button class="btn-primary" onclick="changeCurrentProg()">Cambiar / Cargar</button>
+                    <button class="btn-secondary" onclick="prepareNewProgram()">+ Nuevo Programa</button>
                     <button class="btn-danger-solid" onclick="deleteProgram()">🗑️ Eliminar</button>
                 </div>
 
@@ -1002,24 +1003,54 @@
         }
 
         async function saveProgram() {
-            const name = document.getElementById('prog_name').value;
-            const period = document.getElementById('prog_period').value;
+            const name = document.getElementById('prog_name').value.trim();
+            const period = document.getElementById('prog_period').value.trim();
             
-            if(!getProgramId() || getProgramId() == 0) {
-                alert("Seleccione o cree un programa primero."); return;
+            if (!name || !period) {
+                alert("Debes llenar el Nombre del Programa y el Periodo."); return;
             }
 
-            const resp = await fetch(`/api/programs/${getProgramId()}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: name, period: period })
-            });
-
-            if (resp.ok) {
-                alert('Programa guardado correctamente.');
-                loadAllPrograms();
+            const currentProgId = getProgramId();
+            
+            if(!currentProgId || currentProgId == 0) {
+                // Crear nuevo programa
+                try {
+                    const resp = await fetch(`/api/programs?inst_id=${getInstId()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, period })
+                    });
+                    const result = await resp.json();
+                    if (result.status === 'success') {
+                        alert(`Programa '${name}' creado correctamente.`);
+                        const userData = JSON.parse(localStorage.getItem('siac_user'));
+                        userData.program_id = parseInt(result.data.id);
+                        localStorage.setItem('siac_user', JSON.stringify(userData));
+                        location.reload();
+                    } else {
+                        alert('Error al crear el programa.');
+                    }
+                } catch (err) {
+                    alert("Error de conexión.");
+                }
             } else {
-                alert('Error al guardar el programa.');
+                // Actualizar programa existente
+                try {
+                    const resp = await fetch(`/api/programs/${currentProgId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: name, period: period })
+                    });
+
+                    if (resp.ok) {
+                        alert('Programa guardado correctamente.');
+                        loadAllPrograms();
+                    } else {
+                        alert('Error al guardar el programa.');
+                    }
+                } catch(e) {
+                    alert("Error de conexión");
+                }
             }
         }
 
@@ -1049,18 +1080,20 @@
                     return;
                 }
                 container.innerHTML = users.map(u => {
-                    const roleBadge = u.role === 'admin' || u.role === 'inst_admin' ? 'role-admin' : 'role-leader';
-                    const roleLabel = { admin: 'Super Admin', inst_admin: 'Admin Inst.', lider: 'Líder', operativo: 'Operativo' }[u.role] || u.role;
+                    const roleBadge = u.role === 'admin' || u.role === 'inst_admin' ? 'role-admin' : (u.role === 'pending' ? '' : 'role-leader');
+                    const roleLabel = { admin: 'Super Admin', inst_admin: 'Admin Inst.', lider: 'Líder', operativo: 'Operativo', pending: 'Pendiente' }[u.role] || u.role;
                     const isCurrentUser = u.email === user.email;
+                    const isPending = u.role === 'pending';
                     return `<div class="user-item">
                         <div class="user-info">
                             <span class="user-name">${u.name || u.email.split('@')[0]}</span>
                             <span class="user-role">${u.email} &middot; <em>${roleLabel}</em>${isCurrentUser ? ' • (Tú)' : ''}</span>
                         </div>
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <span class="role-badge ${roleBadge}">${roleLabel.toUpperCase()}</span>
-                            ${!isCurrentUser ? `<button onclick="resetUserPass(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color);">Resetear Clave</button>` : ''}
-                            ${!isCurrentUser && user.role === 'admin' ? `<button onclick="deleteUserFromList(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:#ef4444;">Eliminar</button>` : ''}
+                            <span class="role-badge ${roleBadge}" style="${isPending ? 'background:#fef3c7; color:#d97706;' : ''}">${roleLabel.toUpperCase()}</span>
+                            ${isPending && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="activateUser(${u.id}, '${u.email}')" class="btn-primary" style="font-size:0.7rem; padding: 4px 8px;">Activar</button>` : ''}
+                            ${!isCurrentUser && !isPending ? `<button onclick="resetUserPass(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color);">Resetear Clave</button>` : ''}
+                            ${!isCurrentUser && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="deleteUserFromList(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:#ef4444;">Eliminar</button>` : ''}
                         </div>
                     </div>`;
                 }).join('');
@@ -1128,6 +1161,25 @@
                 loadUsersFromAPI();
             } catch(e) {
                 alert('Error al eliminar usuario.');
+            }
+        }
+
+        async function activateUser(userId, email) {
+            if (!confirm(`¿Activar usuario ${email} como Líder de Factor? (Podrás cambiar su rol después si es necesario)`)) return;
+            try {
+                const resp = await fetch(`/api/users/${userId}/activate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: 'lider' })
+                });
+                if (resp.ok) {
+                    alert('Usuario activado con éxito.');
+                    loadUsersFromAPI();
+                } else {
+                    alert('Error activando usuario.');
+                }
+            } catch(e) {
+                alert('Error de conexión.');
             }
         }
 
@@ -1212,29 +1264,67 @@
             location.reload();
         }
 
-        async function addNewProgram() {
-            const name = prompt("Nombre del Programa Académico (Ej. Contaduría Pública):");
-            if (!name) return;
-            const period = prompt("Periodo de Evaluación (Ej. 2024-2026):");
-            if (!period) return;
+        function prepareNewProgram() {
+            document.getElementById('progSelect').value = '0';
+            document.getElementById('prog_name').value = '';
+            document.getElementById('prog_period').value = '';
+            document.getElementById('prog_name').focus();
+            
+            const userData = JSON.parse(localStorage.getItem('siac_user'));
+            userData.program_id = 0;
+            localStorage.setItem('siac_user', JSON.stringify(userData));
+            alert("Rellena los campos Nombre y Periodo abajo, y presiona 'Guardar Programa' para crearlo.");
+        }
 
-            try {
-                const resp = await fetch(`/api/programs?inst_id=${getInstId()}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, period })
-                });
-                const result = await resp.json();
-                if (result.status === 'success') {
-                    alert(`Programa '${name}' creado correctamente.`);
-                    // Auto-select the newly created program
-                    const userData = JSON.parse(localStorage.getItem('siac_user'));
-                    userData.program_id = parseInt(result.data.id);
-                    localStorage.setItem('siac_user', JSON.stringify(userData));
-                    location.reload();
+        async function saveProgram() {
+            const name = document.getElementById('prog_name').value.trim();
+            const period = document.getElementById('prog_period').value.trim();
+            
+            if (!name || !period) {
+                alert("Debes llenar el Nombre del Programa y el Periodo."); return;
+            }
+
+            const currentProgId = getProgramId();
+            
+            if(!currentProgId || currentProgId == 0) {
+                // Crear nuevo programa
+                try {
+                    const resp = await fetch(`/api/programs?inst_id=${getInstId()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, period })
+                    });
+                    const result = await resp.json();
+                    if (result.status === 'success') {
+                        alert(`Programa '${name}' creado correctamente.`);
+                        const userData = JSON.parse(localStorage.getItem('siac_user'));
+                        userData.program_id = parseInt(result.data.id);
+                        localStorage.setItem('siac_user', JSON.stringify(userData));
+                        location.reload();
+                    } else {
+                        alert('Error al crear el programa.');
+                    }
+                } catch (err) {
+                    alert("Error de conexión.");
                 }
-            } catch (err) {
-                alert("Error al crear programa");
+            } else {
+                // Actualizar programa existente
+                try {
+                    const resp = await fetch(`/api/programs/${currentProgId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: name, period: period })
+                    });
+
+                    if (resp.ok) {
+                        alert('Programa guardado correctamente.');
+                        loadAllPrograms();
+                    } else {
+                        alert('Error al guardar el programa.');
+                    }
+                } catch(e) {
+                    alert("Error de conexión");
+                }
             }
         }
 

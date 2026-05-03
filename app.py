@@ -243,6 +243,19 @@ def delete_institution(inst_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/api/institutions/<int:inst_id>/suspend', methods=['POST'])
+def suspend_institution(inst_id):
+    try:
+        inst = supabase.table('institution').select("code").eq("id", inst_id).execute()
+        if inst.data:
+            code = inst.data[0].get('code', '')
+            if '[SUSPENDIDO]' not in code:
+                new_code = f"[SUSPENDIDO] {code}"
+                supabase.table('institution').update({"code": new_code}).eq("id", inst_id).execute()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/api/institution', methods=['GET', 'POST'])
 def handle_institution():
     inst_id = request.args.get('inst_id', 1, type=int)
@@ -285,7 +298,20 @@ def handle_login():
         if not res.data:
             return jsonify({"status": "error", "message": "Usuario no encontrado"}), 404
         user = res.data[0]
+        
+        # Bloquear usuarios pendientes
+        if user.get('role') == 'pending':
+            return jsonify({"status": "error", "message": "Tu cuenta está pendiente de activación por un Administrador."}), 403
+            
         if check_password_hash(user['password_hash'], password):
+            # Check if institution is suspended
+            if user.get('inst_id') and user['inst_id'] != 1:
+                inst_res = supabase.table('institution').select("code").eq("id", user['inst_id']).execute()
+                if inst_res.data:
+                    code = inst_res.data[0].get('code', '')
+                    if code and '[SUSPENDIDO]' in code:
+                        return jsonify({"status": "error", "message": "Tu institución se encuentra suspendida temporalmente."}), 403
+                        
             return jsonify({
                 "status": "success",
                 "user": { 
@@ -414,6 +440,15 @@ def reset_user_password(user_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/api/users/<int:user_id>/activate', methods=['POST'])
+def activate_user(user_id):
+    data = request.json
+    new_role = data.get('role', 'lider')
+    try:
+        supabase.table('users').update({"role": new_role}).eq("id", user_id).execute()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
