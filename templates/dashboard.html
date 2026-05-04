@@ -136,7 +136,11 @@
                     logoImg.style.display = 'block';
                 }
 
-                const programName = localStorage.getItem('siac_program_name') || 'Programa';
+                // Cargar datos del programa
+                const progResp = await fetch(`/api/programs?inst_id=${getInstId()}`);
+                const progs = await progResp.json();
+                const currentProg = progs.find(p => p.id == getProgramId());
+                const programName = currentProg ? currentProg.name : 'Programa';
                 document.getElementById('header_title').textContent = `${programName} - Acreditación 2026`;
                 
                 loadDashboardStats();
