@@ -146,7 +146,7 @@
                     evHtml += `<div class="evidence-item">
                         <div>
                             <div class="evidence-name"><a href="javascript:void(0)" onclick="viewFile('${ev.file_url}', '${ev.name}')">📄 ${ev.name}</a></div>
-                            <div class="evidence-meta">Por: ${ev.user_email} | Dept: ${ev.dependency}</div>
+                            <div class="evidence-meta">Periodo: <b>${ev.period || 'N/A'}</b> | Por: ${ev.user_email} | Dept: ${ev.dependency}</div>
                         </div>
                         <div style="display:flex; gap:10px; align-items:center">
                             <span class="status ${ev.status}">${ev.status.toUpperCase()}</span>
@@ -163,7 +163,11 @@
                     <div class="form-group" style="margin-bottom:15px;">
                         <label style="font-size:0.8rem;">Periodo Académico</label>
                         <select id="evidencePeriod_${aspect.id}" style="width:100%; padding:5px; border-radius:4px; border:1px solid #ddd;">
-                            <option value="2025-1">2025-1</option><option value="2024-2">2024-2</option>
+                            <option value="2025-1">2025-1</option>
+                            <option value="2024-2">2024-2</option>
+                            <option value="2024-1">2024-1</option>
+                            <option value="2023-2">2023-2</option>
+                            <option value="2023-1">2023-1</option>
                         </select>
                     </div>
                     ${evHtml}

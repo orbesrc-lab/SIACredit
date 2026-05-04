@@ -623,6 +623,7 @@ def upload_file():
     
     file = request.files['file']
     aspect_id = request.form.get('aspect_id')
+    period = request.form.get('period', 'General')
     email = request.form.get('email')
     dependency = request.form.get('dependency', 'General')
 
@@ -635,7 +636,8 @@ def upload_file():
         return jsonify({"error": "No selected file"}), 400
 
     clean_filename = sanitize_filename(file.filename)
-    file_path = f"inst_{inst_id}/prog_{program_id}/{aspect_id}/{clean_filename}"
+    # Nueva ruta incluyendo el periodo para evitar colisiones
+    file_path = f"inst_{inst_id}/prog_{program_id}/{aspect_id}/{period}/{clean_filename}"
     try:
         file_content = file.read()
         supabase.storage.from_('evidencias').upload(
@@ -651,6 +653,7 @@ def upload_file():
             "user_email": email,
             "dependency": dependency,
             "status": "pendiente",
+            "period": period,
             "inst_id": inst_id,
             "program_id": program_id
         }).execute()
