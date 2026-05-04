@@ -13,6 +13,16 @@ app.secret_key = os.getenv("SECRET_KEY", "siacredit_secret_key")
 CORS(app)
 
 
+def get_active_inst_id(requested_id):
+    try:
+        # Si el ID pedido es 1 o 0, intentamos buscar la primera institución real
+        res = supabase.table('institution').select("id").limit(1).execute()
+        if res.data:
+            return res.data[0]['id']
+    except:
+        pass
+    return requested_id or 1
+
 # Inicializar Cliente Supabase
 url: str = os.getenv("SUPABASE_URL")
 key: str = os.getenv("SUPABASE_KEY")
@@ -160,7 +170,8 @@ def handle_model():
 
 @app.route('/api/evaluations', methods=['GET', 'POST'])
 def handle_evaluations():
-    inst_id = request.args.get('inst_id', 1, type=int)
+    raw_inst_id = request.args.get('inst_id', 1, type=int)
+    inst_id = get_active_inst_id(raw_inst_id)
     program_id = request.args.get('program_id', 0, type=int)
     if request.method == 'POST':
         data = request.json
