@@ -1097,58 +1097,6 @@
             }
         }
 
-        async function saveProgram() {
-            const name = document.getElementById('prog_name').value.trim();
-            const period = document.getElementById('prog_period').value.trim();
-            
-            if (!name || !period) {
-                alert("Debes llenar el Nombre del Programa y el Periodo."); return;
-            }
-
-            const currentProgId = getProgramId();
-            
-            if(!currentProgId || currentProgId == 0) {
-                // Crear nuevo programa
-                try {
-                    const resp = await fetch(`/api/programs?inst_id=${getInstId()}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, period })
-                    });
-                    const result = await resp.json();
-                    if (result.status === 'success') {
-                        alert(`Programa '${name}' creado correctamente.`);
-                        const userData = JSON.parse(localStorage.getItem('siac_user'));
-                        userData.program_id = parseInt(result.data.id);
-                        localStorage.setItem('siac_user', JSON.stringify(userData));
-                        location.reload();
-                    } else {
-                        alert('Error al crear el programa.');
-                    }
-                } catch (err) {
-                    alert("Error de conexión.");
-                }
-            } else {
-                // Actualizar programa existente
-                try {
-                    const resp = await fetch(`/api/programs/${currentProgId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name: name, period: period })
-                    });
-
-                    if (resp.ok) {
-                        alert('Programa guardado correctamente.');
-                        loadAllPrograms();
-                    } else {
-                        alert('Error al guardar el programa.');
-                    }
-                } catch(e) {
-                    alert("Error de conexión");
-                }
-            }
-        }
-
         // Cargar al inicio
         loadInstitution();
 

@@ -209,13 +209,26 @@ def handle_programs():
     if request.method == 'POST':
         data = request.json
         try:
-            res = supabase.table('programs').insert({
+            insert_data = {
                 "name": data.get('name'),
                 "period": data.get('period', ''),
                 "inst_id": inst_id
-            }).execute()
-            return jsonify({"status": "success", "data": res.data[0]})
+            }
+            res = supabase.table('programs').insert(insert_data).execute()
+            
+            if res.data and len(res.data) > 0:
+                return jsonify({"status": "success", "data": res.data[0]})
+            else:
+                # Intento de recuperación si RLS oculta el retorno
+                fallback = supabase.table('programs').select("*")\
+                    .eq("name", insert_data['name'])\
+                    .eq("inst_id", inst_id)\
+                    .order("id", desc=True).limit(1).execute()
+                if fallback.data:
+                    return jsonify({"status": "success", "data": fallback.data[0]})
+                return jsonify({"status": "error", "message": "Supabase no retornó datos del programa."}), 500
         except Exception as e:
+            print(f"Error creating program: {e}")
             return jsonify({"status": "error", "message": str(e)}), 500
 
     try:
