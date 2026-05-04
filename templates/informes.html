@@ -176,7 +176,7 @@
 
         async function loadSummary() {
             try {
-                const response = await fetch(`/api/reports/summary?inst_id=${getInstId()}`);
+                const response = await fetch(`/api/reports/summary?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const data = await response.json();
                 const tbody = document.getElementById('summaryBody');
                 tbody.innerHTML = '';
