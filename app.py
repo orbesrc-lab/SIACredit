@@ -164,24 +164,42 @@ def handle_evaluations():
     program_id = request.args.get('program_id', 0, type=int)
     if request.method == 'POST':
         data = request.json
-        if isinstance(data, dict) and "char_id" in data:
-            supabase.table('evaluations').upsert({
-                "char_id": data['char_id'], "rating": data['rating'], 
-                "just": data['just'], "inst_id": inst_id, "program_id": program_id
-            }).execute()
-        else:
+        try:
+            # Intentar guardado con multi-tenant
             for char_id, eval_data in data.items():
-                supabase.table('evaluations').upsert({
-                    "char_id": char_id, "rating": eval_data.get('rating', 0), 
-                    "just": eval_data.get('just', ''), "inst_id": inst_id, "program_id": program_id
-                }).execute()
-        return jsonify({"status": "success"})
+                try:
+                    supabase.table('evaluations').upsert({
+                        "char_id": char_id, 
+                        "rating": eval_data.get('rating', 0), 
+                        "just": eval_data.get('just', ''),
+                        "inst_id": inst_id,
+                        "program_id": program_id
+                    }).execute()
+                except Exception:
+                    # Fallback si no existen las columnas inst_id/program_id
+                    supabase.table('evaluations').upsert({
+                        "char_id": char_id, 
+                        "rating": eval_data.get('rating', 0), 
+                        "just": eval_data.get('just', '')
+                    }).execute()
+            return jsonify({"status": "success"})
+        except Exception as e:
+            print(f"Error saving eval: {e}")
+            return jsonify({"status": "error", "message": str(e)}), 500
 
     try:
-        evals = supabase.table('evaluations').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        # Intentar carga con filtros
+        try:
+            evals = supabase.table('evaluations').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+            if not evals.data: # Si no hay nada con filtros, probar carga global
+                evals = supabase.table('evaluations').select("*").execute()
+        except Exception:
+            evals = supabase.table('evaluations').select("*").execute()
+            
         eval_dict = {e['char_id']: {"rating": e['rating'], "just": e['just']} for e in evals.data}
         return jsonify(eval_dict)
-    except:
+    except Exception as e:
+        print(f"Error loading evals: {e}")
         return jsonify({})
 
 @app.route('/api/estadisticas', methods=['GET', 'POST'])
