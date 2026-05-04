@@ -123,9 +123,10 @@
         async function loadSummary() {
             const resp = await fetch(`/api/reports/summary?inst_id=${getInstId()}&program_id=${getProgramId()}`);
             const data = await resp.json();
+            const factors = data.factors || [];
             const tbody = document.getElementById('summaryBody');
-            tbody.innerHTML = data.length ? '' : '<tr><td colspan="4" style="text-align:center">No hay datos de autoevaluación aún.</td></tr>';
-            data.forEach(item => {
+            tbody.innerHTML = factors.length ? '' : '<tr><td colspan="4" style="text-align:center">No hay datos de autoevaluación aún.</td></tr>';
+            factors.forEach(item => {
                 const status = item.avg >= 4 ? 'Fortaleza' : (item.avg >= 3 ? 'Aceptable' : 'Plan de Mejora');
                 const badge = item.avg >= 4 ? 'grade-high' : (item.avg >= 3 ? 'grade-med' : 'grade-low');
                 const tr = document.createElement('tr');

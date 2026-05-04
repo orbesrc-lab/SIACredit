@@ -94,15 +94,16 @@
                 const factors = await resp.json();
                 
                 const evalsResp = await fetch(`/api/reports/summary?inst_id=${iId}&program_id=${pId}`);
-                const evals = await evalsResp.json();
+                const summaryData = await evalsResp.json();
+                const evals = summaryData.factors || [];
                 
                 let html = '';
                 if (!factors || factors.length === 0) {
                     html = '<div style="padding:20px; text-align:center; color:#64748b;">No se encontraron factores.</div>';
                 } else {
                     factors.forEach(f => {
-                        const fEval = (evals && evals.find) ? evals.find(e => e.name.includes(f.name)) || { avg: 0 } : { avg: 0 };
-                        html += `<div class="factor-header">${f.number}. ${f.name} <br><small style="color:var(--primary-color)">Promedio: ${fEval.avg}</small></div>`;
+                        const fEval = evals.find(e => e.name.includes(f.name)) || { avg: 0 };
+                        html += `<div class="factor-header">${f.number}. ${f.name} <br><small style="color:var(--primary-color)">Promedio Ponderado: ${fEval.avg}</small></div>`;
                         if (f.characteristics) {
                             f.characteristics.forEach(c => {
                                 html += `<div class="char-item" onclick="showEval('${f.id}', '${c.id}')" id="char_${c.id}">

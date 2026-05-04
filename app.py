@@ -583,27 +583,42 @@ def report_summary():
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
     try:
+        # Traer factores con sus pesos y características
         factors = supabase.table('factors').select("*, characteristics(id, weight)").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
         evals = supabase.table('evaluations').select("char_id, rating").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
         eval_map = {e['char_id']: e['rating'] for e in evals}
         
         summary = []
+        global_weighted_score = 0
+        total_factor_weight = 0
+
         for f in factors:
             factor_score = 0
+            # Sumar ponderación de características
             for c in f.get('characteristics', []):
                 rating = eval_map.get(c['id'], 0)
                 weight = c.get('weight', 0)
                 factor_score += rating * (weight / 100)
             
+            f_weight = f.get('weight', 0)
+            global_weighted_score += factor_score * (f_weight / 100)
+            total_factor_weight += f_weight
+
             summary.append({
                 "name": f"Factor {f['number']}: {f['name']}",
                 "avg": round(factor_score, 2),
-                "cumplimiento": round((factor_score / 5) * 100, 1) if factor_score > 0 else 0
+                "cumplimiento": round((factor_score / 5) * 100, 1) if factor_score > 0 else 0,
+                "weight": f_weight
             })
-        return jsonify(summary)
+            
+        return jsonify({
+            "factors": summary,
+            "global_avg": round(global_weighted_score, 2),
+            "global_progress": round((global_weighted_score / 5) * 100, 1) if global_weighted_score > 0 else 0
+        })
     except Exception as e:
         print(f"Error in summary: {e}")
-        return jsonify([])
+        return jsonify({"factors": [], "global_avg": 0})
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze_stats():
