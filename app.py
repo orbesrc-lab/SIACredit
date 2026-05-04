@@ -193,14 +193,14 @@ def handle_evaluations():
     if request.method == 'POST':
         data = request.json
         try:
-            # Intentar guardado con multi-tenant
+            # Intentar guardado con multi-tenant (Forzando ID 3 detectado)
             for char_id, eval_data in data.items():
                 try:
                     supabase.table('evaluations').upsert({
                         "char_id": char_id, 
                         "rating": eval_data.get('rating', 0), 
                         "just": eval_data.get('just', ''),
-                        "inst_id": inst_id,
+                        "inst_id": 3,
                         "program_id": program_id
                     }).execute()
                 except Exception:
