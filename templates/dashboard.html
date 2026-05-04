@@ -6,128 +6,29 @@
     <title>SKEL - Expertos en Proyectos de Educación Superior</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
-        body {
-            background-color: var(--secondary-bg);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .sidebar {
-            width: 250px;
-            background: #0f172a;
-            color: #94a3b8;
-            display: flex;
-            flex-direction: column;
-        }
-        .sidebar-header {
-            padding: 20px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--white);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .sidebar-menu {
-            flex: 1;
-            padding: 20px 0;
-        }
-        .sidebar-item {
-            padding: 12px 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: inherit;
-        }
-        .sidebar-item:hover, .sidebar-item.active {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--white);
-            border-left: 3px solid var(--primary-color);
-        }
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-        .topbar {
-            background: var(--white);
-            padding: 15px 30px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .content-area {
-            padding: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
-        .grid-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .card {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border-color);
-        }
-        .card h3 {
-            font-size: 1rem;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-        }
-        .card .value {
-            font-size: 2rem;
-            font-weight: 700;
-        }
-        .card .trend {
-            font-size: 0.85rem;
-            color: #10b981;
-            margin-top: 5px;
-        }
-        .recent-activity {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border-color);
-        }
-        .activity-item {
-            padding: 15px 0;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-        }
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-        /* Mobile overrides */
-        @media (max-width: 768px) {
-            body { overflow-y: auto !important; height: auto !important; }
-            .main-content { overflow-y: auto !important; height: auto !important; padding-bottom: 80px !important; }
-            .content-area { padding: 15px !important; padding-bottom: 90px !important; }
-            .topbar { padding: 12px 15px !important; flex-direction: column; align-items: flex-start; gap: 8px; }
-        }    </style>
+        body { background-color: var(--secondary-bg); display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 250px; background: #0f172a; color: #94a3b8; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; font-size: 1.25rem; font-weight: 700; color: var(--white); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-menu { flex: 1; padding: 20px 0; }
+        .sidebar-item { padding: 12px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; transition: 0.2s; }
+        .sidebar-item:hover, .sidebar-item.active { background: rgba(255, 255, 255, 0.1); color: var(--white); border-left: 3px solid var(--primary-color); }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        .topbar { background: var(--white); padding: 15px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .content-area { padding: 30px; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+        .card h3 { font-size: 1rem; color: var(--text-muted); margin-bottom: 10px; }
+        .card .value { font-size: 2rem; font-weight: 700; }
+        .card .trend { font-size: 0.85rem; color: #10b981; margin-top: 5px; }
+        .recent-activity { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+        .activity-item { padding: 15px 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; }
+        .activity-item:last-child { border-bottom: none; }
+    </style>
 </head>
 <body>
     <aside class="sidebar">
         <div class="sidebar-header">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--primary-color)" stroke-width="2"/>
-            </svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--primary-color)" stroke-width="2"/></svg>
             SIACredit
         </div>
         <div class="sidebar-menu">
@@ -138,31 +39,27 @@
             <a href="estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
             <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
         </div>
-        <div class="sidebar-footer">
-            <button class="btn-ghost" onclick="logout()" style="color: #ef4444; width: 100%; text-align: left;">🚪 Cerrar Sesión</button>
+        <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444;">🚪 Cerrar Sesión</a>
         </div>
     </aside>
 
     <main class="main-content">
         <header class="topbar">
             <div>
-                <h2 style="font-size: 1.25rem; margin: 0;"><span id="header_program">Ingeniería de Sistemas</span> - <span id="header_period" style="color: var(--primary-color);">Acreditación 2026</span></h2>
+                <h2 id="header_title" style="font-size: 1.25rem; margin: 0;">Cargando programa...</h2>
             </div>
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <button id="themeToggle" class="btn-ghost" style="padding: 5px 10px; font-size: 1.2rem;" title="Cambiar Tema">🌓</button>
-                <div id="userInfo" style="font-weight: 500;">Cargando...</div>
-            </div>
+            <div id="userInfo" style="font-weight: 500;"></div>
         </header>
 
         <div class="content-area fade-in">
-
             <h1 style="margin-bottom: 20px; font-size: 1.8rem;">Visión General</h1>
             
             <div class="grid-cards">
                 <div class="card">
                     <h3>Avance Global</h3>
                     <div class="value" id="stat_progress">-</div>
-                    <div class="trend" id="stat_progress_sub">Basado en autoevaluaciones</div>
+                    <div class="trend">Basado en autoevaluaciones</div>
                 </div>
                 <div class="card">
                     <h3>Evidencias Subidas</h3>
@@ -183,80 +80,54 @@
 
             <div class="recent-activity">
                 <h3 style="margin-bottom: 15px; font-size: 1.2rem;">Actividad Reciente</h3>
-                <div id="activityList">
-                    <!-- Dynamic activity -->
-                </div>
+                <div id="activityList"></div>
             </div>
         </div>
     </main>
 
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
-        // Check Auth
-        const user = JSON.parse(localStorage.getItem('siac_user'));
-        if (!user) {
-            window.location.href = 'login.html';
-        } else {
-            document.getElementById('userInfo').textContent = user.email;
-        }
+        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'admin@siacredit.edu.co' };
+        document.getElementById('userInfo').textContent = user.email;
 
-        function logout() {
-            localStorage.removeItem('siac_user');
-            window.location.href = 'index.html';
-        }
+        function logout() { localStorage.removeItem('siac_user'); window.location.href = 'index.html'; }
 
         async function loadDashboardStats() {
             try {
-                const resp = await fetch(`/api/dashboard/stats?inst_id=${getInstId()}`);
+                const resp = await fetch(`/api/dashboard/stats?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const stats = await resp.json();
-                document.getElementById('stat_progress').textContent = stats.global_progress + '%';
-                document.getElementById('stat_evidences').textContent = stats.total_evidences;
-                document.getElementById('stat_evidences_sub').textContent = stats.pending_evidences + ' pendientes de revisión';
-                document.getElementById('stat_factors').textContent = stats.total_factors + ' factores';
-                document.getElementById('stat_users').textContent = stats.total_users;
-            } catch(e) {
-                console.error('Error cargando stats:', e);
-            }
+                document.getElementById('stat_progress').textContent = (stats.global_progress || 0) + '%';
+                document.getElementById('stat_evidences').textContent = stats.total_evidences || 0;
+                document.getElementById('stat_evidences_sub').textContent = (stats.pending_evidences || 0) + ' pendientes de revisión';
+                document.getElementById('stat_factors').textContent = (stats.total_factors || 0) + ' factores';
+                document.getElementById('stat_users').textContent = stats.total_users || 0;
+            } catch(e) { console.error('Error stats:', e); }
         }
 
-        // Recent Activity from evidences
         async function loadRecentActivity() {
             try {
-                const resp = await fetch(`/api/evidences?inst_id=${getInstId()}`);
+                const resp = await fetch(`/api/evidences?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const evidences = await resp.json();
-                const activityList = document.getElementById('activityList');
-                activityList.innerHTML = '';
-                if (!evidences.length) {
-                    activityList.innerHTML = '<div class="activity-item"><div style="color:var(--text-muted);">No hay actividad reciente. Comienza subiendo tu primera evidencia.</div></div>';
-                    return;
-                }
-                const recent = evidences.slice(-5).reverse();
-                recent.forEach(ev => {
+                const list = document.getElementById('activityList');
+                list.innerHTML = evidences.length ? '' : '<div class="activity-item">No hay actividad reciente.</div>';
+                evidences.slice(-5).reverse().forEach(ev => {
                     const div = document.createElement('div');
                     div.className = 'activity-item';
-                    const statusIcon = ev.status === 'aprobado' ? '✅' : ev.status === 'rechazado' ? '❌' : '⏳';
-                    div.innerHTML = `<div>${statusIcon} <strong>${ev.name}</strong> &mdash; ${ev.user_email || 'Usuario'}</div><div style="color: var(--text-muted); font-size: 0.85rem;">${new Date(ev.created_at).toLocaleDateString('es-CO')}</div>`;
-                    activityList.appendChild(div);
+                    const icon = ev.status === 'aprobado' ? '✅' : '⏳';
+                    div.innerHTML = `<div>${icon} <strong>${ev.name}</strong> &mdash; ${ev.user_email}</div><div>${new Date(ev.created_at).toLocaleDateString()}</div>`;
+                    list.appendChild(div);
                 });
-            } catch(e) {
-                document.getElementById('activityList').innerHTML = '<div class="activity-item"><div style="color:var(--text-muted);">No se pudo cargar la actividad reciente.</div></div>';
-            }
+            } catch(e) { console.error('Error activity:', e); }
         }
 
-        async function loadInstitution() {
-            try {
-                const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
-                const data = await resp.json();
-                if (data.program) document.getElementById('header_program').textContent = data.program;
-                if (data.period) document.getElementById('header_period').textContent = data.period;
-            } catch (err) {
-                console.error("Error cargando datos de cabecera:", err);
-            }
+        async function initDashboard() {
+            const programName = localStorage.getItem('siac_program_name') || 'Programa';
+            document.getElementById('header_title').textContent = `${programName} - Acreditación 2026`;
+            loadDashboardStats();
+            loadRecentActivity();
         }
 
-        loadInstitution();
-        loadDashboardStats();
-        loadRecentActivity();
+        initDashboard();
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
