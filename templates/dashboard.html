@@ -46,10 +46,14 @@
 
     <main class="main-content">
         <header class="topbar">
-            <div>
-                <h2 id="header_title" style="font-size: 1.25rem; margin: 0;">Cargando programa...</h2>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img id="inst_logo" src="" alt="Logo" style="height: 45px; display: none; object-fit: contain;">
+                <div>
+                    <h2 id="inst_name" style="font-size: 1.1rem; margin: 0; color: var(--primary-color);">Institución</h2>
+                    <h3 id="header_title" style="font-size: 0.9rem; margin: 0; color: var(--text-muted); font-weight: 500;">Cargando programa...</h3>
+                </div>
             </div>
-            <div id="userInfo" style="font-weight: 500;"></div>
+            <div id="userInfo" style="font-weight: 600; color: var(--text-main);"></div>
         </header>
 
         <div class="content-area fade-in">
@@ -121,10 +125,23 @@
         }
 
         async function initDashboard() {
-            const programName = localStorage.getItem('siac_program_name') || 'Programa';
-            document.getElementById('header_title').textContent = `${programName} - Acreditación 2026`;
-            loadDashboardStats();
-            loadRecentActivity();
+            try {
+                // Cargar datos de la institución
+                const instResp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+                const instData = await instResp.json();
+                document.getElementById('inst_name').textContent = instData.name;
+                if(instData.logo_url) {
+                    const logoImg = document.getElementById('inst_logo');
+                    logoImg.src = instData.logo_url;
+                    logoImg.style.display = 'block';
+                }
+
+                const programName = localStorage.getItem('siac_program_name') || 'Programa';
+                document.getElementById('header_title').textContent = `${programName} - Acreditación 2026`;
+                
+                loadDashboardStats();
+                loadRecentActivity();
+            } catch(e) { console.error('Error init:', e); }
         }
 
         initDashboard();
