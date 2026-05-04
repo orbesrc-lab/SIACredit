@@ -188,10 +188,13 @@
                 })
             });
 
+            const result = await resp.json();
             if (resp.ok) {
                 alert("Evaluación guardada con éxito.");
                 loadSidebar();
-            } else { alert("Error al guardar."); }
+            } else { 
+                alert("Error al guardar: " + (result.message || "Error desconocido del servidor")); 
+            }
         }
 
         async function init() {
