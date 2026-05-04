@@ -92,7 +92,7 @@
                 const iId = getInstId();
                 const pId = getProgramId();
                 
-                const modelResp = await fetch(`/api/factors?inst_id=${iId}&program_id=${pId}`);
+                const modelResp = await fetch(`/api/model?inst_id=${iId}&program_id=${pId}`);
                 const factors = await modelResp.json();
                 
                 const evalsResp = await fetch(`/api/reports/summary?inst_id=${iId}&program_id=${pId}`);
@@ -126,7 +126,7 @@
             document.querySelectorAll('.char-item').forEach(el => el.classList.remove('active'));
             document.getElementById(`char_${cId}`).classList.add('active');
 
-            const resp = await fetch(`/api/factors?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+            const resp = await fetch(`/api/model?inst_id=${getInstId()}&program_id=${getProgramId()}`);
             const factors = await resp.json();
             const factor = factors.find(f => f.id == fId);
             const char = factor.characteristics.find(c => c.id == cId);
