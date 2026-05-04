@@ -14,8 +14,19 @@ CORS(app)
 
 
 def get_active_inst_id(requested_id):
-    # Forzamos el ID 3 que es el que detectamos como real en la DB del usuario
-    return 3
+    try:
+        # Primero intentamos ver si el ID pedido existe
+        check = supabase.table('institution').select("id").eq("id", requested_id).execute()
+        if check.data:
+            return requested_id
+        
+        # Si no existe, buscamos la primera institución real disponible
+        res = supabase.table('institution').select("id").limit(1).execute()
+        if res.data:
+            return res.data[0]['id']
+    except Exception as e:
+        print(f"Error resolving inst_id: {e}")
+    return requested_id or 1
 
 # Inicializar Cliente Supabase
 url: str = os.getenv("SUPABASE_URL")
@@ -193,14 +204,14 @@ def handle_evaluations():
     if request.method == 'POST':
         data = request.json
         try:
-            # Intentar guardado con multi-tenant (Forzando ID 3 detectado)
+            # Intentar guardado con multi-tenant
             for char_id, eval_data in data.items():
                 try:
                     supabase.table('evaluations').upsert({
                         "char_id": char_id, 
                         "rating": eval_data.get('rating', 0), 
                         "just": eval_data.get('just', ''),
-                        "inst_id": 3,
+                        "inst_id": inst_id,
                         "program_id": program_id
                     }).execute()
                 except Exception:
