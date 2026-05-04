@@ -72,10 +72,7 @@
             <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
         </div>
         <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444;">🚪 Cerrar Sesión</a>
-        </div>
-        <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444;">🚪 Cerrar Sesión</a>
+            <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444; border:none; background:none;">🚪 Cerrar Sesión</a>
         </div>
     </aside>
 
@@ -89,74 +86,41 @@
         </header>
 
         <div class="layout-split fade-in">
-
-            <!-- Panel izquierdo: Estructura del CNA -->
-            <div class="left-panel" id="sidebarFactors">
-                <!-- Dynamically populated via JS -->
-            </div>
-
-            <!-- Panel derecho: Aspectos a evaluar y Evidencias -->
-            <div class="right-panel" id="aspectsContainer">
-                <!-- Se inyecta por JS -->
-            </div>
+            <div class="left-panel" id="sidebarFactors"></div>
+            <div class="right-panel" id="aspectsContainer"></div>
         </div>
     </main>
 
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
-        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'admin@universidad.edu.co', role: 'admin' };
-        document.getElementById('userInfo').innerHTML = `<span>${user.email}</span> <span class="status ${user.role === 'admin' ? 'aprobado' : (user.role === 'lider' ? 'revision' : '')}" style="margin-left:10px">${user.role.toUpperCase()}</span>`;
-
-        let currentEvidences = [];
+        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'admin@siacredit.edu.co', role: 'admin' };
+        document.getElementById('userInfo').innerHTML = `<span>${user.email}</span> <span class="status ${user.role === 'admin' ? 'aprobado' : 'revision'}" style="margin-left:10px">${user.role.toUpperCase()}</span>`;
 
         function logout() {
             localStorage.removeItem('siac_user');
             window.location.href = 'login.html';
         }
 
-        function logout() {
-            localStorage.removeItem('siac_user');
-            window.location.href = 'login.html';
-        }
-
-        // Renderizar el panel izquierdo
-        function renderSidebar() {
+        async function renderSidebar() {
             const container = document.getElementById('sidebarFactors');
             const model = getDataModel();
             let html = '';
-
             if (model.length === 0) {
-                html = '<div style="padding: 20px; color: var(--text-muted); text-align: center;">No hay factores configurados.</div>';
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">No hay factores configurados.</div>';
+                return;
             }
-
-            // Lógica de filtrado por Líder
-            const assignedFactors = user.assigned_factors || [1, 2]; // Por defecto 1 y 2 para la demo
-            
             model.forEach(factor => {
-                // Si es líder, solo mostrar si el factor está asignado
-                if (user.role === 'lider' && !assignedFactors.includes(parseInt(factor.number))) {
-                    return; 
-                }
-
                 html += `<div class="factor-header">Factor ${factor.number}: ${factor.name}</div>`;
-                
                 factor.characteristics.forEach(char => {
-                    html += `
-                        <div class="char-item" onclick="loadAspects('${char.id}')" id="char_tab_${char.id}">
-                            <div class="char-title">${char.number} ${char.name}</div>
-                            <div class="char-progress">
-                                <span>Ver aspectos y evidencias</span>
-                                <div class="progress-bar"><div class="progress-fill" style="width: 100%; opacity:0.1"></div></div>
-                            </div>
-                        </div>
-                    `;
+                    html += `<div class="char-item" onclick="loadAspects('${char.id}')" id="char_tab_${char.id}">
+                        <div class="char-title">${char.number} ${char.name}</div>
+                        <div class="char-progress"><span>Ver aspectos y evidencias</span></div>
+                    </div>`;
                 });
             });
-
             container.innerHTML = html;
         }
 
-        // Cargar aspectos de una característica
         async function loadAspects(charId) {
             document.querySelectorAll('.char-item').forEach(el => el.classList.remove('active'));
             const tab = document.getElementById(`char_tab_${charId}`);
@@ -164,230 +128,112 @@
 
             const container = document.getElementById('aspectsContainer');
             const model = getDataModel();
-            
-            // Obtener evidencias desde API con trazabilidad total
             const response = await fetch(`/api/evidences?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-            currentEvidences = await response.json();
+            const evidences = await response.json();
             
             let characteristic = null;
             model.forEach(f => {
                 const found = f.characteristics.find(c => c.id === charId);
                 if (found) characteristic = found;
             });
-
             if(!characteristic) return;
 
-            let html = `<h2 style="margin-bottom: 25px; font-size: 1.5rem;">Característica ${characteristic.number}: ${characteristic.name}</h2>`;
-
+            let html = `<h2 style="margin-bottom: 25px;">Característica ${characteristic.number}: ${characteristic.name}</h2>`;
             characteristic.aspects.forEach((aspect, index) => {
-                const aspectEvidences = currentEvidences.filter(ev => ev.aspect_id === aspect.id);
-                let evHtml = '';
-                
-                if(aspectEvidences.length > 0) {
-                    evHtml = '<div class="evidence-list">';
-                    aspectEvidences.forEach(ev => {
-                        const showActions = (user.role === 'admin' || user.role === 'lider') && ev.status === 'pendiente';
-                        evHtml += `
-                            <div class="evidence-item">
-                                <div>
-                                    <div class="evidence-name">
-                                        <a href="javascript:void(0)" onclick="viewFile('${ev.file_url}', '${ev.name}')">📄 ${ev.name}</a>
-                                    </div>
-                                    <div class="evidence-meta">Sube por: ${ev.user_email} | Periodo: ${ev.period || 'N/A'} | Dept: ${ev.dependency}</div>
-                                </div>
-                                <div style="display:flex; gap:10px; align-items:center">
-                                    <span class="status ${ev.status}">${ev.status.toUpperCase()}</span>
-                                    ${showActions ? `
-                                        <button onclick="updateStatus(${ev.id}, 'aprobado')" class="btn-ghost" style="padding:2px 8px; color:green; border:1px solid green">Aprobar</button>
-                                        <button onclick="updateStatus(${ev.id}, 'rechazado')" class="btn-ghost" style="padding:2px 8px; color:red; border:1px solid red">Rechazar</button>
-                                    ` : ''}
-                                    ${(user.role === 'admin' || ev.user_email === user.email) ? `
-                                        <button onclick="deleteEvidence(${ev.id})" class="btn-ghost" style="padding:2px 8px; color:#ef4444; border:1px solid #ef4444">Eliminar</button>
-                                    ` : ''}
-
-                                </div>
-                            </div>
-                        `;
-                    });
-                    evHtml += '</div>';
-                }
-
-                html += `
-                    <div class="aspect-card">
-                        <h4>Aspecto ${index + 1}: ${aspect.text}</h4>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                            <div class="form-group">
-                                <label style="display:block; font-size: 0.8rem; margin-bottom: 5px;">Periodo Académico</label>
-                                <select id="evidencePeriod_${aspect.id}" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
-                                    <option value="2025-1">2025-1</option>
-                                    <option value="2024-2">2024-2</option>
-                                    <option value="2024-1">2024-1</option>
-                                    <option value="2023-2">2023-2</option>
-                                    <option value="2023-1">2023-1</option>
-                                </select>
-                            </div>
+                const aspectEvidences = evidences.filter(ev => ev.aspect_id === aspect.id);
+                let evHtml = '<div class="evidence-list">';
+                aspectEvidences.forEach(ev => {
+                    evHtml += `<div class="evidence-item">
+                        <div>
+                            <div class="evidence-name"><a href="javascript:void(0)" onclick="viewFile('${ev.file_url}', '${ev.name}')">📄 ${ev.name}</a></div>
+                            <div class="evidence-meta">Por: ${ev.user_email} | Dept: ${ev.dependency}</div>
                         </div>
-                        ${evHtml}
-                        <label class="upload-area">
-                            <input type="file" onchange="uploadEvidence(this, '${aspect.id}')">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M11 15H13V9H16L12 4L8 9H11V15ZM20 18H4V11H2V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V11H20V18Z"/></svg>
-                            <p>Haz clic para subir evidencia técnica</p>
-                            <span style="font-size: 0.75rem; color: #94a3b8;">Formatos permitidos: PDF, JPG, PNG, DOCX</span>
-                        </label>
-                    </div>
-                `;
-            });
+                        <div style="display:flex; gap:10px; align-items:center">
+                            <span class="status ${ev.status}">${ev.status.toUpperCase()}</span>
+                            <button onclick="updateStatus(${ev.id}, 'aprobado')" class="btn-ghost" style="color:green; border:1px solid green; padding:2px 5px; font-size:0.7rem;">Aprobar</button>
+                            <button onclick="updateStatus(${ev.id}, 'rechazado')" class="btn-ghost" style="color:orange; border:1px solid orange; padding:2px 5px; font-size:0.7rem;">Rechazar</button>
+                            <button onclick="deleteEvidence(${ev.id})" class="btn-ghost" style="color:red; border:1px solid red; padding:2px 5px; font-size:0.7rem;">Eliminar</button>
+                        </div>
+                    </div>`;
+                });
+                evHtml += '</div>';
 
+                html += `<div class="aspect-card">
+                    <h4>Aspecto ${index + 1}: ${aspect.text}</h4>
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label style="font-size:0.8rem;">Periodo Académico</label>
+                        <select id="evidencePeriod_${aspect.id}" style="width:100%; padding:5px; border-radius:4px; border:1px solid #ddd;">
+                            <option value="2025-1">2025-1</option><option value="2024-2">2024-2</option>
+                        </select>
+                    </div>
+                    ${evHtml}
+                    <label class="upload-area">
+                        <input type="file" onchange="uploadEvidence(this, '${aspect.id}')">
+                        <p>Haz clic para subir evidencia técnica</p>
+                    </label>
+                </div>`;
+            });
             container.innerHTML = html;
         }
 
         async function uploadEvidence(input, aspectId) {
             if(!input.files[0]) return;
-            
             const formData = new FormData();
-            const period = document.getElementById(`evidencePeriod_${aspectId}`).value;
             formData.append('file', input.files[0]);
             formData.append('aspect_id', aspectId);
-            formData.append('period', period);
+            formData.append('period', document.getElementById(`evidencePeriod_${aspectId}`).value);
             formData.append('email', user.email);
             formData.append('inst_id', getInstId());
             formData.append('program_id', getProgramId());
-            formData.append('dependency', 'Dirección Académica'); // Simulado por ahora
-
-            input.parentElement.innerHTML = 'Subiendo archivo...';
-
-            try {
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                const result = await response.json();
-                if(result.status === 'success') {
-                    loadAspects(document.querySelector('.char-item.active').id.replace('char_tab_', ''));
-                } else {
-                    alert('Error al subir: ' + result.error);
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        async function deleteEvidence(id) {
-            if(!confirm('¿Estás seguro de eliminar esta evidencia? Esta acción no se puede deshacer.')) return;
-            try {
-                const response = await fetch(`/api/evidences/${id}?inst_id=${getInstId()}`, { method: 'DELETE' });
-                const result = await response.json();
-                if(result.status === 'success') {
-                    loadAspects(document.querySelector('.char-item.active').id.replace('char_tab_', ''));
-                } else {
-                    alert('Error al eliminar: ' + (result.error || 'Desconocido'));
-                }
-            } catch (e) { console.error(e); }
+            
+            input.parentElement.innerHTML = 'Subiendo...';
+            const resp = await fetch('/api/upload', { method: 'POST', body: formData });
+            if(resp.ok) loadAspects(document.querySelector('.char-item.active').id.replace('char_tab_', ''));
         }
 
         async function updateStatus(id, status) {
-
             await fetch(`/api/evidences/status?inst_id=${getInstId()}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id, status })
             });
             loadAspects(document.querySelector('.char-item.active').id.replace('char_tab_', ''));
         }
 
+        async function deleteEvidence(id) {
+            if(!confirm('¿Eliminar esta evidencia?')) return;
+            const resp = await fetch(`/api/evidences/${id}?inst_id=${getInstId()}`, { method: 'DELETE' });
+            if(resp.ok) loadAspects(document.querySelector('.char-item.active').id.replace('char_tab_', ''));
+        }
+
+        function viewFile(url, name) {
+            document.getElementById('viewerModal').style.display = 'flex';
+            document.getElementById('viewerTitle').textContent = name;
+            if (url.toLowerCase().endsWith('.pdf')) {
+                document.getElementById('viewerContent').innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`;
+            } else {
+                document.getElementById('viewerContent').innerHTML = `<div style="text-align:center; padding:20px;"><img src="${url}" style="max-width:100%; max-height:100%;"><br><a href="${url}" target="_blank" class="btn-primary" style="margin-top:10px; display:inline-block;">Descargar</a></div>`;
+            }
+        }
+
+        function closeViewer() { document.getElementById('viewerModal').style.display = 'none'; }
+
         async function init() {
             await loadDataFromAPI();
             renderSidebar();
-            
-            setTimeout(() => {
-                const firstTab = document.querySelector('.char-item');
-                if(firstTab) firstTab.click();
-            }, 100);
+            setTimeout(() => { if(document.querySelector('.char-item')) document.querySelector('.char-item').click(); }, 300);
         }
         init();
     </script>
-    <!-- Modal del Visor -->
+
     <div id="viewerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-        <div style="background:white; width:90%; height:90%; border-radius:12px; position:relative; display:flex; flex-direction:column;">
-            <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                <h3 id="viewerTitle" style="margin:0;">Visor de Evidencia</h3>
-                <button onclick="closeViewer()" class="btn-ghost" style="font-size:1.5rem;">&times;</button>
+        <div style="background:white; width:90%; height:95%; border-radius:8px; position:relative; display:flex; flex-direction:column;">
+            <div style="padding:10px 20px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                <h3 id="viewerTitle" style="margin:0;">Visor</h3>
+                <button onclick="closeViewer()" style="background:none; border:none; font-size:2rem; cursor:pointer;">&times;</button>
             </div>
-            <div id="viewerContent" style="flex:1; overflow:hidden;">
-                <!-- Iframe o Imagen -->
-            </div>
+            <div id="viewerContent" style="flex:1; overflow:auto;"></div>
         </div>
     </div>
-
-    <script>
-        function viewFile(url, name) {
-            const modal = document.getElementById('viewerModal');
-            const content = document.getElementById('viewerContent');
-            const title = document.getElementById('viewerTitle');
-            
-            title.textContent = name;
-            modal.style.display = 'flex';
-            
-            if (url.toLowerCase().endsWith('.pdf')) {
-                content.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`;
-            } else if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif)$/)) {
-                content.innerHTML = `<div style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#f0f0f0;">
-                    <img src="${url}" style="max-width:100%; max-height:100%; object-fit:contain;">
-                </div>`;
-            } else {
-                content.innerHTML = `<div style="padding:50px; text-align:center;">
-                    <p>Este tipo de archivo no se puede previsualizar directamente.</p>
-                    <a href="${url}" target="_blank" class="btn-primary">Descargar / Abrir en pestaña nueva</a>
-                </div>`;
-            }
-        }
-
-        function closeViewer() {
-            document.getElementById('viewerModal').style.display = 'none';
-            document.getElementById('viewerContent').innerHTML = '';
-        }
-    </script>
-    <!-- Modal del Visor -->
-    <div id="viewerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-        <div style="background:white; width:90%; height:90%; border-radius:12px; position:relative; display:flex; flex-direction:column;">
-            <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                <h3 id="viewerTitle" style="margin:0;">Visor de Evidencia</h3>
-                <button onclick="closeViewer()" class="btn-ghost" style="font-size:1.5rem;">&times;</button>
-            </div>
-            <div id="viewerContent" style="flex:1; overflow:hidden;">
-                <!-- Iframe o Imagen -->
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function viewFile(url, name) {
-            const modal = document.getElementById('viewerModal');
-            const content = document.getElementById('viewerContent');
-            const title = document.getElementById('viewerTitle');
-            
-            title.textContent = name;
-            modal.style.display = 'flex';
-            
-            if (url.toLowerCase().endsWith('.pdf')) {
-                content.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`;
-            } else if (url.toLowerCase().match(/\.(jpg|jpeg|png|gif)$/)) {
-                content.innerHTML = `<div style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#f0f0f0;">
-                    <img src="${url}" style="max-width:100%; max-height:100%; object-fit:contain;">
-                </div>`;
-            } else {
-                content.innerHTML = `<div style="padding:50px; text-align:center;">
-                    <p>Este tipo de archivo no se puede previsualizar directamente.</p>
-                    <a href="${url}" target="_blank" class="btn-primary">Descargar / Abrir en pestaña nueva</a>
-                </div>`;
-            }
-        }
-
-        function closeViewer() {
-            document.getElementById('viewerModal').style.display = 'none';
-            document.getElementById('viewerContent').innerHTML = '';
-        }
-    </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

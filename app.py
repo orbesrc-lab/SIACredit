@@ -672,25 +672,23 @@ def get_evidences():
 
 @app.route('/api/evidences/<int:evidence_id>', methods=['DELETE'])
 def delete_evidence(evidence_id):
-    inst_id = request.args.get('inst_id', 1, type=int)
-    program_id = request.args.get('program_id', 0, type=int)
     try:
-        supabase.table('evidences').delete().eq("id", evidence_id).eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        supabase.table('evidences').delete().eq("id", evidence_id).execute()
         return jsonify({"status": "success"})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error deleting evidence: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/evidences/status', methods=['POST'])
 def update_evidence_status():
     data = request.json
-    inst_id = request.args.get('inst_id', 1, type=int)
-    program_id = request.args.get('program_id', 0, type=int)
     try:
         supabase.table('evidences').update({
             "status": data['status']
-        }).eq("id", data['id']).eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        }).eq("id", data['id']).execute()
         return jsonify({"status": "success"})
     except Exception as e:
+        print(f"Error updating status: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
