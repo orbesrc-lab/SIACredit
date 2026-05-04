@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SKEL - Expertos en Proyectos de Educación Superior</title>
+    <title>SIACredit - Autoevaluación CNA</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body { background-color: var(--secondary-bg); display: flex; height: 100vh; overflow: hidden; }
@@ -12,313 +12,173 @@
         .sidebar-menu { flex: 1; padding: 20px 0; }
         .sidebar-item { padding: 12px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; transition: 0.2s; }
         .sidebar-item:hover, .sidebar-item.active { background: rgba(255, 255, 255, 0.1); color: var(--white); border-left: 3px solid var(--primary-color); }
-        
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: hidden; }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .topbar { background: var(--white); padding: 15px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        
         .layout-split { display: flex; flex: 1; overflow: hidden; }
-        .left-panel { width: 350px; background: var(--white); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow-y: auto; }
-        .right-panel { flex: 1; padding: 30px; overflow-y: auto; background: var(--secondary-bg); }
-        
-        .factor-header { padding: 15px 20px; font-weight: 600; background: #f8fafc; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-size: 0.95rem; }
-        .char-item { padding: 15px 20px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; }
-        .char-item:hover { background: #f1f5f9; }
-        .char-item.active { background: #eef2ff; border-left: 3px solid var(--primary-color); }
-        .char-title { font-weight: 600; color: var(--text-main); font-size: 0.95rem; margin-bottom: 5px; }
-        
-        .eval-card { background: var(--white); border-radius: 12px; padding: 30px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 25px; }
-        .eval-card h4 { font-size: 1.1rem; margin-bottom: 15px; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
-        
-        .rating-group { display: flex; gap: 15px; margin-bottom: 20px; }
-        .rating-btn { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--border-color); background: transparent; font-size: 1.1rem; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-        .rating-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
-        .rating-btn.selected { background: var(--primary-color); color: var(--white); border-color: var(--primary-color); }
-        
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem; }
-        .form-group textarea { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-family: var(--font-main); resize: vertical; min-height: 80px; }
-        
-        .evidence-tag { display: inline-block; padding: 4px 10px; background: #f1f5f9; border: 1px solid var(--border-color); border-radius: 15px; font-size: 0.75rem; color: var(--text-muted); margin-right: 5px; margin-bottom: 15px; }
-        .evidence-tag svg { width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 3px; }
-        
-        .save-btn { float: right; margin-top: 10px; }
-        .clearfix::after { content: ""; clear: both; display: table; }
-        /* Mobile overrides */
-        @media (max-width: 768px) {
-            body { overflow-y: auto !important; height: auto !important; }
-            .main-content { overflow-y: auto !important; height: auto !important; padding-bottom: 80px !important; }
-            .content-area { padding: 15px !important; padding-bottom: 90px !important; }
-            .topbar { padding: 12px 15px !important; flex-direction: column; align-items: flex-start; gap: 8px; }
-        }    </style>
+        .left-panel { width: 380px; background: var(--white); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow-y: auto; }
+        .right-panel { flex: 1; padding: 40px; overflow-y: auto; background: #f8fafc; }
+        .factor-header { padding: 15px 20px; font-weight: 700; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; color: #1e293b; }
+        .char-item { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: 0.2s; }
+        .char-item:hover { background: #f8fafc; }
+        .char-item.active { background: #eef2ff; border-left: 4px solid var(--primary-color); }
+        .eval-card { background: white; border-radius: 12px; padding: 35px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .cna-badge { padding: 8px 15px; border-radius: 6px; font-weight: 700; font-size: 0.9rem; text-align: center; display: inline-block; }
+        .cna-pleno { background: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+        .cna-alto { background: #ecfdf5; color: #047857; border: 1px solid #6ee7b7; }
+        .cna-aceptable { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+        .cna-insuficiente { background: #fef2f2; color: #991b1b; border: 1px solid #f87171; }
+        textarea { width: 100%; min-height: 150px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit; font-size: 1rem; margin-top: 10px; }
+    </style>
 </head>
 <body>
     <aside class="sidebar">
-        <div class="sidebar-header">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--primary-color)" stroke-width="2"/>
-            </svg>
-            SIACredit
-        </div>
+        <div class="sidebar-header">SIACredit</div>
         <div class="sidebar-menu">
             <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
             <a href="evidencias.html" class="sidebar-item">📁 Evidencias</a>
             <a href="autoevaluacion.html" class="sidebar-item active">📝 Autoevaluación</a>
             <a href="informes.html" class="sidebar-item">📄 Informes</a>
-            <a href="estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
             <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
+        </div>
+        <div style="padding:20px; border-top:1px solid rgba(255,255,255,0.1);">
+            <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color:#ef4444;">🚪 Cerrar Sesión</a>
         </div>
     </aside>
 
     <main class="main-content">
         <header class="topbar">
-            <div><h2 style="font-size: 1.25rem; margin: 0;">Autoevaluación (Ponderación 1 a 5)</h2></div>
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <button id="themeToggle" class="btn-ghost" style="padding: 5px 10px; font-size: 1.2rem;" title="Cambiar Tema">🌓</button>
-                <div id="userInfo" style="font-weight: 500;"></div>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <img id="inst_logo" src="" style="height:40px; display:none;">
+                <h2 id="inst_name" style="font-size:1.1rem; color:var(--primary-color);">Cargando...</h2>
             </div>
+            <div id="userInfo" style="font-weight:600;"></div>
         </header>
 
-        <div class="layout-split fade-in">
-
-            <!-- Panel izquierdo: Estructura del CNA -->
-            <div class="left-panel" id="sidebarFactors">
-                <!-- Dynamically populated via JS -->
-            </div>
-
-            <!-- Panel derecho: Cuestionario de evaluación por aspecto -->
+        <div class="layout-split">
+            <div class="left-panel" id="sidebarFactors"></div>
             <div class="right-panel" id="evalContainer">
-                <!-- Se inyecta por JS -->
+                <div style="text-align:center; margin-top:100px; color:#94a3b8;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom:20px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    <h3>Selecciona una característica para evaluar</h3>
+                    <p>Las calificaciones se guardan automáticamente por programa.</p>
+                </div>
             </div>
         </div>
     </main>
 
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
-        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'admin@universidad.edu.co', role: 'admin' };
+        const user = JSON.parse(localStorage.getItem('siac_user'));
         document.getElementById('userInfo').textContent = user.email;
 
-        // Ratings interactivos (Estado UI)
-        const currentRatingsUI = {};
+        function logout() { localStorage.removeItem('siac_user'); window.location.href = 'index.html'; }
 
-        // Renderizar el panel izquierdo
-        function renderSidebar() {
-            const container = document.getElementById('sidebarFactors');
-            const model = getDataModel();
-            const evaluations = getEvaluations();
+        async function loadSidebar() {
+            const modelResp = await fetch(`/api/factors?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+            const factors = await modelResp.json();
+            const evalsResp = await fetch(`/api/reports/summary?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+            const evals = await evalsResp.json();
+            
             let html = '';
-
-            if (model.length === 0) {
-                html = '<div style="padding: 20px; color: var(--text-muted); text-align: center;">No hay factores configurados en el modelo.</div>';
-            }
-
-            const assignedFactors = user.assigned_factors || [1, 2]; // Demo
-
-            model.forEach(factor => {
-                // Filtrar por líder: si tiene factores asignados, solo mostrar esos. Si no tiene ninguno, mostrar mensaje o nada.
-                if (user.role === 'lider' && assignedFactors.length > 0 && !assignedFactors.includes(parseInt(factor.number))) {
-                    return;
-                }
-                html += `<div class="factor-header">Factor ${factor.number}: ${factor.name}</div>`;
-                
-                let factorScore = 0;
-                
-                factor.characteristics.forEach(char => {
-                    const evalData = evaluations[char.id];
-                    const charScore = (evalData && evalData.rating > 0) ? parseFloat(evalData.rating) : 0;
-                    const charWeighted = (charScore * (char.weight || 0) / 100).toFixed(2);
-                    factorScore += parseFloat(charWeighted);
-
-                    const color = charScore > 0 ? '#10b981' : 'var(--text-muted)';
-                    const evaluatedText = charScore > 0 ? 'Evaluada' : 'Pendiente';
-
-                    html += `
-                        <div class="char-item" onclick="loadEvaluation('${factor.id}', '${char.id}')" id="char_tab_${char.id}">
-                            <div class="char-title" style="display:flex; justify-content:space-between;">
-                                <span>${char.number} ${char.name}</span>
-                                <span style="font-size: 0.8rem; color: var(--primary-color);">${charScore.toFixed(2)} / 5.0</span>
-                            </div>
-                            <div style="font-size: 0.8rem; color: ${color};">${evaluatedText} | Peso: ${char.weight||0}%</div>
-                        </div>
-                    `;
+            factors.forEach(f => {
+                const fEval = evals.find(e => e.name.includes(f.name)) || { avg: 0 };
+                html += `<div class="factor-header">${f.number}. ${f.name} <br><small style="color:var(--primary-color)">Promedio: ${fEval.avg}</small></div>`;
+                f.characteristics.forEach(c => {
+                    html += `<div class="char-item" onclick="showEval('${f.id}', '${c.id}')" id="char_${c.id}">
+                        <div style="font-weight:600; font-size:0.9rem;">${c.number}. ${c.name}</div>
+                        <div style="font-size:0.8rem; color:#64748b;">Peso: ${c.weight}%</div>
+                    </div>`;
                 });
-                
-                const factorWeighted = (factorScore * (factor.weight || 0) / 100).toFixed(2);
-                html = html.replace(`Factor ${factor.number}: ${factor.name}`, `Factor ${factor.number}: ${factor.name} <div style="font-size:0.8rem; margin-top:5px; color:var(--primary-color);">Nota: ${factorScore.toFixed(2)} | Aporta: ${factorWeighted} al Global</div>`);
             });
-
-            container.innerHTML = html;
+            document.getElementById('sidebarFactors').innerHTML = html;
         }
 
-        function loadEvaluation(factorId, charId) {
+        async function showEval(fId, cId) {
             document.querySelectorAll('.char-item').forEach(el => el.classList.remove('active'));
-            const tab = document.getElementById(`char_tab_${charId}`);
-            if (tab) tab.classList.add('active');
+            document.getElementById(`char_${cId}`).classList.add('active');
+
+            const resp = await fetch(`/api/factors?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+            const factors = await resp.json();
+            const factor = factors.find(f => f.id == fId);
+            const char = factor.characteristics.find(c => c.id == cId);
+
+            // Cargar evaluación guardada
+            const evalsResp = await fetch(`/api/evaluations?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+            const allEvals = await evalsResp.json();
+            const currentEval = allEvals.find(e => e.char_id == cId) || { rating: 0, justification: '' };
 
             const container = document.getElementById('evalContainer');
-            const model = getDataModel();
-            const evalsData = getEvaluations();
-            const evidencesData = getEvidences();
-            const reportsData = getExternalReports();
-            
-            let characteristic = null;
-            model.forEach(f => {
-                if (f.id === factorId) {
-                    const found = f.characteristics.find(c => c.id === charId);
-                    if (found) characteristic = found;
-                }
+            container.innerHTML = `
+                <div class="eval-card fade-in">
+                    <h2 style="margin-bottom:10px; color:#1e293b;">${char.number}. ${char.name}</h2>
+                    <p style="color:#64748b; margin-bottom:30px;">Factor ${factor.number}: ${factor.name}</p>
+
+                    <div style="margin-bottom:30px;">
+                        <label style="display:block; font-weight:700; margin-bottom:10px;">Calificación Cuantitativa (Escala CNA 1.0 - 5.0)</label>
+                        <div style="display:flex; gap:20px; align-items:center;">
+                            <input type="number" id="rating_input" min="1" max="5" step="0.1" value="${currentEval.rating || ''}" 
+                                oninput="updateCNA(this.value)"
+                                style="width:120px; padding:15px; border:2px solid var(--primary-color); border-radius:10px; font-size:1.5rem; font-weight:700; text-align:center;">
+                            <div id="cna_label" class="cna-badge">Ingrese una nota</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:30px;">
+                        <label style="display:block; font-weight:700; margin-bottom:10px;">Juicio de Valor (Análisis Cualitativo)</label>
+                        <textarea id="just_input" placeholder="Redacte aquí el análisis integral de la característica, integrando las evidencias recolectadas...">${currentEval.justification || ''}</textarea>
+                    </div>
+
+                    <button class="btn-primary large" onclick="saveEvaluation('${cId}')" style="width:100%; padding:18px; font-size:1.1rem;">Guardar Evaluación CNA</button>
+                </div>
+            `;
+            updateCNA(currentEval.rating);
+        }
+
+        function updateCNA(val) {
+            const label = document.getElementById('cna_label');
+            if (!val || val == 0) { label.textContent = "Sin calificar"; label.className = "cna-badge"; return; }
+            const n = parseFloat(val);
+            if (n >= 4.5) { label.textContent = "Se cumple plenamente"; label.className = "cna-badge cna-pleno"; }
+            else if (n >= 4.0) { label.textContent = "Se cumple en alto grado"; label.className = "cna-badge cna-alto"; }
+            else if (n >= 3.0) { label.textContent = "Se cumple aceptablemente"; label.className = "cna-badge cna-aceptable"; }
+            else { label.textContent = "No se cumple"; label.className = "cna-badge cna-insuficiente"; }
+        }
+
+        async function saveEvaluation(cId) {
+            const rating = document.getElementById('rating_input').value;
+            const justification = document.getElementById('just_input').value;
+
+            if (!rating || rating < 1 || rating > 5) { alert("La nota debe estar entre 1.0 y 5.0"); return; }
+
+            const resp = await fetch('/api/evaluations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    char_id: cId,
+                    rating: parseFloat(rating),
+                    justification: justification,
+                    inst_id: getInstId(),
+                    program_id: getProgramId(),
+                    user_email: user.email
+                })
             });
 
-            if(!characteristic) {
-                container.innerHTML = '<h2>Característica no encontrada</h2>';
-                return;
-            }
-
-            const extReport = reportsData[charId];
-            const reportHtml = extReport 
-                ? `<div style="margin-top: 10px; font-size: 0.9rem; color: #10b981;">✅ Informe adjunto: <strong>${extReport.name}</strong></div>` 
-                : `<div style="margin-top: 10px; font-size: 0.9rem; color: var(--text-muted);">Sin informe estadístico externo adjunto.</div>`;
-
-            let html = `
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px;">
-                    <div>
-                        <h2 style="font-size: 1.5rem; margin-bottom: 5px;">Característica ${characteristic.number}: ${characteristic.name}</h2>
-                        ${reportHtml}
-                    </div>
-                    <div>
-                        <label class="btn-secondary" style="cursor: pointer; display: inline-block; text-align: center;">
-                            <input type="file" style="display:none;" onchange="uploadExternalReport(this, '${charId}')">
-                            📎 Adjuntar Informe Externo
-                        </label>
-                    </div>
-                </div>
-            `;
-            
-            const isOperativo = user.role === 'operativo';
-            const charEval = evalsData[charId] || { rating: 0, just: '' };
-
-            let aspectsHtml = '<div style="margin-bottom: 25px;"><h3 style="font-size: 1.2rem; margin-bottom: 15px;">Contexto a Evaluar (Aspectos y Evidencias)</h3>';
-            if (characteristic.aspects.length === 0) {
-                aspectsHtml += '<p style="color: var(--text-muted);">No hay aspectos configurados.</p>';
+            if (resp.ok) {
+                alert("Evaluación guardada con éxito.");
+                loadSidebar();
             } else {
-                characteristic.aspects.forEach((aspect, index) => {
-                    const aspectEvs = evidencesData.filter(ev => ev.aspect_id === aspect.id);
-                    let evList = '';
-                    if (aspectEvs.length === 0) {
-                        evList = '<div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Sin evidencias adjuntas.</div>';
-                    } else {
-                        evList = '<ul style="margin: 5px 0 0 20px; font-size: 0.85rem; color: var(--primary-color);">';
-                        aspectEvs.forEach(ev => {
-                            evList += `<li>📄 <a href="${ev.file_url}" target="_blank" style="color:inherit; text-decoration:none;">${ev.name}</a> <span style="color:var(--text-muted); font-size:0.75rem;">(${ev.status.toUpperCase()})</span></li>`;
-                        });
-                        evList += '</ul>';
-                    }
-
-                    aspectsHtml += `
-                        <div style="background: var(--white); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 10px;">
-                            <div style="font-weight: 500; font-size: 0.95rem;">Aspecto ${index + 1}: ${aspect.text}</div>
-                            ${evList}
-                        </div>
-                    `;
-                });
+                alert("Error al guardar en el servidor.");
             }
-            aspectsHtml += '</div>';
-
-            html += aspectsHtml;
-
-            html += `
-                <div class="eval-card clearfix" id="card_${charId}">
-                    <h4>Calificación General de la Característica</h4>
-                    ${isOperativo ? '<p style="color: #ef4444; font-size: 0.85rem; margin-bottom: 15px;">⚠️ Modo Lectura: No tienes permisos para calificar.</p>' : ''}
-                    
-                    <div class="form-group">
-                        <label>Calificación Cuantitativa (0.0 a 5.0)</label>
-                        <div class="rating-group">
-                            <input type="number" id="rating_${charId}" min="0" max="5" step="0.1" 
-                                value="${charEval.rating > 0 ? charEval.rating : ''}" 
-                                placeholder="Ej. 4.5" 
-                                ${isOperativo ? 'disabled' : ''}
-                                style="width: 150px; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-family: var(--font-main); font-size: 1.1rem; text-align: center; ${isOperativo ? 'background:#f1f5f9; cursor:not-allowed;' : ''}">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Justificación del Juicio de Valor (Análisis Integral)</label>
-                        <textarea id="just_${charId}" 
-                            ${isOperativo ? 'disabled' : ''}
-                            style="${isOperativo ? 'background:#f1f5f9; cursor:not-allowed;' : ''}"
-                            placeholder="Justifique la calificación asignada a esta característica...">${charEval.just}</textarea>
-                    </div>
-                    
-                    ${isOperativo ? '' : `<button class="btn-primary save-btn" onclick="saveCharEval('${charId}')">Guardar Calificación</button>`}
-                </div>
-            `;
-
-            container.innerHTML = html;
-        }
-
-        async function uploadExternalReport(input, charId) {
-            if(user.role === 'operativo') {
-                alert('No tienes permisos para adjuntar informes externos.');
-                return;
-            }
-            if(input.files && input.files[0]) {
-                const file = input.files[0];
-                const reportsData = getExternalReports();
-                reportsData[charId] = { name: file.name, date: new Date().toISOString().split('T')[0] };
-                saveExternalReports(reportsData);
-                
-                // Recargar vista
-                const activeTab = document.querySelector('.char-item.active');
-                if (activeTab) activeTab.click();
-            }
-        }
-
-        function saveCharEval(charId) {
-            const just = document.getElementById(`just_${charId}`).value;
-            const evalsData = getEvaluations();
-            const ratingInput = document.getElementById(`rating_${charId}`).value;
-            const rating = parseFloat(ratingInput) || 0;
-
-            if(rating < 0 || rating > 5) {
-                alert("La calificación debe estar entre 0.0 y 5.0");
-                return;
-            }
-
-            if(!ratingInput) {
-                alert("Ingrese una calificación antes de guardar.");
-                return;
-            }
-
-
-            evalsData[charId] = { rating, just };
-            saveEvaluations(evalsData);
-
-            const btn = document.querySelector(`#card_${charId} .save-btn`);
-            btn.textContent = "¡Guardado!";
-            btn.style.background = "#10b981";
-            
-            // Renderizar la barra para actualizar los contadores
-            renderSidebar();
-            
-            setTimeout(() => {
-                btn.textContent = "Guardar Calificación";
-                btn.style.background = "";
-                // Mantener el tab activo
-                const activeTab = document.querySelector('.char-item.active');
-                if (activeTab) {
-                    activeTab.classList.add('active');
-                }
-            }, 2000);
         }
 
         async function init() {
-            await loadDataFromAPI();
-            renderSidebar();
-            setTimeout(() => {
-                const firstTab = document.querySelector('.char-item');
-                if(firstTab) firstTab.click();
-            }, 100);
+            const instResp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+            const inst = await instResp.json();
+            document.getElementById('inst_name').textContent = inst.name;
+            if(inst.logo_url) { const img = document.getElementById('inst_logo'); img.src = inst.logo_url; img.style.display = 'block'; }
+            loadSidebar();
         }
+
         init();
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
