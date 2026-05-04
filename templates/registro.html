@@ -35,6 +35,12 @@
                         <input type="email" id="emailPers" required placeholder="juan.personal@gmail.com">
                     </div>
                     <div class="form-group full">
+                        <label>Institución a la que perteneces</label>
+                        <select id="instSelect" required>
+                            <option value="">Cargando instituciones...</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
                         <label>Contraseña</label>
                         <input type="password" id="password" required placeholder="••••••••">
                     </div>
@@ -47,8 +53,32 @@
         </div>
     </div>
     <script>
+        // Cargar instituciones al cargar la página
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const resp = await fetch('/api/institutions');
+                const institutions = await resp.json();
+                const select = document.getElementById('instSelect');
+                if (institutions && institutions.length > 0) {
+                    select.innerHTML = '<option value="">-- Selecciona tu Institución --</option>' + 
+                        institutions.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+                } else {
+                    select.innerHTML = '<option value="">No hay instituciones registradas aún</option>';
+                }
+            } catch (e) {
+                document.getElementById('instSelect').innerHTML = '<option value="">Error cargando instituciones</option>';
+            }
+        });
+
         document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            const instId = document.getElementById('instSelect').value;
+            if (!instId) {
+                alert("Por favor selecciona una institución válida.");
+                return;
+            }
+
             const btn = document.querySelector('button[type="submit"]');
             btn.disabled = true;
             btn.textContent = 'Registrando...';
@@ -60,7 +90,7 @@
             try {
                 // Registrar usuario con rol 'operativo' (permitido por DB) pero con prefijo [PENDING]
                 const pendingName = '[PENDING] ' + name;
-                const userResp = await fetch(`/api/users?inst_id=1&program_id=0`, {
+                const userResp = await fetch(`/api/users?inst_id=${instId}&program_id=0`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: pendingName, email: email, role: 'operativo', password: password })
