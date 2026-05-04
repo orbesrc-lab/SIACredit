@@ -28,6 +28,33 @@ url: str = os.getenv("SUPABASE_URL")
 key: str = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
+# Ruta de depuración para arreglar la base de datos
+@app.route('/api/debug/fix-db')
+def fix_db():
+    try:
+        # 1. Asegurar que existe al menos una institución
+        insts = supabase.table('institution').select("*").execute().data
+        if not insts:
+            supabase.table('institution').insert({
+                "id": 1, "name": "CORPORACIÓN UNIVERSITARIA CENTRO SUPERIOR", "code": "UNICUCES"
+            }).execute()
+            msg = "Institución 1 creada de cero."
+        else:
+            first_id = insts[0]['id']
+            # Si la primera no es la 1, intentamos forzar que exista la 1 para compatibilidad
+            check_1 = supabase.table('institution').select("id").eq("id", 1).execute().data
+            if not check_1:
+                supabase.table('institution').insert({
+                    "id": 1, "name": insts[0]['name'], "code": insts[0]['code']
+                }).execute()
+                msg = "ID 1 creado basándose en institución existente."
+            else:
+                msg = f"ID 1 ya existe ({insts[0]['name']})."
+        
+        return jsonify({"status": "success", "message": msg})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # --- Rutas para servir las páginas HTML ---
 @app.route('/')
 @app.route('/index.html')
