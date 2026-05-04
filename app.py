@@ -33,26 +33,22 @@ supabase: Client = create_client(url, key)
 @app.route('/api/debug/fix-db')
 def fix_db():
     try:
-        # 1. Asegurar que existe al menos una institución
+        # 1. Ver qué hay realmente en la base de datos
         insts = supabase.table('institution').select("*").execute().data
+        
+        # 2. Intentar asegurar que exista la 1 si no hay nada
         if not insts:
             supabase.table('institution').insert({
                 "id": 1, "name": "CORPORACIÓN UNIVERSITARIA CENTRO SUPERIOR", "code": "UNICUCES"
             }).execute()
-            msg = "Institución 1 creada de cero."
-        else:
-            first_id = insts[0]['id']
-            # Si la primera no es la 1, intentamos forzar que exista la 1 para compatibilidad
-            check_1 = supabase.table('institution').select("id").eq("id", 1).execute().data
-            if not check_1:
-                supabase.table('institution').insert({
-                    "id": 1, "name": insts[0]['name'], "code": insts[0]['code']
-                }).execute()
-                msg = "ID 1 creado basándose en institución existente."
-            else:
-                msg = f"ID 1 ya existe ({insts[0]['name']})."
+            insts = supabase.table('institution').select("*").execute().data
         
-        return jsonify({"status": "success", "message": msg})
+        return jsonify({
+            "status": "success", 
+            "total_instituciones": len(insts),
+            "datos_reales_db": insts,
+            "inst_id_que_estamos_usando": insts[0]['id'] if insts else "Ninguna"
+        })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
