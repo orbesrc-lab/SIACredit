@@ -74,23 +74,35 @@
         function logout() { localStorage.removeItem('siac_user'); window.location.href = 'index.html'; }
 
         async function loadSidebar() {
-            const modelResp = await fetch(`/api/factors?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-            const factors = await modelResp.json();
-            const evalsResp = await fetch(`/api/reports/summary?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-            const evals = await evalsResp.json();
-            
-            let html = '';
-            factors.forEach(f => {
-                const fEval = evals.find(e => e.name.includes(f.name)) || { avg: 0 };
-                html += `<div class="factor-header">${f.number}. ${f.name} <br><small style="color:var(--primary-color)">Promedio: ${fEval.avg}</small></div>`;
-                f.characteristics.forEach(c => {
-                    html += `<div class="char-item" onclick="showEval('${f.id}', '${c.id}')" id="char_${c.id}">
-                        <div style="font-weight:600; font-size:0.9rem;">${c.number}. ${c.name}</div>
-                        <div style="font-size:0.8rem; color:#64748b;">Peso: ${c.weight}%</div>
-                    </div>`;
-                });
-            });
-            document.getElementById('sidebarFactors').innerHTML = html;
+            try {
+                const modelResp = await fetch(`/api/factors?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const factors = await modelResp.json();
+                
+                const evalsResp = await fetch(`/api/reports/summary?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const evals = await evalsResp.json();
+                
+                let html = '';
+                if (!factors || factors.length === 0) {
+                    html = '<div style="padding:20px; text-align:center; color:#64748b;">No se encontraron factores para este programa.</div>';
+                } else {
+                    factors.forEach(f => {
+                        const fEval = (evals && evals.find) ? evals.find(e => e.name.includes(f.name)) || { avg: 0 } : { avg: 0 };
+                        html += `<div class="factor-header">${f.number}. ${f.name} <br><small style="color:var(--primary-color)">Promedio: ${fEval.avg}</small></div>`;
+                        if (f.characteristics) {
+                            f.characteristics.forEach(c => {
+                                html += `<div class="char-item" onclick="showEval('${f.id}', '${c.id}')" id="char_${c.id}">
+                                    <div style="font-weight:600; font-size:0.9rem;">${c.number}. ${c.name}</div>
+                                    <div style="font-size:0.8rem; color:#64748b;">Peso: ${c.weight}%</div>
+                                </div>`;
+                            });
+                        }
+                    });
+                }
+                document.getElementById('sidebarFactors').innerHTML = html;
+            } catch (err) {
+                console.error("Error cargando sidebar:", err);
+                document.getElementById('sidebarFactors').innerHTML = '<div style="padding:20px; color:#ef4444;">Error de conexión.</div>';
+            }
         }
 
         async function showEval(fId, cId) {
