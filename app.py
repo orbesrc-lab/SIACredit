@@ -77,12 +77,11 @@ def setup_admin():
         if admin_check:
             return jsonify({"status": "exists", "message": "El admin ya existe. Usa email: admin@siacredit.edu.co"})
         
-        # Crear admin con contraseña hasheada
+        # Crear admin con contraseña hasheada (columnas correctas: email, password_hash, role, inst_id)
         hashed = generate_password_hash("Admin2025!")
         supabase.table('users').insert({
-            "name": "Administrador SKEL",
             "email": "admin@siacredit.edu.co",
-            "password": hashed,
+            "password_hash": hashed,
             "role": "admin",
             "inst_id": inst_id
         }).execute()
