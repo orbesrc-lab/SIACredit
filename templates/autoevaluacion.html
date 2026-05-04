@@ -66,9 +66,21 @@
         </div>
     </main>
 
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
-    <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
+        // Funciones de emergencia inyectadas directamente
+        function getInstId() {
+            try {
+                const u = JSON.parse(localStorage.getItem('siac_user'));
+                return u ? (u.inst_id || 1) : 1;
+            } catch(e) { return 1; }
+        }
+        function getProgramId() {
+            try {
+                const u = JSON.parse(localStorage.getItem('siac_user'));
+                return u ? (u.program_id || 0) : 0;
+            } catch(e) { return 0; }
+        }
+
         const user = JSON.parse(localStorage.getItem('siac_user'));
         if (!user) window.location.href = 'index.html';
         document.getElementById('userInfo').textContent = user.email;
