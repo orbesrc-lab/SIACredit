@@ -192,7 +192,7 @@ def handle_programs():
 def handle_program_specific(prog_id):
     if request.method == 'DELETE':
         try:
-            # Cascade delete manually to prevent FK constraint errors
+            # Deep cascade delete manually to prevent FK constraint errors
             try: supabase.table('users').delete().eq("program_id", prog_id).execute()
             except Exception: pass
             try: supabase.table('evaluations').delete().eq("program_id", prog_id).execute()
@@ -201,8 +201,20 @@ def handle_program_specific(prog_id):
             except Exception: pass
             try: supabase.table('statistics').delete().eq("program_id", prog_id).execute()
             except Exception: pass
-            try: supabase.table('factors').delete().eq("program_id", prog_id).execute()
-            except Exception: pass
+            
+            # Deep cascade for factors -> characteristics -> aspects
+            try:
+                factors = supabase.table('factors').select("id").eq("program_id", prog_id).execute().data
+                if factors:
+                    factor_ids = [f['id'] for f in factors]
+                    chars = supabase.table('characteristics').select("id").in_("factor_id", factor_ids).execute().data
+                    if chars:
+                        char_ids = [c['id'] for c in chars]
+                        supabase.table('aspects').delete().in_("char_id", char_ids).execute()
+                        supabase.table('characteristics').delete().in_("factor_id", factor_ids).execute()
+                    supabase.table('factors').delete().eq("program_id", prog_id).execute()
+            except Exception as e: 
+                print("Error deep cascading factors for program:", e)
 
             supabase.table('programs').delete().eq("id", prog_id).execute()
             return jsonify({"status": "success"})
@@ -250,7 +262,7 @@ def handle_all_institutions():
 @app.route('/api/institutions/<int:inst_id>', methods=['DELETE'])
 def delete_institution(inst_id):
     try:
-        # Cascade delete manually to prevent FK constraint errors
+        # Deep cascade delete manually to prevent FK constraint errors
         try: supabase.table('users').delete().eq("inst_id", inst_id).execute()
         except Exception: pass
         try: supabase.table('evaluations').delete().eq("inst_id", inst_id).execute()
@@ -259,8 +271,21 @@ def delete_institution(inst_id):
         except Exception: pass
         try: supabase.table('statistics').delete().eq("inst_id", inst_id).execute()
         except Exception: pass
-        try: supabase.table('factors').delete().eq("inst_id", inst_id).execute()
-        except Exception: pass
+        
+        # Deep cascade for factors -> characteristics -> aspects
+        try:
+            factors = supabase.table('factors').select("id").eq("inst_id", inst_id).execute().data
+            if factors:
+                factor_ids = [f['id'] for f in factors]
+                chars = supabase.table('characteristics').select("id").in_("factor_id", factor_ids).execute().data
+                if chars:
+                    char_ids = [c['id'] for c in chars]
+                    supabase.table('aspects').delete().in_("char_id", char_ids).execute()
+                    supabase.table('characteristics').delete().in_("factor_id", factor_ids).execute()
+                supabase.table('factors').delete().eq("inst_id", inst_id).execute()
+        except Exception as e:
+            print("Error deep cascading factors for institution:", e)
+            
         try: supabase.table('programs').delete().eq("inst_id", inst_id).execute()
         except Exception: pass
 

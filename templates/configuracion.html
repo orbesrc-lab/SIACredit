@@ -189,6 +189,48 @@
             background: #e0e7ff;
             color: #4338ca;
         }
+
+        /* Responsive tweaks for configuracion */
+        @media (max-width: 768px) {
+            body {
+                overflow-y: auto !important;
+                height: auto !important;
+            }
+            .main-content {
+                overflow-y: auto !important;
+                height: auto !important;
+                min-height: calc(100dvh - 65px) !important;
+            }
+            .content-area {
+                padding: 15px 12px !important;
+                padding-bottom: 80px !important;
+            }
+            .settings-card {
+                padding: 20px 15px !important;
+            }
+            .form-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .form-group.full-width {
+                grid-column: span 1 !important;
+            }
+            /* Button rows wrap on mobile */
+            div[style*="display: flex"] {
+                flex-wrap: wrap !important;
+            }
+            /* User items go vertical on mobile */
+            .user-item {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 10px !important;
+            }
+            .user-item > div:last-child {
+                flex-wrap: wrap !important;
+            }
+            .topbar {
+                padding: 12px 15px !important;
+            }
+        }
     </style>
 </head>
 

@@ -387,3 +387,115 @@ th {
     box-shadow: var(--shadow-xl);
     animation: fadeIn 0.3s ease-out;
 }
+
+/* ==================================================== */
+/* SMART MOBILE RESPONSIVENESS (NO JS REQUIRED)         */
+/* ==================================================== */
+@media (max-width: 768px) {
+    /* Change flex direction to stack elements */
+    body, .dashboard-container {
+        flex-direction: column !important;
+        height: 100dvh !important;
+    }
+    
+    /* Convert Sidebar to Bottom Navigation */
+    .sidebar {
+        width: 100% !important;
+        height: 65px !important;
+        flex-direction: row !important;
+        order: 2 !important; /* Move to bottom */
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        z-index: 1000 !important;
+        border-right: none !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        background: #0f172a !important;
+        padding: 0 !important;
+    }
+    
+    .sidebar-header, .sidebar-footer {
+        display: none !important; /* Hide logo and footer on mobile nav */
+    }
+    
+    .sidebar-menu {
+        flex-direction: row !important;
+        padding: 0 !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        white-space: nowrap !important;
+        width: 100% !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+        gap: 0 !important;
+    }
+    
+    .sidebar-item {
+        flex-direction: column !important;
+        padding: 8px 12px !important;
+        font-size: 0.65rem !important;
+        gap: 4px !important;
+        border-left: none !important;
+        border-bottom: 3px solid transparent !important;
+        justify-content: center !important;
+        color: #94a3b8 !important;
+    }
+    
+    .sidebar-item.active {
+        border-left: none !important;
+        border-bottom: 3px solid var(--primary-color) !important;
+        color: var(--white) !important;
+        background: transparent !important;
+    }
+    
+    /* Adjust Main Content to leave space for bottom nav */
+    .main-content {
+        order: 1 !important;
+        padding-bottom: 65px !important;
+        width: 100% !important;
+        height: calc(100dvh - 65px) !important;
+    }
+    
+    /* Fix Topbar */
+    .topbar {
+        padding: 15px !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+    
+    /* Fix Content Area Padding */
+    .content-area {
+        padding: 15px !important;
+    }
+    
+    /* Form Grids to 1 column */
+    .form-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+    
+    /* Prevent table blowouts */
+    table {
+        display: block !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        width: 100% !important;
+    }
+    
+    /* Fix Modals */
+    .modal-content {
+        max-width: 90% !important;
+        padding: 20px !important;
+    }
+
+    /* Adjust Buttons to prevent overlapping */
+    .dashboard-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .dashboard-header button {
+        width: 100%;
+    }
+}
