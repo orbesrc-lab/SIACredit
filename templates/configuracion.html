@@ -1491,15 +1491,20 @@
             const instId = sel.value;
             if (!instId || instId == '0') { alert('Selecciona una institución válida.'); return; }
             const instName = sel.options[sel.selectedIndex].text;
-            if (!confirm(`⚠️ ¿Estás seguro de ELIMINAR la institución "${instName}"?\n\nSe borrarán TODOS sus programas, factores, evidencias, evaluaciones y usuarios asociados.\n\nESTA ACCIÓN ES IRREVERSIBLE.`)) return;
+            if (!confirm(`¿Estás seguro de ELIMINAR la institución "${instName}"?\n\nSe borrarán TODOS sus programas, factores, evidencias, evaluaciones y usuarios.\n\nESTA ACCIÓN ES IRREVERSIBLE.`)) return;
 
             try {
                 const resp = await fetch(`/api/institutions/${instId}`, { method: 'DELETE' });
                 if (resp.ok) {
-                    alert('✅ Institución eliminada correctamente.');
-                    // Reset to first institution
+                    alert('Institución eliminada correctamente.');
+                    // Buscar la siguiente institución disponible
+                    const remaining = await fetch('/api/institutions').then(r => r.json());
                     const userData = JSON.parse(localStorage.getItem('siac_user'));
-                    userData.inst_id = 1;
+                    if (remaining.length > 0) {
+                        userData.inst_id = remaining[0].id;
+                    } else {
+                        userData.inst_id = 0;
+                    }
                     userData.program_id = 0;
                     localStorage.setItem('siac_user', JSON.stringify(userData));
                     location.reload();
