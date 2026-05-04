@@ -1,3 +1,14 @@
+// Funciones Globales de Identificación
+function getInstId() {
+    const user = JSON.parse(localStorage.getItem('siac_user'));
+    return user ? (user.inst_id || 1) : 1;
+}
+
+function getProgramId() {
+    const user = JSON.parse(localStorage.getItem('siac_user'));
+    return user ? (user.program_id || 0) : 0;
+}
+
 // Cargar tema al iniciar
 (function() {
     const savedTheme = localStorage.getItem('siac_theme') || 'default';
