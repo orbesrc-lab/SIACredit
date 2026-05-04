@@ -66,19 +66,24 @@
         </div>
     </main>
 
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
         const user = JSON.parse(localStorage.getItem('siac_user'));
+        if (!user) window.location.href = 'index.html';
         document.getElementById('userInfo').textContent = user.email;
 
         function logout() { localStorage.removeItem('siac_user'); window.location.href = 'index.html'; }
 
         async function loadSidebar() {
             try {
-                const modelResp = await fetch(`/api/factors?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const iId = getInstId();
+                const pId = getProgramId();
+                
+                const modelResp = await fetch(`/api/factors?inst_id=${iId}&program_id=${pId}`);
                 const factors = await modelResp.json();
                 
-                const evalsResp = await fetch(`/api/reports/summary?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const evalsResp = await fetch(`/api/reports/summary?inst_id=${iId}&program_id=${pId}`);
                 const evals = await evalsResp.json();
                 
                 let html = '';
@@ -193,6 +198,5 @@
 
         init();
     </script>
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
