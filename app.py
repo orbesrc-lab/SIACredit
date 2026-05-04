@@ -192,6 +192,18 @@ def handle_programs():
 def handle_program_specific(prog_id):
     if request.method == 'DELETE':
         try:
+            # Cascade delete manually to prevent FK constraint errors
+            try: supabase.table('users').delete().eq("program_id", prog_id).execute()
+            except Exception: pass
+            try: supabase.table('evaluations').delete().eq("program_id", prog_id).execute()
+            except Exception: pass
+            try: supabase.table('evidences').delete().eq("program_id", prog_id).execute()
+            except Exception: pass
+            try: supabase.table('statistics').delete().eq("program_id", prog_id).execute()
+            except Exception: pass
+            try: supabase.table('factors').delete().eq("program_id", prog_id).execute()
+            except Exception: pass
+
             supabase.table('programs').delete().eq("id", prog_id).execute()
             return jsonify({"status": "success"})
         except Exception as e:
@@ -238,6 +250,20 @@ def handle_all_institutions():
 @app.route('/api/institutions/<int:inst_id>', methods=['DELETE'])
 def delete_institution(inst_id):
     try:
+        # Cascade delete manually to prevent FK constraint errors
+        try: supabase.table('users').delete().eq("inst_id", inst_id).execute()
+        except Exception: pass
+        try: supabase.table('evaluations').delete().eq("inst_id", inst_id).execute()
+        except Exception: pass
+        try: supabase.table('evidences').delete().eq("inst_id", inst_id).execute()
+        except Exception: pass
+        try: supabase.table('statistics').delete().eq("inst_id", inst_id).execute()
+        except Exception: pass
+        try: supabase.table('factors').delete().eq("inst_id", inst_id).execute()
+        except Exception: pass
+        try: supabase.table('programs').delete().eq("inst_id", inst_id).execute()
+        except Exception: pass
+
         supabase.table('institution').delete().eq("id", inst_id).execute()
         return jsonify({"status": "success"})
     except Exception as e:
