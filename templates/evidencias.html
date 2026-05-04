@@ -182,6 +182,7 @@
 
         async function uploadEvidence(input, aspectId) {
             if(!input.files[0]) return;
+            const originalHTML = input.parentElement.innerHTML;
             const formData = new FormData();
             formData.append('file', input.files[0]);
             formData.append('aspect_id', aspectId);
@@ -190,9 +191,23 @@
             formData.append('inst_id', getInstId());
             formData.append('program_id', getProgramId());
             
-            input.parentElement.innerHTML = 'Subiendo...';
-            const resp = await fetch('/api/upload', { method: 'POST', body: formData });
-            if(resp.ok) loadAspects(document.querySelector('.char-item.active').id.replace('char_tab_', ''));
+            input.parentElement.innerHTML = '<span style="color:var(--primary-color)">⏳ Subiendo archivo...</span>';
+            
+            try {
+                const resp = await fetch('/api/upload', { method: 'POST', body: formData });
+                const result = await resp.json();
+                
+                if(resp.ok && result.status === 'success') {
+                    loadAspects(document.querySelector('.char-item.active').id.replace('char_tab_', ''));
+                } else {
+                    alert('Error al subir: ' + (result.error || result.message || 'Desconocido'));
+                    // Restaurar el botón para reintentar
+                    loadAspects(document.querySelector('.char-item.active').id.replace('char_tab_', ''));
+                }
+            } catch (err) {
+                alert('Error de conexión o servidor. Intenta de nuevo.');
+                loadAspects(document.querySelector('.char-item.active').id.replace('char_tab_', ''));
+            }
         }
 
         async function updateStatus(id, status) {
