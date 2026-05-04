@@ -3,52 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SKEL - Expertos en Proyectos de Educación Superior</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>SKEL - Iniciar Sesión</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .auth-container { display: flex; height: 100vh; align-items: center; justify-content: center; background-color: var(--secondary-bg); }
-        .auth-card { background: var(--white); padding: 40px; border-radius: 12px; box-shadow: var(--shadow-lg); width: 100%; max-width: 400px; }
-        .auth-logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 30px; font-size: 1.5rem; font-weight: 700; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-main); }
-        .form-group input, .form-group select { width: 100%; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-family: var(--font-main); font-size: 1rem; }
-        .btn-full { width: 100%; margin-top: 10px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0e1a;
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: #111827;
+            border: 1px solid rgba(201,168,76,0.2);
+            border-radius: 16px;
+            padding: 45px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .logo svg { margin-bottom: 12px; }
+        .logo h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .logo h1 span { color: #c9a84c; }
+        .logo p {
+            font-size: 0.85rem;
+            color: #8892a4;
+            margin-top: 6px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #b0bac8;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1c2436;
+            border: 1px solid rgba(201,168,76,0.15);
+            border-radius: 8px;
+            color: #f8fafc;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #c9a84c;
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+        }
+        .form-group input::placeholder { color: #4b5563; }
+        .btn-login {
+            width: 100%;
+            padding: 13px;
+            background: #c9a84c;
+            color: #0a0e1a;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 5px;
+        }
+        .btn-login:hover { background: #e8c97a; transform: translateY(-1px); }
+        .btn-guest {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: #8892a4;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+        .btn-guest:hover { border-color: #c9a84c; color: #c9a84c; }
+        .links {
+            text-align: center;
+            margin-top: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .links a {
+            color: #8892a4;
+            text-decoration: none;
+            font-size: 0.88rem;
+            transition: color 0.2s;
+        }
+        .links a:hover { color: #c9a84c; }
+        .links a.primary { color: #c9a84c; font-weight: 600; }
+        @media (max-width: 480px) {
+            .login-card { margin: 20px; padding: 30px 24px; }
+        }
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-logo">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 17L12 22L22 17" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 12L12 17L22 12" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>SIACredit</span>
+    <div class="login-card">
+        <div class="logo">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+            </svg>
+            <h1>SK<span>EL</span></h1>
+            <p>Expertos en Educación Superior</p>
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Correo Institucional</label>
+                <input type="email" id="email" required placeholder="usuario@universidad.edu.co">
             </div>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="email">Correo Institucional</label>
-                    <input type="email" id="email" required placeholder="usuario@universidad.edu.co">
-                </div>
-                <div class="form-group">
-                    <label for="password">Contraseña</label>
-                    <input type="password" id="password" required placeholder="••••••••">
-                </div>
-
-                <button type="submit" class="btn-primary large btn-full">Ingresar al Sistema</button>
-                <button type="button" onclick="guestLogin()" class="btn-ghost btn-full" style="margin-top: 10px; border: 1px solid var(--border-color);">Ingresar como Invitado (Lectura)</button>
-            </form>
-            <div style="text-align: center; margin-top: 25px; font-size: 0.9rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 10px;">
-                <a href="registro.html" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">¿No tienes cuenta? Regístrate aquí</a>
-                <a href="#" onclick="alert('Se ha enviado un código de recuperación a tu email personal registrado.')" style="color: var(--text-muted); text-decoration: none;">Olvidé mi contraseña</a>
-                <a href="index.html" style="color: var(--text-muted); text-decoration: none; margin-top: 10px;">← Volver al inicio</a>
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" required placeholder="••••••••">
             </div>
+            <button type="submit" class="btn-login">Ingresar al Sistema</button>
+            <button type="button" onclick="guestLogin()" class="btn-guest">Ingresar como Invitado (Lectura)</button>
+        </form>
+        <div class="links">
+            <a href="registro.html" class="primary">¿No tienes cuenta? Regístrate aquí</a>
+            <a href="#" onclick="alert('Se ha enviado un código de recuperación a tu email.')">Olvidé mi contraseña</a>
+            <a href="index.html">← Volver al inicio</a>
         </div>
     </div>
+
     <script>
         function guestLogin() {
-            localStorage.setItem('siac_user', JSON.stringify({ email: 'invitado@siac.edu.co', role: 'operativo' }));
+            localStorage.setItem('siac_user', JSON.stringify({ email: 'invitado@siac.edu.co', role: 'operativo', inst_id: 0, program_id: 0 }));
             window.location.href = 'dashboard.html';
         }
 
@@ -76,8 +176,6 @@
                 alert('Error de conexión al servidor.');
             }
         });
-
     </script>
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

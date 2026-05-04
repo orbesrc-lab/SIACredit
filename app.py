@@ -58,6 +58,39 @@ def estadisticas():
 def configuracion():
     return render_template('configuracion.html')
 
+# Endpoint de emergencia para recrear admin
+@app.route('/api/setup-admin', methods=['GET'])
+def setup_admin():
+    try:
+        # Crear institución si no existe
+        existing = supabase.table('institution').select("id").execute().data
+        if not existing:
+            supabase.table('institution').insert({
+                "name": "SKEL Administración", "code": "2025", "description": "Institución principal"
+            }).execute()
+        
+        inst = supabase.table('institution').select("id").execute().data
+        inst_id = inst[0]['id'] if inst else 1
+        
+        # Verificar si ya existe el admin
+        admin_check = supabase.table('users').select("id").eq("email", "admin@siacredit.edu.co").execute().data
+        if admin_check:
+            return jsonify({"status": "exists", "message": "El admin ya existe. Usa email: admin@siacredit.edu.co"})
+        
+        # Crear admin con contraseña hasheada
+        hashed = generate_password_hash("Admin2025!")
+        supabase.table('users').insert({
+            "name": "Administrador SKEL",
+            "email": "admin@siacredit.edu.co",
+            "password": hashed,
+            "role": "admin",
+            "inst_id": inst_id
+        }).execute()
+        
+        return jsonify({"status": "success", "message": "Admin creado. Email: admin@siacredit.edu.co / Password: Admin2025!"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # --- API Endpoints con Supabase (Multi-tenant) ---
 
 @app.route('/api/model', methods=['GET', 'POST'])
