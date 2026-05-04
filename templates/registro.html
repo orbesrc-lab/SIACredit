@@ -58,11 +58,12 @@
             const password = document.getElementById('password').value;
             
             try {
-                // Registrar usuario con rol 'pending' en la institución por defecto (1)
+                // Registrar usuario con rol 'operativo' (permitido por DB) pero con prefijo [PENDING]
+                const pendingName = '[PENDING] ' + name;
                 const userResp = await fetch(`/api/users?inst_id=1&program_id=0`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: name, email: email, role: 'pending', password: password })
+                    body: JSON.stringify({ name: pendingName, email: email, role: 'operativo', password: password })
                 });
                 const userResult = await userResp.json();
 

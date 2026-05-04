@@ -299,8 +299,8 @@ def handle_login():
             return jsonify({"status": "error", "message": "Usuario no encontrado"}), 404
         user = res.data[0]
         
-        # Bloquear usuarios pendientes
-        if user.get('role') == 'pending':
+        # Bloquear usuarios pendientes verificando el prefijo en su nombre
+        if user.get('name') and str(user.get('name')).startswith('[PENDING]'):
             return jsonify({"status": "error", "message": "Tu cuenta está pendiente de activación por un Administrador."}), 403
             
         if check_password_hash(user['password_hash'], password):
@@ -445,7 +445,14 @@ def activate_user(user_id):
     data = request.json
     new_role = data.get('role', 'lider')
     try:
-        supabase.table('users').update({"role": new_role}).eq("id", user_id).execute()
+        # Get current user to remove [PENDING] prefix
+        user_res = supabase.table('users').select("name").eq("id", user_id).execute()
+        if user_res.data:
+            current_name = user_res.data[0].get('name', '')
+            clean_name = current_name.replace('[PENDING] ', '').replace('[PENDING]', '')
+            supabase.table('users').update({"role": new_role, "name": clean_name}).eq("id", user_id).execute()
+        else:
+            supabase.table('users').update({"role": new_role}).eq("id", user_id).execute()
         return jsonify({"status": "success"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

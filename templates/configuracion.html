@@ -1080,13 +1080,17 @@
                     return;
                 }
                 container.innerHTML = users.map(u => {
-                    const roleBadge = u.role === 'admin' || u.role === 'inst_admin' ? 'role-admin' : (u.role === 'pending' ? '' : 'role-leader');
-                    const roleLabel = { admin: 'Super Admin', inst_admin: 'Admin Inst.', lider: 'Líder', operativo: 'Operativo', pending: 'Pendiente' }[u.role] || u.role;
+                    const isPending = u.name && u.name.startsWith('[PENDING]');
+                    const cleanName = u.name ? u.name.replace('[PENDING] ', '').replace('[PENDING]', '') : u.email.split('@')[0];
+                    const effectiveRole = isPending ? 'pending' : u.role;
+                    
+                    const roleBadge = effectiveRole === 'admin' || effectiveRole === 'inst_admin' ? 'role-admin' : (effectiveRole === 'pending' ? '' : 'role-leader');
+                    const roleLabel = { admin: 'Super Admin', inst_admin: 'Admin Inst.', lider: 'Líder', operativo: 'Operativo', pending: 'Pendiente' }[effectiveRole] || effectiveRole;
                     const isCurrentUser = u.email === user.email;
-                    const isPending = u.role === 'pending';
+                    
                     return `<div class="user-item">
                         <div class="user-info">
-                            <span class="user-name">${u.name || u.email.split('@')[0]}</span>
+                            <span class="user-name">${cleanName}</span>
                             <span class="user-role">${u.email} &middot; <em>${roleLabel}</em>${isCurrentUser ? ' • (Tú)' : ''}</span>
                         </div>
                         <div style="display:flex; align-items:center; gap:10px;">
