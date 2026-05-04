@@ -67,7 +67,6 @@
     </main>
 
     <script>
-        // Funciones de emergencia inyectadas directamente
         function getInstId() {
             try {
                 const u = JSON.parse(localStorage.getItem('siac_user'));
@@ -91,16 +90,15 @@
             try {
                 const iId = getInstId();
                 const pId = getProgramId();
-                
-                const modelResp = await fetch(`/api/model?inst_id=${iId}&program_id=${pId}`);
-                const factors = await modelResp.json();
+                const resp = await fetch(`/api/model?inst_id=${iId}&program_id=${pId}`);
+                const factors = await resp.json();
                 
                 const evalsResp = await fetch(`/api/reports/summary?inst_id=${iId}&program_id=${pId}`);
                 const evals = await evalsResp.json();
                 
                 let html = '';
                 if (!factors || factors.length === 0) {
-                    html = '<div style="padding:20px; text-align:center; color:#64748b;">No se encontraron factores para este programa.</div>';
+                    html = '<div style="padding:20px; text-align:center; color:#64748b;">No se encontraron factores.</div>';
                 } else {
                     factors.forEach(f => {
                         const fEval = (evals && evals.find) ? evals.find(e => e.name.includes(f.name)) || { avg: 0 } : { avg: 0 };
@@ -117,50 +115,52 @@
                 }
                 document.getElementById('sidebarFactors').innerHTML = html;
             } catch (err) {
-                console.error("Error cargando sidebar:", err);
-                document.getElementById('sidebarFactors').innerHTML = '<div style="padding:20px; color:#ef4444;">Error de conexión.</div>';
+                console.error("Error sidebar:", err);
+                document.getElementById('sidebarFactors').innerHTML = '<div style="padding:20px; color:#ef4444;">Error de carga.</div>';
             }
         }
 
         async function showEval(fId, cId) {
             document.querySelectorAll('.char-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`char_${cId}`).classList.add('active');
+            const tab = document.getElementById(`char_${cId}`);
+            if(tab) tab.classList.add('active');
 
-            const resp = await fetch(`/api/model?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-            const factors = await resp.json();
-            const factor = factors.find(f => f.id == fId);
-            const char = factor.characteristics.find(c => c.id == cId);
+            try {
+                const resp = await fetch(`/api/model?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const factors = await resp.json();
+                const factor = factors.find(f => f.id == fId);
+                const char = factor.characteristics.find(c => c.id == cId);
 
-            // Cargar evaluación guardada
-            const evalsResp = await fetch(`/api/evaluations?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-            const allEvals = await evalsResp.json();
-            const currentEval = allEvals.find(e => e.char_id == cId) || { rating: 0, justification: '' };
+                const evalsResp = await fetch(`/api/evaluations?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const allEvals = await evalsResp.json();
+                const currentEval = allEvals[cId] || { rating: 0, just: '' };
 
-            const container = document.getElementById('evalContainer');
-            container.innerHTML = `
-                <div class="eval-card fade-in">
-                    <h2 style="margin-bottom:10px; color:#1e293b;">${char.number}. ${char.name}</h2>
-                    <p style="color:#64748b; margin-bottom:30px;">Factor ${factor.number}: ${factor.name}</p>
+                const container = document.getElementById('evalContainer');
+                container.innerHTML = `
+                    <div class="eval-card fade-in">
+                        <h2 style="margin-bottom:10px; color:#1e293b;">${char.number}. ${char.name}</h2>
+                        <p style="color:#64748b; margin-bottom:30px;">Factor ${factor.number}: ${factor.name}</p>
 
-                    <div style="margin-bottom:30px;">
-                        <label style="display:block; font-weight:700; margin-bottom:10px;">Calificación Cuantitativa (Escala CNA 1.0 - 5.0)</label>
-                        <div style="display:flex; gap:20px; align-items:center;">
-                            <input type="number" id="rating_input" min="1" max="5" step="0.1" value="${currentEval.rating || ''}" 
-                                oninput="updateCNA(this.value)"
-                                style="width:120px; padding:15px; border:2px solid var(--primary-color); border-radius:10px; font-size:1.5rem; font-weight:700; text-align:center;">
-                            <div id="cna_label" class="cna-badge">Ingrese una nota</div>
+                        <div style="margin-bottom:30px;">
+                            <label style="display:block; font-weight:700; margin-bottom:10px;">Calificación Cuantitativa (Escala CNA 1.0 - 5.0)</label>
+                            <div style="display:flex; gap:20px; align-items:center;">
+                                <input type="number" id="rating_input" min="1" max="5" step="0.1" value="${currentEval.rating || ''}" 
+                                    oninput="updateCNA(this.value)"
+                                    style="width:120px; padding:15px; border:2px solid var(--primary-color); border-radius:10px; font-size:1.5rem; font-weight:700; text-align:center;">
+                                <div id="cna_label" class="cna-badge">Ingrese una nota</div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div style="margin-bottom:30px;">
-                        <label style="display:block; font-weight:700; margin-bottom:10px;">Juicio de Valor (Análisis Cualitativo)</label>
-                        <textarea id="just_input" placeholder="Redacte aquí el análisis integral de la característica, integrando las evidencias recolectadas...">${currentEval.justification || ''}</textarea>
-                    </div>
+                        <div style="margin-bottom:30px;">
+                            <label style="display:block; font-weight:700; margin-bottom:10px;">Juicio de Valor (Análisis Cualitativo)</label>
+                            <textarea id="just_input" placeholder="Redacte aquí el análisis integral de la característica...">${currentEval.just || ''}</textarea>
+                        </div>
 
-                    <button class="btn-primary large" onclick="saveEvaluation('${cId}')" style="width:100%; padding:18px; font-size:1.1rem;">Guardar Evaluación CNA</button>
-                </div>
-            `;
-            updateCNA(currentEval.rating);
+                        <button class="btn-primary large" onclick="saveEvaluation('${cId}')" style="width:100%; padding:18px; font-size:1.1rem;">Guardar Evaluación CNA</button>
+                    </div>
+                `;
+                updateCNA(currentEval.rating);
+            } catch(e) { console.error("Error showEval:", e); }
         }
 
         function updateCNA(val) {
@@ -183,21 +183,14 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    char_id: cId,
-                    rating: parseFloat(rating),
-                    justification: justification,
-                    inst_id: getInstId(),
-                    program_id: getProgramId(),
-                    user_email: user.email
+                    [cId]: { rating: parseFloat(rating), just: justification }
                 })
             });
 
             if (resp.ok) {
                 alert("Evaluación guardada con éxito.");
                 loadSidebar();
-            } else {
-                alert("Error al guardar en el servidor.");
-            }
+            } else { alert("Error al guardar."); }
         }
 
         async function init() {
@@ -210,5 +203,6 @@
 
         init();
     </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
