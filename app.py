@@ -626,16 +626,22 @@ def upload_file():
     email = request.form.get('email')
     dependency = request.form.get('dependency', 'General')
 
+    def sanitize_filename(filename):
+        import re
+        name = re.sub(r'[^a-zA-Z0-9._-]', '_', filename)
+        return name
+
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
-    file_path = f"inst_{inst_id}/prog_{program_id}/{aspect_id}/{file.filename}"
+    clean_filename = sanitize_filename(file.filename)
+    file_path = f"inst_{inst_id}/prog_{program_id}/{aspect_id}/{clean_filename}"
     try:
         file_content = file.read()
         supabase.storage.from_('evidencias').upload(
             path=file_path,
             file=file_content,
-            file_options={"content-type": file.content_type}
+            file_options={"content-type": file.content_type, "upsert": "true"}
         )
         file_url = supabase.storage.from_('evidencias').get_public_url(file_path)
         supabase.table('evidences').insert({

@@ -233,6 +233,7 @@
             formData.append('period', period);
             formData.append('email', user.email);
             formData.append('inst_id', getInstId());
+            formData.append('program_id', getProgramId());
             formData.append('dependency', 'Dirección Académica'); // Simulado por ahora
 
             input.parentElement.innerHTML = 'Subiendo archivo...';
