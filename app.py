@@ -15,12 +15,13 @@ CORS(app)
 
 def get_active_inst_id(requested_id):
     try:
-        # Si el ID pedido es 1 o 0, intentamos buscar la primera institución real
+        # Intentamos obtener la primera institución que exista en la DB
         res = supabase.table('institution').select("id").limit(1).execute()
         if res.data:
+            # Siempre usamos la institución real de la DB, ignorando el "1" si no existe
             return res.data[0]['id']
-    except:
-        pass
+    except Exception as e:
+        print(f"Error resolving inst_id: {e}")
     return requested_id or 1
 
 # Inicializar Cliente Supabase
