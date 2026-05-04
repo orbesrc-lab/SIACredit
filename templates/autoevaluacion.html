@@ -180,7 +180,9 @@
 
             if (!rating || rating < 1 || rating > 5) { alert("La nota debe estar entre 1.0 y 5.0"); return; }
 
-            const resp = await fetch('/api/evaluations', {
+            const iId = getInstId();
+            const pId = getProgramId();
+            const resp = await fetch(`/api/evaluations?inst_id=${iId}&program_id=${pId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
