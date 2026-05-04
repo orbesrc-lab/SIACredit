@@ -68,6 +68,10 @@ def handle_model():
         data = request.json # Lista de factores
         inst_id = request.args.get('inst_id', 1, type=int) # Re-get for safety
         program_id = request.args.get('program_id', 0, type=int)
+
+        # --- TRAZABILIDAD: No se puede guardar el modelo sin un programa activo ---
+        if not program_id or program_id == 0:
+            return jsonify({"status": "error", "message": "Debes seleccionar un Programa Académico activo antes de guardar el Modelo de Evaluación."}), 400
         
         try:
             curr_factors = supabase.table('factors').select("id").eq("inst_id", inst_id).eq("program_id", program_id).execute().data

@@ -462,9 +462,10 @@
             </div>
 
 
-            <div class="settings-card">
+            <!-- Gestión del Modelo de Evaluación -->
+            <div class="settings-card" style="border-left: 5px solid var(--primary-color);">
                     <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                         <h3 style="margin: 0; border: none; padding: 0;">Gestión del Modelo de Evaluación</h3>
                         <div style="display: flex; gap: 10px;">
                             <button class="btn-secondary" onclick="syncModelWithBackend()">💾 Guardar Cambios en
@@ -472,6 +473,8 @@
                             <button class="btn-primary" onclick="addFactor()">+ Añadir Factor</button>
                         </div>
                     </div>
+                    <!-- BREADCRUMB de contexto activo -->
+                    <div id="contextBreadcrumb" style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px 15px; margin-bottom: 15px; font-size: 0.85rem; color: #0369a1;">⏳ Cargando contexto...</div>
                     <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
                         Administra dinámicamente la estructura de Factores, Características y Aspectos a evaluar. Los
                         cambios se reflejarán automáticamente en los módulos de Evidencias y Autoevaluación.
@@ -497,6 +500,37 @@
         // --- Lógica del Gestor de Modelo ---
         function renderModelEditor() {
             const container = document.getElementById('modelEditorContainer');
+            const progId = getProgramId();
+
+            // TRAZABILIDAD: Bloquear si no hay programa activo
+            if (!progId || progId == 0) {
+                container.innerHTML = `
+                    <div style="background: #fef9c3; border: 2px dashed #ca8a04; border-radius: 12px; padding: 30px; text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: 15px;">🗂️</div>
+                        <h3 style="color: #92400e; margin-bottom: 10px;">Sin Programa Activo</h3>
+                        <p style="color: #78350f; max-width: 450px; margin: 0 auto; font-size: 0.95rem;">
+                            Para definir Factores, Características y Aspectos de evaluación, primero debes:
+                        </p>
+                        <ol style="text-align: left; max-width: 350px; margin: 15px auto; color: #78350f; font-size: 0.9rem; line-height: 2;">
+                            <li>Crear o seleccionar una <strong>Institución</strong></li>
+                            <li>Crear o seleccionar un <strong>Programa Académico</strong></li>
+                            <li>Hacer clic en <strong>"Cambiar / Cargar"</strong></li>
+                        </ol>
+                        <p style="color: #92400e; font-size: 0.85rem;">El modelo quedará vinculado exclusivamente a ese programa.</p>
+                    </div>`;
+                const addBtn = document.querySelector('[onclick="addFactor()"]');
+                if (addBtn) { addBtn.disabled = true; addBtn.style.opacity = '0.4'; addBtn.style.cursor = 'not-allowed'; addBtn.title = 'Selecciona un programa primero'; }
+                const saveBtn = document.querySelector('[onclick="syncModelWithBackend()"]');
+                if (saveBtn) { saveBtn.disabled = true; saveBtn.style.opacity = '0.4'; saveBtn.style.cursor = 'not-allowed'; }
+                return;
+            }
+
+            // Re-habilitar botones si hay programa activo
+            const addBtn = document.querySelector('[onclick="addFactor()"]');
+            if (addBtn) { addBtn.disabled = false; addBtn.style.opacity = ''; addBtn.style.cursor = ''; addBtn.title = ''; }
+            const saveBtn = document.querySelector('[onclick="syncModelWithBackend()"]');
+            if (saveBtn) { saveBtn.disabled = false; saveBtn.style.opacity = ''; saveBtn.style.cursor = ''; }
+
             const data = getDataModel();
             let html = '';
 
@@ -970,6 +1004,44 @@
             loadAllPrograms();
             loadUsersFromAPI();
             renderFactorLeaders();
+            updateContextBreadcrumb();
+        }
+
+        async function updateContextBreadcrumb() {
+            const breadcrumb = document.getElementById('contextBreadcrumb');
+            if (!breadcrumb) return;
+            const progId = getProgramId();
+            const instId = getInstId();
+            
+            if (!progId || progId == 0) {
+                breadcrumb.innerHTML = `⚠️ <strong>Contexto:</strong> Sin programa activo &mdash; Selecciona un programa en "Gestión de Programas Académicos" para comenzar.`;
+                breadcrumb.style.background = '#fef9c3';
+                breadcrumb.style.borderColor = '#ca8a04';
+                breadcrumb.style.color = '#92400e';
+                return;
+            }
+
+            try {
+                const [instResp, progResp] = await Promise.all([
+                    fetch('/api/institutions'),
+                    fetch(`/api/programs?inst_id=${instId}`)
+                ]);
+                const institutions = await instResp.json();
+                const programs = await progResp.json();
+
+                const inst = institutions.find(i => i.id == instId);
+                const prog = programs.find(p => p.id == progId);
+
+                const instName = inst ? inst.name : `ID: ${instId}`;
+                const progName = prog ? `${prog.name} (${prog.period})` : `ID: ${progId}`;
+
+                breadcrumb.innerHTML = `🏛️ <strong>Institución:</strong> ${instName} &nbsp;›&nbsp; 📚 <strong>Programa:</strong> ${progName}`;
+                breadcrumb.style.background = '#f0f9ff';
+                breadcrumb.style.borderColor = '#bae6fd';
+                breadcrumb.style.color = '#0369a1';
+            } catch(e) {
+                breadcrumb.innerHTML = `🏛️ Inst. ID: ${instId} &nbsp;›&nbsp; 📚 Prog. ID: ${progId}`;
+            }
         }
 
         async function renderFactorLeaders() {
@@ -1307,6 +1379,12 @@
             const userData = JSON.parse(localStorage.getItem('siac_user'));
             userData.program_id = parseInt(newId);
             localStorage.setItem('siac_user', JSON.stringify(userData));
+            // TRAZABILIDAD: Recargar modelo del servidor para este programa
+            loadDataFromAPI().then(() => {
+                renderModelEditor();
+                renderFactorLeaders();
+                updateContextBreadcrumb();
+            });
             location.reload();
         }
 

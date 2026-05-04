@@ -18,6 +18,16 @@ function getProgramId() {
 async function loadDataFromAPI() {
     const instId = getInstId();
     const progId = getProgramId();
+    
+    // TRAZABILIDAD: Sin programa activo, no hay modelo que cargar
+    if (!progId || progId == 0) {
+        localModelCache = [];
+        localEvidencesCache = {};
+        localEvaluationsCache = {};
+        localStatsCache = {};
+        return;
+    }
+
     try {
         const resM = await fetch(`/api/model?inst_id=${instId}&program_id=${progId}`);
         localModelCache = await resM.json();
@@ -41,8 +51,14 @@ function getDataModel() {
 }
 
 function saveDataModel(data) {
+    const progId = getProgramId();
+    // TRAZABILIDAD: No guardar si no hay programa activo
+    if (!progId || progId == 0) {
+        alert("⚠️ No puedes guardar el Modelo sin un Programa Académico activo.\n\nVe a 'Gestión de Programas Académicos', selecciona o crea un programa y haz clic en 'Cambiar / Cargar'.");
+        return;
+    }
     localModelCache = data;
-    fetch(`/api/model?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+    fetch(`/api/model?inst_id=${getInstId()}&program_id=${progId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
