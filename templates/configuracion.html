@@ -332,9 +332,10 @@
                         <input type="password" id="new_password" placeholder="••••••••">
                     </div>
                 </div>
-                <button class="btn-primary" onclick="updatePassword()">Actualizar Contraseña</button>
+                <div class="header-actions">
+                <button class="btn btn-secondary" onclick="forceRefreshAll()">🔄 Forzar Recarga Total</button>
+                <button class="btn btn-primary" onclick="window.location.reload()">Refrescar Página</button>
             </div>
-
 
             <!-- Inyección de Modelo y Articulación -->
             <div class="settings-card" style="border-left: 5px solid var(--primary-color);">
@@ -1041,6 +1042,7 @@
             try {
                 const resp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const users = await resp.json();
+                
                 const leaders = users.filter(u => u.role === 'lider' || u.role === 'admin' || u.role === 'inst_admin');
                 
                 let html = '';
@@ -1069,6 +1071,13 @@
             if (factor) {
                 factor.leader_id = userId;
                 saveDataModel(model);
+                
+                // Visual Feedback
+                const statusDiv = document.getElementById('syncStatus');
+                if (statusDiv) {
+                    statusDiv.innerHTML = '<span style="color: #10b981;">✅ Líder asignado al factor.</span>';
+                    setTimeout(() => statusDiv.innerHTML = '', 2000);
+                }
             }
         }
 
@@ -1174,6 +1183,7 @@
                     alert(`✅ Usuario creado.\n\nEmail: ${email}\nContraseña temporal: ${result.temp_password}`);
                     closeInviteModal();
                     loadUsersFromAPI();
+                    renderFactorLeaders(); // REFRESH LEADERS IN DROPDOWNS
                 } else {
                     alert('Error: ' + result.message);
                 }
@@ -1245,6 +1255,24 @@
                     if (inst.id == getInstId()) opt.selected = true;
                     select.appendChild(opt);
                 });
+                
+                // Monitor selector change to disable delete on ID 1
+                select.addEventListener('change', () => {
+                    const btn = document.querySelector('[onclick="deleteInstitution()"]');
+                    if(select.value == '1') {
+                        btn.style.opacity = '0.5';
+                        btn.title = 'No se puede eliminar la institución principal.';
+                    } else {
+                        btn.style.opacity = '1';
+                        btn.title = '';
+                    }
+                });
+                // Initial check
+                const btnDel = document.querySelector('[onclick="deleteInstitution()"]');
+                if(select.value == '1' && btnDel) {
+                    btnDel.style.opacity = '0.5';
+                    btnDel.title = 'No se puede eliminar la institución principal.';
+                }
             }
         }
 
@@ -1438,6 +1466,13 @@
             const sel = document.getElementById('instSelect');
             const instId = sel.value;
             if (!instId || instId == '0') { alert('Selecciona una institución válida.'); return; }
+            
+            // PROTECCIÓN: No permitir borrar la institución principal (ID 1)
+            if (instId == '1') {
+                alert('No se puede eliminar la institución principal del sistema.');
+                return;
+            }
+            
             const instName = sel.options[sel.selectedIndex].text;
             if (!confirm(`¿Estás seguro de ELIMINAR la institución "${instName}"?\n\nSe borrarán TODOS sus programas, factores, evidencias, evaluaciones y usuarios.\n\nESTA ACCIÓN ES IRREVERSIBLE.`)) return;
 
@@ -1488,6 +1523,14 @@
         init();
 
 
+        async function forceRefreshAll() {
+            console.log("Forzando recarga total de datos...");
+            await loadDataFromAPI();
+            await loadUsersFromAPI();
+            await renderFactorLeaders();
+            renderModel();
+            alert("✅ Datos recargados desde el servidor.");
+        }
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>

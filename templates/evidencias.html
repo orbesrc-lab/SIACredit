@@ -93,7 +93,7 @@
 
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
-        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'admin@siacredit.edu.co', role: 'admin' };
+        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'orbesrc@gmail.com', role: 'admin' };
         document.getElementById('userInfo').innerHTML = `<span>${user.email}</span> <span class="status ${user.role === 'admin' ? 'aprobado' : 'revision'}" style="margin-left:10px">${user.role.toUpperCase()}</span>`;
 
         function logout() {

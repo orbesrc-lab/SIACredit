@@ -91,7 +91,7 @@
 
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
-        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'admin@siacredit.edu.co' };
+        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'orbesrc@gmail.com' };
         document.getElementById('userInfo').textContent = user.email;
 
         function logout() { localStorage.removeItem('siac_user'); window.location.href = 'index.html'; }

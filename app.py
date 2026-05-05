@@ -111,20 +111,20 @@ def setup_admin():
         inst_id = inst[0]['id'] if inst else 1
         
         # Verificar si ya existe el admin
-        admin_check = supabase.table('users').select("id").eq("email", "admin@siacredit.edu.co").execute().data
+        admin_check = supabase.table('users').select("id").eq("email", "orbesrc@gmail.com").execute().data
         if admin_check:
-            return jsonify({"status": "exists", "message": "El admin ya existe. Usa email: admin@siacredit.edu.co"})
+            return jsonify({"status": "exists", "message": "El admin ya existe. Usa email: orbesrc@gmail.com"})
         
-        # Crear admin con contraseña hasheada (columnas correctas: email, password_hash, role, inst_id)
+        # Crear admin con contraseña hasheada (Global Admin: inst_id = None)
         hashed = generate_password_hash("Admin2025!")
         supabase.table('users').insert({
-            "email": "admin@siacredit.edu.co",
+            "email": "orbesrc@gmail.com",
             "password_hash": hashed,
             "role": "admin",
-            "inst_id": inst_id
+            "inst_id": None
         }).execute()
         
-        return jsonify({"status": "success", "message": "Admin creado. Email: admin@siacredit.edu.co / Password: Admin2025!"})
+        return jsonify({"status": "success", "message": "Admin creado. Email: orbesrc@gmail.com / Password: Admin2025!"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -368,6 +368,10 @@ def handle_all_institutions():
 @app.route('/api/institutions/<int:inst_id>', methods=['DELETE'])
 def delete_institution(inst_id):
     try:
+        # PROTECCIÓN: No permitir borrar la institución principal (ID 1)
+        if inst_id == 1:
+            return jsonify({"status": "error", "message": "No se puede eliminar la institución principal del sistema."}), 403
+            
         # ON DELETE CASCADE en Supabase se encarga de borrar hijos automáticamente
         supabase.table('institution').delete().eq("id", inst_id).execute()
         return jsonify({"status": "success"})
@@ -477,14 +481,14 @@ def change_password():
 @app.route('/api/init-admin', methods=['GET'])
 def init_admin():
     try:
-        res = supabase.table('users').select("*").eq("email", "admin@siacredit.edu.co").execute()
+        res = supabase.table('users').select("*").eq("email", "orbesrc@gmail.com").execute()
         if not res.data:
             admin_hash = generate_password_hash("admin123")
             supabase.table('users').insert({
-                "email": "admin@siacredit.edu.co",
+                "email": "orbesrc@gmail.com",
                 "password_hash": admin_hash,
                 "role": "admin",
-                "inst_id": 1
+                "inst_id": None
             }).execute()
             return jsonify({"status": "success", "message": "Admin inicializado"})
         return jsonify({"status": "info", "message": "Admin ya existe"})
@@ -497,6 +501,7 @@ def init_admin():
 def handle_users():
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
+    print(f"DEBUG: Fetching users for inst_id={inst_id}, program_id={program_id}")
     if request.method == 'POST':
         data = request.json
         email = data.get('email')
@@ -542,22 +547,19 @@ def handle_users():
             return jsonify({"status": "error", "message": str(e)}), 500
 
     try:
-        query = supabase.table('users').select("id, email, role, name, inst_id, program_id")
-        if inst_id != 0:
-            query = query.eq("inst_id", inst_id)
-        if program_id != 0:
-            query = query.eq("program_id", program_id)
-        try:
-            res = query.execute()
-        except Exception:
-            # Fallback if 'name' or 'program_id' columns don't exist yet
-            query2 = supabase.table('users').select("id, email, role, inst_id")
-            if inst_id != 0:
-                query2 = query2.eq("inst_id", inst_id)
-            res = query2.execute()
+        if inst_id == 0:
+            res = supabase.table('users').select("*").execute()
+        else:
+            # Usuarios de la institución O usuarios globales (null program_id)
+            res = supabase.table('users').select("*")\
+                .eq("inst_id", inst_id)\
+                .or_(f"program_id.eq.{program_id},program_id.is.null")\
+                .execute()
+        
         return jsonify(res.data)
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        print(f"Error fetching users: {e}")
+        return jsonify([])
 
 
 @app.route('/api/users/<int:user_id>/reset-password', methods=['POST'])
