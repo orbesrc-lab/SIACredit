@@ -77,8 +77,11 @@
 
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
-        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'orbesrc@gmail.com', role: 'admin' };
-        document.getElementById('userInfo').innerHTML = `<span>${user.email}</span> <span class="status ${user.role === 'admin' ? 'aprobado' : 'revision'}" style="margin-left:10px">${user.role.toUpperCase()}</span>`;
+        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'invitado', role: 'guest' };
+        
+        // UI Fix for role display
+        const roleLabel = user.role ? user.role.toUpperCase() : 'INVITADO';
+        document.getElementById('userInfo').innerHTML = `<span>${user.email}</span> <span class="status ${user.role === 'admin' || user.role === 'inst_admin' ? 'aprobado' : 'revision'}" style="margin-left:10px">${roleLabel}</span>`;
 
         function logout() {
             localStorage.removeItem('siac_user');
@@ -93,7 +96,18 @@
                 container.innerHTML = '<div style="padding: 20px; text-align: center;">No hay factores configurados.</div>';
                 return;
             }
-            model.forEach(factor => {
+            // FILTRADO POR ROL: Líder solo ve sus factores asignados
+            const filteredModel = model.filter(f => {
+                if (user.role === 'admin' || user.role === 'inst_admin') return true;
+                return f.leader_id == user.id;
+            });
+
+            if (filteredModel.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center;">No tienes factores asignados.</div>';
+                return;
+            }
+
+            filteredModel.forEach(factor => {
                 html += `<div class="factor-header">Factor ${factor.number}: ${factor.name}</div>`;
                 factor.characteristics.forEach(char => {
                     html += `<div class="char-item" onclick="loadAspects('${char.id}')" id="char_tab_${char.id}">

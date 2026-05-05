@@ -450,9 +450,11 @@ def handle_login():
             return jsonify({
                 "status": "success",
                 "user": { 
+                    "id": user['id'],
                     "email": user['email'], 
                     "role": user['role'],
-                    "inst_id": user['inst_id']
+                    "inst_id": user['inst_id'],
+                    "program_id": user.get('program_id', 0)
                 }
             })
         return jsonify({"status": "error", "message": "Contraseña incorrecta"}), 401

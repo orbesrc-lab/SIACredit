@@ -72,9 +72,11 @@
             } catch(e) { return 0; }
         }
 
-        const user = JSON.parse(localStorage.getItem('siac_user'));
-        if (!user) window.location.href = 'index.html';
-        document.getElementById('userInfo').textContent = user.email;
+        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'invitado', role: 'guest' };
+        if (!user || user.role === 'guest') window.location.href = 'index.html';
+        
+        const roleLabel = user.role ? user.role.toUpperCase() : 'INVITADO';
+        document.getElementById('userInfo').innerHTML = `<span>${user.email}</span> <span class="status ${user.role === 'admin' || user.role === 'inst_admin' ? 'aprobado' : 'revision'}" style="margin-left:10px; padding:2px 8px; border-radius:12px; font-size:0.7rem;">${roleLabel}</span>`;
 
         function logout() { localStorage.removeItem('siac_user'); window.location.href = 'index.html'; }
 
@@ -93,18 +95,28 @@
                 if (!factors || factors.length === 0) {
                     html = '<div style="padding:20px; text-align:center; color:#64748b;">No se encontraron factores.</div>';
                 } else {
-                    factors.forEach(f => {
-                        const fEval = evals.find(e => e.name.includes(f.name)) || { avg: 0 };
-                        html += `<div class="factor-header">${f.number}. ${f.name} <br><small style="color:var(--primary-color)">Promedio Ponderado: ${fEval.avg}</small></div>`;
-                        if (f.characteristics) {
-                            f.characteristics.forEach(c => {
-                                html += `<div class="char-item" onclick="showEval('${f.id}', '${c.id}')" id="char_${c.id}">
-                                    <div style="font-weight:600; font-size:0.9rem;">${c.number}. ${c.name}</div>
-                                    <div style="font-size:0.8rem; color:#64748b;">Peso: ${c.weight}%</div>
-                                </div>`;
-                            });
-                        }
+                    // FILTRADO POR ROL: Líder solo ve sus factores asignados
+                    const filteredFactors = factors.filter(f => {
+                        if (user.role === 'admin' || user.role === 'inst_admin') return true;
+                        return f.leader_id == user.id;
                     });
+
+                    if (filteredFactors.length === 0) {
+                        html = '<div style="padding:20px; text-align:center; color:#64748b;">No tienes factores asignados.</div>';
+                    } else {
+                        filteredFactors.forEach(f => {
+                            const fEval = evals.find(e => e.name.includes(f.name)) || { avg: 0 };
+                            html += `<div class="factor-header">${f.number}. ${f.name} <br><small style="color:var(--primary-color)">Promedio Ponderado: ${fEval.avg}</small></div>`;
+                            if (f.characteristics) {
+                                f.characteristics.forEach(c => {
+                                    html += `<div class="char-item" onclick="showEval('${f.id}', '${c.id}')" id="char_${c.id}">
+                                        <div style="font-weight:600; font-size:0.9rem;">${c.number}. ${c.name}</div>
+                                        <div style="font-size:0.8rem; color:#64748b;">Peso: ${c.weight}%</div>
+                                    </div>`;
+                                });
+                            }
+                        });
+                    }
                 }
                 document.getElementById('sidebarFactors').innerHTML = html;
             } catch (err) {
