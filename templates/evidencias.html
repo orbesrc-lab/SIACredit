@@ -6,16 +6,6 @@
     <title>SKEL - Expertos en Proyectos de Educación Superior</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
-        body { background-color: var(--secondary-bg); display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 250px; background: #0f172a; color: #94a3b8; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 20px; font-size: 1.25rem; font-weight: 700; color: var(--white); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-menu { flex: 1; padding: 20px 0; }
-        .sidebar-item { padding: 12px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; transition: 0.2s; }
-        .sidebar-item:hover, .sidebar-item.active { background: rgba(255, 255, 255, 0.1); color: var(--white); border-left: 3px solid var(--primary-color); }
-        
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: hidden; }
-        .topbar { background: var(--white); padding: 15px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        
         .layout-split { display: flex; flex: 1; overflow: hidden; }
         .left-panel { width: 350px; background: var(--white); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow-y: auto; }
         .right-panel { flex: 1; padding: 30px; overflow-y: auto; background: var(--secondary-bg); }
@@ -47,13 +37,7 @@
         .upload-area svg { color: var(--primary-color); }
         
         input[type="file"] { display: none; }
-        /* Mobile overrides */
-        @media (max-width: 768px) {
-            body { overflow-y: auto !important; height: auto !important; }
-            .main-content { overflow-y: auto !important; height: auto !important; padding-bottom: 80px !important; }
-            .content-area { padding: 15px !important; padding-bottom: 90px !important; }
-            .topbar { padding: 12px 15px !important; flex-direction: column; align-items: flex-start; gap: 8px; }
-        }    </style>
+    </style>
 </head>
 <body>
     <aside class="sidebar">
