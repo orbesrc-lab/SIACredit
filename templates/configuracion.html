@@ -1034,10 +1034,11 @@
                             <span class="user-name">${cleanName}</span>
                             <span class="user-role">${u.email} &middot; <em>${roleLabel}</em>${isCurrentUser ? ' • (Tú)' : ''}</span>
                         </div>
-                        <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap: wrap; justify-content: flex-end;">
                             <span class="role-badge ${roleBadge}" style="${isPending ? 'background:#fef3c7; color:#d97706;' : ''}">${roleLabel.toUpperCase()}</span>
-                            ${isPending && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="activateUser(${u.id}, '${u.email}')" class="btn-primary" style="font-size:0.7rem; padding: 4px 8px;">Activar</button>` : ''}
-                            ${!isCurrentUser && !isPending ? `<button onclick="resetUserPass(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color);">Resetear Clave</button>` : ''}
+                            ${isPending && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="activateUser(${u.id}, '${u.email}', '${u.role}')" class="btn-primary" style="font-size:0.7rem; padding: 4px 10px;">Activar</button>` : ''}
+                            ${!isCurrentUser && !isPending && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="changeUserRole(${u.id}, '${u.email}', '${u.role}')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color); border: 1px solid var(--primary-color); padding: 3px 8px; border-radius: 4px;">Cambiar Rol</button>` : ''}
+                            ${!isCurrentUser && !isPending ? `<button onclick="resetUserPass(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:var(--text-muted);">Resetear Clave</button>` : ''}
                             ${!isCurrentUser && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="deleteUserFromList(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:#ef4444;">Eliminar</button>` : ''}
                         </div>
                     </div>`;
@@ -1110,19 +1111,50 @@
             }
         }
 
-        async function activateUser(userId, email) {
-            if (!confirm(`¿Activar usuario ${email} como Líder de Factor? (Podrás cambiar su rol después si es necesario)`)) return;
+        async function activateUser(userId, email, currentRole) {
+            let roleToSet = currentRole;
+            if (currentRole === 'lider' || !currentRole) {
+                const choice = confirm(`¿Activar usuario ${email} como Líder de Factor?\n\n(Pulsa CANCELAR si quieres activarlo como Administrador Institucional)`);
+                roleToSet = choice ? 'lider' : 'inst_admin';
+            }
+            
             try {
                 const resp = await fetch(`/api/users/${userId}/activate`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ role: 'lider' })
+                    body: JSON.stringify({ role: roleToSet })
                 });
                 if (resp.ok) {
-                    alert('Usuario activado con éxito.');
+                    alert(`Usuario activado como ${roleToSet === 'inst_admin' ? 'Administrador Institucional' : 'Líder'}.`);
                     loadUsersFromAPI();
                 } else {
                     alert('Error activando usuario.');
+                }
+            } catch(e) {
+                alert('Error de conexión.');
+            }
+        }
+
+        async function changeUserRole(userId, email, currentRole) {
+            const newRole = prompt(`Cambiar rol para ${email}\n\nRoles disponibles: lider, operativo, inst_admin`, currentRole);
+            if (!newRole || newRole === currentRole) return;
+            
+            if (!['lider', 'operativo', 'inst_admin'].includes(newRole)) {
+                alert("Rol no válido. Usa: lider, operativo o inst_admin");
+                return;
+            }
+
+            try {
+                const resp = await fetch(`/api/users/${userId}/activate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: newRole })
+                });
+                if (resp.ok) {
+                    alert('Rol actualizado correctamente.');
+                    loadUsersFromAPI();
+                } else {
+                    alert('Error al actualizar el rol.');
                 }
             } catch(e) {
                 alert('Error de conexión.');

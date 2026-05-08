@@ -595,9 +595,17 @@ def activate_user(user_id):
 @app.route('/api/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     try:
+        # 1. Liberar al usuario de cualquier factor donde sea líder para evitar errores de FK
+        try:
+            supabase.table('factors').update({"leader_id": None}).eq("leader_id", user_id).execute()
+        except Exception as e:
+            print(f"Aviso al liberar líder en factores: {e}")
+            
+        # 2. Proceder con la eliminación del usuario
         supabase.table('users').delete().eq("id", user_id).execute()
         return jsonify({"status": "success"})
     except Exception as e:
+        print(f"Error al eliminar usuario {user_id}: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
