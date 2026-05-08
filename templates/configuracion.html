@@ -288,6 +288,7 @@
                 </div>
             </div>
 
+
             <!-- Gestión de Usuarios -->
             <div class="settings-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
@@ -327,6 +328,53 @@
                     <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
                         <button class="btn-ghost" onclick="closeInviteModal()">Cancelar</button>
                         <button class="btn-primary" onclick="submitInviteUser()">Crear Usuario</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Cambiar Rol -->
+            <div id="changeRoleModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1001; align-items:center; justify-content:center;">
+                <div style="background:white; border-radius:16px; padding:30px; width:400px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                    <h3 style="margin-bottom:6px; font-size:1.1rem;">Cambiar Rol</h3>
+                    <p id="changeRoleEmail" style="font-size:0.85rem; color:#6b7280; margin-bottom:18px;"></p>
+                    <label style="display:block; font-weight:500; margin-bottom:8px;">Nuevo Rol</label>
+                    <select id="changeRoleSelect" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.95rem;">
+                        <option value="lider">Líder de Factor</option>
+                        <option value="operativo">Operativo</option>
+                        <option value="inst_admin">Administrador Institucional</option>
+                    </select>
+                    <input type="hidden" id="changeRoleUserId">
+                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                        <button class="btn-ghost" onclick="document.getElementById('changeRoleModal').style.display='none'">Cancelar</button>
+                        <button class="btn-primary" onclick="submitChangeRole()">Guardar Cambio</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Confirmar Eliminar -->
+            <div id="deleteUserModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1001; align-items:center; justify-content:center;">
+                <div style="background:white; border-radius:16px; padding:30px; width:400px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                    <h3 style="margin-bottom:6px; font-size:1.1rem; color:#ef4444;">⚠️ Eliminar Usuario</h3>
+                    <p id="deleteUserEmail" style="font-size:0.9rem; color:#374151; margin-bottom:6px;"></p>
+                    <p style="font-size:0.82rem; color:#6b7280;">Esta acción es irreversible.</p>
+                    <input type="hidden" id="deleteUserId">
+                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                        <button class="btn-ghost" onclick="document.getElementById('deleteUserModal').style.display='none'">Cancelar</button>
+                        <button style="background:#ef4444; color:white; border:none; border-radius:8px; padding:10px 20px; cursor:pointer; font-weight:600;" onclick="submitDeleteUser()">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Resetear Contraseña -->
+            <div id="resetPassModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1001; align-items:center; justify-content:center;">
+                <div style="background:white; border-radius:16px; padding:30px; width:400px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                    <h3 style="margin-bottom:6px; font-size:1.1rem;">Resetear Contraseña</h3>
+                    <p id="resetPassEmail" style="font-size:0.85rem; color:#6b7280; margin-bottom:4px;"></p>
+                    <p style="font-size:0.82rem; color:#6b7280;">Se generará una contraseña temporal.</p>
+                    <input type="hidden" id="resetPassUserId">
+                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                        <button class="btn-ghost" onclick="document.getElementById('resetPassModal').style.display='none'">Cancelar</button>
+                        <button class="btn-primary" onclick="submitResetPass()">Resetear</button>
                     </div>
                 </div>
             </div>
@@ -1008,34 +1056,162 @@
             }
         }
 
-        // ========== Gestión de Usuarios Dinámica (Migrada a static/users.js) ==========
+        // ========== Gestión de Usuarios ==========
         function openInviteModal() { document.getElementById('inviteModal').style.display = 'flex'; }
         function closeInviteModal() { document.getElementById('inviteModal').style.display = 'none'; }
+
+        async function loadUsersFromAPI() {
+            var container = document.getElementById('usersTable');
+            if (!container) return;
+            container.innerHTML = '<div style="padding:16px;text-align:center;color:#888;">Cargando...</div>';
+
+            var instId = getInstId(), programId = getProgramId();
+            var currentUser = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            var canManage = (currentUser.role === 'admin' || currentUser.role === 'inst_admin');
+
+            try {
+                var resp = await fetch('/api/users?inst_id=' + instId + '&program_id=' + programId);
+                var users = await resp.json();
+
+                if (!Array.isArray(users) || users.length === 0) {
+                    container.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">No hay usuarios en este programa.</div>';
+                    return;
+                }
+
+                var html = '';
+                for (var i = 0; i < users.length; i++) {
+                    var u = users[i];
+                    var isPending = u.name && u.name.indexOf('[PENDING]') === 0;
+                    var cleanName = (u.name || u.email).replace('[PENDING] ','').replace('[PENDING]','');
+                    var role = isPending ? 'pending' : (u.role || 'operativo');
+                    var isSelf = (u.email === currentUser.email);
+
+                    var labels = {admin:'Super Admin', inst_admin:'Admin Inst.', lider:'Líder', operativo:'Operativo', pending:'Pendiente'};
+                    var roleLabel = labels[role] || role;
+                    var badgeBg = (role==='admin'||role==='inst_admin') ? '#fee2e2' : (role==='pending' ? '#fef3c7' : '#e0e7ff');
+                    var badgeColor = (role==='admin'||role==='inst_admin') ? '#b91c1c' : (role==='pending' ? '#d97706' : '#4338ca');
+
+                    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #e5e7eb;background:#fafafa;">';
+                    html += '<div>';
+                    html += '<div style="font-weight:600;font-size:0.95rem;">' + cleanName + (isSelf ? ' <em style="color:#888;font-size:0.78rem;">(Tú)</em>' : '') + '</div>';
+                    html += '<div style="font-size:0.8rem;color:#6b7280;">' + u.email + ' · ' + roleLabel + '</div>';
+                    html += '</div>';
+                    html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
+                    html += '<span style="background:'+badgeBg+';color:'+badgeColor+';padding:3px 9px;border-radius:12px;font-size:0.72rem;font-weight:700;">' + roleLabel.toUpperCase() + '</span>';
+
+                    if (isPending && canManage) {
+                        html += '<button data-act="activate" data-uid="'+u.id+'" data-email="'+u.email+'" data-role="'+(u.role||'')+'" style="font-size:0.72rem;padding:4px 10px;background:#5b45ff;color:white;border:none;border-radius:5px;cursor:pointer;">Activar</button>';
+                    }
+                    if (!isSelf && !isPending && canManage) {
+                        html += '<button data-act="changeRole" data-uid="'+u.id+'" data-email="'+u.email+'" data-role="'+(u.role||'')+'" style="font-size:0.72rem;padding:3px 10px;background:white;color:#5b45ff;border:1px solid #5b45ff;border-radius:5px;cursor:pointer;">Cambiar Rol</button>';
+                    }
+                    if (!isSelf && !isPending) {
+                        html += '<button data-act="resetPass" data-uid="'+u.id+'" data-email="'+u.email+'" style="font-size:0.72rem;padding:3px 10px;background:white;color:#6b7280;border:1px solid #d1d5db;border-radius:5px;cursor:pointer;">Resetear Clave</button>';
+                    }
+                    if (!isSelf && canManage) {
+                        html += '<button data-act="delete" data-uid="'+u.id+'" data-email="'+u.email+'" style="font-size:0.72rem;padding:3px 10px;background:white;color:#ef4444;border:1px solid #ef4444;border-radius:5px;cursor:pointer;">Eliminar</button>';
+                    }
+                    html += '</div></div>';
+                }
+                container.innerHTML = html;
+            } catch(e) {
+                container.innerHTML = '<div style="padding:16px;color:#ef4444;">Error al cargar usuarios.</div>';
+            }
+        }
+
+        // Event delegation on the container — avoids onclick-in-innerHTML restrictions
+        document.addEventListener('click', function(e) {
+            var btn = e.target;
+            if (!btn || !btn.dataset || !btn.dataset.act) return;
+            var act = btn.dataset.act, uid = btn.dataset.uid, email = btn.dataset.email, role = btn.dataset.role;
+
+            if (act === 'changeRole') {
+                document.getElementById('changeRoleUserId').value = uid;
+                document.getElementById('changeRoleEmail').textContent = email;
+                var sel = document.getElementById('changeRoleSelect');
+                if (role) { for(var i=0;i<sel.options.length;i++) { if(sel.options[i].value===role){sel.selectedIndex=i;break;} } }
+                document.getElementById('changeRoleModal').style.display = 'flex';
+            }
+            if (act === 'delete') {
+                document.getElementById('deleteUserId').value = uid;
+                document.getElementById('deleteUserEmail').textContent = '¿Eliminar a ' + email + '?';
+                document.getElementById('deleteUserModal').style.display = 'flex';
+            }
+            if (act === 'resetPass') {
+                document.getElementById('resetPassUserId').value = uid;
+                document.getElementById('resetPassEmail').textContent = email;
+                document.getElementById('resetPassModal').style.display = 'flex';
+            }
+            if (act === 'activate') {
+                submitActivateUser(uid, email, role);
+            }
+        });
+
+        async function submitChangeRole() {
+            var uid = document.getElementById('changeRoleUserId').value;
+            var newRole = document.getElementById('changeRoleSelect').value;
+            try {
+                var resp = await fetch('/api/users/' + uid + '/activate', {
+                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ role: newRole })
+                });
+                document.getElementById('changeRoleModal').style.display = 'none';
+                if (resp.ok) { alert('✅ Rol actualizado a: ' + newRole); loadUsersFromAPI(); }
+                else { alert('❌ Error al cambiar rol.'); }
+            } catch(e) { alert('❌ Error de red.'); }
+        }
+
+        async function submitDeleteUser() {
+            var uid = document.getElementById('deleteUserId').value;
+            try {
+                var resp = await fetch('/api/users/' + uid, { method: 'DELETE' });
+                document.getElementById('deleteUserModal').style.display = 'none';
+                if (resp.ok) { alert('✅ Usuario eliminado.'); loadUsersFromAPI(); }
+                else { var d = await resp.json(); alert('❌ ' + (d.message || 'Error al eliminar.')); }
+            } catch(e) { alert('❌ Error de red.'); }
+        }
+
+        async function submitResetPass() {
+            var uid = document.getElementById('resetPassUserId').value;
+            try {
+                var resp = await fetch('/api/users/' + uid + '/reset-password', {
+                    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({})
+                });
+                var result = await resp.json();
+                document.getElementById('resetPassModal').style.display = 'none';
+                if (result.status === 'success') { alert('✅ Contraseña temporal: ' + result.temp_password); }
+                else { alert('❌ Error: ' + result.message); }
+            } catch(e) { alert('❌ Error de red.'); }
+        }
+
+        async function submitActivateUser(uid, email, currentRole) {
+            var newRole = (currentRole && currentRole !== 'pending') ? currentRole : 'lider';
+            // Show role modal reusing changeRole modal
+            document.getElementById('changeRoleUserId').value = uid;
+            document.getElementById('changeRoleEmail').textContent = 'Activar: ' + email;
+            document.getElementById('changeRoleModal').style.display = 'flex';
+        }
+
         async function submitInviteUser() {
-            const name = document.getElementById('inv_name').value.trim();
-            const email = document.getElementById('inv_email').value.trim();
-            const role = document.getElementById('inv_role').value;
-            const password = document.getElementById('inv_password').value.trim();
+            var name = document.getElementById('inv_name').value.trim();
+            var email = document.getElementById('inv_email').value.trim();
+            var role = document.getElementById('inv_role').value;
+            var password = document.getElementById('inv_password').value.trim();
             if (!email) { alert('El correo es obligatorio.'); return; }
             try {
-                const resp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, role, password })
+                var resp = await fetch('/api/users?inst_id=' + getInstId() + '&program_id=' + getProgramId(), {
+                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ name: name, email: email, role: role, password: password })
                 });
-                const result = await resp.json();
+                var result = await resp.json();
                 if (result.status === 'success') {
-                    alert(`✅ Usuario creado.\n\nEmail: ${email}\nContraseña temporal: ${result.temp_password}`);
+                    alert('✅ Usuario creado.\n\nEmail: ' + email + '\nContraseña: ' + result.temp_password);
                     closeInviteModal();
                     loadUsersFromAPI();
                     renderFactorLeaders();
-                } else {
-                    alert('Error: ' + result.message);
-                }
+                } else { alert('Error: ' + result.message); }
             } catch(e) { alert('Error de conexión.'); }
         }
-
-        // Las funciones de gestión de usuarios han sido migradas a /static/users.js
 
 
         async function loadAllInstitutions() {
