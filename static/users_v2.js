@@ -1,134 +1,137 @@
+// SIACredit - User Management v3 (onclick directo)
+console.log('[SIAC] users_v2.js v3 cargado');
 
-// User Management Functions for SIACredit - V2.1 (Event Delegation)
-console.log("SIACredit: users_v2.js loaded - using delegation");
+window._siacUsers_loadUsersFromAPI = async function() {
+    var container = document.getElementById('usersTable');
+    if (!container) { console.warn('[SIAC] usersTable not found'); return; }
 
-// Create a small debug indicator
-(function() {
-    const div = document.createElement('div');
-    div.style.cssText = "position:fixed; bottom:10px; right:10px; background:rgba(0,0,0,0.7); color:white; padding:5px 10px; border-radius:5px; font-size:10px; z-index:9999; pointer-events:none;";
-    div.innerText = "SIAC User Logic Active (v2.1)";
-    document.body.appendChild(div);
-})();
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">Cargando...</div>';
 
-window.loadUsersFromAPI = async function() {
-    const container = document.getElementById('usersTable');
-    if (!container) return;
-    
+    var instId = 0, programId = 0, currentUser = { role: 'guest', email: '' };
     try {
-        const instId = typeof getInstId === 'function' ? getInstId() : 0;
-        const programId = typeof getProgramId === 'function' ? getProgramId() : 0;
-        
-        const resp = await fetch(`/api/users?inst_id=${instId}&program_id=${programId}`);
-        const users = await resp.json();
-        
+        var stored = localStorage.getItem('siac_user');
+        if (stored) currentUser = JSON.parse(stored);
+        instId = currentUser.inst_id || 0;
+        programId = currentUser.program_id || 0;
+    } catch(e) {}
+
+    try {
+        var resp = await fetch('/api/users?inst_id=' + instId + '&program_id=' + programId);
+        var users = await resp.json();
+
         if (!Array.isArray(users) || users.length === 0) {
-            container.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">No hay usuarios registrados.</div>';
+            container.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">No hay usuarios en este programa. Selecciona un programa primero.</div>';
             return;
         }
 
-        let currentUser = { role: 'guest', email: '' };
-        try {
-            const stored = localStorage.getItem('siac_user');
-            if (stored) currentUser = JSON.parse(stored);
-        } catch(e) {}
+        var canManage = (currentUser.role === 'admin' || currentUser.role === 'inst_admin');
+        var html = '';
 
-        container.innerHTML = users.map(u => {
-            const isPending = u.name && u.name.startsWith('[PENDING]');
-            const cleanName = u.name ? u.name.replace('[PENDING] ', '').replace('[PENDING]', '') : u.email.split('@')[0];
-            const effectiveRole = isPending ? 'pending' : (u.role || 'operativo');
-            const isCurrentUser = currentUser && u.email === currentUser.email;
-            const canManage = currentUser && (currentUser.role === 'admin' || currentUser.role === 'inst_admin');
-            
-            const roleBadge = (effectiveRole === 'admin' || effectiveRole === 'inst_admin') ? 'role-admin' : (effectiveRole === 'pending' ? '' : 'role-leader');
-            const roleLabel = { admin: 'Super Admin', inst_admin: 'Admin Inst.', lider: 'Líder', operativo: 'Operativo', pending: 'Pendiente' }[effectiveRole] || effectiveRole;
+        for (var i = 0; i < users.length; i++) {
+            var u = users[i];
+            var isPending = u.name && u.name.indexOf('[PENDING]') === 0;
+            var cleanName = u.name ? u.name.replace('[PENDING] ', '').replace('[PENDING]', '') : u.email.split('@')[0];
+            var effectiveRole = isPending ? 'pending' : (u.role || 'operativo');
+            var isCurrentUser = (u.email === currentUser.email);
 
-            return `
-                <div class="user-item">
-                    <div class="user-info">
-                        <span class="user-name">${cleanName}</span>
-                        <span class="user-role">${u.email} &middot; <em>${roleLabel}</em>${isCurrentUser ? ' • (Tú)' : ''}</span>
-                    </div>
-                    <div class="user-actions" style="display:flex; align-items:center; gap:8px; flex-wrap: wrap; justify-content: flex-end;">
-                        <span class="role-badge ${roleBadge}" style="${isPending ? 'background:#fef3c7; color:#d97706;' : ''}">${roleLabel.toUpperCase()}</span>
-                        
-                        ${isPending && canManage ? 
-                            `<button data-action="activate" data-id="${u.id}" data-email="${u.email}" data-role="${u.role}" class="btn-primary" style="font-size:0.7rem; padding: 4px 10px;">Activar</button>` : ''}
-                        
-                        ${!isCurrentUser && !isPending && canManage ? 
-                            `<button data-action="changeRole" data-id="${u.id}" data-email="${u.email}" data-role="${u.role}" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color); border: 1px solid var(--primary-color); padding: 3px 8px; border-radius: 4px;">Cambiar Rol</button>` : ''}
-                        
-                        ${!isCurrentUser && !isPending ? 
-                            `<button data-action="resetPass" data-id="${u.id}" data-email="${u.email}" class="btn-ghost" style="font-size:0.7rem; color:var(--text-muted); border: 1px solid #ddd; padding: 3px 8px; border-radius: 4px;">Resetear Clave</button>` : ''}
-                        
-                        ${!isCurrentUser && canManage ? 
-                            `<button data-action="delete" data-id="${u.id}" data-email="${u.email}" class="btn-ghost" style="font-size:0.7rem; color:#ef4444; border: 1px solid #ef4444; padding: 3px 8px; border-radius: 4px;">Eliminar</button>` : ''}
-                    </div>
-                </div>`;
-        }).join('');
-    } catch(e) {
-        container.innerHTML = '<div style="padding:20px; color:#ef4444;">Error al cargar usuarios.</div>';
+            var roleLabels = { admin: 'Super Admin', inst_admin: 'Admin Inst.', lider: 'Líder', operativo: 'Operativo', pending: 'Pendiente' };
+            var roleLabel = roleLabels[effectiveRole] || effectiveRole;
+            var badgeStyle = isPending
+                ? 'background:#fef3c7;color:#d97706;padding:3px 8px;border-radius:12px;font-size:0.72rem;font-weight:700;'
+                : (effectiveRole === 'admin' || effectiveRole === 'inst_admin')
+                    ? 'background:#fee2e2;color:#b91c1c;padding:3px 8px;border-radius:12px;font-size:0.72rem;font-weight:700;'
+                    : 'background:#e0e7ff;color:#4338ca;padding:3px 8px;border-radius:12px;font-size:0.72rem;font-weight:700;';
+
+            html += '<div class="user-item" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #e5e7eb;background:#fafafa;">';
+            html += '<div>';
+            html += '<div style="font-weight:600;font-size:0.95rem;">' + cleanName + (isCurrentUser ? ' <em style="color:#888;font-size:0.8rem;">(Tú)</em>' : '') + '</div>';
+            html += '<div style="font-size:0.8rem;color:#6b7280;">' + u.email + ' · ' + roleLabel + '</div>';
+            html += '</div>';
+
+            html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">';
+            html += '<span style="' + badgeStyle + '">' + roleLabel.toUpperCase() + '</span>';
+
+            if (isPending && canManage) {
+                html += '<button style="font-size:0.72rem;padding:4px 10px;background:#5b45ff;color:white;border:none;border-radius:5px;cursor:pointer;" onclick="window.siacActivateUser(' + u.id + ', \'' + u.email + '\', \'' + (u.role || '') + '\')">Activar</button>';
+            }
+            if (!isCurrentUser && !isPending && canManage) {
+                html += '<button style="font-size:0.72rem;padding:3px 10px;background:white;color:#5b45ff;border:1px solid #5b45ff;border-radius:5px;cursor:pointer;" onclick="window.siacChangeRole(' + u.id + ', \'' + u.email + '\', \'' + (u.role || '') + '\')">Cambiar Rol</button>';
+            }
+            if (!isCurrentUser && !isPending) {
+                html += '<button style="font-size:0.72rem;padding:3px 10px;background:white;color:#6b7280;border:1px solid #d1d5db;border-radius:5px;cursor:pointer;" onclick="window.siacResetPass(' + u.id + ', \'' + u.email + '\')">Resetear Clave</button>';
+            }
+            if (!isCurrentUser && canManage) {
+                html += '<button style="font-size:0.72rem;padding:3px 10px;background:white;color:#ef4444;border:1px solid #ef4444;border-radius:5px;cursor:pointer;" onclick="window.siacDeleteUser(' + u.id + ', \'' + u.email + '\')">Eliminar</button>';
+            }
+
+            html += '</div></div>';
+        }
+
+        container.innerHTML = html;
+    } catch(err) {
+        console.error('[SIAC] Error loading users:', err);
+        container.innerHTML = '<div style="padding:20px;color:#ef4444;">Error al cargar usuarios: ' + err.message + '</div>';
     }
 };
 
-// Global Event Listener for Delegation
-document.addEventListener('click', async function(e) {
-    const btn = e.target.closest('button[data-action]');
-    if (!btn) return;
-    
-    const action = btn.getAttribute('data-action');
-    const userId = btn.getAttribute('data-id');
-    const email = btn.getAttribute('data-email');
-    const currentRole = btn.getAttribute('data-role');
+// Alias global para compatibilidad con el init()
+window.loadUsersFromAPI = window._siacUsers_loadUsersFromAPI;
 
-    if (action === 'activate') {
-        let roleToSet = currentRole;
-        if (currentRole === 'lider' || !currentRole || currentRole === 'pending' || currentRole === 'undefined') {
-            const choice = confirm(`¿Activar usuario ${email} como Líder de Factor?\n\n(Pulsa CANCELAR si quieres activarlo como Administrador Institucional)`);
-            roleToSet = choice ? 'lider' : 'inst_admin';
+window.siacActivateUser = async function(userId, email, currentRole) {
+    var choice = confirm('¿Activar ' + email + ' como Líder?\n\nPresione CANCELAR para activar como Administrador Institucional.');
+    var roleToSet = choice ? 'lider' : 'inst_admin';
+    try {
+        var resp = await fetch('/api/users/' + userId + '/activate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: roleToSet })
+        });
+        if (resp.ok) { alert('✅ Usuario activado como ' + (roleToSet === 'inst_admin' ? 'Admin Inst.' : 'Líder')); window.loadUsersFromAPI(); }
+        else { alert('❌ Error al activar.'); }
+    } catch(e) { alert('❌ Error de red.'); }
+};
+
+window.siacChangeRole = async function(userId, email, currentRole) {
+    var newRole = prompt('Nuevo rol para ' + email + '\n\nOpciones: lider, operativo, inst_admin', currentRole);
+    if (!newRole) return;
+    newRole = newRole.trim().toLowerCase();
+    if (!['lider', 'operativo', 'inst_admin'].includes(newRole)) { alert('❌ Rol inválido.'); return; }
+    try {
+        var resp = await fetch('/api/users/' + userId + '/activate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: newRole })
+        });
+        if (resp.ok) { alert('✅ Rol actualizado a: ' + newRole); window.loadUsersFromAPI(); }
+        else { alert('❌ Error al cambiar rol.'); }
+    } catch(e) { alert('❌ Error de red.'); }
+};
+
+window.siacResetPass = async function(userId, email) {
+    if (!confirm('¿Resetear contraseña de ' + email + '?')) return;
+    try {
+        var resp = await fetch('/api/users/' + userId + '/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
+        var result = await resp.json();
+        if (result.status === 'success') {
+            alert('✅ Contraseña temporal: ' + result.temp_password);
+        } else {
+            alert('❌ Error: ' + result.message);
         }
-        try {
-            const resp = await fetch(`/api/users/${userId}/activate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ role: roleToSet })
-            });
-            if (resp.ok) { alert(`✅ Usuario activado.`); window.loadUsersFromAPI(); }
-        } catch(err) { alert('❌ Error'); }
-    }
+    } catch(e) { alert('❌ Error de red.'); }
+};
 
-    if (action === 'changeRole') {
-        const newRole = prompt(`Cambiar rol para ${email}\n\nRoles: lider, operativo, inst_admin`, currentRole);
-        if (!newRole) return;
-        const cleanRole = newRole.trim().toLowerCase();
-        try {
-            const resp = await fetch(`/api/users/${userId}/activate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ role: cleanRole })
-            });
-            if (resp.ok) { alert('✅ Rol actualizado.'); window.loadUsersFromAPI(); }
-        } catch(err) { alert('❌ Error'); }
-    }
-
-    if (action === 'resetPass') {
-        if (!confirm(`¿Resetear contraseña de ${email}?`)) return;
-        try {
-            const resp = await fetch(`/api/users/${userId}/reset-password`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
-            });
-            const result = await resp.json();
-            if (result.status === 'success') alert(`✅ Nueva contraseña: ${result.temp_password}`);
-        } catch(err) { alert('❌ Error'); }
-    }
-
-    if (action === 'delete') {
-        if (!confirm(`⚠️ ¿ELIMINAR a ${email}?`)) return;
-        try {
-            const resp = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
-            if (resp.ok) { alert('✅ Eliminado.'); window.loadUsersFromAPI(); }
-            else { const data = await resp.json(); alert('❌ Error: ' + (data.message || 'Error')); }
-        } catch(err) { alert('❌ Error'); }
-    }
-});
+window.siacDeleteUser = async function(userId, email) {
+    if (!confirm('⚠️ ¿Eliminar a ' + email + '? Esta acción es irreversible.')) return;
+    try {
+        var resp = await fetch('/api/users/' + userId, { method: 'DELETE' });
+        if (resp.ok) { alert('✅ Usuario eliminado.'); window.loadUsersFromAPI(); }
+        else {
+            var data = await resp.json();
+            alert('❌ Error: ' + (data.message || 'No se pudo eliminar.'));
+        }
+    } catch(e) { alert('❌ Error de red.'); }
+};
