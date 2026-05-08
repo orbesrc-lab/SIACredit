@@ -252,24 +252,16 @@
             }
         }
 
-        async function forceDownload(url, name) {
-            try {
-                // Fetch as blob so the download attribute works cross-origin (Supabase CDN)
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('No se pudo descargar el archivo.');
-                const blob = await response.blob();
-                const blobUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = name;  // Now this works because the URL is local (blob:)
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(blobUrl);
-            } catch(e) {
-                // Fallback: open in new tab
-                window.open(url, '_blank');
-            }
+        function forceDownload(url, name) {
+            // Use backend proxy so Content-Disposition sets the correct filename
+            // (cross-origin blob download attribute is unreliable in Chrome)
+            var proxyUrl = '/api/download?url=' + encodeURIComponent(url) + '&name=' + encodeURIComponent(name);
+            var a = document.createElement('a');
+            a.href = proxyUrl;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
 

@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, Response
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import json
+import urllib.request
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
@@ -777,6 +778,32 @@ def update_evidence_status():
     except Exception as e:
         print(f"Error updating status: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/download')
+def proxy_download():
+    """Proxy file download from Supabase Storage with correct filename and Content-Disposition."""
+    file_url = request.args.get('url', '')
+    file_name = request.args.get('name', 'archivo')
+    if not file_url:
+        return jsonify({'error': 'URL requerida'}), 400
+    try:
+        req = urllib.request.Request(file_url, headers={'User-Agent': 'SIACredit/1.0'})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = resp.read()
+            content_type = resp.headers.get('Content-Type', 'application/octet-stream')
+        safe_name = file_name.encode('utf-8').decode('ascii', errors='replace').replace('"', '_')
+        return Response(
+            data,
+            headers={
+                'Content-Disposition': f'attachment; filename="{safe_name}"',
+                'Content-Type': content_type,
+                'Cache-Control': 'no-cache'
+            }
+        )
+    except Exception as e:
+        print(f'Error proxying download: {e}')
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
