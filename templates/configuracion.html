@@ -1036,10 +1036,10 @@
                         </div>
                         <div style="display:flex; align-items:center; gap:8px; flex-wrap: wrap; justify-content: flex-end;">
                             <span class="role-badge ${roleBadge}" style="${isPending ? 'background:#fef3c7; color:#d97706;' : ''}">${roleLabel.toUpperCase()}</span>
-                            ${isPending && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="activateUser(${u.id}, '${u.email}', '${u.role}')" class="btn-primary" style="font-size:0.7rem; padding: 4px 10px;">Activar</button>` : ''}
-                            ${!isCurrentUser && !isPending && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="changeUserRole(${u.id}, '${u.email}', '${u.role}')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color); border: 1px solid var(--primary-color); padding: 3px 8px; border-radius: 4px;">Cambiar Rol</button>` : ''}
-                            ${!isCurrentUser && !isPending ? `<button onclick="resetUserPass(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:var(--text-muted);">Resetear Clave</button>` : ''}
-                            ${!isCurrentUser && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="deleteUserFromList(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:#ef4444;">Eliminar</button>` : ''}
+                            ${isPending && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="window.activateUser(${u.id}, '${u.email}', '${u.role}')" class="btn-primary" style="font-size:0.7rem; padding: 4px 10px;">Activar</button>` : ''}
+                            ${!isCurrentUser && !isPending && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="window.changeUserRole(${u.id}, '${u.email}', '${u.role}')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color); border: 1px solid var(--primary-color); padding: 3px 8px; border-radius: 4px;">Cambiar Rol</button>` : ''}
+                            ${!isCurrentUser && !isPending ? `<button onclick="window.resetUserPass(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:var(--text-muted);">Resetear Clave</button>` : ''}
+                            ${!isCurrentUser && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="window.deleteUserFromList(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:#ef4444;">Eliminar</button>` : ''}
                         </div>
                     </div>`;
                 }).join('');
@@ -1082,7 +1082,8 @@
             }
         }
 
-        async function resetUserPass(userId, email) {
+        window.resetUserPass = async function(userId, email) {
+            console.log("Resetting password for:", email);
             if (!confirm(`¿Resetear contraseña de ${email}? Se asignará una temporal.`)) return;
             try {
                 const resp = await fetch(`/api/users/${userId}/reset-password`, {
@@ -1101,19 +1102,26 @@
             }
         }
 
-        async function deleteUserFromList(userId, email) {
+        window.deleteUserFromList = async function(userId, email) {
+            console.log("Deleting user:", email);
             if (!confirm(`¿Eliminar al usuario ${email}? Esta acción no se puede deshacer.`)) return;
             try {
-                await fetch(`/api/users/${userId}`, { method: 'DELETE' });
-                loadUsersFromAPI();
+                const resp = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+                if (resp.ok) {
+                    loadUsersFromAPI();
+                } else {
+                    const data = await resp.json();
+                    alert('Error al eliminar: ' + (data.message || 'Error desconocido'));
+                }
             } catch(e) {
                 alert('Error al eliminar usuario.');
             }
         }
 
-        async function activateUser(userId, email, currentRole) {
+        window.activateUser = async function(userId, email, currentRole) {
+            console.log("Activating user:", email, "Role:", currentRole);
             let roleToSet = currentRole;
-            if (currentRole === 'lider' || !currentRole) {
+            if (currentRole === 'lider' || !currentRole || currentRole === 'pending' || currentRole === 'undefined') {
                 const choice = confirm(`¿Activar usuario ${email} como Líder de Factor?\n\n(Pulsa CANCELAR si quieres activarlo como Administrador Institucional)`);
                 roleToSet = choice ? 'lider' : 'inst_admin';
             }
@@ -1135,7 +1143,8 @@
             }
         }
 
-        async function changeUserRole(userId, email, currentRole) {
+        window.changeUserRole = async function(userId, email, currentRole) {
+            console.log("Changing role for:", email, "Current:", currentRole);
             const newRole = prompt(`Cambiar rol para ${email}\n\nRoles disponibles: lider, operativo, inst_admin`, currentRole);
             if (!newRole || newRole === currentRole) return;
             
