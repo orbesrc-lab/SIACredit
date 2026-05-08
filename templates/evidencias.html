@@ -223,16 +223,45 @@
         }
 
         function viewFile(url, name) {
-            document.getElementById('viewerModal').style.display = 'flex';
-            document.getElementById('viewerTitle').textContent = name;
-            if (url.toLowerCase().endsWith('.pdf')) {
-                document.getElementById('viewerContent').innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`;
+            var ext = (name || '').split('.').pop().toLowerCase();
+            var previewable = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+            var isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(ext);
+            var isPdf = ext === 'pdf';
+
+            if (isPdf || isImage) {
+                // Show the viewer modal
+                document.getElementById('viewerModal').style.display = 'flex';
+                document.getElementById('viewerTitle').textContent = name;
+                if (isPdf) {
+                    document.getElementById('viewerContent').innerHTML =
+                        `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`;
+                } else {
+                    // Image — show with a download button
+                    document.getElementById('viewerContent').innerHTML =
+                        `<div style="text-align:center; padding:20px;">
+                            <img src="${url}" style="max-width:100%; max-height:80vh; border-radius:8px;">
+                            <br>
+                            <button onclick="forceDownload('${url}','${name}')" class="btn-primary" style="margin-top:14px; display:inline-block;">
+                                ⬇️ Descargar ${name}
+                            </button>
+                        </div>`;
+                }
             } else {
-                document.getElementById('viewerContent').innerHTML = `<div style="text-align:center; padding:20px;"><img src="${url}" style="max-width:100%; max-height:100%;"><br><a href="${url}" target="_blank" class="btn-primary" style="margin-top:10px; display:inline-block;">Descargar</a></div>`;
+                // Non-previewable file (docx, xlsx, pptx, zip, etc.) — force download directly
+                forceDownload(url, name);
             }
         }
 
-        function closeViewer() { document.getElementById('viewerModal').style.display = 'none'; }
+        function forceDownload(url, name) {
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = name;   // forces download with correct filename + extension
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
 
         async function init() {
             await loadDataFromAPI();
@@ -240,6 +269,8 @@
             setTimeout(() => { if(document.querySelector('.char-item')) document.querySelector('.char-item').click(); }, 300);
         }
         init();
+
+        function closeViewer() { document.getElementById('viewerModal').style.display = 'none'; }
     </script>
 
     <div id="viewerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
