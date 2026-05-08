@@ -120,7 +120,7 @@
             color: #4338ca;
         }
 
-    </style>
+    <script src="{{ url_for('static', filename='users.js') }}?v=1.1"></script>
 </head>
 
 <body>
@@ -1009,53 +1009,9 @@
             }
         }
 
-        // ========== Gestión de Usuarios Dinámica ==========
-
-        async function loadUsersFromAPI() {
-            const container = document.getElementById('usersTable');
-            try {
-                const resp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const users = await resp.json();
-                if (!Array.isArray(users) || users.length === 0) {
-                    container.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">No hay usuarios registrados para esta institución.</div>';
-                    return;
-                }
-                container.innerHTML = users.map(u => {
-                    const isPending = u.name && u.name.startsWith('[PENDING]');
-                    const cleanName = u.name ? u.name.replace('[PENDING] ', '').replace('[PENDING]', '') : u.email.split('@')[0];
-                    const effectiveRole = isPending ? 'pending' : u.role;
-                    
-                    const roleBadge = effectiveRole === 'admin' || effectiveRole === 'inst_admin' ? 'role-admin' : (effectiveRole === 'pending' ? '' : 'role-leader');
-                    const roleLabel = { admin: 'Super Admin', inst_admin: 'Admin Inst.', lider: 'Líder', operativo: 'Operativo', pending: 'Pendiente' }[effectiveRole] || effectiveRole;
-                    const isCurrentUser = u.email === user.email;
-                    
-                    return `<div class="user-item">
-                        <div class="user-info">
-                            <span class="user-name">${cleanName}</span>
-                            <span class="user-role">${u.email} &middot; <em>${roleLabel}</em>${isCurrentUser ? ' • (Tú)' : ''}</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:8px; flex-wrap: wrap; justify-content: flex-end;">
-                            <span class="role-badge ${roleBadge}" style="${isPending ? 'background:#fef3c7; color:#d97706;' : ''}">${roleLabel.toUpperCase()}</span>
-                            ${isPending && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="window.activateUser(${u.id}, '${u.email}', '${u.role}')" class="btn-primary" style="font-size:0.7rem; padding: 4px 10px;">Activar</button>` : ''}
-                            ${!isCurrentUser && !isPending && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="window.changeUserRole(${u.id}, '${u.email}', '${u.role}')" class="btn-ghost" style="font-size:0.7rem; color:var(--primary-color); border: 1px solid var(--primary-color); padding: 3px 8px; border-radius: 4px;">Cambiar Rol</button>` : ''}
-                            ${!isCurrentUser && !isPending ? `<button onclick="window.resetUserPass(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:var(--text-muted);">Resetear Clave</button>` : ''}
-                            ${!isCurrentUser && (user.role === 'admin' || user.role === 'inst_admin') ? `<button onclick="window.deleteUserFromList(${u.id}, '${u.email}')" class="btn-ghost" style="font-size:0.7rem; color:#ef4444;">Eliminar</button>` : ''}
-                        </div>
-                    </div>`;
-                }).join('');
-            } catch(e) {
-                container.innerHTML = '<div style="padding:20px; color:#ef4444;">Error al cargar usuarios.</div>';
-            }
-        }
-
-        function openInviteModal() {
-            document.getElementById('inviteModal').style.display = 'flex';
-        }
-
-        function closeInviteModal() {
-            document.getElementById('inviteModal').style.display = 'none';
-        }
-
+        // ========== Gestión de Usuarios Dinámica (Migrada a static/users.js) ==========
+        function openInviteModal() { document.getElementById('inviteModal').style.display = 'flex'; }
+        function closeInviteModal() { document.getElementById('inviteModal').style.display = 'none'; }
         async function submitInviteUser() {
             const name = document.getElementById('inv_name').value.trim();
             const email = document.getElementById('inv_email').value.trim();
@@ -1073,102 +1029,14 @@
                     alert(`✅ Usuario creado.\n\nEmail: ${email}\nContraseña temporal: ${result.temp_password}`);
                     closeInviteModal();
                     loadUsersFromAPI();
-                    renderFactorLeaders(); // REFRESH LEADERS IN DROPDOWNS
+                    renderFactorLeaders();
                 } else {
                     alert('Error: ' + result.message);
                 }
-            } catch(e) {
-                alert('Error de conexión.');
-            }
+            } catch(e) { alert('Error de conexión.'); }
         }
 
-        window.resetUserPass = async function(userId, email) {
-            console.log("Resetting password for:", email);
-            if (!confirm(`¿Resetear contraseña de ${email}? Se asignará una temporal.`)) return;
-            try {
-                const resp = await fetch(`/api/users/${userId}/reset-password`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({})
-                });
-                const result = await resp.json();
-                if (result.status === 'success') {
-                    alert(`✅ Contraseña reseteada.\n\nNueva contraseña temporal: ${result.temp_password}\n\nCompartirla de forma segura con el usuario.`);
-                } else {
-                    alert('Error: ' + result.message);
-                }
-            } catch(e) {
-                alert('Error de conexión.');
-            }
-        }
-
-        window.deleteUserFromList = async function(userId, email) {
-            console.log("Deleting user:", email);
-            if (!confirm(`¿Eliminar al usuario ${email}? Esta acción no se puede deshacer.`)) return;
-            try {
-                const resp = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
-                if (resp.ok) {
-                    loadUsersFromAPI();
-                } else {
-                    const data = await resp.json();
-                    alert('Error al eliminar: ' + (data.message || 'Error desconocido'));
-                }
-            } catch(e) {
-                alert('Error al eliminar usuario.');
-            }
-        }
-
-        window.activateUser = async function(userId, email, currentRole) {
-            console.log("Activating user:", email, "Role:", currentRole);
-            let roleToSet = currentRole;
-            if (currentRole === 'lider' || !currentRole || currentRole === 'pending' || currentRole === 'undefined') {
-                const choice = confirm(`¿Activar usuario ${email} como Líder de Factor?\n\n(Pulsa CANCELAR si quieres activarlo como Administrador Institucional)`);
-                roleToSet = choice ? 'lider' : 'inst_admin';
-            }
-            
-            try {
-                const resp = await fetch(`/api/users/${userId}/activate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ role: roleToSet })
-                });
-                if (resp.ok) {
-                    alert(`Usuario activado como ${roleToSet === 'inst_admin' ? 'Administrador Institucional' : 'Líder'}.`);
-                    loadUsersFromAPI();
-                } else {
-                    alert('Error activando usuario.');
-                }
-            } catch(e) {
-                alert('Error de conexión.');
-            }
-        }
-
-        window.changeUserRole = async function(userId, email, currentRole) {
-            console.log("Changing role for:", email, "Current:", currentRole);
-            const newRole = prompt(`Cambiar rol para ${email}\n\nRoles disponibles: lider, operativo, inst_admin`, currentRole);
-            if (!newRole || newRole === currentRole) return;
-            
-            if (!['lider', 'operativo', 'inst_admin'].includes(newRole)) {
-                alert("Rol no válido. Usa: lider, operativo o inst_admin");
-                return;
-            }
-
-            try {
-                const resp = await fetch(`/api/users/${userId}/activate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ role: newRole })
-                });
-                if (resp.ok) {
-                    alert('Rol actualizado correctamente.');
-                    loadUsersFromAPI();
-                } else {
-                    alert('Error al actualizar el rol.');
-                }
-            } catch(e) {
-                alert('Error de conexión.');
-            }
-        }
+        // Las funciones de gestión de usuarios han sido migradas a /static/users.js
 
 
         async function loadAllInstitutions() {
