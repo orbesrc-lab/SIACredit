@@ -253,12 +253,12 @@
         }
 
         function forceDownload(url, name) {
-            // Use backend proxy so Content-Disposition sets the correct filename
-            // (cross-origin blob download attribute is unreliable in Chrome)
-            var proxyUrl = '/api/download?url=' + encodeURIComponent(url) + '&name=' + encodeURIComponent(name);
+            // Supabase Storage supports ?download=filename to set Content-Disposition at CDN level
+            var downloadUrl = url.split('?')[0] + '?download=' + encodeURIComponent(name);
             var a = document.createElement('a');
-            a.href = proxyUrl;
+            a.href = downloadUrl;
             a.download = name;
+            a.target = '_blank';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
