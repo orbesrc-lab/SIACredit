@@ -752,7 +752,7 @@ def get_informe_dinamico():
         evals_map = {e['aspect_id']: e for e in evals_res.data}
         
         # 3. Traer evidencias
-        evid_res = supabase.table('evidence').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        evid_res = supabase.table('evidences').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
         evid_map = {}
         for ev in evid_res.data:
             aspect_id = ev['aspect_id']
