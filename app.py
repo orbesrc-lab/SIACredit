@@ -749,7 +749,7 @@ def get_informe_dinamico():
         
         # 2. Traer evaluaciones
         evals_res = supabase.table('evaluations').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
-        evals_map = {e['aspect_id']: e for e in evals_res.data}
+        evals_map = {e['char_id']: e for e in evals_res.data}
         
         # 3. Traer evidencias
         evid_res = supabase.table('evidences').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
@@ -792,49 +792,41 @@ def get_informe_dinamico():
             chars.sort(key=lambda x: float(x.get('number', 999)))
             
             for c in chars:
+                c_id = c['id']
+                e_data = evals_map.get(c_id, {})
+                score = e_data.get('rating', 0)
+                justification = e_data.get('just', '')
+                
                 char_info = {
-                    "id": c['id'],
+                    "id": c_id,
                     "number": c['number'],
                     "name": c['name'],
                     "aspectos": [],
-                    "nota_promedio": 0
+                    "nota_promedio": score
                 }
                 
-                c_score_sum = 0
-                c_score_count = 0
+                if score > 0:
+                    f_score_sum += score
+                    f_score_count += 1
+                    
+                if justification:
+                    f_justifications.append(justification)
                 
                 aspects = c.get('aspects', [])
                 aspects.sort(key=lambda x: float(x.get('number', 999)))
                 
                 for a in aspects:
                     a_id = a['id']
-                    e_data = evals_map.get(a_id, {})
                     evidencias = evid_map.get(a_id, [])
                     
-                    score = e_data.get('score', 0)
-                    if score > 0:
-                        c_score_sum += score
-                        c_score_count += 1
-                        
-                    justification = e_data.get('justification', '')
-                    if justification:
-                        f_justifications.append(justification)
-                        
                     aspect_info = {
                         "id": a_id,
                         "number": a['number'],
                         "name": a['name'],
-                        "score": score,
-                        "justification": justification,
-                        "evidencias": [{"name": ev['name'], "file_path": ev['file_path']} for ev in evidencias]
+                        "evidencias": [{"name": ev['name'], "file_path": ev.get('file_url', ev.get('file_path'))} for ev in evidencias]
                     }
                     char_info['aspectos'].append(aspect_info)
                 
-                if c_score_count > 0:
-                    char_info['nota_promedio'] = round(c_score_sum / c_score_count, 2)
-                    f_score_sum += char_info['nota_promedio']
-                    f_score_count += 1
-                    
                 factor_info['caracteristicas'].append(char_info)
                 
             if f_score_count > 0:
