@@ -738,6 +738,13 @@ def get_informe_dinamico():
     program_id = request.args.get('program_id', 0, type=int)
     
     try:
+        def safe_float(val):
+            try:
+                if val is None or str(val).strip() == '': return 999.0
+                return float(val)
+            except (ValueError, TypeError):
+                return 999.0
+
         # 1. Traer modelo
         try:
             model_res = supabase.table('factors').select("*, characteristics(*, aspects(*))").eq("inst_id", inst_id).eq("program_id", program_id).execute()
@@ -745,7 +752,7 @@ def get_informe_dinamico():
             model_res = supabase.table('factors').select("*, characteristics(*, aspects(*))").eq("inst_id", inst_id).eq("program_id", program_id).execute()
             
         factors = model_res.data
-        factors.sort(key=lambda x: int(x.get('number', 999)))
+        factors.sort(key=lambda x: safe_float(x.get('number')))
         
         # 2. Traer evaluaciones
         evals_res = supabase.table('evaluations').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
@@ -789,7 +796,7 @@ def get_informe_dinamico():
             f_justifications = []
             
             chars = f.get('characteristics', [])
-            chars.sort(key=lambda x: float(x.get('number', 999)))
+            chars.sort(key=lambda x: safe_float(x.get('number')))
             
             for c in chars:
                 c_id = c['id']
@@ -813,7 +820,7 @@ def get_informe_dinamico():
                     f_justifications.append(justification)
                 
                 aspects = c.get('aspects', [])
-                aspects.sort(key=lambda x: float(x.get('number', 999)))
+                aspects.sort(key=lambda x: safe_float(x.get('number')))
                 
                 for a in aspects:
                     a_id = a['id']
