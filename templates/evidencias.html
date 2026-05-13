@@ -311,33 +311,33 @@
         function addRowProfesores(data = {nombre:'', dedicacion:'TC', vinculacion:'Planta', formacion:'Especialización', exp:''}) {
             const tbody = document.querySelector('#tablaProfesores tbody');
             const tr = document.createElement('tr');
-            tr.innerHTML = \`
-                <td><input type="text" value="\${data.nombre}" placeholder="Nombre completo" onchange="updateFactor4Charts()"></td>
+            tr.innerHTML = `
+                <td><input type="text" value="${data.nombre}" placeholder="Nombre completo" onchange="updateFactor4Charts()"></td>
                 <td>
                     <select onchange="updateFactor4Charts()">
-                        <option value="TC" \${data.dedicacion==='TC'?'selected':''}>Tiempo Completo</option>
-                        <option value="MT" \${data.dedicacion==='MT'?'selected':''}>Medio Tiempo</option>
-                        <option value="HC" \${data.dedicacion==='HC'?'selected':''}>Hora Cátedra</option>
+                        <option value="TC" ${data.dedicacion==='TC'?'selected':''}>Tiempo Completo</option>
+                        <option value="MT" ${data.dedicacion==='MT'?'selected':''}>Medio Tiempo</option>
+                        <option value="HC" ${data.dedicacion==='HC'?'selected':''}>Hora Cátedra</option>
                     </select>
                 </td>
                 <td>
                     <select>
-                        <option value="Planta" \${data.vinculacion==='Planta'?'selected':''}>Planta</option>
-                        <option value="Ocasional" \${data.vinculacion==='Ocasional'?'selected':''}>Ocasional</option>
-                        <option value="Catedrático" \${data.vinculacion==='Catedrático'?'selected':''}>Catedrático</option>
+                        <option value="Planta" ${data.vinculacion==='Planta'?'selected':''}>Planta</option>
+                        <option value="Ocasional" ${data.vinculacion==='Ocasional'?'selected':''}>Ocasional</option>
+                        <option value="Catedrático" ${data.vinculacion==='Catedrático'?'selected':''}>Catedrático</option>
                     </select>
                 </td>
                 <td>
                     <select onchange="updateFactor4Charts()">
-                        <option value="Pregrado" \${data.formacion==='Pregrado'?'selected':''}>Pregrado</option>
-                        <option value="Especialización" \${data.formacion==='Especialización'?'selected':''}>Especialización</option>
-                        <option value="Maestría" \${data.formacion==='Maestría'?'selected':''}>Maestría</option>
-                        <option value="Doctorado" \${data.formacion==='Doctorado'?'selected':''}>Doctorado</option>
+                        <option value="Pregrado" ${data.formacion==='Pregrado'?'selected':''}>Pregrado</option>
+                        <option value="Especialización" ${data.formacion==='Especialización'?'selected':''}>Especialización</option>
+                        <option value="Maestría" ${data.formacion==='Maestría'?'selected':''}>Maestría</option>
+                        <option value="Doctorado" ${data.formacion==='Doctorado'?'selected':''}>Doctorado</option>
                     </select>
                 </td>
-                <td><input type="number" value="\${data.exp}" placeholder="Años"></td>
+                <td><input type="number" value="${data.exp}" placeholder="Años"></td>
                 <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor4Charts();">X</button></td>
-            \`;
+            `;
             tbody.appendChild(tr);
             updateFactor4Charts();
         }
@@ -345,11 +345,11 @@
         function addRowHistorico(data = {periodo:'', total:0}) {
             const tbody = document.querySelector('#tablaHistorico tbody');
             const tr = document.createElement('tr');
-            tr.innerHTML = \`
-                <td><input type="text" value="\${data.periodo}" placeholder="Ej. 2023-1" onchange="updateFactor4Charts()"></td>
-                <td><input type="number" value="\${data.total}" onchange="updateFactor4Charts()"></td>
+            tr.innerHTML = `
+                <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1" onchange="updateFactor4Charts()"></td>
+                <td><input type="number" value="${data.total}" onchange="updateFactor4Charts()"></td>
                 <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor4Charts();">X</button></td>
-            \`;
+            `;
             tbody.appendChild(tr);
             updateFactor4Charts();
         }
@@ -461,7 +461,7 @@
 
         async function fetchFactor4Data() {
             try {
-                const res = await fetch(\`/api/estadisticas?table_id=factor4_profesores&inst_id=\${getInstId()}&program_id=\${getProgramId()}\`);
+                const res = await fetch(`/api/estadisticas?table_id=factor4_profesores&inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 if (res.ok) {
                     const json = await res.json();
                     if (json && json.data) {
