@@ -244,21 +244,63 @@ def handle_evaluations():
 
 @app.route('/api/estadisticas', methods=['GET', 'POST'])
 def handle_stats():
-    inst_id = request.args.get('inst_id', 1, type=int)
-    program_id = request.args.get('program_id', 0, type=int)
     if request.method == 'POST':
         data = request.json
-        for table_id, rows in data.items():
-            supabase.table('statistics').upsert({
-                "table_id": table_id, "data_json": json.dumps(rows), "inst_id": inst_id, "program_id": program_id
-            }).execute()
-        return jsonify({"status": "success"})
+        if "table_id" in data and "data" in data:
+            # Formato nuevo usado por evidencias.html
+            table_id = data["table_id"]
+            rows = data["data"]
+            inst_id = data.get("inst_id", 1)
+            program_id = data.get("program_id", 0)
+            
+            try:
+                # Upsert requiere que la tabla statistics tenga primary key o unique constraint en (table_id, inst_id, program_id)
+                # Si falla, intentamos hacer update/insert manual
+                check = supabase.table('statistics').select("id").eq("table_id", table_id).eq("inst_id", inst_id).eq("program_id", program_id).execute()
+                if check.data:
+                    supabase.table('statistics').update({"data_json": json.dumps(rows)}).eq("id", check.data[0]["id"]).execute()
+                else:
+                    supabase.table('statistics').insert({
+                        "table_id": table_id, "data_json": json.dumps(rows), "inst_id": inst_id, "program_id": program_id
+                    }).execute()
+                return jsonify({"status": "success"})
+            except Exception as e:
+                print(f"Error saving stats: {e}")
+                return jsonify({"status": "error", "message": str(e)}), 500
+        else:
+            # Formato viejo
+            inst_id = request.args.get('inst_id', 1, type=int)
+            program_id = request.args.get('program_id', 0, type=int)
+            for table_id, rows in data.items():
+                check = supabase.table('statistics').select("id").eq("table_id", table_id).eq("inst_id", inst_id).eq("program_id", program_id).execute()
+                if check.data:
+                    supabase.table('statistics').update({"data_json": json.dumps(rows)}).eq("id", check.data[0]["id"]).execute()
+                else:
+                    supabase.table('statistics').insert({
+                        "table_id": table_id, "data_json": json.dumps(rows), "inst_id": inst_id, "program_id": program_id
+                    }).execute()
+            return jsonify({"status": "success"})
 
     try:
-        stats = supabase.table('statistics').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        inst_id = request.args.get('inst_id', 1, type=int)
+        program_id = request.args.get('program_id', 0, type=int)
+        table_id = request.args.get('table_id')
+        
+        query = supabase.table('statistics').select("*").eq("inst_id", inst_id).eq("program_id", program_id)
+        if table_id:
+            query = query.eq("table_id", table_id)
+        stats = query.execute()
+
+        if table_id:
+            if stats.data:
+                # El frontend espera que el resultado venga envuelto en {"data": ...}
+                return jsonify({"data": json.loads(stats.data[0]['data_json'])})
+            return jsonify({})
+
         result = {s['table_id']: json.loads(s['data_json']) for s in stats.data}
         return jsonify(result)
-    except:
+    except Exception as e:
+        print(f"Error loading stats: {e}")
         return jsonify({})
 
 @app.route('/api/programs', methods=['GET', 'POST'])
@@ -689,6 +731,138 @@ def report_summary():
     except Exception as e:
         print(f"Error in summary: {e}")
         return jsonify({"factors": [], "global_avg": 0})
+
+@app.route('/api/informe_dinamico', methods=['GET'])
+def get_informe_dinamico():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
+    
+    try:
+        # 1. Traer modelo
+        try:
+            model_res = supabase.table('factors').select("*, characteristics(*, aspects(*))").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        except Exception:
+            model_res = supabase.table('factors').select("*, characteristics(*, aspects(*))").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+            
+        factors = model_res.data
+        factors.sort(key=lambda x: int(x.get('number', 999)))
+        
+        # 2. Traer evaluaciones
+        evals_res = supabase.table('evaluations').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        evals_map = {e['aspect_id']: e for e in evals_res.data}
+        
+        # 3. Traer evidencias
+        evid_res = supabase.table('evidence').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        evid_map = {}
+        for ev in evid_res.data:
+            aspect_id = ev['aspect_id']
+            if aspect_id not in evid_map:
+                evid_map[aspect_id] = []
+            evid_map[aspect_id].append(ev)
+            
+        # 4. Traer cuadros estadísticos (statistics)
+        stats_res = supabase.table('statistics').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        stats_map = {s['table_id']: json.loads(s['data_json']) for s in stats_res.data}
+        
+        # Ensamblar datos
+        report_data = {
+            "institucion_id": inst_id,
+            "programa_id": program_id,
+            "factores": [],
+            "cuadros": stats_map
+        }
+        
+        for f in factors:
+            factor_info = {
+                "id": f['id'],
+                "number": f['number'],
+                "name": f['name'],
+                "description": f.get('description', ''),
+                "caracteristicas": [],
+                "nota_promedio": 0,
+                "cualitativo": "",
+                "justificacion_general": ""
+            }
+            
+            f_score_sum = 0
+            f_score_count = 0
+            f_justifications = []
+            
+            chars = f.get('characteristics', [])
+            chars.sort(key=lambda x: float(x.get('number', 999)))
+            
+            for c in chars:
+                char_info = {
+                    "id": c['id'],
+                    "number": c['number'],
+                    "name": c['name'],
+                    "aspectos": [],
+                    "nota_promedio": 0
+                }
+                
+                c_score_sum = 0
+                c_score_count = 0
+                
+                aspects = c.get('aspects', [])
+                aspects.sort(key=lambda x: float(x.get('number', 999)))
+                
+                for a in aspects:
+                    a_id = a['id']
+                    e_data = evals_map.get(a_id, {})
+                    evidencias = evid_map.get(a_id, [])
+                    
+                    score = e_data.get('score', 0)
+                    if score > 0:
+                        c_score_sum += score
+                        c_score_count += 1
+                        
+                    justification = e_data.get('justification', '')
+                    if justification:
+                        f_justifications.append(justification)
+                        
+                    aspect_info = {
+                        "id": a_id,
+                        "number": a['number'],
+                        "name": a['name'],
+                        "score": score,
+                        "justification": justification,
+                        "evidencias": [{"name": ev['name'], "file_path": ev['file_path']} for ev in evidencias]
+                    }
+                    char_info['aspectos'].append(aspect_info)
+                
+                if c_score_count > 0:
+                    char_info['nota_promedio'] = round(c_score_sum / c_score_count, 2)
+                    f_score_sum += char_info['nota_promedio']
+                    f_score_count += 1
+                    
+                factor_info['caracteristicas'].append(char_info)
+                
+            if f_score_count > 0:
+                avg = round(f_score_sum / f_score_count, 2)
+                factor_info['nota_promedio'] = avg
+                if avg >= 4.5:
+                    factor_info['cualitativo'] = "Se cumple plenamente"
+                elif avg >= 4.0:
+                    factor_info['cualitativo'] = "Se cumple en alto grado"
+                elif avg >= 3.0:
+                    factor_info['cualitativo'] = "Se cumple aceptablemente"
+                elif avg > 0:
+                    factor_info['cualitativo'] = "No se cumple"
+                else:
+                    factor_info['cualitativo'] = "Sin evaluar"
+            else:
+                factor_info['cualitativo'] = "Sin evaluar"
+                
+            # Unir justificaciones de manera simple
+            factor_info['justificacion_general'] = " ".join(f_justifications[:3]) + ("..." if len(f_justifications) > 3 else "")
+            
+            report_data['factores'].append(factor_info)
+            
+        return jsonify(report_data)
+    except Exception as e:
+        print(f"Error informe dinamico: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze_stats():
