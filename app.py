@@ -782,8 +782,8 @@ def get_informe_dinamico():
         for f in factors:
             factor_info = {
                 "id": f['id'],
-                "number": f['number'],
-                "name": f['name'],
+                "number": f.get('number', ''),
+                "name": f.get('name', ''),
                 "description": f.get('description', ''),
                 "caracteristicas": [],
                 "nota_promedio": 0,
@@ -806,8 +806,8 @@ def get_informe_dinamico():
                 
                 char_info = {
                     "id": c_id,
-                    "number": c['number'],
-                    "name": c['name'],
+                    "number": c.get('number', ''),
+                    "name": c.get('name', ''),
                     "aspectos": [],
                     "nota_promedio": score
                 }
@@ -828,8 +828,8 @@ def get_informe_dinamico():
                     
                     aspect_info = {
                         "id": a_id,
-                        "number": a['number'],
-                        "name": a['name'],
+                        "number": a.get('number', ''),
+                        "name": a.get('name', a.get('text', '')),
                         "evidencias": [{"name": ev['name'], "file_path": ev.get('file_url', ev.get('file_path'))} for ev in evidencias]
                     }
                     char_info['aspectos'].append(aspect_info)
