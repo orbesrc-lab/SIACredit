@@ -205,23 +205,38 @@ def handle_evaluations():
     if request.method == 'POST':
         data = request.json
         try:
-            # Intentar guardado con multi-tenant
             for char_id, eval_data in data.items():
                 try:
-                    supabase.table('evaluations').upsert({
-                        "char_id": char_id, 
-                        "rating": eval_data.get('rating', 0), 
-                        "just": eval_data.get('just', ''),
-                        "inst_id": inst_id,
-                        "program_id": program_id
-                    }).execute()
+                    existing = supabase.table('evaluations').select('id').eq('char_id', char_id).execute()
+                    if existing.data:
+                        supabase.table('evaluations').update({
+                            "rating": eval_data.get('rating', 0), 
+                            "just": eval_data.get('just', ''),
+                            "inst_id": inst_id,
+                            "program_id": program_id
+                        }).eq('char_id', char_id).execute()
+                    else:
+                        supabase.table('evaluations').insert({
+                            "char_id": char_id, 
+                            "rating": eval_data.get('rating', 0), 
+                            "just": eval_data.get('just', ''),
+                            "inst_id": inst_id,
+                            "program_id": program_id
+                        }).execute()
                 except Exception:
                     # Fallback si no existen las columnas inst_id/program_id
-                    supabase.table('evaluations').upsert({
-                        "char_id": char_id, 
-                        "rating": eval_data.get('rating', 0), 
-                        "just": eval_data.get('just', '')
-                    }).execute()
+                    existing_fb = supabase.table('evaluations').select('id').eq('char_id', char_id).execute()
+                    if existing_fb.data:
+                        supabase.table('evaluations').update({
+                            "rating": eval_data.get('rating', 0), 
+                            "just": eval_data.get('just', '')
+                        }).eq('char_id', char_id).execute()
+                    else:
+                        supabase.table('evaluations').insert({
+                            "char_id": char_id, 
+                            "rating": eval_data.get('rating', 0), 
+                            "just": eval_data.get('just', '')
+                        }).execute()
             return jsonify({"status": "success"})
         except Exception as e:
             print(f"Error saving eval: {e}")
