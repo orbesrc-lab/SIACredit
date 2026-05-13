@@ -787,7 +787,13 @@ def proxy_download():
     if not file_url:
         return jsonify({'error': 'URL requerida'}), 400
     try:
-        req = urllib.request.Request(file_url, headers={'User-Agent': 'SIACredit/1.0'})
+        import urllib.parse
+        # Safe encoding for URL in case it has spaces or special characters
+        parsed = urllib.parse.urlparse(file_url)
+        safe_path = urllib.parse.quote(parsed.path)
+        safe_url = parsed._replace(path=safe_path).geturl()
+        
+        req = urllib.request.Request(safe_url, headers={'User-Agent': 'SIACredit/1.0'})
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = resp.read()
             content_type = resp.headers.get('Content-Type', 'application/octet-stream')

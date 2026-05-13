@@ -37,7 +37,17 @@
         .upload-area svg { color: var(--primary-color); }
         
         input[type="file"] { display: none; }
+        
+        /* Data Grid Styles */
+        .data-grid-container { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 25px; }
+        .data-grid-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .data-grid-table th, .data-grid-table td { border: 1px solid var(--border-color); padding: 8px; text-align: left; }
+        .data-grid-table th { background: #f8fafc; font-weight: 600; font-size: 0.9rem; }
+        .data-grid-table input, .data-grid-table select { width: 100%; padding: 6px; border: 1px solid transparent; border-radius: 4px; box-sizing: border-box; }
+        .data-grid-table input:focus, .data-grid-table select:focus { border-color: var(--primary-color); outline: none; background: #fffbfa; }
+        .chart-container { position: relative; height: 300px; width: 100%; margin-top: 20px; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <aside class="sidebar">
@@ -115,6 +125,13 @@
                         <div class="char-progress"><span>Ver aspectos y evidencias</span></div>
                     </div>`;
                 });
+                
+                if (factor.number == 3 || String(factor.name).toLowerCase().includes('profesores')) {
+                    html += `<div class="char-item" onclick="loadFactorDataGrid('${factor.id}')" id="char_tab_data_${factor.id}">
+                        <div class="char-title">📊 Cuadros de Datos (Profesores)</div>
+                        <div class="char-progress"><span>Ver métricas y plantillas</span></div>
+                    </div>`;
+                }
             });
             container.innerHTML = html;
         }
@@ -143,7 +160,13 @@
                 aspectEvidences.forEach(ev => {
                     evHtml += `<div class="evidence-item">
                         <div>
-                            <div class="evidence-name"><a href="javascript:void(0)" onclick="viewFile('${ev.file_url}', '${ev.name}')">📄 ${ev.name}</a></div>
+                            <div class="evidence-name" style="flex-wrap: wrap;">
+                                📄 ${ev.name}
+                                <div style="margin-left: 10px; display: inline-flex; gap: 5px;">
+                                    <button onclick="viewFile('${ev.file_url}', '${ev.name}')" class="btn-ghost" style="padding: 2px 8px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 4px;" title="Ver archivo">👁️ Ver</button>
+                                    <button onclick="forceDownload('${ev.file_url}', '${ev.name}')" class="btn-ghost" style="padding: 2px 8px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 4px;" title="Descargar archivo">⬇️ Descargar</button>
+                                </div>
+                            </div>
                             <div class="evidence-meta">Periodo: <b>${ev.period || 'N/A'}</b> | Por: ${ev.user_email} | Dept: ${ev.dependency}</div>
                         </div>
                         <div style="display:flex; gap:10px; align-items:center">
@@ -176,6 +199,351 @@
                 </div>`;
             });
             container.innerHTML = html;
+        }
+
+        let chartFormacion = null;
+        let chartHistorico = null;
+
+        async function loadFactorDataGrid(factorId) {
+            document.querySelectorAll('.char-item').forEach(el => el.classList.remove('active'));
+            const tab = document.getElementById(`char_tab_data_${factorId}`);
+            if (tab) tab.classList.add('active');
+
+            const container = document.getElementById('aspectsContainer');
+            
+            let html = `
+                <h2 style="margin-bottom: 25px;">📊 Cuadros de Datos del Factor 4: Profesores</h2>
+                
+                <div style="display:flex; justify-content:flex-end; margin-bottom:15px;">
+                    <button class="btn-primary" onclick="saveFactor4Data()">💾 Guardar Todos los Cuadros</button>
+                </div>
+                
+                <div class="data-grid-container fade-in">
+                    <h3>Cuadro 1: Plantilla de Profesores</h3>
+                    <p style="font-size:0.85rem; color:#666; margin-bottom:10px;">Ingrese la lista de profesores y sus características principales. El Cuadro 2 se actualizará basado en esto.</p>
+                    <table class="data-grid-table" id="tablaProfesores">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Dedicación</th>
+                                <th>Vinculación</th>
+                                <th>Nivel de Formación</th>
+                                <th>Años Exp.</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows will be injected here -->
+                        </tbody>
+                    </table>
+                    <button class="btn-ghost" style="margin-top:10px; border:1px dashed var(--primary-color); color:var(--primary-color);" onclick="addRowProfesores()">+ Agregar Profesor</button>
+                </div>
+
+                <div class="data-grid-container fade-in">
+                    <h3>Cuadro 2: Consolidado Nivel de Formación vs Dedicación</h3>
+                    <div class="chart-container" style="height:300px;">
+                        <canvas id="chartFormacionDedicacion"></canvas>
+                    </div>
+                </div>
+
+                <div class="data-grid-container fade-in">
+                    <h3>Cuadro 3: Histórico de Profesores por Período</h3>
+                    <table class="data-grid-table" id="tablaHistorico">
+                        <thead>
+                            <tr>
+                                <th>Período</th>
+                                <th>Total Profesores</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <button class="btn-ghost" style="margin-top:10px; border:1px dashed var(--primary-color); color:var(--primary-color);" onclick="addRowHistorico()">+ Agregar Período</button>
+                    
+                    <div class="chart-container" style="height:300px; margin-top:20px;">
+                        <canvas id="chartHistorico"></canvas>
+                    </div>
+                </div>
+
+                <div class="data-grid-container fade-in">
+                    <h3>Cuadro 4: Capacitación Docente</h3>
+                    <table class="data-grid-table" id="tablaCapacitacion">
+                        <thead>
+                            <tr>
+                                <th>Período</th>
+                                <th>Nombre Capacitación</th>
+                                <th>Tipo</th>
+                                <th>Asistentes</th>
+                                <th>Duración (Horas)</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <button class="btn-ghost" style="margin-top:10px; border:1px dashed var(--primary-color); color:var(--primary-color);" onclick="addRowCapacitacion()">+ Agregar Capacitación</button>
+                </div>
+
+                <div class="data-grid-container fade-in">
+                    <h3>Cuadro 5: Resultados Evaluación Docente</h3>
+                    <table class="data-grid-table" id="tablaEvaluacion">
+                        <thead>
+                            <tr>
+                                <th>Período</th>
+                                <th>Profesor Evaluado</th>
+                                <th>Calificación</th>
+                                <th>Nivel Desempeño</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <button class="btn-ghost" style="margin-top:10px; border:1px dashed var(--primary-color); color:var(--primary-color);" onclick="addRowEvaluacion()">+ Agregar Evaluación</button>
+                </div>
+            `;
+            container.innerHTML = html;
+            
+            await fetchFactor4Data();
+        }
+
+        function addRowProfesores(data = {nombre:'', dedicacion:'TC', vinculacion:'Planta', formacion:'Especialización', exp:''}) {
+            const tbody = document.querySelector('#tablaProfesores tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = \`
+                <td><input type="text" value="\${data.nombre}" placeholder="Nombre completo" onchange="updateFactor4Charts()"></td>
+                <td>
+                    <select onchange="updateFactor4Charts()">
+                        <option value="TC" \${data.dedicacion==='TC'?'selected':''}>Tiempo Completo</option>
+                        <option value="MT" \${data.dedicacion==='MT'?'selected':''}>Medio Tiempo</option>
+                        <option value="HC" \${data.dedicacion==='HC'?'selected':''}>Hora Cátedra</option>
+                    </select>
+                </td>
+                <td>
+                    <select>
+                        <option value="Planta" \${data.vinculacion==='Planta'?'selected':''}>Planta</option>
+                        <option value="Ocasional" \${data.vinculacion==='Ocasional'?'selected':''}>Ocasional</option>
+                        <option value="Catedrático" \${data.vinculacion==='Catedrático'?'selected':''}>Catedrático</option>
+                    </select>
+                </td>
+                <td>
+                    <select onchange="updateFactor4Charts()">
+                        <option value="Pregrado" \${data.formacion==='Pregrado'?'selected':''}>Pregrado</option>
+                        <option value="Especialización" \${data.formacion==='Especialización'?'selected':''}>Especialización</option>
+                        <option value="Maestría" \${data.formacion==='Maestría'?'selected':''}>Maestría</option>
+                        <option value="Doctorado" \${data.formacion==='Doctorado'?'selected':''}>Doctorado</option>
+                    </select>
+                </td>
+                <td><input type="number" value="\${data.exp}" placeholder="Años"></td>
+                <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor4Charts();">X</button></td>
+            \`;
+            tbody.appendChild(tr);
+            updateFactor4Charts();
+        }
+
+        function addRowHistorico(data = {periodo:'', total:0}) {
+            const tbody = document.querySelector('#tablaHistorico tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = \`
+                <td><input type="text" value="\${data.periodo}" placeholder="Ej. 2023-1" onchange="updateFactor4Charts()"></td>
+                <td><input type="number" value="\${data.total}" onchange="updateFactor4Charts()"></td>
+                <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor4Charts();">X</button></td>
+            \`;
+            tbody.appendChild(tr);
+            updateFactor4Charts();
+        }
+
+        function addRowCapacitacion(data = {periodo:'', nombre:'', tipo:'', asistentes:0, horas:0}) {
+            const tbody = document.querySelector('#tablaCapacitacion tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+                <td><input type="text" value="${data.nombre}" placeholder="Nombre evento"></td>
+                <td><input type="text" value="${data.tipo}" placeholder="Curso/Diplomado"></td>
+                <td><input type="number" value="${data.asistentes}"></td>
+                <td><input type="number" value="${data.horas}"></td>
+                <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function addRowEvaluacion(data = {periodo:'', profesor:'', calificacion:0, nivel:''}) {
+            const tbody = document.querySelector('#tablaEvaluacion tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+                <td><input type="text" value="${data.profesor}" placeholder="Nombre profesor"></td>
+                <td><input type="number" step="0.1" value="${data.calificacion}" placeholder="Puntaje"></td>
+                <td><input type="text" value="${data.nivel}" placeholder="Ej. Excelente"></td>
+                <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function extractFactor4Data() {
+            const profesores = [];
+            document.querySelectorAll('#tablaProfesores tbody tr').forEach(tr => {
+                const inputs = tr.querySelectorAll('input, select');
+                profesores.push({
+                    nombre: inputs[0].value,
+                    dedicacion: inputs[1].value,
+                    vinculacion: inputs[2].value,
+                    formacion: inputs[3].value,
+                    exp: inputs[4].value
+                });
+            });
+
+            const historico = [];
+            document.querySelectorAll('#tablaHistorico tbody tr').forEach(tr => {
+                const inputs = tr.querySelectorAll('input');
+                historico.push({
+                    periodo: inputs[0].value,
+                    total: inputs[1].value
+                });
+            });
+
+            const capacitacion = [];
+            document.querySelectorAll('#tablaCapacitacion tbody tr').forEach(tr => {
+                const inputs = tr.querySelectorAll('input');
+                capacitacion.push({
+                    periodo: inputs[0].value,
+                    nombre: inputs[1].value,
+                    tipo: inputs[2].value,
+                    asistentes: inputs[3].value,
+                    horas: inputs[4].value
+                });
+            });
+
+            const evaluacion = [];
+            document.querySelectorAll('#tablaEvaluacion tbody tr').forEach(tr => {
+                const inputs = tr.querySelectorAll('input');
+                evaluacion.push({
+                    periodo: inputs[0].value,
+                    profesor: inputs[1].value,
+                    calificacion: inputs[2].value,
+                    nivel: inputs[3].value
+                });
+            });
+
+            return { profesores, historico, capacitacion, evaluacion };
+        }
+
+        async function saveFactor4Data() {
+            const data = extractFactor4Data();
+            const payload = {
+                table_id: 'factor4_profesores',
+                data: data,
+                inst_id: getInstId(),
+                program_id: getProgramId()
+            };
+            
+            const btn = document.querySelector('button[onclick="saveFactor4Data()"]');
+            btn.textContent = 'Guardando...';
+            
+            try {
+                const response = await fetch('/api/estadisticas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if(response.ok) {
+                    alert('Datos guardados correctamente.');
+                } else {
+                    alert('Error al guardar datos.');
+                }
+            } catch (err) {
+                alert('Error de conexión.');
+            }
+            btn.textContent = '💾 Guardar Todos los Cuadros';
+        }
+
+        async function fetchFactor4Data() {
+            try {
+                const res = await fetch(\`/api/estadisticas?table_id=factor4_profesores&inst_id=\${getInstId()}&program_id=\${getProgramId()}\`);
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json && json.data) {
+                        const data = typeof json.data === 'string' ? JSON.parse(json.data) : json.data;
+                        if (data.profesores && data.profesores.length > 0) {
+                            data.profesores.forEach(p => addRowProfesores(p));
+                        } else {
+                            addRowProfesores();
+                        }
+                        
+                        if (data.historico && data.historico.length > 0) {
+                            data.historico.forEach(h => addRowHistorico(h));
+                        } else {
+                            addRowHistorico();
+                        }
+                        
+                        if (data.capacitacion && data.capacitacion.length > 0) {
+                            data.capacitacion.forEach(c => addRowCapacitacion(c));
+                        } else {
+                            addRowCapacitacion();
+                        }
+                        
+                        if (data.evaluacion && data.evaluacion.length > 0) {
+                            data.evaluacion.forEach(e => addRowEvaluacion(e));
+                        } else {
+                            addRowEvaluacion();
+                        }
+                        return;
+                    }
+                }
+            } catch(e) {}
+            // Si no hay datos, inicializamos vacios
+            addRowProfesores();
+            addRowHistorico();
+            addRowCapacitacion();
+            addRowEvaluacion();
+        }
+
+        function updateFactor4Charts() {
+            const data = extractFactor4Data();
+            
+            // 1. Chart Formación vs Dedicación (Calculado de Tabla Profesores)
+            const stats = { 'Pregrado': 0, 'Especialización': 0, 'Maestría': 0, 'Doctorado': 0 };
+            data.profesores.forEach(p => {
+                if (p.formacion && stats[p.formacion] !== undefined) {
+                    stats[p.formacion]++;
+                }
+            });
+            
+            const ctxFormacion = document.getElementById('chartFormacionDedicacion');
+            if (ctxFormacion) {
+                if (chartFormacion) chartFormacion.destroy();
+                chartFormacion = new Chart(ctxFormacion, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Pregrado', 'Especialización', 'Maestría', 'Doctorado'],
+                        datasets: [{
+                            data: [stats['Pregrado'], stats['Especialización'], stats['Maestría'], stats['Doctorado']],
+                            backgroundColor: ['#94a3b8', '#3b82f6', '#8b5cf6', '#ec4899']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+                });
+            }
+
+            // 2. Chart Histórico
+            const ctxHistorico = document.getElementById('chartHistorico');
+            if (ctxHistorico) {
+                if (chartHistorico) chartHistorico.destroy();
+                chartHistorico = new Chart(ctxHistorico, {
+                    type: 'bar',
+                    data: {
+                        labels: data.historico.map(h => h.periodo || 'N/A'),
+                        datasets: [{
+                            label: 'Total Profesores',
+                            data: data.historico.map(h => parseInt(h.total) || 0),
+                            backgroundColor: '#6366f1'
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                });
+            }
         }
 
         async function uploadEvidence(input, aspectId) {
@@ -234,7 +602,10 @@
                 document.getElementById('viewerTitle').textContent = name;
                 if (isPdf) {
                     document.getElementById('viewerContent').innerHTML =
-                        `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`;
+                        `<div style="text-align:right; padding:10px; border-bottom:1px solid #eee; background:#f9fafb;">
+                            <button onclick="forceDownload('${url}','${name}')" class="btn-ghost" style="padding: 4px 12px; font-size: 0.9rem; border: 1px solid var(--border-color); border-radius: 4px;" title="Descargar PDF">⬇️ Descargar PDF</button>
+                        </div>
+                        <iframe src="${url}" style="width:100%; height:calc(100% - 50px); border:none;"></iframe>`;
                 } else {
                     // Image — show with a download button
                     document.getElementById('viewerContent').innerHTML =
@@ -253,15 +624,9 @@
         }
 
         function forceDownload(url, name) {
-            // Supabase Storage supports ?download=filename to set Content-Disposition at CDN level
-            var downloadUrl = url.split('?')[0] + '?download=' + encodeURIComponent(name);
-            var a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = name;
-            a.target = '_blank';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            // Navigate to proxy — server returns Content-Disposition: attachment
+            // Browser downloads the file without leaving the page
+            window.location.href = '/api/download?url=' + encodeURIComponent(url) + '&name=' + encodeURIComponent(name);
         }
 
 
