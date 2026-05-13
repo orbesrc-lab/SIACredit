@@ -141,30 +141,74 @@
                 const currentEval = allEvals[cId] || { rating: 0, just: '' };
 
                 const container = document.getElementById('evalContainer');
-                container.innerHTML = `
-                    <div class="eval-card fade-in">
-                        <h2 style="margin-bottom:10px; color:#1e293b;">${char.number}. ${char.name}</h2>
-                        <p style="color:#64748b; margin-bottom:30px;">Factor ${factor.number}: ${factor.name}</p>
+                
+                const isEvaluated = currentEval.rating > 0;
+                
+                // Función interna para renderizar el formulario o la vista
+                window.renderEvalForm = function(mode) {
+                    if (mode === 'view') {
+                        container.innerHTML = `
+                            <div class="eval-card fade-in">
+                                <h2 style="margin-bottom:10px; color:#1e293b;">${char.number}. ${char.name}</h2>
+                                <p style="color:#64748b; margin-bottom:30px;">Factor ${factor.number}: ${factor.name}</p>
 
-                        <div style="margin-bottom:30px;">
-                            <label style="display:block; font-weight:700; margin-bottom:10px;">Calificación Cuantitativa (Escala CNA 1.0 - 5.0)</label>
-                            <div style="display:flex; gap:20px; align-items:center;">
-                                <input type="number" id="rating_input" min="1" max="5" step="0.1" value="${currentEval.rating || ''}" 
-                                    oninput="updateCNA(this.value)"
-                                    style="width:120px; padding:15px; border:2px solid var(--primary-color); border-radius:10px; font-size:1.5rem; font-weight:700; text-align:center;">
-                                <div id="cna_label" class="cna-badge">Ingrese una nota</div>
+                                <div style="margin-bottom:30px; padding: 20px; background: #f8fafc; border-radius: 8px;">
+                                    <label style="display:block; font-weight:700; margin-bottom:10px;">Calificación Cuantitativa Actual</label>
+                                    <div style="display:flex; gap:20px; align-items:center;">
+                                        <div style="font-size:2rem; font-weight:800; color:var(--primary-color);">${currentEval.rating}</div>
+                                        <div id="cna_label_view" class="cna-badge"></div>
+                                    </div>
+                                </div>
+
+                                <div style="margin-bottom:30px;">
+                                    <label style="display:block; font-weight:700; margin-bottom:10px;">Juicio de Valor (Análisis Cualitativo)</label>
+                                    <div style="padding: 20px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; white-space: pre-wrap; line-height: 1.6;">${currentEval.just || 'Sin justificación.'}</div>
+                                </div>
+
+                                <div style="display: flex; gap: 15px;">
+                                    <button class="btn-primary" onclick="renderEvalForm('edit')" style="flex:1; padding:15px; font-size:1.1rem; background: #3b82f6;">✏️ Editar Evaluación</button>
+                                    <button class="btn-primary" onclick="deleteEvaluation('${cId}')" style="flex:1; padding:15px; font-size:1.1rem; background: #ef4444;">🗑️ Eliminar</button>
+                                </div>
                             </div>
-                        </div>
+                        `;
+                        const label = document.getElementById('cna_label_view');
+                        const n = parseFloat(currentEval.rating);
+                        if (n >= 4.5) { label.textContent = "Se cumple plenamente"; label.className = "cna-badge cna-pleno"; }
+                        else if (n >= 4.0) { label.textContent = "Se cumple en alto grado"; label.className = "cna-badge cna-alto"; }
+                        else if (n >= 3.0) { label.textContent = "Se cumple aceptablemente"; label.className = "cna-badge cna-aceptable"; }
+                        else { label.textContent = "No se cumple"; label.className = "cna-badge cna-insuficiente"; }
+                    } else {
+                        container.innerHTML = `
+                            <div class="eval-card fade-in">
+                                <h2 style="margin-bottom:10px; color:#1e293b;">${char.number}. ${char.name}</h2>
+                                <p style="color:#64748b; margin-bottom:30px;">Factor ${factor.number}: ${factor.name}</p>
 
-                        <div style="margin-bottom:30px;">
-                            <label style="display:block; font-weight:700; margin-bottom:10px;">Juicio de Valor (Análisis Cualitativo)</label>
-                            <textarea id="just_input" placeholder="Redacte aquí el análisis integral de la característica...">${currentEval.just || ''}</textarea>
-                        </div>
+                                <div style="margin-bottom:30px;">
+                                    <label style="display:block; font-weight:700; margin-bottom:10px;">Calificación Cuantitativa (Escala CNA 1.0 - 5.0)</label>
+                                    <div style="display:flex; gap:20px; align-items:center;">
+                                        <input type="number" id="rating_input" min="1" max="5" step="0.1" value="${currentEval.rating || ''}" 
+                                            oninput="updateCNA(this.value)"
+                                            style="width:120px; padding:15px; border:2px solid var(--primary-color); border-radius:10px; font-size:1.5rem; font-weight:700; text-align:center;">
+                                        <div id="cna_label" class="cna-badge">Ingrese una nota</div>
+                                    </div>
+                                </div>
 
-                        <button class="btn-primary large" onclick="saveEvaluation('${cId}')" style="width:100%; padding:18px; font-size:1.1rem;">Guardar Evaluación CNA</button>
-                    </div>
-                `;
-                updateCNA(currentEval.rating);
+                                <div style="margin-bottom:30px;">
+                                    <label style="display:block; font-weight:700; margin-bottom:10px;">Juicio de Valor (Análisis Cualitativo)</label>
+                                    <textarea id="just_input" placeholder="Redacte aquí el análisis integral de la característica...">${currentEval.just || ''}</textarea>
+                                </div>
+
+                                <div style="display: flex; gap: 15px;">
+                                    <button class="btn-primary large" onclick="saveEvaluation('${fId}', '${cId}')" style="flex:2; padding:18px; font-size:1.1rem;">💾 Guardar Evaluación CNA</button>
+                                    ${isEvaluated ? `<button class="btn-primary large" onclick="renderEvalForm('view')" style="flex:1; padding:18px; font-size:1.1rem; background: #64748b;">❌ Cancelar</button>` : ''}
+                                </div>
+                            </div>
+                        `;
+                        updateCNA(currentEval.rating);
+                    }
+                };
+                
+                renderEvalForm(isEvaluated ? 'view' : 'edit');
             } catch(e) { console.error("Error showEval:", e); }
         }
 
@@ -178,7 +222,7 @@
             else { label.textContent = "No se cumple"; label.className = "cna-badge cna-insuficiente"; }
         }
 
-        async function saveEvaluation(cId) {
+        async function saveEvaluation(fId, cId) {
             const rating = document.getElementById('rating_input').value;
             const justification = document.getElementById('just_input').value;
 
@@ -198,8 +242,38 @@
             if (resp.ok) {
                 alert("Evaluación guardada con éxito.");
                 loadSidebar();
+                showEval(fId, cId); // reload current
             } else { 
                 alert("Error al guardar: " + (result.message || "Error desconocido del servidor")); 
+            }
+        }
+
+        async function deleteEvaluation(cId) {
+            if (!confirm("¿Está seguro de que desea eliminar esta evaluación? Esta acción no se puede deshacer.")) return;
+            
+            const iId = getInstId();
+            const pId = getProgramId();
+            try {
+                const resp = await fetch(`/api/evaluations/${cId}?inst_id=${iId}&program_id=${pId}`, {
+                    method: 'DELETE'
+                });
+                const result = await resp.json();
+                if (resp.ok) {
+                    alert("Evaluación eliminada correctamente.");
+                    loadSidebar();
+                    document.getElementById('evalContainer').innerHTML = `
+                        <div style="text-align:center; margin-top:100px; color:#94a3b8;">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom:20px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            <h3>Selecciona una característica para evaluar</h3>
+                            <p>Las calificaciones se guardan automáticamente por programa.</p>
+                        </div>
+                    `;
+                } else {
+                    alert("Error al eliminar: " + (result.message || "Error desconocido"));
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Error de red al intentar eliminar.");
             }
         }
 

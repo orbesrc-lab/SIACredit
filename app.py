@@ -242,6 +242,17 @@ def handle_evaluations():
         print(f"Error loading evals: {e}")
         return jsonify({})
 
+@app.route('/api/evaluations/<char_id>', methods=['DELETE'])
+def delete_evaluation(char_id):
+    inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
+    try:
+        supabase.table('evaluations').delete().eq("char_id", char_id).eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        print(f"Error deleting eval: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/api/estadisticas', methods=['GET', 'POST'])
 def handle_stats():
     if request.method == 'POST':
