@@ -2081,6 +2081,7 @@ function updateFactor10Charts() {
                     <table class="data-grid-table" id="tablaProfesores">
                         <thead>
                             <tr>
+                                <th>Período</th>
                                 <th>Nombre</th>
                                 <th>Dedicación</th>
                                 <th>Vinculación</th>
@@ -2165,10 +2166,11 @@ function updateFactor10Charts() {
             await fetchFactor4Data();
         }
 
-        function addRowProfesores(data = {nombre:'', dedicacion:'TC', vinculacion:'Planta', formacion:'Especialización', exp:''}) {
+        function addRowProfesores(data = {periodo:'', nombre:'', dedicacion:'TC', vinculacion:'Planta', formacion:'Especialización', exp:''}) {
             const tbody = document.querySelector('#tablaProfesores tbody');
             const tr = document.createElement('tr');
             tr.innerHTML = `
+                <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1" onchange="updateFactor4Charts()"></td>
                 <td><input type="text" value="${data.nombre}" placeholder="Nombre completo" onchange="updateFactor4Charts()"></td>
                 <td>
                     <select onchange="updateFactor4Charts()">
@@ -2243,11 +2245,12 @@ function updateFactor10Charts() {
             document.querySelectorAll('#tablaProfesores tbody tr').forEach(tr => {
                 const inputs = tr.querySelectorAll('input, select');
                 profesores.push({
-                    nombre: inputs[0].value,
-                    dedicacion: inputs[1].value,
-                    vinculacion: inputs[2].value,
-                    formacion: inputs[3].value,
-                    exp: inputs[4].value
+                    periodo: inputs[0].value,
+                    nombre: inputs[1].value,
+                    dedicacion: inputs[2].value,
+                    vinculacion: inputs[3].value,
+                    formacion: inputs[4].value,
+                    exp: inputs[5].value
                 });
             });
 

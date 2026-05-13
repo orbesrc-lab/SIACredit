@@ -269,8 +269,8 @@
             if (!dt) return '';
             let html = `<h4>Cuadros de Datos - Comunidad de Profesores</h4>`;
             if (dt.profesores && dt.profesores.length > 0) {
-                html += `<table class="data-grid-table"><thead><tr><th>Nombre</th><th>Dedicación</th><th>Formación</th><th>Años Exp.</th></tr></thead><tbody>`;
-                dt.profesores.forEach(p => html += `<tr><td>${p.nombre||'-'}</td><td>${p.dedicacion||'-'}</td><td>${p.formacion||'-'}</td><td>${p.exp||'-'}</td></tr>`);
+                html += `<table class="data-grid-table"><thead><tr><th>Período</th><th>Nombre</th><th>Dedicación</th><th>Formación</th><th>Años Exp.</th></tr></thead><tbody>`;
+                dt.profesores.forEach(p => html += `<tr><td>${p.periodo||'-'}</td><td>${p.nombre||'-'}</td><td>${p.dedicacion||'-'}</td><td>${p.formacion||'-'}</td><td>${p.exp||'-'}</td></tr>`);
                 html += `</tbody></table>`;
             }
             return html;
