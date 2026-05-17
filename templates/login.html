@@ -7,13 +7,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #c9a84c;
-            --primary-hover: #e8c97a;
-            --bg-deep: #000000;
-            --card-bg: rgba(17, 24, 39, 0.7);
-            --text-main: #f8fafc;
-            --text-muted: #8892a4;
-            --border: rgba(201, 168, 76, 0.2);
+            --primary: #2563eb;
+            --primary-hover: #1e40af;
+            --bg-deep: #020818;
+            --card-bg: rgba(6, 16, 41, 0.85);
+            --text-main: #f0f6ff;
+            --text-muted: #6b8aad;
+            --border: rgba(37, 99, 235, 0.35);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -38,7 +38,7 @@
             left: -10%;
             width: 40%;
             height: 40%;
-            background: radial-gradient(circle, rgba(201, 168, 76, 0.15) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, transparent 70%);
             z-index: 0;
             filter: blur(60px);
         }
@@ -46,11 +46,11 @@
         body::after {
             content: '';
             position: absolute;
-            bottom: -10%;
-            right: -10%;
+            top: -10%;
+            left: -10%;
             width: 40%;
             height: 40%;
-            background: radial-gradient(circle, rgba(201, 168, 76, 0.1) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.15) 0%, transparent 70%);
             z-index: 0;
             filter: blur(60px);
         }
@@ -82,7 +82,7 @@
 
         .logo svg { 
             margin-bottom: 16px; 
-            filter: drop-shadow(0 0 10px rgba(201, 168, 76, 0.3));
+            filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.45));
         }
 
         .logo h1 {
@@ -131,7 +131,7 @@
             outline: none;
             border-color: var(--primary);
             background: rgba(255, 255, 255, 0.05);
-            box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.15);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
         }
 
         .form-group input::placeholder { color: #475569; }
@@ -140,7 +140,7 @@
             width: 100%;
             padding: 15px;
             background: var(--primary);
-            color: #000;
+            color: #fff;
             border: none;
             border-radius: 12px;
             font-size: 1rem;
@@ -148,13 +148,13 @@
             cursor: pointer;
             transition: all 0.3s ease;
             margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(201, 168, 76, 0.2);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
         }
 
         .btn-login:hover { 
             background: var(--primary-hover); 
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(201, 168, 76, 0.3);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
         }
 
         .btn-login:active { transform: translateY(0); }
@@ -176,7 +176,7 @@
         .btn-guest:hover { 
             border-color: var(--primary); 
             color: var(--primary);
-            background: rgba(201, 168, 76, 0.05);
+            background: rgba(37, 99, 235, 0.05);
         }
 
         .links {
@@ -211,7 +211,7 @@
 <body>
     <div class="login-card">
         <div class="logo">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="2">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
                 <path d="M12 2L2 7l10 5 10-5-10-5z"/>
                 <path d="M2 17l10 5 10-5"/>
                 <path d="M2 12l10 5 10-5"/>
