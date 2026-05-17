@@ -1307,10 +1307,24 @@
             }
         }
 
-        function changeCurrentInst() {
+        async function changeCurrentInst() {
             const newId = document.getElementById('instSelect').value;
             const userData = JSON.parse(localStorage.getItem('siac_user'));
             userData.inst_id = parseInt(newId);
+            
+            // Auto-seleccionar el primer programa de la nueva institución para evitar inconsistencias
+            try {
+                const resp = await fetch(`/api/programs?inst_id=${newId}`);
+                const list = await resp.json();
+                if (list && list.length > 0) {
+                    userData.program_id = list[0].id;
+                } else {
+                    userData.program_id = 0;
+                }
+            } catch(e) {
+                userData.program_id = 0;
+            }
+            
             localStorage.setItem('siac_user', JSON.stringify(userData));
             location.reload();
         }
