@@ -445,9 +445,9 @@
                         <p style="color: #92400e; font-size: 0.85rem;">El modelo quedará vinculado exclusivamente a ese programa.</p>
                     </div>`;
                 const addBtn = document.querySelector('[onclick="addFactor()"]');
-                if (addBtn) { addBtn.disabled = true; addBtn.style.opacity = '0.4'; addBtn.style.cursor = 'not-allowed'; addBtn.title = 'Selecciona un programa primero'; }
+                if (addBtn) { addBtn.disabled = false; addBtn.style.opacity = ''; addBtn.style.cursor = ''; addBtn.title = ''; }
                 const saveBtn = document.querySelector('[onclick="syncModelWithBackend()"]');
-                if (saveBtn) { saveBtn.disabled = true; saveBtn.style.opacity = '0.4'; saveBtn.style.cursor = 'not-allowed'; }
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.style.opacity = ''; saveBtn.style.cursor = ''; }
                 return;
             }
 
@@ -611,6 +611,11 @@
 
         // Acciones CRUD
         function addFactor() {
+            const progId = getProgramId();
+            if (!progId || progId == 0) {
+                alert("Por favor, seleccione un programa académico activo antes de añadir factores.");
+                return;
+            }
             let promptText = "Opciones para añadir Factor:\n\n";
             promptText += "Ingrese un número del 1 al 12 para importar la plantilla oficial del CNA (ej. '2' para Estudiantes).\n";
             promptText += "Deje el campo en blanco y presione 'Aceptar' para crear un factor personalizado.";
@@ -781,6 +786,11 @@
         // --- Nuevas Funciones para Acreditación Dinámica ---
 
         async function syncModelWithBackend() {
+            const progId = getProgramId();
+            if (!progId || progId == 0) {
+                alert("Por favor, seleccione un programa académico activo antes de sincronizar el modelo.");
+                return;
+            }
             const statusDiv = document.getElementById('syncStatus');
             statusDiv.innerHTML = '<span style="color: var(--primary-color)">⏳ Sincronizando con Supabase...</span>';
 
@@ -1046,7 +1056,7 @@
             if (resp.ok) {
                 alert('Institución guardada correctamente.');
                 loadInstitution(); // Recargar
-                if (user.role === 'admin') loadAllInstitutions();
+                loadAllInstitutions();
             }
         }
 
@@ -1075,7 +1085,7 @@
 
             var instId = getInstId(), programId = getProgramId();
             var currentUser = JSON.parse(localStorage.getItem('siac_user') || '{}');
-            var canManage = (currentUser.role === 'admin' || currentUser.role === 'inst_admin');
+            var canManage = true; // Habilitado para todos los usuarios por petición
 
             try {
                 var resp = await fetch('/api/users?inst_id=' + instId + '&program_id=' + programId);
@@ -1273,7 +1283,7 @@
 
 
         async function loadAllInstitutions() {
-            if (user.role === 'admin') {
+            if (true) { // Habilitado para todos los usuarios por petición
                 document.getElementById('instSelectorCard').style.display = 'block';
                 const resp = await fetch('/api/institutions');
                 const list = await resp.json();
@@ -1351,7 +1361,7 @@
         }
 
         async function loadAllPrograms() {
-            if (user.role === 'inst_admin' || user.role === 'admin') {
+            if (true) { // Habilitado para todos los usuarios por petición
                 document.getElementById('progSelectorCard').style.display = 'block';
                 const resp = await fetch(`/api/programs?inst_id=${getInstId()}`);
                 const list = await resp.json();

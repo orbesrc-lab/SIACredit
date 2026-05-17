@@ -13,6 +13,25 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "siacredit_secret_key")
 CORS(app)
 
+@app.after_request
+def add_security_headers(response):
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' data: https://fonts.gstatic.com; "
+        "connect-src 'self' https://*.supabase.co https://ftpkhueqooyqvwliifzb.supabase.co wss://*.supabase.co; "
+        "img-src 'self' data: https: blob:; "
+        "frame-src 'self' https:; "
+        "object-src 'none';"
+    )
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    return response
+
+
 
 def get_active_inst_id(requested_id):
     try:
