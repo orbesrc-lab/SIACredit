@@ -186,16 +186,20 @@ def handle_model():
                             "id": a['id'], "char_id": c['id'], "text": a['text']
                         }).execute()
             
-            # Delete aspects not in incoming
+            # Delete aspects not in incoming (and their evidences)
             diff_a = curr_a_ids - incoming_a_ids
             if diff_a:
                 for chunk in [list(diff_a)[i:i+100] for i in range(0, len(diff_a), 100)]:
+                    try: supabase.table('evidences').delete().in_("aspect_id", chunk).execute()
+                    except Exception: pass
                     supabase.table('aspects').delete().in_("id", chunk).execute()
 
-            # Delete characteristics not in incoming
+            # Delete characteristics not in incoming (and their evaluations)
             diff_c = curr_c_ids - incoming_c_ids
             if diff_c:
                 for chunk in [list(diff_c)[i:i+100] for i in range(0, len(diff_c), 100)]:
+                    try: supabase.table('evaluations').delete().in_("char_id", chunk).execute()
+                    except Exception: pass
                     supabase.table('characteristics').delete().in_("id", chunk).execute()
 
             # Delete factors (cascades) not in incoming
