@@ -88,7 +88,7 @@ function getStatistics() {
 
 function saveStatistics(data) {
     localStatsCache = data;
-    fetch(`/api/estadisticas?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+    return fetch(`/api/estadisticas?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)

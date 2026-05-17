@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SKEL - Expertos en Proyectos de Educación Superior</title>
+    <title>SKEL SIAC - Datos Estadísticos CNA</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body { background-color: var(--secondary-bg); display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 250px; background: #0f172a; color: #94a3b8; display: flex; flex-direction: column; }
+        .sidebar { width: 260px; background: #0f172a; color: #94a3b8; display: flex; flex-direction: column; }
         .sidebar-header { padding: 20px; font-size: 1.25rem; font-weight: 700; color: var(--white); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .sidebar-menu { flex: 1; padding: 20px 0; }
         .sidebar-item { padding: 12px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; transition: 0.2s; }
         .sidebar-item:hover, .sidebar-item.active { background: rgba(255, 255, 255, 0.1); color: var(--white); border-left: 3px solid var(--primary-color); }
         .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
         
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: hidden; }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .topbar { background: var(--white); padding: 15px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         
         .content-area { padding: 30px; max-width: 1100px; margin: 0 auto; width: 100%; overflow-y: auto; }
@@ -30,12 +30,23 @@
         
         .save-banner { position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; padding: 12px 25px; border-radius: 50px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; transform: translateY(100px); transition: 0.3s; z-index: 1000; cursor: pointer; }
         .save-banner.show { transform: translateY(0); }
+        
         /* Mobile overrides */
         @media (max-width: 768px) {
             body { overflow-y: auto !important; height: auto !important; }
             .main-content { overflow-y: auto !important; height: auto !important; padding-bottom: 80px !important; }
             .content-area { padding: 15px !important; padding-bottom: 90px !important; }
             .topbar { padding: 12px 15px !important; flex-direction: column; align-items: flex-start; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">SKEL SIAC</div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
+            <a href="evidencias.html" class="sidebar-item">📁 Evidencias</a>
+            <a href="autoevaluacion.html" class="sidebar-item">📝 Autoevaluación</a>
             <a href="estadisticas.html" class="sidebar-item active">📈 Estadísticas</a>
             <a href="informes.html" class="sidebar-item">📄 Informes</a>
             <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
@@ -52,8 +63,19 @@
         </header>
 
         <div class="content-area">
+            <!-- Alerta cuando no hay programa activo -->
+            <div id="noProgramAlert" style="display: none; background: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin-bottom: 25px; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <span style="font-size: 1.5rem;">⚠️</span>
+                    <div>
+                        <h4 style="margin: 0; color: #b45309; font-size: 0.95rem; font-weight: 700;">No has seleccionado un Programa Académico activo</h4>
+                        <p style="margin: 5px 0 0 0; color: #d97706; font-size: 0.85rem;">Para poder visualizar y guardar los datos estadísticos, primero debes cargar o seleccionar un programa desde la sección de <a href="configuracion.html" style="font-weight: 600; text-decoration: underline; color: inherit;">Configuración</a>.</p>
+                    </div>
+                </div>
+            </div>
+
             <h1 style="font-size: 1.8rem; margin-bottom: 10px;">Datos Estadísticos del Programa</h1>
-            <p style="color: var(--text-muted); margin-bottom: 30px;">Diligencia los siguientes cuadros con la información institucional requerida para la acreditación. Los cambios se guardan automáticamente al escribir.</p>
+            <p style="color: var(--text-muted); margin-bottom: 30px;">Diligencia los siguientes cuadros con la información institucional requerida para la acreditación. Los cambios se guardan automáticamente al escribir o al hacer clic en Guardar.</p>
 
             <!-- Cuadro 1 -->
             <div class="stat-card">
@@ -61,24 +83,27 @@
                     Cuadro 1: Población Estudiantil (Inscritos, Admitidos y Matriculados)
                     <button class="btn-ghost" onclick="generateAIAnalysis('table_estudiantes')" style="font-size: 0.8rem; color: var(--primary-color);">✨ Analizar Cuadro</button>
                 </h3>
-                <table class="stat-table" id="table_estudiantes">
-                    <thead>
-                        <tr>
-                            <th>Periodo</th>
-                            <th>Inscritos</th>
-                            <th>Admitidos</th>
-                            <th>Matriculados (1er Curso)</th>
-                            <th>Total Matriculados</th>
-                            <th>Graduados</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Dinámico -->
-                    </tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="stat-table" id="table_estudiantes">
+                        <thead>
+                            <tr>
+                                <th>Periodo</th>
+                                <th>Inscritos</th>
+                                <th>Admitidos</th>
+                                <th>Matriculados (1er Curso)</th>
+                                <th>Total Matriculados</th>
+                                <th>Graduados</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dinámico -->
+                        </tbody>
+                    </table>
+                </div>
                 <div class="analysis-box" id="analysis_table_estudiantes" style="display:none; margin-top:15px; padding:15px; background:#f0f7ff; border-radius:8px; font-size:0.9rem; border-left:4px solid var(--primary-color);"></div>
                 <div style="margin-top: 15px;">
-                    <button class="btn-ghost" onclick="addRow('table_estudiantes')">+ Añadir Periodo</button>
+                    <button class="btn-secondary" onclick="addRow('table_estudiantes')">+ Añadir Periodo</button>
                 </div>
             </div>
 
@@ -88,24 +113,27 @@
                     Cuadro 2: Formación Docente
                     <button class="btn-ghost" onclick="generateAIAnalysis('table_docentes')" style="font-size: 0.8rem; color: var(--primary-color);">✨ Analizar Cuadro</button>
                 </h3>
-                <table class="stat-table" id="table_docentes">
-                    <thead>
-                        <tr>
-                            <th>Periodo</th>
-                            <th>Doctorado</th>
-                            <th>Maestría</th>
-                            <th>Especialización</th>
-                            <th>Pregrado</th>
-                            <th>Total Docentes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Dinámico -->
-                    </tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="stat-table" id="table_docentes">
+                        <thead>
+                            <tr>
+                                <th>Periodo</th>
+                                <th>Doctorado</th>
+                                <th>Maestría</th>
+                                <th>Especialización</th>
+                                <th>Pregrado</th>
+                                <th>Total Docentes</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dinámico -->
+                        </tbody>
+                    </table>
+                </div>
                 <div class="analysis-box" id="analysis_table_docentes" style="display:none; margin-top:15px; padding:15px; background:#f0f7ff; border-radius:8px; font-size:0.9rem; border-left:4px solid var(--primary-color);"></div>
                 <div style="margin-top: 15px;">
-                    <button class="btn-ghost" onclick="addRow('table_docentes')">+ Añadir Periodo</button>
+                    <button class="btn-secondary" onclick="addRow('table_docentes')">+ Añadir Periodo</button>
                 </div>
             </div>
 
@@ -115,23 +143,26 @@
                     Cuadro 3: Tasas de Deserción y Retención
                     <button class="btn-ghost" onclick="generateAIAnalysis('table_desercion')" style="font-size: 0.8rem; color: var(--primary-color);">✨ Analizar Cuadro</button>
                 </h3>
-                <table class="stat-table" id="table_desercion">
-                    <thead>
-                        <tr>
-                            <th>Cohorte</th>
-                            <th>Estudiantes Iniciales</th>
-                            <th>Deserción (%)</th>
-                            <th>Retención (%)</th>
-                            <th>Graduados a Tiempo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Dinámico -->
-                    </tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="stat-table" id="table_desercion">
+                        <thead>
+                            <tr>
+                                <th>Cohorte</th>
+                                <th>Estudiantes Iniciales</th>
+                                <th>Deserción (%)</th>
+                                <th>Retención (%)</th>
+                                <th>Graduados a Tiempo</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dinámico -->
+                        </tbody>
+                    </table>
+                </div>
                 <div class="analysis-box" id="analysis_table_desercion" style="display:none; margin-top:15px; padding:15px; background:#f0f7ff; border-radius:8px; font-size:0.9rem; border-left:4px solid var(--primary-color);"></div>
                 <div style="margin-top: 15px;">
-                    <button class="btn-ghost" onclick="addRow('table_desercion')">+ Añadir Cohorte</button>
+                    <button class="btn-secondary" onclick="addRow('table_desercion')">+ Añadir Cohorte</button>
                 </div>
             </div>
 
@@ -141,26 +172,29 @@
                     Cuadro 4: Dedicación y Vinculación Docente
                     <button class="btn-ghost" onclick="generateAIAnalysis('table_vinculacion_docente')" style="font-size: 0.8rem; color: var(--primary-color);">✨ Analizar Cuadro</button>
                 </h3>
-                <table class="stat-table" id="table_vinculacion_docente">
-                    <thead>
-                        <tr>
-                            <th>Periodo</th>
-                            <th>T. Completo</th>
-                            <th>M. Tiempo</th>
-                            <th>Cátedra</th>
-                            <th>Auxiliar</th>
-                            <th>Asistente</th>
-                            <th>Asociado</th>
-                            <th>Titular</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Dinámico -->
-                    </tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="stat-table" id="table_vinculacion_docente">
+                        <thead>
+                            <tr>
+                                <th>Periodo</th>
+                                <th>T. Completo</th>
+                                <th>M. Tiempo</th>
+                                <th>Cátedra</th>
+                                <th>Auxiliar</th>
+                                <th>Asistente</th>
+                                <th>Asociado</th>
+                                <th>Titular</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dinámico -->
+                        </tbody>
+                    </table>
+                </div>
                 <div class="analysis-box" id="analysis_table_vinculacion_docente" style="display:none; margin-top:15px; padding:15px; background:#f0f7ff; border-radius:8px; font-size:0.9rem; border-left:4px solid var(--primary-color);"></div>
                 <div style="margin-top: 15px;">
-                    <button class="btn-ghost" onclick="addRow('table_vinculacion_docente')">+ Añadir Periodo</button>
+                    <button class="btn-secondary" onclick="addRow('table_vinculacion_docente')">+ Añadir Periodo</button>
                 </div>
             </div>
 
@@ -170,23 +204,26 @@
                     Cuadro 5: Grupos de Investigación vinculados al Programa
                     <button class="btn-ghost" onclick="generateAIAnalysis('table_investigacion')" style="font-size: 0.8rem; color: var(--primary-color);">✨ Analizar Cuadro</button>
                 </h3>
-                <table class="stat-table" id="table_investigacion">
-                    <thead>
-                        <tr>
-                            <th>Nombre del Grupo</th>
-                            <th>Clasificación (A1, A, B, C)</th>
-                            <th>Líder del Grupo</th>
-                            <th>Integrantes</th>
-                            <th>Líneas de Investigación</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Dinámico -->
-                    </tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="stat-table" id="table_investigacion">
+                        <thead>
+                            <tr>
+                                <th>Nombre del Grupo</th>
+                                <th>Clasificación (A1, A, B, C)</th>
+                                <th>Líder del Grupo</th>
+                                <th>Integrantes</th>
+                                <th>Líneas de Investigación</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dinámico -->
+                        </tbody>
+                    </table>
+                </div>
                 <div class="analysis-box" id="analysis_table_investigacion" style="display:none; margin-top:15px; padding:15px; background:#f0f7ff; border-radius:8px; font-size:0.9rem; border-left:4px solid var(--primary-color);"></div>
                 <div style="margin-top: 15px;">
-                    <button class="btn-ghost" onclick="addRow('table_investigacion')">+ Añadir Grupo</button>
+                    <button class="btn-secondary" onclick="addRow('table_investigacion')">+ Añadir Grupo</button>
                 </div>
             </div>
 
@@ -196,24 +233,27 @@
                     Cuadro 6: Productividad Académica y Científica
                     <button class="btn-ghost" onclick="generateAIAnalysis('table_productividad')" style="font-size: 0.8rem; color: var(--primary-color);">✨ Analizar Cuadro</button>
                 </h3>
-                <table class="stat-table" id="table_productividad">
-                    <thead>
-                        <tr>
-                            <th>Año</th>
-                            <th>Artículos Indexados</th>
-                            <th>Libros</th>
-                            <th>Capítulos Libro</th>
-                            <th>Ponencias</th>
-                            <th>Patentes / Registros</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Dinámico -->
-                    </tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="stat-table" id="table_productividad">
+                        <thead>
+                            <tr>
+                                <th>Año</th>
+                                <th>Artículos Indexados</th>
+                                <th>Libros</th>
+                                <th>Capítulos Libro</th>
+                                <th>Ponencias</th>
+                                <th>Patentes / Registros</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dinámico -->
+                        </tbody>
+                    </table>
+                </div>
                 <div class="analysis-box" id="analysis_table_productividad" style="display:none; margin-top:15px; padding:15px; background:#f0f7ff; border-radius:8px; font-size:0.9rem; border-left:4px solid var(--primary-color);"></div>
                 <div style="margin-top: 15px;">
-                    <button class="btn-ghost" onclick="addRow('table_productividad')">+ Añadir Año</button>
+                    <button class="btn-secondary" onclick="addRow('table_productividad')">+ Añadir Año</button>
                 </div>
             </div>
 
@@ -223,23 +263,26 @@
                     Cuadro 7: Proyectos de Extensión e Impacto Social
                     <button class="btn-ghost" onclick="generateAIAnalysis('table_extension')" style="font-size: 0.8rem; color: var(--primary-color);">✨ Analizar Cuadro</button>
                 </h3>
-                <table class="stat-table" id="table_extension">
-                    <thead>
-                        <tr>
-                            <th>Nombre del Proyecto</th>
-                            <th>Población Beneficiada</th>
-                            <th>Impacto (Territorial)</th>
-                            <th>Docentes</th>
-                            <th>Estudiantes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Dinámico -->
-                    </tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="stat-table" id="table_extension">
+                        <thead>
+                            <tr>
+                                <th>Nombre del Proyecto</th>
+                                <th>Población Beneficiada</th>
+                                <th>Impacto (Territorial)</th>
+                                <th>Docentes</th>
+                                <th>Estudiantes</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dinámico -->
+                        </tbody>
+                    </table>
+                </div>
                 <div class="analysis-box" id="analysis_table_extension" style="display:none; margin-top:15px; padding:15px; background:#f0f7ff; border-radius:8px; font-size:0.9rem; border-left:4px solid var(--primary-color);"></div>
                 <div style="margin-top: 15px;">
-                    <button class="btn-ghost" onclick="addRow('table_extension')">+ Añadir Proyecto</button>
+                    <button class="btn-secondary" onclick="addRow('table_extension')">+ Añadir Proyecto</button>
                 </div>
             </div>
 
@@ -249,23 +292,26 @@
                     Cuadro 8: Infraestructura, Laboratorios y Medios Educativos
                     <button class="btn-ghost" onclick="generateAIAnalysis('table_infraestructura')" style="font-size: 0.8rem; color: var(--primary-color);">✨ Analizar Cuadro</button>
                 </h3>
-                <table class="stat-table" id="table_infraestructura">
-                    <thead>
-                        <tr>
-                            <th>Ítem / Espacio</th>
-                            <th>Cantidad</th>
-                            <th>Capacidad</th>
-                            <th>Estado (B/R/M)</th>
-                            <th>Observaciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Dinámico -->
-                    </tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="stat-table" id="table_infraestructura">
+                        <thead>
+                            <tr>
+                                <th>Ítem / Espacio</th>
+                                <th>Cantidad</th>
+                                <th>Capacidad</th>
+                                <th>Estado (B/R/M)</th>
+                                <th>Observaciones</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dinámico -->
+                        </tbody>
+                    </table>
+                </div>
                 <div class="analysis-box" id="analysis_table_infraestructura" style="display:none; margin-top:15px; padding:15px; background:#f0f7ff; border-radius:8px; font-size:0.9rem; border-left:4px solid var(--primary-color);"></div>
                 <div style="margin-top: 15px;">
-                    <button class="btn-ghost" onclick="addRow('table_infraestructura')">+ Añadir Ítem</button>
+                    <button class="btn-secondary" onclick="addRow('table_infraestructura')">+ Añadir Ítem</button>
                 </div>
             </div>
             
@@ -309,7 +355,7 @@
         };
 
         function renderTables() {
-            const stats = getStatistics();
+            const stats = getStatistics() || {};
             
             for (const [tableId, columns] of Object.entries(tableConfigs)) {
                 const tbody = document.querySelector(`#${tableId} tbody`);
@@ -318,7 +364,7 @@
                 
                 const data = stats[tableId] || [];
                 
-                // Si no hay datos, poner una fila inicial
+                // Si no hay datos, poner una fila inicial vacía
                 if (data.length === 0) {
                     data.push(createEmptyRow(columns));
                 }
@@ -338,9 +384,8 @@
                     
                     // Botón borrar fila
                     const delTd = document.createElement('td');
-                    delTd.style.width = "40px";
-                    delTd.style.border = "none";
-                    delTd.innerHTML = `<button onclick="deleteRow('${tableId}', ${rowIndex})" style="background:none; border:none; color:#ef4444; cursor:pointer;">✕</button>`;
+                    delTd.style.width = "60px";
+                    delTd.innerHTML = `<button onclick="deleteRow('${tableId}', ${rowIndex})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.1rem; padding: 5px;">✕</button>`;
                     tr.appendChild(delTd);
                     
                     tbody.appendChild(tr);
@@ -379,20 +424,42 @@
         }
 
         function showSaveBanner() {
-            document.getElementById('saveBanner').classList.add('show');
+            const progId = getProgramId();
+            if (progId && progId != 0) {
+                document.getElementById('saveBanner').classList.add('show');
+            }
         }
 
         async function saveAllStats() {
+            const progId = getProgramId();
+            if (!progId || progId == 0) {
+                alert("⚠️ No puedes guardar cambios sin un programa académico seleccionado.");
+                return;
+            }
+
             const stats = getStatistics();
-            await saveStatistics(stats);
-            document.getElementById('saveBanner').classList.remove('show');
-            
             const banner = document.getElementById('saveBanner');
-            const originalHtml = banner.innerHTML;
-            banner.innerHTML = "<span>✅</span><span>¡Datos Sincronizados!</span>";
-            setTimeout(() => {
-                banner.innerHTML = originalHtml;
-            }, 2000);
+            
+            banner.innerHTML = "<span>⌛</span><span>Guardando...</span>";
+            
+            try {
+                const res = await saveStatistics(stats);
+                banner.classList.remove('show');
+                
+                const originalHtml = "<span>💾</span><span>Guardar Cambios</span>";
+                banner.innerHTML = "<span>✅</span><span>¡Datos Sincronizados!</span>";
+                banner.classList.add('show');
+                
+                setTimeout(() => {
+                    banner.classList.remove('show');
+                    setTimeout(() => {
+                        banner.innerHTML = originalHtml;
+                    }, 300);
+                }, 2000);
+            } catch(e) {
+                alert("❌ Error al guardar datos: " + e.message);
+                banner.innerHTML = "<span>❌</span><span>Error al guardar</span>";
+            }
         }
 
         async function generateAIAnalysis(tableId = null) {
@@ -433,7 +500,24 @@
             }
         }
 
+        function getProgramId() {
+            try {
+                const u = JSON.parse(localStorage.getItem('siac_user'));
+                return u ? (u.program_id || 0) : 0;
+            } catch(e) { return 0; }
+        }
+
         async function init() {
+            const progId = getProgramId();
+            if (!progId || progId == 0) {
+                document.getElementById('noProgramAlert').style.display = 'block';
+                // Deshabilitar todos los botones e inputs
+                setTimeout(() => {
+                    document.querySelectorAll('.stat-card button, .stat-card input').forEach(el => el.disabled = true);
+                    document.getElementById('btnAnalyze').disabled = true;
+                }, 100);
+            }
+            
             await loadDataFromAPI();
             renderTables();
         }
