@@ -40,7 +40,7 @@ body {
 
 /* ===== NAV ===== */
 .navbar {
-  position: sticky; top: 0; z-index: 999;
+  position: sticky; top: 0; z-index: 1050;
   background: rgba(2,8,24,0.96);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
