@@ -621,11 +621,8 @@ def handle_users():
         if inst_id == 0:
             res = supabase.table('users').select("*").execute()
         else:
-            # Usuarios de la institución O usuarios globales (null program_id)
-            res = supabase.table('users').select("*")\
-                .eq("inst_id", inst_id)\
-                .or_(f"program_id.eq.{program_id},program_id.is.null")\
-                .execute()
+            # Usuarios de la institución (filtramos por inst_id)
+            res = supabase.table('users').select("*").eq("inst_id", inst_id).execute()
         
         return jsonify(res.data)
     except Exception as e:
@@ -633,7 +630,7 @@ def handle_users():
         return jsonify([])
 
 
-@app.route('/api/users/<int:user_id>/reset-password', methods=['POST'])
+@app.route('/api/users/<user_id>/reset-password', methods=['POST'])
 def reset_user_password(user_id):
     data = request.json
     new_password = data.get('new_password', 'SIACTemp2025!')
@@ -644,13 +641,13 @@ def reset_user_password(user_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route('/api/users/<int:user_id>/activate', methods=['POST'])
+@app.route('/api/users/<user_id>/activate', methods=['POST'])
 def activate_user(user_id):
     data = request.json
     new_role = data.get('role', 'lider')
     try:
         # Get current user to remove [PENDING] prefix
-        user_res = supabase.table('users').select("name").eq("id", user_id).execute()
+        user_res = supabase.table('users').select("name, role").eq("id", user_id).execute()
         if user_res.data:
             current_name = user_res.data[0].get('name', '')
             clean_name = current_name.replace('[PENDING] ', '').replace('[PENDING]', '')
@@ -661,7 +658,50 @@ def activate_user(user_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route('/api/users/<int:user_id>', methods=['DELETE'])
+@app.route('/api/users/<user_id>/role', methods=['POST'])
+def change_user_role(user_id):
+    """Endpoint dedicado para cambiar el rol de un usuario activo.
+    Permite al superadmin (admin) delegar el rol inst_admin a un usuario
+    y opcionalmente reasignarlo a una institución."""
+    data = request.json
+    new_role = data.get('role')
+    new_inst_id = data.get('inst_id')  # Opcional: reasignar institución
+
+    if not new_role:
+        return jsonify({"status": "error", "message": "El campo 'role' es requerido."}), 400
+
+    # Roles válidos que se pueden asignar (no se puede asignar 'admin' desde aquí)
+    allowed_roles = {'lider', 'operativo', 'inst_admin'}
+    if new_role not in allowed_roles:
+        return jsonify({"status": "error", "message": f"Rol inválido. Roles permitidos: {', '.join(allowed_roles)}"}), 400
+
+    try:
+        # Verificar que el usuario target no sea el superadmin
+        target_res = supabase.table('users').select("role, name").eq("id", user_id).execute()
+        if not target_res.data:
+            return jsonify({"status": "error", "message": "Usuario no encontrado."}), 404
+
+        target_role = target_res.data[0].get('role')
+        if target_role == 'admin':
+            return jsonify({"status": "error", "message": "No se puede modificar el rol del Superadministrador."}), 403
+
+        update_payload = {"role": new_role}
+        # Limpiar prefijo [PENDING] si lo tiene
+        current_name = target_res.data[0].get('name', '') or ''
+        if '[PENDING]' in current_name:
+            update_payload["name"] = current_name.replace('[PENDING] ', '').replace('[PENDING]', '').strip()
+
+        # Si se proporciona un inst_id y el rol es inst_admin, actualizar institución
+        if new_inst_id is not None and new_role == 'inst_admin':
+            update_payload["inst_id"] = new_inst_id
+
+        supabase.table('users').update(update_payload).eq("id", user_id).execute()
+        return jsonify({"status": "success", "message": f"Rol actualizado a '{new_role}' correctamente."})
+    except Exception as e:
+        print(f"Error al cambiar rol del usuario {user_id}: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/users/<user_id>', methods=['DELETE'])
 def delete_user(user_id):
     try:
         # 1. Liberar al usuario de cualquier factor donde sea líder para evitar errores de FK

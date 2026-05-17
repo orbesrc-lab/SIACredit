@@ -124,11 +124,12 @@
 
 <body>
     <aside class="sidebar">
-        <div class="sidebar-header">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--primary-color)" stroke-width="2" />
+        <div class="sidebar-header">            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
             </svg>
-            SIACredit
+            SKEL SIAC
         </div>
         <div class="sidebar-menu">
             <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
@@ -334,15 +335,22 @@
 
             <!-- Modal Cambiar Rol -->
             <div id="changeRoleModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1001; align-items:center; justify-content:center;">
-                <div style="background:white; border-radius:16px; padding:30px; width:400px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                <div style="background:white; border-radius:16px; padding:30px; width:440px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
                     <h3 style="margin-bottom:6px; font-size:1.1rem;">Cambiar Rol</h3>
                     <p id="changeRoleEmail" style="font-size:0.85rem; color:#6b7280; margin-bottom:18px;"></p>
                     <label style="display:block; font-weight:500; margin-bottom:8px;">Nuevo Rol</label>
-                    <select id="changeRoleSelect" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.95rem;">
+                    <select id="changeRoleSelect" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.95rem;" onchange="onChangeRoleSelectChanged(this.value)">
                         <option value="lider">Líder de Factor</option>
                         <option value="operativo">Operativo</option>
                         <option value="inst_admin">Administrador Institucional</option>
                     </select>
+                    <!-- Campo de institución: solo visible cuando se delega inst_admin desde superadmin -->
+                    <div id="changeRoleInstField" style="display:none; margin-top:14px;">
+                        <label style="display:block; font-weight:500; margin-bottom:6px;">Asignar a Institución</label>
+                        <select id="changeRoleInstSelect" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.95rem;">
+                        </select>
+                        <p style="font-size:0.78rem; color:#6b7280; margin-top:4px;">El administrador institucional quedará vinculado a esta institución.</p>
+                    </div>
                     <input type="hidden" id="changeRoleUserId">
                     <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
                         <button class="btn-ghost" onclick="document.getElementById('changeRoleModal').style.display='none'">Cancelar</button>
@@ -1102,7 +1110,8 @@
                     if (isPending && canManage) {
                         html += '<button data-act="activate" data-uid="'+u.id+'" data-email="'+u.email+'" data-role="'+(u.role||'')+'" style="font-size:0.72rem;padding:4px 10px;background:#5b45ff;color:white;border:none;border-radius:5px;cursor:pointer;">Activar</button>';
                     }
-                    if (!isSelf && !isPending && canManage) {
+                    // Mostrar 'Cambiar Rol' solo si: no es uno mismo, no está pendiente, puede gestionar, y el target NO es superadmin
+                    if (!isSelf && !isPending && canManage && role !== 'admin') {
                         html += '<button data-act="changeRole" data-uid="'+u.id+'" data-email="'+u.email+'" data-role="'+(u.role||'')+'" style="font-size:0.72rem;padding:3px 10px;background:white;color:#5b45ff;border:1px solid #5b45ff;border-radius:5px;cursor:pointer;">Cambiar Rol</button>';
                     }
                     if (!isSelf && !isPending) {
@@ -1150,15 +1159,64 @@
         async function submitChangeRole() {
             var uid = document.getElementById('changeRoleUserId').value;
             var newRole = document.getElementById('changeRoleSelect').value;
+            var currentUser = JSON.parse(localStorage.getItem('siac_user') || '{}');
+
+            // Construir payload — si es superadmin delegando inst_admin, incluir inst_id
+            var payload = { role: newRole };
+            if (currentUser.role === 'admin' && newRole === 'inst_admin') {
+                var instSel = document.getElementById('changeRoleInstSelect');
+                if (instSel && instSel.value) {
+                    payload.inst_id = parseInt(instSel.value);
+                } else {
+                    payload.inst_id = getInstId();
+                }
+            }
+
             try {
-                var resp = await fetch('/api/users/' + uid + '/activate', {
+                // Usar el endpoint /role dedicado para usuarios activos
+                var resp = await fetch('/api/users/' + uid + '/role', {
                     method: 'POST', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({ role: newRole })
+                    body: JSON.stringify(payload)
                 });
+                var result = await resp.json();
                 document.getElementById('changeRoleModal').style.display = 'none';
-                if (resp.ok) { alert('✅ Rol actualizado a: ' + newRole); loadUsersFromAPI(); }
-                else { alert('❌ Error al cambiar rol.'); }
-            } catch(e) { alert('❌ Error de red.'); }
+                if (resp.ok && result.status === 'success') {
+                    alert('✅ ' + (result.message || 'Rol actualizado a: ' + newRole));
+                    loadUsersFromAPI();
+                } else {
+                    alert('❌ Error: ' + (result.message || 'No se pudo actualizar el rol.'));
+                }
+            } catch(e) { alert('❌ Error de red: ' + e.message); }
+        }
+
+        // Mostrar/ocultar el campo de institución según el rol seleccionado
+        async function onChangeRoleSelectChanged(selectedRole) {
+            var currentUser = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            var instField = document.getElementById('changeRoleInstField');
+            var instSelect = document.getElementById('changeRoleInstSelect');
+
+            if (selectedRole === 'inst_admin' && currentUser.role === 'admin') {
+                // Cargar lista de instituciones si aún no está cargada
+                if (instSelect.options.length === 0) {
+                    try {
+                        var resp = await fetch('/api/institutions');
+                        var insts = await resp.json();
+                        instSelect.innerHTML = '';
+                        insts.forEach(function(inst) {
+                            var opt = document.createElement('option');
+                            opt.value = inst.id;
+                            opt.textContent = inst.name;
+                            if (inst.id == getInstId()) opt.selected = true;
+                            instSelect.appendChild(opt);
+                        });
+                    } catch(e) {
+                        instSelect.innerHTML = '<option value="">Error cargando instituciones</option>';
+                    }
+                }
+                instField.style.display = 'block';
+            } else {
+                instField.style.display = 'none';
+            }
         }
 
         async function submitDeleteUser() {
