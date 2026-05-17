@@ -148,7 +148,16 @@ def handle_model():
             curr_factors = supabase.table('factors').select("id").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
             curr_f_ids = {f['id'] for f in curr_factors}
             
+            curr_chars = supabase.table('characteristics').select("id").in_("factor_id", list(curr_f_ids)).execute().data if curr_f_ids else []
+            curr_c_ids = {c['id'] for c in curr_chars}
+            
+            curr_aspects = supabase.table('aspects').select("id").in_("char_id", list(curr_c_ids)).execute().data if curr_c_ids else []
+            curr_a_ids = {a['id'] for a in curr_aspects}
+            
             incoming_f_ids = set()
+            incoming_c_ids = set()
+            incoming_a_ids = set()
+            
             for f in data:
                 incoming_f_ids.add(f['id'])
                 # Upsert Factor
@@ -165,20 +174,35 @@ def handle_model():
                     }).execute()
                 
                 for c in f.get('characteristics', []):
+                    incoming_c_ids.add(c['id'])
                     supabase.table('characteristics').upsert({
                         "id": c['id'], "factor_id": f['id'], "number": c['number'], 
                         "name": c['name'], "weight": c.get('weight', 0)
                     }).execute()
                     
                     for a in c.get('aspects', []):
+                        incoming_a_ids.add(a['id'])
                         supabase.table('aspects').upsert({
                             "id": a['id'], "char_id": c['id'], "text": a['text']
                         }).execute()
             
+            # Delete aspects not in incoming
+            diff_a = curr_a_ids - incoming_a_ids
+            if diff_a:
+                for chunk in [list(diff_a)[i:i+100] for i in range(0, len(diff_a), 100)]:
+                    supabase.table('aspects').delete().in_("id", chunk).execute()
+
+            # Delete characteristics not in incoming
+            diff_c = curr_c_ids - incoming_c_ids
+            if diff_c:
+                for chunk in [list(diff_c)[i:i+100] for i in range(0, len(diff_c), 100)]:
+                    supabase.table('characteristics').delete().in_("id", chunk).execute()
+
             # Delete factors (cascades) not in incoming
             diff_f = curr_f_ids - incoming_f_ids
             if diff_f:
-                supabase.table('factors').delete().in_("id", list(diff_f)).eq("inst_id", inst_id).eq("program_id", program_id).execute()
+                for chunk in [list(diff_f)[i:i+100] for i in range(0, len(diff_f), 100)]:
+                    supabase.table('factors').delete().in_("id", chunk).eq("inst_id", inst_id).eq("program_id", program_id).execute()
 
             return jsonify({"status": "success", "message": "Modelo sincronizado para programa " + str(program_id)})
         except Exception as e:
