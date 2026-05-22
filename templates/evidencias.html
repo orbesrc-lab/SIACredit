@@ -189,7 +189,7 @@ function addRowRevision(data = {fecha:'', tipo:'', modificaciones:'', aprobacion
 function extractFactor5Data() {
     const asignaturas = [];
     document.querySelectorAll('#tablaAsignaturas tbody tr').forEach(tr => {
-        const inputs = tr.querySelectorAll('input, select');
+        const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         asignaturas.push({
             codigo: inputs[0].value, nombre: inputs[1].value, creditos: inputs[2].value,
             semestre: inputs[3].value, horas: inputs[4].value, nucleo: inputs[5].value, estado: inputs[6].value
@@ -197,14 +197,14 @@ function extractFactor5Data() {
     });
     const competencias = [];
     document.querySelectorAll('#tablaCompetencias tbody tr').forEach(tr => {
-        const inputs = tr.querySelectorAll('input, select');
+        const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         competencias.push({
             competencia: inputs[0].value, descripcion: inputs[1].value, tipo: inputs[2].value, asignaturas: inputs[3].value
         });
     });
     const revisiones = [];
     document.querySelectorAll('#tablaRevisiones tbody tr').forEach(tr => {
-        const inputs = tr.querySelectorAll('input');
+        const inputs = tr.querySelectorAll('input:not([type="file"])');
         revisiones.push({
             fecha: inputs[0].value, tipo: inputs[1].value, modificaciones: inputs[2].value, aprobacion: inputs[3].value
         });
@@ -309,7 +309,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Sector</th>
                             <th>Vigencia</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -433,10 +433,10 @@ function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'
 }
 
 function extractFactor7Data() {
-    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value }); });
-    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value }); });
-    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value }); });
-    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value }); });
+    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value }); });
+    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value }); });
+    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value }); });
+    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value }); });
     return { egresados, convenios, practicas, extension };
 }
 
@@ -520,7 +520,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Línea</th>
                             <th>Financiación</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -541,7 +541,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Categoría (Minciencias)</th>
                             <th>Integrantes</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -559,7 +559,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Tipo</th>
                             <th>Autores</th>
                             <th>Revista / Indexación</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -675,10 +675,10 @@ function addRowSemillero(data = {nombre:'', tutor:'', estudiantes:0, proyectos:0
 }
 
 function extractFactor8Data() {
-    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value }); });
-    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value }); });
-    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value }); });
-    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value }); });
+    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value }); });
+    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value }); });
+    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value }); });
+    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value }); });
     return { proyectos, grupos, publicaciones, semilleros };
 }
 
@@ -904,10 +904,10 @@ function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licenc
 }
 
 function extractFactor10Data() {
-    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value }); });
-    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value }); });
-    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value }); });
-    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value }); });
+    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value }); });
+    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value }); });
+    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value }); });
+    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value }); });
     return { aulas, oficinas, biblioteca, tecnologico };
 }
 
@@ -1145,7 +1145,7 @@ function addRowRevision(data = {fecha:'', tipo:'', modificaciones:'', aprobacion
 function extractFactor5Data() {
     const asignaturas = [];
     document.querySelectorAll('#tablaAsignaturas tbody tr').forEach(tr => {
-        const inputs = tr.querySelectorAll('input, select');
+        const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         asignaturas.push({
             codigo: inputs[0].value, nombre: inputs[1].value, creditos: inputs[2].value,
             semestre: inputs[3].value, horas: inputs[4].value, nucleo: inputs[5].value, estado: inputs[6].value
@@ -1153,14 +1153,14 @@ function extractFactor5Data() {
     });
     const competencias = [];
     document.querySelectorAll('#tablaCompetencias tbody tr').forEach(tr => {
-        const inputs = tr.querySelectorAll('input, select');
+        const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         competencias.push({
             competencia: inputs[0].value, descripcion: inputs[1].value, tipo: inputs[2].value, asignaturas: inputs[3].value
         });
     });
     const revisiones = [];
     document.querySelectorAll('#tablaRevisiones tbody tr').forEach(tr => {
-        const inputs = tr.querySelectorAll('input');
+        const inputs = tr.querySelectorAll('input:not([type="file"])');
         revisiones.push({
             fecha: inputs[0].value, tipo: inputs[1].value, modificaciones: inputs[2].value, aprobacion: inputs[3].value
         });
@@ -1265,7 +1265,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Sector</th>
                             <th>Vigencia</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1389,10 +1389,10 @@ function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'
 }
 
 function extractFactor7Data() {
-    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value }); });
-    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value }); });
-    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value }); });
-    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value }); });
+    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value }); });
+    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value }); });
+    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value }); });
+    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value }); });
     return { egresados, convenios, practicas, extension };
 }
 
@@ -1476,7 +1476,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Línea</th>
                             <th>Financiación</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1497,7 +1497,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Categoría (Minciencias)</th>
                             <th>Integrantes</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1515,7 +1515,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Tipo</th>
                             <th>Autores</th>
                             <th>Revista / Indexación</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1631,10 +1631,10 @@ function addRowSemillero(data = {nombre:'', tutor:'', estudiantes:0, proyectos:0
 }
 
 function extractFactor8Data() {
-    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value }); });
-    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value }); });
-    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value }); });
-    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value }); });
+    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value }); });
+    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value }); });
+    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value }); });
+    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value }); });
     return { proyectos, grupos, publicaciones, semilleros };
 }
 
@@ -1860,10 +1860,10 @@ function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licenc
 }
 
 function extractFactor10Data() {
-    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value }); });
-    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value }); });
-    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value }); });
-    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value }); });
+    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value }); });
+    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value }); });
+    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value }); });
+    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value }); });
     return { aulas, oficinas, biblioteca, tecnologico };
 }
 
@@ -2136,7 +2136,7 @@ function updateFactor10Charts() {
                                 <th>Tipo</th>
                                 <th>Asistentes</th>
                                 <th>Duración (Horas)</th>
-                                <th>Acción</th>
+                                <th>Evidencia</th><th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2154,7 +2154,7 @@ function updateFactor10Charts() {
                                 <th>Profesor Evaluado</th>
                                 <th>Calificación</th>
                                 <th>Nivel Desempeño</th>
-                                <th>Acción</th>
+                                <th>Evidencia</th><th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2215,29 +2215,32 @@ function updateFactor10Charts() {
             updateFactor4Charts();
         }
 
-        function addRowCapacitacion(data = {periodo:'', nombre:'', tipo:'', asistentes:0, horas:0}) {
-            const tbody = document.querySelector('#tablaCapacitacion tbody');
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-                <td><input type="text" value="${data.nombre}" placeholder="Nombre evento"></td>
-                <td><input type="text" value="${data.tipo}" placeholder="Curso/Diplomado"></td>
-                <td><input type="number" value="${data.asistentes}"></td>
-                <td><input type="number" value="${data.horas}"></td>
-                <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        
+        <td>
+            ${data.adjunto ? 
+                `<div style="display:flex; gap:5px; align-items:center;">
+                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
+                    <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\'>Subir...<input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, \"tablaCapacitacion\")\'></label>'">✕</button>
+                 </div>` 
+                : `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;">Subir...<input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaCapacitacion')"></label>`
+            }
+        </td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
             `;
             tbody.appendChild(tr);
         }
 
-        function addRowEvaluacion(data = {periodo:'', profesor:'', calificacion:0, nivel:''}) {
-            const tbody = document.querySelector('#tablaEvaluacion tbody');
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-                <td><input type="text" value="${data.profesor}" placeholder="Nombre profesor"></td>
-                <td><input type="number" step="0.1" value="${data.calificacion}" placeholder="Puntaje"></td>
-                <td><input type="text" value="${data.nivel}" placeholder="Ej. Excelente"></td>
-                <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        
+        <td>
+            ${data.adjunto ? 
+                `<div style="display:flex; gap:5px; align-items:center;">
+                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
+                    <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\'>Subir...<input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, \"tablaEvaluacion\")\'></label>'">✕</button>
+                 </div>` 
+                : `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;">Subir...<input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaEvaluacion')"></label>`
+            }
+        </td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
             `;
             tbody.appendChild(tr);
         }
@@ -2245,7 +2248,7 @@ function updateFactor10Charts() {
         function extractFactor4Data() {
             const profesores = [];
             document.querySelectorAll('#tablaProfesores tbody tr').forEach(tr => {
-                const inputs = tr.querySelectorAll('input, select');
+                const inputs = tr.querySelectorAll('input:not([type="file"]), select');
                 profesores.push({
                     periodo: inputs[0].value,
                     nombre: inputs[1].value,
@@ -2258,7 +2261,7 @@ function updateFactor10Charts() {
 
             const historico = [];
             document.querySelectorAll('#tablaHistorico tbody tr').forEach(tr => {
-                const inputs = tr.querySelectorAll('input');
+                const inputs = tr.querySelectorAll('input:not([type="file"])');
                 historico.push({
                     periodo: inputs[0].value,
                     total: inputs[1].value
@@ -2267,7 +2270,7 @@ function updateFactor10Charts() {
 
             const capacitacion = [];
             document.querySelectorAll('#tablaCapacitacion tbody tr').forEach(tr => {
-                const inputs = tr.querySelectorAll('input');
+                const inputs = tr.querySelectorAll('input:not([type="file"])');
                 capacitacion.push({
                     periodo: inputs[0].value,
                     nombre: inputs[1].value,
@@ -2279,7 +2282,7 @@ function updateFactor10Charts() {
 
             const evaluacion = [];
             document.querySelectorAll('#tablaEvaluacion tbody tr').forEach(tr => {
-                const inputs = tr.querySelectorAll('input');
+                const inputs = tr.querySelectorAll('input:not([type="file"])');
                 evaluacion.push({
                     periodo: inputs[0].value,
                     profesor: inputs[1].value,
@@ -2642,7 +2645,7 @@ function addRowRevision(data = {fecha:'', tipo:'', modificaciones:'', aprobacion
 function extractFactor5Data() {
     const asignaturas = [];
     document.querySelectorAll('#tablaAsignaturas tbody tr').forEach(tr => {
-        const inputs = tr.querySelectorAll('input, select');
+        const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         asignaturas.push({
             codigo: inputs[0].value, nombre: inputs[1].value, creditos: inputs[2].value,
             semestre: inputs[3].value, horas: inputs[4].value, nucleo: inputs[5].value, estado: inputs[6].value
@@ -2650,14 +2653,14 @@ function extractFactor5Data() {
     });
     const competencias = [];
     document.querySelectorAll('#tablaCompetencias tbody tr').forEach(tr => {
-        const inputs = tr.querySelectorAll('input, select');
+        const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         competencias.push({
             competencia: inputs[0].value, descripcion: inputs[1].value, tipo: inputs[2].value, asignaturas: inputs[3].value
         });
     });
     const revisiones = [];
     document.querySelectorAll('#tablaRevisiones tbody tr').forEach(tr => {
-        const inputs = tr.querySelectorAll('input');
+        const inputs = tr.querySelectorAll('input:not([type="file"])');
         revisiones.push({
             fecha: inputs[0].value, tipo: inputs[1].value, modificaciones: inputs[2].value, aprobacion: inputs[3].value
         });
@@ -2762,7 +2765,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Sector</th>
                             <th>Vigencia</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -2886,10 +2889,10 @@ function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'
 }
 
 function extractFactor7Data() {
-    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value }); });
-    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value }); });
-    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value }); });
-    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value }); });
+    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value }); });
+    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value }); });
+    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value }); });
+    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value }); });
     return { egresados, convenios, practicas, extension };
 }
 
@@ -2973,7 +2976,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Línea</th>
                             <th>Financiación</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -2994,7 +2997,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Categoría (Minciencias)</th>
                             <th>Integrantes</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3012,7 +3015,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Tipo</th>
                             <th>Autores</th>
                             <th>Revista / Indexación</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3128,10 +3131,10 @@ function addRowSemillero(data = {nombre:'', tutor:'', estudiantes:0, proyectos:0
 }
 
 function extractFactor8Data() {
-    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value }); });
-    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value }); });
-    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value }); });
-    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value }); });
+    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value }); });
+    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value }); });
+    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value }); });
+    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value }); });
     return { proyectos, grupos, publicaciones, semilleros };
 }
 
@@ -3357,10 +3360,10 @@ function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licenc
 }
 
 function extractFactor10Data() {
-    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value }); });
-    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value }); });
-    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value }); });
-    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value }); });
+    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value }); });
+    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value }); });
+    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value }); });
+    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value }); });
     return { aulas, oficinas, biblioteca, tecnologico };
 }
 
@@ -3569,7 +3572,7 @@ function addRowRevision(data = {fecha:'', tipo:'', modificaciones:'', aprobacion
 function extractFactor5Data() {
     const asignaturas = [];
     document.querySelectorAll('#tablaAsignaturas tbody tr').forEach(tr => {
-        const inputs = tr.querySelectorAll('input, select');
+        const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         asignaturas.push({
             codigo: inputs[0].value, nombre: inputs[1].value, creditos: inputs[2].value,
             semestre: inputs[3].value, horas: inputs[4].value, nucleo: inputs[5].value, estado: inputs[6].value
@@ -3577,14 +3580,14 @@ function extractFactor5Data() {
     });
     const competencias = [];
     document.querySelectorAll('#tablaCompetencias tbody tr').forEach(tr => {
-        const inputs = tr.querySelectorAll('input, select');
+        const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         competencias.push({
             competencia: inputs[0].value, descripcion: inputs[1].value, tipo: inputs[2].value, asignaturas: inputs[3].value
         });
     });
     const revisiones = [];
     document.querySelectorAll('#tablaRevisiones tbody tr').forEach(tr => {
-        const inputs = tr.querySelectorAll('input');
+        const inputs = tr.querySelectorAll('input:not([type="file"])');
         revisiones.push({
             fecha: inputs[0].value, tipo: inputs[1].value, modificaciones: inputs[2].value, aprobacion: inputs[3].value
         });
@@ -3689,7 +3692,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Sector</th>
                             <th>Vigencia</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3813,10 +3816,10 @@ function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'
 }
 
 function extractFactor7Data() {
-    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value }); });
-    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value }); });
-    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value }); });
-    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value }); });
+    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value }); });
+    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value }); });
+    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value }); });
+    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value }); });
     return { egresados, convenios, practicas, extension };
 }
 
@@ -3900,7 +3903,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Línea</th>
                             <th>Financiación</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3921,7 +3924,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Categoría (Minciencias)</th>
                             <th>Integrantes</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3939,7 +3942,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Tipo</th>
                             <th>Autores</th>
                             <th>Revista / Indexación</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -4055,10 +4058,10 @@ function addRowSemillero(data = {nombre:'', tutor:'', estudiantes:0, proyectos:0
 }
 
 function extractFactor8Data() {
-    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value }); });
-    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value }); });
-    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value }); });
-    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value }); });
+    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value }); });
+    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value }); });
+    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value }); });
+    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value }); });
     return { proyectos, grupos, publicaciones, semilleros };
 }
 
@@ -4284,10 +4287,10 @@ function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licenc
 }
 
 function extractFactor10Data() {
-    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value }); });
-    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input, select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value }); });
-    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value }); });
-    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value }); });
+    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value }); });
+    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value }); });
+    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value }); });
+    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value }); });
     return { aulas, oficinas, biblioteca, tecnologico };
 }
 
