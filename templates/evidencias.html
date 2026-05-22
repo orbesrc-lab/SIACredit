@@ -192,21 +192,24 @@ function extractFactor5Data() {
         const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         asignaturas.push({
             codigo: inputs[0].value, nombre: inputs[1].value, creditos: inputs[2].value,
-            semestre: inputs[3].value, horas: inputs[4].value, nucleo: inputs[5].value, estado: inputs[6].value
+            semestre: inputs[3].value, horas: inputs[4].value, nucleo: inputs[5].value, estado: inputs[6].value,
+                    adjunto: tr.dataset.adjunto || ''
         });
     });
     const competencias = [];
     document.querySelectorAll('#tablaCompetencias tbody tr').forEach(tr => {
         const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         competencias.push({
-            competencia: inputs[0].value, descripcion: inputs[1].value, tipo: inputs[2].value, asignaturas: inputs[3].value
+            competencia: inputs[0].value, descripcion: inputs[1].value, tipo: inputs[2].value, asignaturas: inputs[3].value,
+                    adjunto: tr.dataset.adjunto || ''
         });
     });
     const revisiones = [];
     document.querySelectorAll('#tablaRevisiones tbody tr').forEach(tr => {
         const inputs = tr.querySelectorAll('input:not([type="file"])');
         revisiones.push({
-            fecha: inputs[0].value, tipo: inputs[1].value, modificaciones: inputs[2].value, aprobacion: inputs[3].value
+            fecha: inputs[0].value, tipo: inputs[1].value, modificaciones: inputs[2].value, aprobacion: inputs[3].value,
+                    adjunto: tr.dataset.adjunto || ''
         });
     });
     return { asignaturas, competencias, revisiones };
@@ -217,7 +220,8 @@ async function saveFactor5Data() {
     const btn = document.querySelector('button[onclick="saveFactor5Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -444,10 +448,14 @@ function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'
 }
 
 function extractFactor7Data() {
-    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value }); });
-    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value }); });
-    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value }); });
-    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value }); });
+    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
     return { egresados, convenios, practicas, extension };
 }
 
@@ -456,7 +464,8 @@ async function saveFactor7Data() {
     const btn = document.querySelector('button[onclick="saveFactor7Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -686,10 +695,14 @@ function addRowSemillero(data = {nombre:'', tutor:'', estudiantes:0, proyectos:0
 }
 
 function extractFactor8Data() {
-    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value }); });
-    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value }); });
-    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value }); });
-    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value }); });
+    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
     return { proyectos, grupos, publicaciones, semilleros };
 }
 
@@ -698,7 +711,8 @@ async function saveFactor8Data() {
     const btn = document.querySelector('button[onclick="saveFactor8Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -937,10 +951,14 @@ function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licenc
 }
 
 function extractFactor10Data() {
-    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value }); });
-    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value }); });
-    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value }); });
-    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value }); });
+    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
     return { aulas, oficinas, biblioteca, tecnologico };
 }
 
@@ -949,7 +967,8 @@ async function saveFactor10Data() {
     const btn = document.querySelector('button[onclick="saveFactor10Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -1181,21 +1200,24 @@ function extractFactor5Data() {
         const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         asignaturas.push({
             codigo: inputs[0].value, nombre: inputs[1].value, creditos: inputs[2].value,
-            semestre: inputs[3].value, horas: inputs[4].value, nucleo: inputs[5].value, estado: inputs[6].value
+            semestre: inputs[3].value, horas: inputs[4].value, nucleo: inputs[5].value, estado: inputs[6].value,
+                    adjunto: tr.dataset.adjunto || ''
         });
     });
     const competencias = [];
     document.querySelectorAll('#tablaCompetencias tbody tr').forEach(tr => {
         const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         competencias.push({
-            competencia: inputs[0].value, descripcion: inputs[1].value, tipo: inputs[2].value, asignaturas: inputs[3].value
+            competencia: inputs[0].value, descripcion: inputs[1].value, tipo: inputs[2].value, asignaturas: inputs[3].value,
+                    adjunto: tr.dataset.adjunto || ''
         });
     });
     const revisiones = [];
     document.querySelectorAll('#tablaRevisiones tbody tr').forEach(tr => {
         const inputs = tr.querySelectorAll('input:not([type="file"])');
         revisiones.push({
-            fecha: inputs[0].value, tipo: inputs[1].value, modificaciones: inputs[2].value, aprobacion: inputs[3].value
+            fecha: inputs[0].value, tipo: inputs[1].value, modificaciones: inputs[2].value, aprobacion: inputs[3].value,
+                    adjunto: tr.dataset.adjunto || ''
         });
     });
     return { asignaturas, competencias, revisiones };
@@ -1206,7 +1228,8 @@ async function saveFactor5Data() {
     const btn = document.querySelector('button[onclick="saveFactor5Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -1433,10 +1456,14 @@ function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'
 }
 
 function extractFactor7Data() {
-    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value }); });
-    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value }); });
-    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value }); });
-    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value }); });
+    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
     return { egresados, convenios, practicas, extension };
 }
 
@@ -1445,7 +1472,8 @@ async function saveFactor7Data() {
     const btn = document.querySelector('button[onclick="saveFactor7Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -1675,10 +1703,14 @@ function addRowSemillero(data = {nombre:'', tutor:'', estudiantes:0, proyectos:0
 }
 
 function extractFactor8Data() {
-    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value }); });
-    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value }); });
-    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value }); });
-    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value }); });
+    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
     return { proyectos, grupos, publicaciones, semilleros };
 }
 
@@ -1687,7 +1719,8 @@ async function saveFactor8Data() {
     const btn = document.querySelector('button[onclick="saveFactor8Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -1926,10 +1959,14 @@ function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licenc
 }
 
 function extractFactor10Data() {
-    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value }); });
-    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value }); });
-    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value }); });
-    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value }); });
+    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
     return { aulas, oficinas, biblioteca, tecnologico };
 }
 
@@ -1938,7 +1975,8 @@ async function saveFactor10Data() {
     const btn = document.querySelector('button[onclick="saveFactor10Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -2362,7 +2400,8 @@ function updateFactor10Charts() {
                     dedicacion: inputs[2].value,
                     vinculacion: inputs[3].value,
                     formacion: inputs[4].value,
-                    exp: inputs[5].value
+                    exp: inputs[5].value,
+                    adjunto: tr.dataset.adjunto || ''
                 });
             });
 
@@ -2371,7 +2410,8 @@ function updateFactor10Charts() {
                 const inputs = tr.querySelectorAll('input:not([type="file"])');
                 historico.push({
                     periodo: inputs[0].value,
-                    total: inputs[1].value
+                    total: inputs[1].value,
+                    adjunto: tr.dataset.adjunto || ''
                 });
             });
 
@@ -2383,7 +2423,8 @@ function updateFactor10Charts() {
                     nombre: inputs[1].value,
                     tipo: inputs[2].value,
                     asistentes: inputs[3].value,
-                    horas: inputs[4].value
+                    horas: inputs[4].value,
+                    adjunto: tr.dataset.adjunto || ''
                 });
             });
 
@@ -2394,7 +2435,8 @@ function updateFactor10Charts() {
                     periodo: inputs[0].value,
                     profesor: inputs[1].value,
                     calificacion: inputs[2].value,
-                    nivel: inputs[3].value
+                    nivel: inputs[3].value,
+                    adjunto: tr.dataset.adjunto || ''
                 });
             });
 
@@ -2417,7 +2459,8 @@ function updateFactor10Charts() {
                 const response = await fetch('/api/estadisticas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || ''
                 });
                 
                 if(response.ok) {
@@ -2770,21 +2813,24 @@ function extractFactor5Data() {
         const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         asignaturas.push({
             codigo: inputs[0].value, nombre: inputs[1].value, creditos: inputs[2].value,
-            semestre: inputs[3].value, horas: inputs[4].value, nucleo: inputs[5].value, estado: inputs[6].value
+            semestre: inputs[3].value, horas: inputs[4].value, nucleo: inputs[5].value, estado: inputs[6].value,
+                    adjunto: tr.dataset.adjunto || ''
         });
     });
     const competencias = [];
     document.querySelectorAll('#tablaCompetencias tbody tr').forEach(tr => {
         const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         competencias.push({
-            competencia: inputs[0].value, descripcion: inputs[1].value, tipo: inputs[2].value, asignaturas: inputs[3].value
+            competencia: inputs[0].value, descripcion: inputs[1].value, tipo: inputs[2].value, asignaturas: inputs[3].value,
+                    adjunto: tr.dataset.adjunto || ''
         });
     });
     const revisiones = [];
     document.querySelectorAll('#tablaRevisiones tbody tr').forEach(tr => {
         const inputs = tr.querySelectorAll('input:not([type="file"])');
         revisiones.push({
-            fecha: inputs[0].value, tipo: inputs[1].value, modificaciones: inputs[2].value, aprobacion: inputs[3].value
+            fecha: inputs[0].value, tipo: inputs[1].value, modificaciones: inputs[2].value, aprobacion: inputs[3].value,
+                    adjunto: tr.dataset.adjunto || ''
         });
     });
     return { asignaturas, competencias, revisiones };
@@ -2795,7 +2841,8 @@ async function saveFactor5Data() {
     const btn = document.querySelector('button[onclick="saveFactor5Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3022,10 +3069,14 @@ function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'
 }
 
 function extractFactor7Data() {
-    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value }); });
-    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value }); });
-    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value }); });
-    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value }); });
+    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
     return { egresados, convenios, practicas, extension };
 }
 
@@ -3034,7 +3085,8 @@ async function saveFactor7Data() {
     const btn = document.querySelector('button[onclick="saveFactor7Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3264,10 +3316,14 @@ function addRowSemillero(data = {nombre:'', tutor:'', estudiantes:0, proyectos:0
 }
 
 function extractFactor8Data() {
-    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value }); });
-    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value }); });
-    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value }); });
-    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value }); });
+    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
     return { proyectos, grupos, publicaciones, semilleros };
 }
 
@@ -3276,7 +3332,8 @@ async function saveFactor8Data() {
     const btn = document.querySelector('button[onclick="saveFactor8Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3515,10 +3572,14 @@ function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licenc
 }
 
 function extractFactor10Data() {
-    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value }); });
-    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value }); });
-    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value }); });
-    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value }); });
+    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
     return { aulas, oficinas, biblioteca, tecnologico };
 }
 
@@ -3527,7 +3588,8 @@ async function saveFactor10Data() {
     const btn = document.querySelector('button[onclick="saveFactor10Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3730,21 +3792,24 @@ function extractFactor5Data() {
         const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         asignaturas.push({
             codigo: inputs[0].value, nombre: inputs[1].value, creditos: inputs[2].value,
-            semestre: inputs[3].value, horas: inputs[4].value, nucleo: inputs[5].value, estado: inputs[6].value
+            semestre: inputs[3].value, horas: inputs[4].value, nucleo: inputs[5].value, estado: inputs[6].value,
+                    adjunto: tr.dataset.adjunto || ''
         });
     });
     const competencias = [];
     document.querySelectorAll('#tablaCompetencias tbody tr').forEach(tr => {
         const inputs = tr.querySelectorAll('input:not([type="file"]), select');
         competencias.push({
-            competencia: inputs[0].value, descripcion: inputs[1].value, tipo: inputs[2].value, asignaturas: inputs[3].value
+            competencia: inputs[0].value, descripcion: inputs[1].value, tipo: inputs[2].value, asignaturas: inputs[3].value,
+                    adjunto: tr.dataset.adjunto || ''
         });
     });
     const revisiones = [];
     document.querySelectorAll('#tablaRevisiones tbody tr').forEach(tr => {
         const inputs = tr.querySelectorAll('input:not([type="file"])');
         revisiones.push({
-            fecha: inputs[0].value, tipo: inputs[1].value, modificaciones: inputs[2].value, aprobacion: inputs[3].value
+            fecha: inputs[0].value, tipo: inputs[1].value, modificaciones: inputs[2].value, aprobacion: inputs[3].value,
+                    adjunto: tr.dataset.adjunto || ''
         });
     });
     return { asignaturas, competencias, revisiones };
@@ -3755,7 +3820,8 @@ async function saveFactor5Data() {
     const btn = document.querySelector('button[onclick="saveFactor5Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3982,10 +4048,14 @@ function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'
 }
 
 function extractFactor7Data() {
-    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value }); });
-    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value }); });
-    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value }); });
-    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value }); });
+    const egresados = []; document.querySelectorAll('#tablaEgresados tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); egresados.push({ periodo: i[0].value, egresados: i[1].value, ubicados: i[2].value, sector: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const convenios = []; document.querySelectorAll('#tablaConvenios tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); convenios.push({ entidad: i[0].value, sector: i[1].value, vigencia: i[2].value, estado: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const practicas = []; document.querySelectorAll('#tablaPracticas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); practicas.push({ periodo: i[0].value, empresa: i[1].value, tipo: i[2].value, estudiantes: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const extension = []; document.querySelectorAll('#tablaExtension tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); extension.push({ periodo: i[0].value, proyecto: i[1].value, poblacion: i[2].value, estado: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
     return { egresados, convenios, practicas, extension };
 }
 
@@ -3994,7 +4064,8 @@ async function saveFactor7Data() {
     const btn = document.querySelector('button[onclick="saveFactor7Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -4224,10 +4295,14 @@ function addRowSemillero(data = {nombre:'', tutor:'', estudiantes:0, proyectos:0
 }
 
 function extractFactor8Data() {
-    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value }); });
-    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value }); });
-    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value }); });
-    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value }); });
+    const proyectos = []; document.querySelectorAll('#tablaProyectos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); proyectos.push({ periodo: i[0].value, proyecto: i[1].value, ip: i[2].value, linea: i[3].value, financiacion: i[4].value, estado: i[5].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const grupos = []; document.querySelectorAll('#tablaGrupos tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); grupos.push({ nombre: i[0].value, lineas: i[1].value, categoria: i[2].value, integrantes: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const publicaciones = []; document.querySelectorAll('#tablaPublicaciones tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); publicaciones.push({ periodo: i[0].value, titulo: i[1].value, tipo: i[2].value, autores: i[3].value, indexacion: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const semilleros = []; document.querySelectorAll('#tablaSemilleros tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); semilleros.push({ nombre: i[0].value, tutor: i[1].value, estudiantes: i[2].value, proyectos: i[3].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
     return { proyectos, grupos, publicaciones, semilleros };
 }
 
@@ -4236,7 +4311,8 @@ async function saveFactor8Data() {
     const btn = document.querySelector('button[onclick="saveFactor8Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -4475,10 +4551,14 @@ function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licenc
 }
 
 function extractFactor10Data() {
-    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value }); });
-    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value }); });
-    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value }); });
-    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value }); });
+    const aulas = []; document.querySelectorAll('#tablaAulas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); aulas.push({ espacio: i[0].value, cantidad: i[1].value, capacidad: i[2].value, ocupacion: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const oficinas = []; document.querySelectorAll('#tablaOficinas tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"]), select'); oficinas.push({ area: i[0].value, cantidad: i[1].value, m2: i[2].value, dotacion: i[3].value, estado: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const biblioteca = []; document.querySelectorAll('#tablaBiblioteca tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); biblioteca.push({ periodo: i[0].value, fisicos: i[1].value, ebooks: i[2].value, bd: i[3].value, usuarios: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
+    const tecnologico = []; document.querySelectorAll('#tablaTecnologico tbody tr').forEach(tr => { const i = tr.querySelectorAll('input:not([type="file"])'); tecnologico.push({ periodo: i[0].value, labs: i[1].value, pc: i[2].value, software: i[3].value, licencias: i[4].value,
+                    adjunto: tr.dataset.adjunto || '' }); });
     return { aulas, oficinas, biblioteca, tecnologico };
 }
 
@@ -4487,7 +4567,8 @@ async function saveFactor10Data() {
     const btn = document.querySelector('button[onclick="saveFactor10Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+                    adjunto: tr.dataset.adjunto || '' });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
