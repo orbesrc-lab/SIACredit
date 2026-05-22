@@ -1017,17 +1017,21 @@ def upload_file():
             file_options={"content-type": file.content_type, "upsert": "true"}
         )
         file_url = supabase.storage.from_('evidencias').get_public_url(file_path)
-        supabase.table('evidences').insert({
-            "aspect_id": aspect_id,
-            "name": file.filename,
-            "file_url": file_url,
-            "user_email": email,
-            "dependency": dependency,
-            "status": "pendiente",
-            "period": period,
-            "inst_id": inst_id,
-            "program_id": program_id
-        }).execute()
+        
+        # Solo guardar en la tabla evidences si es un aspecto real (no una estadística)
+        if aspect_id and not str(aspect_id).startswith('STAT_'):
+            supabase.table('evidences').insert({
+                "aspect_id": aspect_id,
+                "name": file.filename,
+                "file_url": file_url,
+                "user_email": email,
+                "dependency": dependency,
+                "status": "pendiente",
+                "period": period,
+                "inst_id": inst_id,
+                "program_id": program_id
+            }).execute()
+            
         return jsonify({"status": "success", "url": file_url})
     except Exception as e:
         print(f"Error uploading: {e}")
