@@ -6,6 +6,7 @@
     <title>Informes - SKEL SIAC</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .export-actions { display: flex; gap: 15px; }
@@ -33,6 +34,23 @@
         #informeContainer { display: none; }
         .spinner { border: 4px solid rgba(0,0,0,0.1); width: 40px; height: 40px; border-radius: 50%; border-left-color: var(--primary-color); animation: spin 1s linear infinite; margin: 50px auto; display: none;}
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Estilos del Chatbot IA */
+        .ai-chat-widget { position: fixed; bottom: 20px; right: 20px; width: 350px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #e2e8f0; }
+        .ai-chat-header { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; cursor: pointer; }
+        .ai-chat-body { display: flex; flex-direction: column; height: 400px; }
+        .ai-chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
+        .ai-message { background: #e0e7ff; color: #1e40af; padding: 10px 15px; border-radius: 15px 15px 15px 0; max-width: 85%; align-self: flex-start; font-size: 0.9rem; line-height: 1.4; }
+        .user-message { background: #3b82f6; color: white; padding: 10px 15px; border-radius: 15px 15px 0 15px; max-width: 85%; align-self: flex-end; font-size: 0.9rem; line-height: 1.4; }
+        .ai-chat-input-area { display: flex; padding: 10px; background: white; border-top: 1px solid #e2e8f0; }
+        .ai-chat-input-area input { flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-size: 0.9rem; }
+        .ai-chat-input-area button { background: #3b82f6; color: white; border: none; padding: 8px 15px; margin-left: 10px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+        .ai-chat-input-area button:hover { background: #2563eb; }
+        .typing-indicator { display: flex; gap: 4px; padding: 5px; }
+        .typing-dot { width: 6px; height: 6px; background: #3b82f6; border-radius: 50%; animation: typing 1.4s infinite ease-in-out; }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -76,6 +94,7 @@
                 <div class="export-actions">
                     <button class="btn-secondary large" onclick="generarInforme('parcial')">📋 Generar Informe Parcial</button>
                     <button class="btn-primary large" onclick="generarInforme('final')">🏆 Generar Informe Final</button>
+                    <button class="btn-primary large" onclick="generarInformeIA()" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border:none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">✨ Generar con IA</button>
                     <button class="btn-secondary large" onclick="window.print()" id="btnImprimir" style="display:none;">🖨️ Imprimir / PDF</button>
                 </div>
             </div>
@@ -116,6 +135,23 @@
             </div>
         </div>
     </main>
+
+    <!-- Widget Chatbot IA -->
+    <div id="aiChatWidget" class="ai-chat-widget">
+        <div class="ai-chat-header" onclick="toggleChat()">
+            <span>✨ Asistente IA (Z.ai) CNA</span>
+            <span id="chatToggleIcon">▼</span>
+        </div>
+        <div class="ai-chat-body" id="aiChatBody" style="display:none;">
+            <div class="ai-chat-messages" id="aiChatMessages">
+                <div class="ai-message">¡Hola! Soy tu asistente de Inteligencia Artificial para la acreditación. Puedo ayudarte a analizar cuadros estadísticos o generar reportes de los factores. ¿En qué te ayudo hoy?</div>
+            </div>
+            <div class="ai-chat-input-area">
+                <input type="text" id="aiChatInput" placeholder="Escribe tu consulta..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()">Enviar</button>
+            </div>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
@@ -331,6 +367,124 @@
                 html += `</tbody></table>`;
             }
             return html;
+        }
+
+        // --- Lógica del Chatbot IA ---
+        function toggleChat() {
+            const body = document.getElementById('aiChatBody');
+            const icon = document.getElementById('chatToggleIcon');
+            if (body.style.display === 'none') {
+                body.style.display = 'flex';
+                icon.textContent = '▲';
+            } else {
+                body.style.display = 'none';
+                icon.textContent = '▼';
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('aiChatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            const messagesContainer = document.getElementById('aiChatMessages');
+            
+            const userMsg = document.createElement('div');
+            userMsg.className = 'user-message';
+            userMsg.textContent = text;
+            messagesContainer.appendChild(userMsg);
+            
+            input.value = '';
+            
+            const typingMsg = document.createElement('div');
+            typingMsg.className = 'ai-message';
+            typingMsg.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+            messagesContainer.appendChild(typingMsg);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            try {
+                const res = await fetch('/api/ai/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: text,
+                        inst_id: getInstId(),
+                        program_id: getProgramId()
+                    })
+                });
+                const data = await res.json();
+                
+                messagesContainer.removeChild(typingMsg);
+                
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'ai-message';
+                if (data.status === 'success') {
+                    aiMsg.innerHTML = marked.parse(data.answer);
+                } else {
+                    aiMsg.textContent = "Error: " + (data.error || "No se pudo contactar a la IA.");
+                }
+                messagesContainer.appendChild(aiMsg);
+            } catch (err) {
+                messagesContainer.removeChild(typingMsg);
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'ai-message';
+                aiMsg.textContent = "Error de conexión con la IA.";
+                messagesContainer.appendChild(aiMsg);
+            }
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // --- Lógica Generación Informe Maestro IA ---
+        async function generarInformeIA() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('informeContainer').style.display = 'none';
+            document.getElementById('btnImprimir').style.display = 'none';
+
+            try {
+                // Fetch context data first
+                const res = await fetch(`/api/informe_dinamico?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const data = await res.json();
+                
+                const aiRes = await fetch('/api/ai/generate_report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ report_data: data })
+                });
+                const aiData = await aiRes.json();
+                
+                if (aiData.status === 'success') {
+                    renderInformeIA(aiData.report);
+                } else {
+                    alert("Error en la IA: " + (aiData.error || "No se pudo generar el informe."));
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                }
+            } catch (err) {
+                alert("Error contactando el generador IA: " + err);
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        }
+
+        function renderInformeIA(markdownText) {
+            const container = document.getElementById('informeContainer');
+            document.getElementById('informeTitulo').textContent = `INFORME MAESTRO (GENERADO POR IA)`;
+            document.getElementById('informeFecha').textContent = `Generado el: ${new Date().toLocaleDateString()}`;
+            
+            const tbody = document.querySelector('#tablaResumen tbody');
+            tbody.innerHTML = '<tr><td colspan="3"><i>Este informe ejecutivo ha sido redactado, analizado y estructurado automáticamente por Inteligencia Artificial en base a los registros de evaluación cualitativa y cuantitativa.</i></td></tr>';
+            
+            if (window.myRadar) {
+                window.myRadar.destroy();
+                const canvas = document.getElementById('radarChart');
+                if(canvas) canvas.style.display = 'none';
+            }
+
+            const detalleDiv = document.getElementById('detalleFactores');
+            const htmlParsed = marked.parse(markdownText);
+            detalleDiv.innerHTML = `<div style="line-height: 1.6; font-size: 1.05rem; padding: 30px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1;">${htmlParsed}</div>`;
+            
+            container.style.display = 'block';
+            document.getElementById('btnImprimir').style.display = 'inline-block';
+            document.getElementById('loadingSpinner').style.display = 'none';
         }
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>

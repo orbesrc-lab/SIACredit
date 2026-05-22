@@ -6,6 +6,7 @@ import json
 import urllib.request
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from openai import OpenAI
 
 load_dotenv()
 
@@ -1099,6 +1100,97 @@ def proxy_download():
     except Exception as e:
         print(f'Error proxying download: {e}')
         return jsonify({'error': str(e)}), 500
+
+# --- Rutas de Inteligencia Artificial ---
+
+@app.route('/api/ai/chat', methods=['POST'])
+def ai_chat():
+    data = request.json
+    question = data.get('question', '')
+    inst_id = data.get('inst_id', 1)
+    program_id = data.get('program_id', 0)
+    
+    api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
+    if not api_key:
+        return jsonify({"error": "La API Key de Inteligencia Artificial no está configurada en el servidor."}), 500
+
+    try:
+        client = OpenAI(
+            api_key=api_key,
+            base_url="https://open.bigmodel.cn/api/paas/v4/"
+        )
+        system_prompt = "Eres un asistente experto en acreditación de alta calidad para instituciones de educación superior en Colombia (CNA). Responde de manera concisa, profesional y analítica basándote en estándares de calidad académica."
+        
+        response = client.chat.completions.create(
+            model="glm-4",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+        
+        answer = response.choices[0].message.content
+        return jsonify({"status": "success", "answer": answer})
+    except Exception as e:
+        print(f"Error AI Chat: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/ai/generate_report', methods=['POST'])
+def ai_generate_report():
+    data = request.json
+    report_data = data.get('report_data', {})
+    
+    api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
+    if not api_key:
+        return jsonify({"error": "La API Key de Inteligencia Artificial no está configurada en el servidor."}), 500
+
+    try:
+        client = OpenAI(
+            api_key=api_key,
+            base_url="https://open.bigmodel.cn/api/paas/v4/"
+        )
+        # Convert report_data to string but limit its size to avoid context length limits
+        data_str = json.dumps(report_data, ensure_ascii=False)
+        if len(data_str) > 30000:
+            data_str = data_str[:30000] + "... [Datos truncados]"
+
+        prompt = f"""
+        Actúa como un Par Académico experto del Consejo Nacional de Acreditación (CNA) de Colombia.
+        A continuación se te provee un JSON con la información de la autoevaluación de un programa académico.
+        Incluye calificaciones, justificaciones y referencias a cuadros estadísticos.
+        
+        JSON de Autoevaluación:
+        {data_str}
+
+        Por favor, redacta un informe ejecutivo y analítico exhaustivo en formato Markdown estructurado.
+        Estructura obligatoria del informe:
+        # Informe de Autoevaluación con fines de Acreditación
+        ## 1. Introducción y Apreciación General
+        ## 2. Análisis por Factores
+        (Para cada factor con datos relevantes, menciona sus fortalezas, oportunidades de mejora y su calificación promedio)
+        ## 3. Conclusiones
+        ## 4. Recomendaciones y Plan de Mejoramiento
+        
+        Escribe de forma formal, propositiva y basada estrictamente en los datos provistos.
+        """
+        
+        response = client.chat.completions.create(
+            model="glm-4",
+            messages=[
+                {"role": "system", "content": "Eres el redactor experto de informes de acreditación institucional."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=3000
+        )
+        
+        report_text = response.choices[0].message.content
+        return jsonify({"status": "success", "report": report_text})
+    except Exception as e:
+        print(f"Error AI Generate Report: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':

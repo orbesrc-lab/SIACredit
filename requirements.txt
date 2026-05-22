@@ -6,3 +6,4 @@ postgrest
 httpx
 storage3
 realtime
+openai
