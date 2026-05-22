@@ -149,7 +149,7 @@ function addRowAsignatura(data = {codigo:'', nombre:'', creditos:0, semestre:1, 
                 <option value="Inactiva" ${data.estado==='Inactiva'?'selected':''}>Inactiva</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor5Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor5Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor5Charts();
@@ -168,7 +168,7 @@ function addRowCompetencia(data = {competencia:'', descripcion:'', tipo:'Genéri
             </select>
         </td>
         <td><input type="text" value="${data.asignaturas}" placeholder="Ej. MAT101, FIS202"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -181,7 +181,7 @@ function addRowRevision(data = {fecha:'', tipo:'', modificaciones:'', aprobacion
         <td><input type="text" value="${data.tipo}" placeholder="Ej. Actualización Plan"></td>
         <td><input type="text" value="${data.modificaciones}" placeholder="Breve resumen"></td>
         <td><input type="text" value="${data.aprobacion}" placeholder="Acta 01-2024"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -365,7 +365,7 @@ function addRowEgresado(data = {periodo:'', egresados:0, ubicados:0, sector:''})
         <td><input type="number" value="${data.egresados}" onchange="updateFactor7Charts()"></td>
         <td><input type="number" value="${data.ubicados}" onchange="updateFactor7Charts()"></td>
         <td><input type="text" value="${data.sector}" placeholder="Ej. Financiero"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor7Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor7Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor7Charts();
@@ -390,7 +390,7 @@ function addRowConvenio(data = {entidad:'', sector:'Público', vigencia:'', esta
                 <option value="Inactivo" ${data.estado==='Inactivo'?'selected':''}>Inactivo</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -409,12 +409,25 @@ function addRowPractica(data = {periodo:'', empresa:'', tipo:'', estudiantes:0, 
                 <option value="Finalizada" ${data.estado==='Finalizada'?'selected':''}>Finalizada</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
 
-
+function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'Activo', adjunto:''}) {
+    const tbody = document.querySelector('#tablaExtension tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+        <td><input type="text" value="${data.proyecto}" placeholder="Nombre Proyecto"></td>
+        <td><input type="text" value="${data.poblacion}" placeholder="Ej. 50 emprendedores"></td>
+        <td>
+            <select>
+                <option value="Activo" ${data.estado==='Activo'?'selected':''}>Activo</option>
+                <option value="Finalizado" ${data.estado==='Finalizado'?'selected':''}>Finalizado</option>
+            </select>
+        </td>
+        
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -424,9 +437,10 @@ function addRowPractica(data = {periodo:'', empresa:'', tipo:'', estudiantes:0, 
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaExtension')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
-    tbody.appendChild(tr);
+    if(data.adjunto) tr.dataset.adjunto = data.adjunto;
+            tbody.appendChild(tr);
 }
 
 function extractFactor7Data() {
@@ -602,7 +616,7 @@ function addRowProyecto(data = {periodo:'', proyecto:'', ip:'', linea:'', financ
                 <option value="Finalizado" ${data.estado==='Finalizado'?'selected':''}>Finalizado</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor8Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor8Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor8Charts();
@@ -631,7 +645,7 @@ function addRowGrupo(data = {nombre:'', lineas:'', categoria:'A', integrantes:0,
                 <option value="Inactivo" ${data.estado==='Inactivo'?'selected':''}>Inactivo</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -653,7 +667,7 @@ function addRowPublicacion(data = {periodo:'', titulo:'', tipo:'Artículo', auto
         </td>
         <td><input type="text" value="${data.autores}" placeholder="Autores"></td>
         <td><input type="text" value="${data.indexacion}" placeholder="Ej. Scopus Q1"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -666,7 +680,7 @@ function addRowSemillero(data = {nombre:'', tutor:'', estudiantes:0, proyectos:0
         <td><input type="text" value="${data.tutor}" placeholder="Tutor encargado"></td>
         <td><input type="number" value="${data.estudiantes}"></td>
         <td><input type="number" value="${data.proyectos}"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -846,7 +860,7 @@ function addRowAula(data = {espacio:'', cantidad:0, capacidad:0, ocupacion:0, es
                 <option value="Malo" ${data.estado==='Malo'?'selected':''}>Malo</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor10Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor10Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor10Charts();
@@ -867,12 +881,21 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
                 <option value="Regular" ${data.estado==='Regular'?'selected':''}>Regular</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
 
-
+function addRowBiblioteca(data = {periodo:'', fisicos:0, ebooks:0, bd:0, usuarios:0, adjunto:''}) {
+    const tbody = document.querySelector('#tablaBiblioteca tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+        <td><input type="number" value="${data.fisicos}"></td>
+        <td><input type="number" value="${data.ebooks}"></td>
+        <td><input type="number" value="${data.bd}"></td>
+        <td><input type="number" value="${data.usuarios}"></td>
+        
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -882,12 +905,22 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaBiblioteca')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
-    tbody.appendChild(tr);
+    if(data.adjunto) tr.dataset.adjunto = data.adjunto;
+            tbody.appendChild(tr);
 }
 
-
+function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licencias:0, adjunto:''}) {
+    const tbody = document.querySelector('#tablaTecnologico tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+        <td><input type="number" value="${data.labs}"></td>
+        <td><input type="number" value="${data.pc}"></td>
+        <td><input type="text" value="${data.software}" placeholder="Ej. SPSS, AutoCAD"></td>
+        <td><input type="number" value="${data.licencias}"></td>
+        
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -897,9 +930,10 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaTecnologico')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
-    tbody.appendChild(tr);
+    if(data.adjunto) tr.dataset.adjunto = data.adjunto;
+            tbody.appendChild(tr);
 }
 
 function extractFactor10Data() {
@@ -1104,7 +1138,7 @@ function addRowAsignatura(data = {codigo:'', nombre:'', creditos:0, semestre:1, 
                 <option value="Inactiva" ${data.estado==='Inactiva'?'selected':''}>Inactiva</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor5Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor5Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor5Charts();
@@ -1123,7 +1157,7 @@ function addRowCompetencia(data = {competencia:'', descripcion:'', tipo:'Genéri
             </select>
         </td>
         <td><input type="text" value="${data.asignaturas}" placeholder="Ej. MAT101, FIS202"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -1136,7 +1170,7 @@ function addRowRevision(data = {fecha:'', tipo:'', modificaciones:'', aprobacion
         <td><input type="text" value="${data.tipo}" placeholder="Ej. Actualización Plan"></td>
         <td><input type="text" value="${data.modificaciones}" placeholder="Breve resumen"></td>
         <td><input type="text" value="${data.aprobacion}" placeholder="Acta 01-2024"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -1320,7 +1354,7 @@ function addRowEgresado(data = {periodo:'', egresados:0, ubicados:0, sector:''})
         <td><input type="number" value="${data.egresados}" onchange="updateFactor7Charts()"></td>
         <td><input type="number" value="${data.ubicados}" onchange="updateFactor7Charts()"></td>
         <td><input type="text" value="${data.sector}" placeholder="Ej. Financiero"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor7Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor7Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor7Charts();
@@ -1345,7 +1379,7 @@ function addRowConvenio(data = {entidad:'', sector:'Público', vigencia:'', esta
                 <option value="Inactivo" ${data.estado==='Inactivo'?'selected':''}>Inactivo</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -1364,12 +1398,25 @@ function addRowPractica(data = {periodo:'', empresa:'', tipo:'', estudiantes:0, 
                 <option value="Finalizada" ${data.estado==='Finalizada'?'selected':''}>Finalizada</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
 
-
+function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'Activo', adjunto:''}) {
+    const tbody = document.querySelector('#tablaExtension tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+        <td><input type="text" value="${data.proyecto}" placeholder="Nombre Proyecto"></td>
+        <td><input type="text" value="${data.poblacion}" placeholder="Ej. 50 emprendedores"></td>
+        <td>
+            <select>
+                <option value="Activo" ${data.estado==='Activo'?'selected':''}>Activo</option>
+                <option value="Finalizado" ${data.estado==='Finalizado'?'selected':''}>Finalizado</option>
+            </select>
+        </td>
+        
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -1379,9 +1426,10 @@ function addRowPractica(data = {periodo:'', empresa:'', tipo:'', estudiantes:0, 
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaExtension')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
-    tbody.appendChild(tr);
+    if(data.adjunto) tr.dataset.adjunto = data.adjunto;
+            tbody.appendChild(tr);
 }
 
 function extractFactor7Data() {
@@ -1557,7 +1605,7 @@ function addRowProyecto(data = {periodo:'', proyecto:'', ip:'', linea:'', financ
                 <option value="Finalizado" ${data.estado==='Finalizado'?'selected':''}>Finalizado</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor8Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor8Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor8Charts();
@@ -1586,7 +1634,7 @@ function addRowGrupo(data = {nombre:'', lineas:'', categoria:'A', integrantes:0,
                 <option value="Inactivo" ${data.estado==='Inactivo'?'selected':''}>Inactivo</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -1608,7 +1656,7 @@ function addRowPublicacion(data = {periodo:'', titulo:'', tipo:'Artículo', auto
         </td>
         <td><input type="text" value="${data.autores}" placeholder="Autores"></td>
         <td><input type="text" value="${data.indexacion}" placeholder="Ej. Scopus Q1"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -1621,7 +1669,7 @@ function addRowSemillero(data = {nombre:'', tutor:'', estudiantes:0, proyectos:0
         <td><input type="text" value="${data.tutor}" placeholder="Tutor encargado"></td>
         <td><input type="number" value="${data.estudiantes}"></td>
         <td><input type="number" value="${data.proyectos}"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -1801,7 +1849,7 @@ function addRowAula(data = {espacio:'', cantidad:0, capacidad:0, ocupacion:0, es
                 <option value="Malo" ${data.estado==='Malo'?'selected':''}>Malo</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor10Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor10Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor10Charts();
@@ -1822,12 +1870,21 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
                 <option value="Regular" ${data.estado==='Regular'?'selected':''}>Regular</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
 
-
+function addRowBiblioteca(data = {periodo:'', fisicos:0, ebooks:0, bd:0, usuarios:0, adjunto:''}) {
+    const tbody = document.querySelector('#tablaBiblioteca tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+        <td><input type="number" value="${data.fisicos}"></td>
+        <td><input type="number" value="${data.ebooks}"></td>
+        <td><input type="number" value="${data.bd}"></td>
+        <td><input type="number" value="${data.usuarios}"></td>
+        
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -1837,12 +1894,22 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaBiblioteca')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
-    tbody.appendChild(tr);
+    if(data.adjunto) tr.dataset.adjunto = data.adjunto;
+            tbody.appendChild(tr);
 }
 
-
+function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licencias:0, adjunto:''}) {
+    const tbody = document.querySelector('#tablaTecnologico tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+        <td><input type="number" value="${data.labs}"></td>
+        <td><input type="number" value="${data.pc}"></td>
+        <td><input type="text" value="${data.software}" placeholder="Ej. SPSS, AutoCAD"></td>
+        <td><input type="number" value="${data.licencias}"></td>
+        
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -1852,9 +1919,10 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaTecnologico')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
-    tbody.appendChild(tr);
+    if(data.adjunto) tr.dataset.adjunto = data.adjunto;
+            tbody.appendChild(tr);
 }
 
 function extractFactor10Data() {
@@ -2166,7 +2234,36 @@ function updateFactor10Charts() {
             await fetchFactor4Data();
         }
 
-        
+        function addRowProfesores(data = {periodo:'', nombre:'', dedicacion:'TC', vinculacion:'Planta', formacion:'Especialización', exp:'', adjunto:''}) {
+            const tbody = document.querySelector('#tablaProfesores tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1" onchange="updateFactor4Charts()"></td>
+                <td><input type="text" value="${data.nombre}" placeholder="Nombre completo" onchange="updateFactor4Charts()"></td>
+                <td>
+                    <select onchange="updateFactor4Charts()">
+                        <option value="TC" ${data.dedicacion==='TC'?'selected':''}>Tiempo Completo</option>
+                        <option value="MT" ${data.dedicacion==='MT'?'selected':''}>Medio Tiempo</option>
+                        <option value="HC" ${data.dedicacion==='HC'?'selected':''}>Hora Cátedra</option>
+                    </select>
+                </td>
+                <td>
+                    <select>
+                        <option value="Planta" ${data.vinculacion==='Planta'?'selected':''}>Planta</option>
+                        <option value="Ocasional" ${data.vinculacion==='Ocasional'?'selected':''}>Ocasional</option>
+                        <option value="Catedrático" ${data.vinculacion==='Catedrático'?'selected':''}>Catedrático</option>
+                    </select>
+                </td>
+                <td>
+                    <select onchange="updateFactor4Charts()">
+                        <option value="Pregrado" ${data.formacion==='Pregrado'?'selected':''}>Pregrado</option>
+                        <option value="Especialización" ${data.formacion==='Especialización'?'selected':''}>Especialización</option>
+                        <option value="Maestría" ${data.formacion==='Maestría'?'selected':''}>Maestría</option>
+                        <option value="Doctorado" ${data.formacion==='Doctorado'?'selected':''}>Doctorado</option>
+                    </select>
+                </td>
+                <td><input type="number" value="${data.exp}" placeholder="Años"></td>
+                
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -2176,13 +2273,20 @@ function updateFactor10Charts() {
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaProfesores')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor4Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor4Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
             `;
+            if(data.adjunto) tr.dataset.adjunto = data.adjunto;
             tbody.appendChild(tr);
             updateFactor4Charts();
         }
 
-        
+        function addRowHistorico(data = {periodo:'', total:0, adjunto:''}) {
+            const tbody = document.querySelector('#tablaHistorico tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1" onchange="updateFactor4Charts()"></td>
+                <td><input type="number" value="${data.total}" onchange="updateFactor4Charts()"></td>
+                
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -2192,39 +2296,59 @@ function updateFactor10Charts() {
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaHistorico')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor4Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor4Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
             `;
+            if(data.adjunto) tr.dataset.adjunto = data.adjunto;
             tbody.appendChild(tr);
             updateFactor4Charts();
         }
 
-        
+        function addRowCapacitacion(data = {periodo:'', nombre:'', tipo:'', asistentes:0, horas:0, adjunto:''}) {
+            const tbody = document.querySelector('#tablaCapacitacion tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+                <td><input type="text" value="${data.nombre}" placeholder="Nombre evento"></td>
+                <td><input type="text" value="${data.tipo}" placeholder="Curso/Diplomado"></td>
+                <td><input type="number" value="${data.asistentes}"></td>
+                <td><input type="number" value="${data.horas}"></td>
+                
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
-                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;" title="Ver Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
-                    <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\'><svg width=&quot;20&quot; height=&quot;20&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4&quot;></path><polyline points=&quot;17 8 12 3 7 8&quot;></polyline><line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;15&quot;></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, \&quot;tablaCapacitacion\&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                    <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width=&quot;20&quot; height=&quot;20&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4&quot;></path><polyline points=&quot;17 8 12 3 7 8&quot;></polyline><line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;15&quot;></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaCapacitacion&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
                  </div>` 
-                : `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaCapacitacion')"></label>`
+                : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaCapacitacion')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
             `;
+            if(data.adjunto) tr.dataset.adjunto = data.adjunto;
             tbody.appendChild(tr);
         }
 
-        
+        function addRowEvaluacion(data = {periodo:'', profesor:'', calificacion:0, nivel:'', adjunto:''}) {
+            const tbody = document.querySelector('#tablaEvaluacion tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+                <td><input type="text" value="${data.profesor}" placeholder="Nombre profesor"></td>
+                <td><input type="number" step="0.1" value="${data.calificacion}" placeholder="Puntaje"></td>
+                <td><input type="text" value="${data.nivel}" placeholder="Ej. Excelente"></td>
+                
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
-                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;" title="Ver Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
-                    <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\'><svg width=&quot;20&quot; height=&quot;20&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4&quot;></path><polyline points=&quot;17 8 12 3 7 8&quot;></polyline><line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;15&quot;></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, \&quot;tablaEvaluacion\&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                    <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width=&quot;20&quot; height=&quot;20&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4&quot;></path><polyline points=&quot;17 8 12 3 7 8&quot;></polyline><line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;15&quot;></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaEvaluacion&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
                  </div>` 
-                : `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaEvaluacion')"></label>`
+                : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaEvaluacion')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
             `;
+            if(data.adjunto) tr.dataset.adjunto = data.adjunto;
             tbody.appendChild(tr);
         }
 
@@ -2603,7 +2727,7 @@ function addRowAsignatura(data = {codigo:'', nombre:'', creditos:0, semestre:1, 
                 <option value="Inactiva" ${data.estado==='Inactiva'?'selected':''}>Inactiva</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor5Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor5Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor5Charts();
@@ -2622,7 +2746,7 @@ function addRowCompetencia(data = {competencia:'', descripcion:'', tipo:'Genéri
             </select>
         </td>
         <td><input type="text" value="${data.asignaturas}" placeholder="Ej. MAT101, FIS202"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -2635,7 +2759,7 @@ function addRowRevision(data = {fecha:'', tipo:'', modificaciones:'', aprobacion
         <td><input type="text" value="${data.tipo}" placeholder="Ej. Actualización Plan"></td>
         <td><input type="text" value="${data.modificaciones}" placeholder="Breve resumen"></td>
         <td><input type="text" value="${data.aprobacion}" placeholder="Acta 01-2024"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -2819,7 +2943,7 @@ function addRowEgresado(data = {periodo:'', egresados:0, ubicados:0, sector:''})
         <td><input type="number" value="${data.egresados}" onchange="updateFactor7Charts()"></td>
         <td><input type="number" value="${data.ubicados}" onchange="updateFactor7Charts()"></td>
         <td><input type="text" value="${data.sector}" placeholder="Ej. Financiero"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor7Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor7Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor7Charts();
@@ -2844,7 +2968,7 @@ function addRowConvenio(data = {entidad:'', sector:'Público', vigencia:'', esta
                 <option value="Inactivo" ${data.estado==='Inactivo'?'selected':''}>Inactivo</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -2863,12 +2987,25 @@ function addRowPractica(data = {periodo:'', empresa:'', tipo:'', estudiantes:0, 
                 <option value="Finalizada" ${data.estado==='Finalizada'?'selected':''}>Finalizada</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
 
-
+function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'Activo', adjunto:''}) {
+    const tbody = document.querySelector('#tablaExtension tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+        <td><input type="text" value="${data.proyecto}" placeholder="Nombre Proyecto"></td>
+        <td><input type="text" value="${data.poblacion}" placeholder="Ej. 50 emprendedores"></td>
+        <td>
+            <select>
+                <option value="Activo" ${data.estado==='Activo'?'selected':''}>Activo</option>
+                <option value="Finalizado" ${data.estado==='Finalizado'?'selected':''}>Finalizado</option>
+            </select>
+        </td>
+        
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -2878,9 +3015,10 @@ function addRowPractica(data = {periodo:'', empresa:'', tipo:'', estudiantes:0, 
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaExtension')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
-    tbody.appendChild(tr);
+    if(data.adjunto) tr.dataset.adjunto = data.adjunto;
+            tbody.appendChild(tr);
 }
 
 function extractFactor7Data() {
@@ -3056,7 +3194,7 @@ function addRowProyecto(data = {periodo:'', proyecto:'', ip:'', linea:'', financ
                 <option value="Finalizado" ${data.estado==='Finalizado'?'selected':''}>Finalizado</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor8Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor8Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor8Charts();
@@ -3085,7 +3223,7 @@ function addRowGrupo(data = {nombre:'', lineas:'', categoria:'A', integrantes:0,
                 <option value="Inactivo" ${data.estado==='Inactivo'?'selected':''}>Inactivo</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -3107,7 +3245,7 @@ function addRowPublicacion(data = {periodo:'', titulo:'', tipo:'Artículo', auto
         </td>
         <td><input type="text" value="${data.autores}" placeholder="Autores"></td>
         <td><input type="text" value="${data.indexacion}" placeholder="Ej. Scopus Q1"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -3120,7 +3258,7 @@ function addRowSemillero(data = {nombre:'', tutor:'', estudiantes:0, proyectos:0
         <td><input type="text" value="${data.tutor}" placeholder="Tutor encargado"></td>
         <td><input type="number" value="${data.estudiantes}"></td>
         <td><input type="number" value="${data.proyectos}"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -3300,7 +3438,7 @@ function addRowAula(data = {espacio:'', cantidad:0, capacidad:0, ocupacion:0, es
                 <option value="Malo" ${data.estado==='Malo'?'selected':''}>Malo</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor10Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor10Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor10Charts();
@@ -3321,12 +3459,21 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
                 <option value="Regular" ${data.estado==='Regular'?'selected':''}>Regular</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
 
-
+function addRowBiblioteca(data = {periodo:'', fisicos:0, ebooks:0, bd:0, usuarios:0, adjunto:''}) {
+    const tbody = document.querySelector('#tablaBiblioteca tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+        <td><input type="number" value="${data.fisicos}"></td>
+        <td><input type="number" value="${data.ebooks}"></td>
+        <td><input type="number" value="${data.bd}"></td>
+        <td><input type="number" value="${data.usuarios}"></td>
+        
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -3336,12 +3483,22 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaBiblioteca')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
-    tbody.appendChild(tr);
+    if(data.adjunto) tr.dataset.adjunto = data.adjunto;
+            tbody.appendChild(tr);
 }
 
-
+function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licencias:0, adjunto:''}) {
+    const tbody = document.querySelector('#tablaTecnologico tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+        <td><input type="number" value="${data.labs}"></td>
+        <td><input type="number" value="${data.pc}"></td>
+        <td><input type="text" value="${data.software}" placeholder="Ej. SPSS, AutoCAD"></td>
+        <td><input type="number" value="${data.licencias}"></td>
+        
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -3351,9 +3508,10 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaTecnologico')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
-    tbody.appendChild(tr);
+    if(data.adjunto) tr.dataset.adjunto = data.adjunto;
+            tbody.appendChild(tr);
 }
 
 function extractFactor10Data() {
@@ -3529,7 +3687,7 @@ function addRowAsignatura(data = {codigo:'', nombre:'', creditos:0, semestre:1, 
                 <option value="Inactiva" ${data.estado==='Inactiva'?'selected':''}>Inactiva</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor5Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor5Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor5Charts();
@@ -3548,7 +3706,7 @@ function addRowCompetencia(data = {competencia:'', descripcion:'', tipo:'Genéri
             </select>
         </td>
         <td><input type="text" value="${data.asignaturas}" placeholder="Ej. MAT101, FIS202"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -3561,7 +3719,7 @@ function addRowRevision(data = {fecha:'', tipo:'', modificaciones:'', aprobacion
         <td><input type="text" value="${data.tipo}" placeholder="Ej. Actualización Plan"></td>
         <td><input type="text" value="${data.modificaciones}" placeholder="Breve resumen"></td>
         <td><input type="text" value="${data.aprobacion}" placeholder="Acta 01-2024"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -3745,7 +3903,7 @@ function addRowEgresado(data = {periodo:'', egresados:0, ubicados:0, sector:''})
         <td><input type="number" value="${data.egresados}" onchange="updateFactor7Charts()"></td>
         <td><input type="number" value="${data.ubicados}" onchange="updateFactor7Charts()"></td>
         <td><input type="text" value="${data.sector}" placeholder="Ej. Financiero"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor7Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor7Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor7Charts();
@@ -3770,7 +3928,7 @@ function addRowConvenio(data = {entidad:'', sector:'Público', vigencia:'', esta
                 <option value="Inactivo" ${data.estado==='Inactivo'?'selected':''}>Inactivo</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -3789,12 +3947,25 @@ function addRowPractica(data = {periodo:'', empresa:'', tipo:'', estudiantes:0, 
                 <option value="Finalizada" ${data.estado==='Finalizada'?'selected':''}>Finalizada</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
 
-
+function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'Activo', adjunto:''}) {
+    const tbody = document.querySelector('#tablaExtension tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+        <td><input type="text" value="${data.proyecto}" placeholder="Nombre Proyecto"></td>
+        <td><input type="text" value="${data.poblacion}" placeholder="Ej. 50 emprendedores"></td>
+        <td>
+            <select>
+                <option value="Activo" ${data.estado==='Activo'?'selected':''}>Activo</option>
+                <option value="Finalizado" ${data.estado==='Finalizado'?'selected':''}>Finalizado</option>
+            </select>
+        </td>
+        
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -3804,9 +3975,10 @@ function addRowPractica(data = {periodo:'', empresa:'', tipo:'', estudiantes:0, 
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaExtension')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
-    tbody.appendChild(tr);
+    if(data.adjunto) tr.dataset.adjunto = data.adjunto;
+            tbody.appendChild(tr);
 }
 
 function extractFactor7Data() {
@@ -3982,7 +4154,7 @@ function addRowProyecto(data = {periodo:'', proyecto:'', ip:'', linea:'', financ
                 <option value="Finalizado" ${data.estado==='Finalizado'?'selected':''}>Finalizado</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor8Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor8Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor8Charts();
@@ -4011,7 +4183,7 @@ function addRowGrupo(data = {nombre:'', lineas:'', categoria:'A', integrantes:0,
                 <option value="Inactivo" ${data.estado==='Inactivo'?'selected':''}>Inactivo</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -4033,7 +4205,7 @@ function addRowPublicacion(data = {periodo:'', titulo:'', tipo:'Artículo', auto
         </td>
         <td><input type="text" value="${data.autores}" placeholder="Autores"></td>
         <td><input type="text" value="${data.indexacion}" placeholder="Ej. Scopus Q1"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -4046,7 +4218,7 @@ function addRowSemillero(data = {nombre:'', tutor:'', estudiantes:0, proyectos:0
         <td><input type="text" value="${data.tutor}" placeholder="Tutor encargado"></td>
         <td><input type="number" value="${data.estudiantes}"></td>
         <td><input type="number" value="${data.proyectos}"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -4226,7 +4398,7 @@ function addRowAula(data = {espacio:'', cantidad:0, capacidad:0, ocupacion:0, es
                 <option value="Malo" ${data.estado==='Malo'?'selected':''}>Malo</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor10Charts();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove(); updateFactor10Charts();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
     updateFactor10Charts();
@@ -4247,12 +4419,21 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
                 <option value="Regular" ${data.estado==='Regular'?'selected':''}>Regular</option>
             </select>
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
     tbody.appendChild(tr);
 }
 
-
+function addRowBiblioteca(data = {periodo:'', fisicos:0, ebooks:0, bd:0, usuarios:0, adjunto:''}) {
+    const tbody = document.querySelector('#tablaBiblioteca tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+        <td><input type="number" value="${data.fisicos}"></td>
+        <td><input type="number" value="${data.ebooks}"></td>
+        <td><input type="number" value="${data.bd}"></td>
+        <td><input type="number" value="${data.usuarios}"></td>
+        
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -4262,12 +4443,22 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaBiblioteca')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
-    tbody.appendChild(tr);
+    if(data.adjunto) tr.dataset.adjunto = data.adjunto;
+            tbody.appendChild(tr);
 }
 
-
+function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licencias:0, adjunto:''}) {
+    const tbody = document.querySelector('#tablaTecnologico tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
+        <td><input type="number" value="${data.labs}"></td>
+        <td><input type="number" value="${data.pc}"></td>
+        <td><input type="text" value="${data.software}" placeholder="Ej. SPSS, AutoCAD"></td>
+        <td><input type="number" value="${data.licencias}"></td>
+        
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
@@ -4277,9 +4468,10 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
                 : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaTecnologico')"></label>`
             }
         </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+        <td style="text-align:center;"><button class="btn-ghost" style="color:#ef4444;" onclick="this.closest('tr').remove();" title="Eliminar fila"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
     `;
-    tbody.appendChild(tr);
+    if(data.adjunto) tr.dataset.adjunto = data.adjunto;
+            tbody.appendChild(tr);
 }
 
 function extractFactor10Data() {
