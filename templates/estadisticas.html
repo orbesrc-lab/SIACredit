@@ -7,12 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body { background-color: var(--secondary-bg); display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 260px; background: #0f172a; color: #94a3b8; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 20px; font-size: 1.25rem; font-weight: 700; color: var(--white); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-menu { flex: 1; padding: 20px 0; }
-        .sidebar-item { padding: 12px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; transition: 0.2s; }
-        .sidebar-item:hover, .sidebar-item.active { background: rgba(255, 255, 255, 0.1); color: var(--white); border-left: 3px solid var(--primary-color); }
-        .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+
         
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .topbar { background: var(--white); padding: 15px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
@@ -93,6 +88,7 @@
                                 <th>Matriculados (1er Curso)</th>
                                 <th>Total Matriculados</th>
                                 <th>Graduados</th>
+                                <th>Evidencia</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
@@ -123,6 +119,7 @@
                                 <th>Especialización</th>
                                 <th>Pregrado</th>
                                 <th>Total Docentes</th>
+                                <th>Evidencia</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
@@ -152,6 +149,7 @@
                                 <th>Deserción (%)</th>
                                 <th>Retención (%)</th>
                                 <th>Graduados a Tiempo</th>
+                                <th>Evidencia</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
@@ -184,6 +182,7 @@
                                 <th>Asistente</th>
                                 <th>Asociado</th>
                                 <th>Titular</th>
+                                <th>Evidencia</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
@@ -213,6 +212,7 @@
                                 <th>Líder del Grupo</th>
                                 <th>Integrantes</th>
                                 <th>Líneas de Investigación</th>
+                                <th>Evidencia</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
@@ -243,6 +243,7 @@
                                 <th>Capítulos Libro</th>
                                 <th>Ponencias</th>
                                 <th>Patentes / Registros</th>
+                                <th>Evidencia</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
@@ -272,6 +273,7 @@
                                 <th>Impacto (Territorial)</th>
                                 <th>Docentes</th>
                                 <th>Estudiantes</th>
+                                <th>Evidencia</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
@@ -301,6 +303,7 @@
                                 <th>Capacidad</th>
                                 <th>Estado (B/R/M)</th>
                                 <th>Observaciones</th>
+                                <th>Evidencia</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
@@ -344,14 +347,14 @@
         }
 
         const tableConfigs = {
-            'table_estudiantes': ['periodo', 'inscritos', 'admitidos', 'matriculados1', 'totalMatriculados', 'graduados'],
-            'table_docentes': ['periodo', 'doctorado', 'maestria', 'especializacion', 'pregrado', 'totalDocentes'],
-            'table_desercion': ['cohorte', 'estudiantesInic', 'desercion', 'retencion', 'graduados'],
-            'table_vinculacion_docente': ['periodo', 'tc', 'mt', 'catedra', 'auxiliar', 'asistente', 'asociado', 'titular'],
-            'table_investigacion': ['nombre', 'clasificacion', 'lider', 'integrantes', 'lineas'],
-            'table_productividad': ['anio', 'articulos', 'libros', 'capitulos', 'ponencias', 'patentes'],
-            'table_extension': ['nombre', 'poblacion', 'impacto', 'docentes', 'estudiantes'],
-            'table_infraestructura': ['item', 'cantidad', 'capacidad', 'estado', 'obs']
+            'table_estudiantes': ['periodo', 'inscritos', 'admitidos', 'matriculados1', 'totalMatriculados', 'graduados', 'adjunto'],
+            'table_docentes': ['periodo', 'doctorado', 'maestria', 'especializacion', 'pregrado', 'totalDocentes', 'adjunto'],
+            'table_desercion': ['cohorte', 'estudiantesInic', 'desercion', 'retencion', 'graduados', 'adjunto'],
+            'table_vinculacion_docente': ['periodo', 'tc', 'mt', 'catedra', 'auxiliar', 'asistente', 'asociado', 'titular', 'adjunto'],
+            'table_investigacion': ['nombre', 'clasificacion', 'lider', 'integrantes', 'lineas', 'adjunto'],
+            'table_productividad': ['anio', 'articulos', 'libros', 'capitulos', 'ponencias', 'patentes', 'adjunto'],
+            'table_extension': ['nombre', 'poblacion', 'impacto', 'docentes', 'estudiantes', 'adjunto'],
+            'table_infraestructura': ['item', 'cantidad', 'capacidad', 'estado', 'obs', 'adjunto']
         };
 
         function renderTables() {
@@ -373,12 +376,30 @@
                     const tr = document.createElement('tr');
                     columns.forEach(col => {
                         const td = document.createElement('td');
-                        const input = document.createElement('input');
-                        input.type = "text";
-                        input.value = rowData[col] || '';
-                        input.oninput = () => showSaveBanner();
-                        input.onchange = (e) => updateData(tableId, rowIndex, col, e.target.value);
-                        td.appendChild(input);
+                        if (col === 'adjunto') {
+                            const adjUrl = rowData[col];
+                            if (adjUrl) {
+                                const fileName = adjUrl.split('/').pop() || 'evidencia_cuadro';
+                                td.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; gap:5px;">
+                                    <a href="/api/download?url=${encodeURIComponent(adjUrl)}&name=${encodeURIComponent(fileName)}" target="_blank" title="Descargar Soporte" style="font-size:0.75rem; padding:4px 8px; background:#e0e7ff; color:#4338ca; border-radius:4px; text-decoration:none; font-weight:600; white-space:nowrap; display:inline-flex; align-items:center; gap:3px;">
+                                        ⬇️ Descargar
+                                    </a>
+                                    <button onclick="removeStatFile('${tableId}', ${rowIndex})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1rem; padding:2px 5px;" title="Eliminar soporte">✕</button>
+                                </div>`;
+                            } else {
+                                td.innerHTML = `<label style="cursor:pointer; color:var(--primary-color); font-size:0.9rem; text-decoration:underline; white-space:nowrap;">
+                                    Subir...
+                                    <input type="file" style="display:none;" onchange="uploadStatFile('${tableId}', ${rowIndex}, this)">
+                                </label>`;
+                            }
+                        } else {
+                            const input = document.createElement('input');
+                            input.type = "text";
+                            input.value = rowData[col] || '';
+                            input.oninput = () => showSaveBanner();
+                            input.onchange = (e) => updateData(tableId, rowIndex, col, e.target.value);
+                            td.appendChild(input);
+                        }
                         tr.appendChild(td);
                     });
                     
@@ -427,6 +448,53 @@
             const progId = getProgramId();
             if (progId && progId != 0) {
                 document.getElementById('saveBanner').classList.add('show');
+            }
+        }
+
+        async function uploadStatFile(tableId, rowIndex, fileInput) {
+            if (!fileInput.files || fileInput.files.length === 0) return;
+            const file = fileInput.files[0];
+            const progId = getProgramId();
+            if (!progId || progId == 0) {
+                alert("Debes seleccionar un programa antes de subir evidencias.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('inst_id', typeof getInstId === 'function' ? getInstId() : (user.inst_id || 1));
+            formData.append('program_id', progId);
+            formData.append('aspect_id', 'STAT_' + tableId);
+            formData.append('period', 'Estadisticas');
+            formData.append('email', user.email);
+
+            fileInput.parentElement.innerHTML = 'Subiendo...';
+
+            try {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    updateData(tableId, rowIndex, 'adjunto', data.url);
+                    renderTables();
+                    showSaveBanner();
+                } else {
+                    alert("Error al subir archivo: " + data.error);
+                    renderTables();
+                }
+            } catch (err) {
+                alert("Error de conexión al subir archivo.");
+                renderTables();
+            }
+        }
+
+        function removeStatFile(tableId, rowIndex) {
+            if (confirm("¿Estás seguro de quitar este archivo adjunto? (Solo se quitará la referencia en el cuadro, el archivo seguirá en el sistema)")) {
+                updateData(tableId, rowIndex, 'adjunto', '');
+                renderTables();
+                showSaveBanner();
             }
         }
 

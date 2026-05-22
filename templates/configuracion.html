@@ -1283,7 +1283,8 @@
 
 
         async function loadAllInstitutions() {
-            if (true) { // Habilitado para todos los usuarios por petición
+            const currentUser = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            if (currentUser.role === 'admin') { // Habilitado solo para superadministradores
                 document.getElementById('instSelectorCard').style.display = 'block';
                 const resp = await fetch('/api/institutions');
                 const list = await resp.json();
@@ -1314,6 +1315,8 @@
                     btnDel.style.opacity = '0.5';
                     btnDel.title = 'No se puede eliminar la institución principal.';
                 }
+            } else {
+                document.getElementById('instSelectorCard').style.display = 'none';
             }
         }
 
