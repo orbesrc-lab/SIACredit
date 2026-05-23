@@ -1053,18 +1053,47 @@ def upload_file():
         file_url = supabase.storage.from_('evidencias').get_public_url(file_path)
         
         # Solo guardar en la tabla evidences si es un aspecto real (no una estadística)
-        if aspect_id and not str(aspect_id).startswith('STAT_'):
-            supabase.table('evidences').insert({
-                "aspect_id": aspect_id,
-                "name": file.filename,
-                "file_url": file_url,
-                "user_email": email,
-                "dependency": dependency,
-                "status": "pendiente",
-                "period": period,
-                "inst_id": inst_id,
-                "program_id": program_id
-            }).execute()
+        if aspect_id:
+            if str(aspect_id).startswith('STAT_'):
+                pass
+            elif str(aspect_id).startswith('BIBLIOTECA_'):
+                import time
+                doc_record = {
+                    "id": int(time.time() * 1000),
+                    "name": file.filename,
+                    "file_url": file_url,
+                    "aspect_id": aspect_id
+                }
+                query = supabase.table('statistics').select("id, data_json").eq("table_id", aspect_id)
+                if aspect_id != 'BIBLIOTECA_GLOBAL':
+                    query = query.eq("inst_id", inst_id)
+                
+                check = query.execute()
+                if check.data:
+                    current_data = json.loads(check.data[0]['data_json'])
+                    if not isinstance(current_data, list): current_data = []
+                    current_data.append(doc_record)
+                    supabase.table('statistics').update({"data_json": json.dumps(current_data)}).eq("id", check.data[0]["id"]).execute()
+                else:
+                    save_inst_id = 0 if aspect_id == 'BIBLIOTECA_GLOBAL' else inst_id
+                    supabase.table('statistics').insert({
+                        "table_id": aspect_id,
+                        "data_json": json.dumps([doc_record]),
+                        "inst_id": save_inst_id,
+                        "program_id": 0
+                    }).execute()
+            else:
+                supabase.table('evidences').insert({
+                    "aspect_id": aspect_id,
+                    "name": file.filename,
+                    "file_url": file_url,
+                    "user_email": email,
+                    "dependency": dependency,
+                    "status": "pendiente",
+                    "period": period,
+                    "inst_id": inst_id,
+                    "program_id": program_id
+                }).execute()
             
         return jsonify({"status": "success", "url": file_url})
     except Exception as e:
@@ -1086,17 +1115,40 @@ def get_evidences():
 def get_library():
     inst_id = request.args.get('inst_id', 1, type=int)
     try:
-        # Documentos globales (no ligados a una inst_id estricta, o usamos inst_id = 0)
-        global_res = supabase.table('evidences').select("*").eq("aspect_id", "BIBLIOTECA_GLOBAL").execute()
-        # Documentos institucionales (ligados a la institución actual)
-        inst_res = supabase.table('evidences').select("*").eq("aspect_id", "BIBLIOTECA_INST").eq("inst_id", inst_id).execute()
+        global_res = supabase.table('statistics').select("data_json").eq("table_id", "BIBLIOTECA_GLOBAL").execute()
+        global_docs = json.loads(global_res.data[0]['data_json']) if global_res.data else []
+        
+        inst_res = supabase.table('statistics').select("data_json").eq("table_id", "BIBLIOTECA_INST").eq("inst_id", inst_id).execute()
+        inst_docs = json.loads(inst_res.data[0]['data_json']) if inst_res.data else []
+        
         return jsonify({
-            "global": global_res.data,
-            "institucional": inst_res.data
+            "global": global_docs,
+            "institucional": inst_docs
         })
     except Exception as e:
         print(f"Error loading library: {e}")
         return jsonify({"global": [], "institucional": []})
+
+@app.route('/api/library/<aspect_id>/<int:doc_id>', methods=['DELETE'])
+def delete_library_doc(aspect_id, doc_id):
+    inst_id = request.args.get('inst_id', 1, type=int)
+    # Global puede no tener inst_id, pero para buscar en statistics usamos inst_id si no es global
+    query = supabase.table('statistics').select("id, data_json").eq("table_id", aspect_id)
+    if aspect_id != 'BIBLIOTECA_GLOBAL':
+        query = query.eq("inst_id", inst_id)
+    
+    try:
+        check = query.execute()
+        if check.data:
+            current_data = json.loads(check.data[0]['data_json'])
+            # Filtrar el doc a borrar
+            new_data = [d for d in current_data if d.get('id') != doc_id]
+            supabase.table('statistics').update({"data_json": json.dumps(new_data)}).eq("id", check.data[0]["id"]).execute()
+            return jsonify({"status": "success"})
+        return jsonify({"status": "error", "message": "No encontrado"}), 404
+    except Exception as e:
+        print(f"Error deleting library doc: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/evidences/<int:evidence_id>', methods=['DELETE'])
 def delete_evidence(evidence_id):

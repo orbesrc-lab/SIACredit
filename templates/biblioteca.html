@@ -139,7 +139,7 @@
                 // Si es ADMIN puede borrar global e inst. Si es INST_ADMIN puede borrar inst.
                 const canDelete = (user.role === 'admin') || (user.role === 'inst_admin' && doc.aspect_id === 'BIBLIOTECA_INST');
                 
-                const deleteBtnHtml = canDelete ? `<button class="btn-delete" onclick="deleteDoc(${doc.id})">Borrar</button>` : '';
+                const deleteBtnHtml = canDelete ? `<button class="btn-delete" onclick="deleteDoc(${doc.id}, '${doc.aspect_id}')">Borrar</button>` : '';
                 
                 li.innerHTML = `
                     <div class="doc-name">
@@ -190,10 +190,10 @@
             }
         }
 
-        async function deleteDoc(id) {
+        async function deleteDoc(id, aspectId) {
             if (!confirm('¿Estás seguro de eliminar este documento de la biblioteca?')) return;
             try {
-                const res = await fetch(`/api/evidences/${id}`, { method: 'DELETE' });
+                const res = await fetch(`/api/library/${aspectId}/${id}?inst_id=${getInstId()}`, { method: 'DELETE' });
                 const data = await res.json();
                 if (data.status === 'success') {
                     loadLibrary();
