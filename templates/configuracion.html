@@ -1611,6 +1611,7 @@
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 
+    <script>
         async function saveGlobalTheme() {
             const theme = document.getElementById('globalThemeSelect').value;
             try {
@@ -1629,7 +1630,7 @@
                 alert("❌ Error de conexión al guardar el tema global.");
             }
         }
-
+    </script>
 </body>
 
 </html>
