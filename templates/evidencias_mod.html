@@ -2220,7 +2220,7 @@ function updateFactor10Charts() {
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
-                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" download class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
+                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=${encodeURIComponent((()=>{try{return decodeURIComponent(new URL(data.adjunto).pathname.split("/").pop())||"evidencia"}catch(e){return "evidencia"}})())}" download class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
                     <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\'>Subir...<input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, \"tablaCapacitacion\")\'></label>'">✕</button>
                  </div>` 
                 : `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;">Subir...<input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaCapacitacion')"></label>`
@@ -2235,7 +2235,7 @@ function updateFactor10Charts() {
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
-                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" download class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
+                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=${encodeURIComponent((()=>{try{return decodeURIComponent(new URL(data.adjunto).pathname.split("/").pop())||"evidencia"}catch(e){return "evidencia"}})())}" download class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
                     <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\'>Subir...<input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, \"tablaEvaluacion\")\'></label>'">✕</button>
                  </div>` 
                 : `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;">Subir...<input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaEvaluacion')"></label>`
@@ -2489,10 +2489,37 @@ function updateFactor10Charts() {
             }
         }
 
-        function forceDownload(url, name) {
-            // Navigate to proxy — server returns Content-Disposition: attachment
-            // Browser downloads the file without leaving the page
-            window.location.href = '/api/download?url=' + encodeURIComponent(url) + '&name=' + encodeURIComponent(name);
+        function getFilenameFromUrl(url) {
+            try {
+                const path = new URL(url).pathname;
+                const name = decodeURIComponent(path.split('/').pop());
+                if (name && name.includes('.')) return name;
+            } catch(e) {}
+            return null;
+        }
+
+        async function forceDownload(url, name) {
+            // Resolve final filename: prefer passed name if it has extension, else extract from URL
+            if (!name || !name.includes('.') || name === 'evidencia' || name === 'archivo') {
+                name = getFilenameFromUrl(url) || name || 'archivo';
+            }
+            try {
+                const proxyUrl = '/api/download?url=' + encodeURIComponent(url) + '&name=' + encodeURIComponent(name);
+                const resp = await fetch(proxyUrl);
+                if (!resp.ok) throw new Error('Error ' + resp.status);
+                const blob = await resp.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = objectUrl;
+                a.download = name; // blob URL is same-origin so download attr is always respected
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(objectUrl), 500);
+            } catch (err) {
+                // Fallback: direct navigation
+                window.location.href = '/api/download?url=' + encodeURIComponent(url) + '&name=' + encodeURIComponent(name);
+            }
         }
 
 

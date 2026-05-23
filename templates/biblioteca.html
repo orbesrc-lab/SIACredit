@@ -146,7 +146,7 @@
                         📄 <span>${doc.name}</span>
                     </div>
                     <div class="doc-actions">
-                        <a class="btn-download" href="/api/download?url=${encodeURIComponent(doc.file_url)}&name=${encodeURIComponent(doc.name)}" download="${doc.name}">⬇️ Descargar</a>
+                        <button class="btn-download" onclick="forceDownload('${doc.file_url.replace(/'/g, "\\'")}',' ${doc.name.replace(/'/g, "\\'")}')">⬇️ Descargar</button>
                         ${deleteBtnHtml}
                     </div>
                 `;
@@ -202,6 +202,40 @@
                 }
             } catch (err) {
                 alert('Error de conexión');
+            }
+        }
+
+        function getFilenameFromUrl(url) {
+            try {
+                const path = new URL(url).pathname;
+                const name = decodeURIComponent(path.split('/').pop());
+                if (name && name.includes('.')) return name;
+            } catch(e) {}
+            return null;
+        }
+
+        async function forceDownload(url, name) {
+            // Use the original doc.name; if generic, extract from URL
+            if (!name || !name.includes('.') || name === 'evidencia' || name === 'archivo') {
+                name = getFilenameFromUrl(url) || name || 'archivo';
+            }
+            // trim stray leading space
+            name = name.trim();
+            try {
+                const proxyUrl = '/api/download?url=' + encodeURIComponent(url) + '&name=' + encodeURIComponent(name);
+                const resp = await fetch(proxyUrl);
+                if (!resp.ok) throw new Error('Error ' + resp.status);
+                const blob = await resp.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = objectUrl;
+                a.download = name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(objectUrl), 500);
+            } catch (err) {
+                window.location.href = '/api/download?url=' + encodeURIComponent(url) + '&name=' + encodeURIComponent(name);
             }
         }
 
