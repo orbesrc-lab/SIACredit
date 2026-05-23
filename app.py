@@ -1253,11 +1253,15 @@ def proxy_download():
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = resp.read()
             content_type = resp.headers.get('Content-Type', 'application/octet-stream')
-        safe_name = file_name.encode('utf-8').decode('ascii', errors='replace').replace('"', '_')
+        ascii_filename = file_name.encode('ascii', errors='ignore').decode('ascii').replace('"', '_')
+        if not ascii_filename:
+            ascii_filename = "archivo"
+        utf8_filename = urllib.parse.quote(file_name)
+        
         return Response(
             data,
             headers={
-                'Content-Disposition': f'attachment; filename="{safe_name}"',
+                'Content-Disposition': f'attachment; filename="{ascii_filename}"; filename*=UTF-8\'\'{utf8_filename}',
                 'Content-Type': content_type,
                 'Cache-Control': 'no-cache'
             }
