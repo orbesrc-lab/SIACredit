@@ -1083,11 +1083,16 @@ def upload_file():
                 else:
                     # Usar inst_id válido actual para evitar errores de llave foránea (inst_id=0 no existe)
                     save_inst_id = inst_id
+                    
+                    # Obtener un program_id válido
+                    first_prog = supabase.table('programs').select("id").limit(1).execute()
+                    save_prog_id = first_prog.data[0]['id'] if first_prog.data else 1
+                    
                     supabase.table('statistics').insert({
                         "table_id": aspect_id,
                         "data_json": json.dumps([doc_record]),
                         "inst_id": save_inst_id,
-                        "program_id": 0
+                        "program_id": save_prog_id
                     }).execute()
             else:
                 supabase.table('evidences').insert({
@@ -1175,11 +1180,15 @@ def save_global_settings():
             first_inst = supabase.table('institution').select("id").limit(1).execute()
             valid_inst_id = first_inst.data[0]['id'] if first_inst.data else 1
             
+            # Obtener el primer program_id de la BD para usarlo como ancla válida
+            first_prog = supabase.table('programs').select("id").limit(1).execute()
+            valid_prog_id = first_prog.data[0]['id'] if first_prog.data else 1
+            
             supabase.table('statistics').insert({
                 "table_id": "GLOBAL_CONFIG",
                 "data_json": config_data,
                 "inst_id": valid_inst_id,
-                "program_id": 0
+                "program_id": valid_prog_id
             }).execute()
             
         return jsonify({"status": "success"})
