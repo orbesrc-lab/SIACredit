@@ -2220,7 +2220,7 @@ function updateFactor10Charts() {
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
-                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
+                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" download class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
                     <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\'>Subir...<input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, \"tablaCapacitacion\")\'></label>'">✕</button>
                  </div>` 
                 : `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;">Subir...<input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaCapacitacion')"></label>`
@@ -2235,7 +2235,7 @@ function updateFactor10Charts() {
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
-                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
+                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" download class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
                     <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\'>Subir...<input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, \"tablaEvaluacion\")\'></label>'">✕</button>
                  </div>` 
                 : `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;">Subir...<input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaEvaluacion')"></label>`

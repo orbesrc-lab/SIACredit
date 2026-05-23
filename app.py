@@ -1253,18 +1253,21 @@ def proxy_download():
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = resp.read()
             content_type = resp.headers.get('Content-Type', 'application/octet-stream')
-        ascii_filename = file_name.encode('ascii', errors='ignore').decode('ascii').replace('"', '_')
-        if not ascii_filename:
-            ascii_filename = "archivo"
-        utf8_filename = urllib.parse.quote(file_name)
-        
-        return Response(
-            data,
-            headers={
-                'Content-Disposition': f'attachment; filename="{ascii_filename}"; filename*=UTF-8\'\'{utf8_filename}',
-                'Content-Type': content_type,
-                'Cache-Control': 'no-cache'
-            }
+        import io
+        from flask import send_file
+
+        # Si el nombre no tiene extensión o es genérico, extraerlo de la URL
+        if '.' not in file_name or file_name == 'evidencia':
+            parsed_url = urllib.parse.urlparse(file_url)
+            url_filename = urllib.parse.unquote(parsed_url.path.split('/')[-1])
+            if url_filename:
+                file_name = url_filename
+
+        return send_file(
+            io.BytesIO(data),
+            mimetype=content_type,
+            as_attachment=True,
+            download_name=file_name
         )
     except Exception as e:
         print(f'Error proxying download: {e}')
