@@ -1029,6 +1029,25 @@ def analyze_stats():
 def upload_file():
     inst_id = request.form.get('inst_id', 1, type=int)
     program_id = request.form.get('program_id', 0, type=int)
+    
+    # Validar y corregir inst_id si es 0 o None para evitar errores de llave foránea
+    if not inst_id or inst_id == 0:
+        try:
+            first_inst = supabase.table('institution').select("id").limit(1).execute()
+            inst_id = first_inst.data[0]['id'] if first_inst.data else 1
+        except Exception as e:
+            print(f"Error fetching fallback institution: {e}")
+            inst_id = 1
+
+    # Validar y corregir program_id si es 0 o None para evitar errores de llave foránea
+    if not program_id or program_id == 0:
+        try:
+            first_prog = supabase.table('programs').select("id").limit(1).execute()
+            program_id = first_prog.data[0]['id'] if first_prog.data else 1
+        except Exception as e:
+            print(f"Error fetching fallback program: {e}")
+            program_id = 1
+
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
     
