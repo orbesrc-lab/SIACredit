@@ -1244,28 +1244,51 @@ def proxy_download():
         return jsonify({'error': 'URL requerida'}), 400
     try:
         import urllib.parse
+        import mimetypes
         # Safe encoding for URL in case it has spaces or special characters
         parsed = urllib.parse.urlparse(file_url)
-        safe_path = urllib.parse.quote(parsed.path)
+        # Use safe='/:@%' to avoid double-encoding already-encoded chars
+        safe_path = urllib.parse.quote(parsed.path, safe='/:@%')
         safe_url = parsed._replace(path=safe_path).geturl()
         
         req = urllib.request.Request(safe_url, headers={'User-Agent': 'SIACredit/1.0'})
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = resp.read()
             content_type = resp.headers.get('Content-Type', 'application/octet-stream')
+            # Strip charset and params from content type for clean mimetype
+            content_type_clean = content_type.split(';')[0].strip()
         import io
         from flask import send_file
 
-        # Si el nombre no tiene extensión o es genérico, extraerlo de la URL
-        if '.' not in file_name or file_name == 'evidencia':
-            parsed_url = urllib.parse.urlparse(file_url)
-            url_filename = urllib.parse.unquote(parsed_url.path.split('/')[-1])
-            if url_filename:
-                file_name = url_filename
+        # Siempre extraer el nombre real del archivo desde la URL de Supabase
+        # El path de la URL contiene el nombre original con extensión
+        parsed_url = urllib.parse.urlparse(file_url)
+        # Obtener solo la última parte del path (sin query string, usando path no query)
+        url_path_basename = urllib.parse.unquote(parsed_url.path.split('/')[-1])
+        
+        # Si el nombre recibido no tiene extensión o es genérico, usar el de la URL
+        if not file_name or '.' not in file_name or file_name in ('evidencia', 'archivo'):
+            if url_path_basename and '.' in url_path_basename:
+                file_name = url_path_basename
+            else:
+                # Como último recurso, derivar extensión del content-type
+                ext = mimetypes.guess_extension(content_type_clean) or ''
+                # mimetypes puede dar .jpe en vez de .jpg, normalizar
+                ext_map = {'.jpe': '.jpg', '.jpeg': '.jpg', '.htm': '.html'}
+                ext = ext_map.get(ext, ext)
+                file_name = (file_name or 'archivo') + ext
+        else:
+            # El nombre tiene extensión; si el de la URL tiene extensión diferente, priorizar la URL
+            if url_path_basename and '.' in url_path_basename:
+                url_ext = url_path_basename.rsplit('.', 1)[-1].lower()
+                name_ext = file_name.rsplit('.', 1)[-1].lower()
+                if url_ext != name_ext and url_ext:
+                    # Reemplazar la extensión con la correcta según la URL del storage
+                    file_name = file_name.rsplit('.', 1)[0] + '.' + url_ext
 
         return send_file(
             io.BytesIO(data),
-            mimetype=content_type,
+            mimetype=content_type_clean,
             as_attachment=True,
             download_name=file_name
         )
