@@ -117,6 +117,10 @@ def estadisticas():
 def configuracion():
     return render_template('configuracion.html')
 
+@app.route('/biblioteca.html')
+def biblioteca():
+    return render_template('biblioteca.html')
+
 # Endpoint de emergencia para recrear admin
 @app.route('/api/setup-admin', methods=['GET'])
 def setup_admin():
@@ -1077,6 +1081,22 @@ def get_evidences():
         query = query.eq("aspect_id", aspect_id)
     res = query.execute()
     return jsonify(res.data)
+
+@app.route('/api/library', methods=['GET'])
+def get_library():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    try:
+        # Documentos globales (no ligados a una inst_id estricta, o usamos inst_id = 0)
+        global_res = supabase.table('evidences').select("*").eq("aspect_id", "BIBLIOTECA_GLOBAL").execute()
+        # Documentos institucionales (ligados a la institución actual)
+        inst_res = supabase.table('evidences').select("*").eq("aspect_id", "BIBLIOTECA_INST").eq("inst_id", inst_id).execute()
+        return jsonify({
+            "global": global_res.data,
+            "institucional": inst_res.data
+        })
+    except Exception as e:
+        print(f"Error loading library: {e}")
+        return jsonify({"global": [], "institucional": []})
 
 @app.route('/api/evidences/<int:evidence_id>', methods=['DELETE'])
 def delete_evidence(evidence_id):

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKEL SIAC - Biblioteca</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+        .card h3 { font-size: 1.2rem; color: var(--text-main); margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .doc-list { list-style: none; padding: 0; margin: 0; }
+        .doc-item { padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .doc-item:last-child { border-bottom: none; }
+        .doc-name { font-weight: 500; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+        .doc-actions { display: flex; gap: 10px; }
+        
+        .btn-upload { background: var(--primary-color); color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; border: none; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-upload:hover { background: var(--primary-hover); }
+        .btn-download { background: #e0e7ff; color: var(--primary-color); padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; cursor: pointer; border: none; text-decoration: none; font-weight: 600; }
+        .btn-delete { background: #fee2e2; color: #ef4444; padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; cursor: pointer; border: none; font-weight: 600; }
+        
+        .empty-state { text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+            </svg>
+            SKEL SIAC
+        </div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
+            <a href="evidencias.html" class="sidebar-item">📁 Evidencias</a>
+            <a href="autoevaluacion.html" class="sidebar-item">📝 Autoevaluación</a>
+            <a href="informes.html" class="sidebar-item">📄 Informes</a>
+            <a href="estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
+            <a href="biblioteca.html" class="sidebar-item active">📚 Biblioteca</a>
+            <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
+        </div>
+        <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444;">🚪 Cerrar Sesión</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h2 style="font-size: 1.25rem; margin: 0;">Biblioteca de Documentos</h2>
+            </div>
+            <div id="userInfo" style="font-weight: 600; color: var(--text-main);"></div>
+        </header>
+
+        <div class="content-area fade-in">
+            <h1 style="margin-bottom: 20px; font-size: 1.8rem;">Biblioteca Institucional y Normativa</h1>
+            <p style="color: var(--text-muted); margin-bottom: 30px;">
+                Aquí podrás consultar documentos normativos genéricos de la plataforma, así como los reglamentos específicos de tu institución.
+            </p>
+            
+            <div class="grid-cards">
+                <!-- Biblioteca Global -->
+                <div class="card">
+                    <h3>
+                        🌎 Documentos Globales (SKEL)
+                        <label id="btnUploadGlobal" class="btn-upload" style="display: none;">
+                            + Subir Documento
+                            <input type="file" style="display: none;" onchange="uploadLibraryFile(this, 'BIBLIOTECA_GLOBAL')">
+                        </label>
+                    </h3>
+                    <ul class="doc-list" id="listGlobal">
+                        <li class="empty-state">Cargando documentos...</li>
+                    </ul>
+                </div>
+
+                <!-- Biblioteca Institucional -->
+                <div class="card">
+                    <h3>
+                        🏫 Documentos Institucionales
+                        <label id="btnUploadInst" class="btn-upload" style="display: none;">
+                            + Subir Documento
+                            <input type="file" style="display: none;" onchange="uploadLibraryFile(this, 'BIBLIOTECA_INST')">
+                        </label>
+                    </h3>
+                    <ul class="doc-list" id="listInst">
+                        <li class="empty-state">Cargando documentos...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='data.js') }}"></script>
+    <script>
+        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'user@ejemplo.com', role: 'lider' };
+        document.getElementById('userInfo').textContent = user.email;
+
+        function logout() { localStorage.removeItem('siac_user'); window.location.href = 'index.html'; }
+
+        // Mostrar botones de subida según rol
+        if (user.role === 'admin') {
+            document.getElementById('btnUploadGlobal').style.display = 'inline-flex';
+            document.getElementById('btnUploadInst').style.display = 'inline-flex';
+        } else if (user.role === 'inst_admin') {
+            document.getElementById('btnUploadInst').style.display = 'inline-flex';
+        }
+
+        async function loadLibrary() {
+            try {
+                const res = await fetch(`/api/library?inst_id=${getInstId()}`);
+                const data = await res.json();
+                
+                renderDocs('listGlobal', data.global, 'No hay documentos globales disponibles.');
+                renderDocs('listInst', data.institucional, 'No hay documentos institucionales disponibles.');
+            } catch (err) {
+                console.error("Error cargando biblioteca", err);
+                document.getElementById('listGlobal').innerHTML = '<li class="empty-state">Error cargando documentos</li>';
+                document.getElementById('listInst').innerHTML = '<li class="empty-state">Error cargando documentos</li>';
+            }
+        }
+
+        function renderDocs(elementId, docs, emptyMessage) {
+            const list = document.getElementById(elementId);
+            list.innerHTML = '';
+            
+            if (!docs || docs.length === 0) {
+                list.innerHTML = `<li class="empty-state">${emptyMessage}</li>`;
+                return;
+            }
+
+            docs.forEach(doc => {
+                const li = document.createElement('li');
+                li.className = 'doc-item';
+                
+                // Si es ADMIN puede borrar global e inst. Si es INST_ADMIN puede borrar inst.
+                const canDelete = (user.role === 'admin') || (user.role === 'inst_admin' && doc.aspect_id === 'BIBLIOTECA_INST');
+                
+                const deleteBtnHtml = canDelete ? `<button class="btn-delete" onclick="deleteDoc(${doc.id})">Borrar</button>` : '';
+                
+                li.innerHTML = `
+                    <div class="doc-name">
+                        📄 <span>${doc.name}</span>
+                    </div>
+                    <div class="doc-actions">
+                        <a class="btn-download" href="/api/download?url=${encodeURIComponent(doc.file_url)}&name=${encodeURIComponent(doc.name)}" target="_blank">⬇️ Descargar</a>
+                        ${deleteBtnHtml}
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        async function uploadLibraryFile(inputElem, aspectId) {
+            if (!inputElem.files || inputElem.files.length === 0) return;
+            const file = inputElem.files[0];
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('aspect_id', aspectId);
+            formData.append('period', 'Biblioteca');
+            formData.append('email', user.email);
+            
+            // Los documentos globales no están atados a una inst/prog específico, 
+            // pero nuestro upload requiere inst_id y program_id. 
+            // Para globales usaremos 0 si es posible, o simplemente lo subimos.
+            const instId = aspectId === 'BIBLIOTECA_GLOBAL' ? 0 : getInstId();
+            const progId = 0; // La biblioteca no pertenece a un programa específico
+            
+            formData.append('inst_id', instId);
+            formData.append('program_id', progId);
+
+            inputElem.parentElement.innerHTML = 'Subiendo...';
+            
+            try {
+                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    await loadLibrary();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Error de conexión');
+            } finally {
+                inputElem.parentElement.innerHTML = `+ Subir Documento <input type="file" style="display: none;" onchange="uploadLibraryFile(this, '${aspectId}')">`;
+            }
+        }
+
+        async function deleteDoc(id) {
+            if (!confirm('¿Estás seguro de eliminar este documento de la biblioteca?')) return;
+            try {
+                const res = await fetch(`/api/evidences/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    loadLibrary();
+                } else {
+                    alert('Error eliminando: ' + data.message);
+                }
+            } catch (err) {
+                alert('Error de conexión');
+            }
+        }
+
+        loadLibrary();
+    </script>
+</body>
+</html>

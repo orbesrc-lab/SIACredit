@@ -1,11 +1,20 @@
-import urllib.request
-import json
+import os
+from dotenv import load_dotenv
+from openai import OpenAI
 
-url = "http://127.0.0.1:5000/api/model?inst_id=1&program_id=1"
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(
+    api_key=api_key,
+    base_url="https://open.bigmodel.cn/api/paas/v4/"
+)
+
 try:
-    with urllib.request.urlopen(url) as response:
-        data = json.loads(response.read().decode())
-        for f in data:
-            print(f"Factor ID: {f.get('id')}, Number: {repr(f.get('number'))}, Name: {f.get('name')}")
+    response = client.chat.completions.create(
+        model="glm-4",
+        messages=[{"role": "user", "content": "Hola, prueba."}],
+        max_tokens=20
+    )
+    print("SUCCESS:", response.choices[0].message.content)
 except Exception as e:
-    print("Error:", e)
+    print("ERROR:", e)

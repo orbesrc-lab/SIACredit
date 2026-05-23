@@ -44,6 +44,7 @@
             <a href="autoevaluacion.html" class="sidebar-item">📝 Autoevaluación</a>
             <a href="estadisticas.html" class="sidebar-item active">📈 Estadísticas</a>
             <a href="informes.html" class="sidebar-item">📄 Informes</a>
+            <a href="biblioteca.html" class="sidebar-item">📚 Biblioteca</a>
             <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
         </div>
         <div class="sidebar-footer">
@@ -64,7 +65,8 @@
                     <span style="font-size: 1.5rem;">⚠️</span>
                     <div>
                         <h4 style="margin: 0; color: #b45309; font-size: 0.95rem; font-weight: 700;">No has seleccionado un Programa Académico activo</h4>
-                        <p style="margin: 5px 0 0 0; color: #d97706; font-size: 0.85rem;">Para poder visualizar y guardar los datos estadísticos, primero debes cargar o seleccionar un programa desde la sección de <a href="configuracion.html" style="font-weight: 600; text-decoration: underline; color: inherit;">Configuración</a>.</p>
+                        <p style="margin: 5px 0 0 0; color: #d97706; font-size: 0.85rem;">Para poder visualizar y guardar los datos estadísticos, primero debes cargar o seleccionar un programa desde la sección de <a href="biblioteca.html" class="sidebar-item">📚 Biblioteca</a>
+            <a href="configuracion.html" style="font-weight: 600; text-decoration: underline; color: inherit;">Configuración</a>.</p>
                     </div>
                 </div>
             </div>
@@ -370,6 +372,7 @@
                 // Si no hay datos, poner una fila inicial vacía
                 if (data.length === 0) {
                     data.push(createEmptyRow(columns));
+                    stats[tableId] = data;
                 }
 
                 data.forEach((rowData, rowIndex) => {
