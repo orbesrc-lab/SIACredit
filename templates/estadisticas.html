@@ -377,21 +377,28 @@
                     columns.forEach(col => {
                         const td = document.createElement('td');
                         if (col === 'adjunto') {
-                            const adjUrl = rowData[col];
-                            if (adjUrl) {
-                                const fileName = adjUrl.split('/').pop() || 'evidencia_cuadro';
-                                td.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; gap:5px;">
-                                    <a href="/api/download?url=${encodeURIComponent(adjUrl)}&name=${encodeURIComponent(fileName)}" target="_blank" title="Descargar Soporte" style="font-size:0.75rem; padding:4px 8px; background:#e0e7ff; color:#4338ca; border-radius:4px; text-decoration:none; font-weight:600; white-space:nowrap; display:inline-flex; align-items:center; gap:3px;">
-                                        ⬇️ Descargar
+                            const adjList = Array.isArray(rowData[col]) ? rowData[col] : 
+                                            (rowData[col] ? [{url: rowData[col], name: rowData[col].split('/').pop() || 'evidencia_cuadro'}] : []);
+                            
+                            let html = `<div style="display:flex; flex-direction:column; gap:5px; align-items:center;">`;
+                            
+                            adjList.forEach((adj, idx) => {
+                                const displayName = (adj.name && adj.name.length > 12) ? adj.name.substring(0, 10) + '...' : (adj.name || 'Doc');
+                                html += `<div style="display:flex; align-items:center; justify-content:center; gap:5px;">
+                                    <a href="/api/download?url=${encodeURIComponent(adj.url)}&name=${encodeURIComponent(adj.name || 'archivo')}" target="_blank" title="${adj.name}" style="font-size:0.75rem; padding:4px 8px; background:#e0e7ff; color:#4338ca; border-radius:4px; text-decoration:none; font-weight:600; white-space:nowrap;">
+                                        ⬇️ ${displayName}
                                     </a>
-                                    <button onclick="removeStatFile('${tableId}', ${rowIndex})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1rem; padding:2px 5px;" title="Eliminar soporte">✕</button>
+                                    <button onclick="removeStatFile('${tableId}', ${rowIndex}, ${idx})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1rem; padding:2px 5px;" title="Eliminar soporte">✕</button>
                                 </div>`;
-                            } else {
-                                td.innerHTML = `<label style="cursor:pointer; color:var(--primary-color); font-size:0.9rem; text-decoration:underline; white-space:nowrap;">
-                                    Subir...
-                                    <input type="file" style="display:none;" onchange="uploadStatFile('${tableId}', ${rowIndex}, this)">
-                                </label>`;
-                            }
+                            });
+
+                            html += `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; white-space:nowrap; margin-top:5px;">
+                                ${adjList.length > 0 ? '+ Otro Archivo' : 'Subir Archivo...'}
+                                <input type="file" style="display:none;" onchange="uploadStatFile('${tableId}', ${rowIndex}, this)">
+                            </label>`;
+                            
+                            html += `</div>`;
+                            td.innerHTML = html;
                         } else {
                             const input = document.createElement('input');
                             input.type = "text";
@@ -477,7 +484,13 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    updateData(tableId, rowIndex, 'adjunto', data.url);
+                    const stats = getStatistics();
+                    let currentAdj = stats[tableId][rowIndex]['adjunto'];
+                    if (!currentAdj) currentAdj = [];
+                    else if (!Array.isArray(currentAdj)) currentAdj = [{url: currentAdj, name: currentAdj.split('/').pop() || 'evidencia_cuadro'}];
+                    
+                    currentAdj.push({url: data.url, name: file.name});
+                    updateData(tableId, rowIndex, 'adjunto', currentAdj);
                     renderTables();
                     showSaveBanner();
                 } else {
@@ -490,9 +503,16 @@
             }
         }
 
-        function removeStatFile(tableId, rowIndex) {
-            if (confirm("¿Estás seguro de quitar este archivo adjunto? (Solo se quitará la referencia en el cuadro, el archivo seguirá en el sistema)")) {
-                updateData(tableId, rowIndex, 'adjunto', '');
+        function removeStatFile(tableId, rowIndex, fileIndex) {
+            if (confirm("¿Estás seguro de quitar este archivo adjunto?")) {
+                const stats = getStatistics();
+                let currentAdj = stats[tableId][rowIndex]['adjunto'];
+                if (Array.isArray(currentAdj)) {
+                    currentAdj.splice(fileIndex, 1);
+                    updateData(tableId, rowIndex, 'adjunto', currentAdj);
+                } else {
+                    updateData(tableId, rowIndex, 'adjunto', []);
+                }
                 renderTables();
                 showSaveBanner();
             }

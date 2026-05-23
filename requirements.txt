@@ -7,3 +7,5 @@ httpx
 storage3
 realtime
 openai
+PyPDF2
+docx2txt

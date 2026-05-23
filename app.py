@@ -981,10 +981,39 @@ def get_informe_dinamico():
 def analyze_stats():
     req_data = request.json
     table_id = req_data.get('table_id')
-    analysis = ["**Análisis por API:** Datos procesados correctamente."]
-    if table_id == 'table_estudiantes':
-        analysis.append("Se observa tendencia estable en la matrícula.")
-    return jsonify({"analysis": analysis})
+    all_data = req_data.get('all_data', {})
+    
+    api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
+    if not api_key:
+        return jsonify({"analysis": "Error: La API Key de Inteligencia Artificial no está configurada."})
+
+    try:
+        client = OpenAI(
+            api_key=api_key,
+            base_url="https://open.bigmodel.cn/api/paas/v4/"
+        )
+        
+        if table_id:
+            data_context = json.dumps(all_data.get(table_id, []), ensure_ascii=False)
+            prompt = f"Actúa como par académico del CNA. Analiza los siguientes datos estadísticos del cuadro '{table_id}' e identifica tendencias, fortalezas o aspectos críticos. Responde directamente con el análisis en formato HTML básico (usando etiquetas como <p>, <strong>, <ul>) sin usar bloques de código Markdown. Datos: {data_context}"
+        else:
+            data_context = json.dumps(all_data, ensure_ascii=False)
+            if len(data_context) > 30000:
+                data_context = data_context[:30000] + "... [truncado]"
+            prompt = f"Actúa como par académico del CNA. Analiza de manera integral los siguientes cuadros de datos estadísticos institucionales. Resalta los aspectos más importantes, tendencias globales y posibles oportunidades de mejora. Responde directamente con el análisis en formato HTML básico (usando etiquetas como <p>, <strong>, <ul>, <h3>) sin usar bloques de código Markdown. Datos: {data_context}"
+
+        response = client.chat.completions.create(
+            model="glm-4",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.6,
+            max_tokens=1500
+        )
+        
+        html_analysis = response.choices[0].message.content.replace('```html', '').replace('```', '')
+        return jsonify({"analysis": html_analysis})
+    except Exception as e:
+        print(f"Error AI Analysis: {e}")
+        return jsonify({"analysis": f"Error procesando análisis: {str(e)}"})
     
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
@@ -1107,28 +1136,67 @@ def proxy_download():
 def ai_chat():
     data = request.json
     question = data.get('question', '')
-    inst_id = data.get('inst_id', 1)
-    program_id = data.get('program_id', 0)
+    file_url = data.get('file_url', '')
     
     api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
     if not api_key:
         return jsonify({"error": "La API Key de Inteligencia Artificial no está configurada en el servidor."}), 500
 
     try:
+        # Extraer texto del archivo si se proporciona
+        file_context = ""
+        if file_url:
+            try:
+                import urllib.request
+                import tempfile
+                import os
+                
+                req = urllib.request.Request(file_url, headers={'User-Agent': 'SIACredit/1.0'})
+                with urllib.request.urlopen(req, timeout=30) as response:
+                    file_bytes = response.read()
+                    
+                    if file_url.lower().split('?')[0].endswith('.pdf'):
+                        import PyPDF2
+                        import io
+                        pdf = PyPDF2.PdfReader(io.BytesIO(file_bytes))
+                        text = ""
+                        for page in pdf.pages:
+                            text += page.extract_text() + "\n"
+                        file_context = text
+                    elif file_url.lower().split('?')[0].endswith('.docx'):
+                        import docx2txt
+                        import io
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+                            tmp.write(file_bytes)
+                            tmp_path = tmp.name
+                        file_context = docx2txt.process(tmp_path)
+                        os.unlink(tmp_path)
+                    else:
+                        file_context = file_bytes.decode('utf-8', errors='ignore')
+            except Exception as e:
+                print(f"Error parsing attached file: {e}")
+                file_context = f"[Error al leer el archivo adjunto: {e}]"
+
         client = OpenAI(
             api_key=api_key,
             base_url="https://open.bigmodel.cn/api/paas/v4/"
         )
         system_prompt = "Eres un asistente experto en acreditación de alta calidad para instituciones de educación superior en Colombia (CNA). Responde de manera concisa, profesional y analítica basándote en estándares de calidad académica."
         
+        final_prompt = question
+        if file_context:
+            if len(file_context) > 20000:
+                file_context = file_context[:20000] + "... [texto truncado]"
+            final_prompt = f"El usuario ha adjuntado un documento con el siguiente contenido:\n\n{file_context}\n\nPregunta del usuario: {question if question else 'Resume el documento o extrae los aspectos clave para la acreditación.'}"
+
         response = client.chat.completions.create(
             model="glm-4",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": question}
+                {"role": "user", "content": final_prompt}
             ],
             temperature=0.7,
-            max_tokens=1000
+            max_tokens=1500
         )
         
         answer = response.choices[0].message.content

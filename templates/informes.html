@@ -146,7 +146,9 @@
             <div class="ai-chat-messages" id="aiChatMessages">
                 <div class="ai-message">¡Hola! Soy tu asistente de Inteligencia Artificial para la acreditación. Puedo ayudarte a analizar cuadros estadísticos o generar reportes de los factores. ¿En qué te ayudo hoy?</div>
             </div>
-            <div class="ai-chat-input-area">
+            <div class="ai-chat-input-area" style="align-items: center;">
+                <input type="file" id="aiChatFile" style="display:none;" onchange="updateChatFileLabel()">
+                <label for="aiChatFile" id="aiChatFileLabel" style="cursor:pointer; font-size:1.2rem; padding:0 8px; color:#64748b; margin-bottom:0;" title="Adjuntar archivo">📎</label>
                 <input type="text" id="aiChatInput" placeholder="Escribe tu consulta..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
                 <button onclick="sendChatMessage()">Enviar</button>
             </div>
@@ -382,56 +384,99 @@
             }
         }
 
+        function updateChatFileLabel() {
+            const input = document.getElementById('aiChatFile');
+            const label = document.getElementById('aiChatFileLabel');
+            if (input.files && input.files[0]) {
+                label.style.color = '#3b82f6';
+                label.title = input.files[0].name;
+            } else {
+                label.style.color = '#64748b';
+                label.title = 'Adjuntar archivo';
+            }
+        }
+
         async function sendChatMessage() {
             const input = document.getElementById('aiChatInput');
+            const fileInput = document.getElementById('aiChatFile');
             const text = input.value.trim();
-            if (!text) return;
+            
+            if (!text && (!fileInput.files || !fileInput.files[0])) return;
             
             const messagesContainer = document.getElementById('aiChatMessages');
             
             const userMsg = document.createElement('div');
-            userMsg.className = 'user-message';
-            userMsg.textContent = text;
+            userMsg.className = 'ai-message user-msg';
+            let msgContent = text;
+            if (fileInput.files && fileInput.files[0]) {
+                msgContent += (msgContent ? '<br>' : '') + `<small style="color:#475569;">📎 ${fileInput.files[0].name}</small>`;
+            }
+            userMsg.innerHTML = msgContent || "Analizar archivo adjunto";
+            userMsg.style.alignSelf = 'flex-end';
+            userMsg.style.background = '#e0e7ff';
+            userMsg.style.color = '#1e3a8a';
+            userMsg.style.borderRadius = '12px 12px 0 12px';
             messagesContainer.appendChild(userMsg);
             
             input.value = '';
-            
-            const typingMsg = document.createElement('div');
-            typingMsg.className = 'ai-message';
-            typingMsg.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
-            messagesContainer.appendChild(typingMsg);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            const loadingMsg = document.createElement('div');
+            loadingMsg.className = 'ai-message';
+            loadingMsg.innerHTML = '<em>Escribiendo...</em>';
+            messagesContainer.appendChild(loadingMsg);
             
             try {
+                let fileUrl = null;
+                if (fileInput.files && fileInput.files[0]) {
+                    loadingMsg.innerHTML = '<em>Subiendo archivo...</em>';
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+                    formData.append('aspect_id', 'CHATBOT_TEMP');
+                    
+                    const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+                    const uploadData = await uploadRes.json();
+                    if (uploadData.status === 'success') {
+                        fileUrl = uploadData.url;
+                    } else {
+                        throw new Error(uploadData.error || 'Error subiendo archivo');
+                    }
+                    fileInput.value = '';
+                    updateChatFileLabel();
+                }
+
+                loadingMsg.innerHTML = '<em>Analizando con Z.ai...</em>';
                 const res = await fetch('/api/ai/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        question: text,
-                        inst_id: getInstId(),
-                        program_id: getProgramId()
-                    })
+                    body: JSON.stringify({ question: text, file_url: fileUrl })
                 });
                 const data = await res.json();
                 
-                messagesContainer.removeChild(typingMsg);
+                messagesContainer.removeChild(loadingMsg);
                 
                 const aiMsg = document.createElement('div');
                 aiMsg.className = 'ai-message';
-                if (data.status === 'success') {
-                    aiMsg.innerHTML = marked.parse(data.answer);
-                } else {
-                    aiMsg.textContent = "Error: " + (data.error || "No se pudo contactar a la IA.");
-                }
+                
+                // Formatear Markdown a HTML básico
+                let finalAnswer = data.answer || data.error || 'Error procesando respuesta.';
+                finalAnswer = finalAnswer.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                finalAnswer = finalAnswer.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                finalAnswer = finalAnswer.replace(/\n/g, '<br>');
+                
+                aiMsg.innerHTML = finalAnswer;
                 messagesContainer.appendChild(aiMsg);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
             } catch (err) {
-                messagesContainer.removeChild(typingMsg);
+                if (messagesContainer.contains(loadingMsg)) {
+                    messagesContainer.removeChild(loadingMsg);
+                }
                 const aiMsg = document.createElement('div');
                 aiMsg.className = 'ai-message';
-                aiMsg.textContent = "Error de conexión con la IA.";
+                aiMsg.innerHTML = 'Error de comunicación con IA: ' + err.message;
+                aiMsg.style.color = 'red';
                 messagesContainer.appendChild(aiMsg);
             }
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         // --- Lógica Generación Informe Maestro IA ---
