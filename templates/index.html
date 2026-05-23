@@ -7,7 +7,7 @@
     <meta name="description" content="Consultora líder en procesos de autoevaluación, registros calificados y acreditación de programas de educación superior en Colombia.">
     <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}?v=2.0">
 </head>
-<body>
+<body class="{{ 'light-theme' if theme == 'light' else '' }}">
 
 <!-- TOP BAR -->
 <div class="topbar-bar">

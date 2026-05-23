@@ -81,7 +81,12 @@ def fix_db():
 @app.route('/')
 @app.route('/index.html')
 def index():
-    return render_template('index.html')
+    try:
+        res = supabase.table('statistics').select("data_json").eq("table_id", "GLOBAL_CONFIG").eq("inst_id", 0).execute()
+        config = json.loads(res.data[0]['data_json']) if res.data else {"theme": "dark"}
+    except Exception:
+        config = {"theme": "dark"}
+    return render_template('index.html', theme=config.get('theme', 'dark'))
 
 @app.route('/login.html')
 @app.route('/login')
@@ -1148,6 +1153,31 @@ def delete_library_doc(aspect_id, doc_id):
         return jsonify({"status": "error", "message": "No encontrado"}), 404
     except Exception as e:
         print(f"Error deleting library doc: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/global-settings', methods=['POST'])
+def save_global_settings():
+    try:
+        data = request.json
+        theme = data.get('theme', 'dark')
+        
+        # Buscar si ya existe la configuración global
+        check = supabase.table('statistics').select("id").eq("table_id", "GLOBAL_CONFIG").eq("inst_id", 0).execute()
+        
+        config_data = json.dumps({"theme": theme})
+        
+        if check.data:
+            supabase.table('statistics').update({"data_json": config_data}).eq("id", check.data[0]["id"]).execute()
+        else:
+            supabase.table('statistics').insert({
+                "table_id": "GLOBAL_CONFIG",
+                "data_json": config_data,
+                "inst_id": 0,
+                "program_id": 0
+            }).execute()
+            
+        return jsonify({"status": "success"})
+    except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/evidences/<int:evidence_id>', methods=['DELETE'])

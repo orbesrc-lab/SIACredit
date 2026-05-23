@@ -157,6 +157,23 @@
         <div class="content-area">
             <h1 style="font-size: 1.8rem; margin-bottom: 30px;">Configuración del Sistema</h1>
             
+            <!-- Configuración Global (Solo Admins) -->
+            <div id="globalSettingsCard" class="settings-card" style="display: none; border-left: 5px solid var(--accent-color, #10b981);">
+                <h3>Configuración Global de SKEL</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Ajustes que aplican a la página principal de la plataforma para todos los visitantes.</p>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Tema de la Página de Inicio (Landing Page)</label>
+                        <select id="globalThemeSelect">
+                            <option value="dark">🌙 Tema Oscuro (Original)</option>
+                            <option value="light">☀️ Tema Claro (Ideal para logos con fondo blanco)</option>
+                        </select>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Este cambio se aplica instantáneamente a la página principal.</p>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="saveGlobalTheme()" style="margin-top: 10px;">Guardar Tema Global</button>
+            </div>
+
             <!-- Gestión de Institución (Solo para Admins) -->
             <div id="instSelectorCard" class="settings-card premium-border" style="display: none;">
                 <h3>Gestión de Organización</h3>
@@ -1287,6 +1304,7 @@
             const currentUser = JSON.parse(localStorage.getItem('siac_user') || '{}');
             if (currentUser.role === 'admin') { // Habilitado solo para superadministradores
                 document.getElementById('instSelectorCard').style.display = 'block';
+                if (document.getElementById('globalSettingsCard')) document.getElementById('globalSettingsCard').style.display = 'block';
                 const resp = await fetch('/api/institutions');
                 const list = await resp.json();
                 const select = document.getElementById('instSelect');
@@ -1592,6 +1610,26 @@
         }
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
+
+        async function saveGlobalTheme() {
+            const theme = document.getElementById('globalThemeSelect').value;
+            try {
+                const res = await fetch('/api/global-settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ theme: theme })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    alert("✅ Tema global guardado correctamente.");
+                } else {
+                    alert("❌ Error: " + data.message);
+                }
+            } catch (e) {
+                alert("❌ Error de conexión al guardar el tema global.");
+            }
+        }
+
 </body>
 
 </html>
