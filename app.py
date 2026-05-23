@@ -82,7 +82,8 @@ def fix_db():
 @app.route('/index.html')
 def index():
     try:
-        res = supabase.table('statistics').select("data_json").eq("table_id", "GLOBAL_CONFIG").eq("inst_id", 0).execute()
+        # Fetch sin eq("inst_id", 0) porque ya no usamos 0
+        res = supabase.table('statistics').select("data_json").eq("table_id", "GLOBAL_CONFIG").execute()
         config = json.loads(res.data[0]['data_json']) if res.data else {"theme": "dark"}
     except Exception:
         config = {"theme": "dark"}
@@ -1080,7 +1081,8 @@ def upload_file():
                     current_data.append(doc_record)
                     supabase.table('statistics').update({"data_json": json.dumps(current_data)}).eq("id", check.data[0]["id"]).execute()
                 else:
-                    save_inst_id = 0 if aspect_id == 'BIBLIOTECA_GLOBAL' else inst_id
+                    # Usar inst_id válido actual para evitar errores de llave foránea (inst_id=0 no existe)
+                    save_inst_id = inst_id
                     supabase.table('statistics').insert({
                         "table_id": aspect_id,
                         "data_json": json.dumps([doc_record]),
@@ -1161,18 +1163,22 @@ def save_global_settings():
         data = request.json
         theme = data.get('theme', 'dark')
         
-        # Buscar si ya existe la configuración global
-        check = supabase.table('statistics').select("id").eq("table_id", "GLOBAL_CONFIG").eq("inst_id", 0).execute()
+        # Buscar si ya existe la configuración global (sin filtrar por inst_id)
+        check = supabase.table('statistics').select("id").eq("table_id", "GLOBAL_CONFIG").execute()
         
         config_data = json.dumps({"theme": theme})
         
         if check.data:
             supabase.table('statistics').update({"data_json": config_data}).eq("id", check.data[0]["id"]).execute()
         else:
+            # Obtener el primer inst_id de la BD para usarlo como ancla válida
+            first_inst = supabase.table('institution').select("id").limit(1).execute()
+            valid_inst_id = first_inst.data[0]['id'] if first_inst.data else 1
+            
             supabase.table('statistics').insert({
                 "table_id": "GLOBAL_CONFIG",
                 "data_json": config_data,
-                "inst_id": 0,
+                "inst_id": valid_inst_id,
                 "program_id": 0
             }).execute()
             
