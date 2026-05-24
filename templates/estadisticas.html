@@ -475,38 +475,58 @@
                 return;
             }
 
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('inst_id', typeof getInstId === 'function' ? getInstId() : (user.inst_id || 1));
-            formData.append('program_id', progId);
-            formData.append('aspect_id', 'STAT_' + tableId);
-            formData.append('period', 'Estadisticas');
-            formData.append('email', user.email);
-
+            const inst_id = typeof getInstId === 'function' ? getInstId() : (user.inst_id || 1);
             fileInput.parentElement.innerHTML = 'Subiendo...';
 
             try {
-                const res = await fetch('/api/upload', {
+                // Paso 1: Solicitar Signed URL al backend
+                const urlRes = await fetch('/api/direct_upload/url', {
                     method: 'POST',
-                    body: formData
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        aspect_id: 'STAT_' + tableId,
+                        period: 'Estadisticas',
+                        inst_id: inst_id,
+                        program_id: progId
+                    })
                 });
-                const data = await res.json();
-                if (data.status === 'success') {
-                    const stats = getStatistics();
-                    let currentAdj = stats[tableId][rowIndex]['adjunto'];
-                    if (!currentAdj) currentAdj = [];
-                    else if (!Array.isArray(currentAdj)) currentAdj = [{url: currentAdj, name: currentAdj.split('/').pop() || 'evidencia_cuadro'}];
-                    
-                    currentAdj.push({url: data.url, name: file.name});
-                    updateData(tableId, rowIndex, 'adjunto', currentAdj);
-                    renderTables();
-                    showSaveBanner();
-                } else {
-                    alert("Error al subir archivo: " + data.error);
-                    renderTables();
+                
+                const urlData = await urlRes.json();
+                if (!urlRes.ok || urlData.error) {
+                    throw new Error(urlData.error || 'Error obteniendo URL de subida');
                 }
+                
+                const { signed_url, file_url } = urlData;
+                
+                // Paso 2: Subir archivo directamente a Supabase
+                const uploadRes = await fetch(signed_url, {
+                    method: 'PUT',
+                    body: file,
+                    headers: {
+                        'Content-Type': file.type || 'application/octet-stream'
+                    }
+                });
+                
+                if (!uploadRes.ok) {
+                    throw new Error('Error al subir el archivo a Supabase');
+                }
+
+                // Para Estadísticas, no hay Paso 3 de confirmación en base de datos.
+                // Se guarda cuando el usuario hace clic en "Guardar Cuadros".
+                const stats = getStatistics();
+                let currentAdj = stats[tableId][rowIndex]['adjunto'];
+                if (!currentAdj) currentAdj = [];
+                else if (!Array.isArray(currentAdj)) currentAdj = [{url: currentAdj, name: currentAdj.split('/').pop() || 'evidencia_cuadro'}];
+                
+                currentAdj.push({url: file_url, name: file.name});
+                updateData(tableId, rowIndex, 'adjunto', currentAdj);
+                renderTables();
+                showSaveBanner();
+
             } catch (err) {
-                alert("Error de conexión al subir archivo.");
+                console.error(err);
+                alert("Error al subir archivo: " + err.message);
                 renderTables();
             }
         }
