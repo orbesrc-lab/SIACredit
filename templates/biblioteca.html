@@ -180,6 +180,16 @@
             
             try {
                 const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                
+                if (!res.ok) {
+                    if (res.status === 413) {
+                        alert('Error: El archivo es demasiado grande (Límite de Vercel es 4.5MB).');
+                    } else {
+                        alert('Error del servidor: HTTP ' + res.status);
+                    }
+                    return;
+                }
+                
                 const data = await res.json();
                 if (data.status === 'success') {
                     await loadLibrary();
@@ -187,7 +197,7 @@
                     alert('Error: ' + data.error);
                 }
             } catch (err) {
-                alert('Error de conexión');
+                alert('Error de conexión o tiempo de espera agotado: ' + err.message);
             } finally {
                 inputElem.parentElement.innerHTML = `+ Subir Documento <input type="file" style="display: none;" onchange="uploadLibraryFile(this, '${aspectId}')">`;
             }
@@ -197,6 +207,10 @@
             if (!confirm('¿Estás seguro de eliminar este documento de la biblioteca?')) return;
             try {
                 const res = await fetch(`/api/library/${aspectId}/${id}?inst_id=${getInstId()}`, { method: 'DELETE' });
+                if (!res.ok) {
+                    alert('Error del servidor: HTTP ' + res.status);
+                    return;
+                }
                 const data = await res.json();
                 if (data.status === 'success') {
                     loadLibrary();
@@ -204,7 +218,7 @@
                     alert('Error eliminando: ' + data.message);
                 }
             } catch (err) {
-                alert('Error de conexión');
+                alert('Error de red o tiempo de espera: ' + err.message);
             }
         }
 
