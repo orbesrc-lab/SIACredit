@@ -164,42 +164,9 @@
         });
     });
 
-    // ── PDF.js — cargar dinámicamente ───────────────────────────────────────
-    const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-
-    let _pdfjsReady = false;
-    let _pdfjsLoading = false;
-    let _pdfjsCallbacks = [];
-
-    function loadPdfJs(cb) {
-        if (_pdfjsReady) { cb(); return; }
-        _pdfjsCallbacks.push(cb);
-        if (_pdfjsLoading) return;
-        _pdfjsLoading = true;
-        const s = document.createElement('script');
-        s.src = PDFJS_CDN;
-        s.onload = () => {
-            // Desactivar el worker externo para evitar que se quede "pensando" por problemas de CORS
-            pdfjsLib.GlobalWorkerOptions.workerSrc = '';
-            _pdfjsReady = true;
-            _pdfjsCallbacks.forEach(fn => fn());
-            _pdfjsCallbacks = [];
-        };
-        s.onerror = () => {
-            console.error('SIAC Viewer: No se pudo cargar PDF.js');
-            document.getElementById('siac-viewer-loading').innerHTML = '<p style="color:#fca5a5">Error de red. Intente descargar.</p>';
-        };
-        document.head.appendChild(s);
-    }
-
     // ── Estado interno ──────────────────────────────────────────────────────
-    let _pdfDoc   = null;
-    let _curPage  = 1;
-    let _numPages = 1;
-    let _scale    = 1.4;
     let _curUrl   = '';
     let _curName  = '';
-    let _renderTask = null;
 
     // ── API pública ─────────────────────────────────────────────────────────
     window.SIAC_Viewer = {
@@ -214,7 +181,11 @@
 
             document.getElementById('siac-viewer-filename').textContent = _curName;
             document.getElementById('siac-viewer-page-info').textContent = '';
-            document.getElementById('siac-viewer-zoom-info').textContent = Math.round(_scale * 100) + '%';
+            document.getElementById('siac-viewer-zoom-info').textContent = '';
+            
+            // Hide PDF controls since we use iframe
+            document.getElementById('siac-btn-prev').style.display = 'none';
+            document.getElementById('siac-btn-next').style.display = 'none';
 
             this._resetPanels();
             this._showLoading(true);
@@ -233,9 +204,7 @@
         cerrar() {
             document.getElementById('siac-viewer-overlay').classList.remove('open');
             document.body.style.overflow = '';
-            if (_renderTask) { _renderTask.cancel(); _renderTask = null; }
-            _pdfDoc  = null;
-            _curPage = 1;
+            document.getElementById('siac-pdf-container').innerHTML = ''; // clear iframe
         },
 
         download() {
@@ -251,21 +220,11 @@
             }
         },
 
-        prevPage() {
-            if (!_pdfDoc || _curPage <= 1) return;
-            _curPage--;
-            this._renderPage(_curPage);
-        },
-
-        nextPage() {
-            if (!_pdfDoc || _curPage >= _numPages) return;
-            _curPage++;
-            this._renderPage(_curPage);
-        },
-
-        zoomIn()    { _scale = Math.min(_scale + 0.25, 4.0); this._renderPage(_curPage); },
-        zoomOut()   { _scale = Math.max(_scale - 0.25, 0.5); this._renderPage(_curPage); },
-        zoomReset() { _scale = 1.4; this._renderPage(_curPage); },
+        prevPage() {},
+        nextPage() {},
+        zoomIn() {},
+        zoomOut() {},
+        zoomReset() {},
 
         _resetPanels() {
             document.getElementById('siac-pdf-container').innerHTML = '';
@@ -273,8 +232,6 @@
             document.getElementById('siac-img-viewer').src = '';
             document.getElementById('siac-other-viewer').style.display = 'none';
             document.getElementById('siac-viewer-error').classList.remove('show');
-            document.getElementById('siac-btn-prev').style.display = 'none';
-            document.getElementById('siac-btn-next').style.display = 'none';
             document.getElementById('siac-viewer-page-info').textContent = '';
         },
 
@@ -314,77 +271,22 @@
         },
 
         _abrirPDF(url) {
-            const self = this;
-            loadPdfJs(() => {
-                let proxyUrl = url;
-                if (url.includes('supabase') || url.includes('http')) {
-                    proxyUrl = `/api/download?url=${encodeURIComponent(url)}`;
-                }
+            // Eliminar dependencias de pdf.js y usar un iframe nativo robusto.
+            // Para resolver el problema de tablets, usamos Google Docs Viewer en móviles.
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            
+            let iframeUrl = url;
+            // Si es móvil y es una URL pública (supabase o http), usar Google Docs Viewer para forzar renderizado en canvas web nativo
+            if (isMobile && (url.includes('supabase') || url.startsWith('http'))) {
+                iframeUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+            } else if (!url.startsWith('http') && !url.includes('supabase')) {
+                // Archivo local, usar proxy_download
+                iframeUrl = `/api/download?url=${encodeURIComponent(url)}`;
+            }
 
-                const loadingTask = pdfjsLib.getDocument(proxyUrl);
-                loadingTask.promise.then(pdf => {
-                    _pdfDoc   = pdf;
-                    _numPages = pdf.numPages;
-                    _curPage  = 1;
-
-                    document.getElementById('siac-btn-prev').style.display = '';
-                    document.getElementById('siac-btn-next').style.display = '';
-
-                    self._renderPage(1);
-                }).catch(err => {
-                    console.error('PDF error:', err);
-                    self._showError('El archivo PDF no se pudo cargar o está dañado.');
-                });
-            });
-        },
-
-        _renderPage(num) {
-            if (!_pdfDoc) return;
-            if (_renderTask) { _renderTask.cancel(); _renderTask = null; }
-
-            this._showLoading(true);
             const container = document.getElementById('siac-pdf-container');
-
-            _pdfDoc.getPage(num).then(page => {
-                const viewport = page.getViewport({ scale: _scale });
-
-                // Obtener o crear canvas para esta página
-                let canvas = container.querySelector(`canvas[data-page="${num}"]`);
-                if (!canvas) {
-                    container.innerHTML = '';
-                    canvas = document.createElement('canvas');
-                    canvas.dataset.page = num;
-                    container.appendChild(canvas);
-                }
-
-                canvas.height = viewport.height;
-                canvas.width  = viewport.width;
-
-                const ctx = canvas.getContext('2d');
-                const renderCtx = { canvasContext: ctx, viewport };
-
-                _renderTask = page.render(renderCtx);
-                _renderTask.promise.then(() => {
-                    _renderTask = null;
-                    this._showLoading(false);
-
-                    document.getElementById('siac-viewer-page-info').textContent =
-                        `Pág. ${num} / ${_numPages}`;
-                    document.getElementById('siac-viewer-zoom-info').textContent =
-                        Math.round(_scale * 100) + '%';
-
-                    // Actualizar estado botones
-                    document.getElementById('siac-btn-prev').style.opacity = num <= 1 ? '0.4' : '1';
-                    document.getElementById('siac-btn-next').style.opacity = num >= _numPages ? '0.4' : '1';
-
-                }).catch(e => {
-                    if (e.name !== 'RenderingCancelledException') {
-                        this._showError('Error al renderizar esta página.');
-                    }
-                });
-            }).catch(() => {
-                this._showError('No se pudo obtener la página del PDF.');
-            });
+            container.innerHTML = `<iframe src="${iframeUrl}" style="width:100%; height:85vh; border:none; border-radius:8px; background:#fff;" onload="document.getElementById('siac-viewer-loading').classList.remove('show');" onerror="SIAC_Viewer._showError('No se pudo cargar el documento en el marco.');"></iframe>`;
+            container.style.width = '100%';
         }
     };
 
