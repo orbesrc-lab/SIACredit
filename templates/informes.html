@@ -403,7 +403,7 @@
                     <button class="btn-rrc" id="btnRRC" onclick="abrirModalRRC()">
                         🏛️ Soporte Renovación RC
                     </button>
-                    <button class="btn-secondary large" onclick="window.print()" id="btnImprimir" style="display:none;">🖨️ Imprimir / PDF</button>
+                    <button class="btn-secondary large" onclick="imprimirInformeCompleto()" id="btnImprimir" style="display:none;">🖨️ Imprimir / PDF</button>
                 </div>
             </div>
 
@@ -660,6 +660,105 @@
             container.style.display = 'block';
             document.getElementById('btnImprimir').style.display = 'inline-block';
         }
+
+        // ============================================================
+        // GENERACIÓN PDF — VENTANA DEDICADA (Informe Autoevaluación)
+        // ============================================================
+        function imprimirInformeCompleto() {
+            // Recoger datos ya renderizados en el DOM
+            const titulo    = document.getElementById('informeTitulo').textContent;
+            const fecha     = document.getElementById('informeFecha').textContent;
+            const instName  = document.getElementById('inst_name_display').textContent;
+            const tablaHTML = document.getElementById('tablaResumen').outerHTML;
+            const detalle   = document.getElementById('detalleFactores').innerHTML;
+
+            const estilos = `
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body { font-family: 'Inter', Arial, sans-serif; font-size: 11pt; color: #1e293b; line-height: 1.6; }
+                .doc-header { background: linear-gradient(135deg,#1e3a8a,#2563eb); color:white; padding:32px 40px; margin-bottom:30px; }
+                .doc-header h1 { font-size:20pt; font-weight:800; margin-bottom:6px; }
+                .doc-header p  { font-size:11pt; opacity:0.85; }
+                .doc-header .meta { margin-top:14px; font-size:9pt; opacity:0.75; }
+                .content { padding: 0 40px 40px; }
+                h2 { font-size:14pt; font-weight:700; color:#1e3a8a; margin:28px 0 12px; border-bottom:2px solid #2563eb; padding-bottom:6px; }
+                h3 { font-size:11pt; font-weight:700; color:#1e293b; margin:18px 0 8px; }
+                h4 { font-size:10pt; font-weight:600; color:#374151; margin:14px 0 6px; }
+                table { width:100%; border-collapse:collapse; margin:12px 0; font-size:9pt; }
+                th { background:#1e3a8a; color:white; padding:8px 10px; text-align:left; font-weight:600; }
+                td { padding:7px 10px; border-bottom:1px solid #e2e8f0; }
+                tr:nth-child(even) td { background:#f8fafc; }
+                .factor-section { border-top:3px solid #2563eb; padding-top:20px; margin-top:30px; page-break-inside:avoid; }
+                .factor-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+                .factor-title span:first-child { font-size:13pt; font-weight:700; color:#1e3a8a; }
+                .grade-badge { padding:4px 12px; border-radius:12px; font-weight:700; font-size:9pt; }
+                .grade-4-5 { background:#dcfce7; color:#166534; }
+                .grade-4-0 { background:#bbf7d0; color:#15803d; }
+                .grade-3-0 { background:#fef08a; color:#854d0e; }
+                .grade-low { background:#fee2e2; color:#991b1b; }
+                .just-box { background:#f0f7ff; padding:12px 16px; border-radius:6px; border-left:4px solid #2563eb; margin:12px 0; font-style:italic; font-size:10pt; }
+                ul { padding-left:20px; margin:6px 0; }
+                li { margin-bottom:4px; font-size:10pt; }
+                .data-grid-table th { background:#374151; }
+                .resumen-table th { background:#1e3a8a; }
+                @media print {
+                    body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+                    .factor-section { page-break-inside:avoid; }
+                    .doc-header { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+                }
+            `;
+
+            const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>${titulo} — ${instName}</title>
+  <style>${estilos}</style>
+</head>
+<body>
+  <div class="doc-header">
+    <h1>${titulo}</h1>
+    <p>${instName}</p>
+    <div class="meta">${fecha} &nbsp;·&nbsp; Generado por SKEL SIAC</div>
+  </div>
+  <div class="content">
+    <h2>Resumen Ejecutivo (Escala CNA 1.0 — 5.0)</h2>
+    ${tablaHTML}
+    <h2>Detalle por Factores</h2>
+    ${detalle}
+  </div>
+</body>
+</html>`;
+
+            abrirVentanaImpresion(html, titulo);
+        }
+
+        // Función compartida: abre ventana nueva, inyecta HTML y dispara impresión
+        function abrirVentanaImpresion(html, titulo) {
+            const win = window.open('', '_blank', 'width=900,height=700,scrollbars=yes');
+            if (!win) {
+                alert('El navegador bloqueó la ventana emergente. Por favor permite las ventanas emergentes para este sitio e inténtalo de nuevo.');
+                return;
+            }
+            win.document.open();
+            win.document.write(html);
+            win.document.close();
+            // Esperar a que carguen fuentes/estilos antes de imprimir
+            win.onload = function() {
+                setTimeout(() => {
+                    win.focus();
+                    win.print();
+                }, 600);
+            };
+            // Fallback si onload no dispara
+            setTimeout(() => {
+                if (win && !win.closed) {
+                    win.focus();
+                    win.print();
+                }
+            }, 1500);
+        }
+
 
         // --- Renderizadores de Tablas ---
         function renderCuadrosProfesores(cuadros) {
@@ -1378,20 +1477,255 @@
         }
 
         function imprimirRRC() {
-            // Mostrar todos los paneles para impresión
-            document.querySelectorAll('.rrc-panel').forEach(p => p.style.display = 'block');
-            document.querySelectorAll('.rrc-tabs').forEach(t => t.style.display = 'none');
-            document.title = `Soporte RRC - ${_rrcProgName}`;
-            window.print();
-            // Restaurar
-            setTimeout(() => {
-                document.querySelectorAll('.rrc-panel').forEach((p, i) => {
-                    p.style.display = '';
-                    if (i === 0) p.classList.add('active');
-                    else p.classList.remove('active');
+            if (!_rrcCondData) {
+                alert('Primero genera el soporte antes de imprimir.');
+                return;
+            }
+
+            const fecha     = new Date().toLocaleDateString('es-CO', { year:'numeric', month:'long', day:'numeric' });
+            const progName  = _rrcProgName || 'Programa Académico';
+            const instName  = _rrcInstName || 'Institución';
+
+            const estilos = `
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+                * { box-sizing:border-box; margin:0; padding:0; }
+                body { font-family:'Inter',Arial,sans-serif; font-size:10.5pt; color:#1e293b; line-height:1.65; }
+
+                /* Portada */
+                .portada { background:linear-gradient(135deg,#0f2c6e,#2563eb); color:white;
+                           padding:50px 50px 40px; margin-bottom:0; page-break-after:always; }
+                .portada h1 { font-size:24pt; font-weight:800; margin-bottom:10px; }
+                .portada h2 { font-size:16pt; font-weight:600; margin-bottom:6px; opacity:0.9; }
+                .portada p  { font-size:11pt; opacity:0.8; margin-top:4px; }
+                .portada .normas { margin-top:30px; display:flex; gap:10px; flex-wrap:wrap; }
+                .norma-tag { background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.35);
+                             padding:5px 14px; border-radius:20px; font-size:9pt; font-weight:600; }
+
+                /* Estructura general */
+                .contenido { padding:30px 45px; }
+                .condicion-bloque { border-top:3px solid #2563eb; padding:24px 0 20px;
+                                    margin-bottom:10px; page-break-inside:avoid; }
+                .condicion-bloque:first-child { border-top:none; }
+
+                /* Cabecera condición */
+                .cond-header { display:flex; align-items:center; gap:14px; margin-bottom:16px;
+                               padding:14px 18px; border-radius:10px;
+                               background:linear-gradient(135deg,#f0f7ff,#e8f0fe); }
+                .cond-num { width:44px; height:44px; background:#2563eb; color:white;
+                            border-radius:10px; display:flex; align-items:center;
+                            justify-content:center; font-size:16pt; font-weight:800;
+                            flex-shrink:0; }
+                .cond-titulo { flex:1; }
+                .cond-titulo h2 { font-size:13pt; font-weight:800; color:#1e293b;
+                                  margin:0 0 2px; border:none; padding:0; }
+                .cond-titulo p  { font-size:8.5pt; color:#64748b; margin:0; }
+
+                /* Semáforo */
+                .semaforo { padding:6px 16px; border-radius:20px; font-weight:700;
+                            font-size:9pt; flex-shrink:0; white-space:nowrap; }
+                .sem-verde    { background:#dcfce7; color:#166534; }
+                .sem-amarillo { background:#fef9c3; color:#854d0e; }
+                .sem-rojo     { background:#fee2e2; color:#991b1b; }
+                .sem-gris     { background:#f1f5f9; color:#475569; }
+
+                /* Factores chips */
+                .factores-row { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 14px; }
+                .factor-chip { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;
+                               padding:3px 11px; border-radius:20px; font-size:8pt; font-weight:600; }
+
+                /* Indicadores */
+                .indicadores-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; }
+                .ind-item { display:flex; gap:8px; align-items:flex-start;
+                            padding:9px 12px; border-radius:8px; font-size:9pt; }
+                .ind-ok   { background:#f0fdf4; border:1px solid #bbf7d0; }
+                .ind-warn { background:#fffbeb; border:1px solid #fde68a; }
+                .ind-miss { background:#fff7f7; border:1px solid #fecaca; }
+                .ind-icon { font-size:11pt; flex-shrink:0; }
+                .ind-text { color:#374151; font-weight:600; }
+
+                /* Sección justificación */
+                .just-box { background:#f0f4ff; border-left:4px solid #2563eb;
+                            padding:12px 16px; border-radius:6px; margin:12px 0;
+                            font-style:italic; font-size:9.5pt; color:#374151; }
+                .just-box strong { display:block; margin-bottom:4px; font-style:normal; color:#1e293b; }
+
+                /* Análisis IA */
+                .ia-box { background:linear-gradient(135deg,#faf5ff,#f0f4ff);
+                          border:1px solid #ddd6fe; border-radius:10px;
+                          padding:16px 18px; margin:14px 0; }
+                .ia-box h4 { color:#6d28d9; font-size:10pt; margin-bottom:8px; }
+                .ia-box p  { font-size:9.5pt; color:#374151; line-height:1.65; }
+
+                /* Evidencias */
+                .evid-lista { margin:10px 0; padding-left:18px; font-size:9pt; color:#475569; }
+
+                /* Tabla resumen final */
+                .tabla-resumen { width:100%; border-collapse:collapse; margin:20px 0; font-size:9.5pt; }
+                .tabla-resumen th { background:#1e3a8a; color:white; padding:9px 12px; text-align:left; }
+                .tabla-resumen td { padding:8px 12px; border-bottom:1px solid #e2e8f0; }
+                .tabla-resumen tr:nth-child(even) td { background:#f8fafc; }
+
+                section h3 { font-size:11pt; color:#1e293b; font-weight:700; margin:14px 0 6px;
+                             border-bottom:1px solid #e2e8f0; padding-bottom:4px; }
+
+                @media print {
+                    body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+                    .portada { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+                    .condicion-bloque { page-break-inside:avoid; }
+                    .cond-header, .ia-box, .ind-ok, .ind-warn, .ind-miss,
+                    .sem-verde, .sem-amarillo, .sem-rojo {
+                        -webkit-print-color-adjust:exact; print-color-adjust:exact;
+                    }
+                }
+            `;
+
+            // Construir bloques de condiciones
+            let condicionesHtml = '';
+            let filasTablaSub  = '';
+
+            RRC_CONDICIONES.forEach(cond => {
+                const cd = _rrcCondData[cond.num];
+                if (!cd) return;
+
+                const prom = cd.promedio;
+                const tieneF = cd.factoresRelacionados.length > 0;
+
+                let semClass = 'sem-gris'; let semText = 'Sin datos evaluados';
+                if (tieneF) {
+                    if      (prom >= 4.5) { semClass='sem-verde';    semText='Cumple plenamente'; }
+                    else if (prom >= 4.0) { semClass='sem-verde';    semText='Cumple en alto grado'; }
+                    else if (prom >= 3.0) { semClass='sem-amarillo'; semText='Cumple aceptablemente'; }
+                    else if (prom > 0)    { semClass='sem-rojo';     semText='En proceso de cumplimiento'; }
+                    else                 { semClass='sem-amarillo'; semText='Revisar'; }
+                }
+
+                // Chips de factores
+                const chips = cd.factoresRelacionados.map(f =>
+                    `<span class="factor-chip">F${f.numero}: ${f.nombre} (${f.promedio.toFixed(1)})</span>`
+                ).join('');
+
+                // Indicadores
+                let indsHtml = '<div class="indicadores-grid">';
+                cond.indicadores.forEach(ind => {
+                    const ok  = cd.indicadoresCubiertos.includes(ind.texto);
+                    const cls = ok ? 'ind-ok' : (tieneF ? 'ind-warn' : 'ind-miss');
+                    const ico = ok ? '✅' : (tieneF ? '⚠️' : '❌');
+                    indsHtml += `<div class="ind-item ${cls}"><span class="ind-icon">${ico}</span><span class="ind-text">${ind.texto}</span></div>`;
                 });
-                document.querySelectorAll('.rrc-tabs').forEach(t => t.style.display = '');
-            }, 500);
+                indsHtml += '</div>';
+
+                // Análisis IA (texto crudo del panel del DOM)
+                const panelEl = document.getElementById(`rrc-panel-${cond.num}`);
+                let iaTexto = '';
+                if (panelEl) {
+                    const iaEl = panelEl.querySelector('.ai-content');
+                    if (iaEl) iaTexto = iaEl.innerText.trim();
+                }
+                const iaHtml = iaTexto
+                    ? `<div class="ia-box"><h4>✨ Análisis IA — Soporte normativo (Dec. 1330 / Res. 0529)</h4><p>${iaTexto.replace(/\n/g,'<br>')}</p></div>`
+                    : '';
+
+                // Justificación
+                const justHtml = cd.justificaciones.length > 0
+                    ? `<div class="just-box"><strong>Justificación del equipo de autoevaluación:</strong>${cd.justificaciones.join(' | ').slice(0,700)}</div>`
+                    : '';
+
+                // Evidencias
+                let evidHtml = '';
+                if (cd.evidencias.length > 0) {
+                    evidHtml = `<p style="font-weight:700;font-size:9pt;margin:10px 0 4px;">📄 Evidencias relacionadas:</p>
+                    <ul class="evid-lista">${cd.evidencias.slice(0,10).map(e=>`<li>${e.nombre}</li>`).join('')}</ul>`;
+                }
+
+                // Aviso sin datos
+                const sinDatosMsg = !tieneF
+                    ? `<p style="background:#fffbeb;border-radius:6px;padding:10px 14px;font-size:9pt;color:#92400e;margin:10px 0;">⚠️ No se encontraron factores de autoevaluación directamente relacionados. Complete el modelo de evaluación para enriquecer este análisis.</p>`
+                    : '';
+
+                condicionesHtml += `
+                <div class="condicion-bloque">
+                    <div class="cond-header">
+                        <div class="cond-num">${cond.num}</div>
+                        <div class="cond-titulo">
+                            <h2>Condición ${cond.num}: ${cond.nombre}</h2>
+                            <p>${cond.norma} &nbsp;·&nbsp; ${cond.descripcion}</p>
+                        </div>
+                        <span class="semaforo ${semClass}">${semText}${prom > 0 ? ' &nbsp;'+prom.toFixed(1) : ''}</span>
+                    </div>
+
+                    ${sinDatosMsg}
+
+                    ${tieneF ? `<p style="font-size:8.5pt;font-weight:700;color:#64748b;margin-bottom:6px;">Factores de autoevaluación relacionados:</p>
+                    <div class="factores-row">${chips}</div>` : ''}
+
+                    <section>
+                        <h3>Indicadores normativos (Res. 0529)</h3>
+                        ${indsHtml}
+                    </section>
+
+                    ${justHtml}
+                    ${iaHtml}
+                    ${evidHtml}
+                </div>`;
+
+                filasTablaSub += `
+                <tr>
+                    <td><strong>${cond.num}. ${cond.nombre}</strong></td>
+                    <td>${cond.norma}</td>
+                    <td><span class="semaforo ${semClass}" style="padding:3px 10px;">${semText}</span></td>
+                    <td style="text-align:center;">${prom > 0 ? prom.toFixed(1) : '—'}</td>
+                </tr>`;
+            });
+
+            const htmlDoc = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Soporte RRC — ${progName}</title>
+  <style>${estilos}</style>
+</head>
+<body>
+
+  <!-- PORTADA -->
+  <div class="portada">
+    <h1>Soporte para Renovación de Registro Calificado</h1>
+    <h2>${progName}</h2>
+    <p>${instName}</p>
+    <p style="margin-top:6px;">Fecha de generación: ${fecha} &nbsp;·&nbsp; Elaborado con SKEL SIAC</p>
+    <div class="normas">
+      <span class="norma-tag">Decreto 1330 de 2019</span>
+      <span class="norma-tag">Resolución 0529 MEN</span>
+      <span class="norma-tag">9 Condiciones de Calidad</span>
+    </div>
+  </div>
+
+  <!-- RESUMEN EJECUTIVO -->
+  <div class="contenido">
+    <h2 style="font-size:14pt;font-weight:800;color:#1e3a8a;margin-bottom:16px;border-bottom:2px solid #2563eb;padding-bottom:6px;">Resumen Ejecutivo — Estimación de Cumplimiento</h2>
+    <table class="tabla-resumen">
+      <thead><tr>
+        <th style="width:30%;">Condición</th>
+        <th style="width:30%;">Referencia Normativa</th>
+        <th style="width:27%;">Estimación</th>
+        <th style="width:13%;text-align:center;">Promedio</th>
+      </tr></thead>
+      <tbody>${filasTablaSub}</tbody>
+    </table>
+
+    <p style="margin:18px 0 30px;font-size:9pt;color:#64748b;background:#f8fafc;padding:12px 16px;border-radius:8px;border-left:3px solid #e2e8f0;">
+      ⚠️ Este documento es un <strong>soporte de construcción</strong> para el proceso de Renovación de Registro Calificado.
+      Debe ser revisado y validado por el equipo académico del programa antes de presentarse al Ministerio de Educación Nacional.
+    </p>
+
+    <!-- DETALLE POR CONDICIÓN -->
+    <h2 style="font-size:14pt;font-weight:800;color:#1e3a8a;margin-bottom:20px;border-bottom:2px solid #2563eb;padding-bottom:6px;">Análisis Detallado por Condición</h2>
+    ${condicionesHtml}
+  </div>
+
+</body>
+</html>`;
+
+            abrirVentanaImpresion(htmlDoc, `Soporte RRC — ${progName}`);
         }
 
         // ===================================================================
