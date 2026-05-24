@@ -148,6 +148,7 @@
                         📄 <span>${doc.name}</span>
                     </div>
                     <div class="doc-actions">
+                        <button class="btn-download" onclick="abrirVisor('${doc.file_url.replace(/'/g, "\\'")}','${doc.name.replace(/'/g, "\\'")}')" style="background:#f0fdf4; color:#166534; border:1px solid #166534; margin-right:5px;">👁️ Ver</button>
                         <button class="btn-download" onclick="forceDownload('${doc.file_url.replace(/'/g, "\\'")}','${doc.name.replace(/'/g, "\\'")}')">⬇️ Descargar</button>
                         ${deleteBtnHtml}
                     </div>
