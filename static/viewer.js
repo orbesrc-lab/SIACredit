@@ -148,18 +148,20 @@
     </div>
     `;
 
-    document.body.insertAdjacentHTML('beforeend', html);
+    document.addEventListener('DOMContentLoaded', () => {
+        document.body.insertAdjacentHTML('beforeend', html);
 
-    // ── Cerrar con Escape ───────────────────────────────────────────────────
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') SIAC_Viewer.cerrar();
-        if (e.key === 'ArrowRight') SIAC_Viewer.nextPage();
-        if (e.key === 'ArrowLeft')  SIAC_Viewer.prevPage();
-    });
+        // ── Cerrar con Escape ───────────────────────────────────────────────────
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') SIAC_Viewer.cerrar();
+            if (e.key === 'ArrowRight') SIAC_Viewer.nextPage();
+            if (e.key === 'ArrowLeft')  SIAC_Viewer.prevPage();
+        });
 
-    // Cerrar al clic en el fondo
-    document.getElementById('siac-viewer-overlay').addEventListener('click', e => {
-        if (e.target === document.getElementById('siac-viewer-overlay')) SIAC_Viewer.cerrar();
+        // Cerrar al clic en el fondo
+        document.getElementById('siac-viewer-overlay').addEventListener('click', e => {
+            if (e.target === document.getElementById('siac-viewer-overlay')) SIAC_Viewer.cerrar();
+        });
     });
 
     // ── PDF.js — cargar dinámicamente ───────────────────────────────────────
