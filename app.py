@@ -1142,7 +1142,7 @@ def evidences_confirm_upload():
                 "file_url": file_url,
                 "period": period,
                 "dependency": dependency,
-                "email": email,
+                "user_email": email,
                 "inst_id": inst_id,
                 "program_id": program_id
             }).eq("id", check.data[0]['id']).execute()
@@ -1154,7 +1154,8 @@ def evidences_confirm_upload():
                 "period": period,
                 "dependency": dependency,
                 "aspect_id": aspect_id,
-                "email": email,
+                "user_email": email,
+                "status": "pendiente",
                 "inst_id": inst_id,
                 "program_id": program_id
             }
