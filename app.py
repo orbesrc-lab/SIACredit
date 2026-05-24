@@ -1025,7 +1025,7 @@ def analyze_stats():
         print(f"Error AI Analysis: {e}")
         return jsonify({"analysis": f"Error procesando análisis: {str(e)}"})
 
-@app.route('/api/library/upload_url', methods=['POST'])
+@app.route('/api/direct_upload/url', methods=['POST'])
 def library_upload_url():
     try:
         data = request.json
@@ -1108,6 +1108,63 @@ def library_confirm_upload():
         return jsonify({"status": "success"})
     except Exception as e:
         print(f"Error confirm upload: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/evidences/confirm_upload', methods=['POST'])
+def evidences_confirm_upload():
+    try:
+        data = request.json
+        aspect_id = data.get('aspect_id')
+        filename = data.get('filename')
+        file_url = data.get('file_url')
+        period = data.get('period', 'N/A')
+        email = data.get('email', 'unknown')
+        is_annex = data.get('is_annex', False)
+        
+        inst_id = data.get('inst_id', 1)
+        program_id = data.get('program_id', 0)
+
+        if not inst_id or inst_id == 0:
+            first_inst = supabase.table('institution').select("id").limit(1).execute()
+            inst_id = first_inst.data[0]['id'] if first_inst.data else 1
+
+        # Generar "dependency" extraído del aspect_id (e.g. FACTOR_1 -> 1)
+        import re
+        match = re.search(r'\d+', str(aspect_id))
+        dependency = match.group() if match else "1"
+
+        check = supabase.table('evidences').select("id").eq("aspect_id", aspect_id).execute()
+        
+        if check.data and not is_annex:
+            # Update existing main evidence
+            supabase.table('evidences').update({
+                "name": filename,
+                "file_url": file_url,
+                "period": period,
+                "dependency": dependency,
+                "email": email,
+                "inst_id": inst_id,
+                "program_id": program_id
+            }).eq("id", check.data[0]['id']).execute()
+        else:
+            # Insert new evidence (main or annex)
+            insert_data = {
+                "name": filename,
+                "file_url": file_url,
+                "period": period,
+                "dependency": dependency,
+                "aspect_id": aspect_id,
+                "email": email,
+                "inst_id": inst_id,
+                "program_id": program_id
+            }
+            if is_annex:
+                insert_data['is_annex'] = True
+            supabase.table('evidences').insert(insert_data).execute()
+
+        return jsonify({"status": "success"})
+    except Exception as e:
+        print(f"Error confirm evidences upload: {e}")
         return jsonify({"error": str(e)}), 500
     
 @app.route('/api/upload', methods=['POST'])

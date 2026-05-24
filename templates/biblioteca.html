@@ -168,7 +168,7 @@
             
             try {
                 // Paso 1: Solicitar Signed URL al backend
-                const urlRes = await fetch('/api/library/upload_url', {
+                const urlRes = await fetch('/api/direct_upload/url', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
