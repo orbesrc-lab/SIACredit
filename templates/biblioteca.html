@@ -161,43 +161,62 @@
             if (!inputElem.files || inputElem.files.length === 0) return;
             const file = inputElem.files[0];
             
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('aspect_id', aspectId);
-            formData.append('period', 'Biblioteca');
-            formData.append('email', user.email);
-            
-            // Los documentos globales no están atados a una inst/prog específico, 
-            // pero nuestro upload requiere inst_id y program_id. 
-            // Para globales usaremos 0 si es posible, o simplemente lo subimos.
             const instId = aspectId === 'BIBLIOTECA_GLOBAL' ? 0 : getInstId();
             const progId = 0; // La biblioteca no pertenece a un programa específico
             
-            formData.append('inst_id', instId);
-            formData.append('program_id', progId);
-
             inputElem.parentElement.innerHTML = 'Subiendo...';
             
             try {
-                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                // Paso 1: Solicitar Signed URL al backend
+                const urlRes = await fetch('/api/library/upload_url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        aspect_id: aspectId,
+                        period: 'Biblioteca',
+                        inst_id: parseInt(instId),
+                        program_id: parseInt(progId)
+                    })
+                });
                 
-                if (!res.ok) {
-                    if (res.status === 413) {
-                        alert('Error: El archivo es demasiado grande (Límite de Vercel es 4.5MB).');
-                    } else {
-                        alert('Error del servidor: HTTP ' + res.status);
-                    }
-                    return;
-                }
+                if (!urlRes.ok) throw new Error('Error al generar ruta de subida');
+                const urlData = await urlRes.json();
+                if (urlData.status !== 'success') throw new Error(urlData.error);
                 
-                const data = await res.json();
-                if (data.status === 'success') {
+                // Paso 2: Subir directamente a Supabase
+                const uploadRes = await fetch(urlData.signed_url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': file.type || 'application/octet-stream'
+                    },
+                    body: file
+                });
+                
+                if (!uploadRes.ok) throw new Error('Fallo al enviar archivo a Supabase');
+                
+                // Paso 3: Confirmar subida y guardar en BD
+                const confirmRes = await fetch('/api/library/confirm_upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        aspect_id: aspectId,
+                        filename: file.name,
+                        file_url: urlData.file_url,
+                        inst_id: parseInt(instId),
+                        program_id: parseInt(progId)
+                    })
+                });
+                
+                const confirmData = await confirmRes.json();
+                if (confirmData.status === 'success') {
                     await loadLibrary();
                 } else {
-                    alert('Error: ' + data.error);
+                    alert('Error guardando registro: ' + confirmData.error);
                 }
+                
             } catch (err) {
-                alert('Error de conexión o tiempo de espera agotado: ' + err.message);
+                alert('Error de conexión o archivo muy pesado: ' + err.message);
             } finally {
                 inputElem.parentElement.innerHTML = `+ Subir Documento <input type="file" style="display: none;" onchange="uploadLibraryFile(this, '${aspectId}')">`;
             }

@@ -1024,6 +1024,91 @@ def analyze_stats():
     except Exception as e:
         print(f"Error AI Analysis: {e}")
         return jsonify({"analysis": f"Error procesando análisis: {str(e)}"})
+
+@app.route('/api/library/upload_url', methods=['POST'])
+def library_upload_url():
+    try:
+        data = request.json
+        filename = data.get('filename')
+        aspect_id = data.get('aspect_id')
+        period = data.get('period', 'Biblioteca')
+        
+        inst_id = data.get('inst_id', 1)
+        program_id = data.get('program_id', 0)
+        
+        if not inst_id or inst_id == 0:
+            first_inst = supabase.table('institution').select("id").limit(1).execute()
+            inst_id = first_inst.data[0]['id'] if first_inst.data else 1
+            
+        import re
+        clean_filename = re.sub(r'[^a-zA-Z0-9._-]', '_', filename)
+        
+        file_path = f"inst_{inst_id}/prog_{program_id}/{aspect_id}/{period}/{clean_filename}"
+        
+        res = supabase.storage.from_('evidencias').create_signed_upload_url(file_path)
+        signed_url = res.get('signedUrl')
+        
+        # Public URL to access the file later
+        file_url = supabase.storage.from_('evidencias').get_public_url(file_path)
+        
+        return jsonify({
+            "status": "success",
+            "signed_url": signed_url,
+            "file_url": file_url,
+            "file_path": file_path
+        })
+    except Exception as e:
+        print(f"Error generating upload url: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/library/confirm_upload', methods=['POST'])
+def library_confirm_upload():
+    try:
+        data = request.json
+        aspect_id = data.get('aspect_id')
+        filename = data.get('filename')
+        file_url = data.get('file_url')
+        inst_id = data.get('inst_id', 1)
+        program_id = data.get('program_id', 0)
+
+        if not inst_id or inst_id == 0:
+            first_inst = supabase.table('institution').select("id").limit(1).execute()
+            inst_id = first_inst.data[0]['id'] if first_inst.data else 1
+            
+        if not program_id or program_id == 0:
+            first_prog = supabase.table('programs').select("id").limit(1).execute()
+            program_id = first_prog.data[0]['id'] if first_prog.data else 1
+
+        import time
+        doc_record = {
+            "id": int(time.time() * 1000),
+            "name": filename,
+            "file_url": file_url,
+            "aspect_id": aspect_id
+        }
+        
+        query = supabase.table('statistics').select("id, data_json").eq("table_id", aspect_id)
+        if aspect_id != 'BIBLIOTECA_GLOBAL':
+            query = query.eq("inst_id", inst_id)
+        
+        check = query.execute()
+        if check.data:
+            current_data = json.loads(check.data[0]['data_json'])
+            if not isinstance(current_data, list): current_data = []
+            current_data.append(doc_record)
+            supabase.table('statistics').update({"data_json": json.dumps(current_data)}).eq("id", check.data[0]["id"]).execute()
+        else:
+            supabase.table('statistics').insert({
+                "table_id": aspect_id,
+                "data_json": json.dumps([doc_record]),
+                "inst_id": inst_id,
+                "program_id": program_id
+            }).execute()
+
+        return jsonify({"status": "success"})
+    except Exception as e:
+        print(f"Error confirm upload: {e}")
+        return jsonify({"error": str(e)}), 500
     
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
