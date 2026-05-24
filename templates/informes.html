@@ -613,7 +613,7 @@
                         if (a.evidencias && a.evidencias.length > 0) {
                             hasEvidences = true;
                             a.evidencias.forEach(ev => {
-                                evidencesHtml += `<li><b>[A${a.number}]</b> ${ev.name}</li>`;
+                                evidencesHtml += `<li><b>[A${a.number}]</b> <a href="javascript:void(0)" onclick="abrirVisor('${ev.file_url}', '${ev.name}')" style="color:var(--primary-color); text-decoration:none;">👁️ ${ev.name}</a></li>`;
                             });
                         }
                     });
@@ -1634,7 +1634,7 @@
                 let evidHtml = '';
                 if (cd.evidencias.length > 0) {
                     evidHtml = `<p style="font-weight:700;font-size:9pt;margin:10px 0 4px;">📄 Evidencias relacionadas:</p>
-                    <ul class="evid-lista">${cd.evidencias.slice(0,10).map(e=>`<li>${e.nombre}</li>`).join('')}</ul>`;
+                    <ul class="evid-lista">${cd.evidencias.slice(0,10).map(e=>`<li><a href="javascript:void(0)" onclick="abrirVisor('${e.url || \'\'}', '${e.nombre}')" style="color:#2563eb;text-decoration:none;">👁️ ${e.nombre}</a></li>`).join('')}</ul>`;
                 }
 
                 // Aviso sin datos
