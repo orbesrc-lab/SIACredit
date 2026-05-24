@@ -180,7 +180,9 @@
         const s = document.createElement('script');
         s.src = PDFJS_CDN;
         s.onload = () => {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+            const workerCode = `importScripts('${PDFJS_WORKER}');`;
+            const blob = new Blob([workerCode], { type: 'text/javascript' });
+            pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(blob);
             _pdfjsReady = true;
             _pdfjsCallbacks.forEach(fn => fn());
             _pdfjsCallbacks = [];
@@ -325,7 +327,7 @@
                         const resp = await fetch(proxyUrl);
                         if (resp.ok) {
                             const buf = await resp.arrayBuffer();
-                            loadSource = { data: buf };
+                            loadSource = { data: new Uint8Array(buf) };
                         } else {
                             // Fallback: intentar directo
                             loadSource = { url: url, withCredentials: false };
