@@ -1427,6 +1427,95 @@ def ai_generate_report():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/api/ai/generar_rrc', methods=['POST'])
+def ai_generar_rrc():
+    """
+    Genera el soporte documental para la Renovación de Registro Calificado
+    basado en el informe de autoevaluación del programa activo.
+    Aplica el Decreto 1330 de 2019 y la Resolución 0529 del MEN.
+    """
+    data = request.json
+    inst_id    = data.get('inst_id', 1)
+    program_id = data.get('program_id', 0)
+    condiciones_data = data.get('condiciones', {})   # Ya mapeadas desde el frontend
+    program_name     = data.get('program_name', 'Programa Académico')
+    inst_name        = data.get('inst_name', 'Institución de Educación Superior')
+
+    api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
+    if not api_key:
+        return jsonify({"error": "La API Key de IA no está configurada en el servidor."}), 500
+
+    try:
+        client = OpenAI(
+            api_key=api_key,
+            base_url="https://open.bigmodel.cn/api/paas/v4/"
+        )
+
+        # Serializar datos de condiciones, limitando el tamaño
+        data_str = json.dumps(condiciones_data, ensure_ascii=False)
+        if len(data_str) > 28000:
+            data_str = data_str[:28000] + "... [datos truncados]"
+
+        system_prompt = (
+            "Eres un experto en evaluación de condiciones de calidad para el Ministerio de Educación "
+            "Nacional de Colombia (MEN). Dominas a profundidad el Decreto 1330 de 2019, la Resolución "
+            "0529 del MEN y los lineamientos para la Renovación de Registro Calificado (RRC) de programas "
+            "de educación superior. Tu rol es redactar texto de soporte académico-normativo riguroso, "
+            "propositivo y basado estrictamente en los datos del programa."
+        )
+
+        prompt = f"""
+Se te entrega la información de autoevaluación del programa académico **{program_name}** 
+de la institución **{inst_name}**, mapeada a las 9 condiciones de calidad del Decreto 1330 de 2019 
+y la Resolución 0529 del MEN.
+
+Datos por condición:
+{data_str}
+
+Redacta el SOPORTE DOCUMENTAL para el proceso de Renovación de Registro Calificado.
+Para CADA UNA de las 9 condiciones debes generar:
+
+1. **Análisis de cumplimiento**: descripción de cómo el programa evidencia el cumplimiento 
+   de la condición, apoyándote en los datos e indicadores provistos.
+2. **Indicadores normativos cubiertos**: lista los aspectos de la Resolución 0529 que tienen soporte.
+3. **Aspectos por fortalecer**: señala brevemente los indicadores que requieren mayor documentación 
+   o que están en proceso de consolidación.
+4. **Calificación estimada**: Cumple plenamente / Cumple en alto grado / Cumple aceptablemente / 
+   En proceso de cumplimiento, según los datos.
+
+Usa formato Markdown estricto:
+## Condición [N]: [Nombre]
+### Análisis de Cumplimiento
+### Indicadores con Soporte
+### Aspectos por Fortalecer  
+### Estimación de Cumplimiento
+
+Al final agrega:
+## Resumen Ejecutivo RRC
+Con tabla de las 9 condiciones y su estimación.
+
+Sé riguroso, formal y propositivo. Cita las normas cuando sea pertinente.
+"""
+
+        response = client.chat.completions.create(
+            model="glm-4",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user",   "content": prompt}
+            ],
+            temperature=0.65,
+            max_tokens=4000
+        )
+
+        report_text = response.choices[0].message.content
+        return jsonify({"status": "success", "report": report_text})
+
+    except Exception as e:
+        print(f"Error AI Generar RRC: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+
 

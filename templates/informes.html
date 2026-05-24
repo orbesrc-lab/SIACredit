@@ -8,8 +8,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .export-actions { display: flex; gap: 15px; }
+        .report-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; flex-wrap: wrap; gap: 16px; }
+        .export-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
         .report-card { background: var(--white); border-radius: 12px; padding: 25px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 20px; }
         .summary-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         .summary-table th, .summary-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
@@ -51,7 +52,310 @@
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
         @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+        /* ===== MODAL RENOVACIÓN REGISTRO CALIFICADO ===== */
+        .rrc-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(10, 15, 30, 0.85);
+            backdrop-filter: blur(6px);
+            z-index: 2000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .rrc-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
+        .rrc-modal {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 1100px;
+            margin: auto;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+            overflow: hidden;
+            animation: rrcSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes rrcSlideIn {
+            from { opacity: 0; transform: translateY(-30px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .rrc-header {
+            background: linear-gradient(135deg, #0f2c6e 0%, #1a4fad 50%, #2563eb 100%);
+            color: white;
+            padding: 30px 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .rrc-header-left h2 { font-size: 1.45rem; margin: 0 0 6px; font-weight: 800; letter-spacing: -0.3px; }
+        .rrc-header-left p  { margin: 0; font-size: 0.85rem; opacity: 0.85; }
+        .rrc-header-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .rrc-badge {
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+        .rrc-close-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .rrc-close-btn:hover { background: rgba(255,255,255,0.3); }
+        .rrc-body { padding: 30px 35px; }
+
+        /* Tabs de condiciones */
+        .rrc-tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 12px;
+        }
+        .rrc-tab {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #475569;
+            white-space: nowrap;
+        }
+        .rrc-tab:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+        .rrc-tab.active { background: #2563eb; color: white; border-color: #2563eb; }
+        .rrc-tab.status-verde  { border-left: 4px solid #22c55e; }
+        .rrc-tab.status-amarillo { border-left: 4px solid #eab308; }
+        .rrc-tab.status-rojo   { border-left: 4px solid #ef4444; }
+
+        /* Paneles de condición */
+        .rrc-panel { display: none; }
+        .rrc-panel.active { display: block; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .rrc-condition-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 18px 22px;
+            background: linear-gradient(135deg, #f0f7ff, #e8f0fe);
+            border-radius: 12px;
+            border-left: 5px solid #2563eb;
+        }
+        .rrc-condition-num {
+            width: 48px; height: 48px;
+            background: #2563eb;
+            color: white;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; font-weight: 800;
+            flex-shrink: 0;
+        }
+        .rrc-condition-title h3 { margin: 0 0 3px; color: #1e293b; font-size: 1.1rem; }
+        .rrc-condition-title p  { margin: 0; color: #64748b; font-size: 0.82rem; }
+
+        /* Semáforo */
+        .rrc-semaforo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.83rem;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .sem-verde    { background: #dcfce7; color: #166534; }
+        .sem-amarillo { background: #fef9c3; color: #854d0e; }
+        .sem-rojo     { background: #fee2e2; color: #991b1b; }
+        .sem-gris     { background: #f1f5f9; color: #475569; }
+
+        /* Indicadores */
+        .rrc-indicators-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        @media (max-width: 700px) { .rrc-indicators-grid { grid-template-columns: 1fr; } }
+        .rrc-indicator-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-size: 0.85rem;
+        }
+        .rrc-indicator-item.ok   { background: #f0fdf4; border-color: #bbf7d0; }
+        .rrc-indicator-item.warn { background: #fffbeb; border-color: #fde68a; }
+        .rrc-indicator-item.miss { background: #fff7f7; border-color: #fecaca; }
+        .rrc-ind-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+        .rrc-ind-text { line-height: 1.4; color: #374151; }
+        .rrc-ind-text strong { display: block; color: #1e293b; margin-bottom: 2px; }
+
+        /* Sección de análisis IA */
+        .rrc-ai-analysis {
+            background: linear-gradient(135deg, #faf5ff, #f0f4ff);
+            border: 1px solid #ddd6fe;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 18px;
+        }
+        .rrc-ai-analysis h4 {
+            color: #6d28d9;
+            margin: 0 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+        .rrc-ai-analysis .ai-content {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: #374151;
+            white-space: pre-wrap;
+        }
+        .rrc-ai-analysis .ai-content p { margin: 0 0 10px; }
+        .rrc-ai-analysis .ai-content strong { color: #1e293b; }
+        .rrc-ai-analysis .ai-content ul { padding-left: 20px; }
+
+        /* Factores relacionados chip */
+        .rrc-factors-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 10px 0 16px;
+        }
+        .rrc-factor-chip {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        /* Footer del modal */
+        .rrc-footer {
+            padding: 20px 35px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .rrc-footer-note { font-size: 0.8rem; color: #64748b; }
+        .rrc-footer-actions { display: flex; gap: 10px; }
+
+        /* Spinner overlay dentro del modal */
+        .rrc-loading {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            gap: 18px;
+        }
+        .rrc-loading.active { display: flex; }
+        .rrc-loader {
+            width: 56px; height: 56px;
+            border: 5px solid #e2e8f0;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+        .rrc-loading p { color: #64748b; font-size: 0.95rem; margin: 0; }
+        .rrc-loading strong { color: #1e293b; }
+
+        /* Botón RRC en acciones */
+        .btn-rrc {
+            background: linear-gradient(135deg, #0f2c6e, #2563eb);
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.92rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 18px rgba(37, 99, 235, 0.4);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-rrc:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5);
+        }
+        .btn-rrc:active { transform: translateY(0); }
+
+        /* ===== ESTILOS DE IMPRESIÓN ===== */
+        @media print {
+            /* Ocultar elementos de navegación */
+            .sidebar, .topbar, .ai-chat-widget, .rrc-footer-actions,
+            .export-actions, #informeContainer, .spinner,
+            .rrc-overlay > .rrc-modal > .rrc-header .rrc-close-btn { display: none !important; }
+
+            /* Mostrar el modal como documento imprimible */
+            body { overflow: visible !important; }
+            .rrc-overlay {
+                display: block !important;
+                position: static !important;
+                background: none !important;
+                backdrop-filter: none !important;
+                padding: 0 !important;
+            }
+            .rrc-modal {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                max-width: 100% !important;
+                animation: none !important;
+            }
+            .rrc-tabs { display: none !important; }
+            /* Mostrar todos los paneles en impresión */
+            .rrc-panel {
+                display: block !important;
+                page-break-inside: avoid;
+                margin-bottom: 20px;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 16px;
+            }
+            .rrc-header {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .rrc-condition-header, .rrc-semaforo,
+            .rrc-indicator-item.ok, .rrc-indicator-item.warn,
+            .rrc-indicator-item.miss, .rrc-ai-analysis {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .rrc-body { padding: 10px !important; }
+            /* Forzar salto de página entre condiciones cuando el contenido es largo */
+            .rrc-panel:nth-child(3n) { page-break-after: always; }
+        }
     </style>
+
 </head>
 <body>
     <aside class="sidebar">
@@ -96,6 +400,9 @@
                     <button class="btn-secondary large" onclick="generarInforme('parcial')">📋 Generar Informe Parcial</button>
                     <button class="btn-primary large" onclick="generarInforme('final')">🏆 Generar Informe Final</button>
                     <button class="btn-primary large" onclick="generarInformeIA()" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border:none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">✨ Generar con IA</button>
+                    <button class="btn-rrc" id="btnRRC" onclick="abrirModalRRC()">
+                        🏛️ Soporte Renovación RC
+                    </button>
                     <button class="btn-secondary large" onclick="window.print()" id="btnImprimir" style="display:none;">🖨️ Imprimir / PDF</button>
                 </div>
             </div>
@@ -136,6 +443,54 @@
             </div>
         </div>
     </main>
+
+    <!-- ===== MODAL RENOVACIÓN REGISTRO CALIFICADO ===== -->
+    <div id="rrcOverlay" class="rrc-overlay" onclick="cerrarModalRRCSiClick(event)">
+        <div class="rrc-modal" id="rrcModal">
+            <!-- Header -->
+            <div class="rrc-header">
+                <div class="rrc-header-left">
+                    <h2>🏛️ Soporte para Renovación de Registro Calificado</h2>
+                    <p id="rrcProgramaTitle">Cargando programa...</p>
+                    <div class="rrc-header-badges">
+                        <span class="rrc-badge">Decreto 1330 de 2019</span>
+                        <span class="rrc-badge">Resolución 0529 MEN</span>
+                        <span class="rrc-badge">9 Condiciones de Calidad</span>
+                    </div>
+                </div>
+                <button class="rrc-close-btn" onclick="cerrarModalRRC()" title="Cerrar">✕</button>
+            </div>
+
+            <!-- Cuerpo: Loading -->
+            <div id="rrcLoading" class="rrc-loading active">
+                <div class="rrc-loader"></div>
+                <div style="text-align:center;">
+                    <strong>Generando soporte documental...</strong>
+                    <p>Mapeando la autoevaluación a las 9 condiciones del Dec. 1330/2019 y analizando con IA</p>
+                </div>
+            </div>
+
+            <!-- Cuerpo: Contenido -->
+            <div id="rrcContent" style="display:none;">
+                <div class="rrc-body">
+                    <!-- Tabs de condiciones -->
+                    <div class="rrc-tabs" id="rrcTabs"></div>
+                    <!-- Paneles -->
+                    <div id="rrcPanels"></div>
+                </div>
+                <!-- Footer -->
+                <div class="rrc-footer">
+                    <p class="rrc-footer-note">
+                        ⚠️ Este documento es un <strong>soporte de construcción</strong>. Debe ser revisado y validado por el equipo académico antes de presentarse al MEN.
+                    </p>
+                    <div class="rrc-footer-actions">
+                        <button class="btn-secondary" onclick="imprimirRRC()">🖨️ Imprimir / PDF</button>
+                        <button class="btn-rrc" onclick="regenerarRRC()">🔄 Regenerar con IA</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Widget Chatbot IA -->
     <div id="aiChatWidget" class="ai-chat-widget">
@@ -479,6 +834,569 @@
                 messagesContainer.appendChild(aiMsg);
             }
         }
+
+        // ===================================================================
+        // RENOVACIÓN DE REGISTRO CALIFICADO — Dec. 1330/2019 - Res. 0529
+        // ===================================================================
+
+        // Definición normativa de las 9 condiciones (Res. 0529 MEN)
+        const RRC_CONDICIONES = [
+            {
+                num: 1, nombre: "Denominación",
+                norma: "Art. 2.5.3.2.2.1 Dec. 1330 - Num. 1 Res. 0529",
+                descripcion: "La denominación del programa corresponde con su contenido curricular, nivel de formación, metodología y área del conocimiento.",
+                indicadores: [
+                    { texto: "Denominación registrada en el SNIES", campo: "snies" },
+                    { texto: "Correspondencia nombre-contenido curricular", campo: "denominacion_contenido" },
+                    { texto: "Nivel de formación declarado (pregrado/posgrado)", campo: "nivel_formacion" },
+                    { texto: "Metodología (presencial/distancia/virtual)", campo: "metodologia" },
+                    { texto: "Área de conocimiento y núcleo básico", campo: "area_conocimiento" },
+                    { texto: "Créditos académicos totales del programa", campo: "total_creditos" }
+                ],
+                palabrasClave: ["denominaci", "nombre del programa", "snies", "registro", "calificado"]
+            },
+            {
+                num: 2, nombre: "Justificación",
+                norma: "Art. 2.5.3.2.2.2 Dec. 1330 - Num. 2 Res. 0529",
+                descripcion: "El programa demuestra pertinencia social y académica a través de análisis del entorno, necesidades del sector y referentes internacionales.",
+                indicadores: [
+                    { texto: "Análisis de necesidades del sector productivo y social", campo: "analisis_sector" },
+                    { texto: "Estadísticas de empleabilidad y ocupación", campo: "estadisticas_empleo" },
+                    { texto: "Referentes nacionales e internacionales comparables", campo: "referentes" },
+                    { texto: "Estudio de la oferta académica similar en la región", campo: "oferta_similar" },
+                    { texto: "Pertinencia con el Proyecto Educativo Institucional (PEI)", campo: "pei" },
+                    { texto: "Tendencias y proyecciones de la disciplina", campo: "tendencias" }
+                ],
+                palabrasClave: ["justificaci", "pertinencia", "relevancia", "contexto", "entorno", "sector"]
+            },
+            {
+                num: 3, nombre: "Aspectos Curriculares",
+                norma: "Art. 2.5.3.2.2.3 Dec. 1330 - Num. 3 Res. 0529",
+                descripcion: "El plan de estudios garantiza la formación integral con coherencia, flexibilidad e integración de componentes.",
+                indicadores: [
+                    { texto: "Plan de estudios vigente con créditos por asignatura", campo: "plan_estudios" },
+                    { texto: "Total créditos académicos (mínimo legal según nivel)", campo: "creditos_total" },
+                    { texto: "Componentes de formación: básico, profesional, electivo", campo: "componentes" },
+                    { texto: "Flexibilidad curricular y movilidad estudiantil", campo: "flexibilidad" },
+                    { texto: "Interdisciplinariedad y secuencia lógica", campo: "interdisciplinariedad" },
+                    { texto: "Trabajo de grado o proyecto integrador", campo: "trabajo_grado" },
+                    { texto: "Lineamientos pedagógicos y didácticos del programa", campo: "pedagogia" }
+                ],
+                palabrasClave: ["curricular", "plan de estudios", "asignatura", "crédito", "credito", "componente", "núcleo", "nucleo", "syllabus"]
+            },
+            {
+                num: 4, nombre: "Actividades de Formación",
+                norma: "Art. 2.5.3.2.2.4 Dec. 1330 - Num. 4 Res. 0529",
+                descripcion: "Las estrategias y métodos de enseñanza-aprendizaje garantizan el logro de los resultados de aprendizaje.",
+                indicadores: [
+                    { texto: "Estrategias y métodos pedagógicos por asignatura", campo: "metodos_pedagogicos" },
+                    { texto: "Relación horas presenciales / trabajo independiente", campo: "distribucion_horas" },
+                    { texto: "Prácticas formativas y actividades de campo", campo: "practicas_formativas" },
+                    { texto: "Resultados de aprendizaje definidos y evaluados", campo: "resultados_aprendizaje" },
+                    { texto: "Sistemas de evaluación de estudiantes", campo: "evaluacion_estudiantes" },
+                    { texto: "Estrategias de seguimiento académico", campo: "seguimiento_academico" }
+                ],
+                palabrasClave: ["actividad", "formaci", "pedagog", "estrateg", "método", "metodo", "enseñanza", "aprendizaje", "didáct"]
+            },
+            {
+                num: 5, nombre: "Relaciones con el Sector Externo",
+                norma: "Art. 2.5.3.2.2.5 Dec. 1330 - Num. 5 Res. 0529",
+                descripcion: "El programa mantiene vínculos activos con el sector externo que enriquecen la formación y garantizan la pertinencia.",
+                indicadores: [
+                    { texto: "Convenios vigentes con empresas y organizaciones", campo: "convenios" },
+                    { texto: "Prácticas empresariales activas", campo: "practicas_empresariales" },
+                    { texto: "Seguimiento a egresados y tasa de empleabilidad", campo: "egresados" },
+                    { texto: "Participación del sector externo en el currículo", campo: "sector_curriculo" },
+                    { texto: "Consultas y encuestas al sector productivo", campo: "consultas_sector" },
+                    { texto: "Proyección social y extensión universitaria", campo: "extension" }
+                ],
+                palabrasClave: ["sector externo", "extensi", "convenio", "egresado", "práctica", "practica", "empresa", "proyecci", "comunidad"]
+            },
+            {
+                num: 6, nombre: "Investigación, Innovación y Creación Artística",
+                norma: "Art. 2.5.3.2.2.6 Dec. 1330 - Num. 6 Res. 0529",
+                descripcion: "El programa fomenta la investigación formativa y tiene vínculos con grupos y líneas de investigación reconocidos.",
+                indicadores: [
+                    { texto: "Grupos de investigación reconocidos por Minciencias", campo: "grupos_minciencias" },
+                    { texto: "Líneas de investigación articuladas al programa", campo: "lineas_investigacion" },
+                    { texto: "Proyectos de investigación vigentes", campo: "proyectos_investigacion" },
+                    { texto: "Producción científica (artículos, libros, ponencias)", campo: "produccion_cientifica" },
+                    { texto: "Investigación formativa en el currículo", campo: "investigacion_formativa" },
+                    { texto: "Semilleros de investigación activos", campo: "semilleros" }
+                ],
+                palabrasClave: ["investigaci", "innovaci", "científic", "cientifico", "grupo", "línea", "linea", "semillero", "proyecto", "publicaci"]
+            },
+            {
+                num: 7, nombre: "Profesores",
+                norma: "Art. 2.5.3.2.2.7 Dec. 1330 - Num. 7 Res. 0529",
+                descripcion: "El programa cuenta con una planta docente suficiente, cualificada y con experiencia pertinente.",
+                indicadores: [
+                    { texto: "Número de profesores por tipo de dedicación (TC/MT/HC)", campo: "profesores_dedicacion" },
+                    { texto: "Porcentaje con formación posgradual (especialización/maestría/doctorado)", campo: "formacion_posgradual" },
+                    { texto: "Hoja de vida CNA registrada y actualizada", campo: "hv_cna" },
+                    { texto: "Experiencia profesional y académica pertinente", campo: "experiencia" },
+                    { texto: "Estatuto docente vigente y reglamento", campo: "estatuto_docente" },
+                    { texto: "Políticas de evaluación y desarrollo docente", campo: "eval_docente" }
+                ],
+                palabrasClave: ["profesor", "docente", "planta", "dedicaci", "formaci", "maestría", "maestria", "doctorado", "experiencia"]
+            },
+            {
+                num: 8, nombre: "Medios Educativos",
+                norma: "Art. 2.5.3.2.2.8 Dec. 1330 - Num. 8 Res. 0529",
+                descripcion: "El programa dispone de recursos bibliográficos, tecnológicos y de apoyo a la formación suficientes y actualizados.",
+                indicadores: [
+                    { texto: "Bibliografía básica por asignatura (mínimo 5 años)", campo: "bibliografia" },
+                    { texto: "Suscripción a bases de datos especializadas", campo: "bases_datos" },
+                    { texto: "Laboratorios, talleres o espacios especializados", campo: "laboratorios" },
+                    { texto: "Recursos tecnológicos y software especializado", campo: "software" },
+                    { texto: "Acceso a plataformas virtuales (LMS)", campo: "lms" },
+                    { texto: "Política de actualización de recursos bibliográficos", campo: "politica_bibliog" }
+                ],
+                palabrasClave: ["medio", "recurso", "biblioteca", "bibliogr", "base de datos", "laboratorio", "tecnolog", "software", "plataforma"]
+            },
+            {
+                num: 9, nombre: "Infraestructura Física y Tecnológica",
+                norma: "Art. 2.5.3.2.2.9 Dec. 1330 - Num. 9 Res. 0529",
+                descripcion: "Las instalaciones físicas y la infraestructura tecnológica garantizan el desarrollo adecuado del programa.",
+                indicadores: [
+                    { texto: "Aulas de clase suficientes (m² por estudiante)", campo: "aulas" },
+                    { texto: "Espacios de bienestar estudiantil", campo: "bienestar" },
+                    { texto: "Conectividad y acceso a internet en campus", campo: "conectividad" },
+                    { texto: "Plataforma LMS institucional y aula virtual", campo: "plataforma_lms" },
+                    { texto: "Plan de mantenimiento de infraestructura", campo: "mantenimiento" },
+                    { texto: "Accesibilidad para personas con discapacidad", campo: "accesibilidad" }
+                ],
+                palabrasClave: ["infraestructura", "física", "fisica", "aula", "espacio", "instalaci", "campus", "conectividad", "tecnológica", "tecnologica"]
+            }
+        ];
+
+        // ---------------------------------------------------------------
+        // Variables de estado RRC
+        // ---------------------------------------------------------------
+        let _rrcInformeData   = null;   // datos del informe dinámico
+        let _rrcCondData      = null;   // condiciones ya mapeadas
+        let _rrcIAReport      = null;   // texto devuelto por IA
+        let _rrcInstName      = '';
+        let _rrcProgName      = '';
+        let _rrcTabActivo     = 0;
+
+        // ---------------------------------------------------------------
+        // Abrir modal y disparar generación
+        // ---------------------------------------------------------------
+        async function abrirModalRRC() {
+            const overlay = document.getElementById('rrcOverlay');
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+
+            // Reset UI
+            document.getElementById('rrcLoading').classList.add('active');
+            document.getElementById('rrcContent').style.display = 'none';
+            document.getElementById('rrcTabs').innerHTML = '';
+            document.getElementById('rrcPanels').innerHTML = '';
+
+            await generarSoporteRRC();
+        }
+
+        function cerrarModalRRC() {
+            document.getElementById('rrcOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        function cerrarModalRRCSiClick(e) {
+            if (e.target === document.getElementById('rrcOverlay')) cerrarModalRRC();
+        }
+        function regenerarRRC() {
+            document.getElementById('rrcLoading').classList.add('active');
+            document.getElementById('rrcContent').style.display = 'none';
+            _rrcIAReport = null;
+            generarSoporteRRC();
+        }
+
+        // ---------------------------------------------------------------
+        // Flujo principal
+        // ---------------------------------------------------------------
+        async function generarSoporteRRC() {
+            try {
+                const instId    = getInstId();
+                const programId = getProgramId();
+
+                // 1. Cargar datos institución y programa
+                const [instResp, progResp] = await Promise.all([
+                    fetch(`/api/institution?inst_id=${instId}`),
+                    fetch(`/api/programs?inst_id=${instId}`)
+                ]);
+                const instData  = await instResp.json();
+                const programs  = await progResp.json();
+
+                // Encontrar el programa activo por program_id
+                const programaActivo = programs.find(p => p.id == programId);
+                _rrcInstName = instData.name || 'Institución';
+                _rrcProgName = programaActivo ? programaActivo.name : (instData.program || 'Programa Académico');
+
+                document.getElementById('rrcProgramaTitle').textContent =
+                    `${_rrcProgName} · ${_rrcInstName}`;
+
+                // 2. Obtener informe dinámico del programa activo
+                const informeRes = await fetch(`/api/informe_dinamico?inst_id=${instId}&program_id=${programId}`);
+                _rrcInformeData  = await informeRes.json();
+
+                // 3. Mapear factores de autoevaluación a las 9 condiciones
+                _rrcCondData = mapearCondicionesRRC(_rrcInformeData, instData, programaActivo);
+
+                // 4. Llamar a IA para análisis
+                const aiRes = await fetch('/api/ai/generar_rrc', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        inst_id:      instId,
+                        program_id:   programId,
+                        program_name: _rrcProgName,
+                        inst_name:    _rrcInstName,
+                        condiciones:  _rrcCondData
+                    })
+                });
+                const aiData = await aiRes.json();
+                _rrcIAReport = (aiData.status === 'success') ? aiData.report : null;
+
+                // 5. Parsear el reporte IA por condición
+                const analisisIA = _rrcIAReport ? parsearReporteIA(_rrcIAReport) : {};
+
+                // 6. Renderizar
+                renderizarRRC(_rrcCondData, analisisIA);
+
+            } catch (err) {
+                console.error('Error RRC:', err);
+                document.getElementById('rrcLoading').innerHTML =
+                    `<p style="color:#ef4444; text-align:center;">❌ Error generando soporte: ${err.message}</p>`;
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // Mapeo factores autoevaluación → 9 condiciones
+        // ---------------------------------------------------------------
+        function mapearCondicionesRRC(informeData, instData, programaData) {
+            const condiciones = {};
+
+            RRC_CONDICIONES.forEach(cond => {
+                condiciones[cond.num] = {
+                    factoresRelacionados: [],
+                    indicadoresCubiertos: [],
+                    indicadoresPendientes: [],
+                    promedio: 0,
+                    justificaciones: [],
+                    evidencias: [],
+                    cuadrosDatos: {}
+                };
+            });
+
+            if (!informeData || !informeData.factores) return condiciones;
+
+            // Cuadros estadísticos disponibles
+            const cuadros = informeData.cuadros || {};
+
+            // --- Asignar cuadros de datos a condiciones ---
+            // Profesores → Condición 7
+            if (cuadros.factor4_profesores || cuadros.factor3_profesores) {
+                condiciones[7].cuadrosDatos.profesores = cuadros.factor4_profesores || cuadros.factor3_profesores;
+            }
+            // Curricular → Condición 3
+            if (cuadros.factor5_curricular) {
+                condiciones[3].cuadrosDatos.curricular = cuadros.factor5_curricular;
+            }
+            // Extensión / Sector Externo → Condición 5
+            if (cuadros.factor7_extension) {
+                condiciones[5].cuadrosDatos.extension = cuadros.factor7_extension;
+            }
+            // Investigación → Condición 6
+            if (cuadros.factor8_investigacion) {
+                condiciones[6].cuadrosDatos.investigacion = cuadros.factor8_investigacion;
+            }
+            // Recursos / Medios → Condición 8 y 9
+            if (cuadros.factor10_recursos) {
+                condiciones[8].cuadrosDatos.recursos = cuadros.factor10_recursos;
+                condiciones[9].cuadrosDatos.aulas    = cuadros.factor10_recursos;
+            }
+
+            // --- Asignar factores a condiciones por palabras clave ---
+            informeData.factores.forEach(factor => {
+                const nombreF = (factor.name || '').toLowerCase();
+                const numF    = parseInt(factor.number);
+
+                RRC_CONDICIONES.forEach(cond => {
+                    const coincide = cond.palabrasClave.some(kw => nombreF.includes(kw));
+
+                    // Mapeo explícito por número de factor (modelo CNA típico)
+                    const mapaNumerico = {
+                        1: [2, 3],   // Factor 1 Misión → Justificación, Denominación
+                        2: [2],      // Factor 2 Proyecto → Justificación
+                        3: [3, 4],   // Factor 3 Currículo → Aspectos curriculares, Actividades
+                        4: [4],      // Factor 4 → Actividades formación
+                        5: [3],      // Factor 5 → Aspectos curriculares
+                        6: [6],      // Factor 6 → Investigación
+                        7: [5],      // Factor 7 → Sector externo
+                        8: [6],      // Factor 8 → Investigación
+                        9: [7],      // Factor 9 → Profesores
+                        10: [8, 9],  // Factor 10 → Medios e infraestructura
+                        11: [8],     // Factor 11 → Medios educativos
+                        12: [9]      // Factor 12 → Infraestructura
+                    };
+
+                    const condsPorNum = mapaNumerico[numF] || [];
+                    const perteneceAEsta = coincide || condsPorNum.includes(cond.num);
+
+                    if (perteneceAEsta) {
+                        // Solo agregar si no está ya
+                        if (!condiciones[cond.num].factoresRelacionados.find(f => f.id === factor.id)) {
+                            const promF = factor.nota_promedio || 0;
+                            condiciones[cond.num].factoresRelacionados.push({
+                                id:       factor.id,
+                                numero:   factor.number,
+                                nombre:   factor.name,
+                                promedio: promF,
+                                cualitativo: factor.cualitativo || '',
+                                caracteristicas: (factor.caracteristicas || []).map(c => ({
+                                    nombre:   c.name,
+                                    promedio: c.nota_promedio || 0
+                                }))
+                            });
+
+                            // Acumular justificaciones y evidencias
+                            if (factor.justificacion_general) {
+                                condiciones[cond.num].justificaciones.push(factor.justificacion_general);
+                            }
+                            (factor.caracteristicas || []).forEach(c => {
+                                (c.aspectos || []).forEach(a => {
+                                    (a.evidencias || []).forEach(ev => {
+                                        condiciones[cond.num].evidencias.push({
+                                            nombre: ev.name,
+                                            url:    ev.file_path
+                                        });
+                                    });
+                                });
+                            });
+                        }
+                    }
+                });
+            });
+
+            // --- Calcular promedios y clasificar indicadores ---
+            RRC_CONDICIONES.forEach(cond => {
+                const cd = condiciones[cond.num];
+                const proms = cd.factoresRelacionados.map(f => f.promedio).filter(p => p > 0);
+                cd.promedio = proms.length > 0 ? (proms.reduce((a,b) => a+b, 0) / proms.length) : 0;
+
+                // Clasificar indicadores normativos
+                cond.indicadores.forEach(ind => {
+                    const tieneData = cd.factoresRelacionados.length > 0 ||
+                                     Object.keys(cd.cuadrosDatos).length > 0;
+                    if (tieneData && cd.promedio >= 3.0) {
+                        cd.indicadoresCubiertos.push(ind.texto);
+                    } else {
+                        cd.indicadoresPendientes.push(ind.texto);
+                    }
+                });
+            });
+
+            // Enriquecer Denominación (Cond. 1) con datos del programa e institución
+            if (programaData) {
+                condiciones[1].programaInfo = {
+                    nombre:  programaData.name || '',
+                    periodo: programaData.period || ''
+                };
+            }
+            condiciones[1].instNombre = instData.name || '';
+
+            return condiciones;
+        }
+
+        // ---------------------------------------------------------------
+        // Parsear reporte IA por condición
+        // ---------------------------------------------------------------
+        function parsearReporteIA(texto) {
+            const resultado = {};
+            if (!texto) return resultado;
+
+            // Separar por secciones ## Condición N:
+            const secciones = texto.split(/\n## /g);
+            secciones.forEach(sec => {
+                const match = sec.match(/^Condici[oó]n\s*(\d+)/i);
+                if (match) {
+                    resultado[parseInt(match[1])] = sec.trim();
+                } else if (sec.toLowerCase().includes('resumen ejecutivo')) {
+                    resultado[0] = sec.trim(); // resumen general
+                }
+            });
+            return resultado;
+        }
+
+        // ---------------------------------------------------------------
+        // Renderizar el modal con tabs y paneles
+        // ---------------------------------------------------------------
+        function renderizarRRC(condiciones, analisisIA) {
+            const tabsEl   = document.getElementById('rrcTabs');
+            const panelsEl = document.getElementById('rrcPanels');
+            tabsEl.innerHTML = '';
+            panelsEl.innerHTML = '';
+
+            RRC_CONDICIONES.forEach((cond, idx) => {
+                const cd      = condiciones[cond.num];
+                const promedio = cd.promedio;
+                const tieneFactores = cd.factoresRelacionados.length > 0;
+
+                // Semaforización
+                let semClass = 'sem-gris';   let semText = 'Sin datos';
+                let tabStatus = '';
+                if (tieneFactores) {
+                    if      (promedio >= 4.5) { semClass = 'sem-verde';    semText = 'Cumple plenamente';      tabStatus = 'status-verde'; }
+                    else if (promedio >= 4.0) { semClass = 'sem-verde';    semText = 'Cumple en alto grado';   tabStatus = 'status-verde'; }
+                    else if (promedio >= 3.0) { semClass = 'sem-amarillo'; semText = 'Cumple aceptablemente'; tabStatus = 'status-amarillo'; }
+                    else if (promedio > 0)    { semClass = 'sem-rojo';     semText = 'En proceso';             tabStatus = 'status-rojo'; }
+                    else                     { semClass = 'sem-amarillo'; semText = 'Revisar';                tabStatus = 'status-amarillo'; }
+                }
+
+                // --- TAB ---
+                const tabEl = document.createElement('button');
+                tabEl.className = `rrc-tab ${tabStatus} ${idx === 0 ? 'active' : ''}`;
+                tabEl.id = `rrc-tab-${cond.num}`;
+                tabEl.onclick = () => cambiarTabRRC(cond.num);
+                tabEl.innerHTML = `<span>${cond.num}. ${cond.nombre}</span>`;
+                tabsEl.appendChild(tabEl);
+
+                // --- PANEL ---
+                const factoresChips = cd.factoresRelacionados.map(f =>
+                    `<span class="rrc-factor-chip">F${f.numero}: ${f.nombre} (${f.promedio.toFixed(1)})</span>`
+                ).join('');
+
+                // Indicadores cubiertos
+                let indHtml = '<div class="rrc-indicators-grid">';
+                cond.indicadores.forEach(ind => {
+                    const cubierto = cd.indicadoresCubiertos.includes(ind.texto);
+                    const clsItem  = cubierto ? 'ok' : (tieneFactores ? 'warn' : 'miss');
+                    const icon     = cubierto ? '✅' : (tieneFactores ? '⚠️' : '❌');
+                    indHtml += `
+                        <div class="rrc-indicator-item ${clsItem}">
+                            <span class="rrc-ind-icon">${icon}</span>
+                            <div class="rrc-ind-text"><strong>${ind.texto}</strong></div>
+                        </div>`;
+                });
+                indHtml += '</div>';
+
+                // Análisis IA de esta condición
+                const textoIA = analisisIA[cond.num] || '';
+                let iaHtml = '';
+                if (textoIA) {
+                    const htmlIA = textoIA
+                        .replace(/###\s*(.*)/g, '<strong style="color:#4c1d95;display:block;margin:10px 0 4px;">$1</strong>')
+                        .replace(/##\s*(.*)/g, '')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
+                        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+                        .replace(/\n\n/g, '</p><p>')
+                        .replace(/\n/g, '<br>');
+                    iaHtml = `
+                        <div class="rrc-ai-analysis">
+                            <h4>✨ Análisis IA — Soporte normativo</h4>
+                            <div class="ai-content"><p>${htmlIA}</p></div>
+                        </div>`;
+                }
+
+                // Evidencias
+                let evidHtml = '';
+                if (cd.evidencias.length > 0) {
+                    evidHtml = `<div style="margin-top:14px;">
+                        <p style="font-weight:700; color:#1e293b; font-size:0.88rem; margin-bottom:8px;">📄 Evidencias relacionadas:</p>
+                        <ul style="margin:0; padding-left:20px; font-size:0.83rem; color:#475569;">
+                        ${cd.evidencias.slice(0, 8).map(ev =>
+                            `<li>${ev.nombre}</li>`
+                        ).join('')}
+                        ${cd.evidencias.length > 8 ? `<li style="color:#94a3b8;">...y ${cd.evidencias.length - 8} más</li>` : ''}
+                        </ul></div>`;
+                }
+
+                const panelEl = document.createElement('div');
+                panelEl.className = `rrc-panel ${idx === 0 ? 'active' : ''}`;
+                panelEl.id = `rrc-panel-${cond.num}`;
+                panelEl.innerHTML = `
+                    <div class="rrc-condition-header">
+                        <div class="rrc-condition-num">${cond.num}</div>
+                        <div class="rrc-condition-title">
+                            <h3>${cond.nombre}</h3>
+                            <p>${cond.norma} &nbsp;·&nbsp; ${cond.descripcion}</p>
+                        </div>
+                        <div class="rrc-semaforo ${semClass}">
+                            <span>${semText}</span>
+                            ${promedio > 0 ? `<strong>${promedio.toFixed(1)}</strong>` : ''}
+                        </div>
+                    </div>
+
+                    ${tieneFactores
+                        ? `<p style="font-size:0.83rem;font-weight:700;color:#475569;margin-bottom:6px;">Factores de autoevaluación relacionados:</p>
+                           <div class="rrc-factors-row">${factoresChips || '<span style="color:#94a3b8;font-size:0.82rem;">Sin factores asignados</span>'}</div>`
+                        : `<div style="padding:14px;background:#fffbeb;border-radius:8px;margin-bottom:14px;font-size:0.87rem;color:#92400e;">
+                            ⚠️ No se encontraron factores de autoevaluación directamente relacionados con esta condición. Complete el modelo de evaluación para obtener datos.
+                           </div>`
+                    }
+
+                    <p style="font-weight:700; color:#1e293b; margin-bottom:10px;">Indicadores normativos (Res. 0529):</p>
+                    ${indHtml}
+
+                    ${cd.justificaciones.length > 0
+                        ? `<div style="margin-top:16px;padding:16px;background:#f0f4ff;border-radius:10px;border-left:4px solid #2563eb;">
+                            <p style="font-weight:700;color:#1e293b;margin:0 0 8px;">Justificación del equipo de autoevaluación:</p>
+                            <p style="font-size:0.88rem;color:#374151;margin:0;line-height:1.6;">${cd.justificaciones.join(' | ').slice(0, 600)}${cd.justificaciones.join(' ').length > 600 ? '...' : ''}</p>
+                          </div>`
+                        : ''
+                    }
+
+                    ${iaHtml}
+                    ${evidHtml}
+                `;
+                panelsEl.appendChild(panelEl);
+            });
+
+            // Si hay resumen ejecutivo (condición 0)
+            if (analisisIA[0]) {
+                const resumenHtml = analisisIA[0]
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+                const resumenPanel = document.createElement('div');
+                resumenPanel.style.cssText = 'margin-top:24px;padding:24px;background:linear-gradient(135deg,#f0f7ff,#e8f0fe);border-radius:14px;border:1px solid #bfdbfe;';
+                resumenPanel.innerHTML = `<h3 style="color:#1e293b;margin-bottom:12px;">📊 Resumen Ejecutivo RRC</h3><div style="font-size:0.9rem;line-height:1.7;color:#374151;">${resumenHtml}</div>`;
+                panelsEl.appendChild(resumenPanel);
+            }
+
+            // Mostrar contenido
+            document.getElementById('rrcLoading').classList.remove('active');
+            document.getElementById('rrcContent').style.display = 'block';
+        }
+
+        function cambiarTabRRC(numCondicion) {
+            document.querySelectorAll('.rrc-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.rrc-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`rrc-tab-${numCondicion}`).classList.add('active');
+            document.getElementById(`rrc-panel-${numCondicion}`).classList.add('active');
+        }
+
+        function imprimirRRC() {
+            // Mostrar todos los paneles para impresión
+            document.querySelectorAll('.rrc-panel').forEach(p => p.style.display = 'block');
+            document.querySelectorAll('.rrc-tabs').forEach(t => t.style.display = 'none');
+            document.title = `Soporte RRC - ${_rrcProgName}`;
+            window.print();
+            // Restaurar
+            setTimeout(() => {
+                document.querySelectorAll('.rrc-panel').forEach((p, i) => {
+                    p.style.display = '';
+                    if (i === 0) p.classList.add('active');
+                    else p.classList.remove('active');
+                });
+                document.querySelectorAll('.rrc-tabs').forEach(t => t.style.display = '');
+            }, 500);
+        }
+
+        // ===================================================================
+        // FIN LÓGICA RRC
+        // ===================================================================
 
         // --- Lógica Generación Informe Maestro IA ---
         async function generarInformeIA() {
