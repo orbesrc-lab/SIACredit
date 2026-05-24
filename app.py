@@ -1041,8 +1041,18 @@ def library_upload_url():
             inst_id = first_inst.data[0]['id'] if first_inst.data else 1
             
         import re
+        import time
         clean_filename = re.sub(r'[^a-zA-Z0-9._-]', '_', filename)
         
+        # Append timestamp to avoid 'Duplicate resource' 400 error on PUT
+        timestamp = int(time.time())
+        parts = clean_filename.rsplit('.', 1)
+        if len(parts) == 2:
+            clean_filename = f"{parts[0]}_{timestamp}.{parts[1]}"
+        else:
+            clean_filename = f"{clean_filename}_{timestamp}"
+        
+        # Consistent path logic with original API
         file_path = f"inst_{inst_id}/prog_{program_id}/{aspect_id}/{period}/{clean_filename}"
         
         res = supabase.storage.from_('evidencias').create_signed_upload_url(file_path)
