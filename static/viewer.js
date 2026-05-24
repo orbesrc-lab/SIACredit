@@ -166,7 +166,6 @@
 
     // ── PDF.js — cargar dinámicamente ───────────────────────────────────────
     const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-    const PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     let _pdfjsReady = false;
     let _pdfjsLoading = false;
@@ -180,14 +179,16 @@
         const s = document.createElement('script');
         s.src = PDFJS_CDN;
         s.onload = () => {
-            const workerCode = `importScripts('${PDFJS_WORKER}');`;
-            const blob = new Blob([workerCode], { type: 'text/javascript' });
-            pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(blob);
+            // Desactivar el worker externo para evitar que se quede "pensando" por problemas de CORS
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '';
             _pdfjsReady = true;
             _pdfjsCallbacks.forEach(fn => fn());
             _pdfjsCallbacks = [];
         };
-        s.onerror = () => console.error('SIAC Viewer: No se pudo cargar PDF.js');
+        s.onerror = () => {
+            console.error('SIAC Viewer: No se pudo cargar PDF.js');
+            document.getElementById('siac-viewer-loading').innerHTML = '<p style="color:#fca5a5">Error de red. Intente descargar.</p>';
+        };
         document.head.appendChild(s);
     }
 
@@ -314,47 +315,26 @@
 
         _abrirPDF(url) {
             const self = this;
-
-            // Primero intentar cargar el PDF directo (por URL)
-            // Necesitamos hacer un fetch para obtener los bytes (evita problemas CORS con supabase)
-            loadPdfJs(async () => {
-                try {
-                    // Intentar via proxy del propio servidor primero
-                    let loadSource;
-                    if (url.includes('supabase') || url.includes('http')) {
-                        // Cargar via proxy para evitar CORS
-                        const proxyUrl = `/api/download?url=${encodeURIComponent(url)}`;
-                        const resp = await fetch(proxyUrl);
-                        if (resp.ok) {
-                            const buf = await resp.arrayBuffer();
-                            loadSource = { data: new Uint8Array(buf) };
-                        } else {
-                            // Fallback: intentar directo
-                            loadSource = { url: url, withCredentials: false };
-                        }
-                    } else {
-                        loadSource = { url: url };
-                    }
-
-                    const loadingTask = pdfjsLib.getDocument(loadSource);
-                    loadingTask.promise.then(pdf => {
-                        _pdfDoc   = pdf;
-                        _numPages = pdf.numPages;
-                        _curPage  = 1;
-
-                        document.getElementById('siac-btn-prev').style.display = '';
-                        document.getElementById('siac-btn-next').style.display = '';
-
-                        self._renderPage(1);
-                    }).catch(err => {
-                        console.error('PDF error:', err);
-                        self._showError('No se pudo cargar el PDF. Puede descargarlo para abrirlo localmente.');
-                    });
-
-                } catch (err) {
-                    console.error('PDF load error:', err);
-                    self._showError('Error al cargar el documento. Puede descargarlo para abrirlo.');
+            loadPdfJs(() => {
+                let proxyUrl = url;
+                if (url.includes('supabase') || url.includes('http')) {
+                    proxyUrl = `/api/download?url=${encodeURIComponent(url)}`;
                 }
+
+                const loadingTask = pdfjsLib.getDocument(proxyUrl);
+                loadingTask.promise.then(pdf => {
+                    _pdfDoc   = pdf;
+                    _numPages = pdf.numPages;
+                    _curPage  = 1;
+
+                    document.getElementById('siac-btn-prev').style.display = '';
+                    document.getElementById('siac-btn-next').style.display = '';
+
+                    self._renderPage(1);
+                }).catch(err => {
+                    console.error('PDF error:', err);
+                    self._showError('El archivo PDF no se pudo cargar o está dañado.');
+                });
             });
         },
 
