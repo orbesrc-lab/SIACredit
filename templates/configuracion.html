@@ -171,7 +171,30 @@
                         <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Este cambio se aplica instantáneamente a la página principal.</p>
                     </div>
                 </div>
-                <button class="btn-primary" onclick="saveGlobalTheme()" style="margin-top: 10px;">Guardar Tema Global</button>
+                
+                <h4 style="margin-top: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">🤖 Configuración de Inteligencia Artificial</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Proveedor de IA</label>
+                        <select id="aiProviderSelect" onchange="updateDefaultAIModel()">
+                            <option value="zhipu">Z.AI (ZhipuAI / glm-4)</option>
+                            <option value="openai">OpenAI (ChatGPT)</option>
+                            <option value="gemini">Google Gemini</option>
+                            <option value="anthropic">Anthropic Claude</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Modelo (Opcional, por defecto preconfigurado)</label>
+                        <input type="text" id="aiModelInput" placeholder="Ej: gpt-4o-mini">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>API Key</label>
+                        <input type="password" id="aiApiKeyInput" placeholder="Ingresa la API Key (dejar en blanco para mantener actual)">
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Si no configuras nada, se usará la API Key definida por variables de entorno en el servidor.</p>
+                    </div>
+                </div>
+
+                <button class="btn-primary" onclick="saveGlobalSettings()" style="margin-top: 15px;">Guardar Configuración Global</button>
             </div>
 
             <!-- Gestión de Institución (Solo para Admins) -->
@@ -1304,7 +1327,10 @@
             const currentUser = JSON.parse(localStorage.getItem('siac_user') || '{}');
             if (currentUser.role === 'admin') { // Habilitado solo para superadministradores
                 document.getElementById('instSelectorCard').style.display = 'block';
-                if (document.getElementById('globalSettingsCard')) document.getElementById('globalSettingsCard').style.display = 'block';
+                if (document.getElementById('globalSettingsCard')) {
+                    document.getElementById('globalSettingsCard').style.display = 'block';
+                    loadGlobalSettings();
+                }
                 const resp = await fetch('/api/institutions');
                 const list = await resp.json();
                 const select = document.getElementById('instSelect');
@@ -1612,22 +1638,65 @@
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 
     <script>
-        async function saveGlobalTheme() {
+        function updateDefaultAIModel() {
+            const provider = document.getElementById('aiProviderSelect').value;
+            const modelInput = document.getElementById('aiModelInput');
+            if(provider === 'zhipu') modelInput.placeholder = "Ej: glm-4";
+            else if(provider === 'openai') modelInput.placeholder = "Ej: gpt-4o-mini";
+            else if(provider === 'gemini') modelInput.placeholder = "Ej: gemini-1.5-pro";
+            else if(provider === 'anthropic') modelInput.placeholder = "Ej: claude-3-5-sonnet-20240620";
+        }
+
+        async function loadGlobalSettings() {
+            try {
+                // Fetch the stats table for GLOBAL_CONFIG via global load endpoint (we will create a dedicated GET in backend or we can just fetch all and filter, but better to add a GET endpoint or use /api/global-settings)
+                const res = await fetch('/api/global-settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.theme) document.getElementById('globalThemeSelect').value = data.theme;
+                    if (data.ai_provider) {
+                        document.getElementById('aiProviderSelect').value = data.ai_provider;
+                        updateDefaultAIModel();
+                    }
+                    if (data.ai_model) document.getElementById('aiModelInput').value = data.ai_model;
+                }
+            } catch (e) {
+                console.log("Error cargando configuración global");
+            }
+        }
+
+        async function saveGlobalSettings() {
             const theme = document.getElementById('globalThemeSelect').value;
+            const aiProvider = document.getElementById('aiProviderSelect').value;
+            const aiModel = document.getElementById('aiModelInput').value;
+            const aiApiKey = document.getElementById('aiApiKeyInput').value;
+
+            const payload = {
+                theme: theme,
+                ai_provider: aiProvider,
+                ai_model: aiModel
+            };
+            
+            // Only send API Key if the user typed something
+            if (aiApiKey.trim() !== '') {
+                payload.ai_api_key = aiApiKey.trim();
+            }
+
             try {
                 const res = await fetch('/api/global-settings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ theme: theme })
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    alert("✅ Tema global guardado correctamente.");
+                    alert("✅ Configuración global guardada correctamente.");
+                    document.getElementById('aiApiKeyInput').value = ''; // clear password field
                 } else {
                     alert("❌ Error: " + data.message);
                 }
             } catch (e) {
-                alert("❌ Error de conexión al guardar el tema global.");
+                alert("❌ Error de conexión al guardar configuración global.");
             }
         }
     </script>

@@ -987,22 +987,87 @@ def get_informe_dinamico():
         return jsonify({"error": str(e)}), 500
 
 
+def call_ai(messages, max_tokens=1500, temperature=0.7):
+    provider = "zhipu"
+    api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
+    model = "glm-4"
+    
+    try:
+        check = supabase.table('statistics').select("data_json").eq("table_id", "GLOBAL_CONFIG").execute()
+        if check.data:
+            data = json.loads(check.data[0]['data_json'])
+            if 'ai_provider' in data:
+                provider = data['ai_provider']
+            if 'ai_api_key' in data and data['ai_api_key']:
+                api_key = data['ai_api_key']
+            if 'ai_model' in data and data['ai_model']:
+                model = data['ai_model']
+            else:
+                if provider == 'openai': model = 'gpt-4o-mini'
+                elif provider == 'gemini': model = 'gemini-1.5-pro'
+                elif provider == 'anthropic': model = 'claude-3-5-sonnet-20240620'
+    except Exception as e:
+        print(f"Error fetching AI config: {e}")
+
+    if not api_key:
+        raise Exception("La API Key de Inteligencia Artificial no está configurada.")
+
+    if provider == 'anthropic':
+        import urllib.request
+        import json
+        url = "https://api.anthropic.com/v1/messages"
+        headers = {
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json"
+        }
+        
+        system_text = ""
+        anthropic_messages = []
+        for m in messages:
+            if m["role"] == "system":
+                system_text += m["content"] + "\n"
+            else:
+                anthropic_messages.append(m)
+
+        data = {
+            "model": model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "messages": anthropic_messages
+        }
+        if system_text:
+            data["system"] = system_text
+
+        req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers=headers, method='POST')
+        with urllib.request.urlopen(req) as response:
+            res_body = json.loads(response.read().decode('utf-8'))
+            return res_body['content'][0]['text']
+    else:
+        if provider == 'openai':
+            base_url = "https://api.openai.com/v1/"
+        elif provider == 'gemini':
+            base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+        else:
+            base_url = "https://open.bigmodel.cn/api/paas/v4/"
+        
+        client = OpenAI(api_key=api_key, base_url=base_url)
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+        return response.choices[0].message.content
+
+
 @app.route('/api/analyze', methods=['POST'])
 def analyze_stats():
     req_data = request.json
     table_id = req_data.get('table_id')
     all_data = req_data.get('all_data', {})
     
-    api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
-    if not api_key:
-        return jsonify({"analysis": "Error: La API Key de Inteligencia Artificial no está configurada."})
-
     try:
-        client = OpenAI(
-            api_key=api_key,
-            base_url="https://open.bigmodel.cn/api/paas/v4/"
-        )
-        
         if table_id:
             data_context = json.dumps(all_data.get(table_id, []), ensure_ascii=False)
             prompt = f"Actúa como par académico del CNA. Analiza los siguientes datos estadísticos del cuadro '{table_id}' e identifica tendencias, fortalezas o aspectos críticos. Responde directamente con el análisis en formato HTML básico (usando etiquetas como <p>, <strong>, <ul>) sin usar bloques de código Markdown. Datos: {data_context}"
@@ -1012,14 +1077,13 @@ def analyze_stats():
                 data_context = data_context[:30000] + "... [truncado]"
             prompt = f"Actúa como par académico del CNA. Analiza de manera integral los siguientes cuadros de datos estadísticos institucionales. Resalta los aspectos más importantes, tendencias globales y posibles oportunidades de mejora. Responde directamente con el análisis en formato HTML básico (usando etiquetas como <p>, <strong>, <ul>, <h3>) sin usar bloques de código Markdown. Datos: {data_context}"
 
-        response = client.chat.completions.create(
-            model="glm-4",
+        answer = call_ai(
             messages=[{"role": "user", "content": prompt}],
             temperature=0.6,
             max_tokens=1500
         )
         
-        html_analysis = response.choices[0].message.content.replace('```html', '').replace('```', '')
+        html_analysis = answer.replace('```html', '').replace('```', '')
         return jsonify({"analysis": html_analysis})
     except Exception as e:
         print(f"Error AI Analysis: {e}")
@@ -1334,25 +1398,42 @@ def delete_library_doc(aspect_id, doc_id):
         print(f"Error deleting library doc: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route('/api/global-settings', methods=['POST'])
-def save_global_settings():
+@app.route('/api/global-settings', methods=['GET', 'POST'])
+def global_settings():
     try:
-        data = request.json
-        theme = data.get('theme', 'dark')
-        
-        # Buscar si ya existe la configuración global (sin filtrar por inst_id)
-        check = supabase.table('statistics').select("id").eq("table_id", "GLOBAL_CONFIG").execute()
-        
-        config_data = json.dumps({"theme": theme})
-        
+        check = supabase.table('statistics').select("id, data_json").eq("table_id", "GLOBAL_CONFIG").execute()
+        current_data = {}
+        row_id = None
         if check.data:
-            supabase.table('statistics').update({"data_json": config_data}).eq("id", check.data[0]["id"]).execute()
+            row_id = check.data[0]['id']
+            try:
+                current_data = json.loads(check.data[0]['data_json'])
+            except:
+                pass
+
+        if request.method == 'GET':
+            # Remove api_key for security when sending to frontend, unless it's just to check if it exists
+            # We can send it back but masked, or just send a flag that it's set
+            resp_data = dict(current_data)
+            if 'ai_api_key' in resp_data:
+                del resp_data['ai_api_key'] # Hide actual key from frontend
+            return jsonify(resp_data)
+
+        # POST
+        data = request.json
+        if 'theme' in data: current_data['theme'] = data.get('theme')
+        if 'ai_provider' in data: current_data['ai_provider'] = data.get('ai_provider')
+        if 'ai_model' in data: current_data['ai_model'] = data.get('ai_model')
+        if 'ai_api_key' in data: current_data['ai_api_key'] = data.get('ai_api_key')
+        
+        config_data = json.dumps(current_data)
+        
+        if row_id:
+            supabase.table('statistics').update({"data_json": config_data}).eq("id", row_id).execute()
         else:
-            # Obtener el primer inst_id de la BD para usarlo como ancla válida
             first_inst = supabase.table('institution').select("id").limit(1).execute()
             valid_inst_id = first_inst.data[0]['id'] if first_inst.data else 1
             
-            # Obtener el primer program_id de la BD para usarlo como ancla válida
             first_prog = supabase.table('programs').select("id").limit(1).execute()
             valid_prog_id = first_prog.data[0]['id'] if first_prog.data else 1
             
@@ -1456,10 +1537,6 @@ def ai_chat():
     data = request.json
     question = data.get('question', '')
     file_url = data.get('file_url', '')
-    
-    api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
-    if not api_key:
-        return jsonify({"error": "La API Key de Inteligencia Artificial no está configurada en el servidor."}), 500
 
     try:
         # Extraer texto del archivo si se proporciona
@@ -1496,10 +1573,6 @@ def ai_chat():
                 print(f"Error parsing attached file: {e}")
                 file_context = f"[Error al leer el archivo adjunto: {e}]"
 
-        client = OpenAI(
-            api_key=api_key,
-            base_url="https://open.bigmodel.cn/api/paas/v4/"
-        )
         system_prompt = "Eres un asistente experto en acreditación de alta calidad para instituciones de educación superior en Colombia (CNA). Responde de manera concisa, profesional y analítica basándote en estándares de calidad académica."
         
         final_prompt = question
@@ -1508,8 +1581,7 @@ def ai_chat():
                 file_context = file_context[:20000] + "... [texto truncado]"
             final_prompt = f"El usuario ha adjuntado un documento con el siguiente contenido:\n\n{file_context}\n\nPregunta del usuario: {question if question else 'Resume el documento o extrae los aspectos clave para la acreditación.'}"
 
-        response = client.chat.completions.create(
-            model="glm-4",
+        answer = call_ai(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": final_prompt}
@@ -1518,7 +1590,6 @@ def ai_chat():
             max_tokens=1500
         )
         
-        answer = response.choices[0].message.content
         return jsonify({"status": "success", "answer": answer})
     except Exception as e:
         print(f"Error AI Chat: {e}")
@@ -1529,15 +1600,7 @@ def ai_generate_report():
     data = request.json
     report_data = data.get('report_data', {})
     
-    api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
-    if not api_key:
-        return jsonify({"error": "La API Key de Inteligencia Artificial no está configurada en el servidor."}), 500
-
     try:
-        client = OpenAI(
-            api_key=api_key,
-            base_url="https://open.bigmodel.cn/api/paas/v4/"
-        )
         # Convert report_data to string but limit its size to avoid context length limits
         data_str = json.dumps(report_data, ensure_ascii=False)
         if len(data_str) > 30000:
@@ -1563,8 +1626,7 @@ def ai_generate_report():
         Escribe de forma formal, propositiva y basada estrictamente en los datos provistos.
         """
         
-        response = client.chat.completions.create(
-            model="glm-4",
+        report_text = call_ai(
             messages=[
                 {"role": "system", "content": "Eres el redactor experto de informes de acreditación institucional."},
                 {"role": "user", "content": prompt}
@@ -1573,7 +1635,6 @@ def ai_generate_report():
             max_tokens=3000
         )
         
-        report_text = response.choices[0].message.content
         return jsonify({"status": "success", "report": report_text})
     except Exception as e:
         print(f"Error AI Generate Report: {e}")
@@ -1594,16 +1655,7 @@ def ai_generar_rrc():
     program_name     = data.get('program_name', 'Programa Académico')
     inst_name        = data.get('inst_name', 'Institución de Educación Superior')
 
-    api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
-    if not api_key:
-        return jsonify({"error": "La API Key de IA no está configurada en el servidor."}), 500
-
     try:
-        client = OpenAI(
-            api_key=api_key,
-            base_url="https://open.bigmodel.cn/api/paas/v4/"
-        )
-
         # Serializar datos de condiciones, limitando el tamaño
         data_str = json.dumps(condiciones_data, ensure_ascii=False)
         if len(data_str) > 28000:
@@ -1650,18 +1702,16 @@ Con tabla de las 9 condiciones y su estimación.
 Sé riguroso, formal y propositivo. Cita las normas cuando sea pertinente.
 """
 
-        response = client.chat.completions.create(
-            model="glm-4",
+        rrc_text = call_ai(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": prompt}
             ],
             temperature=0.65,
-            max_tokens=4000
+            max_tokens=3500
         )
 
-        report_text = response.choices[0].message.content
-        return jsonify({"status": "success", "report": report_text})
+        return jsonify({"status": "success", "report": rrc_text})
 
     except Exception as e:
         print(f"Error AI Generar RRC: {e}")
