@@ -988,24 +988,18 @@ def get_informe_dinamico():
 
 
 def call_ai(messages, max_tokens=1500, temperature=0.7):
-    provider = "zhipu"
-    api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
-    model = "glm-4"
+    # Forzamos Google Gemini ignorando la DB para evitar problemas de persistencia
+    provider = "gemini"
+    api_key = "AIzaSyCUzl0g6_n35SGaBoMH8cf7mvSP8TkszUg"
+    model = "gemini-2.5-flash"
     
     try:
+        # We can still read DB for other things in the future, but AI is fixed
         check = supabase.table('statistics').select("data_json").eq("table_id", "GLOBAL_CONFIG").order("id", desc=True).limit(1).execute()
         if check.data:
             data = json.loads(check.data[0]['data_json'])
-            if 'ai_provider' in data:
-                provider = data['ai_provider']
-            if 'ai_api_key' in data and data['ai_api_key']:
-                api_key = data['ai_api_key']
-            if 'ai_model' in data and data['ai_model']:
-                model = data['ai_model']
-            else:
-                if provider == 'openai': model = 'gpt-4o-mini'
-                elif provider == 'gemini': model = 'gemini-2.5-flash'
-                elif provider == 'anthropic': model = 'claude-3-5-sonnet-20240620'
+            # No overriden AI settings from DB anymore
+
 
     except Exception as e:
         print(f"Error fetching AI config: {e}")
