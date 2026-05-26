@@ -1083,7 +1083,8 @@ def analyze_stats():
             max_tokens=1500
         )
         
-        return jsonify({"analysis": answer})
+        safe_answer = answer.replace('<', '&lt;').replace('>', '&gt;')
+        return jsonify({"analysis": safe_answer})
     except Exception as e:
         print(f"Error AI Analysis: {e}")
         return jsonify({"analysis": f"Error procesando análisis: {str(e)}"})
