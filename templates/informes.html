@@ -495,12 +495,12 @@
     <!-- Widget Chatbot IA -->
     <div id="aiChatWidget" class="ai-chat-widget">
         <div class="ai-chat-header" onclick="toggleChat()">
-            <span>✨ Asistente IA (Adrian) CNA</span>
+            <span>✨ Asistente IA (Margy) CNA</span>
             <span id="chatToggleIcon">▼</span>
         </div>
         <div class="ai-chat-body" id="aiChatBody" style="display:none;">
             <div class="ai-chat-messages" id="aiChatMessages">
-                <div class="ai-message">¡Hola! Soy Adrian, tu asistente de Inteligencia Artificial para la acreditación. Puedo ayudarte a analizar cuadros estadísticos o generar reportes de los factores. ¿En qué te ayudo hoy?</div>
+                <div class="ai-message">¡Hola! Soy Margy, tu asistente de Inteligencia Artificial para la acreditación. Puedo ayudarte a analizar cuadros estadísticos o generar reportes de los factores. ¿En qué te ayudo hoy?</div>
             </div>
             <div class="ai-chat-input-area" style="align-items: center;">
                 <input type="file" id="aiChatFile" style="display:none;" onchange="updateChatFileLabel()">
@@ -900,7 +900,7 @@
                     updateChatFileLabel();
                 }
 
-                loadingMsg.innerHTML = '<em>Analizando con Adrian...</em>';
+                loadingMsg.innerHTML = '<em>Analizando con Margy...</em>';
                 const res = await fetch('/api/ai/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
