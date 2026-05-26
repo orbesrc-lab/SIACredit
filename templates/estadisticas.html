@@ -608,6 +608,21 @@
                     if (data.analysis.includes("Error procesando")) {
                         resultDiv.innerHTML = data.analysis;
                     } else {
+                        // Guardar en backend
+                        const key = tableId ? `ai_analysis_${tableId}` : 'ai_analysis_global';
+                        const stats = getStatistics();
+                        stats[key] = data.analysis;
+                        fetch(`/api/estadisticas?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                table_id: key,
+                                data: data.analysis,
+                                inst_id: getInstId(),
+                                program_id: getProgramId()
+                            })
+                        });
+
                         try {
                             resultDiv.innerHTML = marked.parse(data.analysis);
                         } catch(e) {
@@ -621,6 +636,38 @@
                 if (btn) {
                     btn.disabled = false;
                     btn.textContent = "Generar Informe Global con IA";
+                }
+            }
+        }
+        
+        function renderAIAnalyses() {
+            const stats = getStatistics() || {};
+            // Render individual table analyses
+            for (const tableId of Object.keys(tableConfigs)) {
+                const key = `ai_analysis_${tableId}`;
+                if (stats[key]) {
+                    const resultDiv = document.getElementById(`analysis_${tableId}`);
+                    if (resultDiv) {
+                        resultDiv.style.display = 'block';
+                        try {
+                            resultDiv.innerHTML = marked.parse(stats[key]);
+                        } catch(e) {
+                            resultDiv.innerHTML = stats[key];
+                        }
+                    }
+                }
+            }
+            
+            // Render global analysis
+            if (stats['ai_analysis_global']) {
+                const globalDiv = document.getElementById('aiResult');
+                if (globalDiv) {
+                    globalDiv.style.display = 'block';
+                    try {
+                        globalDiv.innerHTML = marked.parse(stats['ai_analysis_global']);
+                    } catch(e) {
+                        globalDiv.innerHTML = stats['ai_analysis_global'];
+                    }
                 }
             }
         }
@@ -645,6 +692,7 @@
             
             await loadDataFromAPI();
             renderTables();
+            renderAIAnalyses();
         }
         init();
     </script>

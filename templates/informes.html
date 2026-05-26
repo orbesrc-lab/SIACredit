@@ -630,6 +630,20 @@
                 detalleDiv.innerHTML += factorHtml;
             });
 
+            if (data.cuadros && data.cuadros['ai_analysis_global']) {
+                let aiHtml = `
+                    <div class="factor-section" style="margin-top: 40px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                        <div class="factor-title" style="background:linear-gradient(135deg, #4338ca, #312e81); color:white; border-bottom:none; border-radius: 8px 8px 0 0;">
+                            <span>✨ Análisis Global de Estadísticas (Generado por IA)</span>
+                        </div>
+                        <div style="padding:25px; background:white; line-height:1.6; border: 1px solid #e2e8f0; border-radius: 0 0 8px 8px; font-size: 0.95rem;">
+                            ${marked.parse(data.cuadros['ai_analysis_global'])}
+                        </div>
+                    </div>
+                `;
+                detalleDiv.innerHTML += aiHtml;
+            }
+
             // Dibujar Radar
             if (window.myRadar) window.myRadar.destroy();
             const ctx = document.getElementById('radarChart').getContext('2d');
