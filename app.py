@@ -1004,10 +1004,6 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
             # if 'ai_model' in data and data['ai_model']:
             #     model = data['ai_model']
 
-            else:
-                if provider == 'openai': model = 'gpt-4o-mini'
-                elif provider == 'gemini': model = 'gemini-1.5-pro'
-                elif provider == 'anthropic': model = 'claude-3-5-sonnet-20240620'
     except Exception as e:
         print(f"Error fetching AI config: {e}")
 
