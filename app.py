@@ -1070,12 +1070,12 @@ def analyze_stats():
     try:
         if table_id:
             data_context = json.dumps(all_data.get(table_id, []), ensure_ascii=False)
-            prompt = f"Actúa como par académico del CNA. Analiza los siguientes datos estadísticos del cuadro '{table_id}' e identifica tendencias, fortalezas o aspectos críticos. Responde directamente con el análisis en formato HTML básico (usando etiquetas como <p>, <strong>, <ul>) sin usar bloques de código Markdown. Datos: {data_context}"
+            prompt = f"Actúa como par académico del CNA. Analiza los siguientes datos estadísticos del cuadro '{table_id}' e identifica tendencias, fortalezas o aspectos críticos. Responde directamente con el análisis en formato Markdown. Datos: {data_context}"
         else:
             data_context = json.dumps(all_data, ensure_ascii=False)
             if len(data_context) > 30000:
                 data_context = data_context[:30000] + "... [truncado]"
-            prompt = f"Actúa como par académico del CNA. Analiza de manera integral los siguientes cuadros de datos estadísticos institucionales. Resalta los aspectos más importantes, tendencias globales y posibles oportunidades de mejora. Responde directamente con el análisis en formato HTML básico (usando etiquetas como <p>, <strong>, <ul>, <h3>) sin usar bloques de código Markdown. Datos: {data_context}"
+            prompt = f"Actúa como par académico del CNA. Analiza de manera integral los siguientes cuadros de datos estadísticos institucionales. Resalta los aspectos más importantes, tendencias globales y posibles oportunidades de mejora. Responde directamente con el análisis en formato Markdown. Datos: {data_context}"
 
         answer = call_ai(
             messages=[{"role": "user", "content": prompt}],
@@ -1083,8 +1083,7 @@ def analyze_stats():
             max_tokens=1500
         )
         
-        html_analysis = answer.replace('```html', '').replace('```', '')
-        return jsonify({"analysis": html_analysis})
+        return jsonify({"analysis": answer})
     except Exception as e:
         print(f"Error AI Analysis: {e}")
         return jsonify({"analysis": f"Error procesando análisis: {str(e)}"})

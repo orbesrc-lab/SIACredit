@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="{{ url_for('static', filename='downloader.js') }}"></script>
     <script src="{{ url_for('static', filename='viewer.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body { background-color: var(--secondary-bg); display: flex; height: 100vh; overflow: hidden; }
 
@@ -604,7 +605,15 @@
                 const data = await response.json();
                 
                 if (resultDiv) {
-                    resultDiv.innerHTML = data.analysis;
+                    if (data.analysis.includes("Error procesando")) {
+                        resultDiv.innerHTML = data.analysis;
+                    } else {
+                        try {
+                            resultDiv.innerHTML = marked.parse(data.analysis);
+                        } catch(e) {
+                            resultDiv.innerHTML = data.analysis;
+                        }
+                    }
                 }
             } catch (err) {
                 alert("Error al conectar con el motor de IA.");
