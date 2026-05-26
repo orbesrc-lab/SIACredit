@@ -993,7 +993,7 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
     model = "glm-4"
     
     try:
-        check = supabase.table('statistics').select("data_json").eq("table_id", "GLOBAL_CONFIG").execute()
+        check = supabase.table('statistics').select("data_json").eq("table_id", "GLOBAL_CONFIG").order("id", desc=True).limit(1).execute()
         if check.data:
             data = json.loads(check.data[0]['data_json'])
             if 'ai_provider' in data:
@@ -1406,7 +1406,7 @@ def delete_library_doc(aspect_id, doc_id):
 @app.route('/api/global-settings', methods=['GET', 'POST'])
 def global_settings():
     try:
-        check = supabase.table('statistics').select("id, data_json").eq("table_id", "GLOBAL_CONFIG").execute()
+        check = supabase.table('statistics').select("id, data_json").eq("table_id", "GLOBAL_CONFIG").order("id", desc=True).limit(1).execute()
         current_data = {}
         row_id = None
         if check.data:
