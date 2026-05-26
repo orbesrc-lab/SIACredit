@@ -1052,8 +1052,7 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
             response = client.chat.completions.create(
                 model=model,
                 messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens
+                temperature=temperature
             )
             return response.choices[0].message.content
         except Exception as e:
