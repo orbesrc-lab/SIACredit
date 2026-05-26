@@ -1012,6 +1012,7 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
     if not api_key:
         raise Exception("La API Key de Inteligencia Artificial no está configurada.")
 
+
     if provider == 'anthropic':
         import urllib.request
         import json
@@ -1052,13 +1053,17 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
             base_url = "https://open.bigmodel.cn/api/paas/v4/"
         
         client = OpenAI(api_key=api_key, base_url=base_url)
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens
-        )
-        return response.choices[0].message.content
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            raise Exception(f"{str(e)} [DEBUG: provider={provider}, base_url={base_url}, rows={len(check.data) if 'check' in locals() else 'unknown'}]")
+
 
 
 @app.route('/api/analyze', methods=['POST'])
