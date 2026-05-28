@@ -458,6 +458,21 @@
 
     <script src="{{ url_for('static', filename='data.js') }}?v=2.2"></script>
     <script>
+        window.addEventListener('error', function(e) {
+            const errDiv = document.createElement('div');
+            errDiv.style.background = '#fee2e2';
+            errDiv.style.color = '#b91c1c';
+            errDiv.style.padding = '15px';
+            errDiv.style.border = '1px solid #fca5a5';
+            errDiv.style.borderRadius = '8px';
+            errDiv.style.margin = '20px';
+            errDiv.style.fontWeight = 'bold';
+            errDiv.style.position = 'relative';
+            errDiv.style.zIndex = '9999';
+            errDiv.innerHTML = `⚠️ Error de JavaScript detectado: ${e.message}<br><small style="font-weight:normal;color:#7f1d1d;">Archivo: ${e.filename} (Línea ${e.lineno}:${e.colno})</small>`;
+            document.body.insertBefore(errDiv, document.body.firstChild);
+        });
+
         const user = JSON.parse(localStorage.getItem('siac_user'));
         if (!user) { window.location.href = 'login.html'; }
         document.getElementById('userInfo').textContent = user ? user.email : '';
