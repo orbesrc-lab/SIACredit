@@ -1710,10 +1710,7 @@
             renderModel();
             alert("✅ Datos recargados desde el servidor.");
         }
-    </script>
-    <script src="{{ url_for('static', filename='app.js') }}?v=2.2"></script>
 
-    <script>
         function updateDefaultAIModel() {
             const provider = document.getElementById('aiProviderSelect').value;
             const modelInput = document.getElementById('aiModelInput');
@@ -1778,6 +1775,7 @@
             }
         }
     </script>
+    <script src="{{ url_for('static', filename='app.js') }}?v=2.2"></script>
 </body>
 
 </html>
