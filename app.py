@@ -1046,6 +1046,7 @@ def get_informe_dinamico():
 
 
 def call_ai(messages, max_tokens=1500, temperature=0.7):
+    import json
     provider = "zhipu"
     api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
     model = "glm-4"
@@ -1068,7 +1069,6 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
 
     if provider == 'anthropic':
         import urllib.request
-        import json
         url = "https://api.anthropic.com/v1/messages"
         headers = {
             "x-api-key": api_key,
