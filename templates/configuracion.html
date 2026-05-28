@@ -1331,37 +1331,39 @@
                     document.getElementById('globalSettingsCard').style.display = 'block';
                     loadGlobalSettings();
                 }
+                // Declarar select fuera del try para que sea accesible en todo el bloque
+                const select = document.getElementById('instSelect');
                 try {
                     const resp = await fetch('/api/institutions');
                     const list = await resp.json();
                     // Solo actualizar el select si la lista tiene datos válidos
                     if (!Array.isArray(list) || list.length === 0) {
                         console.warn('loadAllInstitutions: la API retornó una lista vacía, se mantiene el selector actual.');
-                        return;
+                    } else {
+                        select.innerHTML = '';
+                        list.forEach(inst => {
+                            const opt = document.createElement('option');
+                            opt.value = inst.id;
+                            opt.textContent = `${inst.name} (${inst.description || 'Sin programa'})`;
+                            if (inst.id == getInstId()) opt.selected = true;
+                            select.appendChild(opt);
+                        });
                     }
-                    const select = document.getElementById('instSelect');
-                    select.innerHTML = '';
-                    list.forEach(inst => {
-                        const opt = document.createElement('option');
-                        opt.value = inst.id;
-                        opt.textContent = `${inst.name} (${inst.description || 'Sin programa'})`;
-                        if (inst.id == getInstId()) opt.selected = true;
-                        select.appendChild(opt);
-                    });
                 } catch (e) {
                     console.error('loadAllInstitutions: error de red al cargar instituciones:', e);
-                    return; // No borrar el select si hay error de red
                 }
                 
                 // Monitor selector change to disable delete on ID 1
                 select.addEventListener('change', () => {
                     const btn = document.querySelector('[onclick="deleteInstitution()"]');
-                    if(select.value == '1') {
-                        btn.style.opacity = '0.5';
-                        btn.title = 'No se puede eliminar la institución principal.';
-                    } else {
-                        btn.style.opacity = '1';
-                        btn.title = '';
+                    if (btn) {
+                        if(select.value == '1') {
+                            btn.style.opacity = '0.5';
+                            btn.title = 'No se puede eliminar la institución principal.';
+                        } else {
+                            btn.style.opacity = '1';
+                            btn.title = '';
+                        }
                     }
                 });
                 // Initial check
