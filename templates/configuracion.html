@@ -473,7 +473,27 @@
             document.body.insertBefore(errDiv, document.body.firstChild);
         });
 
-        const user = JSON.parse(localStorage.getItem('siac_user'));
+        window.addEventListener('unhandledrejection', function(e) {
+            const errDiv = document.createElement('div');
+            errDiv.style.background = '#fee2e2';
+            errDiv.style.color = '#b91c1c';
+            errDiv.style.padding = '15px';
+            errDiv.style.border = '1px solid #fca5a5';
+            errDiv.style.borderRadius = '8px';
+            errDiv.style.margin = '20px';
+            errDiv.style.fontWeight = 'bold';
+            errDiv.style.position = 'relative';
+            errDiv.style.zIndex = '9999';
+            errDiv.innerHTML = `⚠️ Error de Red o Promesa fallida: ${e.reason ? e.reason.message || e.reason : e}<br><small style="font-weight:normal;color:#7f1d1d;">Detalle: ${e.reason ? e.reason.stack || '' : ''}</small>`;
+            document.body.insertBefore(errDiv, document.body.firstChild);
+        });
+
+        let user = null;
+        try {
+            user = JSON.parse(localStorage.getItem('siac_user'));
+        } catch(e) {
+            console.error("Error parsing siac_user:", e);
+        }
         if (!user) { window.location.href = 'login.html'; }
         document.getElementById('userInfo').textContent = user ? user.email : '';
 
@@ -1024,8 +1044,8 @@
 
             try {
                 const [instResp, progResp] = await Promise.all([
-                    fetch('/api/institutions'),
-                    fetch(`/api/programs?inst_id=${instId}`)
+                    fetch('/api/institutions?t=' + Date.now()),
+                    fetch(`/api/programs?inst_id=${instId}&t=` + Date.now())
                 ]);
                 const institutions = await instResp.json();
                 const programs = await progResp.json();
@@ -1102,7 +1122,7 @@
 
 
         async function loadInstitution() {
-            const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+            const resp = await fetch(`/api/institution?inst_id=${getInstId()}&t=` + Date.now());
             const data = await resp.json();
             if(document.getElementById('inst_name')) document.getElementById('inst_name').value = data.name || '';
             if(document.getElementById('inst_logo')) document.getElementById('inst_logo').value = data.logo_url || '';
@@ -1152,7 +1172,7 @@
             var canManage = true; // Habilitado para todos los usuarios por petición
 
             try {
-                var resp = await fetch('/api/users?inst_id=' + instId + '&program_id=' + programId);
+                var resp = await fetch('/api/users?inst_id=' + instId + '&program_id=' + programId + '&t=' + Date.now());
                 var users = await resp.json();
 
                 if (!Array.isArray(users) || users.length === 0) {
@@ -1368,7 +1388,7 @@
             let list = null;
             for (let intento = 1; intento <= 3; intento++) {
                 try {
-                    const resp = await fetch('/api/institutions');
+                    const resp = await fetch('/api/institutions?t=' + Date.now());
                     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                     const data = await resp.json();
                     if (Array.isArray(data)) {
@@ -1392,9 +1412,10 @@
             select.innerHTML = '';
             const currentInstId = getInstId();
             list.forEach(inst => {
+                if (!inst) return;
                 const opt = document.createElement('option');
-                opt.value = inst.id;
-                opt.textContent = `${inst.name} (${inst.description || 'Sin programa'})`;
+                opt.value = inst.id || '';
+                opt.textContent = `${inst.name || 'Sin Nombre'} (${inst.description || inst.code || 'Sin programa'})`;
                 if (inst.id == currentInstId) opt.selected = true;
                 select.appendChild(opt);
             });
@@ -1427,7 +1448,7 @@
             
             // Auto-seleccionar el primer programa de la nueva institución para evitar inconsistencias
             try {
-                const resp = await fetch(`/api/programs?inst_id=${newId}`);
+                const resp = await fetch(`/api/programs?inst_id=${newId}&t=` + Date.now());
                 const list = await resp.json();
                 if (list && list.length > 0) {
                     userData.program_id = list[0].id;
@@ -1466,7 +1487,7 @@
         async function loadAllPrograms() {
             if (true) { // Habilitado para todos los usuarios por petición
                 document.getElementById('progSelectorCard').style.display = 'block';
-                const resp = await fetch(`/api/programs?inst_id=${getInstId()}`);
+                const resp = await fetch(`/api/programs?inst_id=${getInstId()}&t=` + Date.now());
                 const list = await resp.json();
                 const select = document.getElementById('progSelect');
                 select.innerHTML = '<option value="0">-- Seleccione un Programa --</option>';
@@ -1705,7 +1726,7 @@
         async function loadGlobalSettings() {
             try {
                 // Fetch the stats table for GLOBAL_CONFIG via global load endpoint (we will create a dedicated GET in backend or we can just fetch all and filter, but better to add a GET endpoint or use /api/global-settings)
-                const res = await fetch('/api/global-settings');
+                const res = await fetch('/api/global-settings?t=' + Date.now());
                 if (res.ok) {
                     const data = await res.json();
                     if (data.theme) document.getElementById('globalThemeSelect').value = data.theme;

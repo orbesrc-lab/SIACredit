@@ -5,13 +5,23 @@ let localReportsCache = {};
 let localStatsCache = {};
 
 function getInstId() {
-    const user = JSON.parse(localStorage.getItem('siac_user'));
-    return user ? (user.inst_id || 1) : 1;
+    try {
+        const user = JSON.parse(localStorage.getItem('siac_user'));
+        return user ? (user.inst_id || 1) : 1;
+    } catch (e) {
+        console.error("Error parsing siac_user in getInstId:", e);
+        return 1;
+    }
 }
 
 function getProgramId() {
-    const user = JSON.parse(localStorage.getItem('siac_user'));
-    return user ? (user.program_id || 0) : 0;
+    try {
+        const user = JSON.parse(localStorage.getItem('siac_user'));
+        return user ? (user.program_id || 0) : 0;
+    } catch (e) {
+        console.error("Error parsing siac_user in getProgramId:", e);
+        return 0;
+    }
 }
 
 // Cargar todos los datos desde la API del backend
@@ -29,16 +39,16 @@ async function loadDataFromAPI() {
     }
 
     try {
-        const resM = await fetch(`/api/model?inst_id=${instId}&program_id=${progId}`);
+        const resM = await fetch(`/api/model?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
         localModelCache = await resM.json();
 
-        const resEv = await fetch(`/api/evidences?inst_id=${instId}&program_id=${progId}`);
+        const resEv = await fetch(`/api/evidences?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
         localEvidencesCache = await resEv.json();
 
-        const resEval = await fetch(`/api/evaluations?inst_id=${instId}&program_id=${progId}`);
+        const resEval = await fetch(`/api/evaluations?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
         localEvaluationsCache = await resEval.json();
 
-        const resStat = await fetch(`/api/estadisticas?inst_id=${instId}&program_id=${progId}`);
+        const resStat = await fetch(`/api/estadisticas?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
         localStatsCache = await resStat.json();
     } catch (err) {
         console.error("Error cargando datos del servidor:", err);
