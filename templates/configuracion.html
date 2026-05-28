@@ -1325,55 +1325,75 @@
 
         async function loadAllInstitutions() {
             const currentUser = JSON.parse(localStorage.getItem('siac_user') || '{}');
-            if (currentUser.role === 'admin') { // Habilitado solo para superadministradores
-                document.getElementById('instSelectorCard').style.display = 'block';
-                if (document.getElementById('globalSettingsCard')) {
-                    document.getElementById('globalSettingsCard').style.display = 'block';
-                    loadGlobalSettings();
-                }
-                // Declarar select fuera del try para que sea accesible en todo el bloque
-                const select = document.getElementById('instSelect');
+            if (currentUser.role !== 'admin') {
+                document.getElementById('instSelectorCard').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('instSelectorCard').style.display = 'block';
+            if (document.getElementById('globalSettingsCard')) {
+                document.getElementById('globalSettingsCard').style.display = 'block';
+                loadGlobalSettings();
+            }
+
+            const select = document.getElementById('instSelect');
+            // Mostrar estado de carga inmediatamente
+            select.innerHTML = '<option value="">⏳ Cargando instituciones...</option>';
+            select.disabled = true;
+
+            // Reintentos automáticos hasta 3 veces en caso de fallo
+            let list = null;
+            for (let intento = 1; intento <= 3; intento++) {
                 try {
                     const resp = await fetch('/api/institutions');
-                    const list = await resp.json();
-                    // Solo actualizar el select si la lista tiene datos válidos
-                    if (!Array.isArray(list) || list.length === 0) {
-                        console.warn('loadAllInstitutions: la API retornó una lista vacía, se mantiene el selector actual.');
-                    } else {
-                        select.innerHTML = '';
-                        list.forEach(inst => {
-                            const opt = document.createElement('option');
-                            opt.value = inst.id;
-                            opt.textContent = `${inst.name} (${inst.description || 'Sin programa'})`;
-                            if (inst.id == getInstId()) opt.selected = true;
-                            select.appendChild(opt);
-                        });
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const data = await resp.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        list = data;
+                        break; // Éxito, salir del loop
                     }
                 } catch (e) {
-                    console.error('loadAllInstitutions: error de red al cargar instituciones:', e);
+                    console.warn(`loadAllInstitutions: intento ${intento} fallido:`, e);
+                    if (intento < 3) await new Promise(r => setTimeout(r, 1000 * intento)); // espera 1s, 2s
                 }
-                
-                // Monitor selector change to disable delete on ID 1
-                select.addEventListener('change', () => {
-                    const btn = document.querySelector('[onclick="deleteInstitution()"]');
-                    if (btn) {
-                        if(select.value == '1') {
-                            btn.style.opacity = '0.5';
-                            btn.title = 'No se puede eliminar la institución principal.';
-                        } else {
-                            btn.style.opacity = '1';
-                            btn.title = '';
-                        }
-                    }
-                });
-                // Initial check
-                const btnDel = document.querySelector('[onclick="deleteInstitution()"]');
-                if(select.value == '1' && btnDel) {
-                    btnDel.style.opacity = '0.5';
-                    btnDel.title = 'No se puede eliminar la institución principal.';
+            }
+
+            select.disabled = false;
+
+            if (!list) {
+                select.innerHTML = '<option value="">❌ Error cargando instituciones — recargue la página</option>';
+                return;
+            }
+
+            // Poblar el select con las instituciones obtenidas
+            select.innerHTML = '';
+            const currentInstId = getInstId();
+            list.forEach(inst => {
+                const opt = document.createElement('option');
+                opt.value = inst.id;
+                opt.textContent = `${inst.name} (${inst.description || 'Sin programa'})`;
+                if (inst.id == currentInstId) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            // Si ninguna opción quedó seleccionada, seleccionar la primera
+            if (!select.value && select.options.length > 0) {
+                select.selectedIndex = 0;
+            }
+
+            // Monitor selector change to disable delete on ID 1
+            select.addEventListener('change', () => {
+                const btn = document.querySelector('[onclick="deleteInstitution()"]');
+                if (btn) {
+                    btn.style.opacity = select.value == '1' ? '0.5' : '1';
+                    btn.title = select.value == '1' ? 'No se puede eliminar la institución principal.' : '';
                 }
-            } else {
-                document.getElementById('instSelectorCard').style.display = 'none';
+            });
+            // Initial check
+            const btnDel = document.querySelector('[onclick="deleteInstitution()"]');
+            if (btnDel) {
+                btnDel.style.opacity = select.value == '1' ? '0.5' : '1';
+                btnDel.title = select.value == '1' ? 'No se puede eliminar la institución principal.' : '';
             }
         }
 
