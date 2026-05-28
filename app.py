@@ -104,6 +104,36 @@ def fix_db():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/api/debug/force-update-gemini')
+def route_force_update_gemini():
+    try:
+        config_data = json.dumps({
+            "theme": "dark",
+            "ai_provider": "gemini",
+            "ai_model": "gemini-2.5-flash",
+            "ai_api_key": "AIzaSyCUzl0g6_n35SGaBoMH8cf7mvSP8TkszUg"
+        })
+        check = supabase.table('statistics').select("id").eq("table_id", "GLOBAL_CONFIG").order("id", desc=True).limit(1).execute()
+        if check.data:
+            row_id = check.data[0]['id']
+            res = supabase.table('statistics').update({"data_json": config_data}).eq("id", row_id).execute()
+            return jsonify({"status": "success", "action": "update", "row_id": row_id, "data": res.data})
+        else:
+            first_inst = supabase.table('institution').select("id").limit(1).execute()
+            inst_id = first_inst.data[0]['id'] if first_inst.data else 1
+            first_prog = supabase.table('programs').select("id").limit(1).execute()
+            prog_id = first_prog.data[0]['id'] if first_prog.data else 1
+            
+            res = supabase.table('statistics').insert({
+                "table_id": "GLOBAL_CONFIG",
+                "data_json": config_data,
+                "inst_id": inst_id,
+                "program_id": prog_id
+            }).execute()
+            return jsonify({"status": "success", "action": "insert", "data": res.data})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # --- Rutas para servir las páginas HTML ---
 @app.route('/')
 @app.route('/index.html')
