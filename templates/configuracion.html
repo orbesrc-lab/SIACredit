@@ -1353,7 +1353,7 @@
                     const resp = await fetch('/api/institutions');
                     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                     const data = await resp.json();
-                    if (Array.isArray(data) && data.length > 0) {
+                    if (Array.isArray(data)) {
                         list = data;
                         break; // Éxito, salir del loop
                     }

@@ -489,8 +489,9 @@ def handle_all_institutions():
     try:
         res = supabase.table('institution').select("*").execute()
         return jsonify(res.data)
-    except:
-        return jsonify([])
+    except Exception as e:
+        print(f"Error en GET /api/institutions: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/institutions/<int:inst_id>', methods=['DELETE'])
 def delete_institution(inst_id):
