@@ -1050,6 +1050,7 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
     api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
     model = "glm-4"
     
+    db_error = None
     try:
         check = supabase.table('statistics').select("data_json").eq("table_id", "GLOBAL_CONFIG").order("id", desc=True).limit(1).execute()
         if check.data:
@@ -1058,6 +1059,7 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
             if data.get('ai_api_key'): api_key = data.get('ai_api_key')
             if data.get('ai_model'): model = data.get('ai_model')
     except Exception as e:
+        db_error = str(e)
         print(f"Error fetching AI config: {e}")
 
     if not api_key:
@@ -1112,7 +1114,7 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
             )
             return response.choices[0].message.content
         except Exception as e:
-            raise Exception(f"{str(e)} [DEBUG: provider={provider}, base_url={base_url}, rows={len(check.data) if 'check' in locals() else 'unknown'}]")
+            raise Exception(f"{str(e)} [DEBUG: provider={provider}, base_url={base_url}, rows={len(check.data) if 'check' in locals() else 'unknown'}, db_error={db_error}]")
 
 
 
