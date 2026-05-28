@@ -977,11 +977,12 @@
         async function init() {
             await loadDataFromAPI();
             renderModelEditor();
-            loadAllInstitutions();
+            await loadAllInstitutions();
             loadAllPrograms();
             loadUsersFromAPI();
             renderFactorLeaders();
             updateContextBreadcrumb();
+            loadInstitution(); // Cargar datos del formulario de institución después de que init() complete
         }
 
         async function updateContextBreadcrumb() {
@@ -1101,8 +1102,7 @@
             }
         }
 
-        // Cargar al inicio
-        loadInstitution();
+        // NOTA: loadInstitution() se llama dentro de init() para evitar condiciones de carrera
 
         function setTheme(themeName) {
             localStorage.setItem('siac_theme', themeName);
@@ -1331,17 +1331,27 @@
                     document.getElementById('globalSettingsCard').style.display = 'block';
                     loadGlobalSettings();
                 }
-                const resp = await fetch('/api/institutions');
-                const list = await resp.json();
-                const select = document.getElementById('instSelect');
-                select.innerHTML = '';
-                list.forEach(inst => {
-                    const opt = document.createElement('option');
-                    opt.value = inst.id;
-                    opt.textContent = `${inst.name} (${inst.description || 'Sin programa'})`;
-                    if (inst.id == getInstId()) opt.selected = true;
-                    select.appendChild(opt);
-                });
+                try {
+                    const resp = await fetch('/api/institutions');
+                    const list = await resp.json();
+                    // Solo actualizar el select si la lista tiene datos válidos
+                    if (!Array.isArray(list) || list.length === 0) {
+                        console.warn('loadAllInstitutions: la API retornó una lista vacía, se mantiene el selector actual.');
+                        return;
+                    }
+                    const select = document.getElementById('instSelect');
+                    select.innerHTML = '';
+                    list.forEach(inst => {
+                        const opt = document.createElement('option');
+                        opt.value = inst.id;
+                        opt.textContent = `${inst.name} (${inst.description || 'Sin programa'})`;
+                        if (inst.id == getInstId()) opt.selected = true;
+                        select.appendChild(opt);
+                    });
+                } catch (e) {
+                    console.error('loadAllInstitutions: error de red al cargar instituciones:', e);
+                    return; // No borrar el select si hay error de red
+                }
                 
                 // Monitor selector change to disable delete on ID 1
                 select.addEventListener('change', () => {
@@ -1692,6 +1702,8 @@
                 if (data.status === 'success') {
                     alert("✅ Configuración global guardada correctamente.");
                     document.getElementById('aiApiKeyInput').value = ''; // clear password field
+                    // Recargar lista de instituciones para asegurar que el selector no se pierda
+                    await loadAllInstitutions();
                 } else {
                     alert("❌ Error: " + data.message);
                 }
