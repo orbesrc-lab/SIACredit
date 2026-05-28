@@ -975,15 +975,20 @@
         }
 
         async function init() {
-            await loadDataFromAPI();
-            renderModelEditor();
-            await loadAllInstitutions();
+            // Cargar datos pesados en segundo plano para no bloquear el renderizado rápido de la interfaz
+            loadDataFromAPI().then(() => {
+                renderModelEditor();
+                renderFactorLeaders();
+            });
+
+            // Cargar el selector de instituciones, programas y datos básicos en paralelo
+            loadAllInstitutions();
             loadAllPrograms();
             loadUsersFromAPI();
-            renderFactorLeaders();
             updateContextBreadcrumb();
-            loadInstitution(); // Cargar datos del formulario de institución después de que init() complete
+            loadInstitution();
         }
+
 
         async function updateContextBreadcrumb() {
             const breadcrumb = document.getElementById('contextBreadcrumb');
