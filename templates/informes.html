@@ -433,6 +433,7 @@
         </header>
 
         <div class="content-area">
+            <div id="contextBreadcrumb" style="padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 500; display: none;"></div>
             <div class="report-header">
                 <div>
                     <h1>Informe Integral de Autoevaluación</h1>
@@ -569,6 +570,63 @@
             }
         }
         loadInstitution();
+        updateContextBreadcrumb();
+
+        async function updateContextBreadcrumb() {
+            const breadcrumb = document.getElementById('contextBreadcrumb');
+            if (!breadcrumb) return;
+            const progId = getProgramId();
+            const instId = getInstId();
+            
+            breadcrumb.style.display = 'block';
+            
+            if (!progId || progId == 0) {
+                breadcrumb.innerHTML = `⚠️ <strong>Contexto:</strong> Sin programa activo &mdash; Selecciona un programa en <a href="configuracion.html" style="color: #b45309; font-weight: bold; text-decoration: underline;">Configuración</a> para comenzar.`;
+                breadcrumb.style.background = '#fef9c3';
+                breadcrumb.style.borderColor = '#ca8a04';
+                breadcrumb.style.color = '#92400e';
+                
+                document.getElementById('informeContainer').innerHTML = `
+                    <div style="background: #fef9c3; border: 2px dashed #ca8a04; border-radius: 12px; padding: 40px; text-align: center; margin-top: 20px;">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">📊</div>
+                        <h3 style="color: #92400e; margin-bottom: 10px; font-size: 1.3rem;">Sin Programa Académico Activo</h3>
+                        <p style="color: #78350f; max-width: 500px; margin: 0 auto; font-size: 0.95rem; line-height: 1.6;">
+                            No se puede generar ningún informe porque no tienes un Programa Académico activo.<br><br>
+                            Por favor, ve a <strong><a href="configuracion.html" style="color: #92400e; text-decoration: underline;">Configuración</a></strong>, selecciona o crea una Institución y un Programa Académico, y haz clic en <strong>"Cambiar / Cargar"</strong>.
+                        </p>
+                    </div>`;
+                document.querySelectorAll('.export-actions button').forEach(btn => {
+                    if (btn.id !== 'btnRRC') {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                    }
+                });
+                return;
+            }
+
+            try {
+                const [instResp, progResp] = await Promise.all([
+                    fetch('/api/institutions?t=' + Date.now()),
+                    fetch(`/api/programs?inst_id=${instId}&t=` + Date.now())
+                ]);
+                const institutions = await instResp.json();
+                const programs = await progResp.json();
+
+                const inst = institutions.find(i => i.id == instId);
+                const prog = programs.find(p => p.id == progId);
+
+                const instName = inst ? inst.name : `ID: ${instId}`;
+                const progName = prog ? `${prog.name} (${prog.period})` : `ID: ${progId}`;
+
+                breadcrumb.innerHTML = `🏛️ <strong>Institución:</strong> ${instName} &nbsp;›&nbsp; 📚 <strong>Programa:</strong> ${progName}`;
+                breadcrumb.style.background = '#f0f9ff';
+                breadcrumb.style.borderColor = '#bae6fd';
+                breadcrumb.style.color = '#0369a1';
+            } catch(e) {
+                breadcrumb.innerHTML = `🏛️ Inst. ID: ${instId} &nbsp;›&nbsp; 📚 Prog. ID: ${progId}`;
+            }
+        }
 
         function getCNAClass(avg) {
             if (avg >= 4.5) return 'grade-4-5';
