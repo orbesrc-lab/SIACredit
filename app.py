@@ -54,6 +54,33 @@ url: str = os.getenv("SUPABASE_URL")
 key: str = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
+def force_update_gemini_config():
+    try:
+        config_data = json.dumps({
+            "theme": "dark",
+            "ai_provider": "gemini",
+            "ai_model": "gemini-2.5-flash",
+            "ai_api_key": "AIzaSyCUzl0g6_n35SGaBoMH8cf7mvSP8TkszUg"
+        })
+        check = supabase.table('statistics').select("id").eq("table_id", "GLOBAL_CONFIG").order("id", desc=True).limit(1).execute()
+        if check.data:
+            row_id = check.data[0]['id']
+            supabase.table('statistics').update({"data_json": config_data}).eq("id", row_id).execute()
+        else:
+            supabase.table('statistics').insert({
+                "table_id": "GLOBAL_CONFIG",
+                "data_json": config_data,
+                "inst_id": 1,
+                "program_id": 1
+            }).execute()
+    except Exception as e:
+        print(f"Error in force_update_gemini_config: {e}")
+
+try:
+    force_update_gemini_config()
+except Exception:
+    pass
+
 # Ruta de depuración para arreglar la base de datos
 @app.route('/api/debug/fix-db')
 def fix_db():
