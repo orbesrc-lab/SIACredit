@@ -1410,9 +1410,9 @@ def global_settings():
                 pass
 
         if request.method == 'GET':
-            # Remove api_key for security when sending to frontend, unless it's just to check if it exists
-            # We can send it back but masked, or just send a flag that it's set
+            # Remove api_key for security when sending to frontend, but send a flag that it exists
             resp_data = dict(current_data)
+            resp_data['has_api_key'] = 'ai_api_key' in resp_data and bool(resp_data['ai_api_key'].strip())
             if 'ai_api_key' in resp_data:
                 del resp_data['ai_api_key'] # Hide actual key from frontend
             return jsonify(resp_data)

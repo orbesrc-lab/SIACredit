@@ -1732,6 +1732,15 @@
                         updateDefaultAIModel();
                     }
                     if (data.ai_model) document.getElementById('aiModelInput').value = data.ai_model;
+                    
+                    const keyInput = document.getElementById('aiApiKeyInput');
+                    if (keyInput) {
+                        if (data.has_api_key) {
+                            keyInput.placeholder = "•••••••••••• (Guardada en el servidor)";
+                        } else {
+                            keyInput.placeholder = "Ingresa la API Key (dejar en blanco para mantener actual)";
+                        }
+                    }
                 }
             } catch (e) {
                 console.log("Error cargando configuración global");
