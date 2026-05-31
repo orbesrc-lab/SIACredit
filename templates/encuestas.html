@@ -165,9 +165,14 @@
         </header>
 
         <div class="content-area fade-in">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
                 <h1 style="font-size: 1.8rem; margin: 0;">Gestión de Encuestas de Autoevaluación</h1>
-                <button class="btn-primary" onclick="openCreateSurveyModal()">+ Crear Encuesta</button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-secondary" onclick="downloadSurveyCSVTemplate()">📥 Plantilla Preguntas CSV</button>
+                    <button class="btn-secondary" onclick="triggerImportSurveyCSV()">📤 Importar Encuesta (CSV)</button>
+                    <input type="file" id="importSurveyFile" accept=".csv" style="display: none;" onchange="importSurveyCSV(event)">
+                    <button class="btn-primary" onclick="openCreateSurveyModal()">+ Crear Encuesta</button>
+                </div>
             </div>
 
             <!-- Banner Almacenamiento -->
@@ -245,9 +250,13 @@
 
             <!-- CONSTRUCTOR DE PREGUNTAS -->
             <div style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 8px;">
                     <h4 style="margin: 0; font-size: 1.05rem;">Preguntas de la Encuesta</h4>
-                    <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="addQuestionItem()">+ Añadir Pregunta</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-ghost" style="padding: 6px 12px; font-size: 0.85rem; border: 1px dashed var(--border-color);" onclick="triggerImportModalQuestionsCSV()">📥 Importar Preguntas CSV</button>
+                        <input type="file" id="importModalQuestionsFile" accept=".csv" style="display: none;" onchange="importModalQuestionsCSV(event)">
+                        <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="addQuestionItem()">+ Añadir Pregunta</button>
+                    </div>
                 </div>
 
                 <div id="questionsContainer">
@@ -994,6 +1003,155 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        function downloadSurveyCSVTemplate() {
+            const headers = "Pregunta;Tipo;Opciones;Factor_Num;Caracteristica_Num;Aspecto_Indice";
+            const sample = "¿Cómo califica la pertinencia del plan de estudios?;rating;;1;1.2;1\n¿Qué sugerencias tiene para mejorar el plan de estudios?;text;;1;1.2;2\n¿Cuál es su jornada académica?;select;Mañana, Tarde, Noche;2;2.1;";
+            const blob = new Blob([`${headers}\n${sample}`], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "plantilla_preguntas_encuesta.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function triggerImportSurveyCSV() {
+            document.getElementById('importSurveyFile').click();
+        }
+
+        function importSurveyCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const questions = parseQuestionsCSV(text);
+                if (questions.length === 0) {
+                    alert("No se pudieron parsear preguntas válidas del archivo CSV.");
+                    return;
+                }
+
+                // Open create survey modal and populate questions
+                openCreateSurveyModal();
+                const container = document.getElementById('questionsContainer');
+                container.innerHTML = ""; // Clear default question
+                questions.forEach(q => {
+                    addQuestionItem(q);
+                });
+                alert(`\u2705 Se cargaron ${questions.length} preguntas desde el archivo CSV.`);
+                
+                // Clear input
+                event.target.value = '';
+            };
+            reader.readAsText(file, 'utf-8');
+        }
+
+        function triggerImportModalQuestionsCSV() {
+            document.getElementById('importModalQuestionsFile').click();
+        }
+
+        function importModalQuestionsCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const questions = parseQuestionsCSV(text);
+                if (questions.length === 0) {
+                    alert("No se pudieron parsear preguntas válidas del archivo CSV.");
+                    return;
+                }
+
+                const container = document.getElementById('questionsContainer');
+                // Append questions to existing questions in the modal
+                questions.forEach(q => {
+                    addQuestionItem(q);
+                });
+                alert(`\u2705 Se añadieron ${questions.length} preguntas desde el archivo CSV.`);
+                
+                // Clear input
+                event.target.value = '';
+            };
+            reader.readAsText(file, 'utf-8');
+        }
+
+        function parseQuestionsCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const questions = [];
+
+            // Skip header
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(';');
+                if (cols.length < 2) continue;
+
+                const qText = cols[0] ? cols[0].trim() : '';
+                const qTypeRaw = cols[1] ? cols[1].trim().toLowerCase() : 'rating';
+                const qOptionsRaw = cols[2] ? cols[2].trim() : '';
+                const fNum = cols[3] ? cols[3].trim() : '';
+                const cNum = cols[4] ? cols[4].trim() : '';
+                const aIndicator = cols[5] ? cols[5].trim() : '';
+
+                if (!qText) continue;
+
+                // Map type
+                let qType = 'rating';
+                if (qTypeRaw.includes('seleccion') || qTypeRaw.includes('select') || qTypeRaw.includes('múltiple') || qTypeRaw.includes('multiple')) {
+                    qType = 'select';
+                } else if (qTypeRaw.includes('texto') || qTypeRaw.includes('text') || qTypeRaw.includes('comentario') || qTypeRaw.includes('libre')) {
+                    qType = 'text';
+                }
+
+                let options = [];
+                if (qType === 'select' && qOptionsRaw) {
+                    options = qOptionsRaw.split(',').map(o => o.trim()).filter(o => o.length > 0);
+                }
+
+                let factorId = null;
+                let charId = null;
+                let aspectId = null;
+
+                // Match with modelData
+                if (fNum) {
+                    const factor = modelData.find(f => String(f.number).trim() === fNum || String(f.name).toLowerCase().includes(fNum.toLowerCase()));
+                    if (factor) {
+                        factorId = factor.id;
+                        if (cNum) {
+                            const char = factor.characteristics.find(c => String(c.number).trim() === cNum || String(c.name).toLowerCase().includes(cNum.toLowerCase()));
+                            if (char) {
+                                charId = char.id;
+                                if (aIndicator && char.aspects && char.aspects.length > 0) {
+                                    const idx = parseInt(aIndicator, 10);
+                                    if (!isNaN(idx) && idx >= 1 && idx <= char.aspects.length) {
+                                        aspectId = char.aspects[idx - 1].id;
+                                    } else {
+                                        const matchedAspect = char.aspects.find(a => a.text.toLowerCase().includes(aIndicator.toLowerCase()));
+                                        if (matchedAspect) {
+                                            aspectId = matchedAspect.id;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                questions.push({
+                    id: 'q_' + generateId(),
+                    text: qText,
+                    type: qType,
+                    options: options,
+                    factor_id: factorId,
+                    char_id: charId,
+                    aspect_id: aspectId
+                });
+            }
+            return questions;
         }
 
         window.onload = initPage;
