@@ -7,6 +7,8 @@ import urllib.request
 from dotenv import load_dotenv
 from supabase import create_client, Client
 from openai import OpenAI
+import survey_storage
+
 
 load_dotenv()
 
@@ -1779,6 +1781,174 @@ Sé riguroso, formal y propositivo. Cita las normas cuando sea pertinente.
     except Exception as e:
         print(f"Error AI Generar RRC: {e}")
         return jsonify({"error": str(e)}), 500
+
+
+# --- Rutas del Módulo de Encuestas de Autoevaluación ---
+
+@app.route('/encuestas.html')
+def encuestas_page():
+    return render_template('encuestas.html')
+
+@app.route('/encuesta_publica.html')
+def encuesta_publica_page():
+    return render_template('encuesta_publica.html')
+
+@app.route('/api/surveys', methods=['GET', 'POST'])
+def handle_surveys():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
+    use_cloud = request.args.get('use_cloud', 'false').lower() == 'true'
+
+    if request.method == 'POST':
+        data = request.json  # list of surveys
+        if use_cloud:
+            try:
+                # Save locally first, then sync
+                survey_storage.save_local_surveys(inst_id, program_id, data)
+                survey_storage.sync_to_supabase(inst_id, program_id, supabase)
+                return jsonify({"status": "success", "message": "Encuestas guardadas localmente y sincronizadas en la nube"})
+            except Exception as e:
+                return jsonify({"status": "error", "message": f"Error al sincronizar en la nube: {str(e)}"}), 500
+        else:
+            success = survey_storage.save_local_surveys(inst_id, program_id, data)
+            if success:
+                return jsonify({"status": "success", "message": "Encuestas guardadas localmente"})
+            return jsonify({"status": "error", "message": "Error al guardar encuestas localmente"}), 500
+
+    # GET
+    if use_cloud:
+        try:
+            # Pull from cloud first, then load local
+            survey_storage.pull_from_supabase(inst_id, program_id, supabase)
+        except Exception as e:
+            print(f"Error pulling surveys from cloud, falling back to local: {e}")
+            
+    surveys = survey_storage.load_local_surveys(inst_id, program_id)
+    return jsonify(surveys)
+
+@app.route('/api/surveys/<survey_id>', methods=['GET', 'DELETE'])
+def handle_survey_specific(survey_id):
+    if request.method == 'DELETE':
+        inst_id = request.args.get('inst_id', 1, type=int)
+        program_id = request.args.get('program_id', 0, type=int)
+        use_cloud = request.args.get('use_cloud', 'false').lower() == 'true'
+        
+        surveys = survey_storage.load_local_surveys(inst_id, program_id)
+        surveys = [s for s in surveys if s.get('id') != survey_id]
+        survey_storage.save_local_surveys(inst_id, program_id, surveys)
+        
+        if use_cloud:
+            try:
+                survey_storage.sync_to_supabase(inst_id, program_id, supabase)
+            except Exception as e:
+                return jsonify({"status": "error", "message": f"Error al sincronizar eliminación: {str(e)}"}), 500
+                
+        return jsonify({"status": "success"})
+        
+    # GET (public, no auth)
+    survey = survey_storage.get_survey_by_id_only(survey_id)
+    if not survey:
+        try:
+            res = supabase.table('statistics').select("data_json, inst_id, program_id").eq("table_id", "SURVEY_DEFINITIONS").execute()
+            for row in res.data:
+                surveys = json.loads(row['data_json'])
+                for s in surveys:
+                    if s.get('id') == survey_id:
+                        survey_storage.save_local_surveys(row['inst_id'], row['program_id'], surveys)
+                        return jsonify(s)
+        except Exception as e:
+            print(f"Error searching survey in cloud: {e}")
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+        
+    return jsonify(survey)
+
+@app.route('/api/surveys/<survey_id>/respond', methods=['POST'])
+def respond_survey(survey_id):
+    data = request.json  # answers dictionary
+    survey = survey_storage.get_survey_by_id_only(survey_id)
+    
+    if not survey:
+        try:
+            res = supabase.table('statistics').select("data_json, inst_id, program_id").eq("table_id", "SURVEY_DEFINITIONS").execute()
+            for row in res.data:
+                surveys = json.loads(row['data_json'])
+                for s in surveys:
+                    if s.get('id') == survey_id:
+                        survey_storage.save_local_surveys(row['inst_id'], row['program_id'], surveys)
+                        survey = s
+                        break
+                if survey:
+                    break
+        except Exception as e:
+            print(f"Error fetching survey on response: {e}")
+            
+    if not survey:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+        
+    inst_id = survey.get('inst_id', 1)
+    program_id = survey.get('program_id', 0)
+    
+    import datetime
+    response_record = {
+        "id": "resp_" + survey_storage.generate_id(),
+        "survey_id": survey_id,
+        "inst_id": inst_id,
+        "program_id": program_id,
+        "target": survey.get('target', 'general'),
+        "submitted_at": datetime.datetime.now().isoformat(),
+        "answers": data
+    }
+    
+    if survey.get('status', 'activo') != 'activo':
+        return jsonify({"error": "La encuesta ya no está activa o ha sido finalizada"}), 400
+        
+    success = survey_storage.save_local_response(inst_id, program_id, response_record)
+    
+    use_cloud = request.args.get('use_cloud', 'false').lower() == 'true'
+    if use_cloud:
+        try:
+            survey_storage.sync_to_supabase(inst_id, program_id, supabase)
+        except Exception as e:
+            print(f"Error syncing response to cloud: {e}")
+            
+    if success:
+        return jsonify({"status": "success", "message": "Respuesta guardada con éxito"})
+    return jsonify({"status": "error", "message": "Error al registrar la respuesta"}), 500
+
+@app.route('/api/surveys/<survey_id>/responses', methods=['GET'])
+def get_survey_responses(survey_id):
+    survey = survey_storage.get_survey_by_id_only(survey_id)
+    if not survey:
+        return jsonify([])
+        
+    inst_id = survey.get('inst_id', 1)
+    program_id = survey.get('program_id', 0)
+    use_cloud = request.args.get('use_cloud', 'false').lower() == 'true'
+    
+    if use_cloud:
+        try:
+            survey_storage.pull_from_supabase(inst_id, program_id, supabase)
+        except Exception as e:
+            print(f"Error pulling responses: {e}")
+            
+    responses = survey_storage.load_local_responses_for_survey(survey_id)
+    return jsonify(responses)
+
+@app.route('/api/surveys/sync', methods=['POST'])
+def sync_surveys():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
+    action = request.json.get('action', 'push')
+    
+    try:
+        if action == 'push':
+            survey_storage.sync_to_supabase(inst_id, program_id, supabase)
+            return jsonify({"status": "success", "message": "Datos sincronizados y subidos a la web (Supabase)"})
+        else:
+            survey_storage.pull_from_supabase(inst_id, program_id, supabase)
+            return jsonify({"status": "success", "message": "Datos descargados desde la web (Supabase)"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 if __name__ == '__main__':

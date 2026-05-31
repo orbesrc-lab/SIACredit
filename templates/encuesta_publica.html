@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuesta de Autoevaluación - SKEL SIAC</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            display: block;
+            height: auto;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            overflow-y: auto;
+            color: #1e293b;
+        }
+        .public-container {
+            max-width: 680px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .form-header-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 35px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 25px;
+            text-align: center;
+            border-top: 6px solid var(--primary-color);
+        }
+        .question-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .question-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        .question-text {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        /* Premium Rating Stars */
+        .rating-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-direction: row-reverse; /* For CSS-only hover effect */
+        }
+        .rating-star {
+            display: none;
+        }
+        .rating-label {
+            font-size: 2.2rem;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: color 0.2s, transform 0.1s;
+        }
+        .rating-label:hover,
+        .rating-label:hover ~ .rating-label,
+        .rating-star:checked ~ .rating-label {
+            color: #eab308; /* Gold Star */
+            transform: scale(1.1);
+        }
+        .rating-label:active {
+            transform: scale(0.9);
+        }
+
+        /* Radio Options */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+        }
+        .option-label:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        .option-input {
+            display: none;
+        }
+        .option-input:checked + .option-label {
+            background: #eff6ff;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+        .option-circle {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #cbd5e1;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: inline-block;
+            position: relative;
+            flex-shrink: 0;
+            transition: border-color 0.2s;
+        }
+        .option-input:checked + .option-label .option-circle {
+            border-color: var(--primary-color);
+        }
+        .option-input:checked + .option-label .option-circle::after {
+            content: '';
+            position: absolute;
+            top: 3px; left: 3px;
+            width: 8px; height: 8px;
+            background: var(--primary-color);
+            border-radius: 50%;
+        }
+
+        /* Success Screen */
+        .success-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 50px 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            display: none;
+            animation: scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes scaleUp {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #dcfce7;
+            color: #16a34a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 25px;
+            box-shadow: 0 10px 25px rgba(22, 163, 74, 0.15);
+        }
+
+        /* Loading */
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="public-container">
+        <!-- FORMULARIO DE ENCUESTA -->
+        <div id="surveyFormWrapper">
+            <div class="form-header-card">
+                <img id="inst_logo" src="" alt="Logo" style="height: 60px; max-width: 200px; margin: 0 auto 15px; display: none; object-fit: contain;">
+                <h3 id="inst_name" style="font-size: 1.1rem; color: var(--text-muted); font-weight: 600; margin-bottom: 5px;">Cargando institución...</h3>
+                <h1 id="survey_title" style="font-size: 1.6rem; font-weight: 700; color: #0f172a; margin-bottom: 12px;">Cargando encuesta...</h1>
+                <p id="survey_description" style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; max-width: 550px; margin: 0 auto;"></p>
+                <div style="margin-top: 15px;">
+                    <span id="survey_target" class="badge" style="background:#e0f2fe; color:#0369a1; text-transform: uppercase; font-weight: 700; font-size: 0.8rem; padding: 6px 12px;">Estudiantes</span>
+                </div>
+            </div>
+
+            <form id="publicSurveyForm" onsubmit="submitResponse(event)">
+                <div id="questionsList">
+                    <!-- Preguntas inyectadas por JS -->
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button type="submit" class="btn-primary" id="submitBtn" style="padding: 14px 40px; font-size: 1.05rem; box-shadow: var(--shadow-lg);">
+                        <span class="spinner" id="btnSpinner"></span>
+                        <span id="btnText">Enviar Respuestas</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- PANTALLA DE ÉXITO -->
+        <div class="success-card" id="successScreen">
+            <div class="success-icon">✓</div>
+            <h2 style="font-size: 1.8rem; font-weight: 700; color: #0f172a; margin-bottom: 10px;">¡Muchas Gracias!</h2>
+            <p style="color: var(--text-muted); font-size: 1.05rem; max-width: 480px; margin: 0 auto 30px; line-height: 1.6;">
+                Tus respuestas han sido registradas con éxito. Tu opinión es muy valiosa para los procesos de mejora continua y autoevaluación institucional.
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Desarrollado por <strong>SKEL Expertos en Educación Superior</strong></p>
+        </div>
+    </div>
+
+    <script>
+        // Obtener el ID de la encuesta por query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const surveyId = urlParams.get('id');
+
+        let surveyData = null;
+
+        async function initForm() {
+            if (!surveyId) {
+                document.getElementById('survey_title').textContent = "Enlace Inválido";
+                document.getElementById('survey_description').textContent = "No se proporcionó un ID de encuesta válido en la URL.";
+                document.getElementById('publicSurveyForm').style.display = 'none';
+                return;
+            }
+
+            try {
+                const resp = await fetch(`/api/surveys/${surveyId}`);
+                if (!resp.ok) {
+                    throw new Error("Encuesta no encontrada");
+                }
+                surveyData = await resp.json();
+                
+                // Cargar datos en la UI
+                document.getElementById('survey_title').textContent = surveyData.title;
+                document.getElementById('survey_description').textContent = surveyData.description || "Por favor, responda con sinceridad a cada una de las preguntas.";
+                
+                const targetBadge = document.getElementById('survey_target');
+                targetBadge.textContent = surveyData.target;
+                targetBadge.className = `badge target-${surveyData.target}`;
+
+                // Cargar institución
+                const instResp = await fetch(`/api/institution?inst_id=${surveyData.inst_id || 1}`);
+                const instData = await instResp.json();
+                document.getElementById('inst_name').textContent = instData.name;
+                if(instData.logo_url) {
+                    const logoImg = document.getElementById('inst_logo');
+                    logoImg.src = instData.logo_url;
+                    logoImg.style.display = 'block';
+                }
+
+                renderQuestions();
+            } catch (e) {
+                console.error(e);
+                document.getElementById('survey_title').textContent = "Encuesta No Disponible";
+                document.getElementById('survey_description').textContent = "La encuesta solicitada no existe, ha sido eliminada o no se encuentra activa en este momento.";
+                document.getElementById('publicSurveyForm').style.display = 'none';
+            }
+        }
+
+        function renderQuestions() {
+            const list = document.getElementById('questionsList');
+            list.innerHTML = '';
+
+            surveyData.questions.forEach((q, idx) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.dataset.id = q.id;
+                card.dataset.type = q.type;
+
+                const qText = document.createElement('div');
+                qText.className = 'question-text';
+                qText.innerHTML = `${idx + 1}. ${q.text} <span style="color:var(--error-color)">*</span>`;
+                card.appendChild(qText);
+
+                if (q.type === 'rating') {
+                    const ratingDiv = document.createElement('div');
+                    ratingDiv.className = 'rating-container';
+                    
+                    // Render 5 stars in reverse order (5 to 1) for the CSS hover sibling selector logic
+                    for (let i = 5; i >= 1; i--) {
+                        ratingDiv.innerHTML += `
+                            <input type="radio" name="q_${q.id}" id="star_${q.id}_${i}" value="${i}" class="rating-star" required>
+                            <label for="star_${q.id}_${i}" class="rating-label">★</label>
+                        `;
+                    }
+                    card.appendChild(ratingDiv);
+
+                } else if (q.type === 'select') {
+                    const optionsDiv = document.createElement('div');
+                    optionsDiv.className = 'options-list';
+                    
+                    q.options.forEach((opt, optIdx) => {
+                        optionsDiv.innerHTML += `
+                            <input type="radio" name="q_${q.id}" id="opt_${q.id}_${optIdx}" value="${opt}" class="option-input" required>
+                            <label for="opt_${q.id}_${optIdx}" class="option-label">
+                                <span class="option-circle"></span>
+                                ${opt}
+                            </label>
+                        `;
+                    });
+                    card.appendChild(optionsDiv);
+
+                } else if (q.type === 'text') {
+                    const textarea = document.createElement('textarea');
+                    textarea.name = `q_${q.id}`;
+                    textarea.rows = 4;
+                    textarea.required = true;
+                    textarea.placeholder = "Escribe tu respuesta aquí...";
+                    textarea.style.width = '100%';
+                    textarea.style.padding = '15px';
+                    textarea.style.borderRadius = 'var(--radius-md)';
+                    textarea.style.border = '1px solid var(--border-color)';
+                    card.appendChild(textarea);
+                }
+
+                list.appendChild(card);
+            });
+        }
+
+        async function submitResponse(e) {
+            e.preventDefault();
+
+            // Disable submit button and show spinner
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('btnSpinner');
+            const btnText = document.getElementById('btnText');
+            
+            submitBtn.disabled = true;
+            spinner.style.display = 'inline-block';
+            btnText.textContent = 'Enviando...';
+
+            const answers = {};
+            const qCards = document.querySelectorAll('.question-card');
+            
+            qCards.forEach(card => {
+                const qId = card.dataset.id;
+                const qType = card.dataset.type;
+
+                if (qType === 'rating' || qType === 'select') {
+                    const checkedOption = card.querySelector(`input[name="q_${qId}"]:checked`);
+                    answers[qId] = checkedOption ? checkedOption.value : '';
+                } else if (qType === 'text') {
+                    const textVal = card.querySelector(`textarea[name="q_${qId}"]`).value;
+                    answers[qId] = textVal.trim();
+                }
+            });
+
+            // Detect if survey requires cloud upload based on storage config or default to sync if enabled
+            // We can send use_cloud=true so the server saves to local and synchronizes to cloud if it has supabase set up
+            const useCloudQuery = localStorage.getItem('siac_use_cloud') === 'true' ? 'true' : 'false';
+
+            try {
+                const resp = await fetch(`/api/surveys/${surveyId}/respond?use_cloud=${useCloudQuery}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(answers)
+                });
+                
+                const res = await resp.json();
+                if (resp.ok && res.status === 'success') {
+                    // Hide form and show success screen
+                    document.getElementById('surveyFormWrapper').style.display = 'none';
+                    document.getElementById('successScreen').style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    alert("❌ Error: " + (res.error || "No se pudo registrar la respuesta."));
+                    submitBtn.disabled = false;
+                    spinner.style.display = 'none';
+                    btnText.textContent = 'Enviar Respuestas';
+                }
+            } catch (err) {
+                console.error(err);
+                alert("❌ Error de red. Comprueba tu conexión a internet.");
+                submitBtn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.textContent = 'Enviar Respuestas';
+            }
+        }
+
+        window.onload = initForm;
+    </script>
+</body>
+</html>

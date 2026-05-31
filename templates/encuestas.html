@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKEL SIAC - Gestión de Encuestas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .survey-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .survey-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+        .survey-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        .survey-target-badge {
+            align-self: flex-start;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            margin-bottom: 12px;
+        }
+        .target-estudiantes { background: #e0f2fe; color: #0369a1; }
+        .target-profesores { background: #fef3c7; color: #b45309; }
+        .target-egresados { background: #dcfce7; color: #15803d; }
+        .target-administrativos { background: #f3e8ff; color: #6b21a8; }
+        .target-directivos { background: #fee2e2; color: #b91c1c; }
+        .target-empresarios { background: #e2e8f0; color: #475569; }
+        .target-empleadores { background: #fae8ff; color: #86198f; }
+
+        .survey-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+        .survey-actions button {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            flex: 1;
+            min-width: 80px;
+        }
+        .question-builder-item {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .q-remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--error-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        .results-section {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            margin-top: 30px;
+            display: none;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            position: relative;
+        }
+        .comments-list {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 15px;
+            background: var(--secondary-bg);
+        }
+        .comment-item {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+        .storage-banner {
+            background: #e0f2fe;
+            border: 1px solid #bae6fd;
+            border-radius: var(--radius-md);
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #0369a1;
+        }
+        .storage-toggle {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+            </svg>
+            SKEL SIAC
+        </div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
+            <a href="evidencias.html" class="sidebar-item">📁 Evidencias</a>
+            <a href="autoevaluacion.html" class="sidebar-item">📝 Autoevaluación</a>
+            <a href="informes.html" class="sidebar-item">📄 Informes</a>
+            <a href="estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
+            <a href="biblioteca.html" class="sidebar-item">📚 Biblioteca</a>
+            <a href="encuestas.html" class="sidebar-item active">📋 Encuestas</a>
+            <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
+        </div>
+        <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444;">🚪 Cerrar Sesión</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img id="inst_logo" src="" alt="Logo" style="height: 45px; display: none; object-fit: contain;">
+                <div>
+                    <h2 id="inst_name" style="font-size: 1.1rem; margin: 0; color: var(--primary-color);">Institución</h2>
+                    <h3 id="header_title" style="font-size: 0.9rem; margin: 0; color: var(--text-muted); font-weight: 500;">Cargando contexto...</h3>
+                </div>
+            </div>
+            <div id="userInfo" style="font-weight: 600; color: var(--text-main);"></div>
+        </header>
+
+        <div class="content-area fade-in">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h1 style="font-size: 1.8rem; margin: 0;">Gestión de Encuestas de Autoevaluación</h1>
+                <button class="btn-primary" onclick="openCreateSurveyModal()">+ Crear Encuesta</button>
+            </div>
+
+            <!-- Banner Almacenamiento -->
+            <div class="storage-banner">
+                <div>
+                    <strong>Almacenamiento Activo:</strong> <span id="currentStorageMode">Local (Servidor)</span>
+                </div>
+                <div class="storage-toggle">
+                    <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="toggleCloudMode()">Cambiar a Nube (Supabase)</button>
+                    <button class="btn-primary" style="padding: 6px 12px; font-size: 0.85rem;" id="syncBtn" onclick="syncDataWithSupabase()">☁️ Sincronizar Ahora</button>
+                </div>
+            </div>
+
+            <!-- Grid de Encuestas -->
+            <div class="survey-grid" id="surveyList">
+                <!-- Se inyecta dinámicamente -->
+            </div>
+
+            <!-- Panel de Resultados (Analíticas) -->
+            <div class="results-section" id="resultsPanel">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px;">
+                    <div>
+                        <h2 id="resultsTitle" style="font-size: 1.3rem; margin: 0;">Resultados de la Encuesta</h2>
+                        <p id="resultsSub" style="font-size: 0.88rem; color: var(--text-muted); margin-top: 4px;"></p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="exportResultsCSV()">📥 Descargar CSV</button>
+                        <button class="btn-ghost" style="color: var(--error-color);" onclick="closeResultsPanel()">Cerrar</button>
+                    </div>
+                </div>
+                <div id="resultsContent">
+                    <!-- Se inyectará el análisis estadístico dinámico -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL CREAR / EDITAR ENCUESTA -->
+    <div id="surveyModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+            <h3 id="modalTitle" style="font-size: 1.25rem; margin-bottom: 20px;">Nueva Encuesta de Autoevaluación</h3>
+            
+            <input type="hidden" id="surveyId">
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Título de la Encuesta</label>
+                <input type="text" id="surveyTitle" placeholder="Ej: Encuesta de Autoevaluación para Estudiantes 2026-I">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Descripción / Instrucciones</label>
+                <textarea id="surveyDescription" rows="3" placeholder="Ej: Por favor responda honestamente a las siguientes preguntas..."></textarea>
+            </div>
+
+            <div class="form-grid" style="margin-bottom: 15px;">
+                <div class="form-group">
+                    <label>Público Objetivo (Target)</label>
+                    <select id="surveyTarget">
+                        <option value="estudiantes">Estudiantes</option>
+                        <option value="profesores">Profesores</option>
+                        <option value="egresados">Egresados</option>
+                        <option value="administrativos">Administrativos</option>
+                        <option value="directivos">Directivos</option>
+                        <option value="empresarios">Empresarios</option>
+                        <option value="empleadores">Empleadores</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select id="surveyStatus">
+                        <option value="activo">Activo (Abierto a respuestas)</option>
+                        <option value="inactivo">Inactivo (Cerrado)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- CONSTRUCTOR DE PREGUNTAS -->
+            <div style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h4 style="margin: 0; font-size: 1.05rem;">Preguntas de la Encuesta</h4>
+                    <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="addQuestionItem()">+ Añadir Pregunta</button>
+                </div>
+
+                <div id="questionsContainer">
+                    <!-- Elementos de preguntas dinámicas -->
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                <button class="btn-secondary" onclick="closeSurveyModal()">Cancelar</button>
+                <button class="btn-primary" onclick="saveSurvey()">Guardar Encuesta</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='data.js') }}?v=2.2"></script>
+    <script>
+        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'orbesrc@gmail.com' };
+        document.getElementById('userInfo').textContent = user.email;
+
+        function logout() { localStorage.removeItem('siac_user'); window.location.href = 'index.html'; }
+
+        let surveysData = [];
+        let activeSurveyResponses = [];
+        let currentChartInstances = [];
+
+        // Modos de almacenamiento
+        let useCloud = localStorage.getItem('siac_use_cloud') === 'true';
+
+        function updateStorageBanner() {
+            const label = document.getElementById('currentStorageMode');
+            const syncBtn = document.getElementById('syncBtn');
+            if (useCloud) {
+                label.textContent = "Nube (Supabase)";
+                syncBtn.style.display = "inline-flex";
+            } else {
+                label.textContent = "Local (Servidor)";
+                syncBtn.style.display = "inline-flex"; // Enable sync button always so they can sync local to cloud manually
+            }
+        }
+
+        async function toggleCloudMode() {
+            useCloud = !useCloud;
+            localStorage.setItem('siac_use_cloud', useCloud ? 'true' : 'false');
+            updateStorageBanner();
+            await loadSurveys();
+        }
+
+        async function syncDataWithSupabase() {
+            const syncBtn = document.getElementById('syncBtn');
+            syncBtn.disabled = true;
+            syncBtn.textContent = "⏳ Sincronizando...";
+            try {
+                const resp = await fetch(`/api/surveys/sync?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'push' })
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    alert("✅ " + res.message);
+                } else {
+                    alert("❌ Error: " + res.message);
+                }
+            } catch (e) {
+                console.error("Sync error:", e);
+                alert("❌ Error en la conexión al sincronizar.");
+            } finally {
+                syncBtn.disabled = false;
+                syncBtn.textContent = "☁️ Sincronizar Ahora";
+                await loadSurveys();
+            }
+        }
+
+        async function initPage() {
+            updateStorageBanner();
+            try {
+                // Cargar datos de la institución
+                const instResp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+                const instData = await instResp.json();
+                document.getElementById('inst_name').textContent = instData.name;
+                if(instData.logo_url) {
+                    const logoImg = document.getElementById('inst_logo');
+                    logoImg.src = instData.logo_url;
+                    logoImg.style.display = 'block';
+                }
+
+                // Cargar datos del programa
+                const progResp = await fetch(`/api/programs?inst_id=${getInstId()}`);
+                const progs = await progResp.json();
+                const currentProg = progs.find(p => p.id == getProgramId());
+                const programName = currentProg ? currentProg.name : 'Programa';
+                document.getElementById('header_title').textContent = `${programName} - Autoevaluación`;
+
+                await loadSurveys();
+            } catch(e) { console.error('Error init:', e); }
+        }
+
+        async function loadSurveys() {
+            try {
+                const resp = await fetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}&use_cloud=${useCloud}`);
+                surveysData = await resp.json();
+                renderSurveys();
+            } catch (e) {
+                console.error("Error loading surveys:", e);
+            }
+        }
+
+        function renderSurveys() {
+            const list = document.getElementById('surveyList');
+            list.innerHTML = '';
+            
+            if (surveysData.length === 0) {
+                list.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: var(--white); border-radius: var(--radius-lg); border: 2px dashed var(--border-color);">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">📋</div>
+                        <h4 style="margin-bottom: 5px;">No hay encuestas configuradas</h4>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Crea una encuesta de autoevaluación para comenzar a recolectar opiniones.</p>
+                    </div>`;
+                return;
+            }
+
+            surveysData.forEach(survey => {
+                const card = document.createElement('div');
+                card.className = 'survey-card';
+                
+                const statusBadge = survey.status === 'activo' 
+                    ? '<span class="badge" style="background:#dcfce7; color:#15803d; position:absolute; top:24px; right:24px;">Abierta</span>' 
+                    : '<span class="badge" style="background:#fee2e2; color:#b91c1c; position:absolute; top:24px; right:24px;">Cerrada</span>';
+                
+                // Generar link público
+                const publicLink = `${window.location.origin}/encuesta_publica.html?id=${survey.id}`;
+
+                card.innerHTML = `
+                    <div>
+                        <span class="survey-target-badge target-${survey.target}">${survey.target}</span>
+                        ${statusBadge}
+                        <h3 style="font-size: 1.15rem; margin-bottom: 8px; font-weight: 700; color: var(--text-main); padding-right: 60px;">${survey.title}</h3>
+                        <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.4; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${survey.description || 'Sin descripción'}</p>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
+                            <strong>Preguntas:</strong> ${survey.questions ? survey.questions.length : 0} | 
+                            <strong>Creada:</strong> ${new Date(survey.created_at).toLocaleDateString()}
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Enlace Público:</label>
+                            <div style="display: flex; gap: 4px;">
+                                <input type="text" readonly value="${publicLink}" style="padding: 6px; font-size: 0.75rem; flex: 1; border-radius: 6px;">
+                                <button class="btn-secondary" style="padding: 6px 10px; font-size: 0.75rem;" onclick="copyToClipboard('${publicLink}')">Copiar</button>
+                            </div>
+                        </div>
+                        <div class="survey-actions">
+                            <button class="btn-primary" onclick="viewSurveyResults('${survey.id}')">📊 Resultados</button>
+                            <button class="btn-secondary" onclick="openEditSurveyModal('${survey.id}')">✏️ Editar</button>
+                            <button class="btn-danger" style="color: #ef4444;" onclick="deleteSurvey('${survey.id}')">🗑️</button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("📋 Enlace copiado al portapapeles.");
+            }).catch(err => {
+                console.error("Clipboard copy error:", err);
+            });
+        }
+
+        // CRUD MODAL ACTIONS
+        function openCreateSurveyModal() {
+            document.getElementById('modalTitle').textContent = "Nueva Encuesta de Autoevaluación";
+            document.getElementById('surveyId').value = "";
+            document.getElementById('surveyTitle').value = "";
+            document.getElementById('surveyDescription').value = "";
+            document.getElementById('surveyTarget').value = "estudiantes";
+            document.getElementById('surveyStatus').value = "activo";
+            document.getElementById('questionsContainer').innerHTML = "";
+            
+            // Add one default question
+            addQuestionItem();
+            
+            document.getElementById('surveyModal').style.display = 'flex';
+        }
+
+        function openEditSurveyModal(surveyId) {
+            const survey = surveysData.find(s => s.id === surveyId);
+            if (!survey) return;
+
+            document.getElementById('modalTitle').textContent = "Editar Encuesta de Autoevaluación";
+            document.getElementById('surveyId').value = survey.id;
+            document.getElementById('surveyTitle').value = survey.title;
+            document.getElementById('surveyDescription').value = survey.description || "";
+            document.getElementById('surveyTarget').value = survey.target;
+            document.getElementById('surveyStatus').value = survey.status || "activo";
+            
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = "";
+            
+            if (survey.questions && survey.questions.length > 0) {
+                survey.questions.forEach(q => {
+                    addQuestionItem(q);
+                });
+            } else {
+                addQuestionItem();
+            }
+
+            document.getElementById('surveyModal').style.display = 'flex';
+        }
+
+        function closeSurveyModal() {
+            document.getElementById('surveyModal').style.display = 'none';
+        }
+
+        function addQuestionItem(questionData = null) {
+            const container = document.getElementById('questionsContainer');
+            const qId = questionData ? questionData.id : 'q_' + generateId();
+            const qText = questionData ? questionData.text : '';
+            const qType = questionData ? questionData.type : 'rating';
+            const qOptions = questionData && questionData.options ? questionData.options.join(', ') : '';
+
+            const item = document.createElement('div');
+            item.className = 'question-builder-item';
+            item.dataset.id = qId;
+
+            item.innerHTML = `
+                <button class="q-remove-btn" onclick="this.parentElement.remove()">×</button>
+                <div class="form-grid">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Pregunta</label>
+                        <input type="text" class="q-text" value="${qText}" placeholder="Ej: ¿Qué tan satisfecho está con los recursos bibliográficos del programa?">
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-top: 10px;">
+                    <div class="form-group">
+                        <label>Tipo de Pregunta</label>
+                        <select class="q-type" onchange="toggleQuestionOptions(this)">
+                            <option value="rating" ${qType === 'rating' ? 'selected' : ''}>Calificación (Estrellas/Números 1-5)</option>
+                            <option value="select" ${qType === 'select' ? 'selected' : ''}>Selección Múltiple</option>
+                            <option value="text" ${qType === 'text' ? 'selected' : ''}>Comentario / Texto Libre</option>
+                        </select>
+                    </div>
+                    <div class="form-group q-options-group" style="display: ${qType === 'select' ? 'block' : 'none'};">
+                        <label>Opciones (Separadas por comas)</label>
+                        <input type="text" class="q-options" value="${qOptions}" placeholder="Ej: Excelente, Bueno, Regular, Deficiente">
+                    </div>
+                </div>
+            `;
+            container.appendChild(item);
+        }
+
+        function toggleQuestionOptions(selectElem) {
+            const optionsGroup = selectElem.parentElement.nextElementSibling;
+            if (selectElem.value === 'select') {
+                optionsGroup.style.display = 'block';
+            } else {
+                optionsGroup.style.display = 'none';
+            }
+        }
+
+        async function saveSurvey() {
+            const title = document.getElementById('surveyTitle').value.trim();
+            if (!title) { alert("El título es obligatorio."); return; }
+
+            const id = document.getElementById('surveyId').value || 'surv_' + generateId();
+            const description = document.getElementById('surveyDescription').value.trim();
+            const target = document.getElementById('surveyTarget').value;
+            const status = document.getElementById('surveyStatus').value;
+
+            // Recolectar preguntas
+            const qItems = document.querySelectorAll('.question-builder-item');
+            const questions = [];
+            
+            let hasError = false;
+            qItems.forEach(item => {
+                const text = item.querySelector('.q-text').value.trim();
+                const type = item.querySelector('.q-type').value;
+                const optionsRaw = item.querySelector('.q-options').value;
+                
+                if (!text) {
+                    alert("Todas las preguntas deben tener texto.");
+                    hasError = true;
+                    return;
+                }
+                
+                let options = [];
+                if (type === 'select') {
+                    options = optionsRaw.split(',').map(o => o.trim()).filter(o => o.length > 0);
+                    if (options.length < 2) {
+                        alert("Las preguntas de selección múltiple deben tener al menos 2 opciones.");
+                        hasError = true;
+                        return;
+                    }
+                }
+                
+                questions.push({
+                    id: item.dataset.id,
+                    type: type,
+                    text: text,
+                    options: options
+                });
+            });
+
+            if (hasError) return;
+            if (questions.length === 0) {
+                alert("Debe agregar al menos una pregunta.");
+                return;
+            }
+
+            const isEdit = document.getElementById('surveyId').value !== "";
+            const currentSurveys = [...surveysData];
+            
+            const newSurvey = {
+                id: id,
+                title: title,
+                description: description,
+                target: target,
+                status: status,
+                questions: questions,
+                created_at: isEdit ? (currentSurveys.find(s => s.id === id)?.created_at || new Date().toISOString()) : new Date().toISOString()
+            };
+
+            let updatedList = [];
+            if (isEdit) {
+                updatedList = currentSurveys.map(s => s.id === id ? newSurvey : s);
+            } else {
+                updatedList = [...currentSurveys, newSurvey];
+            }
+
+            try {
+                const resp = await fetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}&use_cloud=${useCloud}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedList)
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    closeSurveyModal();
+                    await loadSurveys();
+                } else {
+                    alert("Error guardando encuesta: " + res.message);
+                }
+            } catch (e) {
+                console.error("Save error:", e);
+                alert("Error de conexión al guardar.");
+            }
+        }
+
+        async function deleteSurvey(surveyId) {
+            if (!confirm("¿Está seguro de eliminar esta encuesta y todas sus respuestas?")) return;
+            try {
+                const resp = await fetch(`/api/surveys/${surveyId}?inst_id=${getInstId()}&program_id=${getProgramId()}&use_cloud=${useCloud}`, {
+                    method: 'DELETE'
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    await loadSurveys();
+                    if (document.getElementById('resultsPanel').style.display === 'block') {
+                        closeResultsPanel();
+                    }
+                } else {
+                    alert("Error eliminando encuesta: " + res.message);
+                }
+            } catch (e) {
+                console.error("Delete error:", e);
+                alert("Error de conexión al eliminar.");
+            }
+        }
+
+        // RESULTS PANEL AND ANALYTICS
+        async function viewSurveyResults(surveyId) {
+            const survey = surveysData.find(s => s.id === surveyId);
+            if (!survey) return;
+
+            document.getElementById('resultsTitle').textContent = `Resultados: ${survey.title}`;
+            document.getElementById('resultsSub').textContent = `Público: ${survey.target.toUpperCase()} | Estado: ${survey.status.toUpperCase()}`;
+            
+            const resultsPanel = document.getElementById('resultsPanel');
+            resultsPanel.style.display = 'block';
+            resultsPanel.scrollIntoView({ behavior: 'smooth' });
+
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = `<div style="text-align:center; padding:30px;">Cargando respuestas...</div>`;
+
+            try {
+                const resp = await fetch(`/api/surveys/${surveyId}/responses?use_cloud=${useCloud}`);
+                activeSurveyResponses = await resp.json();
+                renderAnalytics(survey);
+            } catch (e) {
+                console.error("Error loading responses:", e);
+                resultsContent.innerHTML = `<div style="color:var(--error-color); text-align:center; padding:30px;">Error al cargar las respuestas.</div>`;
+            }
+        }
+
+        function closeResultsPanel() {
+            document.getElementById('resultsPanel').style.display = 'none';
+        }
+
+        function renderAnalytics(survey) {
+            const container = document.getElementById('resultsContent');
+            container.innerHTML = '';
+
+            // Clean previous chart instances
+            currentChartInstances.forEach(c => c.destroy());
+            currentChartInstances = [];
+
+            const totalResp = activeSurveyResponses.length;
+            
+            // Header stats
+            const statsHeader = document.createElement('div');
+            statsHeader.style.display = 'grid';
+            statsHeader.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
+            statsHeader.style.gap = '15px';
+            statsHeader.style.marginBottom = '30px';
+            statsHeader.innerHTML = `
+                <div style="background:var(--secondary-bg); padding:15px; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
+                    <div style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Total Respuestas</div>
+                    <div style="font-size:2rem; font-weight:700; color:var(--primary-color);">${totalResp}</div>
+                </div>
+                <div style="background:var(--secondary-bg); padding:15px; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
+                    <div style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Fecha Último Envío</div>
+                    <div style="font-size:1.1rem; font-weight:700; margin-top:8px;">${totalResp > 0 ? new Date(activeSurveyResponses[totalResp-1].submitted_at).toLocaleDateString() : 'N/A'}</div>
+                </div>
+            `;
+            container.appendChild(statsHeader);
+
+            if (totalResp === 0) {
+                container.innerHTML += `
+                    <div style="text-align:center; padding:40px; color:var(--text-muted);">
+                        <div style="font-size:2.5rem; margin-bottom:10px;">⏳</div>
+                        <p>No se han recibido respuestas para esta encuesta todavía.</p>
+                    </div>`;
+                return;
+            }
+
+            // Loop through each question and aggregate results
+            survey.questions.forEach((q, idx) => {
+                const qBox = document.createElement('div');
+                qBox.style.marginBottom = '40px';
+                qBox.style.padding = '20px';
+                qBox.style.border = '1px solid var(--border-color)';
+                qBox.style.borderRadius = '12px';
+                
+                const qTitle = document.createElement('h4');
+                qTitle.style.marginBottom = '20px';
+                qTitle.style.fontSize = '1.05rem';
+                qTitle.textContent = `Pregunta ${idx + 1}: ${q.text}`;
+                qBox.appendChild(qTitle);
+
+                if (q.type === 'rating') {
+                    // Calculate average and distribution
+                    let sum = 0;
+                    let count = 0;
+                    const distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+                    
+                    activeSurveyResponses.forEach(r => {
+                        const val = parseInt(r.answers[q.id]);
+                        if (val >= 1 && val <= 5) {
+                            sum += val;
+                            count++;
+                            distribution[val]++;
+                        }
+                    });
+
+                    const avg = count > 0 ? (sum / count).toFixed(2) : 0;
+                    
+                    const ratingGrid = document.createElement('div');
+                    ratingGrid.style.display = 'grid';
+                    ratingGrid.style.gridTemplateColumns = '120px 1fr';
+                    ratingGrid.style.gap = '25px';
+                    ratingGrid.style.alignItems = 'center';
+                    
+                    const avgScoreBox = `
+                        <div style="text-align:center; padding:15px; background:linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color:white; border-radius:12px;">
+                            <div style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Promedio</div>
+                            <div style="font-size:2.5rem; font-weight:800; line-height:1.1; margin:5px 0;">${avg}</div>
+                            <div style="font-size:0.7rem; opacity:0.8;">de 5.0 estrellas</div>
+                        </div>
+                    `;
+
+                    // Generate a bar display for rating distribution
+                    let barsHtml = '<div style="display:flex; flex-direction:column; gap:8px;">';
+                    for (let i = 5; i >= 1; i--) {
+                        const pct = count > 0 ? ((distribution[i] / count) * 100).toFixed(0) : 0;
+                        barsHtml += `
+                            <div style="display:flex; align-items:center; gap:10px; font-size:0.85rem;">
+                                <div style="width:50px; font-weight:600; text-align:right;">${i} ★</div>
+                                <div style="flex:1; height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                                    <div style="width:${pct}%; height:100%; background:var(--primary-color); border-radius:4px;"></div>
+                                </div>
+                                <div style="width:35px; color:var(--text-muted); text-align:right;">${pct}%</div>
+                            </div>
+                        `;
+                    }
+                    barsHtml += '</div>';
+
+                    ratingGrid.innerHTML = avgScoreBox + barsHtml;
+                    qBox.appendChild(ratingGrid);
+
+                } else if (q.type === 'select') {
+                    // Aggregate multiple choice percentages
+                    const counts = {};
+                    q.options.forEach(opt => counts[opt] = 0);
+                    
+                    activeSurveyResponses.forEach(r => {
+                        const val = r.answers[q.id];
+                        if (val && counts[val] !== undefined) {
+                            counts[val]++;
+                        }
+                    });
+
+                    // Add chart container
+                    const chartDiv = document.createElement('div');
+                    chartDiv.className = 'chart-container';
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `chart_${q.id}`;
+                    chartDiv.appendChild(canvas);
+                    qBox.appendChild(chartDiv);
+
+                    // Create Chart
+                    setTimeout(() => {
+                        const ctx = canvas.getContext('2d');
+                        const newChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: q.options,
+                                datasets: [{
+                                    label: 'Votos',
+                                    data: q.options.map(opt => counts[opt]),
+                                    backgroundColor: 'rgba(37, 99, 235, 0.7)',
+                                    borderColor: 'rgba(37, 99, 235, 1)',
+                                    borderWidth: 1,
+                                    borderRadius: 6
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: { stepSize: 1 }
+                                    }
+                                }
+                            }
+                        });
+                        currentChartInstances.push(newChart);
+                    }, 50);
+
+                } else if (q.type === 'text') {
+                    // List text comments
+                    const commentsDiv = document.createElement('div');
+                    commentsDiv.className = 'comments-list';
+                    
+                    let count = 0;
+                    activeSurveyResponses.forEach(r => {
+                        const val = r.answers[q.id];
+                        if (val && val.trim().length > 0) {
+                            count++;
+                            const cItem = document.createElement('div');
+                            cItem.className = 'comment-item';
+                            cItem.innerHTML = `<strong>•</strong> ${val.replace(/</g, '&lt;').replace(/>/g, '&gt;')}`;
+                            commentsDiv.appendChild(cItem);
+                        }
+                    });
+
+                    if (count === 0) {
+                        commentsDiv.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:0.85rem; padding:10px;">Sin comentarios registrados.</div>`;
+                    }
+                    
+                    qBox.appendChild(commentsDiv);
+                }
+
+                container.appendChild(qBox);
+            });
+        }
+
+        function exportResultsCSV() {
+            if (activeSurveyResponses.length === 0) return;
+            
+            // Build columns
+            const firstResp = activeSurveyResponses[0];
+            const headers = ['Fecha de Envío', 'Público'];
+            const qKeys = Object.keys(firstResp.answers);
+            
+            // Find survey to get question text if possible
+            const survey = surveysData.find(s => s.id === firstResp.survey_id);
+            
+            qKeys.forEach(k => {
+                const q = survey?.questions.find(qu => qu.id === k);
+                headers.push(q ? q.text.replace(/,/g, ' ') : k);
+            });
+
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            csvContent += headers.join(",") + "\n";
+
+            activeSurveyResponses.forEach(r => {
+                const row = [
+                    new Date(r.submitted_at).toLocaleString(),
+                    r.target
+                ];
+                qKeys.forEach(k => {
+                    const ans = r.answers[k] || "";
+                    row.push('"' + String(ans).replace(/"/g, '""') + '"');
+                });
+                csvContent += row.join(",") + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `resultados_encuesta_${firstResp.survey_id}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        window.onload = initPage;
+    </script>
+</body>
+</html>
