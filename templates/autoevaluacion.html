@@ -229,7 +229,8 @@
             wrapper.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b; font-size:0.85rem;">⏳ Cargando percepción de la comunidad (encuestas)...</div>`;
 
             try {
-                const surveysResp = await fetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const useCloud = localStorage.getItem('siac_use_cloud') === 'true';
+                const surveysResp = await fetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}&use_cloud=${useCloud}`);
                 const surveys = await surveysResp.json();
                 
                 const aspectIds = (char.aspects || []).map(a => a.id);
@@ -252,7 +253,7 @@
                         });
                     }
                     fetchPromises.push(
-                        fetch(`/api/surveys/${survey.id}/responses`).then(r => r.json())
+                        fetch(`/api/surveys/${survey.id}/responses?use_cloud=${useCloud}&inst_id=${getInstId()}&program_id=${getProgramId()}`).then(r => r.json())
                     );
                 });
 

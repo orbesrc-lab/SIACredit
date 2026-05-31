@@ -116,16 +116,12 @@ def save_local_response(inst_id, program_id, response_data):
         print(f"Error saving response: {e}")
         return False
 
-def sync_to_supabase(inst_id, program_id, supabase_client):
+def sync_surveys_only(inst_id, program_id, supabase_client):
     """
-    Syncs local surveys and responses for inst_id and program_id to Supabase table 'statistics'
-    using table_id = 'SURVEY_DEFINITIONS' and 'SURVEY_RESPONSES'
+    Syncs ONLY local surveys for inst_id and program_id to Supabase
     """
     try:
         local_surveys = load_local_surveys(inst_id, program_id)
-        local_responses = load_local_responses(inst_id, program_id)
-        
-        # 1. Sync Surveys
         check_surv = supabase_client.table('statistics').select("id").eq("table_id", "SURVEY_DEFINITIONS").eq("inst_id", inst_id).eq("program_id", program_id).execute()
         if check_surv.data:
             supabase_client.table('statistics').update({"data_json": json.dumps(local_surveys, ensure_ascii=False)}).eq("id", check_surv.data[0]['id']).execute()
@@ -136,8 +132,17 @@ def sync_to_supabase(inst_id, program_id, supabase_client):
                 "inst_id": inst_id,
                 "program_id": program_id
             }).execute()
-            
-        # 2. Sync Responses
+        return True
+    except Exception as e:
+        print(f"Error syncing surveys only: {e}")
+        raise e
+
+def sync_responses_only(inst_id, program_id, supabase_client):
+    """
+    Syncs ONLY local responses for inst_id and program_id to Supabase
+    """
+    try:
+        local_responses = load_local_responses(inst_id, program_id)
         check_resp = supabase_client.table('statistics').select("id").eq("table_id", "SURVEY_RESPONSES").eq("inst_id", inst_id).eq("program_id", program_id).execute()
         if check_resp.data:
             supabase_client.table('statistics').update({"data_json": json.dumps(local_responses, ensure_ascii=False)}).eq("id", check_resp.data[0]['id']).execute()
@@ -148,6 +153,19 @@ def sync_to_supabase(inst_id, program_id, supabase_client):
                 "inst_id": inst_id,
                 "program_id": program_id
             }).execute()
+        return True
+    except Exception as e:
+        print(f"Error syncing responses only: {e}")
+        raise e
+
+def sync_to_supabase(inst_id, program_id, supabase_client):
+    """
+    Syncs local surveys and responses for inst_id and program_id to Supabase table 'statistics'
+    using table_id = 'SURVEY_DEFINITIONS' and 'SURVEY_RESPONSES'
+    """
+    try:
+        sync_surveys_only(inst_id, program_id, supabase_client)
+        sync_responses_only(inst_id, program_id, supabase_client)
         return True
     except Exception as e:
         print(f"Error syncing to Supabase: {e}")

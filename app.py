@@ -1855,15 +1855,17 @@ def encuesta_publica_page():
 def handle_surveys():
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
-    use_cloud = request.args.get('use_cloud', 'false').lower() == 'true'
+    use_cloud = request.args.get('use_cloud', 'false').lower() == 'true' or survey_storage.IS_VERCEL
 
     if request.method == 'POST':
         data = request.json  # list of surveys
         if use_cloud:
             try:
+                # Pull first to ensure we don't wipe out other responses stored in cloud when we save/sync
+                survey_storage.pull_from_supabase(inst_id, program_id, supabase)
                 # Save locally first, then sync
                 survey_storage.save_local_surveys(inst_id, program_id, data)
-                survey_storage.sync_to_supabase(inst_id, program_id, supabase)
+                survey_storage.sync_surveys_only(inst_id, program_id, supabase)
                 return jsonify({"status": "success", "message": "Encuestas guardadas localmente y sincronizadas en la nube"})
             except Exception as e:
                 return jsonify({"status": "error", "message": f"Error al sincronizar en la nube: {str(e)}"}), 500
@@ -1889,15 +1891,21 @@ def handle_survey_specific(survey_id):
     if request.method == 'DELETE':
         inst_id = request.args.get('inst_id', 1, type=int)
         program_id = request.args.get('program_id', 0, type=int)
-        use_cloud = request.args.get('use_cloud', 'false').lower() == 'true'
+        use_cloud = request.args.get('use_cloud', 'false').lower() == 'true' or survey_storage.IS_VERCEL
         
+        if use_cloud:
+            try:
+                survey_storage.pull_from_supabase(inst_id, program_id, supabase)
+            except Exception as e:
+                print(f"Error pulling surveys before delete: {e}")
+                
         surveys = survey_storage.load_local_surveys(inst_id, program_id)
         surveys = [s for s in surveys if s.get('id') != survey_id]
         survey_storage.save_local_surveys(inst_id, program_id, surveys)
         
         if use_cloud:
             try:
-                survey_storage.sync_to_supabase(inst_id, program_id, supabase)
+                survey_storage.sync_surveys_only(inst_id, program_id, supabase)
             except Exception as e:
                 return jsonify({"status": "error", "message": f"Error al sincronizar eliminación: {str(e)}"}), 500
                 
@@ -1945,7 +1953,15 @@ def respond_survey(survey_id):
         
     inst_id = survey.get('inst_id', 1)
     program_id = survey.get('program_id', 0)
+    use_cloud = request.args.get('use_cloud', 'false').lower() == 'true' or survey_storage.IS_VERCEL
     
+    # CRITICAL: Pull from Supabase first if in cloud mode to avoid overwriting existing responses
+    if use_cloud:
+        try:
+            survey_storage.pull_from_supabase(inst_id, program_id, supabase)
+        except Exception as e:
+            print(f"Error pulling from supabase before response: {e}")
+
     import datetime
     response_record = {
         "id": "resp_" + survey_storage.generate_id(),
@@ -1962,10 +1978,9 @@ def respond_survey(survey_id):
         
     success = survey_storage.save_local_response(inst_id, program_id, response_record)
     
-    use_cloud = request.args.get('use_cloud', 'false').lower() == 'true'
     if use_cloud:
         try:
-            survey_storage.sync_to_supabase(inst_id, program_id, supabase)
+            survey_storage.sync_responses_only(inst_id, program_id, supabase)
         except Exception as e:
             print(f"Error syncing response to cloud: {e}")
             
@@ -1975,20 +1990,39 @@ def respond_survey(survey_id):
 
 @app.route('/api/surveys/<survey_id>/responses', methods=['GET'])
 def get_survey_responses(survey_id):
-    survey = survey_storage.get_survey_by_id_only(survey_id)
-    if not survey:
-        return jsonify([])
-        
-    inst_id = survey.get('inst_id', 1)
-    program_id = survey.get('program_id', 0)
-    use_cloud = request.args.get('use_cloud', 'false').lower() == 'true'
+    use_cloud = request.args.get('use_cloud', 'false').lower() == 'true' or survey_storage.IS_VERCEL
     
-    if use_cloud:
+    inst_id = request.args.get('inst_id', type=int)
+    program_id = request.args.get('program_id', type=int)
+    
+    if use_cloud and inst_id is not None and program_id is not None:
         try:
             survey_storage.pull_from_supabase(inst_id, program_id, supabase)
         except Exception as e:
             print(f"Error pulling responses: {e}")
             
+    survey = survey_storage.get_survey_by_id_only(survey_id)
+    if not survey and use_cloud:
+        try:
+            res = supabase.table('statistics').select("data_json, inst_id, program_id").eq("table_id", "SURVEY_DEFINITIONS").execute()
+            for row in res.data:
+                surveys = json.loads(row['data_json'])
+                for s in surveys:
+                    if s.get('id') == survey_id:
+                        row_inst_id = row['inst_id']
+                        row_program_id = row['program_id']
+                        survey_storage.save_local_surveys(row_inst_id, row_program_id, surveys)
+                        survey_storage.pull_from_supabase(row_inst_id, row_program_id, supabase)
+                        survey = s
+                        break
+                if survey:
+                    break
+        except Exception as e:
+            print(f"Error searching survey in cloud for responses: {e}")
+            
+    if not survey:
+        return jsonify([])
+        
     responses = survey_storage.load_local_responses_for_survey(survey_id)
     return jsonify(responses)
 
