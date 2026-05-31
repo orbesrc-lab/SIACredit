@@ -582,24 +582,29 @@
                         <input type="text" class="q-options" value="${qOptions}" placeholder="Ej: Excelente, Bueno, Regular, Deficiente">
                     </div>
                 </div>
-                <div class="form-grid" style="margin-top: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                    <div class="form-group">
-                        <label>Factor Vinculado</label>
-                        <select class="q-factor" onchange="onFactorChange(this)">
-                            <option value="">Ninguno / No vincular</option>
-                        </select>
+                <div style="margin-top: 15px; padding: 15px; background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                    <div style="font-size: 0.78rem; font-weight: 700; color: var(--primary-color); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                        🎯 Vinculación al Modelo de Autoevaluación
                     </div>
-                    <div class="form-group">
-                        <label>Característica</label>
-                        <select class="q-characteristic" onchange="onCharacteristicChange(this)">
-                            <option value="">Ninguna</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Aspecto a Evaluar</label>
-                        <select class="q-aspect">
-                            <option value="">Ninguno</option>
-                        </select>
+                    <div class="form-grid" style="grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 0;">
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; font-weight: 600;">Factor Vinculado</label>
+                            <select class="q-factor" onchange="onFactorChange(this)" style="width: 100%; padding: 10px; font-size: 0.88rem;">
+                                <option value="">Ninguno / No vincular</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; font-weight: 600;">Característica</label>
+                            <select class="q-characteristic" onchange="onCharacteristicChange(this)" style="width: 100%; padding: 10px; font-size: 0.88rem;">
+                                <option value="">Ninguna</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem; font-weight: 600;">Aspecto a Evaluar</label>
+                            <select class="q-aspect" style="width: 100%; padding: 10px; font-size: 0.88rem;">
+                                <option value="">Ninguno</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             `;
