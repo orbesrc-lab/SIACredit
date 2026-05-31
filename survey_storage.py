@@ -122,16 +122,25 @@ def sync_surveys_only(inst_id, program_id, supabase_client):
     """
     try:
         local_surveys = load_local_surveys(inst_id, program_id)
-        check_surv = supabase_client.table('statistics').select("id").eq("table_id", "SURVEY_DEFINITIONS").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        table_key = f"SURVEY_DEFINITIONS_{inst_id}_{program_id}"
+        check_surv = supabase_client.table('statistics').select("id").eq("table_id", table_key).eq("inst_id", inst_id).eq("program_id", program_id).execute()
         if check_surv.data:
             supabase_client.table('statistics').update({"data_json": json.dumps(local_surveys, ensure_ascii=False)}).eq("id", check_surv.data[0]['id']).execute()
         else:
-            supabase_client.table('statistics').insert({
-                "table_id": "SURVEY_DEFINITIONS",
-                "data_json": json.dumps(local_surveys, ensure_ascii=False),
-                "inst_id": inst_id,
-                "program_id": program_id
-            }).execute()
+            # Intenta actualizar el registro antiguo si existe
+            old_check = supabase_client.table('statistics').select("id").eq("table_id", "SURVEY_DEFINITIONS").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+            if old_check.data:
+                supabase_client.table('statistics').update({
+                    "table_id": table_key,
+                    "data_json": json.dumps(local_surveys, ensure_ascii=False)
+                }).eq("id", old_check.data[0]['id']).execute()
+            else:
+                supabase_client.table('statistics').insert({
+                    "table_id": table_key,
+                    "data_json": json.dumps(local_surveys, ensure_ascii=False),
+                    "inst_id": inst_id,
+                    "program_id": program_id
+                }).execute()
         return True
     except Exception as e:
         print(f"Error syncing surveys only: {e}")
@@ -143,16 +152,25 @@ def sync_responses_only(inst_id, program_id, supabase_client):
     """
     try:
         local_responses = load_local_responses(inst_id, program_id)
-        check_resp = supabase_client.table('statistics').select("id").eq("table_id", "SURVEY_RESPONSES").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        table_key = f"SURVEY_RESPONSES_{inst_id}_{program_id}"
+        check_resp = supabase_client.table('statistics').select("id").eq("table_id", table_key).eq("inst_id", inst_id).eq("program_id", program_id).execute()
         if check_resp.data:
             supabase_client.table('statistics').update({"data_json": json.dumps(local_responses, ensure_ascii=False)}).eq("id", check_resp.data[0]['id']).execute()
         else:
-            supabase_client.table('statistics').insert({
-                "table_id": "SURVEY_RESPONSES",
-                "data_json": json.dumps(local_responses, ensure_ascii=False),
-                "inst_id": inst_id,
-                "program_id": program_id
-            }).execute()
+            # Intenta actualizar el registro antiguo si existe
+            old_check = supabase_client.table('statistics').select("id").eq("table_id", "SURVEY_RESPONSES").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+            if old_check.data:
+                supabase_client.table('statistics').update({
+                    "table_id": table_key,
+                    "data_json": json.dumps(local_responses, ensure_ascii=False)
+                }).eq("id", old_check.data[0]['id']).execute()
+            else:
+                supabase_client.table('statistics').insert({
+                    "table_id": table_key,
+                    "data_json": json.dumps(local_responses, ensure_ascii=False),
+                    "inst_id": inst_id,
+                    "program_id": program_id
+                }).execute()
         return True
     except Exception as e:
         print(f"Error syncing responses only: {e}")
@@ -161,7 +179,7 @@ def sync_responses_only(inst_id, program_id, supabase_client):
 def sync_to_supabase(inst_id, program_id, supabase_client):
     """
     Syncs local surveys and responses for inst_id and program_id to Supabase table 'statistics'
-    using table_id = 'SURVEY_DEFINITIONS' and 'SURVEY_RESPONSES'
+    using table_id = 'SURVEY_DEFINITIONS' and 'SURVEY_RESPONSES' (now composite)
     """
     try:
         sync_surveys_only(inst_id, program_id, supabase_client)
@@ -177,13 +195,21 @@ def pull_from_supabase(inst_id, program_id, supabase_client):
     """
     try:
         # 1. Fetch surveys from Supabase
-        surv_res = supabase_client.table('statistics').select("data_json").eq("table_id", "SURVEY_DEFINITIONS").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        table_key_surv = f"SURVEY_DEFINITIONS_{inst_id}_{program_id}"
+        surv_res = supabase_client.table('statistics').select("data_json").eq("table_id", table_key_surv).eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        if not surv_res.data:
+            surv_res = supabase_client.table('statistics').select("data_json").eq("table_id", "SURVEY_DEFINITIONS").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+            
         if surv_res.data:
             surveys = json.loads(surv_res.data[0]['data_json'])
             save_local_surveys(inst_id, program_id, surveys)
             
         # 2. Fetch responses from Supabase
-        resp_res = supabase_client.table('statistics').select("data_json").eq("table_id", "SURVEY_RESPONSES").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        table_key_resp = f"SURVEY_RESPONSES_{inst_id}_{program_id}"
+        resp_res = supabase_client.table('statistics').select("data_json").eq("table_id", table_key_resp).eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        if not resp_res.data:
+            resp_res = supabase_client.table('statistics').select("data_json").eq("table_id", "SURVEY_RESPONSES").eq("inst_id", inst_id).eq("program_id", program_id).execute()
+            
         if resp_res.data:
             responses = json.loads(resp_res.data[0]['data_json'])
             ensure_files_exist()

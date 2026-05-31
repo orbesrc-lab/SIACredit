@@ -1915,7 +1915,7 @@ def handle_survey_specific(survey_id):
     survey = survey_storage.get_survey_by_id_only(survey_id)
     if not survey:
         try:
-            res = supabase.table('statistics').select("data_json, inst_id, program_id").eq("table_id", "SURVEY_DEFINITIONS").execute()
+            res = supabase.table('statistics').select("data_json, inst_id, program_id").like("table_id", "SURVEY_DEFINITIONS%").execute()
             for row in res.data:
                 surveys = json.loads(row['data_json'])
                 for s in surveys:
@@ -1935,7 +1935,7 @@ def respond_survey(survey_id):
     
     if not survey:
         try:
-            res = supabase.table('statistics').select("data_json, inst_id, program_id").eq("table_id", "SURVEY_DEFINITIONS").execute()
+            res = supabase.table('statistics').select("data_json, inst_id, program_id").like("table_id", "SURVEY_DEFINITIONS%").execute()
             for row in res.data:
                 surveys = json.loads(row['data_json'])
                 for s in surveys:
@@ -2004,7 +2004,7 @@ def get_survey_responses(survey_id):
     survey = survey_storage.get_survey_by_id_only(survey_id)
     if not survey and use_cloud:
         try:
-            res = supabase.table('statistics').select("data_json, inst_id, program_id").eq("table_id", "SURVEY_DEFINITIONS").execute()
+            res = supabase.table('statistics').select("data_json, inst_id, program_id").like("table_id", "SURVEY_DEFINITIONS%").execute()
             for row in res.data:
                 surveys = json.loads(row['data_json'])
                 for s in surveys:
