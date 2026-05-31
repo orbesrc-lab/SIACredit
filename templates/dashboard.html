@@ -165,6 +165,26 @@
                     </select>
                 </div>
 
+                <div class="viz-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; background: #f8fafc; padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <!-- Tipo de Gráfico -->
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted);">Tipo de Diagrama:</span>
+                        <div class="btn-group" style="display: flex; background: #e2e8f0; padding: 2px; border-radius: 6px;">
+                            <button class="btn-chart-type active" onclick="changeChartType('bar')" style="padding: 4px 10px; font-size: 0.75rem; border: none; background: transparent; border-radius: 4px; cursor: pointer; transition: 0.2s;">Barra</button>
+                            <button class="btn-chart-type" onclick="changeChartType('line')" style="padding: 4px 10px; font-size: 0.75rem; border: none; background: transparent; border-radius: 4px; cursor: pointer; transition: 0.2s;">Línea</button>
+                            <button class="btn-chart-type" onclick="changeChartType('radar')" style="padding: 4px 10px; font-size: 0.75rem; border: none; background: transparent; border-radius: 4px; cursor: pointer; transition: 0.2s;">Radar</button>
+                            <button class="btn-chart-type" onclick="changeChartType('polarArea')" style="padding: 4px 10px; font-size: 0.75rem; border: none; background: transparent; border-radius: 4px; cursor: pointer; transition: 0.2s;">Polar</button>
+                        </div>
+                    </div>
+
+                    <!-- Botones Descarga -->
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted);">Exportar:</span>
+                        <button class="btn-secondary" onclick="downloadChart('png')" style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">📷 PNG</button>
+                        <button class="btn-secondary" onclick="downloadChart('jpeg')" style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">📷 JPG</button>
+                    </div>
+                </div>
+
                 <div class="viz-layout">
                     <!-- Columna Izquierda: Gráfico -->
                     <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; min-height: 350px; display: flex; flex-direction: column; justify-content: center;">
@@ -236,6 +256,7 @@
         let selectedFactorId = null;
         let selectedCharId = null;
         let drilldownChartInstance = null;
+        let chartType = 'bar'; // 'bar', 'line', 'radar', 'polarArea'
 
         async function initVisualization() {
             try {
@@ -305,6 +326,49 @@
             return parseFloat(score.toFixed(2));
         }
 
+        function changeChartType(type) {
+            chartType = type;
+            const buttons = document.querySelectorAll('.btn-chart-type');
+            buttons.forEach(btn => {
+                if (btn.getAttribute('onclick').includes(type)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            renderDrilldownChart();
+        }
+
+        function downloadChart(format) {
+            const canvas = document.getElementById('drilldownChart');
+            if (!canvas) return;
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            tempCtx.fillStyle = '#ffffff';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.drawImage(canvas, 0, 0);
+
+            let mimeType = 'image/png';
+            let fileName = 'diagrama_autoevaluacion.png';
+            if (format === 'jpeg') {
+                mimeType = 'image/jpeg';
+                fileName = 'diagrama_autoevaluacion.jpg';
+            }
+
+            const imgUrl = tempCanvas.toDataURL(mimeType, 1.0);
+            
+            const link = document.createElement('a');
+            link.href = imgUrl;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function renderDrilldownChart() {
             const canvasEl = document.getElementById('drilldownChart');
             if (!canvasEl) return;
@@ -341,18 +405,79 @@
                 }
             }
 
+            let datasetConfig = {
+                label: 'Calificación (1.0 - 5.0)',
+                data: data,
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                borderWidth: 1.5
+            };
+
+            if (chartType === 'line') {
+                datasetConfig.fill = true;
+                datasetConfig.backgroundColor = 'rgba(37, 99, 235, 0.15)';
+                datasetConfig.borderColor = '#2563eb';
+                datasetConfig.tension = 0.3;
+                datasetConfig.pointBackgroundColor = '#2563eb';
+                datasetConfig.pointRadius = 4;
+            } else if (chartType === 'radar') {
+                datasetConfig.fill = true;
+                datasetConfig.backgroundColor = 'rgba(79, 70, 229, 0.2)';
+                datasetConfig.borderColor = '#4f46e5';
+                datasetConfig.pointBackgroundColor = '#4f46e5';
+                datasetConfig.pointRadius = 4;
+            } else if (chartType === 'polarArea') {
+                datasetConfig.backgroundColor = [
+                    'rgba(239, 68, 68, 0.7)',
+                    'rgba(249, 115, 22, 0.7)',
+                    'rgba(245, 158, 11, 0.7)',
+                    'rgba(16, 185, 129, 0.7)',
+                    'rgba(6, 182, 212, 0.7)',
+                    'rgba(59, 130, 246, 0.7)',
+                    'rgba(99, 102, 241, 0.7)',
+                    'rgba(139, 92, 246, 0.7)',
+                    'rgba(168, 85, 247, 0.7)',
+                    'rgba(236, 72, 153, 0.7)',
+                    'rgba(20, 184, 166, 0.7)',
+                    'rgba(100, 116, 139, 0.7)'
+                ];
+                datasetConfig.borderColor = '#ffffff';
+                datasetConfig.borderWidth = 2;
+            } else {
+                datasetConfig.borderRadius = 6;
+            }
+
+            let scalesOption = {};
+            if (chartType === 'bar' || chartType === 'line') {
+                scalesOption = {
+                    y: {
+                        min: 0,
+                        max: 5,
+                        ticks: { stepSize: 1 },
+                        title: { display: true, text: 'Nota Escala CNA' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                };
+            } else if (chartType === 'radar' || chartType === 'polarArea') {
+                scalesOption = {
+                    r: {
+                        min: 0,
+                        max: 5,
+                        ticks: { stepSize: 1, showLabelBackdrop: false },
+                        angleLines: { display: true },
+                        suggestedMin: 0,
+                        suggestedMax: 5
+                    }
+                };
+            }
+
             drilldownChartInstance = new Chart(ctx, {
-                type: 'bar',
+                type: chartType,
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Calificación (1.0 - 5.0)',
-                        data: data,
-                        backgroundColor: backgroundColors,
-                        borderColor: borderColors,
-                        borderWidth: 1.5,
-                        borderRadius: 6
-                    }]
+                    datasets: [datasetConfig]
                 },
                 options: {
                     responsive: true,
@@ -380,17 +505,7 @@
                             }
                         }
                     },
-                    scales: {
-                        y: {
-                            min: 0,
-                            max: 5,
-                            ticks: { stepSize: 1 },
-                            title: { display: true, text: 'Nota Escala CNA' }
-                        },
-                        x: {
-                            grid: { display: false }
-                        }
-                    }
+                    scales: scalesOption
                 }
             });
         }
