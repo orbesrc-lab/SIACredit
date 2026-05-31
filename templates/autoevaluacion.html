@@ -168,6 +168,9 @@
                                     <div style="padding: 20px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; white-space: pre-wrap; line-height: 1.6;">${currentEval.just || 'Sin justificación.'}</div>
                                 </div>
 
+                                <!-- Contenedor de percepción de la comunidad (encuestas) -->
+                                <div id="percepcionComunidadContainer" style="margin-bottom:30px;"></div>
+
                                 <div style="display: flex; gap: 15px;">
                                     <button class="btn-primary" onclick="renderEvalForm('edit')" style="flex:1; padding:15px; font-size:1.1rem; background: #3b82f6;">✏️ Editar Evaluación</button>
                                     <button class="btn-primary" onclick="deleteEvaluation('${cId}')" style="flex:1; padding:15px; font-size:1.1rem; background: #ef4444;">🗑️ Eliminar</button>
@@ -201,6 +204,9 @@
                                     <textarea id="just_input" placeholder="Redacte aquí el análisis integral de la característica...">${currentEval.just || ''}</textarea>
                                 </div>
 
+                                <!-- Contenedor de percepción de la comunidad (encuestas) -->
+                                <div id="percepcionComunidadContainer" style="margin-bottom:30px;"></div>
+
                                 <div style="display: flex; gap: 15px;">
                                     <button class="btn-primary large" onclick="saveEvaluation('${fId}', '${cId}')" style="flex:2; padding:18px; font-size:1.1rem;">💾 Guardar Evaluación CNA</button>
                                     ${isEvaluated ? `<button class="btn-primary large" onclick="renderEvalForm('view')" style="flex:1; padding:18px; font-size:1.1rem; background: #64748b;">❌ Cancelar</button>` : ''}
@@ -212,6 +218,138 @@
                 };
                 
                 renderEvalForm(isEvaluated ? 'view' : 'edit');
+                loadAndRenderCommunityPerception(cId, char);
+            } catch(e) { console.error("Error showEval:", e); }
+        }
+
+        async function loadAndRenderCommunityPerception(cId, char) {
+            const wrapper = document.getElementById('percepcionComunidadContainer');
+            if (!wrapper) return;
+
+            wrapper.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b; font-size:0.85rem;">⏳ Cargando percepción de la comunidad (encuestas)...</div>`;
+
+            try {
+                const surveysResp = await fetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const surveys = await surveysResp.json();
+                
+                const aspectIds = (char.aspects || []).map(a => a.id);
+
+                let relatedQuestions = [];
+                let fetchPromises = [];
+
+                surveys.forEach(survey => {
+                    if (survey.questions) {
+                        survey.questions.forEach(q => {
+                            if (q.char_id === cId || (q.aspect_id && aspectIds.includes(q.aspect_id))) {
+                                relatedQuestions.push({
+                                    id: q.id,
+                                    text: q.text,
+                                    type: q.type,
+                                    survey_title: survey.title,
+                                    options: q.options || []
+                                });
+                            }
+                        });
+                    }
+                    fetchPromises.push(
+                        fetch(`/api/surveys/${survey.id}/responses`).then(r => r.json())
+                    );
+                });
+
+                if (relatedQuestions.length === 0) {
+                    wrapper.innerHTML = `
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:15px; font-size:0.85rem; color:#64748b;">
+                            ℹ️ No hay preguntas de encuestas vinculadas a esta característica.
+                        </div>`;
+                    return;
+                }
+
+                const allResponsesList = await Promise.all(fetchPromises);
+                
+                let allResponses = [];
+                allResponsesList.forEach(list => {
+                    allResponses = allResponses.concat(list);
+                });
+
+                let ratingSum = 0;
+                let ratingCount = 0;
+                let textComments = [];
+
+                allResponses.forEach(resp => {
+                    if (!resp.answers) return;
+                    relatedQuestions.forEach(q => {
+                        const ans = resp.answers[q.id];
+                        if (ans !== undefined && ans !== null && String(ans).trim() !== '') {
+                            if (q.type === 'rating') {
+                                const val = parseFloat(ans);
+                                if (val >= 1 && val <= 5) {
+                                    ratingSum += val;
+                                    ratingCount++;
+                                }
+                            } else if (q.type === 'text') {
+                                textComments.push({
+                                    text: ans,
+                                    target: resp.target || 'Comunidad',
+                                    date: new Date(resp.submitted_at).toLocaleDateString()
+                                });
+                            }
+                        }
+                    });
+                });
+
+                let html = `
+                    <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:15px; margin-top:15px;">
+                        <h4 style="margin:0 0 12px; color:#0369a1; font-size:0.95rem; display:flex; align-items:center; gap:6px;">
+                            📋 Percepción de la Comunidad (Encuestas)
+                        </h4>`;
+
+                if (ratingCount > 0) {
+                    const avg = (ratingSum / ratingCount).toFixed(2);
+                    let colorClass = 'cna-insuficiente';
+                    if (avg >= 4.5) colorClass = 'cna-pleno';
+                    else if (avg >= 4.0) colorClass = 'cna-alto';
+                    else if (avg >= 3.0) colorClass = 'cna-aceptable';
+
+                    html += `
+                        <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px; background:#fff; padding:10px 15px; border-radius:8px; border:1px solid #e2e8f0;">
+                            <div>
+                                <div style="font-size:0.7rem; color:#64748b; font-weight:700; text-transform:uppercase;">Promedio Encuestas</div>
+                                <div style="font-size:1.8rem; font-weight:800; color:#0369a1; line-height:1.1;">${avg}</div>
+                            </div>
+                            <div>
+                                <span class="cna-badge ${colorClass}" style="font-size:0.75rem; padding:2px 6px; margin-bottom:3px; display:inline-block;">${avg >= 4.5 ? 'Plenamente' : avg >= 4.0 ? 'Alto Grado' : avg >= 3.0 ? 'Aceptable' : 'No se cumple'}</span>
+                                <div style="font-size:0.75rem; color:#64748b;">Métrica basada en <strong>${ratingCount}</strong> respuestas.</div>
+                            </div>
+                        </div>`;
+                } else {
+                    html += `
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:10px; font-size:0.8rem; color:#64748b; margin-bottom:12px; text-align:center;">
+                            Sin respuestas numéricas registradas.
+                        </div>`;
+                }
+
+                if (textComments.length > 0) {
+                    html += `
+                        <div style="font-size:0.8rem; font-weight:700; color:#475569; margin-bottom:6px;">Comentarios de la Comunidad:</div>
+                        <div style="max-height:120px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; border:1px solid #e2e8f0; border-radius:6px; padding:8px; background:#fff;">`;
+                    textComments.forEach(comm => {
+                        html += `
+                            <div style="border-bottom:1px solid #f1f5f9; padding-bottom:4px; font-size:0.78rem;">
+                                <div style="color:#1e293b;">"${comm.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}"</div>
+                                <div style="font-size:0.68rem; color:#94a3b8; margin-top:2px;">— ${comm.target} (${comm.date})</div>
+                            </div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                html += `</div>`;
+                wrapper.innerHTML = html;
+            } catch (err) {
+                console.error("Error perception:", err);
+                wrapper.innerHTML = `<div style="color:#ef4444; font-size:0.8rem;">Error al cargar datos de encuestas.</div>`;
+            }
+        }
+
             } catch(e) { console.error("Error showEval:", e); }
         }
 

@@ -955,6 +955,56 @@ def get_informe_dinamico():
         stats_res = supabase.table('statistics').select("*").eq("inst_id", inst_id).eq("program_id", program_id).execute()
         stats_map = {s['table_id']: json.loads(s['data_json']) for s in stats_res.data}
         
+        # 5. Traer encuestas y respuestas (para cruzar con autoevaluación)
+        try:
+            survey_storage.pull_from_supabase(inst_id, program_id, supabase)
+        except Exception as e:
+            print(f"Error pulling surveys for dynamic report: {e}")
+            
+        local_surveys = survey_storage.load_local_surveys(inst_id, program_id)
+        local_responses = survey_storage.load_local_responses(inst_id, program_id)
+        
+        q_map = {}
+        for s in local_surveys:
+            for q in s.get('questions', []):
+                q_map[q['id']] = {
+                    "char_id": q.get('char_id'),
+                    "aspect_id": q.get('aspect_id'),
+                    "type": q.get('type')
+                }
+                
+        char_perceptions = {}
+        for r in local_responses:
+            answers = r.get('answers', {})
+            target = r.get('target', 'Comunidad')
+            submitted_at = r.get('submitted_at', '')
+            for q_id, val in answers.items():
+                if q_id in q_map:
+                    q_info = q_map[q_id]
+                    char_id = q_info['char_id']
+                    if not char_id:
+                        continue
+                    if char_id not in char_perceptions:
+                        char_perceptions[char_id] = {
+                            "rating_sum": 0.0,
+                            "rating_count": 0,
+                            "comments": []
+                        }
+                    if q_info['type'] == 'rating':
+                        try:
+                            val_f = float(val)
+                            if 1.0 <= val_f <= 5.0:
+                                char_perceptions[char_id]['rating_sum'] += val_f
+                                char_perceptions[char_id]['rating_count'] += 1
+                        except (ValueError, TypeError):
+                            pass
+                    elif q_info['type'] == 'text' and val and str(val).strip():
+                        char_perceptions[char_id]['comments'].append({
+                            "text": str(val).strip(),
+                            "target": target,
+                            "date": submitted_at[:10] if submitted_at else ''
+                        })
+        
         # Ensamblar datos
         report_data = {
             "institucion_id": inst_id,
@@ -988,12 +1038,18 @@ def get_informe_dinamico():
                 score = e_data.get('rating', 0)
                 justification = e_data.get('just', '')
                 
+                perc = char_perceptions.get(c_id, {"rating_sum": 0.0, "rating_count": 0, "comments": []})
+                avg_perc = round(perc['rating_sum'] / perc['rating_count'], 2) if perc['rating_count'] > 0 else 0.0
+                
                 char_info = {
                     "id": c_id,
                     "number": c.get('number', ''),
                     "name": c.get('name', ''),
                     "aspectos": [],
-                    "nota_promedio": score
+                    "nota_promedio": score,
+                    "percepcion_promedio": avg_perc,
+                    "percepcion_cantidad": perc['rating_count'],
+                    "percepcion_comentarios": perc['comments']
                 }
                 
                 if score > 0:
@@ -1674,7 +1730,9 @@ def ai_generate_report():
         prompt = f"""
         Actúa como un Par Académico experto del Consejo Nacional de Acreditación (CNA) de Colombia.
         A continuación se te provee un JSON con la información de la autoevaluación de un programa académico.
-        Incluye calificaciones, justificaciones y referencias a cuadros estadísticos.
+        Incluye calificaciones del líder de autoevaluación, justificaciones, referencias a cuadros estadísticos,
+        así como el promedio de percepción y comentarios cualitativos de encuestas aplicadas a la comunidad 
+        (estudiantes, profesores, egresados, etc.) bajo los campos `percepcion_promedio`, `percepcion_cantidad` y `percepcion_comentarios`.
         
         JSON de Autoevaluación:
         {data_str}
@@ -1684,11 +1742,11 @@ def ai_generate_report():
         # Informe de Autoevaluación con fines de Acreditación
         ## 1. Introducción y Apreciación General
         ## 2. Análisis por Factores
-        (Para cada factor con datos relevantes, menciona sus fortalezas, oportunidades de mejora y su calificación promedio)
+        (Para cada factor, analiza cuantitativa y cualitativamente sus características. Si existen encuestas de percepción de la comunidad para sus características, realiza un contraste crítico entre la autoevaluación de la institución y la percepción real de los encuestados, mencionando promedios y citando textualmente comentarios relevantes o ideas fuerza encontradas en 'percepcion_comentarios'. Identifica fortalezas y oportunidades de mejora del factor basándote en esta articulación).
         ## 3. Conclusiones
         ## 4. Recomendaciones y Plan de Mejoramiento
         
-        Escribe de forma formal, propositiva y basada estrictamente en los datos provistos.
+        Escribe de forma formal, propositiva, con un lenguaje técnico académico y basado estrictamente en los datos provistos.
         """
         
         report_text = call_ai(

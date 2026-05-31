@@ -699,6 +699,51 @@
                         </div>
                 `;
 
+                // Renderizar Características del Factor (Autoevaluación vs. Percepción)
+                let charsHtml = `<h4>Evaluación por Características y Percepción de la Comunidad:</h4>
+                                 <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:25px;">`;
+                f.caracteristicas.forEach(c => {
+                    const cnaClass = getCNAClass(c.nota_promedio);
+                    
+                    let percHtml = '';
+                    if (c.percepcion_cantidad > 0) {
+                        const percClass = getCNAClass(c.percepcion_promedio);
+                        percHtml = `
+                            <div style="margin-top:8px; display:flex; align-items:center; gap:10px; font-size:0.8rem; color:#0369a1; background:#f0f9ff; padding:6px 12px; border-radius:6px; border:1px solid #bae6fd; flex-wrap:wrap;">
+                                <span>📊 <b>Percepción Comunidad:</b> ${c.percepcion_promedio.toFixed(2)} / 5.0 (${c.percepcion_cantidad} respuestas)</span>
+                                <span class="grade-badge ${percClass}" style="padding:2px 8px; font-size:0.72rem;">${c.percepcion_promedio >= 4.5 ? 'Plenamente' : c.percepcion_promedio >= 4.0 ? 'Alto Grado' : c.percepcion_promedio >= 3.0 ? 'Aceptable' : 'No se cumple'}</span>
+                            </div>
+                        `;
+                        if (c.percepcion_comentarios && c.percepcion_comentarios.length > 0) {
+                            const topComments = c.percepcion_comentarios.slice(0, 2);
+                            percHtml += `<div style="font-size:0.78rem; color:#64748b; margin-top:5px; padding-left:12px; font-style:italic;">`;
+                            topComments.forEach(comm => {
+                                percHtml += `— "${comm.text}" (${comm.target})<br>`;
+                            });
+                            percHtml += `</div>`;
+                        }
+                    } else {
+                        percHtml = `
+                            <div style="margin-top:8px; font-size:0.8rem; color:#64748b; background:#f8fafc; padding:6px 12px; border-radius:6px; border:1px solid #e2e8f0;">
+                                ℹ️ Sin datos de encuestas vinculadas a esta característica.
+                            </div>
+                        `;
+                    }
+                    
+                    charsHtml += `
+                        <div style="background:#fff; border:1px solid var(--border-color); border-radius:8px; padding:15px; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                <span style="font-weight:600; font-size:0.92rem; color:var(--text-main);">${c.number}. ${c.name}</span>
+                                <span class="grade-badge ${cnaClass}" style="font-size:0.75rem;">Autoevaluación: ${c.nota_promedio > 0 ? c.nota_promedio.toFixed(1) : 'Sin evaluar'}</span>
+                            </div>
+                            ${percHtml}
+                        </div>
+                    `;
+                });
+                charsHtml += `</div>`;
+                factorHtml += charsHtml;
+
+
                 // Renderizar Cuadros de Datos + IA si existen para este factor
                 const c_name = String(f.name).toLowerCase();
                 if (f.number == 3 || f.number == 4 || c_name.includes('profesores') || c_name.includes('docentes')) {

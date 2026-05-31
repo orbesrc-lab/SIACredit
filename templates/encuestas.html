@@ -272,6 +272,88 @@
         let surveysData = [];
         let activeSurveyResponses = [];
         let currentChartInstances = [];
+        let modelData = [];
+
+        async function loadModelData() {
+            try {
+                const resp = await fetch(`/api/model?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                modelData = await resp.json();
+            } catch(e) {
+                console.error("Error loading model data:", e);
+            }
+        }
+
+        function populateFactorsSelect(selectElem, selectedFactorId = null) {
+            selectElem.innerHTML = '<option value="">Ninguno / No vincular</option>';
+            modelData.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = `${f.number}. ${f.name}`;
+                if (selectedFactorId && selectedFactorId == f.id) {
+                    opt.selected = true;
+                }
+                selectElem.appendChild(opt);
+            });
+        }
+
+        function populateCharacteristicsSelect(charSelect, factorId, selectedCharId = null) {
+            charSelect.innerHTML = '<option value="">Ninguna</option>';
+            if (!factorId) return;
+            const factor = modelData.find(f => f.id == factorId);
+            if (factor && factor.characteristics) {
+                factor.characteristics.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = `${c.number}. ${c.name}`;
+                    if (selectedCharId && selectedCharId == c.id) {
+                        opt.selected = true;
+                    }
+                    charSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function populateAspectsSelect(aspectSelect, factorId, charId, selectedAspectId = null) {
+            aspectSelect.innerHTML = '<option value="">Ninguno</option>';
+            if (!factorId || !charId) return;
+            const factor = modelData.find(f => f.id == factorId);
+            if (factor && factor.characteristics) {
+                const char = factor.characteristics.find(c => c.id == charId);
+                if (char && char.aspects) {
+                    char.aspects.forEach(a => {
+                        const opt = document.createElement('option');
+                        opt.value = a.id;
+                        const shortText = a.text.length > 70 ? a.text.substring(0, 70) + '...' : a.text;
+                        opt.textContent = shortText;
+                        if (selectedAspectId && selectedAspectId == a.id) {
+                            opt.selected = true;
+                        }
+                        aspectSelect.appendChild(opt);
+                    });
+                }
+            }
+        }
+
+        function onFactorChange(factorSelect) {
+            const item = factorSelect.closest('.question-builder-item');
+            const charSelect = item.querySelector('.q-characteristic');
+            const aspectSelect = item.querySelector('.q-aspect');
+            
+            const factorId = factorSelect.value;
+            populateCharacteristicsSelect(charSelect, factorId);
+            populateAspectsSelect(aspectSelect, factorId, null);
+        }
+
+        function onCharacteristicChange(charSelect) {
+            const item = charSelect.closest('.question-builder-item');
+            const factorSelect = item.querySelector('.q-factor');
+            const aspectSelect = item.querySelector('.q-aspect');
+            
+            const factorId = factorSelect.value;
+            const charId = charSelect.value;
+            populateAspectsSelect(aspectSelect, factorId, charId);
+        }
+
 
         // Modos de almacenamiento
         let useCloud = localStorage.getItem('siac_use_cloud') === 'true';
@@ -340,7 +422,8 @@
                 const currentProg = progs.find(p => p.id == getProgramId());
                 const programName = currentProg ? currentProg.name : 'Programa';
                 document.getElementById('header_title').textContent = `${programName} - Autoevaluación`;
-
+                
+                await loadModelData();
                 await loadSurveys();
             } catch(e) { console.error('Error init:', e); }
         }
@@ -469,6 +552,9 @@
             const qText = questionData ? questionData.text : '';
             const qType = questionData ? questionData.type : 'rating';
             const qOptions = questionData && questionData.options ? questionData.options.join(', ') : '';
+            const selectedFactorId = questionData ? questionData.factor_id : null;
+            const selectedCharId = questionData ? questionData.char_id : null;
+            const selectedAspectId = questionData ? questionData.aspect_id : null;
 
             const item = document.createElement('div');
             item.className = 'question-builder-item';
@@ -496,8 +582,40 @@
                         <input type="text" class="q-options" value="${qOptions}" placeholder="Ej: Excelente, Bueno, Regular, Deficiente">
                     </div>
                 </div>
+                <div class="form-grid" style="margin-top: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                    <div class="form-group">
+                        <label>Factor Vinculado</label>
+                        <select class="q-factor" onchange="onFactorChange(this)">
+                            <option value="">Ninguno / No vincular</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Característica</label>
+                        <select class="q-characteristic" onchange="onCharacteristicChange(this)">
+                            <option value="">Ninguna</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Aspecto a Evaluar</label>
+                        <select class="q-aspect">
+                            <option value="">Ninguno</option>
+                        </select>
+                    </div>
+                </div>
             `;
             container.appendChild(item);
+
+            const factorSelect = item.querySelector('.q-factor');
+            const charSelect = item.querySelector('.q-characteristic');
+            const aspectSelect = item.querySelector('.q-aspect');
+
+            populateFactorsSelect(factorSelect, selectedFactorId);
+            if (selectedFactorId) {
+                populateCharacteristicsSelect(charSelect, selectedFactorId, selectedCharId);
+            }
+            if (selectedFactorId && selectedCharId) {
+                populateAspectsSelect(aspectSelect, selectedFactorId, selectedCharId, selectedAspectId);
+            }
         }
 
         function toggleQuestionOptions(selectElem) {
@@ -528,6 +646,10 @@
                 const type = item.querySelector('.q-type').value;
                 const optionsRaw = item.querySelector('.q-options').value;
                 
+                const factorId = item.querySelector('.q-factor').value || null;
+                const charId = item.querySelector('.q-characteristic').value || null;
+                const aspectId = item.querySelector('.q-aspect').value || null;
+                
                 if (!text) {
                     alert("Todas las preguntas deben tener texto.");
                     hasError = true;
@@ -548,7 +670,10 @@
                     id: item.dataset.id,
                     type: type,
                     text: text,
-                    options: options
+                    options: options,
+                    factor_id: factorId,
+                    char_id: charId,
+                    aspect_id: aspectId
                 });
             });
 
