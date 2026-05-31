@@ -942,6 +942,42 @@
             });
         }
 
+        function readFileWithEncodingDetection(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const buffer = e.target.result;
+                const view = new Uint8Array(buffer);
+                
+                // Simple UTF-8 validation
+                let isUTF8 = true;
+                let i = 0;
+                while (i < view.length) {
+                    const byte = view[i];
+                    if (byte <= 0x7F) {
+                        i++;
+                    } else if ((byte & 0xE0) === 0xC0) {
+                        if (i + 1 >= view.length || (view[i+1] & 0xC0) !== 0x80) { isUTF8 = false; break; }
+                        i += 2;
+                    } else if ((byte & 0xF0) === 0xE0) {
+                        if (i + 2 >= view.length || (view[i+1] & 0xC0) !== 0x80 || (view[i+2] & 0xC0) !== 0x80) { isUTF8 = false; break; }
+                        i += 3;
+                    } else if ((byte & 0xF8) === 0xF0) {
+                        if (i + 3 >= view.length || (view[i+1] & 0xC0) !== 0x80 || (view[i+2] & 0xC0) !== 0x80 || (view[i+3] & 0xC0) !== 0x80) { isUTF8 = false; break; }
+                        i += 4;
+                    } else {
+                        isUTF8 = false;
+                        break;
+                    }
+                }
+                
+                const encoding = isUTF8 ? 'utf-8' : 'windows-1252';
+                const decoder = new TextDecoder(encoding);
+                const text = decoder.decode(view);
+                callback(text);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
         function injectModel() {
             const fileInput = document.getElementById('modelFile');
             if (!fileInput.files[0]) {
@@ -950,14 +986,13 @@
             }
 
             const file = fileInput.files[0];
-            const reader = new FileReader();
-            reader.onload = function (e) {
+            readFileWithEncodingDetection(file, function(text) {
                 try {
                     let importedModel;
                     if (file.name.endsWith('.csv')) {
-                        importedModel = parseCSV(e.target.result);
+                        importedModel = parseCSV(text);
                     } else {
-                        importedModel = JSON.parse(e.target.result);
+                        importedModel = JSON.parse(text);
                     }
 
                     if (!Array.isArray(importedModel) || importedModel.length === 0) throw new Error("Formato inválido o archivo vacío.");
@@ -971,8 +1006,7 @@
                 } catch (err) {
                     alert("Error al procesar el archivo: " + err.message);
                 }
-            };
-            reader.readAsText(file);
+            });
         }
 
         function exportModel() {

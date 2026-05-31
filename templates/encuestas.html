@@ -1023,13 +1023,47 @@
             document.getElementById('importSurveyFile').click();
         }
 
+        function readFileWithEncodingDetection(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const buffer = e.target.result;
+                const view = new Uint8Array(buffer);
+                
+                // Simple UTF-8 validation
+                let isUTF8 = true;
+                let i = 0;
+                while (i < view.length) {
+                    const byte = view[i];
+                    if (byte <= 0x7F) {
+                        i++;
+                    } else if ((byte & 0xE0) === 0xC0) {
+                        if (i + 1 >= view.length || (view[i+1] & 0xC0) !== 0x80) { isUTF8 = false; break; }
+                        i += 2;
+                    } else if ((byte & 0xF0) === 0xE0) {
+                        if (i + 2 >= view.length || (view[i+1] & 0xC0) !== 0x80 || (view[i+2] & 0xC0) !== 0x80) { isUTF8 = false; break; }
+                        i += 3;
+                    } else if ((byte & 0xF8) === 0xF0) {
+                        if (i + 3 >= view.length || (view[i+1] & 0xC0) !== 0x80 || (view[i+2] & 0xC0) !== 0x80 || (view[i+3] & 0xC0) !== 0x80) { isUTF8 = false; break; }
+                        i += 4;
+                    } else {
+                        isUTF8 = false;
+                        break;
+                    }
+                }
+                
+                const encoding = isUTF8 ? 'utf-8' : 'windows-1252';
+                const decoder = new TextDecoder(encoding);
+                const text = decoder.decode(view);
+                callback(text);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
         function importSurveyCSV(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
+            readFileWithEncodingDetection(file, function(text) {
                 const questions = parseQuestionsCSV(text);
                 if (questions.length === 0) {
                     alert("No se pudieron parsear preguntas válidas del archivo CSV.");
@@ -1047,8 +1081,7 @@
                 
                 // Clear input
                 event.target.value = '';
-            };
-            reader.readAsText(file, 'utf-8');
+            });
         }
 
         function triggerImportModalQuestionsCSV() {
@@ -1059,9 +1092,7 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
+            readFileWithEncodingDetection(file, function(text) {
                 const questions = parseQuestionsCSV(text);
                 if (questions.length === 0) {
                     alert("No se pudieron parsear preguntas válidas del archivo CSV.");
@@ -1077,8 +1108,7 @@
                 
                 // Clear input
                 event.target.value = '';
-            };
-            reader.readAsText(file, 'utf-8');
+            });
         }
 
         function parseQuestionsCSV(text) {
