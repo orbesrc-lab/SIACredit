@@ -442,6 +442,7 @@ z-index: 1060;
   .testi-grid { grid-template-columns: 1fr; }
   .footer-inner { grid-template-columns: 1fr; gap: 40px; }
   .footer-bottom { justify-content: center; text-align: center; }
+  .formacion-logo { max-height: 120px; }
 }
 
 /* =========================================
@@ -460,7 +461,10 @@ z-index: 1060;
 }
 
 .formacion-logo {
+    max-width: 100%;
+    height: auto;
     max-height: 240px;
+    object-fit: contain;
     margin-bottom: 20px;
 }
 
