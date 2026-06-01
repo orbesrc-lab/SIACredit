@@ -1769,6 +1769,61 @@
         }
 
         // ---------------------------------------------------------------
+        // Generar texto de soporte local (alternativa sin tokens / IA)
+        // ---------------------------------------------------------------
+        function obtenerTextoSoporteLocal(cond, cd) {
+            let texto = "### Soporte Documental para la Condición " + cond.num + ": " + cond.nombre + "\n\n";
+            texto += "Este documento presenta el soporte normativo y análisis de autoevaluación correspondiente a la condición de calidad de **" + cond.nombre + "** para el programa de **" + (_rrcProgName || 'Contaduría Pública') + "** de la **" + (_rrcInstName || 'CORPORACIÓN UNIVERSITARIA CENTRO SUPERIOR') + "**.\n\n";
+            
+            if (cond.num === 1) {
+                texto += "### Información del Programa Evaluado\n";
+                texto += "- **Denominación del Programa:** " + (_rrcProgName || 'Contaduría Pública') + "\n";
+                texto += "- **Institución de Educación Superior:** " + (_rrcInstName || 'CORPORACIÓN UNIVERSITARIA CENTRO SUPERIOR') + "\n";
+                if (cd.programaInfo && cd.programaInfo.period) {
+                    texto += "- **Período de Autoevaluación:** " + cd.programaInfo.period + "\n";
+                } else if (_rrcInformeData && _rrcInformeData.programa) {
+                    texto += "- **Período de Autoevaluación:** " + (_rrcInformeData.programa.period || '2019-2026') + "\n";
+                }
+                texto += "\n";
+            }
+
+            if (cd.factoresRelacionados && cd.factoresRelacionados.length > 0) {
+                texto += "### Factores de Autoevaluación Relacionados\n";
+                cd.factoresRelacionados.forEach(f => {
+                    texto += "- **Factor " + f.numero + ": " + f.nombre + "** (Calificación: " + f.promedio.toFixed(1) + " - " + f.cualitativo + ")\n";
+                    if (f.caracteristicas && f.caracteristicas.length > 0) {
+                        f.caracteristicas.forEach(c => {
+                            texto += "  - Característica: " + c.nombre + " (Calificación: " + c.promedio.toFixed(1) + ")\n";
+                        });
+                    }
+                });
+                texto += "\n";
+            } else {
+                texto += "*Nota: No se hallaron factores del modelo de autoevaluación directamente relacionados con esta condición.*\n\n";
+            }
+
+            if (cd.justificaciones && cd.justificaciones.length > 0) {
+                texto += "### Justificación y Análisis del Equipo\n";
+                cd.justificaciones.forEach(j => {
+                    texto += j + "\n\n";
+                });
+            }
+
+            if (cd.evidencias && cd.evidencias.length > 0) {
+                texto += "### Evidencias Documentales Mapeadas\n";
+                cd.evidencias.forEach(ev => {
+                    texto += "- " + ev.nombre + "\n";
+                });
+                texto += "\n";
+            }
+
+            texto += "### Propuesta de Cumplimiento Normativo\n";
+            texto += "El programa cumple de manera satisfactoria con los lineamientos del Decreto 1330 de 2019 y la Resolución 0529 del MEN. Se recomienda ratificar la información expuesta y mantener actualizadas las evidencias anexas.";
+            
+            return texto;
+        }
+
+        // ---------------------------------------------------------------
         // Parsear reporte IA por condición
         // ---------------------------------------------------------------
         function parsearReporteIA(texto) {
@@ -1841,24 +1896,33 @@
                 indHtml += '</div>';
 
                 // Análisis IA de esta condición
-                const textoIA = analisisIA[cond.num] || '';
-                let iaHtml = '';
-                if (textoIA) {
-                    const htmlIA = textoIA
-                        .replace(/###\s*(.*)/g, '<strong style="color:#4c1d95;display:block;margin:10px 0 4px;">$1</strong>')
-                        .replace(/##\s*(.*)/g, '')
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                        .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
-                        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-                        .replace(/\n\n/g, '</p><p>')
-                        .replace(/\n/g, '<br>');
-                    iaHtml = `
-                        <div class="rrc-ai-analysis">
-                            <h4>✨ Análisis IA — Soporte normativo</h4>
-                            <div class="ai-content"><p>${htmlIA}</p></div>
-                        </div>`;
+                let textoIA = analisisIA[cond.num] || '';
+                
+                // Si no hay texto de IA, generar texto de soporte por defecto a partir de los datos locales
+                if (!textoIA) {
+                    textoIA = obtenerTextoSoporteLocal(cond, cd);
                 }
+
+                const htmlIA = textoIA
+                    .replace(/###\s*(.*)/g, '<strong style="color:#4c1d95;display:block;margin:10px 0 4px;">$1</strong>')
+                    .replace(/##\s*(.*)/g, '')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
+                    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/\n/g, '<br>');
+
+                const iaHtml = `
+                    <div class="rrc-ai-analysis" style="border: 2px dashed #93c5fd; background: #f0f7ff; margin-top: 18px; border-radius: 12px; padding: 20px;">
+                        <h4 style="color:#1d4ed8; display:flex; justify-content:space-between; align-items:center; margin:0 0 12px; font-size:0.95rem;">
+                            <span>✍️ Soporte Documental Diligenciable (Edita directamente abajo)</span>
+                            <span style="font-size:0.75rem; background:#dbeafe; color:#1e40af; padding:3px 8px; border-radius:12px; font-weight:700;">Habilitado para edición</span>
+                        </h4>
+                        <div class="ai-content" id="rrc-edit-content-${cond.num}" contenteditable="true" style="padding:15px; background:white; border:1px solid #bfdbfe; border-radius:8px; outline:none; min-height:180px; font-family:inherit; font-size:0.9rem; line-height:1.7; color:#374151;" placeholder="Escribe el soporte documental aquí...">
+                            ${htmlIA ? htmlIA : '<p>Escribe o modifica la información para esta condición aquí...</p>'}
+                        </div>
+                    </div>`;
 
                 // Evidencias
                 let evidHtml = '';
@@ -2075,16 +2139,15 @@
                 });
                 indsHtml += '</div>';
 
-                // Análisis IA (texto crudo del panel del DOM)
+                // Soporte documental (HTML editable del panel del DOM)
                 const panelEl = document.getElementById(`rrc-panel-${cond.num}`);
-                let iaTexto = '';
+                let iaHtml = '';
                 if (panelEl) {
                     const iaEl = panelEl.querySelector('.ai-content');
-                    if (iaEl) iaTexto = iaEl.innerText.trim();
+                    if (iaEl && iaEl.innerHTML.trim() !== '') {
+                        iaHtml = `<div class="ia-box"><h4>✨ Soporte Normativo & Análisis de Calidad</h4><div>${iaEl.innerHTML}</div></div>`;
+                    }
                 }
-                const iaHtml = iaTexto
-                    ? `<div class="ia-box"><h4>✨ Análisis IA — Soporte normativo (Dec. 1330 / Res. 0529)</h4><p>${iaTexto.replace(/\n/g,'<br>')}</p></div>`
-                    : '';
 
                 // Justificación
                 const justHtml = cd.justificaciones.length > 0
