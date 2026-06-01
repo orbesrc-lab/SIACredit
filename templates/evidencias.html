@@ -222,8 +222,7 @@ async function saveFactor5Data() {
     const btn = document.querySelector('button[onclick="saveFactor5Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -466,8 +465,7 @@ async function saveFactor7Data() {
     const btn = document.querySelector('button[onclick="saveFactor7Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -713,8 +711,7 @@ async function saveFactor8Data() {
     const btn = document.querySelector('button[onclick="saveFactor8Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -969,8 +966,7 @@ async function saveFactor10Data() {
     const btn = document.querySelector('button[onclick="saveFactor10Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -1227,8 +1223,7 @@ async function saveFactor5Data() {
     const btn = document.querySelector('button[onclick="saveFactor5Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -1471,8 +1466,7 @@ async function saveFactor7Data() {
     const btn = document.querySelector('button[onclick="saveFactor7Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -1718,8 +1712,7 @@ async function saveFactor8Data() {
     const btn = document.querySelector('button[onclick="saveFactor8Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -1974,8 +1967,7 @@ async function saveFactor10Data() {
     const btn = document.querySelector('button[onclick="saveFactor10Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -2503,8 +2495,7 @@ function updateFactor10Charts() {
                 const response = await fetch('/api/estadisticas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || ''
+                    body: JSON.stringify(payload)
                 });
                 
                 if(response.ok) {
@@ -2903,8 +2894,7 @@ async function saveFactor5Data() {
     const btn = document.querySelector('button[onclick="saveFactor5Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3147,8 +3137,7 @@ async function saveFactor7Data() {
     const btn = document.querySelector('button[onclick="saveFactor7Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3394,8 +3383,7 @@ async function saveFactor8Data() {
     const btn = document.querySelector('button[onclick="saveFactor8Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3650,8 +3638,7 @@ async function saveFactor10Data() {
     const btn = document.querySelector('button[onclick="saveFactor10Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3882,8 +3869,7 @@ async function saveFactor5Data() {
     const btn = document.querySelector('button[onclick="saveFactor5Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -4126,8 +4112,7 @@ async function saveFactor7Data() {
     const btn = document.querySelector('button[onclick="saveFactor7Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -4373,8 +4358,7 @@ async function saveFactor8Data() {
     const btn = document.querySelector('button[onclick="saveFactor8Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -4629,8 +4613,7 @@ async function saveFactor10Data() {
     const btn = document.querySelector('button[onclick="saveFactor10Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-                    adjunto: tr.dataset.adjunto || '' });
+        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
