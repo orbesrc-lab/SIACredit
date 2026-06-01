@@ -4408,6 +4408,69 @@ function updateFactor10Charts() {
     });
 }
 
+async function uploadGridEvidence(fileInput, tableId) {
+    if (!fileInput.files || fileInput.files.length === 0) return;
+    const file = fileInput.files[0];
+    const td = fileInput.closest('td');
+    const tr = fileInput.closest('tr');
+    const progId = getProgramId();
+    if (!progId || progId == 0) {
+        alert("Debes seleccionar un programa antes de subir evidencias.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('inst_id', getInstId());
+    formData.append('program_id', progId);
+    formData.append('aspect_id', 'STAT_' + tableId);
+    formData.append('period', 'Estadisticas');
+    if (typeof user !== 'undefined' && user && user.email) {
+        formData.append('email', user.email);
+    } else {
+        const localUser = JSON.parse(localStorage.getItem('siac_user'));
+        if (localUser && localUser.email) {
+            formData.append('email', localUser.email);
+        }
+    }
+
+    td.innerHTML = '<span style="color:var(--primary-color); font-size:0.8rem;">⏳ Subiendo...</span>';
+
+    try {
+        const res = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            tr.dataset.adjunto = data.url;
+            
+            const downloadUrl = `/api/download?url=${encodeURIComponent(data.url)}&name=${encodeURIComponent(file.name)}`;
+            td.innerHTML = `
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <a href="${downloadUrl}" download class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
+                    <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\\'>Subir...<input type=\\'file\\' style=\\'display:none\\' onchange=\\'uploadGridEvidence(this, &quot;${tableId}&quot;)\\'></label>'">✕</button>
+                </div>`;
+            
+            const saveBtns = document.querySelectorAll('button[onclick^="saveFactor"]');
+            saveBtns.forEach(btn => {
+                btn.style.boxShadow = "0 0 15px var(--primary-color)";
+                btn.style.borderColor = "var(--primary-color)";
+            });
+        } else {
+            alert('Error al subir el archivo: ' + (data.error || 'Desconocido'));
+            resetUploadBtn(td, tableId);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Error de red al subir el archivo.');
+        resetUploadBtn(td, tableId);
+    }
+}
+
+function resetUploadBtn(td, tableId) {
+    td.innerHTML = `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;">Subir...<input type="file" style="display:none;" onchange="uploadGridEvidence(this, '${tableId}')"></label>`;
+}
 </script>
 </body>
 </html>
