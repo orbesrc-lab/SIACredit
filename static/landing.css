@@ -55,7 +55,7 @@ body {
   display: flex; align-items: center; gap: 6px;
   text-decoration: none;
   font-family: 'Playfair Display', serif;
-  font-size: 1.6rem; font-weight: 700;
+  font-size: 1.8rem; font-weight: 700;
   color: var(--white); white-space: nowrap;
 }
 .nav-logo span { color: var(--accent-light); }
@@ -460,7 +460,7 @@ z-index: 1060;
 }
 
 .formacion-logo {
-    max-height: 80px;
+    max-height: 100px;
     margin-bottom: 20px;
 }
 

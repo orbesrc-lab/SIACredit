@@ -1022,7 +1022,7 @@ function updateFactor10Charts() {
 <body>
     <aside class="sidebar">
         <div class="sidebar-header" style="justify-content: center; padding: 20px 15px;">
-            <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Logo" style="max-height: 45px; max-width: 100%; object-fit: contain;">
+            <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
         </div>
         <div class="sidebar-menu">
             <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
@@ -2026,6 +2026,55 @@ function updateFactor10Charts() {
     <script>
         const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'invitado', role: 'guest' };
         
+        let activeProgramPeriod = '';
+
+        async function fetchActiveProgramPeriod() {
+            try {
+                const response = await fetch(`/api/programs?inst_id=${getInstId()}&t=` + Date.now());
+                if (response.ok) {
+                    const programs = await response.json();
+                    const progId = getProgramId();
+                    const activeProg = programs.find(p => p.id == progId);
+                    if (activeProg && activeProg.period) {
+                        activeProgramPeriod = activeProg.period;
+                    }
+                }
+            } catch(e) {
+                console.error("Error fetching active program period:", e);
+            }
+        }
+
+        function getPeriodOptionsHtml() {
+            let periodOptionsHtml = '';
+            if (activeProgramPeriod) {
+                const years = activeProgramPeriod.match(/\b\d{4}\b/g);
+                if (years && years.length > 0) {
+                    let startYear, endYear;
+                    if (years.length >= 2) {
+                        startYear = Math.min(parseInt(years[0]), parseInt(years[1]));
+                        endYear = Math.max(parseInt(years[0]), parseInt(years[1]));
+                    } else {
+                        startYear = parseInt(years[0]);
+                        endYear = startYear;
+                    }
+                    for (let y = endYear; y >= startYear; y--) {
+                        periodOptionsHtml += `<option value="${y}-2">${y}-2</option>`;
+                        periodOptionsHtml += `<option value="${y}-1">${y}-1</option>`;
+                    }
+                }
+            }
+            if (!periodOptionsHtml) {
+                periodOptionsHtml = `
+                    <option value="2025-1">2025-1</option>
+                    <option value="2024-2">2024-2</option>
+                    <option value="2024-1">2024-1</option>
+                    <option value="2023-2">2023-2</option>
+                    <option value="2023-1">2023-1</option>
+                `;
+            }
+            return periodOptionsHtml;
+        }
+
         // UI Fix for role display
         const roleLabel = user.role ? user.role.toUpperCase() : 'INVITADO';
         document.getElementById('userInfo').innerHTML = `<span>${user.email}</span> <span class="status ${user.role === 'admin' || user.role === 'inst_admin' ? 'aprobado' : 'revision'}" style="margin-left:10px">${roleLabel}</span>`;
@@ -2146,11 +2195,7 @@ function updateFactor10Charts() {
                     <div class="form-group" style="margin-bottom:15px;">
                         <label style="font-size:0.8rem;">Periodo Académico</label>
                         <select id="evidencePeriod_${aspect.id}" style="width:100%; padding:5px; border-radius:4px; border:1px solid #ddd;">
-                            <option value="2025-1">2025-1</option>
-                            <option value="2024-2">2024-2</option>
-                            <option value="2024-1">2024-1</option>
-                            <option value="2023-2">2023-2</option>
-                            <option value="2023-1">2023-1</option>
+                            ${getPeriodOptionsHtml()}
                         </select>
                     </div>
                     ${evHtml}
@@ -2678,6 +2723,7 @@ function updateFactor10Charts() {
 
         async function init() {
             await loadDataFromAPI();
+            await fetchActiveProgramPeriod();
             renderSidebar();
             setTimeout(() => { if(document.querySelector('.char-item')) document.querySelector('.char-item').click(); }, 300);
         }
