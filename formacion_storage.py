@@ -16,6 +16,16 @@ else:
 def generate_id():
     return uuid.uuid4().hex[:9]
 
+def get_default_program_id(inst_id):
+    # Map inst_id to its first/default program_id in the database to satisfy the foreign key constraint
+    if inst_id == 1:
+        return 47
+    elif inst_id == 2:
+        return 48
+    elif inst_id == 3:
+        return 50
+    return 47
+
 def ensure_files_exist():
     if IS_VERCEL:
         if not os.path.exists(COURSES_FILE):
@@ -200,10 +210,12 @@ def unenroll_student_from_course(inst_id, student_id, course_id):
 
 def load_courses(inst_id, program_id):
     ensure_files_exist()
+    if not program_id or program_id == 0:
+        program_id = get_default_program_id(inst_id)
     try:
         with open(COURSES_FILE, 'r', encoding='utf-8') as f:
             all_courses = json.load(f)
-        return [c for c in all_courses if c.get('inst_id') == inst_id and c.get('program_id') == program_id]
+        return [c for c in all_courses if c.get('inst_id') == inst_id and (c.get('program_id') == program_id or c.get('program_id') == 0)]
     except Exception as e:
         print(f"Error loading courses: {e}")
         return []
@@ -222,6 +234,8 @@ def load_course(course_id):
 
 def save_course(inst_id, program_id, course_data):
     ensure_files_exist()
+    if not program_id or program_id == 0:
+        program_id = get_default_program_id(inst_id)
     try:
         with open(COURSES_FILE, 'r', encoding='utf-8') as f:
             all_courses = json.load(f)
@@ -273,11 +287,13 @@ def save_course(inst_id, program_id, course_data):
 
 def delete_course(inst_id, program_id, course_id):
     ensure_files_exist()
+    if not program_id or program_id == 0:
+        program_id = get_default_program_id(inst_id)
     try:
         with open(COURSES_FILE, 'r', encoding='utf-8') as f:
             all_courses = json.load(f)
         
-        all_courses = [c for c in all_courses if not (c.get('id') == course_id and c.get('inst_id') == inst_id and c.get('program_id') == program_id)]
+        all_courses = [c for c in all_courses if not (c.get('id') == course_id and c.get('inst_id') == inst_id and (c.get('program_id') == program_id or c.get('program_id') == 0))]
         
         with open(COURSES_FILE, 'w', encoding='utf-8') as f:
             json.dump(all_courses, f, indent=2, ensure_ascii=False)
@@ -312,6 +328,8 @@ def load_public_courses():
 # === SINCRONIZACION CON SUPABASE ===
 
 def sync_courses_only(inst_id, program_id, supabase_client):
+    if not program_id or program_id == 0:
+        program_id = get_default_program_id(inst_id)
     try:
         courses = load_courses(inst_id, program_id)
         table_key = f"LMS_COURSES_{inst_id}_{program_id}"
@@ -342,7 +360,7 @@ def sync_teachers_only(inst_id, supabase_client):
                 "table_id": table_key,
                 "data_json": json.dumps(teachers, ensure_ascii=False),
                 "inst_id": inst_id,
-                "program_id": 0
+                "program_id": get_default_program_id(inst_id)
             }).execute()
         return True
     except Exception as e:
@@ -361,7 +379,7 @@ def sync_students_only(inst_id, supabase_client):
                 "table_id": table_key,
                 "data_json": json.dumps(students, ensure_ascii=False),
                 "inst_id": inst_id,
-                "program_id": 0
+                "program_id": get_default_program_id(inst_id)
             }).execute()
         return True
     except Exception as e:
@@ -370,6 +388,8 @@ def sync_students_only(inst_id, supabase_client):
 
 def pull_from_supabase(inst_id, program_id, supabase_client):
     ensure_files_exist()
+    if not program_id or program_id == 0:
+        program_id = get_default_program_id(inst_id)
     try:
         # Pull Courses
         table_key_c = f"LMS_COURSES_{inst_id}_{program_id}"
