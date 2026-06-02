@@ -2258,6 +2258,71 @@ def handle_api_students():
     students = formacion_storage.load_students(inst_id)
     return jsonify(students)
 
+# --- LMS Activity Submissions API ---
+
+@app.route('/api/submissions', methods=['GET', 'POST'])
+def handle_api_submissions():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
+    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
+    
+    if use_cloud:
+        try:
+            formacion_storage.pull_from_supabase(inst_id, program_id, supabase)
+        except Exception as e:
+            print(f"Error pulling: {e}")
+            
+    if request.method == 'POST':
+        data = request.json
+        saved = formacion_storage.save_submission(inst_id, program_id, data)
+        if saved:
+            if use_cloud:
+                try:
+                    formacion_storage.sync_submissions_only(inst_id, program_id, supabase)
+                except Exception as e:
+                    print(f"Error syncing submissions: {e}")
+            return jsonify({"status": "success", "data": saved})
+        return jsonify({"status": "error", "message": "No se pudo guardar la entrega."}), 500
+        
+    subs = formacion_storage.load_submissions(inst_id, program_id)
+    
+    # Filter on query params if provided
+    course_id = request.args.get('course_id')
+    student_email = request.args.get('student_email')
+    activity_id = request.args.get('activity_id')
+    
+    if course_id:
+        subs = [s for s in subs if s.get('course_id') == course_id]
+    if student_email:
+        subs = [s for s in subs if s.get('student_email') == student_email]
+    if activity_id:
+        subs = [s for s in subs if s.get('activity_id') == activity_id]
+        
+    return jsonify(subs)
+
+@app.route('/api/submissions/<submission_id>/grade', methods=['PUT'])
+def handle_api_grade_submission(submission_id):
+    inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
+    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
+    
+    if use_cloud:
+        try:
+            formacion_storage.pull_from_supabase(inst_id, program_id, supabase)
+        except Exception as e:
+            print(f"Error pulling: {e}")
+            
+    data = request.json # { grade, feedback, teacher_id, graded_at }
+    graded = formacion_storage.grade_submission(inst_id, program_id, submission_id, data)
+    if graded:
+        if use_cloud:
+            try:
+                formacion_storage.sync_submissions_only(inst_id, program_id, supabase)
+            except Exception as e:
+                print(f"Error syncing submissions: {e}")
+        return jsonify({"status": "success", "data": graded})
+    return jsonify({"status": "error", "message": "No se pudo registrar la calificación."}), 500
+
 @app.route('/api/students/<student_id>', methods=['DELETE'])
 def delete_api_student(student_id):
     inst_id = request.args.get('inst_id', 1, type=int)

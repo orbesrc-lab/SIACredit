@@ -8,10 +8,12 @@ if IS_VERCEL:
     COURSES_FILE = "/tmp/local_courses.json"
     TEACHERS_FILE = "/tmp/local_teachers.json"
     STUDENTS_FILE = "/tmp/local_students.json"
+    SUBMISSIONS_FILE = "/tmp/local_submissions.json"
 else:
     COURSES_FILE = os.path.join("instance", "local_courses.json")
     TEACHERS_FILE = os.path.join("instance", "local_teachers.json")
     STUDENTS_FILE = os.path.join("instance", "local_students.json")
+    SUBMISSIONS_FILE = os.path.join("instance", "local_submissions.json")
 
 def generate_id():
     return uuid.uuid4().hex[:9]
@@ -46,6 +48,12 @@ def ensure_files_exist():
                     json.dump([], f)
             except Exception as e:
                 print(f"Error creating STUDENTS_FILE in /tmp: {e}")
+        if not os.path.exists(SUBMISSIONS_FILE):
+            try:
+                with open(SUBMISSIONS_FILE, 'w', encoding='utf-8') as f:
+                    json.dump([], f)
+            except Exception as e:
+                print(f"Error creating SUBMISSIONS_FILE in /tmp: {e}")
     else:
         os.makedirs("instance", exist_ok=True)
         if not os.path.exists(COURSES_FILE):
@@ -56,6 +64,9 @@ def ensure_files_exist():
                 json.dump([], f)
         if not os.path.exists(STUDENTS_FILE):
             with open(STUDENTS_FILE, 'w', encoding='utf-8') as f:
+                json.dump([], f)
+        if not os.path.exists(SUBMISSIONS_FILE):
+            with open(SUBMISSIONS_FILE, 'w', encoding='utf-8') as f:
                 json.dump([], f)
 
 # === DOCENTES / TEACHERS ===
@@ -325,6 +336,84 @@ def load_public_courses():
         print(f"Error loading public courses: {e}")
         return []
 
+# === ENTREGAS / SUBMISSIONS ===
+
+def load_submissions(inst_id, program_id):
+    ensure_files_exist()
+    if not program_id or program_id == 0:
+        program_id = get_default_program_id(inst_id)
+    try:
+        with open(SUBMISSIONS_FILE, 'r', encoding='utf-8') as f:
+            all_subs = json.load(f)
+        return [s for s in all_subs if s.get('inst_id') == inst_id and (s.get('program_id') == program_id or s.get('program_id') == 0)]
+    except Exception as e:
+        print(f"Error loading submissions: {e}")
+        return []
+
+def save_submission(inst_id, program_id, submission_data):
+    ensure_files_exist()
+    if not program_id or program_id == 0:
+        program_id = get_default_program_id(inst_id)
+    try:
+        with open(SUBMISSIONS_FILE, 'r', encoding='utf-8') as f:
+            all_subs = json.load(f)
+        
+        sub_id = submission_data.get('id')
+        if not sub_id:
+            # Nueva entrega
+            sub_id = "sub_" + generate_id()
+            submission_data['id'] = sub_id
+            submission_data['inst_id'] = inst_id
+            submission_data['program_id'] = program_id
+            submission_data['status'] = submission_data.get('status', 'pending')
+            submission_data['grade'] = submission_data.get('grade', None)
+            submission_data['feedback'] = submission_data.get('feedback', None)
+            submission_data['submitted_at'] = submission_data.get('submitted_at', '')
+            all_subs.append(submission_data)
+        else:
+            # Actualizar entrega existente (re-entrega o edición)
+            for idx, s in enumerate(all_subs):
+                if s.get('id') == sub_id:
+                    submission_data['inst_id'] = inst_id
+                    submission_data['program_id'] = program_id
+                    all_subs[idx] = submission_data
+                    break
+                    
+        with open(SUBMISSIONS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(all_subs, f, indent=2, ensure_ascii=False)
+        return submission_data
+    except Exception as e:
+        print(f"Error saving submission: {e}")
+        return None
+
+def grade_submission(inst_id, program_id, submission_id, grade_data):
+    ensure_files_exist()
+    try:
+        with open(SUBMISSIONS_FILE, 'r', encoding='utf-8') as f:
+            all_subs = json.load(f)
+            
+        found = False
+        for idx, s in enumerate(all_subs):
+            if s.get('id') == submission_id:
+                s['grade'] = grade_data.get('grade')
+                s['feedback'] = grade_data.get('feedback')
+                s['status'] = 'graded'
+                s['graded_at'] = grade_data.get('graded_at', '')
+                s['teacher_id'] = grade_data.get('teacher_id', '')
+                all_subs[idx] = s
+                found = True
+                break
+                
+        if not found:
+            return None
+            
+        with open(SUBMISSIONS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(all_subs, f, indent=2, ensure_ascii=False)
+        return all_subs[idx]
+    except Exception as e:
+        print(f"Error grading submission: {e}")
+        return None
+
 # === SINCRONIZACION CON SUPABASE ===
 
 def sync_courses_only(inst_id, program_id, supabase_client):
@@ -386,6 +475,27 @@ def sync_students_only(inst_id, supabase_client):
         print(f"Error syncing students: {e}")
         return False
 
+def sync_submissions_only(inst_id, program_id, supabase_client):
+    if not program_id or program_id == 0:
+        program_id = get_default_program_id(inst_id)
+    try:
+        subs = load_submissions(inst_id, program_id)
+        table_key = f"LMS_SUBMISSIONS_{inst_id}_{program_id}"
+        check = supabase_client.table('statistics').select("id").eq("table_id", table_key).eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        if check.data:
+            supabase_client.table('statistics').update({"data_json": json.dumps(subs, ensure_ascii=False)}).eq("id", check.data[0]['id']).execute()
+        else:
+            supabase_client.table('statistics').insert({
+                "table_id": table_key,
+                "data_json": json.dumps(subs, ensure_ascii=False),
+                "inst_id": inst_id,
+                "program_id": program_id
+            }).execute()
+        return True
+    except Exception as e:
+        print(f"Error syncing submissions: {e}")
+        return False
+
 def pull_from_supabase(inst_id, program_id, supabase_client):
     ensure_files_exist()
     if not program_id or program_id == 0:
@@ -426,6 +536,18 @@ def pull_from_supabase(inst_id, program_id, supabase_client):
             all_students.extend(students)
             with open(STUDENTS_FILE, 'w', encoding='utf-8') as f:
                 json.dump(all_students, f, indent=2, ensure_ascii=False)
+
+        # Pull Submissions
+        table_key_sub = f"LMS_SUBMISSIONS_{inst_id}_{program_id}"
+        res_sub = supabase_client.table('statistics').select("data_json").eq("table_id", table_key_sub).eq("inst_id", inst_id).eq("program_id", program_id).execute()
+        if res_sub.data:
+            subs = json.loads(res_sub.data[0]['data_json'])
+            with open(SUBMISSIONS_FILE, 'r', encoding='utf-8') as f:
+                all_subs = json.load(f)
+            all_subs = [s for s in all_subs if not (s.get('inst_id') == inst_id and (s.get('program_id') == program_id or s.get('program_id') == 0 or not s.get('program_id')))]
+            all_subs.extend(subs)
+            with open(SUBMISSIONS_FILE, 'w', encoding='utf-8') as f:
+                json.dump(all_subs, f, indent=2, ensure_ascii=False)
         return True
     except Exception as e:
         print(f"Error pulling LMS data: {e}")

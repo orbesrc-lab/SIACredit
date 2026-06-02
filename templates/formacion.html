@@ -943,11 +943,68 @@
         </div>
     </div>
 
+    <!-- MODAL: VER ENTREGAS DE ACTIVIDAD (PROFESOR) -->
+    <div id="activitySubmissionsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1002; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:16px; padding:30px; width:800px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.3); display:flex; flex-direction:column; max-height:90vh;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+                <h3 style="font-size:1.25rem; color: #0f172a;" id="activitySubmissionsModalTitle">Entregas de Actividad</h3>
+                <button class="btn-ghost" onclick="closeActivitySubmissionsModal()" style="color: var(--text-muted); font-size: 1.2rem; cursor: pointer; background: transparent; border: none;">❌</button>
+            </div>
+            
+            <input type="hidden" id="gradeUnitId">
+            <input type="hidden" id="gradeActivityId">
+            
+            <div style="flex:1; overflow-y:auto; min-height:300px; padding:5px 0;">
+                <table class="stat-table" style="width:100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="background:#f8fafc; border-bottom: 2px solid #e2e8f0;">
+                            <th style="padding:10px; font-size:0.85rem; color:var(--text-muted);">Estudiante</th>
+                            <th style="padding:10px; font-size:0.85rem; color:var(--text-muted);">Fecha</th>
+                            <th style="padding:10px; font-size:0.85rem; color:var(--text-muted);">Respuesta / Enlace</th>
+                            <th style="padding:10px; font-size:0.85rem; color:var(--text-muted);">Calificación</th>
+                            <th style="padding:10px; font-size:0.85rem; color:var(--text-muted);">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activitySubmissionsTableBody">
+                        <!-- Submissions loaded dynamically -->
+                    </tbody>
+                </table>
+                <div id="noSubmissionsMessage" style="text-align:center; padding:40px; color:var(--text-muted); font-size:0.9rem;">
+                    Nadie ha entregado esta actividad todavía.
+                </div>
+            </div>
+
+            <!-- Formulario de calificación oculto por defecto -->
+            <div id="gradingFormContainer" style="display:none; margin-top:20px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:20px; text-align:left;">
+                <h4 style="margin:0 0 15px 0; font-size:1rem; color:#0f172a;" id="gradingFormTitle">Calificar Entrega</h4>
+                <input type="hidden" id="gradingSubmissionId">
+                
+                <div style="display:grid; grid-template-columns: 120px 1fr; gap:15px; align-items:center;">
+                    <label style="font-weight:600; font-size:0.85rem; color:var(--text-main);">Calificación:</label>
+                    <input type="number" id="gradingScore" min="1.0" max="5.0" step="0.1" placeholder="Ej: 4.5" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; width:100px; font-size:0.9rem;">
+                    
+                    <label style="font-weight:600; font-size:0.85rem; color:var(--text-main); align-self: flex-start; margin-top:6px;">Retroalimentación:</label>
+                    <textarea id="gradingFeedback" rows="3" placeholder="Escribe tus comentarios y sugerencias de mejora..." style="padding:10px; border:1px solid #cbd5e1; border-radius:8px; width:100%; font-size:0.9rem; font-family:sans-serif; resize:vertical;"></textarea>
+                </div>
+                
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
+                    <button class="btn-ghost" style="padding:6px 12px; font-size:0.8rem;" onclick="hideGradingForm()">Cancelar</button>
+                    <button class="btn-primary" style="padding:6px 15px; font-size:0.8rem; background: var(--primary-gradient); border:none; color:white; border-radius:8px;" onclick="saveGradingResult()">Guardar Nota</button>
+                </div>
+            </div>
+            
+            <div style="display:flex; justify-content:flex-end; margin-top:20px; border-top:1px solid var(--border-color); padding-top:15px;">
+                <button class="btn-secondary" onclick="closeActivitySubmissionsModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='data.js') }}?v=2.2"></script>
     <script>
         // Sesión y Seguridad
         let user = null;
         let activeCourse = null;
+        let activeCourseSubmissions = [];
         try {
             user = JSON.parse(localStorage.getItem('siac_user'));
         } catch(e) {
@@ -1389,6 +1446,15 @@
                 
                 activeCourse = course;
                 
+                // Cargar todas las entregas para este curso
+                try {
+                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    activeCourseSubmissions = await subResp.json();
+                } catch (e) {
+                    console.error("Error al cargar entregas del curso:", e);
+                    activeCourseSubmissions = [];
+                }
+                
                 document.getElementById('editCourseId').value = course.id;
                 document.getElementById('editorCourseTitle').textContent = `Administrar Curso: ${course.title}`;
                 document.getElementById('edit_title').value = course.title || '';
@@ -1594,13 +1660,17 @@
                     activitiesHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:8px; text-align:center;">Ninguna actividad creada (Talleres, Foros).</div>';
                 } else {
                     activities.forEach((act, actIdx) => {
+                        const subCount = (activeCourseSubmissions || []).filter(s => s.activity_id === act.id).length;
                         activitiesHtml += `
-                            <div class="activity-item">
+                            <div class="activity-item" style="display:flex; justify-content:space-between; align-items:center;">
                                 <div>
                                     <strong>📝 ${escapeHtml(act.title)}</strong>
                                     <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Entrega: ${act.due_date || 'Sin fecha'} - ${escapeHtml(act.description || '')}</div>
                                 </div>
-                                <button class="btn-ghost" style="color:#ef4444; padding:0 5px;" onclick="removeUnitActivity(${uIdx}, ${actIdx})">🗑️</button>
+                                <div style="display:flex; gap:6px; align-items:center;">
+                                    <button class="btn-primary" style="padding:4px 10px; font-size:0.7rem; background: var(--primary-gradient); border:none; color:white; border-radius:8px; font-weight:600;" onclick="openActivitySubmissionsModal('${unit.id}', '${act.id}', '${escapeHtml(act.title).replace(/'/g, "\\'")}')">📥 Entregas (${subCount})</button>
+                                    <button class="btn-ghost" style="color:#ef4444; padding:0 5px;" onclick="removeUnitActivity(${uIdx}, ${actIdx})">🗑️</button>
+                                </div>
                             </div>
                         `;
                     });
@@ -1962,6 +2032,15 @@
                 const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const course = await resp.json();
                 
+                // Cargar entregas de este estudiante para este curso
+                let studentSubmissions = [];
+                try {
+                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    studentSubmissions = await subResp.json();
+                } catch (e) {
+                    console.error("Error al cargar entregas:", e);
+                }
+                
                 document.getElementById('studentCourseTitle').textContent = `Aula Virtual: ${course.title}`;
                 document.getElementById('studentCourseDesc').textContent = course.description || '';
                 document.getElementById('studentCourseDuration').textContent = `⏱️ Duración: ${course.duration || 10} horas`;
@@ -2017,11 +2096,11 @@
                                         <div onclick="toggleTopicAccordion('${unit.id}_${t.id}')" style="padding: 12px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: rgba(99,102,241,0.04); color: var(--text-main); transition: background 0.2s;">
                                             <span>📖 ${escapeHtml(t.title)}</span>
                                             <span style="font-size:0.75rem; color:var(--primary-color); font-weight:700;">
-                                                \${hasContent ? 'Leer Lección 👁️' : 'Sin Contenido'}
+                                                ${hasContent ? 'Leer Lección 👁️' : 'Sin Contenido'}
                                             </span>
                                         </div>
-                                        <div id="acc_\${unit.id}_\${t.id}" style="display: none; padding: 20px; background: var(--card-bg); border-top: 1px solid var(--border-color); font-size: 0.92rem; line-height: 1.7; color: var(--text-main); text-align: left; overflow-x: auto;">
-                                            \${hasContent ? t.content : '<span style="color:var(--text-muted); font-style:italic;">Esta lección no contiene texto ni recursos embebidos todavía.</span>'}
+                                        <div id="acc_${unit.id}_${t.id}" style="display: none; padding: 20px; background: var(--card-bg); border-top: 1px solid var(--border-color); font-size: 0.92rem; line-height: 1.7; color: var(--text-main); text-align: left; overflow-x: auto;">
+                                            ${hasContent ? t.content : '<span style="color:var(--text-muted); font-style:italic;">Esta lección no contiene texto ni recursos embebidos todavía.</span>'}
                                         </div>
                                     </div>
                                 `;
@@ -2048,14 +2127,44 @@
                         if (unit.activities && unit.activities.length > 0) {
                             actHtml = '<strong style="display:block; font-size:0.85rem; color:var(--primary-color); margin-top:16px; margin-bottom: 6px;">📝 Actividades y Entregas:</strong>';
                             unit.activities.forEach(act => {
+                                // Buscar entrega existente para esta actividad
+                                const sub = studentSubmissions.find(s => s.activity_id === act.id);
+                                let statusHtml = '';
+                                let buttonText = 'Entregar Trabajo';
+                                let feedbackHtml = '';
+                                
+                                if (sub) {
+                                    if (sub.status === 'graded') {
+                                        statusHtml = ` <span class="status aprobado" style="font-size:0.7rem; padding: 2px 8px; border-radius: 12px; margin-left:8px; background: #e6f4ea; color: #137333; font-weight: 700;">Calificado: ${parseFloat(sub.grade).toFixed(1)}</span>`;
+                                        buttonText = 'Volver a Entregar';
+                                        feedbackHtml = `
+                                            <div style="background: rgba(16,185,129,0.04); border-left: 4px solid #10b981; border-radius: 6px; padding: 10px; margin-top: 8px; font-size: 0.8rem; text-align: left;">
+                                                <strong style="color:#10b981;">Nota:</strong> ${parseFloat(sub.grade).toFixed(1)} / 5.0<br>
+                                                <strong>Retroalimentación:</strong> ${escapeHtml(sub.feedback || 'Sin comentarios.')}
+                                            </div>
+                                        `;
+                                    } else {
+                                        statusHtml = ` <span class="status revision" style="font-size:0.7rem; padding: 2px 8px; border-radius: 12px; margin-left:8px; background: #fef7e0; color: #b06000; font-weight: 700;">Entregado (Pendiente)</span>`;
+                                        buttonText = 'Actualizar Entrega';
+                                        feedbackHtml = `
+                                            <div style="background: rgba(245,158,11,0.04); border-left: 4px solid #f59e0b; border-radius: 6px; padding: 10px; margin-top: 8px; font-size: 0.8rem; text-align: left; color: var(--text-muted);">
+                                                <strong>Tu entrega actual:</strong> <span style="font-style:italic;">${escapeHtml(sub.content)}</span>
+                                            </div>
+                                        `;
+                                    }
+                                }
+
                                 actHtml += `
-                                    <div class="activity-item" style="margin-top:5px;">
-                                        <div>
-                                            <strong>${escapeHtml(act.title)}</strong><br>
-                                            <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(act.description)}</span><br>
-                                            <span style="font-size:0.72rem; font-weight:700; color:var(--accent-color); display:block; margin-top:4px;">Fecha límite: ${act.due_date || 'Sin límite'}</span>
+                                    <div class="activity-item" style="margin-top:8px; display:flex; flex-direction:column; align-items:stretch; gap:6px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                                            <div>
+                                                <strong>${escapeHtml(act.title)}</strong>${statusHtml}<br>
+                                                <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(act.description)}</span><br>
+                                                <span style="font-size:0.72rem; font-weight:700; color:var(--accent-color); display:block; margin-top:4px;">Fecha límite: ${act.due_date || 'Sin límite'}</span>
+                                            </div>
+                                            <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--success-gradient); border:none; color:white; font-weight:600; border-radius:10px;" onclick="submitActivityDelivery('${courseId}', '${unit.id}', '${act.id}', '${escapeHtml(act.title).replace(/'/g, "\\'")}')">${buttonText}</button>
                                         </div>
-                                        <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--success-gradient); border:none; color:white; font-weight:600; border-radius:10px;" onclick="submitActivityDelivery('\${escapeHtml(act.title).replace(/'/g, "\\'")}')">Entregar Trabajo</button>
+                                        ${feedbackHtml}
                                     </div>`;
                             });
                         }
@@ -2071,7 +2180,7 @@
                                             <strong>${escapeHtml(ev.title)}</strong><br>
                                             <span style="font-size:0.72rem; color:var(--text-muted);">Calificación CNA (Aprobación: ${ev.min_grade})</span>
                                         </div>
-                                        <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--primary-gradient); border:none; color:white; border-radius:10px;" onclick="presentQuiz('\${escapeHtml(ev.title).replace(/'/g, "\\'")}', ${ev.min_grade || 3.0}, ${ev.max_grade || 5.0})">Presentar Examen</button>
+                                        <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--primary-gradient); border:none; color:white; border-radius:10px;" onclick="presentQuiz('${escapeHtml(ev.title).replace(/'/g, "\\'")}', ${ev.min_grade || 3.0}, ${ev.max_grade || 5.0})">Presentar Examen</button>
                                     </div>`;
                             });
                         }
@@ -2116,10 +2225,47 @@
         }
 
         // --- ENTREGA DE ACTIVIDADES POR PARTE DEL ESTUDIANTE ---
-        function submitActivityDelivery(title) {
+        async function submitActivityDelivery(courseId, unitId, actId, title) {
             const answer = prompt(`Ingresa tu respuesta o la dirección/enlace de tu entrega (Google Drive, OneDrive, etc.) para la actividad:\n"${title}"`);
             if (answer && answer.trim() !== '') {
-                alert(`✅ Entrega registrada exitosamente para la actividad:\n"${title}"\n\nTu respuesta ha sido enviada al profesor para su calificación.`);
+                try {
+                    // Buscar si existe una entrega anterior para actualizarla
+                    const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${actId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    const existingSubs = await checkResp.json();
+                    
+                    const subData = {
+                        course_id: courseId,
+                        unit_id: unitId,
+                        activity_id: actId,
+                        student_email: user.email,
+                        student_name: user.name || user.email.split('@')[0],
+                        content: answer.trim(),
+                        submitted_at: new Date().toISOString(),
+                        status: 'pending'
+                    };
+                    
+                    if (existingSubs && existingSubs.length > 0) {
+                        subData.id = existingSubs[0].id;
+                    }
+                    
+                    const response = await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(subData)
+                    });
+                    
+                    if (response.ok) {
+                        alert(`✅ Entrega registrada exitosamente para la actividad:\n"${title}"\n\nTu respuesta ha sido enviada al profesor para su calificación.`);
+                        openStudentCourse(courseId);
+                    } else {
+                        alert("❌ Hubo un error al registrar la entrega en el servidor.");
+                    }
+                } catch (e) {
+                    console.error("Error al enviar actividad:", e);
+                    alert("❌ Error de red al registrar tu entrega.");
+                }
             }
         }
 
@@ -2423,9 +2569,9 @@
                     </div>
                     
                     <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:25px; line-height:1.5; padding: 0 15px;">
-                        \${approved 
-                            ? \`¡Felicitaciones! Has obtenido un excelente resultado académico alineado con los estándares del CNA. Tu nota de \${grade.toFixed(1)} demuestra apropiación de las lecciones.\`
-                            : \`Tu nota de \${grade.toFixed(1)} es inferior al mínimo de aprobación del curso (\${currentQuizMinGrade.toFixed(1)}). Te recomendamos repasar los materiales y repositorio de la unidad y volver a presentar.\`
+                        ${approved 
+                            ? `¡Felicitaciones! Has obtenido un excelente resultado académico alineado con los estándares del CNA. Tu nota de ${grade.toFixed(1)} demuestra apropiación de las lecciones.`
+                            : `Tu nota de ${grade.toFixed(1)} es inferior al mínimo de aprobación del curso (${currentQuizMinGrade.toFixed(1)}). Te recomendamos repasar los materiales y repositorio de la unidad y volver a presentar.`
                         }
                     </div>
                     
@@ -2434,6 +2580,128 @@
                     </button>
                 </div>
             `;
+        }
+
+        // ========== GESTIÓN DE ENTREGAS Y CALIFICACIONES (PROFESOR) ==========
+        let currentActivitySubmissions = [];
+
+        function openActivitySubmissionsModal(unitId, actId, title) {
+            document.getElementById('gradeUnitId').value = unitId;
+            document.getElementById('gradeActivityId').value = actId;
+            document.getElementById('activitySubmissionsModalTitle').textContent = `Entregas: ${title}`;
+            
+            hideGradingForm();
+            renderActivitySubmissionsList(actId);
+            
+            document.getElementById('activitySubmissionsModal').style.display = 'flex';
+        }
+
+        function closeActivitySubmissionsModal() {
+            document.getElementById('activitySubmissionsModal').style.display = 'none';
+        }
+
+        function renderActivitySubmissionsList(actId) {
+            const tbody = document.getElementById('activitySubmissionsTableBody');
+            const noSubsMsg = document.getElementById('noSubmissionsMessage');
+            
+            tbody.innerHTML = '';
+            currentActivitySubmissions = activeCourseSubmissions.filter(s => s.activity_id === actId);
+            
+            if (currentActivitySubmissions.length === 0) {
+                noSubsMsg.style.display = 'block';
+                return;
+            }
+            
+            noSubsMsg.style.display = 'none';
+            currentActivitySubmissions.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid #e2e8f0';
+                
+                // Formatear entrega (link o texto)
+                let contentHtml = '';
+                const isLink = s.content.startsWith('http://') || s.content.startsWith('https://');
+                if (isLink) {
+                    contentHtml = `<a href="${escapeHtml(s.content)}" target="_blank" style="color:var(--primary-color); font-weight:600; text-decoration:none;">🔗 Abrir Enlace</a>`;
+                } else {
+                    contentHtml = `<span style="font-size:0.85rem; display:inline-block; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(s.content)}">${escapeHtml(s.content)}</span>`;
+                }
+                
+                const gradeLabel = s.status === 'graded' ? `<span style="font-weight:700; color:#137333;">${parseFloat(s.grade).toFixed(1)}</span>` : '<span style="color:#b06000; font-style:italic; font-size:0.8rem;">Pendiente</span>';
+                const dateStr = s.submitted_at ? new Date(s.submitted_at).toLocaleDateString() + ' ' + new Date(s.submitted_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Sin fecha';
+                
+                tr.innerHTML = `
+                    <td style="padding:12px 10px; font-size:0.88rem; font-weight:600; color:#0f172a;">${escapeHtml(s.student_name || s.student_email.split('@')[0])}<br><span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">${escapeHtml(s.student_email)}</span></td>
+                    <td style="padding:12px 10px; font-size:0.8rem; color:var(--text-muted);">${dateStr}</td>
+                    <td style="padding:12px 10px;">${contentHtml}</td>
+                    <td style="padding:12px 10px; font-size:0.88rem;">${gradeLabel}</td>
+                    <td style="padding:12px 10px;">
+                        <button class="btn-primary" style="padding: 6px 12px; font-size: 0.75rem; background: var(--primary-gradient); border:none; color:white; border-radius:8px; font-weight:600;" onclick="showGradingForm('${s.id}', '${escapeHtml(s.student_name || s.student_email.split('@')[0]).replace(/'/g, "\\'")}', ${s.grade || 'null'}, '${escapeHtml(s.feedback || '').replace(/'/g, "\\'")}')">📝 Calificar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function showGradingForm(subId, studentName, currentGrade, currentFeedback) {
+            document.getElementById('gradingSubmissionId').value = subId;
+            document.getElementById('gradingFormTitle').textContent = `Calificar entrega de: ${studentName}`;
+            document.getElementById('gradingScore').value = currentGrade !== null ? parseFloat(currentGrade).toFixed(1) : '';
+            document.getElementById('gradingFeedback').value = currentFeedback || '';
+            document.getElementById('gradingFormContainer').style.display = 'block';
+            document.getElementById('gradingFormContainer').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function hideGradingForm() {
+            document.getElementById('gradingFormContainer').style.display = 'none';
+            document.getElementById('gradingSubmissionId').value = '';
+            document.getElementById('gradingScore').value = '';
+            document.getElementById('gradingFeedback').value = '';
+        }
+
+        async function saveGradingResult() {
+            const subId = document.getElementById('gradingSubmissionId').value;
+            const rawScore = document.getElementById('gradingScore').value;
+            const feedback = document.getElementById('gradingFeedback').value.trim();
+            
+            const score = parseFloat(rawScore);
+            if (isNaN(score) || score < 1.0 || score > 5.0) {
+                alert("Por favor, ingresa una calificación válida en Escala CNA (entre 1.0 y 5.0).");
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/submissions/${subId}/grade?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        grade: score,
+                        feedback: feedback,
+                        teacher_id: user.email,
+                        graded_at: new Date().toISOString()
+                    })
+                });
+                
+                if (response.ok) {
+                    alert("✅ Calificación y retroalimentación guardadas con éxito.");
+                    hideGradingForm();
+                    
+                    const actId = document.getElementById('gradeActivityId').value;
+                    const courseId = document.getElementById('editCourseId').value;
+                    
+                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    activeCourseSubmissions = await subResp.json();
+                    
+                    renderActivitySubmissionsList(actId);
+                    renderSyllabusList();
+                } else {
+                    alert("❌ Hubo un error al registrar la calificación en el servidor.");
+                }
+            } catch (e) {
+                console.error("Error al registrar calificación:", e);
+                alert("❌ Error de red al calificar la entrega.");
+            }
         }
 
 
@@ -2479,8 +2747,11 @@
                     const studResp = await fetch(`/api/students?inst_id=${getInstId()}`);
                     const students = await studResp.json();
                     const student = students.find(s => s.email === user.email);
-                    if (student && document.getElementById('studentHeaderName')) {
-                        document.getElementById('studentHeaderName').textContent = student.name;
+                    if (student) {
+                        user.name = student.name;
+                        if (document.getElementById('studentHeaderName')) {
+                            document.getElementById('studentHeaderName').textContent = student.name;
+                        }
                     } else if (document.getElementById('studentHeaderName')) {
                         document.getElementById('studentHeaderName').textContent = 'Estudiante';
                     }
