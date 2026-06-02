@@ -529,9 +529,7 @@ z-index: 1060;
 
 .course-img-wrapper {
     height: 180px;
-    background: linear-gradient(135deg, rgba(2, 8, 24, 0.82), rgba(37, 99, 235, 0.45)), 
-                url('/static/skel_campus.png') no-repeat center center;
-    background-size: cover;
+    background: linear-gradient(135deg, var(--dark2), var(--accent-deep));
     position: relative;
     overflow: hidden;
     display: flex;
