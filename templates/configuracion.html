@@ -122,6 +122,20 @@
             background: #e0e7ff;
             color: #4338ca;
         }
+
+        .btn-excel {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: var(--white, #ffffff);
+            border: none;
+            padding: 12px 24px;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-excel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+            opacity: 0.95;
+        }
     </style>
 </head>
 
@@ -434,9 +448,9 @@
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                         <h3 style="margin: 0; border: none; padding: 0;">Gestión del Modelo de Evaluación</h3>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn-secondary" onclick="syncModelWithBackend()">💾 Guardar Cambios en
-                                Servidor</button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-secondary" onclick="syncModelWithBackend()">💾 Guardar Cambios en Servidor</button>
+                            <button class="btn-excel" id="btnDownloadModelCSV" onclick="exportModelToCSV()">📥 Descargar Modelo (Excel/CSV)</button>
                             <button class="btn-primary" onclick="addFactor()">+ Añadir Factor</button>
                         </div>
                     </div>
@@ -1014,6 +1028,63 @@
             a.download = 'modelo_siacredit.json';
             a.click();
             URL.revokeObjectURL(url);
+        }
+
+        function exportModelToCSV() {
+            const model = getDataModel();
+            if (!model || model.length === 0) {
+                alert("No hay ningún modelo activo para descargar.");
+                return;
+            }
+
+            let csvContent = "\uFEFFFactor_Num;Factor_Nombre;Char_Num;Char_Nombre;Aspecto_Texto\n";
+
+            model.forEach(factor => {
+                const fNum = factor.number || "";
+                const fName = (factor.name || "").replace(/;/g, ",");
+
+                if (!factor.characteristics || factor.characteristics.length === 0) {
+                    csvContent += `${fNum};${fName};;;\n`;
+                    return;
+                }
+
+                factor.characteristics.forEach(char => {
+                    const cNum = char.number || "";
+                    const cName = (char.name || "").replace(/;/g, ",");
+
+                    if (!char.aspects || char.aspects.length === 0) {
+                        csvContent += `${fNum};${fName};${cNum};${cName};\n`;
+                        return;
+                    }
+
+                    char.aspects.forEach(asp => {
+                        const aText = (asp.text || "").replace(/;/g, ",");
+                        csvContent += `${fNum};${fName};${cNum};${cName};${aText}\n`;
+                    });
+                });
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+
+            // Determinar nombre del archivo basado en el programa seleccionado
+            let progName = "modelo";
+            const progSelect = document.getElementById("progSelect");
+            if (progSelect && progSelect.value !== "0") {
+                const selectedText = progSelect.options[progSelect.selectedIndex].text;
+                progName = selectedText.toLowerCase()
+                    .replace(/\s+/g, '_')
+                    .replace(/[^a-z0-9_]/gi, '')
+                    .substring(0, 50);
+            }
+            
+            link.setAttribute("download", `plantilla_modelo_${progName}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // Sobrescribir saveDataModel para que sea síncrono en local pero podamos llamar al sync manualmente
