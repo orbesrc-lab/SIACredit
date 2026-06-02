@@ -398,7 +398,7 @@ def pull_from_supabase(inst_id, program_id, supabase_client):
             courses = json.loads(res_c.data[0]['data_json'])
             with open(COURSES_FILE, 'r', encoding='utf-8') as f:
                 all_courses = json.load(f)
-            all_courses = [c for c in all_courses if not (c.get('inst_id') == inst_id and c.get('program_id') == program_id)]
+            all_courses = [c for c in all_courses if not (c.get('inst_id') == inst_id and (c.get('program_id') == program_id or c.get('program_id') == 0 or not c.get('program_id')))]
             all_courses.extend(courses)
             with open(COURSES_FILE, 'w', encoding='utf-8') as f:
                 json.dump(all_courses, f, indent=2, ensure_ascii=False)
