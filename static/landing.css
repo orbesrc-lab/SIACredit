@@ -512,7 +512,7 @@ z-index: 1060;
 }
 
 .course-card {
-    background: var(--dark2);
+    background: #000000;
     border: 1px solid var(--border);
     border-radius: 16px;
     overflow: hidden;
@@ -529,7 +529,7 @@ z-index: 1060;
 
 .course-img-wrapper {
     height: 180px;
-    background: linear-gradient(135deg, var(--dark2), var(--accent-deep));
+    background: #000000;
     position: relative;
     overflow: hidden;
     display: flex;
