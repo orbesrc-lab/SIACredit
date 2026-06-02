@@ -529,7 +529,9 @@ z-index: 1060;
 
 .course-img-wrapper {
     height: 180px;
-    background: var(--primary-color);
+    background: linear-gradient(135deg, rgba(2, 8, 24, 0.82), rgba(37, 99, 235, 0.45)), 
+                url('/static/skel_campus.png') no-repeat center center;
+    background-size: cover;
     position: relative;
     overflow: hidden;
     display: flex;
@@ -542,6 +544,7 @@ z-index: 1060;
     height: 60px;
     color: white;
     opacity: 0.8;
+    z-index: 2;
 }
 
 .course-badge {
@@ -554,6 +557,7 @@ z-index: 1060;
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 20px;
+    z-index: 2;
 }
 
 .course-body {
@@ -568,7 +572,7 @@ z-index: 1060;
     align-items: center;
     gap: 15px;
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: var(--muted);
     margin-bottom: 15px;
 }
 
@@ -586,28 +590,77 @@ z-index: 1060;
 
 .course-body p {
     font-size: 0.95rem;
-    color: var(--text-muted);
+    color: var(--muted);
     margin-bottom: 25px;
     flex: 1;
 }
 
-.course-btn {
-    display: inline-block;
-    width: 100%;
-    text-align: center;
-    padding: 12px;
-    background: transparent;
-    border: 1px solid var(--primary-color);
-    color: var(--primary-color);
-    border-radius: 8px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    text-decoration: none;
+.course-actions-wrapper {
+    display: flex;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 10px;
 }
 
-.course-btn:hover {
-    background: var(--primary-color);
+.course-action-btn {
+    flex: 1;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.btn-report {
+    background: rgba(96, 165, 250, 0.08);
+    color: var(--accent-light);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+.btn-report:hover {
+    background: rgba(96, 165, 250, 0.18);
+    border-color: var(--accent-light);
     color: white;
+}
+
+.btn-access {
+    background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.btn-access:hover {
+    background: linear-gradient(135deg, var(--accent-glow), var(--accent));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+}
+
+/* Light theme overrides */
+body.light-theme .btn-report {
+    background: rgba(37, 99, 235, 0.05);
+    color: var(--accent);
+    border-color: rgba(37, 99, 235, 0.2);
+}
+
+body.light-theme .btn-report:hover {
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--accent-deep);
+    border-color: var(--accent);
+}
+
+body.light-theme .btn-access {
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+body.light-theme .btn-access:hover {
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
 }
 
 

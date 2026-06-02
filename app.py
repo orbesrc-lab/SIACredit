@@ -2213,6 +2213,24 @@ def get_public_courses_catalog():
         })
     return jsonify(public_catalog)
 
+@app.route('/api/public/courses/<course_id>/report', methods=['GET'])
+def get_course_report(course_id):
+    inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
+    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
+    
+    if use_cloud:
+        try:
+            formacion_storage.pull_from_supabase(inst_id, program_id, supabase)
+        except Exception as e:
+            print(f"Error pulling: {e}")
+            
+    course = formacion_storage.load_course(course_id)
+    if not course:
+        return "<h3>Curso no encontrado</h3>", 404
+        
+    return render_template('curso_reporte.html', course=course)
+
 @app.route('/api/students', methods=['GET', 'POST'])
 def handle_api_students():
     inst_id = request.args.get('inst_id', 1, type=int)

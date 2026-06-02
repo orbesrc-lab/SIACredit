@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Curso: {{ course.title }} - SKEL</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Outfit', -apple-system, sans-serif;
+            color: #1e293b;
+            background-color: #f8fafc;
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .report-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 50px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #6366f1;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .logo-area span {
+            color: #6366f1;
+        }
+
+        .report-title-badge {
+            background: #eff6ff;
+            color: #2563eb;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 6px 14px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            border: 1px solid #bfdbfe;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 35px;
+        }
+
+        .meta-item {
+            font-size: 0.92rem;
+        }
+
+        .meta-item strong {
+            color: #475569;
+            display: block;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .meta-item span {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0f172a;
+            border-left: 4px solid #6366f1;
+            padding-left: 12px;
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 20px;
+        }
+
+        ul li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: #334155;
+        }
+
+        ul li::before {
+            content: "•";
+            color: #6366f1;
+            font-weight: bold;
+            font-size: 1.2rem;
+            position: absolute;
+            left: 0;
+            top: -2px;
+        }
+
+        .unit-block {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .unit-block-header {
+            background: #f1f5f9;
+            padding: 12px 20px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .unit-block-body {
+            padding: 20px;
+        }
+
+        .unit-section-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-top: 12px;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .unit-section-title:first-child {
+            margin-top: 0;
+        }
+
+        .unit-list {
+            margin-bottom: 12px;
+        }
+
+        .unit-list li {
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .print-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .btn-print {
+            font-family: 'Outfit', sans-serif;
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-print:hover {
+            background: #4f46e5;
+            transform: translateY(-1px);
+        }
+
+        .btn-close {
+            font-family: 'Outfit', sans-serif;
+            background: transparent;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-close:hover {
+            background: #f1f5f9;
+        }
+
+        @media print {
+            body {
+                background: #ffffff;
+                padding: 0;
+            }
+            .report-container {
+                border: none;
+                box-shadow: none;
+                padding: 0;
+            }
+            .print-btn-container {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="report-container">
+    <div class="report-header">
+        <div class="logo-area">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" style="vertical-align: middle;">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+            </svg>
+            SK<span>EL</span>
+        </div>
+        <div class="report-title-badge">Programa de Formación</div>
+    </div>
+
+    <h1>{{ course.title }}</h1>
+
+    <div class="metadata-grid">
+        <div class="meta-item">
+            <strong>Certifica</strong>
+            <span>{{ course.certifier or 'SKEL' }}</span>
+        </div>
+        <div class="meta-item">
+            <strong>Duración</strong>
+            <span>{{ course.duration or 10 }} Horas Académicas</span>
+        </div>
+        <div class="meta-item">
+            <strong>Nivel</strong>
+            <span>{{ course.level or 'Todos los niveles' }}</span>
+        </div>
+        <div class="meta-item">
+            <strong>Categoría</strong>
+            <span>{{ course.category or 'General' }}</span>
+        </div>
+    </div>
+
+    <h2>🎯 Resultados de Aprendizaje</h2>
+    {% if course.outcomes and course.outcomes|length > 0 %}
+    <ul>
+        {% for outcome in course.outcomes %}
+        <li>{{ outcome }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="color: #64748b; font-style: italic; font-size: 0.95rem; margin-bottom: 20px;">No se han registrado resultados de aprendizaje todavía.</p>
+    {% endif %}
+
+    <h2>💪 Competencias a Desarrollar</h2>
+    {% if course.competencies and course.competencies|length > 0 %}
+    <ul>
+        {% for comp in course.competencies %}
+        <li>{{ comp }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="color: #64748b; font-style: italic; font-size: 0.95rem; margin-bottom: 20px;">No se han registrado competencias todavía.</p>
+    {% endif %}
+
+    <h2>📖 Plan de Estudios y Temario</h2>
+    {% if course.units and course.units|length > 0 %}
+        {% for unit in course.units %}
+        <div class="unit-block">
+            <div class="unit-block-header">
+                Unidad {{ loop.index }}: {{ unit.name }}
+            </div>
+            <div class="unit-block-body">
+                <div class="unit-section-title">Lecciones Académicas</div>
+                {% if unit.topics and unit.topics|length > 0 %}
+                <ul class="unit-list">
+                    {% for topic in unit.topics %}
+                        {% if topic is string %}
+                        <li>{{ topic }}</li>
+                        {% else %}
+                        <li>{{ topic.title }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p style="color: #94a3b8; font-style: italic; font-size: 0.85rem; margin-bottom: 12px;">Sin temas registrados.</p>
+                {% endif %}
+
+                {% if unit.resources and unit.resources|length > 0 %}
+                <div class="unit-section-title">Materiales y Recursos (Repositorio)</div>
+                <ul class="unit-list">
+                    {% for res in unit.resources %}
+                    <li>{{ res.name }} ({% if res.type == 'document' %}Documento PDF{% elif res.type == 'video' %}Video Guía{% elif res.type == 'infographic' %}Infografía{% else %}Enlace Externo{% endif %})</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+
+                {% if unit.activities and unit.activities|length > 0 %}
+                <div class="unit-section-title">Actividades Prácticas</div>
+                <ul class="unit-list">
+                    {% for act in unit.activities %}
+                    <li><strong>{{ act.title }}</strong>: {{ act.description or 'Taller práctico de la unidad' }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                
+                {% if unit.evaluations and unit.evaluations|length > 0 %}
+                <div class="unit-section-title">Evaluaciones</div>
+                <ul class="unit-list">
+                    {% for ev in unit.evaluations %}
+                    <li><strong>{{ ev.title }}</strong> (Nota mínima de aprobación: {{ ev.min_grade }} en escala CNA)</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <p style="color: #64748b; font-style: italic; font-size: 0.95rem;">No se han estructurado unidades didácticas todavía.</p>
+    {% endif %}
+
+    <div class="print-btn-container">
+        <button class="btn-close" onclick="window.close()">Cerrar</button>
+        <button class="btn-print" onclick="window.print()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;">
+                <polyline points="6 9 6 2 18 2 18 9"/>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Imprimir Reporte
+        </button>
+    </div>
+</div>
+
+</body>
+</html>

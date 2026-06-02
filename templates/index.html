@@ -199,7 +199,10 @@
                     </div>
                     <h3>Fundamentos de Acreditación Institucional</h3>
                     <p>Comprende el modelo de acreditación en alta calidad del CNA, sus factores y características principales aplicados a tu institución.</p>
-                    <a href="#contacto" class="course-btn">Más información</a>
+                    <div class="course-actions-wrapper">
+                        <a href="#contacto" class="course-action-btn btn-report">📄 Ver Temario</a>
+                        <a href="login.html" class="course-action-btn btn-access">🚪 Ingresar</a>
+                    </div>
                 </div>
             </div>
 
@@ -216,7 +219,10 @@
                     </div>
                     <h3>Diseño de Evidencias de Impacto</h3>
                     <p>Aprende metodologías innovadoras para recolectar, sistematizar y presentar evidencias cuantitativas y cualitativas ante pares académicos.</p>
-                    <a href="#contacto" class="course-btn">Más información</a>
+                    <div class="course-actions-wrapper">
+                        <a href="#contacto" class="course-action-btn btn-report">📄 Ver Temario</a>
+                        <a href="login.html" class="course-action-btn btn-access">🚪 Ingresar</a>
+                    </div>
                 </div>
             </div>
 
@@ -233,7 +239,10 @@
                     </div>
                     <h3>Gestión Eficiente con SIAC Digital</h3>
                     <p>Domina las herramientas tecnológicas de SIAC para administrar la trazabilidad documental y articulación de líderes de manera óptima.</p>
-                    <a href="#contacto" class="course-btn">Más información</a>
+                    <div class="course-actions-wrapper">
+                        <a href="#contacto" class="course-action-btn btn-report">📄 Ver Temario</a>
+                        <a href="login.html" class="course-action-btn btn-access">🚪 Ingresar</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -515,10 +524,13 @@
                                 </div>
                                 <h3>${escapeHtml(c.title)}</h3>
                                 <p>${escapeHtml(c.description || '')}</p>
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 15px; font-size: 0.78rem; color: var(--text-muted);">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 15px; font-size: 0.78rem; color: var(--muted);">
                                     <span>Certificación: <strong>${escapeHtml(c.certifier || 'SKEL')}</strong></span>
                                 </div>
-                                <a href="#contacto" class="course-btn" style="margin-top: 15px;">Más información</a>
+                                <div class="course-actions-wrapper">
+                                    <a href="/api/public/courses/${c.id}/report" target="_blank" class="course-action-btn btn-report">📄 Ver Informe</a>
+                                    <a href="login.html?redirect=formacion.html&course_id=${c.id}" class="course-action-btn btn-access">🚪 Ingresar</a>
+                                </div>
                             </div>
                         </div>
                     `;
