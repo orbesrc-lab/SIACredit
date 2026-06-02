@@ -9,6 +9,21 @@ function getProgramId() {
     return user ? (user.program_id || 0) : 0;
 }
 
+// Redirección de Estudiantes para evitar que accedan a páginas administrativas
+(function() {
+    try {
+        const user = JSON.parse(localStorage.getItem('siac_user'));
+        if (user && user.role === 'estudiante') {
+            const path = window.location.pathname.toLowerCase();
+            if (!path.includes('formacion.html') && !path.includes('login') && !path.includes('registro') && path !== '/' && !path.includes('index.html')) {
+                window.location.href = 'formacion.html';
+            }
+        }
+    } catch (e) {
+        console.error("Error in student check:", e);
+    }
+})();
+
 // Cargar tema al iniciar
 (function() {
     const savedTheme = localStorage.getItem('siac_theme') || 'default';

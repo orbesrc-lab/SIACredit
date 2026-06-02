@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from supabase import create_client, Client
 from openai import OpenAI
 import survey_storage
+import formacion_storage
 
 
 load_dotenv()
@@ -181,6 +182,10 @@ def estadisticas():
 @app.route('/configuracion.html')
 def configuracion():
     return render_template('configuracion.html')
+
+@app.route('/formacion.html')
+def formacion():
+    return render_template('formacion.html')
 
 @app.route('/biblioteca.html')
 def biblioteca():
@@ -618,6 +623,27 @@ def handle_login():
     try:
         res = supabase.table('users').select("*").eq("email", email).execute()
         if not res.data:
+            # Buscar si el correo pertenece a un estudiante matriculado localmente
+            try:
+                import formacion_storage
+                students = formacion_storage.load_students(1)
+                student = next((s for s in students if s.get('email') == email), None)
+                if student:
+                    # Permitir ingresar con contraseña temporal estándar o el prefijo de su correo
+                    if password in ['123456', 'SIACTemp2025!', email.split('@')[0]]:
+                        return jsonify({
+                            "status": "success",
+                            "user": { 
+                                "id": student['id'],
+                                "email": student['email'], 
+                                "role": "estudiante",
+                                "inst_id": 1,
+                                "program_id": 0
+                            }
+                        })
+            except Exception as e:
+                print(f"Error buscando estudiante para login: {e}")
+                
             return jsonify({"status": "error", "message": "Usuario no encontrado"}), 404
         user = res.data[0]
         
@@ -2041,6 +2067,262 @@ def sync_surveys():
             return jsonify({"status": "success", "message": "Datos descargados desde la web (Supabase)"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# === API ENDPOINTS FOR LMS (FORMACION) ===
+
+@app.route('/api/teachers', methods=['GET', 'POST'])
+def handle_api_teachers():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
+    
+    if use_cloud:
+        try:
+            formacion_storage.pull_from_supabase(inst_id, 0, supabase)
+        except Exception as e:
+            print(f"Error pulling from supabase: {e}")
+            
+    if request.method == 'POST':
+        data = request.json
+        saved = formacion_storage.save_teacher(inst_id, data)
+        if saved:
+            if use_cloud:
+                try:
+                    formacion_storage.sync_teachers_only(inst_id, supabase)
+                except Exception as e:
+                    print(f"Error syncing teachers: {e}")
+            return jsonify({"status": "success", "data": saved})
+        return jsonify({"status": "error", "message": "No se pudo guardar el docente."}), 500
+    
+    teachers = formacion_storage.load_teachers(inst_id)
+    return jsonify(teachers)
+
+@app.route('/api/teachers/<teacher_id>', methods=['DELETE'])
+def delete_api_teacher(teacher_id):
+    inst_id = request.args.get('inst_id', 1, type=int)
+    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
+    
+    if use_cloud:
+        try:
+            formacion_storage.pull_from_supabase(inst_id, 0, supabase)
+        except Exception as e:
+            print(f"Error pulling: {e}")
+            
+    success = formacion_storage.delete_teacher(inst_id, teacher_id)
+    if success:
+        if use_cloud:
+            try:
+                formacion_storage.sync_teachers_only(inst_id, supabase)
+            except Exception as e:
+                print(f"Error syncing: {e}")
+        return jsonify({"status": "success"})
+    return jsonify({"status": "error", "message": "No se pudo eliminar el docente."}), 500
+
+@app.route('/api/courses', methods=['GET', 'POST'])
+def handle_api_courses():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
+    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
+    
+    if use_cloud:
+        try:
+            formacion_storage.pull_from_supabase(inst_id, program_id, supabase)
+        except Exception as e:
+            print(f"Error pulling: {e}")
+            
+    if request.method == 'POST':
+        data = request.json
+        saved = formacion_storage.save_course(inst_id, program_id, data)
+        if saved:
+            if use_cloud:
+                try:
+                    formacion_storage.sync_courses_only(inst_id, program_id, supabase)
+                except Exception as e:
+                    print(f"Error syncing: {e}")
+            return jsonify({"status": "success", "data": saved})
+        return jsonify({"status": "error", "message": "No se pudo guardar el curso."}), 500
+    
+    courses = formacion_storage.load_courses(inst_id, program_id)
+    return jsonify(courses)
+
+@app.route('/api/courses/<course_id>', methods=['GET', 'PUT', 'DELETE'])
+def handle_api_course_specific(course_id):
+    inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
+    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
+    
+    if use_cloud:
+        try:
+            formacion_storage.pull_from_supabase(inst_id, program_id, supabase)
+        except Exception as e:
+            print(f"Error pulling: {e}")
+            
+    if request.method == 'GET':
+        course = formacion_storage.load_course(course_id)
+        if course:
+            return jsonify(course)
+        return jsonify({"status": "error", "message": "Curso no encontrado."}), 404
+        
+    elif request.method == 'PUT':
+        data = request.json
+        data['id'] = course_id  # ensure ID matches
+        saved = formacion_storage.save_course(inst_id, program_id, data)
+        if saved:
+            if use_cloud:
+                try:
+                    formacion_storage.sync_courses_only(inst_id, program_id, supabase)
+                except Exception as e:
+                    print(f"Error syncing: {e}")
+            return jsonify({"status": "success", "data": saved})
+        return jsonify({"status": "error", "message": "No se pudo actualizar el curso."}), 500
+        
+    elif request.method == 'DELETE':
+        success = formacion_storage.delete_course(inst_id, program_id, course_id)
+        if success:
+            if use_cloud:
+                try:
+                    formacion_storage.sync_courses_only(inst_id, program_id, supabase)
+                except Exception as e:
+                    print(f"Error syncing: {e}")
+            return jsonify({"status": "success"})
+        return jsonify({"status": "error", "message": "No se pudo eliminar el curso."}), 500
+
+@app.route('/api/public/courses', methods=['GET'])
+def get_public_courses_catalog():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
+    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
+    
+    if use_cloud:
+        try:
+            formacion_storage.pull_from_supabase(inst_id, program_id, supabase)
+        except Exception as e:
+            print(f"Error pulling: {e}")
+            
+    courses = formacion_storage.load_public_courses()
+    public_catalog = []
+    for c in courses:
+        public_catalog.append({
+            "id": c.get("id"),
+            "title": c.get("title"),
+            "description": c.get("description"),
+            "duration": c.get("duration"),
+            "level": c.get("level"),
+            "category": c.get("category"),
+            "certifier": c.get("certifier")
+        })
+    return jsonify(public_catalog)
+
+@app.route('/api/students', methods=['GET', 'POST'])
+def handle_api_students():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
+    
+    if use_cloud:
+        try:
+            program_id = request.args.get('program_id', 0, type=int)
+            formacion_storage.pull_from_supabase(inst_id, program_id, supabase)
+        except Exception as e:
+            print(f"Error pulling: {e}")
+            
+    if request.method == 'POST':
+        data = request.json
+        saved = formacion_storage.save_student(inst_id, data)
+        if saved:
+            if use_cloud:
+                try:
+                    formacion_storage.sync_students_only(inst_id, supabase)
+                except Exception as e:
+                    print(f"Error syncing: {e}")
+            return jsonify({"status": "success", "data": saved})
+        return jsonify({"status": "error", "message": "No se pudo guardar el estudiante."}), 500
+    
+    students = formacion_storage.load_students(inst_id)
+    return jsonify(students)
+
+@app.route('/api/students/<student_id>', methods=['DELETE'])
+def delete_api_student(student_id):
+    inst_id = request.args.get('inst_id', 1, type=int)
+    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
+    
+    if use_cloud:
+        try:
+            formacion_storage.pull_from_supabase(inst_id, 0, supabase)
+        except Exception as e:
+            print(f"Error pulling: {e}")
+            
+    success = formacion_storage.delete_student(inst_id, student_id)
+    if success:
+        if use_cloud:
+            try:
+                formacion_storage.sync_students_only(inst_id, supabase)
+            except Exception as e:
+                print(f"Error syncing: {e}")
+        return jsonify({"status": "success"})
+    return jsonify({"status": "error", "message": "No se pudo eliminar el estudiante."}), 500
+
+@app.route('/api/students/<student_id>/enroll', methods=['POST'])
+def enroll_student_api(student_id):
+    inst_id = request.args.get('inst_id', 1, type=int)
+    course_id = request.json.get('course_id')
+    if not course_id:
+        return jsonify({"status": "error", "message": "course_id es requerido."}), 400
+        
+    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
+    if use_cloud:
+        try:
+            formacion_storage.pull_from_supabase(inst_id, 0, supabase)
+        except Exception as e:
+            print(f"Error pulling: {e}")
+            
+    success = formacion_storage.enroll_student_in_course(inst_id, student_id, course_id)
+    if success:
+        if use_cloud:
+            try:
+                formacion_storage.sync_students_only(inst_id, supabase)
+            except Exception as e:
+                print(f"Error syncing: {e}")
+        return jsonify({"status": "success"})
+    return jsonify({"status": "error", "message": "No se pudo matricular al estudiante."}), 500
+
+@app.route('/api/students/<student_id>/unenroll', methods=['POST'])
+def unenroll_student_api(student_id):
+    inst_id = request.args.get('inst_id', 1, type=int)
+    course_id = request.json.get('course_id')
+    if not course_id:
+        return jsonify({"status": "error", "message": "course_id es requerido."}), 400
+        
+    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
+    if use_cloud:
+        try:
+            formacion_storage.pull_from_supabase(inst_id, 0, supabase)
+        except Exception as e:
+            print(f"Error pulling: {e}")
+            
+    success = formacion_storage.unenroll_student_from_course(inst_id, student_id, course_id)
+    if success:
+        if use_cloud:
+            try:
+                formacion_storage.sync_students_only(inst_id, supabase)
+            except Exception as e:
+                print(f"Error syncing: {e}")
+        return jsonify({"status": "success"})
+    return jsonify({"status": "error", "message": "No se pudo cancelar la matrícula."}), 500
+
+@app.route('/api/courses/<course_id>/students', methods=['GET'])
+def get_course_enrolled_students(course_id):
+    inst_id = request.args.get('inst_id', 1, type=int)
+    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
+    
+    if use_cloud:
+        try:
+            formacion_storage.pull_from_supabase(inst_id, 0, supabase)
+        except Exception as e:
+            print(f"Error pulling: {e}")
+            
+    all_students = formacion_storage.load_students(inst_id)
+    enrolled = [s for s in all_students if 'enrolled_courses' in s and course_id in s['enrolled_courses']]
+    return jsonify(enrolled)
 
 
 if __name__ == '__main__':
