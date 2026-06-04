@@ -578,11 +578,15 @@
                         <label>Tipo de Pregunta</label>
                         <select class="q-type" onchange="toggleQuestionOptions(this)">
                             <option value="rating" ${qType === 'rating' ? 'selected' : ''}>Calificación (Estrellas/Números 1-5)</option>
-                            <option value="select" ${qType === 'select' ? 'selected' : ''}>Selección Múltiple</option>
+                            <option value="likert" ${qType === 'likert' ? 'selected' : ''}>Escala Likert (1-5)</option>
+                            <option value="boolean" ${qType === 'boolean' ? 'selected' : ''}>Sí / No</option>
+                            <option value="select" ${qType === 'select' ? 'selected' : ''}>Selección Única (Radio)</option>
+                            <option value="checkbox" ${qType === 'checkbox' ? 'selected' : ''}>Selección Múltiple (Casillas)</option>
                             <option value="text" ${qType === 'text' ? 'selected' : ''}>Comentario / Texto Libre</option>
+                            <option value="file" ${qType === 'file' ? 'selected' : ''}>Cargar Archivo (Soporte)</option>
                         </select>
                     </div>
-                    <div class="form-group q-options-group" style="display: ${qType === 'select' ? 'block' : 'none'};">
+                    <div class="form-group q-options-group" style="display: ${(qType === 'select' || qType === 'checkbox') ? 'block' : 'none'};">
                         <label>Opciones (Separadas por comas)</label>
                         <input type="text" class="q-options" value="${qOptions}" placeholder="Ej: Excelente, Bueno, Regular, Deficiente">
                     </div>
@@ -630,7 +634,7 @@
 
         function toggleQuestionOptions(selectElem) {
             const optionsGroup = selectElem.parentElement.nextElementSibling;
-            if (selectElem.value === 'select') {
+            if (selectElem.value === 'select' || selectElem.value === 'checkbox') {
                 optionsGroup.style.display = 'block';
             } else {
                 optionsGroup.style.display = 'none';
@@ -667,10 +671,10 @@
                 }
                 
                 let options = [];
-                if (type === 'select') {
+                if (type === 'select' || type === 'checkbox') {
                     options = optionsRaw.split(',').map(o => o.trim()).filter(o => o.length > 0);
                     if (options.length < 2) {
-                        alert("Las preguntas de selección múltiple deben tener al menos 2 opciones.");
+                        alert("Las preguntas de selección única o múltiple deben tener al menos 2 opciones.");
                         hasError = true;
                         return;
                     }
@@ -883,15 +887,117 @@
                     ratingGrid.innerHTML = avgScoreBox + barsHtml;
                     qBox.appendChild(ratingGrid);
 
-                } else if (q.type === 'select') {
-                    // Aggregate multiple choice percentages
+                } else if (q.type === 'likert') {
+                    // Calculate average and distribution for Likert scale
+                    let sum = 0;
+                    let count = 0;
+                    const distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+                    const likertLabels = {
+                        1: "Totalmente en desacuerdo",
+                        2: "En desacuerdo",
+                        3: "Neutro",
+                        4: "De acuerdo",
+                        5: "Totalmente de acuerdo"
+                    };
+                    
+                    activeSurveyResponses.forEach(r => {
+                        const val = parseInt(r.answers[q.id]);
+                        if (val >= 1 && val <= 5) {
+                            sum += val;
+                            count++;
+                            distribution[val]++;
+                        }
+                    });
+
+                    const avg = count > 0 ? (sum / count).toFixed(2) : 0;
+                    
+                    const ratingGrid = document.createElement('div');
+                    ratingGrid.style.display = 'grid';
+                    ratingGrid.style.gridTemplateColumns = '140px 1fr';
+                    ratingGrid.style.gap = '25px';
+                    ratingGrid.style.alignItems = 'center';
+                    
+                    const avgScoreBox = `
+                        <div style="text-align:center; padding:15px; background:linear-gradient(135deg, var(--secondary-color), var(--accent-color)); color:white; border-radius:12px;">
+                            <div style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Promedio</div>
+                            <div style="font-size:2.5rem; font-weight:800; line-height:1.1; margin:5px 0;">${avg}</div>
+                            <div style="font-size:0.7rem; opacity:0.8;">Escala Likert</div>
+                        </div>
+                    `;
+
+                    let barsHtml = '<div style="display:flex; flex-direction:column; gap:8px;">';
+                    for (let i = 5; i >= 1; i--) {
+                        const pct = count > 0 ? ((distribution[i] / count) * 100).toFixed(0) : 0;
+                        barsHtml += `
+                            <div style="display:flex; align-items:center; gap:10px; font-size:0.82rem;">
+                                <div style="width:160px; font-weight:600; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${likertLabels[i]}">${likertLabels[i]}</div>
+                                <div style="flex:1; height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                                    <div style="width:${pct}%; height:100%; background:var(--secondary-color); border-radius:4px;"></div>
+                                </div>
+                                <div style="width:35px; color:var(--text-muted); text-align:right;">${pct}%</div>
+                            </div>
+                        `;
+                    }
+                    barsHtml += '</div>';
+
+                    ratingGrid.innerHTML = avgScoreBox + barsHtml;
+                    qBox.appendChild(ratingGrid);
+
+                } else if (q.type === 'boolean') {
+                    // Aggregate Yes/No counts
+                    const counts = { "Sí": 0, "No": 0 };
+                    activeSurveyResponses.forEach(r => {
+                        const val = r.answers[q.id];
+                        if (val === "Sí" || val === "No") {
+                            counts[val]++;
+                        }
+                    });
+                    
+                    const total = counts["Sí"] + counts["No"];
+                    const siPct = total > 0 ? ((counts["Sí"] / total) * 100).toFixed(0) : 0;
+                    const noPct = total > 0 ? ((counts["No"] / total) * 100).toFixed(0) : 0;
+                    
+                    const boolGrid = document.createElement('div');
+                    boolGrid.style.display = 'grid';
+                    boolGrid.style.gridTemplateColumns = '1fr 1fr';
+                    boolGrid.style.gap = '20px';
+                    boolGrid.style.marginTop = '10px';
+                    
+                    boolGrid.innerHTML = `
+                        <div style="background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.15); padding:15px; border-radius:10px; text-align:center;">
+                            <div style="font-size:1.3rem; font-weight:800; color:#10b981;">Sí</div>
+                            <div style="font-size:1.8rem; font-weight:800; margin:5px 0;">${counts["Sí"]}</div>
+                            <div style="font-size:0.85rem; color:var(--text-muted);">${siPct}% del total</div>
+                        </div>
+                        <div style="background:rgba(239, 68, 68, 0.08); border:1px solid rgba(239, 68, 68, 0.15); padding:15px; border-radius:10px; text-align:center;">
+                            <div style="font-size:1.3rem; font-weight:800; color:#ef4444;">No</div>
+                            <div style="font-size:1.8rem; font-weight:800; margin:5px 0;">${counts["No"]}</div>
+                            <div style="font-size:0.85rem; color:var(--text-muted);">${noPct}% del total</div>
+                        </div>
+                    `;
+                    qBox.appendChild(boolGrid);
+
+                } else if (q.type === 'select' || q.type === 'checkbox') {
+                    // Aggregate select (single) or checkbox (multi-select) percentages
                     const counts = {};
                     q.options.forEach(opt => counts[opt] = 0);
                     
                     activeSurveyResponses.forEach(r => {
                         const val = r.answers[q.id];
-                        if (val && counts[val] !== undefined) {
-                            counts[val]++;
+                        if (val) {
+                            if (q.type === 'checkbox') {
+                                // Split by comma-space
+                                const selected = String(val).split(', ').map(s => s.trim());
+                                selected.forEach(s => {
+                                    if (counts[s] !== undefined) {
+                                        counts[s]++;
+                                    }
+                                });
+                            } else {
+                                if (counts[val] !== undefined) {
+                                    counts[val]++;
+                                }
+                            }
                         }
                     });
 
@@ -904,6 +1010,9 @@
                     qBox.appendChild(chartDiv);
 
                     // Create Chart
+                    const chartBgColor = q.type === 'checkbox' ? 'rgba(139, 92, 246, 0.7)' : 'rgba(37, 99, 235, 0.7)';
+                    const chartBorderColor = q.type === 'checkbox' ? 'rgba(139, 92, 246, 1)' : 'rgba(37, 99, 235, 1)';
+
                     setTimeout(() => {
                         const ctx = canvas.getContext('2d');
                         const newChart = new Chart(ctx, {
@@ -911,10 +1020,10 @@
                             data: {
                                 labels: q.options,
                                 datasets: [{
-                                    label: 'Votos',
+                                    label: q.type === 'checkbox' ? 'Selecciones' : 'Votos',
                                     data: q.options.map(opt => counts[opt]),
-                                    backgroundColor: 'rgba(37, 99, 235, 0.7)',
-                                    borderColor: 'rgba(37, 99, 235, 1)',
+                                    backgroundColor: chartBgColor,
+                                    borderColor: chartBorderColor,
                                     borderWidth: 1,
                                     borderRadius: 6
                                 }]
@@ -955,6 +1064,37 @@
                     }
                     
                     qBox.appendChild(commentsDiv);
+
+                } else if (q.type === 'file') {
+                    // List file attachments
+                    const fileListDiv = document.createElement('div');
+                    fileListDiv.className = 'comments-list';
+                    
+                    let fileCount = 0;
+                    activeSurveyResponses.forEach(r => {
+                        const val = r.answers[q.id];
+                        if (val && String(val).startsWith('http')) {
+                            fileCount++;
+                            const filename = decodeURIComponent(val.split('/').pop().split('?')[0]);
+                            const dateStr = new Date(r.submitted_at).toLocaleDateString();
+                            const cItem = document.createElement('div');
+                            cItem.className = 'comment-item';
+                            cItem.style.display = 'flex';
+                            cItem.style.justifyContent = 'space-between';
+                            cItem.style.alignItems = 'center';
+                            cItem.innerHTML = `
+                                <span>📄 <a href="${val}" target="_blank" style="font-weight:600; color:var(--primary-color);">${filename}</a></span>
+                                <span style="font-size:0.8rem; color:var(--text-muted);">${dateStr}</span>
+                            `;
+                            fileListDiv.appendChild(cItem);
+                        }
+                    });
+
+                    if (fileCount === 0) {
+                        fileListDiv.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:0.85rem; padding:10px;">Sin archivos cargados.</div>`;
+                    }
+                    
+                    qBox.appendChild(fileListDiv);
                 }
 
                 container.appendChild(qBox);
@@ -1127,14 +1267,22 @@
 
                 // Map type
                 let qType = 'rating';
-                if (qTypeRaw.includes('seleccion') || qTypeRaw.includes('select') || qTypeRaw.includes('múltiple') || qTypeRaw.includes('multiple')) {
+                if (qTypeRaw.includes('likert')) {
+                    qType = 'likert';
+                } else if (qTypeRaw.includes('si') || qTypeRaw.includes('no') || qTypeRaw.includes('boolean') || qTypeRaw.includes('sino')) {
+                    qType = 'boolean';
+                } else if (qTypeRaw.includes('checkbox') || qTypeRaw.includes('casilla') || qTypeRaw.includes('casillas') || qTypeRaw.includes('multi')) {
+                    qType = 'checkbox';
+                } else if (qTypeRaw.includes('file') || qTypeRaw.includes('archivo') || qTypeRaw.includes('cargar')) {
+                    qType = 'file';
+                } else if (qTypeRaw.includes('seleccion') || qTypeRaw.includes('select') || qTypeRaw.includes('múltiple') || qTypeRaw.includes('multiple')) {
                     qType = 'select';
                 } else if (qTypeRaw.includes('texto') || qTypeRaw.includes('text') || qTypeRaw.includes('comentario') || qTypeRaw.includes('libre')) {
                     qType = 'text';
                 }
 
                 let options = [];
-                if (qType === 'select' && qOptionsRaw) {
+                if ((qType === 'select' || qType === 'checkbox') && qOptionsRaw) {
                     options = qOptionsRaw.split(',').map(o => o.trim()).filter(o => o.length > 0);
                 }
 

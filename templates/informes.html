@@ -396,6 +396,35 @@
             /* Forzar salto de página entre condiciones cuando el contenido es largo */
             .rrc-panel:nth-child(3n) { page-break-after: always; }
         }
+
+        /* Planes de Mejoramiento Styles */
+        .planes-consolidado-section { margin-top: 40px; border-top: 3px solid #d97706; padding-top: 30px; page-break-inside: avoid; }
+        .planes-grid { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; text-align: left; }
+        .planes-chart-card { flex: 1; min-width: 300px; background: white; border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .planes-metrics-card { flex: 1; min-width: 300px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .plane-metric-box { background: white; border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .plane-metric-val { font-size: 1.8rem; font-weight: 800; color: #d97706; margin-bottom: 5px; }
+        .plane-metric-lbl { font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        
+        /* Notificaciones Styles */
+        .notif-container { position: relative; display: inline-block; margin-right: 15px; }
+        .notif-bell { background: none; border: none; font-size: 1.3rem; cursor: pointer; position: relative; padding: 5px; transition: transform 0.2s; }
+        .notif-bell:hover { transform: scale(1.1); }
+        .notif-badge { position: absolute; top: 0; right: 0; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .notif-dropdown { display: none; position: absolute; right: 0; top: 35px; width: 320px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); z-index: 1000; overflow: hidden; }
+        .notif-dropdown.show { display: block; }
+        .notif-header { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.9rem; background: #f8fafc; }
+        .notif-header button { background: none; border: none; color: var(--primary-color); font-size: 0.75rem; cursor: pointer; font-weight: 600; }
+        .notif-header button:hover { text-decoration: underline; }
+        .notif-list { max-height: 250px; overflow-y: auto; }
+        .notif-item { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; position: relative; text-align: left; }
+        .notif-item:hover { background: #f8fafc; }
+        .notif-item.unread { background: #eff6ff; }
+        .notif-item.unread::before { content: ""; position: absolute; left: 6px; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; background: var(--primary-color); border-radius: 50%; }
+        .notif-title { font-weight: 700; color: #1e293b; margin-bottom: 3px; }
+        .notif-desc { color: #64748b; line-height: 1.4; }
+        .notif-time { font-size: 0.65rem; color: #94a3b8; margin-top: 4px; display: block; }
+        .notif-empty { padding: 30px 15px; text-align: center; color: #94a3b8; font-size: 0.85rem; }
     </style>
 
 </head>
@@ -426,7 +455,21 @@
                 <img id="inst_logo_img" src="" alt="" style="height: 40px; display: none;">
                 <h2 id="inst_name_display" style="font-size: 1.25rem; margin: 0; color: var(--primary-color);">Cargando...</h2>
             </div>
-            <div id="userInfo" style="font-weight: 500;"></div>
+            <div style="display:flex; align-items:center;">
+                <div class="notif-container">
+                    <button class="notif-bell" id="notifBell" onclick="toggleNotifDropdown(event)">🔔<span class="notif-badge" id="notifBadge" style="display:none;">0</span></button>
+                    <div class="notif-dropdown" id="notifDropdown">
+                        <div class="notif-header">
+                            <span>Notificaciones</span>
+                            <button onclick="markAllAsRead()">Marcar leídas</button>
+                        </div>
+                        <div class="notif-list" id="notifList">
+                            <div class="notif-empty">No hay notificaciones.</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="userInfo" style="font-weight: 500; margin-left: 10px;"></div>
+            </div>
         </header>
 
         <div class="content-area">
@@ -553,8 +596,10 @@
 
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
-        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'orbesrc@gmail.com' };
-        document.getElementById('userInfo').textContent = user.email;
+        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'orbesrc@gmail.com', role: 'admin' };
+        const roleLabel = user.role ? user.role.toUpperCase() : 'ADMIN';
+        document.getElementById('userInfo').innerHTML = `<span>${user.email}</span> <span class="status ${user.role === 'admin' || user.role === 'inst_admin' ? 'aprobado' : 'revision'}" style="margin-left:10px; padding:2px 8px; border-radius:12px; font-size:0.7rem;">${roleLabel}</span>`;
+        
         function logout() { localStorage.removeItem('siac_user'); window.location.href = 'login.html'; }
 
         async function loadInstitution() {
@@ -567,7 +612,162 @@
             }
         }
         loadInstitution();
+        loadNotifications();
         updateContextBreadcrumb();
+
+        // --- FUNCIONES GESTIÓN DE NOTIFICACIONES ---
+        async function loadNotifications() {
+            const user = JSON.parse(localStorage.getItem('siac_user'));
+            if (!user || !user.email) return;
+            
+            try {
+                const resp = await fetch(`/api/notificaciones?inst_id=${getInstId()}&program_id=${getProgramId()}&email=${user.email}`);
+                const notifications = await resp.json();
+                
+                const bell = document.getElementById('notifBell');
+                const badge = document.getElementById('notifBadge');
+                const list = document.getElementById('notifList');
+                
+                const unreadCount = notifications.filter(n => !n.leido).length;
+                
+                if (unreadCount > 0) {
+                    badge.style.display = 'flex';
+                    badge.textContent = unreadCount;
+                } else {
+                    badge.style.display = 'none';
+                }
+                
+                if (notifications.length === 0) {
+                    list.innerHTML = `<div class="notif-empty">No tienes notificaciones.</div>`;
+                    return;
+                }
+                
+                let html = '';
+                notifications.forEach(n => {
+                    const unreadClass = n.leido ? '' : 'unread';
+                    const timeStr = new Date(n.created_at).toLocaleString();
+                    html += `
+                        <div class="notif-item ${unreadClass}" onclick="markAsRead(${n.id})">
+                            <div class="notif-title">${n.titulo}</div>
+                            <div class="notif-desc">${n.mensaje}</div>
+                            <span class="notif-time">${timeStr}</span>
+                        </div>
+                    `;
+                });
+                list.innerHTML = html;
+            } catch (e) {
+                console.error("Error loading notifications:", e);
+            }
+        }
+        
+        async function markAsRead(id) {
+            try {
+                const resp = await fetch(`/api/notificaciones/${id}/read`, { method: 'POST' });
+                if (resp.ok) {
+                    loadNotifications();
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        async function markAllAsRead() {
+            const user = JSON.parse(localStorage.getItem('siac_user'));
+            if (!user || !user.email) return;
+            
+            try {
+                const resp = await fetch(`/api/notificaciones/read-all?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: user.email })
+                });
+                if (resp.ok) {
+                    loadNotifications();
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        function toggleNotifDropdown(e) {
+            e.stopPropagation();
+            document.getElementById('notifDropdown').classList.toggle('show');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            const dd = document.getElementById('notifDropdown');
+            if (dd) dd.classList.remove('show');
+        });
+        
+        // Polling notifications every 30 seconds
+        setInterval(loadNotifications, 30000);
+
+        // --- EXPORTAR PLAN DE MEJORAMIENTO A EXCEL ---
+        function exportPlanesExcel() {
+            const table = document.getElementById('tablaPlanesMejora');
+            if (!table) {
+                alert("Primero genere el informe para cargar los planes de mejora.");
+                return;
+            }
+            
+            // Estilos CSS para dar presentación premium al archivo de Excel
+            const styles = `
+                <style>
+                    table { border-collapse: collapse; width: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+                    th { background-color: #d97706; color: white; font-weight: bold; text-align: left; padding: 12px; border: 1px solid #e2e8f0; }
+                    td { padding: 10px; border: 1px solid #e2e8f0; }
+                    tr:nth-child(even) { background-color: #f9fafb; }
+                    .badge-completado { background-color: #dcfce7; color: #166534; font-weight: bold; border-radius: 4px; padding: 2px 6px; }
+                    .badge-vencido { background-color: #fee2e2; color: #991b1b; font-weight: bold; border-radius: 4px; padding: 2px 6px; }
+                    .badge-proceso { background-color: #dbeafe; color: #1e40af; font-weight: bold; border-radius: 4px; padding: 2px 6px; }
+                    .badge-pendiente { background-color: #fef3c7; color: #92400e; font-weight: bold; border-radius: 4px; padding: 2px 6px; }
+                </style>
+            `;
+            
+            // Clean table for excel presentation
+            const tempTable = table.cloneNode(true);
+            
+            // Replace progress bar with text
+            tempTable.querySelectorAll('tr').forEach(row => {
+                const progressCell = row.cells[4];
+                if (progressCell && progressCell.querySelector('span')) {
+                    const val = progressCell.querySelector('span').textContent;
+                    progressCell.innerHTML = val;
+                }
+                const badgeCell = row.cells[5];
+                if (badgeCell && badgeCell.querySelector('span')) {
+                    const badge = badgeCell.querySelector('span');
+                    const text = badge.textContent;
+                    let styleClass = 'badge-pendiente';
+                    if (text === 'Completado') styleClass = 'badge-completado';
+                    else if (text === 'Vencido') styleClass = 'badge-vencido';
+                    else if (text === 'En proceso') styleClass = 'badge-proceso';
+                    
+                    badgeCell.innerHTML = `<span class="${styleClass}">${text}</span>`;
+                }
+            });
+            
+            const html = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="UTF-8">
+                    \${styles}
+                </head>
+                <body>
+                    <h2>Plan de Mejoramiento Consolidado — \${document.getElementById('inst_name_display').textContent}</h2>
+                    <br>
+                    \${tempTable.outerHTML}
+                </body>
+                </html>
+            `;
+            
+            const blob = new Blob(['\\ufeff' + html], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Plan_Mejoramiento_\${new Date().getFullYear()}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1500);
+        }
 
         async function updateContextBreadcrumb() {
             const breadcrumb = document.getElementById('contextBreadcrumb');
@@ -641,6 +841,12 @@
             try {
                 const res = await fetch(`/api/informe_dinamico?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const data = await res.json();
+                
+                // Fetch Planes de Mejora
+                const pmResp = await fetch(`/api/planes_mejora?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const planes = await pmResp.json();
+                data.planes_mejora = planes;
+                
                 renderInforme(data, tipo);
             } catch (err) {
                 alert("Error generando informe: " + err);
@@ -805,6 +1011,117 @@
                 todoElHtml += aiSectionHtml;
             }
 
+            // --- SECCIÓN PLAN DE MEJORAMIENTO CONSOLIDADO ---
+            const planes = data.planes_mejora || [];
+            const totalPlanes = planes.length;
+            
+            // Calculate progress average
+            const avgProgress = totalPlanes > 0 ? (planes.reduce((acc, p) => acc + (p.avance || 0), 0) / totalPlanes).toFixed(1) : '0.0';
+            
+            // Count states
+            let pendingCount = 0;
+            let processCount = 0;
+            let completedCount = 0;
+            let expiredCount = 0;
+            const now = new Date();
+            
+            planes.forEach(p => {
+                const limitDate = new Date(p.fecha_limite);
+                if (p.estado === 'Completado') {
+                    completedCount++;
+                } else if (limitDate < now) {
+                    expiredCount++;
+                } else if (p.avance > 0 || p.estado === 'En proceso') {
+                    processCount++;
+                } else {
+                    pendingCount++;
+                }
+            });
+            
+            let planesHtml = `
+                <div class="planes-consolidado-section">
+                    <h2 style="font-size:14pt; font-weight:700; color:#1e3a8a; margin:28px 0 12px; border-bottom:2px solid #2563eb; padding-bottom:6px; text-align: left;">Plan de Mejoramiento Consolidado del Programa</h2>
+                    <p style="color:#64748b; margin-bottom:20px; text-align: left; font-size: 0.9rem;">Seguimiento detallado de las acciones de mejoramiento registradas por los líderes de factor.</p>
+                    
+                    <div class="planes-grid">
+                        <div class="planes-metrics-card">
+                            <div class="plane-metric-box">
+                                <span class="plane-metric-val">${totalPlanes}</span>
+                                <span class="plane-metric-lbl">Total Acciones</span>
+                            </div>
+                            <div class="plane-metric-box">
+                                <span class="plane-metric-val">${avgProgress}%</span>
+                                <span class="plane-metric-lbl">Avance Promedio</span>
+                            </div>
+                            <div class="plane-metric-box">
+                                <span class="plane-metric-val" style="color:#10b981;">${completedCount}</span>
+                                <span class="plane-metric-lbl">Completadas</span>
+                            </div>
+                            <div class="plane-metric-box">
+                                <span class="plane-metric-val" style="color:#ef4444;">${expiredCount}</span>
+                                <span class="plane-metric-lbl">Vencidas</span>
+                            </div>
+                        </div>
+                        <div class="planes-chart-card">
+                            <h5 style="margin: 0 0 15px; font-weight:600; color:#475569; font-size:0.85rem; text-transform:uppercase;">Distribución de Acciones</h5>
+                            <div style="position:relative; height:180px; width:100%;">
+                                <canvas id="planesMejoraChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                        <h3 style="margin:0; font-size:11pt; font-weight:700; color:#1e293b;">Listado de Acciones</h3>
+                        <button class="btn-primary" onclick="exportPlanesExcel()" style="background:#d97706; border:none; padding:8px 16px; border-radius:6px; font-size:0.85rem; cursor:pointer; color: white;">📥 Exportar Plan (Excel)</button>
+                    </div>
+                    
+                    <table class="summary-table" id="tablaPlanesMejora" style="margin-top:10px; width:100%; border-collapse:collapse; font-size:9pt;">
+                        <thead>
+                            <tr style="background:#1e3a8a; color:white;">
+                                <th style="padding:8px 10px; text-align:left;">Característica</th>
+                                <th style="padding:8px 10px; text-align:left;">Acción de Mejora</th>
+                                <th style="padding:8px 10px; text-align:left;">Responsable</th>
+                                <th style="padding:8px 10px; text-align:left;">Fecha Límite</th>
+                                <th style="padding:8px 10px; text-align:left;">Avance</th>
+                                <th style="padding:8px 10px; text-align:left;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            if (planes.length === 0) {
+                planesHtml += `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:20px;">No se han formulado acciones de mejoramiento para este programa.</td></tr>`;
+            } else {
+                planes.forEach(p => {
+                    const statusVal = p.estado === 'Completado' ? 'Completado' : (new Date(p.fecha_limite) < now ? 'Vencido' : p.estado);
+                    const badgeClass = statusVal === 'Completado' ? 'grade-4-5' : statusVal === 'Vencido' ? 'grade-low' : statusVal === 'En proceso' ? 'grade-4-0' : 'grade-3-0';
+                    
+                    planesHtml += `
+                        <tr>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;"><b>C. ${p.char_id}</b></td>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-align: left;">${p.accion}</td>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-align: left;">${p.responsable}</td>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;">${p.fecha_limite}</td>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; width:150px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <progress value="${p.avance}" max="100" style="flex:1; height:8px; border-radius:4px;"></progress>
+                                    <span>${p.avance}%</span>
+                                </div>
+                            </td>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;"><span class="grade-badge ${badgeClass}" style="padding:4px 8px; font-size:0.75rem;">${statusVal}</span></td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            planesHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            todoElHtml += planesHtml;
+
             // Inyectar TODO el HTML de una sola vez (preserva canvas para _buildChart)
             detalleDiv.innerHTML = todoElHtml;
 
@@ -834,6 +1151,33 @@
                     responsive: true, maintainAspectRatio: false
                 }
             });
+
+            // Render Planes Donut Chart
+            if (window.myPlanesChart) window.myPlanesChart.destroy();
+            const pmCtx = document.getElementById('planesMejoraChart');
+            if (pmCtx) {
+                window.myPlanesChart = new Chart(pmCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completado', 'Vencido', 'En proceso', 'Pendiente'],
+                        datasets: [{
+                            data: [completedCount, expiredCount, processCount, pendingCount],
+                            backgroundColor: ['#10b981', '#ef4444', '#3b82f6', '#f59e0b'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: { boxWidth: 12, font: { size: 10 } }
+                            }
+                        }
+                    }
+                });
+            }
 
             container.style.display = 'block';
             document.getElementById('btnImprimir').style.display = 'inline-block';

@@ -390,6 +390,169 @@ def delete_evaluation(char_id):
         print(f"Error deleting eval: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# Helper to create notification and log email simulation
+def create_notification(inst_id, program_id, email, tipo, titulo, mensaje):
+    try:
+        # In-app notification
+        supabase.table('notificaciones').insert({
+            "inst_id": inst_id,
+            "program_id": program_id,
+            "usuario_email": email,
+            "tipo": tipo,
+            "titulo": titulo,
+            "mensaje": mensaje,
+            "leido": False
+        }).execute()
+        
+        # Email simulator log
+        print(f"\n[EMAIL SIMULATOR] Sending email to {email}")
+        print(f"Subject: {titulo}")
+        print(f"Body: {mensaje}\n")
+    except Exception as e:
+        print(f"Error creating notification: {e}")
+
+@app.route('/api/planes_mejora', methods=['GET', 'POST'])
+def handle_planes_mejora():
+    raw_inst_id = request.args.get('inst_id', 1, type=int)
+    inst_id = get_active_inst_id(raw_inst_id)
+    program_id = request.args.get('program_id', 0, type=int)
+    
+    if request.method == 'POST':
+        data = request.json
+        try:
+            char_id = data.get('char_id')
+            accion = data.get('accion')
+            responsable = data.get('responsable')
+            fecha_limite = data.get('fecha_limite')
+            estado = data.get('estado', 'Pendiente')
+            avance = data.get('avance', 0)
+            
+            if not char_id or not accion or not responsable or not fecha_limite:
+                return jsonify({"status": "error", "message": "Datos incompletos"}), 400
+                
+            res = supabase.table('planes_mejora').insert({
+                "inst_id": inst_id,
+                "program_id": program_id,
+                "char_id": char_id,
+                "accion": accion,
+                "responsable": responsable,
+                "fecha_limite": fecha_limite,
+                "estado": estado,
+                "avance": int(avance)
+            }).execute()
+            
+            # Send notification
+            titulo_notif = "Nueva accion de mejora asignada"
+            msg_notif = f"Se te ha asignado la accion de mejora: '{accion}' con fecha limite {fecha_limite}."
+            create_notification(inst_id, program_id, responsable, 'nueva_asignacion', titulo_notif, msg_notif)
+            
+            return jsonify({"status": "success", "data": res.data})
+        except Exception as e:
+            print(f"Error creating plan de mejora: {e}")
+            return jsonify({"status": "error", "message": str(e)}), 500
+            
+    # GET method
+    char_id = request.args.get('char_id')
+    try:
+        query = supabase.table('planes_mejora').select("*").eq("inst_id", inst_id).eq("program_id", program_id)
+        if char_id:
+            query = query.eq("char_id", char_id)
+        res = query.execute()
+        return jsonify(res.data or [])
+    except Exception as e:
+        print(f"Error loading planes de mejora: {e}")
+        return jsonify([])
+
+@app.route('/api/planes_mejora/<int:plan_id>', methods=['PUT', 'DELETE'])
+def update_delete_plan_mejora(plan_id):
+    inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
+    
+    if request.method == 'DELETE':
+        try:
+            supabase.table('planes_mejora').delete().eq("id", plan_id).execute()
+            return jsonify({"status": "success"})
+        except Exception as e:
+            print(f"Error deleting plan de mejora: {e}")
+            return jsonify({"status": "error", "message": str(e)}), 500
+            
+    # PUT method
+    data = request.json
+    try:
+        avance = int(data.get('avance', 0))
+        estado = data.get('estado')
+        
+        # Auto-complete status if progress is 100%
+        if avance >= 100:
+            estado = 'Completado'
+        elif avance > 0 and estado == 'Pendiente':
+            estado = 'En proceso'
+            
+        update_data = {
+            "accion": data.get('accion'),
+            "responsable": data.get('responsable'),
+            "fecha_limite": data.get('fecha_limite'),
+            "estado": estado,
+            "avance": avance
+        }
+        # Filter none values
+        update_data = {k: v for k, v in update_data.items() if v is not None}
+        
+        res = supabase.table('planes_mejora').update(update_data).eq("id", plan_id).execute()
+        
+        # If deadline changed, trigger alert notification
+        if data.get('fecha_limite'):
+            msg_notif = f"Se ha actualizado la fecha limite de la accion '{data.get('accion', 'asignada')}' al {data.get('fecha_limite')}."
+            create_notification(inst_id, program_id, data.get('responsable'), 'nueva_asignacion', "Actualizacion de fecha de accion", msg_notif)
+            
+        return jsonify({"status": "success", "data": res.data})
+    except Exception as e:
+        print(f"Error updating plan de mejora: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/notificaciones', methods=['GET'])
+def get_notificaciones():
+    raw_inst_id = request.args.get('inst_id', 1, type=int)
+    inst_id = get_active_inst_id(raw_inst_id)
+    program_id = request.args.get('program_id', 0, type=int)
+    email = request.args.get('email')
+    
+    if not email:
+        return jsonify([])
+        
+    try:
+        res = supabase.table('notificaciones').select("*").eq("inst_id", inst_id).eq("program_id", program_id).eq("usuario_email", email).order("created_at", desc=True).execute()
+        return jsonify(res.data or [])
+    except Exception as e:
+        print(f"Error getting notifications: {e}")
+        return jsonify([])
+
+@app.route('/api/notificaciones/<int:notif_id>/read', methods=['POST'])
+def read_notificacion(notif_id):
+    try:
+        res = supabase.table('notificaciones').update({"leido": True}).eq("id", notif_id).execute()
+        return jsonify({"status": "success", "data": res.data})
+    except Exception as e:
+        print(f"Error marking notification as read: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/notificaciones/read-all', methods=['POST'])
+def read_all_notificaciones():
+    email = request.json.get('email')
+    raw_inst_id = request.args.get('inst_id', 1, type=int)
+    inst_id = get_active_inst_id(raw_inst_id)
+    program_id = request.args.get('program_id', 0, type=int)
+    
+    if not email:
+        return jsonify({"status": "error", "message": "Email es requerido"}), 400
+        
+    try:
+        res = supabase.table('notificaciones').update({"leido": True}).eq("inst_id", inst_id).eq("program_id", program_id).eq("usuario_email", email).execute()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        print(f"Error marking all notifications as read: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/api/estadisticas', methods=['GET', 'POST'])
 def handle_stats():
     if request.method == 'POST':
@@ -1382,7 +1545,41 @@ def evidences_confirm_upload():
     except Exception as e:
         print(f"Error confirm evidences upload: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/surveys/upload', methods=['POST'])
+def survey_upload_file():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
     
+    survey_id = request.form.get('survey_id', 'unknown')
+    
+    import re
+    import time
+    clean_filename = re.sub(r'[^a-zA-Z0-9._-]', '_', file.filename)
+    timestamp = int(time.time())
+    parts = clean_filename.rsplit('.', 1)
+    if len(parts) == 2:
+        clean_filename = f"{parts[0]}_{timestamp}.{parts[1]}"
+    else:
+        clean_filename = f"{clean_filename}_{timestamp}"
+        
+    file_path = f"surveys/{survey_id}/{clean_filename}"
+    try:
+        file_content = file.read()
+        supabase.storage.from_('evidencias').upload(
+            path=file_path,
+            file=file_content,
+            file_options={"content-type": file.content_type, "upsert": "true"}
+        )
+        file_url = supabase.storage.from_('evidencias').get_public_url(file_path)
+        return jsonify({"status": "success", "url": file_url, "name": file.filename})
+    except Exception as e:
+        print(f"Error uploading survey file: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     inst_id = request.form.get('inst_id', 1, type=int)

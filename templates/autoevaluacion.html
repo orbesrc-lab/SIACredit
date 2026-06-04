@@ -20,6 +20,26 @@
         .cna-aceptable { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
         .cna-insuficiente { background: #fef2f2; color: #991b1b; border: 1px solid #f87171; }
         textarea { width: 100%; min-height: 150px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit; font-size: 1rem; margin-top: 10px; }
+
+        /* Notificaciones Styles */
+        .notif-container { position: relative; display: inline-block; margin-right: 15px; }
+        .notif-bell { background: none; border: none; font-size: 1.3rem; cursor: pointer; position: relative; padding: 5px; transition: transform 0.2s; }
+        .notif-bell:hover { transform: scale(1.1); }
+        .notif-badge { position: absolute; top: 0; right: 0; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .notif-dropdown { display: none; position: absolute; right: 0; top: 35px; width: 320px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); z-index: 1000; overflow: hidden; }
+        .notif-dropdown.show { display: block; }
+        .notif-header { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.9rem; background: #f8fafc; }
+        .notif-header button { background: none; border: none; color: var(--primary-color); font-size: 0.75rem; cursor: pointer; font-weight: 600; }
+        .notif-header button:hover { text-decoration: underline; }
+        .notif-list { max-height: 250px; overflow-y: auto; }
+        .notif-item { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; position: relative; text-align: left; }
+        .notif-item:hover { background: #f8fafc; }
+        .notif-item.unread { background: #eff6ff; }
+        .notif-item.unread::before { content: ""; position: absolute; left: 6px; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; background: var(--primary-color); border-radius: 50%; }
+        .notif-title { font-weight: 700; color: #1e293b; margin-bottom: 3px; }
+        .notif-desc { color: #64748b; line-height: 1.4; }
+        .notif-time { font-size: 0.65rem; color: #94a3b8; margin-top: 4px; display: block; }
+        .notif-empty { padding: 30px 15px; text-align: center; color: #94a3b8; font-size: 0.85rem; }
     </style>
 </head>
 <body>
@@ -49,7 +69,21 @@
                 <img id="inst_logo" src="" style="height:40px; display:none;">
                 <h2 id="inst_name" style="font-size:1.1rem; color:var(--primary-color);">Cargando...</h2>
             </div>
-            <div id="userInfo" style="font-weight:600;"></div>
+            <div style="display:flex; align-items:center;">
+                <div class="notif-container">
+                    <button class="notif-bell" id="notifBell" onclick="toggleNotifDropdown(event)">🔔<span class="notif-badge" id="notifBadge" style="display:none;">0</span></button>
+                    <div class="notif-dropdown" id="notifDropdown">
+                        <div class="notif-header">
+                            <span>Notificaciones</span>
+                            <button onclick="markAllAsRead()">Marcar leídas</button>
+                        </div>
+                        <div class="notif-list" id="notifList">
+                            <div class="notif-empty">No hay notificaciones.</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="userInfo" style="font-weight:600; margin-left: 10px;"></div>
+            </div>
         </header>
 
         <div class="layout-split">
@@ -174,6 +208,9 @@
                                 <!-- Contenedor de percepción de la comunidad (encuestas) -->
                                 <div id="percepcionComunidadContainer" style="margin-bottom:30px;"></div>
 
+                                <!-- Contenedor de Planes de Mejora -->
+                                <div id="planesMejoraContainer" style="margin-bottom:30px;"></div>
+
                                 <div style="display: flex; gap: 15px;">
                                     <button class="btn-primary" onclick="renderEvalForm('edit')" style="flex:1; padding:15px; font-size:1.1rem; background: #3b82f6;">✏️ Editar Evaluación</button>
                                     <button class="btn-primary" onclick="deleteEvaluation('${cId}')" style="flex:1; padding:15px; font-size:1.1rem; background: #ef4444;">🗑️ Eliminar</button>
@@ -210,6 +247,9 @@
                                 <!-- Contenedor de percepción de la comunidad (encuestas) -->
                                 <div id="percepcionComunidadContainer" style="margin-bottom:30px;"></div>
 
+                                <!-- Contenedor de Planes de Mejora -->
+                                <div id="planesMejoraContainer" style="margin-bottom:30px;"></div>
+
                                 <div style="display: flex; gap: 15px;">
                                     <button class="btn-primary large" onclick="saveEvaluation('${fId}', '${cId}')" style="flex:2; padding:18px; font-size:1.1rem;">💾 Guardar Evaluación CNA</button>
                                     ${isEvaluated ? `<button class="btn-primary large" onclick="renderEvalForm('view')" style="flex:1; padding:18px; font-size:1.1rem; background: #64748b;">❌ Cancelar</button>` : ''}
@@ -222,7 +262,251 @@
                 
                 renderEvalForm(isEvaluated ? 'view' : 'edit');
                 loadAndRenderCommunityPerception(cId, char);
+                loadAndRenderPlanesMejora(cId);
             } catch(e) { console.error("Error showEval:", e); }
+        }
+
+        // --- FUNCIONES GESTIÓN DE PLANES DE MEJORA ---
+        async function loadAndRenderPlanesMejora(cId) {
+            const wrapper = document.getElementById('planesMejoraContainer');
+            if (!wrapper) return;
+            
+            wrapper.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b; font-size:0.85rem;">⏳ Cargando planes de mejora...</div>`;
+            
+            try {
+                const resp = await fetch(`/api/planes_mejora?inst_id=${getInstId()}&program_id=${getProgramId()}&char_id=${cId}`);
+                const planes = await resp.json();
+                
+                let html = `
+                    <div style="background:#fef3c7; border:1px solid #fde68a; border-radius:10px; padding:20px; margin-top:15px; text-align: left;">
+                        <h4 style="margin:0 0 15px; color:#b45309; font-size:1rem; display:flex; align-items:center; justify-content:space-between;">
+                            <span>📋 Planes de Mejora para esta Característica</span>
+                            <button class="btn-primary" onclick="showAddPlanForm()" style="padding:6px 12px; font-size:0.8rem; background:#d97706; border:none; border-radius:6px; cursor:pointer; color: white;">➕ Nueva Acción</button>
+                        </h4>
+                        <div id="addPlanFormContainer" style="display:none; background:white; border:1px solid #e2e8f0; border-radius:8px; padding:15px; margin-bottom:15px;">
+                            <h5 style="margin:0 0 10px; font-size:0.85rem; color:#1e293b;">Agregar Nueva Acción</h5>
+                            <div style="display:flex; flex-direction:column; gap:10px;">
+                                <input type="text" id="new_plan_accion" placeholder="Descripción de la acción..." style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem;">
+                                <div style="display:flex; gap:10px;">
+                                    <input type="email" id="new_plan_responsable" placeholder="Email del responsable..." style="flex:1; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem;">
+                                    <input type="date" id="new_plan_fecha" style="flex:1; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem;">
+                                </div>
+                                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                                    <button class="btn-primary" onclick="hideAddPlanForm()" style="background:#64748b; border:none; padding:6px 12px; font-size:0.8rem; border-radius:6px; cursor:pointer; color:white;">Cancelar</button>
+                                    <button class="btn-primary" onclick="submitNewPlan('${cId}')" style="background:#d97706; border:none; padding:6px 12px; font-size:0.8rem; border-radius:6px; cursor:pointer; color:white;">Guardar Acción</button>
+                                </div>
+                            </div>
+                        </div>
+                `;
+                
+                if (planes.length === 0) {
+                    html += `
+                        <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:15px; text-align:center; color:#64748b; font-size:0.85rem;">
+                            No hay planes de mejora registrados para esta característica.
+                        </div></div>`;
+                    wrapper.innerHTML = html;
+                    return;
+                }
+                
+                html += `<div style="display:flex; flex-direction:column; gap:10px;">`;
+                
+                planes.forEach(plan => {
+                    const isCompleted = plan.estado === 'Completado';
+                    const estadoColor = plan.estado === 'Completado' ? '#059669' : plan.estado === 'En proceso' ? '#2563eb' : '#d97706';
+                    
+                    html += `
+                        <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:15px; display:flex; flex-direction:column; gap:8px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div style="font-weight:600; font-size:0.9rem; color:#1e293b;">${plan.accion}</div>
+                                <div style="display:flex; gap:5px;">
+                                    <button onclick="deletePlan(${plan.id}, '${cId}')" style="background:none; border:none; cursor:pointer; font-size:0.9rem; color:#ef4444;" title="Eliminar">🗑️</button>
+                                </div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:#64748b; flex-wrap:wrap; gap:10px;">
+                                <div>Responsable: <strong>${plan.responsable}</strong></div>
+                                <div>Límite: <strong>${plan.fecha_limite}</strong></div>
+                                <div style="color:${estadoColor}; font-weight:700; text-transform:uppercase;">${plan.estado}</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
+                                <div style="flex:1; display:flex; align-items:center; gap:8px;">
+                                    <input type="range" min="0" max="100" value="${plan.avance}" onchange="updatePlanProgress(${plan.id}, this.value, '${plan.estado}', '${plan.accion.replace(/'/g, "\\'")}', '${plan.responsable}', '${plan.fecha_limite}', '${cId}')" style="flex:1; accent-color:#d97706;">
+                                    <span style="font-size:0.8rem; font-weight:700; width:35px; text-align:right;">${plan.avance}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div></div>`;
+                wrapper.innerHTML = html;
+            } catch (err) {
+                console.error("Error loading planes:", err);
+                wrapper.innerHTML = `<div style="color:#ef4444; font-size:0.8rem;">Error al cargar planes de mejora.</div>`;
+            }
+        }
+        
+        function showAddPlanForm() {
+            document.getElementById('addPlanFormContainer').style.display = 'block';
+        }
+        
+        function hideAddPlanForm() {
+            document.getElementById('addPlanFormContainer').style.display = 'none';
+        }
+        
+        async function submitNewPlan(cId) {
+            const accion = document.getElementById('new_plan_accion').value.trim();
+            const responsable = document.getElementById('new_plan_responsable').value.trim();
+            const fecha_limite = document.getElementById('new_plan_fecha').value;
+            
+            if (!accion || !responsable || !fecha_limite) {
+                alert("Por favor complete todos los campos de la acción.");
+                return;
+            }
+            
+            try {
+                const resp = await fetch(`/api/planes_mejora?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        char_id: cId,
+                        accion: accion,
+                        responsable: responsable,
+                        fecha_limite: fecha_limite,
+                        avance: 0,
+                        estado: 'Pendiente'
+                    })
+                });
+                
+                if (resp.ok) {
+                    loadAndRenderPlanesMejora(cId);
+                } else {
+                    const err = await resp.json();
+                    alert("Error: " + err.message);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error al guardar la acción de mejora.");
+            }
+        }
+        
+        async function updatePlanProgress(planId, value, currentStatus, accion, responsable, fecha_limite, cId) {
+            try {
+                const resp = await fetch(`/api/planes_mejora/${planId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        avance: parseInt(value),
+                        estado: currentStatus,
+                        accion: accion,
+                        responsable: responsable,
+                        fecha_limite: fecha_limite
+                    })
+                });
+                if (resp.ok) {
+                    loadAndRenderPlanesMejora(cId);
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        
+        async function deletePlan(planId, cId) {
+            if (!confirm("¿Deseas eliminar esta acción de mejora?")) return;
+            try {
+                const resp = await fetch(`/api/planes_mejora/${planId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                    method: 'DELETE'
+                });
+                if (resp.ok) {
+                    loadAndRenderPlanesMejora(cId);
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        // --- FUNCIONES GESTIÓN DE NOTIFICACIONES ---
+        async function loadNotifications() {
+            const user = JSON.parse(localStorage.getItem('siac_user'));
+            if (!user || !user.email) return;
+            
+            try {
+                const resp = await fetch(`/api/notificaciones?inst_id=${getInstId()}&program_id=${getProgramId()}&email=${user.email}`);
+                const notifications = await resp.json();
+                
+                const bell = document.getElementById('notifBell');
+                const badge = document.getElementById('notifBadge');
+                const list = document.getElementById('notifList');
+                
+                const unreadCount = notifications.filter(n => !n.leido).length;
+                
+                if (unreadCount > 0) {
+                    badge.style.display = 'flex';
+                    badge.textContent = unreadCount;
+                } else {
+                    badge.style.display = 'none';
+                }
+                
+                if (notifications.length === 0) {
+                    list.innerHTML = `<div class="notif-empty">No tienes notificaciones.</div>`;
+                    return;
+                }
+                
+                let html = '';
+                notifications.forEach(n => {
+                    const unreadClass = n.leido ? '' : 'unread';
+                    const timeStr = new Date(n.created_at).toLocaleString();
+                    html += `
+                        <div class="notif-item ${unreadClass}" onclick="markAsRead(${n.id})">
+                            <div class="notif-title">${n.titulo}</div>
+                            <div class="notif-desc">${n.mensaje}</div>
+                            <span class="notif-time">${timeStr}</span>
+                        </div>
+                    `;
+                });
+                list.innerHTML = html;
+            } catch (e) {
+                console.error("Error loading notifications:", e);
+            }
+        }
+        
+        async function markAsRead(id) {
+            try {
+                const resp = await fetch(`/api/notificaciones/${id}/read`, { method: 'POST' });
+                if (resp.ok) {
+                    loadNotifications();
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        async function markAllAsRead() {
+            const user = JSON.parse(localStorage.getItem('siac_user'));
+            if (!user || !user.email) return;
+            
+            try {
+                const resp = await fetch(`/api/notificaciones/read-all?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: user.email })
+                });
+                if (resp.ok) {
+                    loadNotifications();
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        function toggleNotifDropdown(e) {
+            e.stopPropagation();
+            document.getElementById('notifDropdown').classList.toggle('show');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            const dd = document.getElementById('notifDropdown');
+            if (dd) dd.classList.remove('show');
+        });
+        
+        // Polling notifications every 30 seconds
+        setInterval(loadNotifications, 30000);
         }
 
         async function loadAndRenderCommunityPerception(cId, char) {
@@ -426,6 +710,7 @@
             document.getElementById('inst_name').textContent = inst.name;
             if(inst.logo_url) { const img = document.getElementById('inst_logo'); img.src = inst.logo_url; img.style.display = 'block'; }
             loadSidebar();
+            loadNotifications();
         }
 
         init();
