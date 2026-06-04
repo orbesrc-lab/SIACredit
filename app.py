@@ -411,6 +411,53 @@ def create_notification(inst_id, program_id, email, tipo, titulo, mensaje):
     except Exception as e:
         print(f"Error creating notification: {e}")
 
+def calculate_plan_avance(plan, inst_id, program_id):
+    tipo = plan.get('indicador_tipo', 'porcentaje')
+    if tipo == 'porcentaje':
+        num = plan.get('indicador_meta_num')
+        den = plan.get('indicador_meta_den')
+        try:
+            num = int(num) if num is not None else 0
+            den = int(den) if den is not None else 1
+        except (ValueError, TypeError):
+            num, den = 0, 1
+        if den <= 0:
+            return 0
+        return int((num / den) * 100)
+    elif tipo == 'documento':
+        url = plan.get('indicador_documento_url')
+        return 100 if url else 0
+    elif tipo == 'opinion':
+        survey_id = plan.get('indicador_survey_id')
+        question_id = plan.get('indicador_question_id')
+        if not survey_id or not question_id:
+            return 0
+        try:
+            responses = survey_storage.load_local_responses_for_survey(str(survey_id))
+            if not responses:
+                responses = survey_storage.load_local_responses_for_survey(survey_id)
+            
+            vals = []
+            for r in responses:
+                ans = r.get('answers') or {}
+                val = ans.get(str(question_id))
+                if val is not None:
+                    try:
+                        vals.append(float(val))
+                    except ValueError:
+                        pass
+            if not vals:
+                return 0
+            avg = sum(vals) / len(vals)
+            return min(100, int((avg / 5.0) * 100))
+        except Exception as e:
+            print(f"Error calculating opinion progress: {e}")
+            return 0
+    try:
+        return int(plan.get('avance', 0))
+    except (ValueError, TypeError):
+        return 0
+
 @app.route('/api/planes_mejora', methods=['GET', 'POST'])
 def handle_planes_mejora():
     raw_inst_id = request.args.get('inst_id', 1, type=int)
@@ -420,15 +467,44 @@ def handle_planes_mejora():
     if request.method == 'POST':
         data = request.json
         try:
+            if data and 'avance' in data and data.get('indicador_meta_num') is None:
+                data = data.copy()
+                data['indicador_meta_num'] = data.get('avance')
+                data['indicador_meta_den'] = 100
             char_id = data.get('char_id')
             accion = data.get('accion')
             responsable = data.get('responsable')
             fecha_limite = data.get('fecha_limite')
-            estado = data.get('estado', 'Pendiente')
-            avance = data.get('avance', 0)
+            fecha_inicio = data.get('fecha_inicio')
+            meta = data.get('meta')
+            indicador_tipo = data.get('indicador_tipo', 'porcentaje')
+            indicador_meta_num = data.get('indicador_meta_num', 0)
+            indicador_meta_den = data.get('indicador_meta_den', 1)
+            indicador_documento_url = data.get('indicador_documento_url')
+            indicador_survey_id = data.get('indicador_survey_id')
+            indicador_question_id = data.get('indicador_question_id')
+            presupuesto_tiempo = data.get('presupuesto_tiempo')
+            presupuesto_dinero = data.get('presupuesto_dinero', 0)
+            responsable_rol = data.get('responsable_rol', 'lider')
             
             if not char_id or not accion or not responsable or not fecha_limite:
                 return jsonify({"status": "error", "message": "Datos incompletos"}), 400
+            
+            avance = calculate_plan_avance({
+                "indicador_tipo": indicador_tipo,
+                "indicador_meta_num": indicador_meta_num,
+                "indicador_meta_den": indicador_meta_den,
+                "indicador_documento_url": indicador_documento_url,
+                "indicador_survey_id": indicador_survey_id,
+                "indicador_question_id": indicador_question_id,
+                "avance": data.get('avance', 0)
+            }, inst_id, program_id)
+            
+            estado = data.get('estado', 'Pendiente')
+            if avance >= 100:
+                estado = 'Completado'
+            elif avance > 0 and estado == 'Pendiente':
+                estado = 'En proceso'
                 
             res = supabase.table('planes_mejora').insert({
                 "inst_id": inst_id,
@@ -437,11 +513,21 @@ def handle_planes_mejora():
                 "accion": accion,
                 "responsable": responsable,
                 "fecha_limite": fecha_limite,
+                "fecha_inicio": fecha_inicio,
+                "meta": meta,
+                "indicador_tipo": indicador_tipo,
+                "indicador_meta_num": int(indicador_meta_num) if indicador_meta_num is not None else 0,
+                "indicador_meta_den": int(indicador_meta_den) if indicador_meta_den is not None else 1,
+                "indicador_documento_url": indicador_documento_url,
+                "indicador_survey_id": str(indicador_survey_id) if indicador_survey_id else None,
+                "indicador_question_id": indicador_question_id,
+                "presupuesto_tiempo": presupuesto_tiempo,
+                "presupuesto_dinero": float(presupuesto_dinero) if presupuesto_dinero is not None else 0.0,
+                "responsable_rol": responsable_rol,
                 "estado": estado,
-                "avance": int(avance)
+                "avance": avance
             }).execute()
             
-            # Send notification
             titulo_notif = "Nueva accion de mejora asignada"
             msg_notif = f"Se te ha asignado la accion de mejora: '{accion}' con fecha limite {fecha_limite}."
             create_notification(inst_id, program_id, responsable, 'nueva_asignacion', titulo_notif, msg_notif)
@@ -451,14 +537,48 @@ def handle_planes_mejora():
             print(f"Error creating plan de mejora: {e}")
             return jsonify({"status": "error", "message": str(e)}), 500
             
-    # GET method
     char_id = request.args.get('char_id')
     try:
         query = supabase.table('planes_mejora').select("*").eq("inst_id", inst_id).eq("program_id", program_id)
         if char_id:
             query = query.eq("char_id", char_id)
         res = query.execute()
-        return jsonify(res.data or [])
+        planes_list = res.data or []
+        
+        if any(p.get('indicador_tipo') == 'opinion' for p in planes_list):
+            try:
+                survey_storage.pull_from_supabase(inst_id, program_id, supabase)
+            except Exception as e:
+                print(f"Error pulling surveys: {e}")
+                
+        updated_planes = []
+        for p in planes_list:
+            old_avance = p.get('avance', 0)
+            new_avance = calculate_plan_avance(p, inst_id, program_id)
+            
+            old_estado = p.get('estado')
+            new_estado = old_estado
+            if new_avance >= 100:
+                new_estado = 'Completado'
+            elif new_avance > 0 and old_estado == 'Pendiente':
+                new_estado = 'En proceso'
+            elif new_avance == 0 and old_estado == 'Completado':
+                new_estado = 'Pendiente'
+                
+            if new_avance != old_avance or new_estado != old_estado:
+                p['avance'] = new_avance
+                p['estado'] = new_estado
+                try:
+                    supabase.table('planes_mejora').update({
+                        "avance": new_avance,
+                        "estado": new_estado
+                    }).eq("id", p['id']).execute()
+                except Exception as db_err:
+                    print(f"Error auto-persisting avance/estado: {db_err}")
+                    
+            updated_planes.append(p)
+            
+        return jsonify(updated_planes)
     except Exception as e:
         print(f"Error loading planes de mejora: {e}")
         return jsonify([])
@@ -476,39 +596,97 @@ def update_delete_plan_mejora(plan_id):
             print(f"Error deleting plan de mejora: {e}")
             return jsonify({"status": "error", "message": str(e)}), 500
             
-    # PUT method
     data = request.json
     try:
-        avance = int(data.get('avance', 0))
-        estado = data.get('estado')
+        if data and 'avance' in data and data.get('indicador_meta_num') is None:
+            data = data.copy()
+            data['indicador_meta_num'] = data.get('avance')
+            data['indicador_meta_den'] = 100
+        existing = supabase.table('planes_mejora').select("*").eq("id", plan_id).execute()
+        if not existing.data:
+            return jsonify({"status": "error", "message": "Plan no encontrado"}), 404
+        plan_data = existing.data[0]
         
-        # Auto-complete status if progress is 100%
+        merged_data = {}
+        for k, v in plan_data.items():
+            merged_data[k] = v
+        for k, v in data.items():
+            if v is not None:
+                merged_data[k] = v
+                
+        avance = calculate_plan_avance(merged_data, inst_id, program_id)
+        estado = merged_data.get('estado')
         if avance >= 100:
             estado = 'Completado'
-        elif avance > 0 and estado == 'Pendiente':
+        elif avance > 0 and (estado == 'Pendiente' or not estado):
             estado = 'En proceso'
+        elif avance == 0 and estado == 'Completado':
+            estado = 'Pendiente'
             
         update_data = {
             "accion": data.get('accion'),
             "responsable": data.get('responsable'),
             "fecha_limite": data.get('fecha_limite'),
+            "fecha_inicio": data.get('fecha_inicio'),
+            "meta": data.get('meta'),
+            "indicador_tipo": data.get('indicador_tipo'),
+            "indicador_meta_num": int(data.get('indicador_meta_num')) if data.get('indicador_meta_num') is not None else None,
+            "indicador_meta_den": int(data.get('indicador_meta_den')) if data.get('indicador_meta_den') is not None else None,
+            "indicador_documento_url": data.get('indicador_documento_url'),
+            "indicador_survey_id": str(data.get('indicador_survey_id')) if data.get('indicador_survey_id') is not None else None,
+            "indicador_question_id": data.get('indicador_question_id'),
+            "presupuesto_tiempo": data.get('presupuesto_tiempo'),
+            "presupuesto_dinero": float(data.get('presupuesto_dinero')) if data.get('presupuesto_dinero') is not None else None,
+            "responsable_rol": data.get('responsable_rol'),
             "estado": estado,
             "avance": avance
         }
-        # Filter none values
         update_data = {k: v for k, v in update_data.items() if v is not None}
         
         res = supabase.table('planes_mejora').update(update_data).eq("id", plan_id).execute()
         
-        # If deadline changed, trigger alert notification
         if data.get('fecha_limite'):
             msg_notif = f"Se ha actualizado la fecha limite de la accion '{data.get('accion', 'asignada')}' al {data.get('fecha_limite')}."
-            create_notification(inst_id, program_id, data.get('responsable'), 'nueva_asignacion', "Actualizacion de fecha de accion", msg_notif)
+            create_notification(inst_id, program_id, data.get('responsable') or plan_data.get('responsable'), 'nueva_asignacion', "Actualizacion de fecha de accion", msg_notif)
             
         return jsonify({"status": "success", "data": res.data})
     except Exception as e:
         print(f"Error updating plan de mejora: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/planes_mejora/upload_soporte', methods=['POST'])
+def upload_soporte_plan():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    
+    plan_id = request.form.get('plan_id', 'unknown')
+    
+    import re
+    import time
+    clean_filename = re.sub(r'[^a-zA-Z0-9._-]', '_', file.filename)
+    timestamp = int(time.time())
+    parts = clean_filename.rsplit('.', 1)
+    if len(parts) == 2:
+        clean_filename = f"{parts[0]}_{timestamp}.{parts[1]}"
+    else:
+        clean_filename = f"{clean_filename}_{timestamp}"
+        
+    file_path = f"planes_soporte/{plan_id}/{clean_filename}"
+    try:
+        file_content = file.read()
+        supabase.storage.from_('evidencias').upload(
+            path=file_path,
+            file=file_content,
+            file_options={"content-type": file.content_type, "upsert": "true"}
+        )
+        file_url = supabase.storage.from_('evidencias').get_public_url(file_path)
+        return jsonify({"status": "success", "url": file_url, "name": file.filename})
+    except Exception as e:
+        print(f"Error uploading soporte plan: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/notificaciones', methods=['GET'])
 def get_notificaciones():

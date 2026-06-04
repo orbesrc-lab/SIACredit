@@ -267,15 +267,62 @@
         }
 
         // --- FUNCIONES GESTIÓN DE PLANES DE MEJORA ---
+        window.programSurveys = [];
+        window.currentPlanesList = [];
+
+        function toggleIndicadorFormFields(val) {
+            document.getElementById('indicador_fields_porcentaje').style.display = (val === 'porcentaje') ? 'flex' : 'none';
+            document.getElementById('indicador_fields_documento').style.display = (val === 'documento') ? 'block' : 'none';
+            document.getElementById('indicador_fields_opinion').style.display = (val === 'opinion') ? 'flex' : 'none';
+        }
+
+        function toggleEditIndicadorFormFields(planId, val) {
+            document.getElementById(`edit_indicador_fields_porcentaje_${planId}`).style.display = (val === 'porcentaje') ? 'flex' : 'none';
+            document.getElementById(`edit_indicador_fields_documento_${planId}`).style.display = (val === 'documento') ? 'block' : 'none';
+            document.getElementById(`edit_indicador_fields_opinion_${planId}`).style.display = (val === 'opinion') ? 'flex' : 'none';
+        }
+
+        async function loadSurveyQuestionsForPlan(surveyId, targetSelectId = 'new_plan_question_id', selectedQuestionId = '') {
+            const questionSelect = document.getElementById(targetSelectId);
+            if (!questionSelect) return;
+            
+            if (!surveyId) {
+                questionSelect.innerHTML = '<option value="">Seleccione primero una encuesta...</option>';
+                return;
+            }
+            
+            const survey = window.programSurveys.find(s => s.id == surveyId);
+            if (!survey || !survey.questions) {
+                questionSelect.innerHTML = '<option value="">No hay preguntas en esta encuesta</option>';
+                return;
+            }
+            
+            questionSelect.innerHTML = '<option value="">-- Seleccione una Pregunta --</option>';
+            survey.questions.forEach(q => {
+                const isSelected = q.id == selectedQuestionId ? 'selected' : '';
+                questionSelect.innerHTML += `<option value="${q.id}" ${isSelected}>[${q.type || 'Escala'}] ${q.text}</option>`;
+            });
+        }
+
         async function loadAndRenderPlanesMejora(cId) {
             const wrapper = document.getElementById('planesMejoraContainer');
             if (!wrapper) return;
             
             wrapper.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b; font-size:0.85rem;">⏳ Cargando planes de mejora...</div>`;
             
+            if (window.programSurveys.length === 0) {
+                try {
+                    const sResp = await fetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    window.programSurveys = await sResp.json();
+                } catch (err) {
+                    console.error("Error loading surveys for dropdown:", err);
+                }
+            }
+
             try {
                 const resp = await fetch(`/api/planes_mejora?inst_id=${getInstId()}&program_id=${getProgramId()}&char_id=${cId}`);
                 const planes = await resp.json();
+                window.currentPlanesList = planes;
                 
                 let html = `
                     <div style="background:#fef3c7; border:1px solid #fde68a; border-radius:10px; padding:20px; margin-top:15px; text-align: left;">
@@ -283,17 +330,99 @@
                             <span>📋 Planes de Mejora para esta Característica</span>
                             <button class="btn-primary" onclick="showAddPlanForm()" style="padding:6px 12px; font-size:0.8rem; background:#d97706; border:none; border-radius:6px; cursor:pointer; color: white;">➕ Nueva Acción</button>
                         </h4>
-                        <div id="addPlanFormContainer" style="display:none; background:white; border:1px solid #e2e8f0; border-radius:8px; padding:15px; margin-bottom:15px;">
-                            <h5 style="margin:0 0 10px; font-size:0.85rem; color:#1e293b;">Agregar Nueva Acción</h5>
-                            <div style="display:flex; flex-direction:column; gap:10px;">
-                                <input type="text" id="new_plan_accion" placeholder="Descripción de la acción..." style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem;">
-                                <div style="display:flex; gap:10px;">
-                                    <input type="email" id="new_plan_responsable" placeholder="Email del responsable..." style="flex:1; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem;">
-                                    <input type="date" id="new_plan_fecha" style="flex:1; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem;">
+                        <div id="addPlanFormContainer" style="display:none; background:white; border:1px solid #e2e8f0; border-radius:12px; padding:20px; margin-bottom:15px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);">
+                            <h5 style="margin:0 0 15px; font-size:0.95rem; color:#1e293b; font-weight:700;">Formular Nueva Acción de Mejora</h5>
+                            <div style="display:flex; flex-direction:column; gap:12px;">
+                                <div>
+                                    <label style="display:block; font-size:0.75rem; font-weight:600; color:#475569; margin-bottom:4px;">Actividad (Acción a realizar) *</label>
+                                    <input type="text" id="new_plan_accion" placeholder="Ej: Desarrollar taller de capacitación para docentes..." style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; box-sizing:border-box;">
                                 </div>
-                                <div style="display:flex; gap:10px; justify-content:flex-end;">
-                                    <button class="btn-primary" onclick="hideAddPlanForm()" style="background:#64748b; border:none; padding:6px 12px; font-size:0.8rem; border-radius:6px; cursor:pointer; color:white;">Cancelar</button>
-                                    <button class="btn-primary" onclick="submitNewPlan('${cId}')" style="background:#d97706; border:none; padding:6px 12px; font-size:0.8rem; border-radius:6px; cursor:pointer; color:white;">Guardar Acción</button>
+                                <div>
+                                    <label style="display:block; font-size:0.75rem; font-weight:600; color:#475569; margin-bottom:4px;">Meta cualitativa</label>
+                                    <textarea id="new_plan_meta" placeholder="Ej: Lograr que el 90% de los docentes asistan..." rows="2" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; box-sizing:border-box; font-family:inherit; resize:vertical;"></textarea>
+                                </div>
+                                
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                                    <div>
+                                        <label style="display:block; font-size:0.75rem; font-weight:600; color:#475569; margin-bottom:4px;">Fecha de Inicio</label>
+                                        <input type="date" id="new_plan_fecha_inicio" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; box-sizing:border-box;">
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:0.75rem; font-weight:600; color:#475569; margin-bottom:4px;">Fecha de Finalización *</label>
+                                        <input type="date" id="new_plan_fecha" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; box-sizing:border-box;">
+                                    </div>
+                                </div>
+                                
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                                    <div>
+                                        <label style="display:block; font-size:0.75rem; font-weight:600; color:#475569; margin-bottom:4px;">Presupuesto en Tiempo</label>
+                                        <input type="text" id="new_plan_presupuesto_tiempo" placeholder="Ej: 40 horas, 2 meses..." style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; box-sizing:border-box;">
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:0.75rem; font-weight:600; color:#475569; margin-bottom:4px;">Presupuesto Financiero (Moneda local)</label>
+                                        <input type="number" id="new_plan_presupuesto_dinero" placeholder="Ej: 500000" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; box-sizing:border-box;">
+                                    </div>
+                                </div>
+
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                                    <div>
+                                        <label style="display:block; font-size:0.75rem; font-weight:600; color:#475569; margin-bottom:4px;">Rol del Responsable</label>
+                                        <select id="new_plan_responsable_rol" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; box-sizing:border-box;">
+                                            <option value="lider">LÍDER</option>
+                                            <option value="admin">ADMINISTRADOR</option>
+                                            <option value="operativo">OPERATIVO</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:0.75rem; font-weight:600; color:#475569; margin-bottom:4px;">Email del Responsable *</label>
+                                        <input type="email" id="new_plan_responsable" placeholder="Ej: responsable@correo.com" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; box-sizing:border-box;">
+                                    </div>
+                                </div>
+
+                                <div style="border:1px solid #e2e8f0; border-radius:8px; padding:12px; background:#f8fafc;">
+                                    <label style="display:block; font-size:0.75rem; font-weight:700; color:#334155; margin-bottom:6px;">Configurar Indicador de Seguimiento</label>
+                                    <select id="new_plan_indicador_tipo" onchange="toggleIndicadorFormFields(this.value)" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; margin-bottom:10px;">
+                                        <option value="porcentaje">Porcentaje (% de avance manual)</option>
+                                        <option value="documento">Soporte Documental (100% al subir adjunto)</option>
+                                        <option value="opinion">Opinión vinculada (Promedio de encuesta / 5.0)</option>
+                                    </select>
+                                    
+                                    <div id="indicador_fields_porcentaje" style="display:flex; gap:10px; align-items:center;">
+                                        <div style="flex:1;">
+                                            <label style="display:block; font-size:0.7rem; color:#64748b; margin-bottom:2px;">Numerador Actual</label>
+                                            <input type="number" id="new_plan_meta_num" value="0" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                        </div>
+                                        <div style="font-size:1.2rem; color:#94a3b8; padding-top:14px;">/</div>
+                                        <div style="flex:1;">
+                                            <label style="display:block; font-size:0.7rem; color:#64748b; margin-bottom:2px;">Denominador Meta</label>
+                                            <input type="number" id="new_plan_meta_den" value="1" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                        </div>
+                                        <div style="padding-top:14px; font-size:0.8rem; font-weight:700; color:#475569;">x 100%</div>
+                                    </div>
+                                    
+                                    <div id="indicador_fields_documento" style="display:none; font-size:0.8rem; color:#475569; line-height:1.4;">
+                                        ℹ️ El progreso se calculará como <strong>0%</strong> inicialmente, y pasará automáticamente al <strong>100%</strong> cuando se suba el documento soporte en la lista de planes.
+                                    </div>
+                                    
+                                    <div id="indicador_fields_opinion" style="display:none; flex-direction:column; gap:10px;">
+                                        <div>
+                                            <label style="display:block; font-size:0.7rem; color:#64748b; margin-bottom:2px;">Seleccionar Encuesta</label>
+                                            <select id="new_plan_survey_id" onchange="loadSurveyQuestionsForPlan(this.value)" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                                <option value="">-- Seleccione una Encuesta --</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style="display:block; font-size:0.7rem; color:#64748b; margin-bottom:2px;">Seleccionar Pregunta Cuantitativa</label>
+                                            <select id="new_plan_question_id" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                                <option value="">Seleccione primero una encuesta...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:5px;">
+                                    <button class="btn-primary" onclick="hideAddPlanForm()" style="background:#64748b; border:none; padding:8px 16px; font-size:0.8rem; border-radius:6px; cursor:pointer; color:white; font-weight:600;">Cancelar</button>
+                                    <button class="btn-primary" onclick="submitNewPlan('${cId}')" style="background:#d97706; border:none; padding:8px 16px; font-size:0.8rem; border-radius:6px; cursor:pointer; color:white; font-weight:600;">Guardar Acción</button>
                                 </div>
                             </div>
                         </div>
@@ -305,32 +434,176 @@
                             No hay planes de mejora registrados para esta característica.
                         </div></div>`;
                     wrapper.innerHTML = html;
+                    
+                    const surveySelect = document.getElementById('new_plan_survey_id');
+                    if (surveySelect) {
+                        surveySelect.innerHTML = '<option value="">-- Seleccione una Encuesta --</option>';
+                        window.programSurveys.forEach(s => {
+                            surveySelect.innerHTML += `<option value="${s.id}">${s.title || s.name || s.id}</option>`;
+                        });
+                    }
                     return;
                 }
                 
-                html += `<div style="display:flex; flex-direction:column; gap:10px;">`;
+                html += `<div style="display:flex; flex-direction:column; gap:12px;">`;
                 
                 planes.forEach(plan => {
                     const isCompleted = plan.estado === 'Completado';
                     const estadoColor = plan.estado === 'Completado' ? '#059669' : plan.estado === 'En proceso' ? '#2563eb' : '#d97706';
                     
                     html += `
-                        <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:15px; display:flex; flex-direction:column; gap:8px;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <div style="font-weight:600; font-size:0.9rem; color:#1e293b;">${plan.accion}</div>
-                                <div style="display:flex; gap:5px;">
-                                    <button onclick="deletePlan(${plan.id}, '${cId}')" style="background:none; border:none; cursor:pointer; font-size:0.9rem; color:#ef4444;" title="Eliminar">🗑️</button>
+                        <div id="planCard_${plan.id}" style="background:white; border:1px solid #e2e8f0; border-radius:10px; padding:18px; display:flex; flex-direction:column; gap:12px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+                                <div style="font-weight:700; font-size:0.95rem; color:#0f172a;">${plan.accion}</div>
+                                <div style="display:flex; gap:8px;">
+                                    <button onclick="toggleEditPlanForm(${plan.id})" style="background:none; border:none; cursor:pointer; font-size:0.95rem;" title="Editar">✏️</button>
+                                    <button onclick="deletePlan(${plan.id}, '${cId}')" style="background:none; border:none; cursor:pointer; font-size:0.95rem; color:#ef4444;" title="Eliminar">🗑️</button>
                                 </div>
                             </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:#64748b; flex-wrap:wrap; gap:10px;">
-                                <div>Responsable: <strong>${plan.responsable}</strong></div>
-                                <div>Límite: <strong>${plan.fecha_limite}</strong></div>
-                                <div style="color:${estadoColor}; font-weight:700; text-transform:uppercase;">${plan.estado}</div>
+                            
+                            ${plan.meta ? `
+                            <div style="font-size:0.8rem; color:#475569; background:#f8fafc; border-left:3px solid #cbd5e1; padding:6px 10px; border-radius:0 4px 4px 0;">
+                                <strong>Meta:</strong> ${plan.meta}
+                            </div>` : ''}
+
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px; font-size:0.75rem; border-top:1px dashed #e2e8f0; border-bottom:1px dashed #e2e8f0; padding:10px 0; color:#475569;">
+                                <div>📅 <strong>Fecha Inicio:</strong> ${plan.fecha_inicio || '-'}</div>
+                                <div>📅 <strong>Fecha Fin:</strong> ${plan.fecha_limite || '-'}</div>
+                                <div>⏱️ <strong>Tiempo:</strong> ${plan.presupuesto_tiempo || 'No asignado'}</div>
+                                <div>💰 <strong>Presupuesto:</strong> ${plan.presupuesto_dinero ? '$' + Number(plan.presupuesto_dinero).toLocaleString() : 'No asignado'}</div>
+                                <div>👤 <strong>Responsable:</strong> ${plan.responsable} (${(plan.responsable_rol || 'lider').toUpperCase()})</div>
                             </div>
-                            <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
-                                <div style="flex:1; display:flex; align-items:center; gap:8px;">
-                                    <input type="range" min="0" max="100" value="${plan.avance}" onchange="updatePlanProgress(${plan.id}, this.value, '${plan.estado}', '${plan.accion.replace(/'/g, "\\'")}', '${plan.responsable}', '${plan.fecha_limite}', '${cId}')" style="flex:1; accent-color:#d97706;">
-                                    <span style="font-size:0.8rem; font-weight:700; width:35px; text-align:right;">${plan.avance}%</span>
+
+                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;">
+                                    <span style="font-weight:600; color:#1e293b;">
+                                        ${plan.indicador_tipo === 'porcentaje' ? `📈 Indicador: Porcentaje (${plan.indicador_meta_num}/${plan.indicador_meta_den})` :
+                                          plan.indicador_tipo === 'documento' ? `📄 Indicador: Soporte Documental` :
+                                          `📊 Indicador: Opinión (Encuestas)`}
+                                    </span>
+                                    <span style="color:${estadoColor}; font-weight:700; text-transform:uppercase; font-size:0.75rem;">${plan.estado} (${plan.avance}%)</span>
+                                </div>
+                                
+                                <div style="width:100%; height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                                    <div style="width:${plan.avance}%; height:100%; background:${estadoColor}; border-radius:4px; transition: width 0.3s ease;"></div>
+                                </div>
+
+                                <div style="margin-top:6px; padding:8px; border-radius:6px; background:#f8fafc; border:1px solid #f1f5f9; font-size:0.75rem;">
+                                    ${plan.indicador_tipo === 'porcentaje' ? `
+                                        <div style="display:flex; align-items:center; gap:8px; justify-content:space-between;">
+                                            <span>Actualizar Avance Manual:</span>
+                                            <div style="display:flex; align-items:center; gap:5px;">
+                                                <input type="number" id="inline_num_${plan.id}" value="${plan.indicador_meta_num}" style="width:50px; padding:3px; border:1px solid #cbd5e1; border-radius:4px; text-align:center;">
+                                                <span>/</span>
+                                                <input type="number" id="inline_den_${plan.id}" value="${plan.indicador_meta_den}" style="width:50px; padding:3px; border:1px solid #cbd5e1; border-radius:4px; text-align:center;">
+                                                <button onclick="saveInlinePorcentaje(${plan.id}, '${cId}')" style="background:#d97706; border:none; padding:4px 8px; border-radius:4px; color:white; cursor:pointer; font-weight:600;">Actualizar</button>
+                                            </div>
+                                        </div>
+                                    ` : plan.indicador_tipo === 'documento' ? `
+                                        <div style="display:flex; align-items:center; gap:10px; justify-content:space-between; flex-wrap:wrap;">
+                                            <div>
+                                                ${plan.indicador_documento_url ? `
+                                                    <a href="${plan.indicador_documento_url}" target="_blank" style="color:#2563eb; font-weight:600; text-decoration:underline;">📄 Ver Soporte</a>
+                                                ` : `<span style="color:#ef4444; font-weight:600;">⚠️ Sin documento soporte</span>`}
+                                            </div>
+                                            <div>
+                                                <input type="file" id="file_upload_${plan.id}" style="display:none;" onchange="uploadSoporteDocumental(${plan.id}, '${cId}')">
+                                                <button onclick="document.getElementById('file_upload_${plan.id}').click()" style="background:#2563eb; border:none; padding:4px 8px; border-radius:4px; color:white; cursor:pointer; font-weight:600;">
+                                                    ${plan.indicador_documento_url ? 'Reemplazar Archivo' : 'Subir Archivo'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ` : `
+                                        <div style="color:#475569;">
+                                            📍 Encuesta: <strong>${(window.programSurveys.find(s => s.id == plan.indicador_survey_id) || {}).title || 'Encuesta ' + plan.indicador_survey_id}</strong><br>
+                                            Pregunta: <em>"${plan.indicador_question_id}"</em>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="planEditForm_${plan.id}" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:18px; flex-direction:column; gap:12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);">
+                            <h5 style="margin:0 0 5px; font-size:0.85rem; color:#1e293b; font-weight:700;">Editar Acción de Mejora</h5>
+                            <div style="display:flex; flex-direction:column; gap:10px;">
+                                <div>
+                                    <label style="display:block; font-size:0.7rem; font-weight:600; color:#475569; margin-bottom:2px;">Actividad *</label>
+                                    <input type="text" id="edit_plan_accion_${plan.id}" value="${plan.accion}" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:0.7rem; font-weight:600; color:#475569; margin-bottom:2px;">Meta cualitativa</label>
+                                    <textarea id="edit_plan_meta_${plan.id}" rows="2" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box; font-family:inherit; resize:vertical;">${plan.meta || ''}</textarea>
+                                </div>
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                                    <div>
+                                        <label style="display:block; font-size:0.7rem; font-weight:600; color:#475569; margin-bottom:2px;">Fecha Inicio</label>
+                                        <input type="date" id="edit_plan_fecha_inicio_${plan.id}" value="${plan.fecha_inicio || ''}" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:0.7rem; font-weight:600; color:#475569; margin-bottom:2px;">Fecha Fin *</label>
+                                        <input type="date" id="edit_plan_fecha_${plan.id}" value="${plan.fecha_limite || ''}" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                    </div>
+                                </div>
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                                    <div>
+                                        <label style="display:block; font-size:0.7rem; font-weight:600; color:#475569; margin-bottom:2px;">Presupuesto Tiempo</label>
+                                        <input type="text" id="edit_plan_presupuesto_tiempo_${plan.id}" value="${plan.presupuesto_tiempo || ''}" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:0.7rem; font-weight:600; color:#475569; margin-bottom:2px;">Presupuesto Dinero</label>
+                                        <input type="number" id="edit_plan_presupuesto_dinero_${plan.id}" value="${plan.presupuesto_dinero || 0}" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                    </div>
+                                </div>
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                                    <div>
+                                        <label style="display:block; font-size:0.7rem; font-weight:600; color:#475569; margin-bottom:2px;">Rol Responsable</label>
+                                        <select id="edit_plan_responsable_rol_${plan.id}" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                            <option value="lider" ${plan.responsable_rol === 'lider' ? 'selected' : ''}>LÍDER</option>
+                                            <option value="admin" ${plan.responsable_rol === 'admin' ? 'selected' : ''}>ADMINISTRADOR</option>
+                                            <option value="operativo" ${plan.responsable_rol === 'operativo' ? 'selected' : ''}>OPERATIVO</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:0.7rem; font-weight:600; color:#475569; margin-bottom:2px;">Email Responsable *</label>
+                                        <input type="email" id="edit_plan_responsable_${plan.id}" value="${plan.responsable}" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                    </div>
+                                </div>
+
+                                <div style="border:1px solid #cbd5e1; border-radius:6px; padding:10px; background:white;">
+                                    <label style="display:block; font-size:0.7rem; font-weight:700; color:#334155; margin-bottom:4px;">Configurar Indicador</label>
+                                    <select id="edit_plan_indicador_tipo_${plan.id}" onchange="toggleEditIndicadorFormFields(${plan.id}, this.value)" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; margin-bottom:8px;">
+                                        <option value="porcentaje" ${plan.indicador_tipo === 'porcentaje' ? 'selected' : ''}>Porcentaje (% de avance manual)</option>
+                                        <option value="documento" ${plan.indicador_tipo === 'documento' ? 'selected' : ''}>Soporte Documental (100% al subir adjunto)</option>
+                                        <option value="opinion" ${plan.indicador_tipo === 'opinion' ? 'selected' : ''}>Opinión vinculada (Promedio de encuesta / 5.0)</option>
+                                    </select>
+                                    
+                                    <div id="edit_indicador_fields_porcentaje_${plan.id}" style="display:${plan.indicador_tipo === 'porcentaje' ? 'flex' : 'none'}; gap:10px; align-items:center;">
+                                        <div style="flex:1;">
+                                            <input type="number" id="edit_plan_meta_num_${plan.id}" value="${plan.indicador_meta_num || 0}" style="width:100%; padding:4px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                        </div>
+                                        <div>/</div>
+                                        <div style="flex:1;">
+                                            <input type="number" id="edit_plan_meta_den_${plan.id}" value="${plan.indicador_meta_den || 1}" style="width:100%; padding:4px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="edit_indicador_fields_documento_${plan.id}" style="display:${plan.indicador_tipo === 'documento' ? 'block' : 'none'}; font-size:0.75rem; color:#475569;">
+                                        ℹ️ El progreso es 100% si hay un archivo subido.
+                                    </div>
+                                    
+                                    <div id="edit_indicador_fields_opinion_${plan.id}" style="display:${plan.indicador_tipo === 'opinion' ? 'flex' : 'none'}; flex-direction:column; gap:8px;">
+                                        <select id="edit_plan_survey_id_${plan.id}" onchange="loadSurveyQuestionsForPlan(this.value, 'edit_plan_question_id_${plan.id}')" style="width:100%; padding:4px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem;">
+                                            <option value="">-- Seleccionar Encuesta --</option>
+                                        </select>
+                                        <select id="edit_plan_question_id_${plan.id}" style="width:100%; padding:4px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem;">
+                                            <option value="">-- Seleccionar Pregunta --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:5px;">
+                                    <button class="btn-primary" onclick="toggleEditPlanForm(${plan.id})" style="background:#64748b; border:none; padding:6px 12px; font-size:0.8rem; border-radius:6px; cursor:pointer; color:white;">Cancelar</button>
+                                    <button class="btn-primary" onclick="submitEditPlan(${plan.id}, '${cId}')" style="background:#d97706; border:none; padding:6px 12px; font-size:0.8rem; border-radius:6px; cursor:pointer; color:white;">Guardar</button>
                                 </div>
                             </div>
                         </div>
@@ -339,6 +612,14 @@
                 
                 html += `</div></div>`;
                 wrapper.innerHTML = html;
+                
+                const surveySelect = document.getElementById('new_plan_survey_id');
+                if (surveySelect) {
+                    surveySelect.innerHTML = '<option value="">-- Seleccione una Encuesta --</option>';
+                    window.programSurveys.forEach(s => {
+                        surveySelect.innerHTML += `<option value="${s.id}">${s.title || s.name || s.id}</option>`;
+                    });
+                }
             } catch (err) {
                 console.error("Error loading planes:", err);
                 wrapper.innerHTML = `<div style="color:#ef4444; font-size:0.8rem;">Error al cargar planes de mejora.</div>`;
@@ -347,6 +628,7 @@
         
         function showAddPlanForm() {
             document.getElementById('addPlanFormContainer').style.display = 'block';
+            document.getElementById('new_plan_fecha_inicio').value = new Date().toISOString().substring(0, 10);
         }
         
         function hideAddPlanForm() {
@@ -355,8 +637,27 @@
         
         async function submitNewPlan(cId) {
             const accion = document.getElementById('new_plan_accion').value.trim();
-            const responsable = document.getElementById('new_plan_responsable').value.trim();
+            const meta = document.getElementById('new_plan_meta').value.trim();
+            const fecha_inicio = document.getElementById('new_plan_fecha_inicio').value;
             const fecha_limite = document.getElementById('new_plan_fecha').value;
+            const presupuesto_tiempo = document.getElementById('new_plan_presupuesto_tiempo').value.trim();
+            const presupuesto_dinero = document.getElementById('new_plan_presupuesto_dinero').value;
+            const responsable_rol = document.getElementById('new_plan_responsable_rol').value;
+            const responsable = document.getElementById('new_plan_responsable').value.trim();
+            const indicador_tipo = document.getElementById('new_plan_indicador_tipo').value;
+            
+            let indicador_meta_num = 0;
+            let indicador_meta_den = 1;
+            let indicador_survey_id = null;
+            let indicador_question_id = null;
+            
+            if (indicador_tipo === 'porcentaje') {
+                indicador_meta_num = parseInt(document.getElementById('new_plan_meta_num').value) || 0;
+                indicador_meta_den = parseInt(document.getElementById('new_plan_meta_den').value) || 1;
+            } else if (indicador_tipo === 'opinion') {
+                indicador_survey_id = parseInt(document.getElementById('new_plan_survey_id').value) || null;
+                indicador_question_id = document.getElementById('new_plan_question_id').value || null;
+            }
             
             if (!accion || !responsable || !fecha_limite) {
                 alert("Por favor complete todos los campos de la acción.");
@@ -369,9 +670,19 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         char_id: cId,
-                        accion: accion,
-                        responsable: responsable,
-                        fecha_limite: fecha_limite,
+                        accion,
+                        meta,
+                        fecha_inicio,
+                        fecha_limite,
+                        presupuesto_tiempo,
+                        presupuesto_dinero: presupuesto_dinero ? parseFloat(presupuesto_dinero) : 0,
+                        responsable_rol,
+                        responsable,
+                        indicador_tipo,
+                        indicador_meta_num,
+                        indicador_meta_den,
+                        indicador_survey_id,
+                        indicador_question_id,
                         avance: 0,
                         estado: 'Pendiente'
                     })
@@ -388,25 +699,163 @@
                 alert("Error al guardar la acción de mejora.");
             }
         }
-        
-        async function updatePlanProgress(planId, value, currentStatus, accion, responsable, fecha_limite, cId) {
+
+        function toggleEditPlanForm(planId) {
+            const card = document.getElementById(`planCard_${planId}`);
+            const form = document.getElementById(`planEditForm_${planId}`);
+            if (!card || !form) return;
+            
+            if (form.style.display === 'none') {
+                card.style.display = 'none';
+                form.style.display = 'flex';
+                
+                const surveySelect = document.getElementById(`edit_plan_survey_id_${planId}`);
+                if (surveySelect) {
+                    surveySelect.innerHTML = '<option value="">-- Seleccione una Encuesta --</option>';
+                    window.programSurveys.forEach(s => {
+                        surveySelect.innerHTML += `<option value="${s.id}">${s.title || s.name || s.id}</option>`;
+                    });
+                    const plan = window.currentPlanesList.find(p => p.id === planId);
+                    if (plan && plan.indicador_survey_id) {
+                        surveySelect.value = plan.indicador_survey_id;
+                        loadSurveyQuestionsForPlan(plan.indicador_survey_id, `edit_plan_question_id_${planId}`, plan.indicador_question_id);
+                    }
+                }
+            } else {
+                card.style.display = 'flex';
+                form.style.display = 'none';
+            }
+        }
+
+        async function submitEditPlan(planId, cId) {
+            const accion = document.getElementById(`edit_plan_accion_${planId}`).value.trim();
+            const meta = document.getElementById(`edit_plan_meta_${planId}`).value.trim();
+            const fecha_inicio = document.getElementById(`edit_plan_fecha_inicio_${planId}`).value;
+            const fecha_limite = document.getElementById(`edit_plan_fecha_${planId}`).value;
+            const presupuesto_tiempo = document.getElementById(`edit_plan_presupuesto_tiempo_${planId}`).value.trim();
+            const presupuesto_dinero = document.getElementById(`edit_plan_presupuesto_dinero_${planId}`).value;
+            const responsable_rol = document.getElementById(`edit_plan_responsable_rol_${planId}`).value;
+            const responsable = document.getElementById(`edit_plan_responsable_${planId}`).value.trim();
+            const indicador_tipo = document.getElementById(`edit_plan_indicador_tipo_${planId}`).value;
+            
+            let indicador_meta_num = null;
+            let indicador_meta_den = null;
+            let indicador_survey_id = null;
+            let indicador_question_id = null;
+            
+            if (indicador_tipo === 'porcentaje') {
+                indicador_meta_num = parseInt(document.getElementById(`edit_plan_meta_num_${planId}`).value) || 0;
+                indicador_meta_den = parseInt(document.getElementById(`edit_plan_meta_den_${planId}`).value) || 1;
+            } else if (indicador_tipo === 'opinion') {
+                indicador_survey_id = parseInt(document.getElementById(`edit_plan_survey_id_${planId}`).value) || null;
+                indicador_question_id = document.getElementById(`edit_plan_question_id_${planId}`).value || null;
+            }
+            
+            if (!accion || !responsable || !fecha_limite) {
+                alert("Por favor complete los campos obligatorios (*).");
+                return;
+            }
+            
             try {
                 const resp = await fetch(`/api/planes_mejora/${planId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        avance: parseInt(value),
-                        estado: currentStatus,
-                        accion: accion,
-                        responsable: responsable,
-                        fecha_limite: fecha_limite
+                        accion,
+                        meta,
+                        fecha_inicio,
+                        fecha_limite,
+                        presupuesto_tiempo,
+                        presupuesto_dinero: presupuesto_dinero ? parseFloat(presupuesto_dinero) : 0,
+                        responsable_rol,
+                        responsable,
+                        indicador_tipo,
+                        indicador_meta_num,
+                        indicador_meta_den,
+                        indicador_survey_id,
+                        indicador_question_id
+                    })
+                });
+                
+                if (resp.ok) {
+                    loadAndRenderPlanesMejora(cId);
+                } else {
+                    const err = await resp.json();
+                    alert("Error al actualizar: " + err.message);
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Error al actualizar la acción.");
+            }
+        }
+
+        async function saveInlinePorcentaje(planId, cId) {
+            const num = parseInt(document.getElementById(`inline_num_${planId}`).value) || 0;
+            const den = parseInt(document.getElementById(`inline_den_${planId}`).value) || 1;
+            
+            try {
+                const resp = await fetch(`/api/planes_mejora/${planId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        indicador_meta_num: num,
+                        indicador_meta_den: den
                     })
                 });
                 if (resp.ok) {
                     loadAndRenderPlanesMejora(cId);
+                } else {
+                    alert("Error al actualizar porcentaje.");
                 }
-            } catch(e) {
+            } catch (e) {
                 console.error(e);
+            }
+        }
+
+        async function uploadSoporteDocumental(planId, cId) {
+            const fileInput = document.getElementById(`file_upload_${planId}`);
+            if (!fileInput || !fileInput.files[0]) return;
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('plan_id', planId);
+            
+            try {
+                const btn = fileInput.nextElementSibling;
+                const originalText = btn.innerText;
+                btn.innerText = "⏳ Subiendo...";
+                btn.disabled = true;
+                
+                const uploadResp = await fetch('/api/planes_mejora/upload_soporte', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!uploadResp.ok) {
+                    const err = await uploadResp.json();
+                    throw new Error(err.error || "Error de red");
+                }
+                
+                const uploadData = await uploadResp.json();
+                
+                const updateResp = await fetch(`/api/planes_mejora/${planId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        indicador_documento_url: uploadData.url
+                    })
+                });
+                
+                if (updateResp.ok) {
+                    loadAndRenderPlanesMejora(cId);
+                } else {
+                    alert("Error al vincular el documento soporte al plan.");
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error al subir archivo: " + err.message);
             }
         }
         

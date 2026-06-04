@@ -694,12 +694,7 @@
         document.addEventListener('click', () => {
             const dd = document.getElementById('notifDropdown');
             if (dd) dd.classList.remove('show');
-        });
-        
-        // Polling notifications every 30 seconds
-        setInterval(loadNotifications, 30000);
-
-        // --- EXPORTAR PLAN DE MEJORAMIENTO A EXCEL ---
+              // --- EXPORTAR PLAN DE MEJORAMIENTO A EXCEL ---
         function exportPlanesExcel() {
             const table = document.getElementById('tablaPlanesMejora');
             if (!table) {
@@ -724,14 +719,14 @@
             // Clean table for excel presentation
             const tempTable = table.cloneNode(true);
             
-            // Replace progress bar with text
+            // Replace progress bar with text (progress is column index 10, status is column index 11)
             tempTable.querySelectorAll('tr').forEach(row => {
-                const progressCell = row.cells[4];
+                const progressCell = row.cells[10];
                 if (progressCell && progressCell.querySelector('span')) {
                     const val = progressCell.querySelector('span').textContent;
                     progressCell.innerHTML = val;
                 }
-                const badgeCell = row.cells[5];
+                const badgeCell = row.cells[11];
                 if (badgeCell && badgeCell.querySelector('span')) {
                     const badge = badgeCell.querySelector('span');
                     const text = badge.textContent;
@@ -758,7 +753,7 @@
                 </html>
             `;
             
-            const blob = new Blob(['\\ufeff' + html], { type: 'application/vnd.ms-excel' });
+            const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -1006,19 +1001,14 @@
                             <h5>🌐 Análisis Integral Global</h5>
                             <div class="ai-md-content">${marked.parse(data.cuadros['ai_analysis_global'])}</div>
                         </div>`;
-                }
-                aiSectionHtml += statsAIHtml + `</div></div>`;
-                todoElHtml += aiSectionHtml;
-            }
-
-            // --- SECCIÓN PLAN DE MEJORAMIENTO CONSOLIDADO ---
-            const planes = data.planes_mejora || [];
+                         const planes = data.planes_mejora || [];
             const totalPlanes = planes.length;
             
-            // Calculate progress average
             const avgProgress = totalPlanes > 0 ? (planes.reduce((acc, p) => acc + (p.avance || 0), 0) / totalPlanes).toFixed(1) : '0.0';
+            const totalDinero = planes.reduce((acc, p) => acc + (parseFloat(p.presupuesto_dinero) || 0), 0);
+            const timeBudgets = planes.map(p => p.presupuesto_tiempo).filter(t => t && t.trim() !== '');
+            const totalTiempoText = timeBudgets.length > 0 ? `${timeBudgets.length} asignados` : 'Ninguno';
             
-            // Count states
             let pendingCount = 0;
             let processCount = 0;
             let completedCount = 0;
@@ -1044,25 +1034,33 @@
                     <p style="color:#64748b; margin-bottom:20px; text-align: left; font-size: 0.9rem;">Seguimiento detallado de las acciones de mejoramiento registradas por los líderes de factor.</p>
                     
                     <div class="planes-grid">
-                        <div class="planes-metrics-card">
-                            <div class="plane-metric-box">
-                                <span class="plane-metric-val">${totalPlanes}</span>
-                                <span class="plane-metric-lbl">Total Acciones</span>
+                        <div class="planes-metrics-card" style="grid-template-columns: repeat(3, 1fr); gap: 15px; flex: 2; display: grid;">
+                            <div class="plane-metric-box" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
+                                <span class="plane-metric-val" style="display:block; font-size:1.3rem; font-weight:700; color:#0f172a;">${totalPlanes}</span>
+                                <span class="plane-metric-lbl" style="font-size:0.75rem; color:#64748b;">Total Acciones</span>
                             </div>
-                            <div class="plane-metric-box">
-                                <span class="plane-metric-val">${avgProgress}%</span>
-                                <span class="plane-metric-lbl">Avance Promedio</span>
+                            <div class="plane-metric-box" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
+                                <span class="plane-metric-val" style="display:block; font-size:1.3rem; font-weight:700; color:#2563eb;">${avgProgress}%</span>
+                                <span class="plane-metric-lbl" style="font-size:0.75rem; color:#64748b;">Avance Promedio</span>
                             </div>
-                            <div class="plane-metric-box">
-                                <span class="plane-metric-val" style="color:#10b981;">${completedCount}</span>
-                                <span class="plane-metric-lbl">Completadas</span>
+                            <div class="plane-metric-box" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
+                                <span class="plane-metric-val" style="display:block; font-size:1.3rem; font-weight:700; color:#059669;">$${totalDinero.toLocaleString()}</span>
+                                <span class="plane-metric-lbl" style="font-size:0.75rem; color:#64748b;">Inversión Total</span>
                             </div>
-                            <div class="plane-metric-box">
-                                <span class="plane-metric-val" style="color:#ef4444;">${expiredCount}</span>
-                                <span class="plane-metric-lbl">Vencidas</span>
+                            <div class="plane-metric-box" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
+                                <span class="plane-metric-val" style="display:block; font-size:1.3rem; font-weight:700; color:#d97706;">${totalTiempoText}</span>
+                                <span class="plane-metric-lbl" style="font-size:0.75rem; color:#64748b;">Tiempo Asignado</span>
+                            </div>
+                            <div class="plane-metric-box" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
+                                <span class="plane-metric-val" style="display:block; font-size:1.3rem; font-weight:700; color:#10b981;">${completedCount}</span>
+                                <span class="plane-metric-lbl" style="font-size:0.75rem; color:#64748b;">Completadas</span>
+                            </div>
+                            <div class="plane-metric-box" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
+                                <span class="plane-metric-val" style="display:block; font-size:1.3rem; font-weight:700; color:#ef4444;">${expiredCount}</span>
+                                <span class="plane-metric-lbl" style="font-size:0.75rem; color:#64748b;">Vencidas</span>
                             </div>
                         </div>
-                        <div class="planes-chart-card">
+                        <div class="planes-chart-card" style="flex: 1;">
                             <h5 style="margin: 0 0 15px; font-weight:600; color:#475569; font-size:0.85rem; text-transform:uppercase;">Distribución de Acciones</h5>
                             <div style="position:relative; height:180px; width:100%;">
                                 <canvas id="planesMejoraChart"></canvas>
@@ -1075,13 +1073,19 @@
                         <button class="btn-primary" onclick="exportPlanesExcel()" style="background:#d97706; border:none; padding:8px 16px; border-radius:6px; font-size:0.85rem; cursor:pointer; color: white;">📥 Exportar Plan (Excel)</button>
                     </div>
                     
-                    <table class="summary-table" id="tablaPlanesMejora" style="margin-top:10px; width:100%; border-collapse:collapse; font-size:9pt;">
+                    <table class="summary-table" id="tablaPlanesMejora" style="margin-top:10px; width:100%; border-collapse:collapse; font-size:8.5pt;">
                         <thead>
                             <tr style="background:#1e3a8a; color:white;">
-                                <th style="padding:8px 10px; text-align:left;">Característica</th>
-                                <th style="padding:8px 10px; text-align:left;">Acción de Mejora</th>
+                                <th style="padding:8px 10px; text-align:left;">Caract.</th>
+                                <th style="padding:8px 10px; text-align:left;">Actividad / Acción</th>
+                                <th style="padding:8px 10px; text-align:left;">Meta</th>
+                                <th style="padding:8px 10px; text-align:left;">Fecha Inicio</th>
+                                <th style="padding:8px 10px; text-align:left;">Fecha Fin</th>
+                                <th style="padding:8px 10px; text-align:left;">P. Tiempo</th>
+                                <th style="padding:8px 10px; text-align:left;">P. Dinero</th>
                                 <th style="padding:8px 10px; text-align:left;">Responsable</th>
-                                <th style="padding:8px 10px; text-align:left;">Fecha Límite</th>
+                                <th style="padding:8px 10px; text-align:left;">Rol</th>
+                                <th style="padding:8px 10px; text-align:left;">Indicador</th>
                                 <th style="padding:8px 10px; text-align:left;">Avance</th>
                                 <th style="padding:8px 10px; text-align:left;">Estado</th>
                             </tr>
@@ -1090,20 +1094,30 @@
             `;
             
             if (planes.length === 0) {
-                planesHtml += `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:20px;">No se han formulado acciones de mejoramiento para este programa.</td></tr>`;
+                planesHtml += `<tr><td colspan="12" style="text-align:center; color:#94a3b8; padding:20px;">No se han formulado acciones de mejoramiento para este programa.</td></tr>`;
             } else {
                 planes.forEach(p => {
                     const statusVal = p.estado === 'Completado' ? 'Completado' : (new Date(p.fecha_limite) < now ? 'Vencido' : p.estado);
                     const badgeClass = statusVal === 'Completado' ? 'grade-4-5' : statusVal === 'Vencido' ? 'grade-low' : statusVal === 'En proceso' ? 'grade-4-0' : 'grade-3-0';
                     
+                    const indText = p.indicador_tipo === 'porcentaje' ? `Porcentaje (${p.indicador_meta_num}/${p.indicador_meta_den})` :
+                                    p.indicador_tipo === 'documento' ? (p.indicador_documento_url ? '📄 Soporte subido' : '⚠️ Sin soporte') :
+                                    '📊 Opinión (Encuestas)';
+                                    
                     planesHtml += `
                         <tr>
                             <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;"><b>C. ${p.char_id}</b></td>
                             <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-align: left;">${p.accion}</td>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-align: left;">${p.meta || '-'}</td>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;">${p.fecha_inicio || '-'}</td>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;">${p.fecha_limite || '-'}</td>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;">${p.presupuesto_tiempo || '-'}</td>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;">${p.presupuesto_dinero ? '$' + Number(p.presupuesto_dinero).toLocaleString() : '$0'}</td>
                             <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-align: left;">${p.responsable}</td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;">${p.fecha_limite}</td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; width:150px;">
-                                <div style="display:flex; align-items:center; gap:8px;">
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-transform: uppercase;">${p.responsable_rol || 'lider'}</td>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-align: left;">${indText}</td>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; width:100px;">
+                                <div style="display:flex; align-items:center; gap:6px;">
                                     <progress value="${p.avance}" max="100" style="flex:1; height:8px; border-radius:4px;"></progress>
                                     <span>${p.avance}%</span>
                                 </div>
