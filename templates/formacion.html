@@ -1011,6 +1011,12 @@
             console.error("Error parsing siac_user:", e);
         }
         if (!user) { window.location.href = 'login.html'; }
+        
+        // Bloqueo de acceso directo para roles de la institución
+        if (user && user.role !== 'admin' && user.role !== 'estudiante') {
+            window.location.href = 'dashboard.html';
+        }
+        
         document.getElementById('userInfo').textContent = user ? user.email : '';
 
         function logout() {

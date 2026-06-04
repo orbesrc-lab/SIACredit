@@ -51,6 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
         menuItems.forEach(item => {
             const text = item.textContent.toLowerCase();
             
+            // Ocultar Formación para cualquier rol excepto super-admin
+            if (role !== 'admin') {
+                if (text.includes('formacion') || text.includes('formación')) {
+                    item.style.display = 'none';
+                }
+            }
+            
             if (role === 'operativo') {
                 // El operativo solo ve Dashboard y Evidencias
                 if (!text.includes('dashboard') && !text.includes('evidencias')) {
@@ -62,7 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     item.style.display = 'none';
                 }
             }
-            // Admin ve todo, no ocultamos nada
         });
     }
 
