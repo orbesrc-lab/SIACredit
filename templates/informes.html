@@ -844,6 +844,16 @@
                 const planes = await pmResp.json();
                 data.planes_mejora = planes;
                 
+                // Fetch users to resolve names
+                let users = [];
+                try {
+                    const uResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    users = await uResp.json();
+                } catch(e) {
+                    console.error("Error loading users:", e);
+                }
+                window.systemUsers = users;
+                
                 renderInforme(data, tipo);
             } catch (err) {
                 alert("Error generando informe: " + err);
@@ -1115,6 +1125,9 @@
                     const statusVal = p.estado === 'Completado' ? 'Completado' : (new Date(p.fecha_limite) < now ? 'Vencido' : p.estado);
                     const badgeClass = statusVal === 'Completado' ? 'grade-4-5' : statusVal === 'Vencido' ? 'grade-low' : statusVal === 'En proceso' ? 'grade-4-0' : 'grade-3-0';
                     
+                    const uObj = (window.systemUsers || []).find(u => u.email === p.responsable);
+                    const respName = uObj ? (uObj.name || uObj.email) : p.responsable;
+                    
                     const indText = p.indicador_tipo === 'porcentaje' ? `Porcentaje (${p.indicador_meta_num}/${p.indicador_meta_den})` :
                                     p.indicador_tipo === 'documento' ? (p.indicador_documento_url ? '📄 Soporte subido' : '⚠️ Sin soporte') :
                                     '📊 Opinión (Encuestas)';
@@ -1128,7 +1141,7 @@
                             <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;">${p.fecha_limite || '-'}</td>
                             <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;">${p.presupuesto_tiempo || '-'}</td>
                             <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;">${p.presupuesto_dinero ? '$' + Number(p.presupuesto_dinero).toLocaleString() : '$0'}</td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-align: left;">${p.responsable}</td>
+                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-align: left;">${respName}</td>
                             <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-transform: uppercase;">${p.responsable_rol || 'lider'}</td>
                             <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-align: left;">${indText}</td>
                             <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; width:100px;">

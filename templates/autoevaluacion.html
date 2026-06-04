@@ -282,6 +282,52 @@
             document.getElementById(`edit_indicador_fields_opinion_${planId}`).style.display = (val === 'opinion') ? 'flex' : 'none';
         }
 
+        function updateResponsableNamesDropdown(rolSelectId, nameSelectId, emailInputId, currentEmail = '') {
+            const rolSelect = document.getElementById(rolSelectId);
+            const nameSelect = document.getElementById(nameSelectId);
+            const emailInput = document.getElementById(emailInputId);
+            
+            if (!rolSelect || !nameSelect) return;
+            
+            const selectedRol = rolSelect.value;
+            
+            const filteredUsers = (window.systemUsers || []).filter(u => {
+                const uRole = (u.role || '').toLowerCase();
+                if (selectedRol === 'admin') {
+                    return uRole === 'admin' || uRole === 'inst_admin';
+                }
+                return uRole === selectedRol;
+            });
+            
+            nameSelect.innerHTML = '<option value="">-- Seleccione un Nombre --</option>';
+            filteredUsers.forEach(u => {
+                const isSelected = u.email === currentEmail ? 'selected' : '';
+                nameSelect.innerHTML += `<option value="${u.email}" ${isSelected}>${u.name || u.email}</option>`;
+            });
+            
+            if (currentEmail) {
+                nameSelect.value = currentEmail;
+                emailInput.value = currentEmail;
+            } else {
+                if (filteredUsers.length > 0) {
+                    nameSelect.value = filteredUsers[0].email;
+                    emailInput.value = filteredUsers[0].email;
+                } else {
+                    nameSelect.value = '';
+                    emailInput.value = '';
+                }
+            }
+        }
+        
+        function updateResponsableEmailFromSelect(nameSelectId, emailInputId) {
+            const nameSelect = document.getElementById(nameSelectId);
+            const emailInput = document.getElementById(emailInputId);
+            
+            if (!nameSelect || !emailInput) return;
+            
+            emailInput.value = nameSelect.value;
+        }
+
         async function loadSurveyQuestionsForPlan(surveyId, targetSelectId = 'new_plan_question_id', selectedQuestionId = '') {
             const questionSelect = document.getElementById(targetSelectId);
             if (!questionSelect) return;
@@ -316,6 +362,15 @@
                     window.programSurveys = await sResp.json();
                 } catch (err) {
                     console.error("Error loading surveys for dropdown:", err);
+                }
+            }
+
+            if (!window.systemUsers || window.systemUsers.length === 0) {
+                try {
+                    const uResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    window.systemUsers = await uResp.json();
+                } catch (err) {
+                    console.error("Error loading system users:", err);
                 }
             }
 
@@ -364,18 +419,24 @@
                                     </div>
                                 </div>
 
-                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px;">
                                     <div>
                                         <label style="display:block; font-size:0.75rem; font-weight:600; color:#475569; margin-bottom:4px;">Rol del Responsable</label>
-                                        <select id="new_plan_responsable_rol" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; box-sizing:border-box;">
+                                        <select id="new_plan_responsable_rol" onchange="updateResponsableNamesDropdown('new_plan_responsable_rol', 'new_plan_responsable_name', 'new_plan_responsable')" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; box-sizing:border-box;">
                                             <option value="lider">LÍDER</option>
                                             <option value="admin">ADMINISTRADOR</option>
                                             <option value="operativo">OPERATIVO</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label style="display:block; font-size:0.75rem; font-weight:600; color:#475569; margin-bottom:4px;">Email del Responsable *</label>
-                                        <input type="email" id="new_plan_responsable" placeholder="Ej: responsable@correo.com" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; box-sizing:border-box;">
+                                        <label style="display:block; font-size:0.75rem; font-weight:600; color:#475569; margin-bottom:4px;">Nombre del Responsable *</label>
+                                        <select id="new_plan_responsable_name" onchange="updateResponsableEmailFromSelect('new_plan_responsable_name', 'new_plan_responsable')" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; box-sizing:border-box;">
+                                            <option value="">Cargando usuarios...</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:0.75rem; font-weight:600; color:#475569; margin-bottom:4px;">Email del Responsable</label>
+                                        <input type="email" id="new_plan_responsable" readonly placeholder="Auto-completado" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem; box-sizing:border-box; background:#f1f5f9; cursor:not-allowed;">
                                     </div>
                                 </div>
 
@@ -471,7 +532,10 @@
                                 <div>📅 <strong>Fecha Fin:</strong> ${plan.fecha_limite || '-'}</div>
                                 <div>⏱️ <strong>Tiempo:</strong> ${plan.presupuesto_tiempo || 'No asignado'}</div>
                                 <div>💰 <strong>Presupuesto:</strong> ${plan.presupuesto_dinero ? '$' + Number(plan.presupuesto_dinero).toLocaleString() : 'No asignado'}</div>
-                                <div>👤 <strong>Responsable:</strong> ${plan.responsable} (${(plan.responsable_rol || 'lider').toUpperCase()})</div>
+                                <div>👤 <strong>Responsable:</strong> ${(function() {
+                                    const uObj = (window.systemUsers || []).find(u => u.email === plan.responsable);
+                                    return uObj ? (uObj.name || uObj.email) : plan.responsable;
+                                })()} (${(plan.responsable_rol || 'lider').toUpperCase()})</div>
                             </div>
 
                             <div style="display:flex; flex-direction:column; gap:6px;">
@@ -554,18 +618,24 @@
                                         <input type="number" id="edit_plan_presupuesto_dinero_${plan.id}" value="${plan.presupuesto_dinero || 0}" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
                                     </div>
                                 </div>
-                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
                                     <div>
                                         <label style="display:block; font-size:0.7rem; font-weight:600; color:#475569; margin-bottom:2px;">Rol Responsable</label>
-                                        <select id="edit_plan_responsable_rol_${plan.id}" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                        <select id="edit_plan_responsable_rol_${plan.id}" onchange="updateResponsableNamesDropdown('edit_plan_responsable_rol_${plan.id}', 'edit_plan_responsable_name_${plan.id}', 'edit_plan_responsable_${plan.id}')" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
                                             <option value="lider" ${plan.responsable_rol === 'lider' ? 'selected' : ''}>LÍDER</option>
                                             <option value="admin" ${plan.responsable_rol === 'admin' ? 'selected' : ''}>ADMINISTRADOR</option>
                                             <option value="operativo" ${plan.responsable_rol === 'operativo' ? 'selected' : ''}>OPERATIVO</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label style="display:block; font-size:0.7rem; font-weight:600; color:#475569; margin-bottom:2px;">Email Responsable *</label>
-                                        <input type="email" id="edit_plan_responsable_${plan.id}" value="${plan.responsable}" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                        <label style="display:block; font-size:0.7rem; font-weight:600; color:#475569; margin-bottom:2px;">Nombre Responsable *</label>
+                                        <select id="edit_plan_responsable_name_${plan.id}" onchange="updateResponsableEmailFromSelect('edit_plan_responsable_name_${plan.id}', 'edit_plan_responsable_${plan.id}')" style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box;">
+                                            <option value="">Cargando...</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:0.7rem; font-weight:600; color:#475569; margin-bottom:2px;">Email Responsable</label>
+                                        <input type="email" id="edit_plan_responsable_${plan.id}" value="${plan.responsable}" readonly style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.8rem; box-sizing:border-box; background:#f1f5f9; cursor:not-allowed;">
                                     </div>
                                 </div>
 
@@ -629,6 +699,7 @@
         function showAddPlanForm() {
             document.getElementById('addPlanFormContainer').style.display = 'block';
             document.getElementById('new_plan_fecha_inicio').value = new Date().toISOString().substring(0, 10);
+            updateResponsableNamesDropdown('new_plan_responsable_rol', 'new_plan_responsable_name', 'new_plan_responsable');
         }
         
         function hideAddPlanForm() {
@@ -709,13 +780,22 @@
                 card.style.display = 'none';
                 form.style.display = 'flex';
                 
+                const plan = window.currentPlanesList.find(p => p.id === planId);
+                if (plan) {
+                    updateResponsableNamesDropdown(
+                        `edit_plan_responsable_rol_${planId}`,
+                        `edit_plan_responsable_name_${planId}`,
+                        `edit_plan_responsable_${planId}`,
+                        plan.responsable
+                    );
+                }
+                
                 const surveySelect = document.getElementById(`edit_plan_survey_id_${planId}`);
                 if (surveySelect) {
                     surveySelect.innerHTML = '<option value="">-- Seleccione una Encuesta --</option>';
                     window.programSurveys.forEach(s => {
                         surveySelect.innerHTML += `<option value="${s.id}">${s.title || s.name || s.id}</option>`;
                     });
-                    const plan = window.currentPlanesList.find(p => p.id === planId);
                     if (plan && plan.indicador_survey_id) {
                         surveySelect.value = plan.indicador_survey_id;
                         loadSurveyQuestionsForPlan(plan.indicador_survey_id, `edit_plan_question_id_${planId}`, plan.indicador_question_id);
