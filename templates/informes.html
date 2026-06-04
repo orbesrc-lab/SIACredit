@@ -694,7 +694,9 @@
         document.addEventListener('click', () => {
             const dd = document.getElementById('notifDropdown');
             if (dd) dd.classList.remove('show');
-              // --- EXPORTAR PLAN DE MEJORAMIENTO A EXCEL ---
+        });
+        
+        // --- EXPORTAR PLAN DE MEJORAMIENTO A EXCEL ---
         function exportPlanesExcel() {
             const table = document.getElementById('tablaPlanesMejora');
             if (!table) {
@@ -1001,7 +1003,20 @@
                             <h5>🌐 Análisis Integral Global</h5>
                             <div class="ai-md-content">${marked.parse(data.cuadros['ai_analysis_global'])}</div>
                         </div>`;
-                         const planes = data.planes_mejora || [];
+                }
+                
+                if (statsAIHtml) {
+                    aiSectionHtml += statsAIHtml;
+                }
+                
+                aiSectionHtml += `
+                        </div>
+                    </div>
+                `;
+                todoElHtml += aiSectionHtml;
+            }
+            
+            const planes = data.planes_mejora || [];
             const totalPlanes = planes.length;
             
             const avgProgress = totalPlanes > 0 ? (planes.reduce((acc, p) => acc + (p.avance || 0), 0) / totalPlanes).toFixed(1) : '0.0';
