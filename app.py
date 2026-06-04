@@ -1103,11 +1103,20 @@ def handle_users():
             return jsonify({"status": "error", "message": str(e)}), 500
 
     try:
+        print(f"DEBUG GET: inst_id={inst_id} (type={type(inst_id)})")
         if inst_id == 0:
             res = supabase.table('users').select("*").execute()
+            print(f"DEBUG GET inst_id=0: returned {len(res.data)} users")
         else:
             # Usuarios de la institución (filtramos por inst_id)
             res = supabase.table('users').select("*").eq("inst_id", inst_id).execute()
+            print(f"DEBUG GET inst_id={inst_id}: returned {len(res.data)} users")
+            if not res.data:
+                # Try string fallback
+                res_str = supabase.table('users').select("*").eq("inst_id", str(inst_id)).execute()
+                print(f"DEBUG GET string fallback for inst_id={inst_id}: returned {len(res_str.data)} users")
+                if res_str.data:
+                    res = res_str
         
         return jsonify(res.data)
     except Exception as e:
