@@ -1,554 +1,228 @@
 import os
 import json
 import uuid
+from supabase import create_client, Client
 
-IS_VERCEL = os.environ.get("VERCEL") == "1"
-
-if IS_VERCEL:
-    COURSES_FILE = "/tmp/local_courses.json"
-    TEACHERS_FILE = "/tmp/local_teachers.json"
-    STUDENTS_FILE = "/tmp/local_students.json"
-    SUBMISSIONS_FILE = "/tmp/local_submissions.json"
-else:
-    COURSES_FILE = os.path.join("instance", "local_courses.json")
-    TEACHERS_FILE = os.path.join("instance", "local_teachers.json")
-    STUDENTS_FILE = os.path.join("instance", "local_students.json")
-    SUBMISSIONS_FILE = os.path.join("instance", "local_submissions.json")
+url = os.environ.get("SUPABASE_URL")
+key = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(url, key) if url and key else None
 
 def generate_id():
     return uuid.uuid4().hex[:9]
 
 def get_default_program_id(inst_id):
-    # Map inst_id to its first/default program_id in the database to satisfy the foreign key constraint
-    if inst_id == 1:
-        return 47
-    elif inst_id == 2:
-        return 48
-    elif inst_id == 3:
-        return 50
+    if inst_id == 1: return 47
+    elif inst_id == 2: return 48
+    elif inst_id == 3: return 50
     return 47
-
-def ensure_files_exist():
-    if IS_VERCEL:
-        if not os.path.exists(COURSES_FILE):
-            try:
-                with open(COURSES_FILE, 'w', encoding='utf-8') as f:
-                    json.dump([], f)
-            except Exception as e:
-                print(f"Error creating COURSES_FILE in /tmp: {e}")
-        if not os.path.exists(TEACHERS_FILE):
-            try:
-                with open(TEACHERS_FILE, 'w', encoding='utf-8') as f:
-                    json.dump([], f)
-            except Exception as e:
-                print(f"Error creating TEACHERS_FILE in /tmp: {e}")
-        if not os.path.exists(STUDENTS_FILE):
-            try:
-                with open(STUDENTS_FILE, 'w', encoding='utf-8') as f:
-                    json.dump([], f)
-            except Exception as e:
-                print(f"Error creating STUDENTS_FILE in /tmp: {e}")
-        if not os.path.exists(SUBMISSIONS_FILE):
-            try:
-                with open(SUBMISSIONS_FILE, 'w', encoding='utf-8') as f:
-                    json.dump([], f)
-            except Exception as e:
-                print(f"Error creating SUBMISSIONS_FILE in /tmp: {e}")
-    else:
-        os.makedirs("instance", exist_ok=True)
-        if not os.path.exists(COURSES_FILE):
-            with open(COURSES_FILE, 'w', encoding='utf-8') as f:
-                json.dump([], f)
-        if not os.path.exists(TEACHERS_FILE):
-            with open(TEACHERS_FILE, 'w', encoding='utf-8') as f:
-                json.dump([], f)
-        if not os.path.exists(STUDENTS_FILE):
-            with open(STUDENTS_FILE, 'w', encoding='utf-8') as f:
-                json.dump([], f)
-        if not os.path.exists(SUBMISSIONS_FILE):
-            with open(SUBMISSIONS_FILE, 'w', encoding='utf-8') as f:
-                json.dump([], f)
 
 # === DOCENTES / TEACHERS ===
 
 def load_teachers(inst_id):
-    ensure_files_exist()
-    try:
-        with open(TEACHERS_FILE, 'r', encoding='utf-8') as f:
-            all_teachers = json.load(f)
-        return [t for t in all_teachers if t.get('inst_id') == inst_id]
-    except Exception as e:
-        print(f"Error loading teachers: {e}")
-        return []
+    if not supabase: return []
+    res = supabase.table('lms_teachers').select('data').eq('inst_id', inst_id).execute()
+    return [row['data'] for row in res.data] if res.data else []
 
 def save_teacher(inst_id, teacher_data):
-    ensure_files_exist()
-    try:
-        with open(TEACHERS_FILE, 'r', encoding='utf-8') as f:
-            all_teachers = json.load(f)
-        
-        teacher_id = teacher_data.get('id')
-        if not teacher_id:
-            teacher_id = "t_" + generate_id()
-            teacher_data['id'] = teacher_id
-            teacher_data['inst_id'] = inst_id
-            all_teachers.append(teacher_data)
-        else:
-            for idx, t in enumerate(all_teachers):
-                if t.get('id') == teacher_id:
-                    teacher_data['inst_id'] = inst_id
-                    all_teachers[idx] = teacher_data
-                    break
-        
-        with open(TEACHERS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(all_teachers, f, indent=2, ensure_ascii=False)
-        return teacher_data
-    except Exception as e:
-        print(f"Error saving teacher: {e}")
-        return None
+    if not supabase: return None
+    teacher_id = teacher_data.get('id')
+    if not teacher_id:
+        teacher_id = "t_" + generate_id()
+        teacher_data['id'] = teacher_id
+    teacher_data['inst_id'] = inst_id
+    
+    supabase.table('lms_teachers').upsert({
+        "id": teacher_id,
+        "inst_id": inst_id,
+        "data": teacher_data
+    }).execute()
+    return teacher_data
 
 def delete_teacher(inst_id, teacher_id):
-    ensure_files_exist()
-    try:
-        with open(TEACHERS_FILE, 'r', encoding='utf-8') as f:
-            all_teachers = json.load(f)
-        all_teachers = [t for t in all_teachers if not (t.get('id') == teacher_id and t.get('inst_id') == inst_id)]
-        with open(TEACHERS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(all_teachers, f, indent=2, ensure_ascii=False)
-        return True
-    except Exception as e:
-        print(f"Error deleting teacher: {e}")
-        return False
-
+    if not supabase: return False
+    supabase.table('lms_teachers').delete().eq('id', teacher_id).eq('inst_id', inst_id).execute()
+    return True
 
 # === ESTUDIANTES / STUDENTS ===
 
 def load_students(inst_id):
-    ensure_files_exist()
-    try:
-        with open(STUDENTS_FILE, 'r', encoding='utf-8') as f:
-            all_students = json.load(f)
-        return [s for s in all_students if s.get('inst_id') == inst_id]
-    except Exception as e:
-        print(f"Error loading students: {e}")
-        return []
+    if not supabase: return []
+    res = supabase.table('lms_students').select('data').eq('inst_id', inst_id).execute()
+    return [row['data'] for row in res.data] if res.data else []
 
 def save_student(inst_id, student_data):
-    ensure_files_exist()
-    try:
-        with open(STUDENTS_FILE, 'r', encoding='utf-8') as f:
-            all_students = json.load(f)
-        
-        student_id = student_data.get('id')
-        if not student_id:
-            student_id = "s_" + generate_id()
-            student_data['id'] = student_id
-            student_data['inst_id'] = inst_id
-            if 'enrolled_courses' not in student_data:
-                student_data['enrolled_courses'] = []
-            all_students.append(student_data)
-        else:
-            for idx, s in enumerate(all_students):
-                if s.get('id') == student_id:
-                    student_data['inst_id'] = inst_id
-                    if 'enrolled_courses' not in student_data:
-                        student_data['enrolled_courses'] = s.get('enrolled_courses', [])
-                    all_students[idx] = student_data
-                    break
-        
-        with open(STUDENTS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(all_students, f, indent=2, ensure_ascii=False)
-        return student_data
-    except Exception as e:
-        print(f"Error saving student: {e}")
-        return None
+    if not supabase: return None
+    student_id = student_data.get('id')
+    if not student_id:
+        student_id = "s_" + generate_id()
+        student_data['id'] = student_id
+    student_data['inst_id'] = inst_id
+    if 'enrolled_courses' not in student_data:
+        student_data['enrolled_courses'] = []
+    
+    program_id = student_data.get('program_id', get_default_program_id(inst_id))
+    
+    supabase.table('lms_students').upsert({
+        "id": student_id,
+        "inst_id": inst_id,
+        "program_id": program_id,
+        "student_email": student_data.get('email', ''),
+        "data": student_data
+    }).execute()
+    return student_data
 
 def delete_student(inst_id, student_id):
-    ensure_files_exist()
-    try:
-        with open(STUDENTS_FILE, 'r', encoding='utf-8') as f:
-            all_students = json.load(f)
-        all_students = [s for s in all_students if not (s.get('id') == student_id and s.get('inst_id') == inst_id)]
-        with open(STUDENTS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(all_students, f, indent=2, ensure_ascii=False)
-        return True
-    except Exception as e:
-        print(f"Error deleting student: {e}")
-        return False
+    if not supabase: return False
+    supabase.table('lms_students').delete().eq('id', student_id).eq('inst_id', inst_id).execute()
+    return True
 
 def enroll_student_in_course(inst_id, student_id, course_id):
-    ensure_files_exist()
-    try:
-        with open(STUDENTS_FILE, 'r', encoding='utf-8') as f:
-            all_students = json.load(f)
-        
-        for s in all_students:
-            if s.get('id') == student_id and s.get('inst_id') == inst_id:
-                if 'enrolled_courses' not in s:
-                    s['enrolled_courses'] = []
-                if course_id not in s['enrolled_courses']:
-                    s['enrolled_courses'].append(course_id)
-                break
-                
-        with open(STUDENTS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(all_students, f, indent=2, ensure_ascii=False)
+    if not supabase: return False
+    res = supabase.table('lms_students').select('data').eq('id', student_id).eq('inst_id', inst_id).execute()
+    if res.data:
+        s = res.data[0]['data']
+        if 'enrolled_courses' not in s: s['enrolled_courses'] = []
+        if course_id not in s['enrolled_courses']:
+            s['enrolled_courses'].append(course_id)
+            save_student(inst_id, s)
         return True
-    except Exception as e:
-        print(f"Error enrolling student: {e}")
-        return False
+    return False
 
 def unenroll_student_from_course(inst_id, student_id, course_id):
-    ensure_files_exist()
-    try:
-        with open(STUDENTS_FILE, 'r', encoding='utf-8') as f:
-            all_students = json.load(f)
-        
-        for s in all_students:
-            if s.get('id') == student_id and s.get('inst_id') == inst_id:
-                if 'enrolled_courses' in s and course_id in s['enrolled_courses']:
-                    s['enrolled_courses'].remove(course_id)
-                break
-                
-        with open(STUDENTS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(all_students, f, indent=2, ensure_ascii=False)
+    if not supabase: return False
+    res = supabase.table('lms_students').select('data').eq('id', student_id).eq('inst_id', inst_id).execute()
+    if res.data:
+        s = res.data[0]['data']
+        if 'enrolled_courses' in s and course_id in s['enrolled_courses']:
+            s['enrolled_courses'].remove(course_id)
+            save_student(inst_id, s)
         return True
-    except Exception as e:
-        print(f"Error unenrolling student: {e}")
-        return False
-
+    return False
 
 # === CURSOS / COURSES ===
 
 def load_courses(inst_id, program_id):
-    ensure_files_exist()
+    if not supabase: return []
     if not program_id or program_id == 0:
         program_id = get_default_program_id(inst_id)
-    try:
-        with open(COURSES_FILE, 'r', encoding='utf-8') as f:
-            all_courses = json.load(f)
-        return [c for c in all_courses if c.get('inst_id') == inst_id and (c.get('program_id') == program_id or c.get('program_id') == 0)]
-    except Exception as e:
-        print(f"Error loading courses: {e}")
-        return []
+    res = supabase.table('lms_courses').select('data').eq('inst_id', inst_id).execute()
+    courses = []
+    if res.data:
+        for row in res.data:
+            c = row['data']
+            if program_id == 0 or c.get('program_id') == program_id:
+                courses.append(c)
+    return courses
 
 def load_course(course_id):
-    ensure_files_exist()
-    try:
-        with open(COURSES_FILE, 'r', encoding='utf-8') as f:
-            all_courses = json.load(f)
-        for c in all_courses:
-            if c.get('id') == course_id:
-                return c
-    except Exception as e:
-        print(f"Error loading single course: {e}")
+    if not supabase: return None
+    res = supabase.table('lms_courses').select('data').eq('id', course_id).execute()
+    if res.data:
+        return res.data[0]['data']
     return None
 
 def save_course(inst_id, program_id, course_data):
-    ensure_files_exist()
+    if not supabase: return None
     if not program_id or program_id == 0:
         program_id = get_default_program_id(inst_id)
-    try:
-        with open(COURSES_FILE, 'r', encoding='utf-8') as f:
-            all_courses = json.load(f)
+    course_id = course_data.get('id')
+    if not course_id:
+        course_id = "c_" + generate_id()
+        course_data['id'] = course_id
         
-        course_id = course_data.get('id')
+    course_data['inst_id'] = inst_id
+    course_data['program_id'] = program_id
+    
+    for key in ['outcomes', 'competencies', 'units', 'meetings', 'resources']:
+        if key not in course_data: course_data[key] = []
         
-        # Ensure units structures are initialized
-        if 'units' in course_data:
-            for u in course_data['units']:
-                if 'topics' not in u: u['topics'] = []
-                if 'resources' not in u: u['resources'] = []
-                if 'activities' not in u: u['activities'] = []
-                if 'evaluations' not in u: u['evaluations'] = []
-        
-        if not course_id:
-            # New course
-            course_id = "c_" + generate_id()
-            course_data['id'] = course_id
-            course_data['inst_id'] = inst_id
-            course_data['program_id'] = program_id
-            
-            if 'outcomes' not in course_data: course_data['outcomes'] = []
-            if 'competencies' not in course_data: course_data['competencies'] = []
-            if 'units' not in course_data: course_data['units'] = []
-            if 'meetings' not in course_data: course_data['meetings'] = []
-            if 'resources' not in course_data: course_data['resources'] = [] # Deprecated but kept for safety
-            
-            all_courses.append(course_data)
-        else:
-            # Update existing
-            for idx, c in enumerate(all_courses):
-                if c.get('id') == course_id:
-                    course_data['inst_id'] = inst_id
-                    course_data['program_id'] = program_id
-                    
-                    for key in ['outcomes', 'competencies', 'units', 'meetings', 'resources']:
-                        if key not in course_data:
-                            course_data[key] = c.get(key, [])
-                            
-                    all_courses[idx] = course_data
-                    break
-        
-        with open(COURSES_FILE, 'w', encoding='utf-8') as f:
-            json.dump(all_courses, f, indent=2, ensure_ascii=False)
-        return course_data
-    except Exception as e:
-        print(f"Error saving course: {e}")
-        return None
+    if 'units' in course_data:
+        for u in course_data['units']:
+            if 'topics' not in u: u['topics'] = []
+            if 'resources' not in u: u['resources'] = []
+            if 'activities' not in u: u['activities'] = []
+            if 'evaluations' not in u: u['evaluations'] = []
+
+    supabase.table('lms_courses').upsert({
+        "id": course_id,
+        "inst_id": inst_id,
+        "program_id": program_id,
+        "data": course_data
+    }).execute()
+    return course_data
 
 def delete_course(inst_id, program_id, course_id):
-    ensure_files_exist()
-    if not program_id or program_id == 0:
-        program_id = get_default_program_id(inst_id)
-    try:
-        with open(COURSES_FILE, 'r', encoding='utf-8') as f:
-            all_courses = json.load(f)
-        
-        all_courses = [c for c in all_courses if not (c.get('id') == course_id and c.get('inst_id') == inst_id and (c.get('program_id') == program_id or c.get('program_id') == 0))]
-        
-        with open(COURSES_FILE, 'w', encoding='utf-8') as f:
-            json.dump(all_courses, f, indent=2, ensure_ascii=False)
-        
-        # Clean up student enrollments for this course
-        try:
-            with open(STUDENTS_FILE, 'r', encoding='utf-8') as f:
-                all_students = json.load(f)
-            for s in all_students:
-                if 'enrolled_courses' in s and course_id in s['enrolled_courses']:
-                    s['enrolled_courses'].remove(course_id)
-            with open(STUDENTS_FILE, 'w', encoding='utf-8') as f:
-                json.dump(all_students, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            print(f"Error cleaning up student enrollments: {e}")
-            
-        return True
-    except Exception as e:
-        print(f"Error deleting course: {e}")
-        return False
+    if not supabase: return False
+    supabase.table('lms_courses').delete().eq('id', course_id).eq('inst_id', inst_id).execute()
+    
+    # Clean student enrollments
+    students = load_students(inst_id)
+    for s in students:
+        if 'enrolled_courses' in s and course_id in s['enrolled_courses']:
+            s['enrolled_courses'].remove(course_id)
+            save_student(inst_id, s)
+    return True
 
 def load_public_courses():
-    ensure_files_exist()
-    try:
-        with open(COURSES_FILE, 'r', encoding='utf-8') as f:
-            all_courses = json.load(f)
-        return all_courses
-    except Exception as e:
-        print(f"Error loading public courses: {e}")
-        return []
+    if not supabase: return []
+    res = supabase.table('lms_courses').select('data').execute()
+    return [row['data'] for row in res.data] if res.data else []
 
 # === ENTREGAS / SUBMISSIONS ===
 
 def load_submissions(inst_id, program_id):
-    ensure_files_exist()
+    if not supabase: return []
     if not program_id or program_id == 0:
         program_id = get_default_program_id(inst_id)
-    try:
-        with open(SUBMISSIONS_FILE, 'r', encoding='utf-8') as f:
-            all_subs = json.load(f)
-        return [s for s in all_subs if s.get('inst_id') == inst_id and (s.get('program_id') == program_id or s.get('program_id') == 0)]
-    except Exception as e:
-        print(f"Error loading submissions: {e}")
-        return []
+    res = supabase.table('lms_submissions').select('data').eq('inst_id', inst_id).execute()
+    subs = []
+    if res.data:
+        for row in res.data:
+            s = row['data']
+            if program_id == 0 or s.get('program_id') == program_id:
+                subs.append(s)
+    return subs
 
 def save_submission(inst_id, program_id, submission_data):
-    ensure_files_exist()
+    if not supabase: return None
     if not program_id or program_id == 0:
         program_id = get_default_program_id(inst_id)
-    try:
-        with open(SUBMISSIONS_FILE, 'r', encoding='utf-8') as f:
-            all_subs = json.load(f)
-        
-        sub_id = submission_data.get('id')
-        if not sub_id:
-            # Nueva entrega
-            sub_id = "sub_" + generate_id()
-            submission_data['id'] = sub_id
-            submission_data['inst_id'] = inst_id
-            submission_data['program_id'] = program_id
-            submission_data['status'] = submission_data.get('status', 'pending')
-            submission_data['grade'] = submission_data.get('grade', None)
-            submission_data['feedback'] = submission_data.get('feedback', None)
-            submission_data['submitted_at'] = submission_data.get('submitted_at', '')
-            all_subs.append(submission_data)
-        else:
-            # Actualizar entrega existente (re-entrega o edición)
-            for idx, s in enumerate(all_subs):
-                if s.get('id') == sub_id:
-                    submission_data['inst_id'] = inst_id
-                    submission_data['program_id'] = program_id
-                    all_subs[idx] = submission_data
-                    break
-                    
-        with open(SUBMISSIONS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(all_subs, f, indent=2, ensure_ascii=False)
-        return submission_data
-    except Exception as e:
-        print(f"Error saving submission: {e}")
-        return None
+    sub_id = submission_data.get('id')
+    if not sub_id:
+        sub_id = "sub_" + generate_id()
+        submission_data['id'] = sub_id
+    
+    submission_data['inst_id'] = inst_id
+    submission_data['program_id'] = program_id
+    submission_data['status'] = submission_data.get('status', 'pending')
+    submission_data['grade'] = submission_data.get('grade', None)
+    submission_data['feedback'] = submission_data.get('feedback', None)
+    
+    supabase.table('lms_submissions').upsert({
+        "id": sub_id,
+        "inst_id": inst_id,
+        "program_id": program_id,
+        "course_id": submission_data.get('course_id', ''),
+        "activity_id": submission_data.get('activity_id', ''),
+        "student_email": submission_data.get('student_email', ''),
+        "data": submission_data
+    }).execute()
+    return submission_data
 
 def grade_submission(inst_id, program_id, submission_id, grade_data):
-    ensure_files_exist()
-    try:
-        with open(SUBMISSIONS_FILE, 'r', encoding='utf-8') as f:
-            all_subs = json.load(f)
-            
-        found = False
-        for idx, s in enumerate(all_subs):
-            if s.get('id') == submission_id:
-                s['grade'] = grade_data.get('grade')
-                s['feedback'] = grade_data.get('feedback')
-                s['status'] = 'graded'
-                s['graded_at'] = grade_data.get('graded_at', '')
-                s['teacher_id'] = grade_data.get('teacher_id', '')
-                all_subs[idx] = s
-                found = True
-                break
-                
-        if not found:
-            return None
-            
-        with open(SUBMISSIONS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(all_subs, f, indent=2, ensure_ascii=False)
-        return all_subs[idx]
-    except Exception as e:
-        print(f"Error grading submission: {e}")
-        return None
+    if not supabase: return None
+    res = supabase.table('lms_submissions').select('data').eq('id', submission_id).execute()
+    if res.data:
+        s = res.data[0]['data']
+        s['grade'] = grade_data.get('grade')
+        s['feedback'] = grade_data.get('feedback')
+        s['status'] = 'graded'
+        return save_submission(inst_id, program_id, s)
+    return None
 
-# === SINCRONIZACION CON SUPABASE ===
+# === Funciones de Sync Eliminadas ===
+def sync_courses_only(inst_id, program_id):
+    pass
 
-def sync_courses_only(inst_id, program_id, supabase_client):
-    if not program_id or program_id == 0:
-        program_id = get_default_program_id(inst_id)
-    try:
-        courses = load_courses(inst_id, program_id)
-        table_key = f"LMS_COURSES_{inst_id}_{program_id}"
-        check = supabase_client.table('statistics').select("id").eq("table_id", table_key).eq("inst_id", inst_id).eq("program_id", program_id).execute()
-        if check.data:
-            supabase_client.table('statistics').update({"data_json": json.dumps(courses, ensure_ascii=False)}).eq("id", check.data[0]['id']).execute()
-        else:
-            supabase_client.table('statistics').insert({
-                "table_id": table_key,
-                "data_json": json.dumps(courses, ensure_ascii=False),
-                "inst_id": inst_id,
-                "program_id": program_id
-            }).execute()
-        return True
-    except Exception as e:
-        print(f"Error syncing courses: {e}")
-        return False
-
-def sync_teachers_only(inst_id, supabase_client):
-    try:
-        teachers = load_teachers(inst_id)
-        table_key = f"LMS_TEACHERS_{inst_id}"
-        check = supabase_client.table('statistics').select("id").eq("table_id", table_key).eq("inst_id", inst_id).execute()
-        if check.data:
-            supabase_client.table('statistics').update({"data_json": json.dumps(teachers, ensure_ascii=False)}).eq("id", check.data[0]['id']).execute()
-        else:
-            supabase_client.table('statistics').insert({
-                "table_id": table_key,
-                "data_json": json.dumps(teachers, ensure_ascii=False),
-                "inst_id": inst_id,
-                "program_id": get_default_program_id(inst_id)
-            }).execute()
-        return True
-    except Exception as e:
-        print(f"Error syncing teachers: {e}")
-        return False
-
-def sync_students_only(inst_id, supabase_client):
-    try:
-        students = load_students(inst_id)
-        table_key = f"LMS_STUDENTS_{inst_id}"
-        check = supabase_client.table('statistics').select("id").eq("table_id", table_key).eq("inst_id", inst_id).execute()
-        if check.data:
-            supabase_client.table('statistics').update({"data_json": json.dumps(students, ensure_ascii=False)}).eq("id", check.data[0]['id']).execute()
-        else:
-            supabase_client.table('statistics').insert({
-                "table_id": table_key,
-                "data_json": json.dumps(students, ensure_ascii=False),
-                "inst_id": inst_id,
-                "program_id": get_default_program_id(inst_id)
-            }).execute()
-        return True
-    except Exception as e:
-        print(f"Error syncing students: {e}")
-        return False
-
-def sync_submissions_only(inst_id, program_id, supabase_client):
-    if not program_id or program_id == 0:
-        program_id = get_default_program_id(inst_id)
-    try:
-        subs = load_submissions(inst_id, program_id)
-        table_key = f"LMS_SUBMISSIONS_{inst_id}_{program_id}"
-        check = supabase_client.table('statistics').select("id").eq("table_id", table_key).eq("inst_id", inst_id).eq("program_id", program_id).execute()
-        if check.data:
-            supabase_client.table('statistics').update({"data_json": json.dumps(subs, ensure_ascii=False)}).eq("id", check.data[0]['id']).execute()
-        else:
-            supabase_client.table('statistics').insert({
-                "table_id": table_key,
-                "data_json": json.dumps(subs, ensure_ascii=False),
-                "inst_id": inst_id,
-                "program_id": program_id
-            }).execute()
-        return True
-    except Exception as e:
-        print(f"Error syncing submissions: {e}")
-        return False
-
-def pull_from_supabase(inst_id, program_id, supabase_client):
-    ensure_files_exist()
-    if not program_id or program_id == 0:
-        program_id = get_default_program_id(inst_id)
-    try:
-        # Pull Courses
-        table_key_c = f"LMS_COURSES_{inst_id}_{program_id}"
-        res_c = supabase_client.table('statistics').select("data_json").eq("table_id", table_key_c).eq("inst_id", inst_id).eq("program_id", program_id).execute()
-        if res_c.data:
-            courses = json.loads(res_c.data[0]['data_json'])
-            with open(COURSES_FILE, 'r', encoding='utf-8') as f:
-                all_courses = json.load(f)
-            all_courses = [c for c in all_courses if not (c.get('inst_id') == inst_id and (c.get('program_id') == program_id or c.get('program_id') == 0 or not c.get('program_id')))]
-            all_courses.extend(courses)
-            with open(COURSES_FILE, 'w', encoding='utf-8') as f:
-                json.dump(all_courses, f, indent=2, ensure_ascii=False)
-
-        # Pull Teachers
-        table_key_t = f"LMS_TEACHERS_{inst_id}"
-        res_t = supabase_client.table('statistics').select("data_json").eq("table_id", table_key_t).eq("inst_id", inst_id).execute()
-        if res_t.data:
-            teachers = json.loads(res_t.data[0]['data_json'])
-            with open(TEACHERS_FILE, 'r', encoding='utf-8') as f:
-                all_teachers = json.load(f)
-            all_teachers = [t for t in all_teachers if t.get('inst_id') != inst_id]
-            all_teachers.extend(teachers)
-            with open(TEACHERS_FILE, 'w', encoding='utf-8') as f:
-                json.dump(all_teachers, f, indent=2, ensure_ascii=False)
-
-        # Pull Students
-        table_key_s = f"LMS_STUDENTS_{inst_id}"
-        res_s = supabase_client.table('statistics').select("data_json").eq("table_id", table_key_s).eq("inst_id", inst_id).execute()
-        if res_s.data:
-            students = json.loads(res_s.data[0]['data_json'])
-            with open(STUDENTS_FILE, 'r', encoding='utf-8') as f:
-                all_students = json.load(f)
-            all_students = [s for s in all_students if s.get('inst_id') != inst_id]
-            all_students.extend(students)
-            with open(STUDENTS_FILE, 'w', encoding='utf-8') as f:
-                json.dump(all_students, f, indent=2, ensure_ascii=False)
-
-        # Pull Submissions
-        table_key_sub = f"LMS_SUBMISSIONS_{inst_id}_{program_id}"
-        res_sub = supabase_client.table('statistics').select("data_json").eq("table_id", table_key_sub).eq("inst_id", inst_id).eq("program_id", program_id).execute()
-        if res_sub.data:
-            subs = json.loads(res_sub.data[0]['data_json'])
-            with open(SUBMISSIONS_FILE, 'r', encoding='utf-8') as f:
-                all_subs = json.load(f)
-            all_subs = [s for s in all_subs if not (s.get('inst_id') == inst_id and (s.get('program_id') == program_id or s.get('program_id') == 0 or not s.get('program_id')))]
-            all_subs.extend(subs)
-            with open(SUBMISSIONS_FILE, 'w', encoding='utf-8') as f:
-                json.dump(all_subs, f, indent=2, ensure_ascii=False)
-        return True
-    except Exception as e:
-        print(f"Error pulling LMS data: {e}")
-        return False
+def pull_from_supabase(inst_id, program_id):
+    pass

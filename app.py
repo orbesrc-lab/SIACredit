@@ -2533,49 +2533,49 @@ def handle_api_courses():
 def handle_course_forum(course_id):
     inst_id = int(request.args.get('inst_id', 1))
     program_id = int(request.args.get('program_id', 0))
-    
-    forum_file = os.path.join("instance", f"lms_forum_{inst_id}_{course_id}.json")
-    if os.environ.get("VERCEL") == "1":
-        forum_file = f"/tmp/lms_forum_{inst_id}_{course_id}.json"
+    if program_id == 0:
+        program_id = formacion_storage.get_default_program_id(inst_id)
         
     if request.method == 'GET':
-        if not os.path.exists(forum_file):
-            return jsonify([])
         try:
-            with open(forum_file, 'r', encoding='utf-8') as f:
-                return jsonify(json.load(f))
-        except:
+            res = supabase.table('lms_forums').select('data').eq('inst_id', inst_id).eq('course_id', course_id).order('timestamp', desc=False).execute()
+            messages = [row['data'] for row in res.data] if res.data else []
+            return jsonify(messages)
+        except Exception as e:
+            print(f"Error loading forum: {e}")
             return jsonify([])
             
     if request.method == 'POST':
         data = request.json
         if not data or not data.get('content'):
             return jsonify({"status": "error", "message": "Content required"}), 400
-            
-        messages = []
-        if os.path.exists(forum_file):
-            try:
-                with open(forum_file, 'r', encoding='utf-8') as f:
-                    messages = json.load(f)
-            except:
-                pass
                 
         import datetime
+        msg_id = "msg_" + formacion_storage.generate_id()
+        timestamp = datetime.datetime.now().isoformat()
+        
         new_msg = {
-            "id": "msg_" + formacion_storage.generate_id(),
+            "id": msg_id,
             "user_email": data.get("user_email", "unknown"),
             "user_name": data.get("user_name", "Usuario"),
             "role": data.get("role", "estudiante"),
             "content": data.get("content"),
-            "timestamp": datetime.datetime.now().isoformat()
+            "timestamp": timestamp
         }
-        messages.append(new_msg)
         
         try:
-            with open(forum_file, 'w', encoding='utf-8') as f:
-                json.dump(messages, f, indent=2, ensure_ascii=False)
+            supabase.table('lms_forums').insert({
+                "id": msg_id,
+                "inst_id": inst_id,
+                "program_id": program_id,
+                "course_id": course_id,
+                "user_email": data.get("user_email", "unknown"),
+                "data": new_msg,
+                "timestamp": timestamp
+            }).execute()
             return jsonify({"status": "success", "data": new_msg})
         except Exception as e:
+            print(f"Error saving forum msg: {e}")
             return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/courses/<course_id>', methods=['GET', 'PUT', 'DELETE'])
