@@ -915,46 +915,67 @@
 
     <!-- MODAL: AÑADIR EVALUACION A UNIDAD -->
     <div id="unitEvaluationModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1001; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:16px; padding:30px; width:460px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <h3 style="margin-bottom:20px; font-size:1.2rem;">Crear Evaluación (Escala CNA 1.0 - 5.0)</h3>
-            <input type="hidden" id="evaluationUnitIdx">
-            <div class="form-group">
-                <label>Título de la Evaluación / Examen</label>
-                <input type="text" id="eval_title" placeholder="Ej: Quiz - Factores 1 a 6">
-            </div>
-            <div class="form-grid" style="margin-top:15px; grid-template-columns:1fr 1fr;">
+        <div style="background:white; border-radius:16px; padding:30px; width:700px; max-width:95vw; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="margin-bottom:20px; font-size:1.2rem;">Constructor de Examen</h3>
+            <div style="overflow-y:auto; flex:1; padding-right:10px;">
+                <input type="hidden" id="evaluationUnitIdx">
                 <div class="form-group">
-                    <label>Nota Mínima (Aprobación)</label>
-                    <input type="number" id="eval_min" step="0.1" min="1.0" max="5.0" value="3.0">
+                    <label>Título del Examen</label>
+                    <input type="text" id="eval_title" placeholder="Ej: Examen Final - Unidad 1">
                 </div>
-                <div class="form-group">
-                    <label>Nota Máxima</label>
-                    <input type="number" id="eval_max" step="0.1" min="1.0" max="5.0" value="5.0">
+                <div class="form-grid" style="margin-top:15px; grid-template-columns:1fr 1fr;">
+                    <div class="form-group">
+                        <label>Nota Mínima (Aprobación)</label>
+                        <input type="number" id="eval_min" step="0.1" min="1.0" max="5.0" value="3.0">
+                    </div>
+                    <div class="form-group">
+                        <label>Nota Máxima</label>
+                        <input type="number" id="eval_max" step="0.1" min="1.0" max="5.0" value="5.0">
+                    </div>
+                </div>
+                
+                <hr style="border:none; border-top:1px solid #e2e8f0; margin:20px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h4 style="margin:0; color:#0f172a;">Preguntas del Examen</h4>
+                    <button class="btn-secondary" onclick="addQuizBuilderQuestion()" style="padding:6px 12px; font-size:0.8rem;">+ Añadir Pregunta</button>
+                </div>
+                <div id="quizBuilderContainer" style="display:flex; flex-direction:column; gap:15px;">
+                    <!-- Preguntas dinámicas -->
                 </div>
             </div>
-            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px; padding-top:15px; border-top:1px solid #e2e8f0;">
                 <button class="btn-ghost" onclick="closeUnitEvaluationModal()">Cancelar</button>
-                <button class="btn-primary" onclick="submitAddUnitEvaluation()">Crear Evaluación</button>
+                <button class="btn-primary" onclick="submitAddUnitEvaluation()">Guardar Examen</button>
             </div>
         </div>
-    </div>
+    </div>>
 
     <!-- MODAL: PRESENTAR EVALUACIÓN (ESTUDIANTE) -->
-    <div id="quizModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1001; align-items:center; justify-content:center;">
-        <div id="quizModalContent" style="background:white; border-radius:16px; padding:30px; width:500px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.3); max-height:85vh; overflow-y:auto;">
-            <h3 style="margin-bottom:10px; font-size:1.25rem; color: #0f172a;" id="quizModalTitle">Evaluación</h3>
-            <p id="quizModalSub" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:20px;"></p>
-            
-            <div id="quizQuestionsContainer" style="display:flex; flex-direction:column; gap:20px; margin-bottom:25px; color: #0f172a; text-align: left;">
-                <!-- Dynamic questions -->
+    <div id="quizModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+        <div style="background:white; border-radius:20px; width:650px; max-width:95vw; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div style="padding:25px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 id="quizModalTitle" style="font-size:1.3rem; margin:0; color: #0f172a;">Examen Formativo</h3>
+                    <p id="quizModalSub" style="font-size:0.85rem; color:var(--text-muted); margin:5px 0 0 0;">Evaluación</p>
+                </div>
+                <button class="btn-ghost" onclick="document.getElementById('quizModal').style.display='none'" style="font-size:1.5rem; padding:0 10px;">&times;</button>
             </div>
             
-            <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button class="btn-ghost" onclick="closeQuizModal()">Cancelar</button>
-                <button class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); border:none; color: white;" onclick="submitQuiz()">Enviar Respuestas</button>
+            <div id="quizModalContent" style="padding:25px; overflow-y:auto; flex:1;">
+                <input type="hidden" id="takeQuizCourseId">
+                <input type="hidden" id="takeQuizUnitId">
+                <input type="hidden" id="takeQuizEvalId">
+                <div id="quizQuestionsContainer" style="display:flex; flex-direction:column; gap:25px;">
+                    <!-- Preguntas -->
+                </div>
+            </div>
+            
+            <div id="quizModalFooter" style="padding:20px 25px; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:10px; background:#f8fafc; border-radius:0 0 20px 20px;">
+                <button class="btn-ghost" onclick="document.getElementById('quizModal').style.display='none'">Cancelar</button>
+                <button class="btn-primary" onclick="submitQuiz()" id="btnSubmitQuiz">Enviar Examen</button>
             </div>
         </div>
-    </div>
+    </div>>
 
     <!-- MODAL: SALA VIRTUAL (JITSI) -->
     <div id="jitsiModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1003; align-items:center; justify-content:center; flex-direction:column;">
@@ -2311,7 +2332,7 @@
                                             <strong>${escapeHtml(ev.title)}</strong><br>
                                             <span style="font-size:0.72rem; color:var(--text-muted);">Calificación CNA (Aprobación: ${ev.min_grade})</span>
                                         </div>
-                                        <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--primary-gradient); border:none; color:white; border-radius:10px;" onclick="presentQuiz('${escapeHtml(ev.title).replace(/'/g, "\\'")}', ${ev.min_grade || 3.0}, ${ev.max_grade || 5.0})">Presentar Examen</button>
+                                        <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--primary-gradient); border:none; color:white; border-radius:10px;" onclick="presentQuiz('${courseId}', '${unit.id}', '${ev.id}', '${escapeHtml(ev.title).replace(/'/g, "\\'")}', ${ev.min_grade || 3.0}, ${ev.max_grade || 5.0}, '${escapeHtml(JSON.stringify(ev.questions || [])).replace(/'/g, "\\'")}')">Presentar Examen</button>
                                     </div>`;
                             });
                         }
