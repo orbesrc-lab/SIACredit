@@ -1,7 +1,10 @@
 import os
 import json
 import uuid
+from datetime import datetime
 from supabase import create_client, Client
+
+IS_VERCEL = os.environ.get("VERCEL") == "1"
 
 url = os.environ.get("SUPABASE_URL")
 key = os.environ.get("SUPABASE_KEY")
