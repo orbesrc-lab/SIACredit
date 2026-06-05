@@ -614,42 +614,23 @@
                     </div>
 
                     <!-- SUB-TAB: CLASES SINCRONICAS -->
+                    <!-- SUB-TAB: CLASES SINCRONICAS -->
                     <div id="subTabSync" class="sub-tab-content" style="display: none;">
-                        <div style="background:#fafafa; border:1px solid var(--border-color); border-radius:12px; padding:20px; margin-bottom:20px;">
-                            <h4 style="margin-bottom:15px; font-size:0.95rem;">📅 Agendar Clase por Videoconferencia (Google Meet, Teams, Zoom)</h4>
-                            <div class="form-grid" style="margin-bottom:10px;">
-                                <div class="form-group">
-                                    <label>Título de la Sesión</label>
-                                    <input type="text" id="sync_title" placeholder="Ej: Clase de bienvenida y dudas">
-                                </div>
-                                <div class="form-group">
-                                    <label>Enlace / URL de la Reunión</label>
-                                    <input type="url" id="sync_url" placeholder="https://meet.google.com/abc-defg-hij">
-                                </div>
-                                <div class="form-group">
-                                    <label>Fecha</label>
-                                    <input type="date" id="sync_date">
-                                </div>
-                                <div class="form-group">
-                                    <label>Hora</label>
-                                    <input type="time" id="sync_time">
-                                </div>
-                                <div class="form-group">
-                                    <label>Plataforma</label>
-                                    <select id="sync_platform">
-                                        <option value="Google Meet">Google Meet 🎥</option>
-                                        <option value="Microsoft Teams">Microsoft Teams 💬</option>
-                                        <option value="Zoom">Zoom 📹</option>
-                                        <option value="Otro">Otro Sistema</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <button class="btn-primary" onclick="scheduleSyncClass()" style="margin-top:10px;">Agendar Sesión</button>
+                        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:20px; margin-bottom:20px;">
+                            <h4 style="margin-bottom:10px; font-size:1.05rem; color:#10b981;">🎥 Sala Virtual del Curso (Jitsi Meet)</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Inicia o ingresa a la sala virtual integrada para dictar tus clases en vivo.</p>
+                            <button class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); border:none; padding:12px 25px; font-weight:bold; border-radius:8px;" id="btnOpenJitsiTeacher">Ingresar como Moderador 🚀</button>
                         </div>
-
-                        <h4 style="font-size:0.95rem; margin-bottom:15px;">Clases Sincrónicas Programadas</h4>
-                        <div id="meetingsList">
-                            <!-- Dynamic -->
+                        
+                        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:20px; display: flex; flex-direction: column; height: 450px;">
+                            <h4 style="margin-bottom:10px; font-size:1.05rem; color:#3b82f6;">💬 Foro / Chat del Curso</h4>
+                            <div id="teacherForumMessages" style="flex: 1; background: white; border-radius: 8px; border: 1px solid #e2e8f0; overflow-y: auto; padding: 15px; margin-bottom: 15px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px;">
+                                <!-- Messages dynamic -->
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="teacherForumInput" placeholder="Escribe un mensaje para tus estudiantes..." style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem;">
+                                <button class="btn-primary" id="btnSendTeacherForum" style="padding: 10px 20px; background: #3b82f6; border: none; border-radius: 8px; color: white;">Enviar</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -704,6 +685,13 @@
                             <span id="studentCourseLevel">📊</span>
                             <span id="studentCourseCertifier">🎓</span>
                         </div>
+                        <div id="studentCourseTeacherProfile" style="margin-top: 15px; padding: 12px; background: rgba(99,102,241,0.05); border-radius: 12px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(99,102,241,0.1); display: none;">
+                            <img id="studentCourseTeacherAvatar" src="" alt="Profesor" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color);">
+                            <div>
+                                <strong style="display: block; font-size: 0.95rem; color: var(--text-main);" id="studentCourseTeacherName">Nombre del Profesor</strong>
+                                <span style="font-size: 0.8rem; color: var(--text-muted);" id="studentCourseTeacherEmail">correo@ejemplo.com</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="student-classroom-grid">
@@ -726,8 +714,21 @@
                             </div>
 
                             <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 15px;">
-                                <h4 style="font-size: 0.9rem; margin-top: 0; color: #10b981;">🎥 Clases Sincrónicas en Vivo</h4>
-                                <div id="studentMeetingsList" style="margin-top: 10px;"></div>
+                                <h4 style="font-size: 0.9rem; margin-top: 0; color: #10b981;">🎥 Sala Virtual Integrada</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Ingresa a la videollamada en vivo con el docente y tus compañeros.</p>
+                                <button class="btn-primary" style="width: 100%; background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 10px; font-weight: bold; border-radius: 8px;" id="btnOpenJitsiStudent">Ingresar a Sala Virtual 🚀</button>
+                            </div>
+                            
+                            <!-- Foro del Curso -->
+                            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 15px; margin-top: 20px; display: flex; flex-direction: column; height: 400px;">
+                                <h4 style="font-size: 0.9rem; margin-top: 0; color: #3b82f6;">💬 Foro / Chat del Curso</h4>
+                                <div id="studentForumMessages" style="flex: 1; background: white; border-radius: 8px; border: 1px solid #e2e8f0; overflow-y: auto; padding: 10px; margin-bottom: 10px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px;">
+                                    <!-- Messages dynamic -->
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" id="studentForumInput" placeholder="Escribe un mensaje..." style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+                                    <button class="btn-primary" id="btnSendStudentForum" style="padding: 8px 15px; background: #3b82f6; border: none; border-radius: 6px; color: white;">Enviar</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -900,6 +901,14 @@
         </div>
     </div>
 
+    <!-- MODAL: SALA VIRTUAL (JITSI) -->
+    <div id="jitsiModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1003; align-items:center; justify-content:center; flex-direction:column;">
+        <div style="width: 100%; display: flex; justify-content: flex-end; padding: 15px; box-sizing: border-box;">
+            <button class="btn-danger" onclick="closeJitsiMeet()" style="padding: 10px 20px; font-weight: bold; border-radius: 8px;">Cerrar Sala ✖</button>
+        </div>
+        <div id="jitsiContainer" style="width: 95%; height: 85%; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></div>
+    </div>
+
     <!-- MODAL: EDITOR DE CONTENIDO DE TEMA (PROFESOR) -->
     <div id="topicEditorModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1002; align-items:center; justify-content:center;">
         <div style="background:white; border-radius:16px; padding:30px; width:750px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.3); display:flex; flex-direction:column; max-height:90vh;">
@@ -999,6 +1008,8 @@
         </div>
     </div>
 
+    <!-- Jitsi Meet API -->
+    <script src="https://meet.jit.si/external_api.js"></script>
     <script src="{{ url_for('static', filename='data.js') }}?v=2.2"></script>
     <script>
         // Sesión y Seguridad
@@ -1111,22 +1122,32 @@
             }
         }
 
+        async function preloadTeacherDropdown() {
+            try {
+                const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
+                const teachers = await resp.json();
+                const selectEdit = document.getElementById('edit_teacher_id');
+                if (selectEdit) {
+                    const currentValue = selectEdit.value;
+                    selectEdit.innerHTML = '<option value="">-- Seleccionar Docente --</option>';
+                    teachers.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t.id;
+                        opt.textContent = t.name;
+                        selectEdit.appendChild(opt);
+                    });
+                    if (currentValue) selectEdit.value = currentValue;
+                }
+                return teachers;
+            } catch(e) { console.error("Error preloading teachers", e); return []; }
+        }
+
         async function loadTeachersList() {
             const grid = document.getElementById('teachersGrid');
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando profesores...</div>';
             
             try {
-                const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
-                const teachers = await resp.json();
-                
-                const selectEdit = document.getElementById('edit_teacher_id');
-                selectEdit.innerHTML = '<option value="">-- Seleccionar Docente --</option>';
-                teachers.forEach(t => {
-                    const opt = document.createElement('option');
-                    opt.value = t.id;
-                    opt.textContent = t.name;
-                    selectEdit.appendChild(opt);
-                });
+                const teachers = await preloadTeacherDropdown();
                 
                 if (teachers.length === 0) {
                     grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay profesores registrados aún.</div>';
@@ -1477,6 +1498,8 @@
                 renderMeetingsList();
                 loadCourseStudentsList(courseId);
                 
+                initForum(courseId, true);
+
                 document.getElementById('courseEditorSection').style.display = 'block';
                 document.getElementById('courseEditorSection').scrollIntoView({ behavior: 'smooth' });
                 switchSubTab('general');
@@ -2053,6 +2076,22 @@
                 document.getElementById('studentCourseLevel').textContent = `📊 Nivel: ${course.level || 'Principiante'}`;
                 document.getElementById('studentCourseCertifier').textContent = `🎓 Certifica: ${course.certifier || 'SKEL'}`;
                 
+                // Mostrar perfil del profesor asignado
+                const teacherProfileDiv = document.getElementById('studentCourseTeacherProfile');
+                if (course.teacher_id) {
+                    try {
+                        const tResp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
+                        const teachers = await tResp.json();
+                        const teacher = teachers.find(t => t.id === course.teacher_id);
+                        if (teacher) {
+                            document.getElementById('studentCourseTeacherAvatar').src = teacher.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100';
+                            document.getElementById('studentCourseTeacherName').textContent = `Profesor: ${teacher.name}`;
+                            document.getElementById('studentCourseTeacherEmail').textContent = teacher.email;
+                            teacherProfileDiv.style.display = 'flex';
+                        } else { teacherProfileDiv.style.display = 'none'; }
+                    } catch(e) { teacherProfileDiv.style.display = 'none'; }
+                } else { teacherProfileDiv.style.display = 'none'; }
+
                 const outcomesUl = document.getElementById('studentOutcomesList');
                 outcomesUl.innerHTML = (course.outcomes || []).map(o => `<li>${escapeHtml(o)}</li>`).join('') || '<li>Sin resultados registrados.</li>';
                 
@@ -2263,10 +2302,29 @@
                     });
                     
                     if (response.ok) {
-                        alert(`✅ Entrega registrada exitosamente para la actividad:\n"${title}"\n\nTu respuesta ha sido enviada al profesor para su calificación.`);
-                        openStudentCourse(courseId);
+                        const successModal = document.createElement('div');
+                        successModal.style = 'position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; display:flex; align-items:center; justify-content:center; animation: fadeIn 0.3s ease;';
+                        successModal.innerHTML = `
+                            <div style="background: white; border-radius: 20px; padding: 40px; text-align: center; max-width: 450px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: slideUp 0.4s ease;">
+                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 40px; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);">✓</div>
+                                <h3 style="font-size: 1.5rem; color: #0f172a; margin-bottom: 10px; font-weight: 800;">¡Entrega Exitosa!</h3>
+                                <p style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Tu respuesta para la actividad <strong>"${escapeHtml(title)}"</strong> ha sido registrada y enviada al profesor para su calificación.</p>
+                                <button onclick="this.closest('div').parentElement.remove(); openStudentCourse('${courseId}');" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 30px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; width: 100%; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); transition: transform 0.2s;">Continuar en el Aula</button>
+                            </div>
+                        `;
+                        document.body.appendChild(successModal);
                     } else {
-                        alert("❌ Hubo un error al registrar la entrega en el servidor.");
+                        const errorModal = document.createElement('div');
+                        errorModal.style = 'position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; display:flex; align-items:center; justify-content:center; animation: fadeIn 0.3s ease;';
+                        errorModal.innerHTML = `
+                            <div style="background: white; border-radius: 20px; padding: 40px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: slideUp 0.4s ease;">
+                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 40px; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);">!</div>
+                                <h3 style="font-size: 1.5rem; color: #0f172a; margin-bottom: 10px; font-weight: 800;">Error</h3>
+                                <p style="color: var(--text-muted); margin-bottom: 25px;">Hubo un problema al registrar la entrega en el servidor.</p>
+                                <button onclick="this.closest('div').parentElement.remove();" style="background: var(--text-muted); color: white; border: none; padding: 12px 30px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; width: 100%;">Cerrar</button>
+                            </div>
+                        `;
+                        document.body.appendChild(errorModal);
                     }
                 } catch (e) {
                     console.error("Error al enviar actividad:", e);
@@ -2711,10 +2769,175 @@
         }
 
 
+        // ========== JITSI MEET API ==========
+        let jitsiApi = null;
+        
+        function openJitsiMeet(courseId, courseTitle) {
+            document.getElementById('jitsiModal').style.display = 'flex';
+            const domain = 'meet.jit.si';
+            const roomName = `SIAClassroom_${getInstId()}_${courseId}`.replace(/[^a-zA-Z0-9]/g, "");
+            
+            const options = {
+                roomName: roomName,
+                width: '100%',
+                height: '100%',
+                parentNode: document.getElementById('jitsiContainer'),
+                userInfo: {
+                    email: user.email,
+                    displayName: user.name || user.email.split('@')[0]
+                },
+                configOverwrite: {
+                    startWithAudioMuted: true,
+                    startWithVideoMuted: true,
+                    prejoinPageEnabled: false
+                },
+                interfaceConfigOverwrite: {
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false,
+                    DEFAULT_BACKGROUND: '#0f172a'
+                }
+            };
+            jitsiApi = new JitsiMeetExternalAPI(domain, options);
+            jitsiApi.executeCommand('subject', 'Sala Virtual: ' + courseTitle);
+        }
+
+        function closeJitsiMeet() {
+            if (jitsiApi) {
+                jitsiApi.dispose();
+                jitsiApi = null;
+            }
+            document.getElementById('jitsiModal').style.display = 'none';
+        }
+
+        // ========== FORO DEL CURSO ==========
+        let currentForumCourseId = null;
+        let forumInterval = null;
+
+        async function loadForumMessages(courseId, isTeacher = false) {
+            try {
+                const resp = await fetch(`/api/courses/${courseId}/forum?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const messages = await resp.json();
+                
+                const containerId = isTeacher ? 'teacherForumMessages' : 'studentForumMessages';
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                
+                if (messages.length === 0) {
+                    container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">No hay mensajes aún. ¡Sé el primero en escribir!</div>';
+                    return;
+                }
+                
+                let html = '';
+                messages.forEach(msg => {
+                    const isMe = msg.user_email === user.email;
+                    const date = new Date(msg.timestamp);
+                    const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const dateStr = date.toLocaleDateString();
+                    
+                    const roleBadge = msg.role === 'admin' || msg.role === 'profesor' ? '<span style="background:#10b981; color:white; padding:2px 5px; border-radius:4px; font-size:0.6rem; margin-left:5px;">Docente</span>' : '';
+                    
+                    html += `
+                        <div style="align-self: ${isMe ? 'flex-end' : 'flex-start'}; background: ${isMe ? '#dbeafe' : '#f8fafc'}; border: 1px solid ${isMe ? '#bfdbfe' : '#e2e8f0'}; border-radius: 12px; padding: 10px 14px; max-width: 80%;">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; display:flex; align-items:center; justify-content:${isMe ? 'flex-end' : 'flex-start'}; gap:5px;">
+                                <strong>${isMe ? 'Tú' : escapeHtml(msg.user_name)}</strong> ${roleBadge}
+                            </div>
+                            <div style="color: #0f172a; line-height: 1.4;">${escapeHtml(msg.content)}</div>
+                            <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 5px; text-align: right;">${dateStr} ${timeStr}</div>
+                        </div>
+                    `;
+                });
+                
+                // Only scroll if we added new messages or on first load
+                const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 50;
+                container.innerHTML = html;
+                if (isScrolledToBottom) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            } catch(e) {
+                console.error("Error loading forum", e);
+            }
+        }
+
+        async function sendForumMessage(courseId, content, isTeacher = false) {
+            if (!content || !content.trim()) return;
+            try {
+                const resp = await fetch(`/api/courses/${courseId}/forum?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_email: user.email,
+                        user_name: user.name || user.email.split('@')[0],
+                        role: user.role,
+                        content: content.trim()
+                    })
+                });
+                if (resp.ok) {
+                    loadForumMessages(courseId, isTeacher);
+                }
+            } catch(e) {
+                console.error("Error sending message", e);
+            }
+        }
+
+        function initForum(courseId, isTeacher) {
+            currentForumCourseId = courseId;
+            if (forumInterval) clearInterval(forumInterval);
+            
+            loadForumMessages(courseId, isTeacher);
+            
+            // Poll for new messages every 10 seconds
+            forumInterval = setInterval(() => {
+                if (currentForumCourseId === courseId) {
+                    loadForumMessages(courseId, isTeacher);
+                } else {
+                    clearInterval(forumInterval);
+                }
+            }, 10000);
+            
+            const btnId = isTeacher ? 'btnSendTeacherForum' : 'btnSendStudentForum';
+            const inputId = isTeacher ? 'teacherForumInput' : 'studentForumInput';
+            
+            const btn = document.getElementById(btnId);
+            const input = document.getElementById(inputId);
+            if (!btn || !input) return;
+            
+            // Remove old listeners by cloning
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            const newInput = input.cloneNode(true);
+            input.parentNode.replaceChild(newInput, input);
+            
+            newBtn.addEventListener('click', () => {
+                sendForumMessage(courseId, newInput.value, isTeacher);
+                newInput.value = '';
+            });
+            
+            newInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendForumMessage(courseId, newInput.value, isTeacher);
+                    newInput.value = '';
+                }
+            });
+            
+            const jitsiBtnId = isTeacher ? 'btnOpenJitsiTeacher' : 'btnOpenJitsiStudent';
+            const jitsiBtn = document.getElementById(jitsiBtnId);
+            if (jitsiBtn) {
+                const newJitsiBtn = jitsiBtn.cloneNode(true);
+                jitsiBtn.parentNode.replaceChild(newJitsiBtn, jitsiBtn);
+                
+                const titleEl = document.getElementById(isTeacher ? 'edit_title' : 'studentCourseTitle');
+                const courseTitle = titleEl ? (titleEl.value || titleEl.textContent) : 'Aula';
+                newJitsiBtn.addEventListener('click', () => {
+                    openJitsiMeet(courseId, courseTitle);
+                });
+            }
+        }
+
         // ========== CONTROLADORES DE CARGA INICIAL ==========
 
         async function init() {
             await loadDataFromAPI();
+            preloadTeacherDropdown();
             
             // Verificar rol de usuario
             if (user && user.role === 'estudiante') {
