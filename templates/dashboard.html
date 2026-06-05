@@ -8,21 +8,37 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .card { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
-        .card h3 { font-size: 1rem; color: var(--text-muted); margin-bottom: 10px; }
-        .card .value { font-size: 2rem; font-weight: 700; }
-        .card .trend { font-size: 0.85rem; color: #10b981; margin-top: 5px; }
-        .recent-activity { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
-        .activity-item { padding: 15px 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; }
+        .card { 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(16px);
+            border-radius: var(--radius-lg); 
+            padding: 25px; 
+            box-shadow: var(--shadow-md); 
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            background: var(--glass-bg-hover);
+        }
+        .card h3 { font-size: 1rem; color: var(--text-muted); margin-bottom: 10px; font-weight: 600; }
+        .card .value { font-size: 2.2rem; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .card .trend { font-size: 0.85rem; color: var(--text-muted); margin-top: 8px; font-weight: 500; }
+        .recent-activity { background: var(--glass-bg); backdrop-filter: blur(16px); border-radius: var(--radius-lg); padding: 25px; box-shadow: var(--shadow-md); border: 1px solid var(--glass-border); }
+        .activity-item { padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; transition: all 0.2s; }
+        .activity-item:hover { transform: translateX(5px); }
         .activity-item:last-child { border-bottom: none; }
 
         .dashboard-viz-card {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border-color);
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--glass-border);
             margin-bottom: 30px;
+            transition: all 0.3s;
         }
         .viz-layout {
             display: grid;
