@@ -452,6 +452,14 @@
             }
         }
     </style>
+
+    <!-- Quill.js for Advanced Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <style>
+        .ql-container { font-family: 'Outfit', sans-serif !important; font-size: 1rem; border-radius: 0 0 8px 8px; }
+        .ql-toolbar { border-radius: 8px 8px 0 0; background: #f8fafc; }
+    </style>
 </head>
 
 <body>
@@ -869,8 +877,10 @@
                 </select>
             </div>
             <div class="form-group" style="margin-top: 15px;">
-                <label>URL / Enlace del Archivo</label>
-                <input type="url" id="res_url" placeholder="https://drive.google.com/file/... o Youtube">
+                <label>Archivo a Adjuntar o Enlace</label>
+                <input type="file" id="res_file" style="margin-bottom: 10px;">
+                <input type="url" id="res_url" placeholder="O ingresa un enlace (Ej: Youtube)">
+                <small style="color: #64748b; font-size: 0.8rem;">Sube un archivo directo o ingresa un enlace externo.</small>
             </div>
             <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
                 <button class="btn-ghost" onclick="closeUnitResourceModal()">Cancelar</button>
@@ -2362,63 +2372,88 @@
         }
 
         // --- ENTREGA DE ACTIVIDADES POR PARTE DEL ESTUDIANTE ---
-        async function submitActivityDelivery(courseId, unitId, actId, title) {
-            const answer = prompt(`Ingresa tu respuesta o la dirección/enlace de tu entrega (Google Drive, OneDrive, etc.) para la actividad:\n"${title}"`);
-            if (answer && answer.trim() !== '') {
-                try {
-                    // Buscar si existe una entrega anterior para actualizarla
-                    const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${actId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                    const existingSubs = await checkResp.json();
-                    
-                    const subData = {
-                        course_id: courseId,
-                        unit_id: unitId,
-                        activity_id: actId,
-                        student_email: user.email,
-                        student_name: user.name || user.email.split('@')[0],
-                        content: answer.trim(),
-                        submitted_at: new Date().toISOString(),
-                        status: 'pending'
-                    };
-                    
-                    if (existingSubs && existingSubs.length > 0) {
-                        subData.id = existingSubs[0].id;
-                    }
-                    
-                    const response = await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(subData)
-                    });
-                    
-                    if (response.ok) {
-                        const successModal = document.createElement('div');
-                        successModal.style = 'position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; display:flex; align-items:center; justify-content:center; animation: fadeIn 0.3s ease;';
-                        successModal.innerHTML = `
-                            <div style="background: white; border-radius: 20px; padding: 40px; text-align: center; max-width: 450px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: slideUp 0.4s ease;">
-                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 40px; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);">✓</div>
-                                <h3 style="font-size: 1.5rem; color: #0f172a; margin-bottom: 10px; font-weight: 800;">¡Entrega Exitosa!</h3>
-                                <p style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Tu respuesta para la actividad <strong>"${escapeHtml(title)}"</strong> ha sido registrada y enviada al profesor para su calificación.</p>
-                                <button onclick="this.closest('div').parentElement.remove(); openStudentCourse('${courseId}');" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 30px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; width: 100%; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); transition: transform 0.2s;">Continuar en el Aula</button>
-                            </div>
-                        `;
-                        document.body.appendChild(successModal);
-                    } else {
-                        const errorModal = document.createElement('div');
-                        errorModal.style = 'position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; display:flex; align-items:center; justify-content:center; animation: fadeIn 0.3s ease;';
-                        errorModal.innerHTML = `
-                            <div style="background: white; border-radius: 20px; padding: 40px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: slideUp 0.4s ease;">
-                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 40px; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);">!</div>
-                                <h3 style="font-size: 1.5rem; color: #0f172a; margin-bottom: 10px; font-weight: 800;">Error</h3>
-                                <p style="color: var(--text-muted); margin-bottom: 25px;">Hubo un problema al registrar la entrega en el servidor.</p>
-                                <button onclick="this.closest('div').parentElement.remove();" style="background: var(--text-muted); color: white; border: none; padding: 12px 30px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; width: 100%;">Cerrar</button>
-                            </div>
-                        `;
-                        document.body.appendChild(errorModal);
-                    }
-                } catch (e) {
+                async function submitActivityDelivery(courseId, unitId, actId, title) {
+            document.getElementById('submitCourseId').value = courseId;
+            document.getElementById('submitUnitId').value = unitId;
+            document.getElementById('submitActId').value = actId;
+            document.getElementById('submitActivityTitleDesc').textContent = "Actividad: " + title;
+            document.getElementById('submitTextContent').value = '';
+            document.getElementById('submitFile').value = '';
+            document.getElementById('studentSubmitActivityModal').style.display = 'flex';
+        }
+        
+        async function confirmActivityDelivery() {
+            const btn = document.getElementById('btnConfirmDelivery');
+            btn.textContent = "Subiendo...";
+            btn.disabled = true;
+            
+            const courseId = document.getElementById('submitCourseId').value;
+            const unitId = document.getElementById('submitUnitId').value;
+            const actId = document.getElementById('submitActId').value;
+            let contentText = document.getElementById('submitTextContent').value;
+            const fileInput = document.getElementById('submitFile');
+            
+            // Subir archivo si existe
+            if (fileInput.files.length > 0) {
+                const fileUrl = await uploadFileToLMS(fileInput.files[0]);
+                if(fileUrl) {
+                    contentText += "
+
+Archivo adjunto: " + fileUrl;
+                } else {
+                    btn.textContent = "Enviar Actividad";
+                    btn.disabled = false;
+                    return;
+                }
+            }
+            
+            if (contentText.trim() === '') {
+                alert("Debes escribir un mensaje o adjuntar un archivo.");
+                btn.textContent = "Enviar Actividad";
+                btn.disabled = false;
+                return;
+            }
+            
+            try {
+                // Buscar si existe una entrega anterior para actualizarla
+                const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${actId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const existingSubs = await checkResp.json();
+                
+                const subData = {
+                    course_id: courseId,
+                    unit_id: unitId,
+                    activity_id: actId,
+                    student_email: user.email,
+                    student_name: user.name || user.email.split('@')[0],
+                    content: contentText.trim(),
+                    submitted_at: new Date().toISOString(),
+                    status: 'pending'
+                };
+                
+                if (existingSubs && existingSubs.length > 0) {
+                    subData.id = existingSubs[0].id;
+                }
+                
+                const response = await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(subData)
+                });
+                
+                if (response.ok) {
+                    alert("Actividad enviada exitosamente. ¡Buen trabajo!");
+                    document.getElementById('studentSubmitActivityModal').style.display = 'none';
+                    openStudentCourse(courseId);
+                } else {
+                    alert("Error al enviar la actividad.");
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Error de conexión al enviar actividad.");
+            }
+            btn.textContent = "Enviar Actividad";
+            btn.disabled = false;
+        } catch (e) {
                     console.error("Error al enviar actividad:", e);
                     alert("❌ Error de red al registrar tu entrega.");
                 }
@@ -3178,8 +3213,70 @@
             }
         }
 
-        window.onload = init;
+        let quillEditorInstance = null;
+        function initQuill() {
+            if (!quillEditorInstance && document.getElementById('quillEditor')) {
+                quillEditorInstance = new Quill('#quillEditor', {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            [{ 'color': [] }, { 'background': [] }],
+                            ['link', 'image', 'video'],
+                            ['clean']
+                        ]
+                    }
+                });
+            }
+        }
+        
+        // Custom generic uploader
+        async function uploadFileToLMS(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                if(data.status === 'success') return data.url;
+                else throw new Error(data.message);
+            } catch(e) {
+                console.error("Upload error:", e);
+                alert("Error al subir archivo: " + e.message);
+                return null;
+            }
+        }
+        
+        window.onload = function() {
+            init();
+            initQuill();
+        };
     </script>
+
+    <!-- MODAL: ESTUDIANTE ENVIAR ACTIVIDAD -->
+    <div id="studentSubmitActivityModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1005; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:16px; padding:30px; width:500px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="margin-bottom:20px; font-size:1.2rem;">Enviar Actividad</h3>
+            <p id="submitActivityTitleDesc" style="font-size:0.9rem; color:var(--text-muted); margin-bottom:15px;"></p>
+            <input type="hidden" id="submitCourseId">
+            <input type="hidden" id="submitUnitId">
+            <input type="hidden" id="submitActId">
+            
+            <div class="form-group">
+                <label>Mensaje o Respuesta</label>
+                <textarea id="submitTextContent" rows="4" placeholder="Escribe aquí tu respuesta..."></textarea>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Adjuntar Archivo (Opcional)</label>
+                <input type="file" id="submitFile">
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
+                <button class="btn-ghost" onclick="document.getElementById('studentSubmitActivityModal').style.display='none'">Cancelar</button>
+                <button class="btn-primary" onclick="confirmActivityDelivery()" id="btnConfirmDelivery">Enviar Actividad</button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

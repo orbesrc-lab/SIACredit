@@ -2674,6 +2674,44 @@ def get_course_analytics(course_id):
         "students": analytics_data
     })
 
+@app.route('/api/upload', methods=['POST'])
+def api_upload_lms_file():
+    if 'file' not in request.files:
+        return jsonify({"status": "error", "message": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"status": "error", "message": "No selected file"}), 400
+        
+    try:
+        import uuid
+        ext = ""
+        if '.' in file.filename:
+            ext = "." + file.filename.rsplit('.', 1)[1].lower()
+            
+        file_id = "f_" + str(uuid.uuid4().hex[:12]) + ext
+        file_bytes = file.read()
+        mime_type = file.content_type or 'application/octet-stream'
+        
+        # Upload to supabase storage bucket 'lms_files'
+        supabase.storage.from_('lms_files').upload(
+            file_id, 
+            file_bytes, 
+            {"content-type": mime_type}
+        )
+        
+        # Get public URL
+        public_url = supabase.storage.from_('lms_files').get_public_url(file_id)
+        
+        return jsonify({
+            "status": "success",
+            "url": public_url,
+            "filename": file.filename
+        })
+    except Exception as e:
+        print(f"Error uploading file: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 @app.route('/api/public/courses/<course_id>/report', methods=['GET'])
 def get_course_report(course_id):
     inst_id = request.args.get('inst_id', 1, type=int)

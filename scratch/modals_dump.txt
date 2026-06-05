@@ -1,0 +1,67 @@
+=== TOPIC EDITOR ===
+<div id="topicEditorModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1002; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:16px; padding:30px; width:750px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.3); display:flex; flex-direction:column; max-height:90vh;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+                <h3 style="font-size:1.25rem; color: #0f172a;" id="topicEditorModalTitle">Editor de Tema: Nombre</h3>
+                <button class="btn-ghost" onclick="closeTopicEditorModal()" style="color: var(--text-muted); font-size: 1.2rem; cursor: pointer; background: transparent; border: none;">❌</button>
+            </div>
+            
+            <input type="hidden" id="editorUnitIdx">
+            <input type="hidden" id="editorTopicIdx">
+            
+            <!-- Barra de Herramientas del Editor -->
+            <div style="background:#f1f5f9; border:1px solid #cbd5e1; border-bottom:none; border-radius:8px 8px 0 0; padding:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                <button class="btn-editor-tool" onclick="execEditorCommand('bold')" title="Negrita"><b>B</b></button>
+                <button class="btn-editor-tool" onclick="execEditorCommand('italic')" title="Cursiva"><i>I</i></button>
+                <button class="btn-editor-tool" onclick="execEditorCommand('underline')" title="Subrayado"><u>U</u></button>
+                <div style="width:1px; height:20px; background:#cbd5e1; margin:0 4px;"></div>
+                <button class="btn-editor-tool" onclick="execEditorCommand('justifyLeft')" title="Alinear izquierda">Align Left</button>
+                <button class="btn-editor-tool" onclick="execEditorCommand('justifyCenter')" title="Centrar">Align Center</button>
+                <button class="btn-editor-tool" onclick="execEditorCommand('justifyRight')" title="Alinear derecha">Align Right</button>
+                <div style="width:1px; height:20px; background:#cbd5e1; margin:0 4px;"></div>
+                <button class="btn-editor-tool" onclick="promptInsertImage()" title="Insertar Imagen">🖼️ Imagen</button>
+                <button class="btn-editor-tool" onclick="promptInsertVideo()" title="Embeber Video">🎥 Video</button>
+                <button class="btn-editor-tool" onclick="pro
+
+=== SUBMISSIONS ===
+Not found: studentSubmitActivityModal
+
+=== RESOURCE ===
+<div id="unitResourceModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1001; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:16px; padding:30px; width:460px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="margin-bottom:20px; font-size:1.2rem;">Añadir Recurso de Aprendizaje</h3>
+            <input type="hidden" id="resourceUnitIdx">
+            <div class="form-group">
+                <label>Nombre / Título del Recurso</label>
+                <input type="text" id="res_name" placeholder="Ej: Diapositivas o Infografía de Autoevaluación">
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Tipo de Recurso</label>
+                <select id="res_type">
+                    <option value="document">📄 Documento / PDF</option>
+                    <option value="video">🎥 Vídeo Explicativo</option>
+                    <option value="infographic">📊 Infografía</option>
+                    <option value="link">🔗 Enlace Web</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>URL / Enlace del Archivo</label>
+                <input type="url" id="res_url" placeholder="https://drive.google.com/file/... o Youtube">
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
+                <button class="btn-ghost" onclick="closeUnitResourceModal()">Cancelar</button>
+                <button class="btn-primary" onclick="submitAddUnitResource()">Añadir Recurso</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AÑADIR ACTIVIDAD A UNIDAD -->
+    <div id="unitActivityModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1001; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:16px; padding:30px; width:460px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="margin-bottom:20px; font-size:1.2rem;">Crear Actividad / Tarea</h3>
+            <input type="hidden" id="activityUnitIdx">
+            <div class="form-group">
+                <label>Título de la Actividad</label>
+                <input type="text" id="act_title" placeholder="Ej: Taller Práctico - Definición de Factores">
+            </div>
+            <div class="form-group" style="ma
