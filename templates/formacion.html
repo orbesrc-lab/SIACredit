@@ -2121,11 +2121,35 @@
                 if (units.length === 0) {
                     unitsContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding:30px; border:1px dashed var(--border-color); border-radius:8px;">Este curso aún no tiene lecciones creadas.</div>';
                 } else {
+                    let previousUnitCompleted = true; // La unidad 1 siempre inicia desbloqueada
+
                     units.forEach((unit, uIdx) => {
                         const box = document.createElement('div');
                         box.className = 'unit-box';
-                        box.style = 'margin-bottom: 20px;';
+                        box.style = 'margin-bottom: 20px; transition: all 0.3s ease;';
                         
+                        // Si la unidad anterior no fue completada, bloqueamos esta unidad
+                        if (!previousUnitCompleted) {
+                            box.style.opacity = '0.6';
+                            box.innerHTML = `
+                                <div class="unit-header" style="background: #e2e8f0; color: #64748b; border-color: #cbd5e1; display:flex; justify-content:space-between; align-items:center;">
+                                    <span>🔒 Unidad ${uIdx + 1}: ${escapeHtml(unit.name)}</span>
+                                    <span style="font-size:0.75rem; background:white; padding:2px 8px; border-radius:12px;">Bloqueada</span>
+                                </div>
+                                <div style="padding:30px; background: #f8fafc; text-align: center; color: var(--text-muted); border: 1px solid #e2e8f0; border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                                    <div style="font-size: 2rem; margin-bottom: 10px;">🔒</div>
+                                    <h4 style="margin: 0 0 10px 0; color: #64748b;">Contenido Bloqueado</h4>
+                                    <p style="font-size: 0.85rem; margin: 0; max-width: 400px; margin-left: auto; margin-right: auto;">Para acceder a esta unidad, primero debes completar y enviar todas las actividades de la unidad anterior.</p>
+                                </div>
+                            `;
+                            unitsContainer.appendChild(box);
+                            
+                            // Como esta unidad está bloqueada, lógicamente no está completada
+                            // por lo que las siguientes también se bloquearán.
+                            previousUnitCompleted = false;
+                            return; // No renderizamos el contenido
+                        }
+
                         // Temas con acordeón interactivo para ver el contenido HTML redactado por el profesor
                         let topicsHtml = '';
                         if (!unit.topics || unit.topics.length === 0) {
@@ -2245,6 +2269,22 @@
                             </div>
                         `;
                         unitsContainer.appendChild(box);
+                        
+                        // Lógica para determinar si esta unidad habilita la siguiente
+                        let currentUnitCompleted = true;
+                        if (unit.activities && unit.activities.length > 0) {
+                            // Todas las actividades deben tener al menos una entrega
+                            const submittedCount = unit.activities.filter(act => 
+                                studentSubmissions.some(s => s.activity_id === act.id)
+                            ).length;
+                            
+                            if (submittedCount < unit.activities.length) {
+                                currentUnitCompleted = false;
+                            }
+                        }
+                        
+                        // Actualizar el flag para la siguiente iteración
+                        previousUnitCompleted = currentUnitCompleted;
                     });
                 }
                 
