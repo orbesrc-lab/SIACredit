@@ -2582,13 +2582,6 @@ def handle_course_forum(course_id):
 def handle_api_course_specific(course_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
-    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
-    
-    if use_cloud:
-        try:
-            formacion_storage.pull_from_supabase(inst_id, program_id, supabase)
-        except Exception as e:
-            print(f"Error pulling: {e}")
             
     if request.method == 'GET':
         course = formacion_storage.load_course(course_id)
@@ -2598,40 +2591,20 @@ def handle_api_course_specific(course_id):
         
     elif request.method == 'PUT':
         data = request.json
-        data['id'] = course_id  # ensure ID matches
+        data['id'] = course_id
         saved = formacion_storage.save_course(inst_id, program_id, data)
         if saved:
-            if use_cloud:
-                try:
-                    formacion_storage.sync_courses_only(inst_id, program_id, supabase)
-                except Exception as e:
-                    print(f"Error syncing: {e}")
             return jsonify({"status": "success", "data": saved})
         return jsonify({"status": "error", "message": "No se pudo actualizar el curso."}), 500
         
     elif request.method == 'DELETE':
         success = formacion_storage.delete_course(inst_id, program_id, course_id)
         if success:
-            if use_cloud:
-                try:
-                    formacion_storage.sync_courses_only(inst_id, program_id, supabase)
-                except Exception as e:
-                    print(f"Error syncing: {e}")
             return jsonify({"status": "success"})
         return jsonify({"status": "error", "message": "No se pudo eliminar el curso."}), 500
 
 @app.route('/api/public/courses', methods=['GET'])
 def get_public_courses_catalog():
-    inst_id = request.args.get('inst_id', 1, type=int)
-    program_id = request.args.get('program_id', 0, type=int)
-    use_cloud = formacion_storage.IS_VERCEL or request.args.get('use_cloud', 'false').lower() == 'true'
-    
-    if use_cloud:
-        try:
-            formacion_storage.pull_from_supabase(inst_id, program_id, supabase)
-        except Exception as e:
-            print(f"Error pulling: {e}")
-            
     courses = formacion_storage.load_public_courses()
     public_catalog = []
     for c in courses:
@@ -2645,6 +2618,61 @@ def get_public_courses_catalog():
             "certifier": c.get("certifier")
         })
     return jsonify(public_catalog)
+
+@app.route('/api/courses/<course_id>/analytics', methods=['GET'])
+def get_course_analytics(course_id):
+    inst_id = request.args.get('inst_id', 1, type=int)
+    program_id = request.args.get('program_id', 0, type=int)
+    
+    course = formacion_storage.load_course(course_id)
+    if not course:
+        return jsonify({"status": "error", "message": "Course not found"}), 404
+        
+    # Calcular el numero total de actividades del curso
+    total_activities = sum(len(unit.get('activities', [])) for unit in course.get('units', []))
+    
+    # Obtener entregas
+    submissions = formacion_storage.load_submissions(inst_id, program_id)
+    course_submissions = [s for s in submissions if s.get('course_id') == course_id]
+    
+    # Obtener estudiantes inscritos
+    students = formacion_storage.load_students(inst_id)
+    enrolled_students = [s for s in students if 'enrolled_courses' in s and course_id in s['enrolled_courses']]
+    
+    analytics_data = []
+    
+    for student in enrolled_students:
+        email = student.get('email')
+        name = student.get('name', 'Estudiante')
+        
+        # Filtrar entregas de este estudiante
+        student_subs = [s for s in course_submissions if s.get('student_email') == email]
+        completed = len(student_subs)
+        
+        progress = 0
+        if total_activities > 0:
+            progress = int((completed / total_activities) * 100)
+            
+        # Determinar insignias
+        badges = []
+        if completed >= 1: badges.append("🥉 Primer Paso")
+        if progress >= 50: badges.append("🥈 Acelerado")
+        if progress >= 100: badges.append("🥇 Maestría")
+            
+        analytics_data.append({
+            "email": email,
+            "name": name,
+            "completed": completed,
+            "total_activities": total_activities,
+            "progress": progress,
+            "badges": badges
+        })
+        
+    return jsonify({
+        "course_id": course_id,
+        "total_activities": total_activities,
+        "students": analytics_data
+    })
 
 @app.route('/api/public/courses/<course_id>/report', methods=['GET'])
 def get_course_report(course_id):

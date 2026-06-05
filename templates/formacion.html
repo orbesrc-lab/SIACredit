@@ -517,6 +517,7 @@
                         <button class="sub-tab-btn active" id="subTabBtnGeneral" onclick="switchSubTab('general')">⚙️ Datos Generales</button>
                         <button class="sub-tab-btn" id="subTabBtnSyllabus" onclick="switchSubTab('syllabus')">📖 Plan de Estudios y Recursos</button>
                         <button class="sub-tab-btn" id="subTabBtnSync" onclick="switchSubTab('sync')">🎥 Clases Sincrónicas</button>
+                        <button class="sub-tab-btn" id="subTabBtnAnalytics" onclick="switchSubTab('analytics')">📊 Analíticas y Progreso</button>
                     </div>
 
                     <input type="hidden" id="editCourseId">
@@ -633,6 +634,30 @@
                             </div>
                         </div>
                     </div>
+                    </div>
+                    
+                    <!-- SUB-TAB: ANALÍTICAS Y GAMIFICACIÓN -->
+                    <div id="subTabAnalytics" class="sub-tab-content" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="font-size:1.05rem; margin:0; color: var(--primary-color);">📊 Analíticas y Progreso de Estudiantes</h3>
+                            <button class="btn-secondary" onclick="loadCourseAnalytics(document.getElementById('editCourseId').value)" style="padding: 6px 12px; font-size: 0.85rem;">🔄 Refrescar Datos</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table style="width: 100%; text-align: left; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm);">
+                                <thead style="background: var(--secondary-bg);">
+                                    <tr>
+                                        <th style="padding: 12px 15px; border-bottom: 1px solid var(--border-color);">Estudiante</th>
+                                        <th style="padding: 12px 15px; border-bottom: 1px solid var(--border-color);">Actividades Entregadas</th>
+                                        <th style="padding: 12px 15px; border-bottom: 1px solid var(--border-color);">Progreso</th>
+                                        <th style="padding: 12px 15px; border-bottom: 1px solid var(--border-color);">Insignias Obtenidas</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analyticsTableBody">
+                                    <tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">Cargando analíticas...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -679,6 +704,26 @@
                     </div>
 
                     <div style="margin-bottom: 20px;">
+                        <!-- GAMIFICATION PANEL -->
+                        <div id="studentGamificationPanel" style="background: var(--card-bg); backdrop-filter: blur(12px); border-radius: 16px; padding: 25px; margin-bottom: 25px; border: 1px solid var(--border-color); box-shadow: var(--shadow-premium); display: none;">
+                            <h3 style="font-size: 1.1rem; margin-top: 0; margin-bottom: 15px; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">🎮 Mi Progreso y Logros</h3>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">
+                                    <span style="color: var(--text-main);">Progreso del Curso</span>
+                                    <span id="studentProgressPct" style="color: var(--primary-color);">0%</span>
+                                </div>
+                                <div style="background: var(--secondary-bg); border-radius: 20px; height: 12px; overflow: hidden; width: 100%; border: 1px solid var(--border-color);">
+                                    <div id="studentProgressBar" style="background: var(--primary-gradient); height: 100%; width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 20px;"></div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <strong style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">🏆 Insignias Desbloqueadas</strong>
+                                <div id="studentBadgesContainer" style="display: flex; gap: 10px; flex-wrap: wrap; min-height: 30px;">
+                                    <span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Aún no tienes insignias. ¡Envía tu primera tarea!</span>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <p id="studentCourseDesc" style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);"></p>
                         <div style="display: flex; gap: 15px; font-size: 0.85rem; color: var(--text-muted); margin-top: 10px; flex-wrap: wrap;">
                             <span id="studentCourseDuration">⏱️</span>
@@ -1066,6 +1111,10 @@
             } else if (subTabId === 'syllabus') {
                 document.getElementById('subTabBtnSyllabus').classList.add('active');
                 document.getElementById('subTabSyllabus').style.display = 'block';
+            } else if (subTabId === 'analytics') {
+                document.getElementById('subTabBtnAnalytics').classList.add('active');
+                document.getElementById('subTabAnalytics').style.display = 'block';
+                loadCourseAnalytics(document.getElementById('editCourseId').value);
             } else {
                 document.getElementById('subTabBtnSync').classList.add('active');
                 document.getElementById('subTabSync').style.display = 'block';
@@ -2090,7 +2139,10 @@
                             teacherProfileDiv.style.display = 'flex';
                         } else { teacherProfileDiv.style.display = 'none'; }
                     } catch(e) { teacherProfileDiv.style.display = 'none'; }
+                    } catch(e) { teacherProfileDiv.style.display = 'none'; }
                 } else { teacherProfileDiv.style.display = 'none'; }
+                
+                loadStudentGamification(courseId);
 
                 const outcomesUl = document.getElementById('studentOutcomesList');
                 outcomesUl.innerHTML = (course.outcomes || []).map(o => `<li>${escapeHtml(o)}</li>`).join('') || '<li>Sin resultados registrados.</li>';
@@ -3051,6 +3103,79 @@
             if (!text) return '';
             const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
             return text.toString().replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        async function loadCourseAnalytics(courseId) {
+            if(!courseId) return;
+            try {
+                const res = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const data = await res.json();
+                const tbody = document.getElementById('analyticsTableBody');
+                tbody.innerHTML = '';
+                
+                if(!data.students || data.students.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No hay estudiantes inscritos con progreso.</td></tr>';
+                    return;
+                }
+                
+                data.students.forEach(s => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-weight: 500; color: var(--text-main);">
+                            ${escapeHtml(s.name)} <br> <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">${escapeHtml(s.email)}</span>
+                        </td>
+                        <td style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); color: var(--text-main);">${s.completed} / ${s.total_activities}</td>
+                        <td style="padding: 12px 15px; border-bottom: 1px solid var(--border-color);">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="flex: 1; background: var(--border-color); border-radius: 10px; height: 8px; overflow: hidden; width: 100px;">
+                                    <div style="background: var(--success-gradient); height: 100%; width: ${s.progress}%; border-radius: 10px;"></div>
+                                </div>
+                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">${s.progress}%</span>
+                            </div>
+                        </td>
+                        <td style="padding: 12px 15px; border-bottom: 1px solid var(--border-color);">
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                ${s.badges.map(b => `<span style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; color: #475569;">${escapeHtml(b)}</span>`).join('')}
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function loadStudentGamification(courseId) {
+            try {
+                const res = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const data = await res.json();
+                
+                const userEmail = user.email; // from global var
+                const myData = data.students.find(s => s.email === userEmail);
+                
+                document.getElementById('studentGamificationPanel').style.display = 'block';
+                
+                if(myData) {
+                    document.getElementById('studentProgressPct').textContent = `${myData.progress}%`;
+                    setTimeout(() => {
+                        document.getElementById('studentProgressBar').style.width = `${myData.progress}%`;
+                    }, 300);
+                    
+                    const badgesContainer = document.getElementById('studentBadgesContainer');
+                    if(myData.badges && myData.badges.length > 0) {
+                        badgesContainer.innerHTML = myData.badges.map(b => `
+                            <span style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.1)); border: 1px solid rgba(99,102,241,0.2); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; color: var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 5px; animation: fadeIn 0.5s ease-out;">
+                                ${escapeHtml(b)}
+                            </span>
+                        `).join('');
+                    } else {
+                        badgesContainer.innerHTML = `<span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Aún no tienes insignias. ¡Envía tu primera tarea!</span>`;
+                    }
+                }
+            } catch(e) {
+                console.error("Gamification error:", e);
+            }
         }
 
         window.onload = init;
