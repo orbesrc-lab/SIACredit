@@ -78,7 +78,7 @@ async function loadFactor5DataGrid(factorId) {
                             <th>Horas Sem.</th>
                             <th>Núcleo Formación</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -98,7 +98,7 @@ async function loadFactor5DataGrid(factorId) {
                             <th>Descripción</th>
                             <th>Tipo (Genérica/Específica)</th>
                             <th>Asignaturas Asociadas</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -115,7 +115,7 @@ async function loadFactor5DataGrid(factorId) {
                             <th>Tipo de Revisión</th>
                             <th>Aspectos Modificados</th>
                             <th>Aprobación (Acta)</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -291,7 +291,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Total Egresados</th>
                             <th>Ubicados Laboralmente</th>
                             <th>Sector Principal</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -329,7 +329,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Tipo Vinculación</th>
                             <th>Estudiantes</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -346,7 +346,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Proyecto</th>
                             <th>Población Beneficiada</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -416,20 +416,17 @@ function addRowPractica(data = {periodo:'', empresa:'', tipo:'', estudiantes:0, 
     tbody.appendChild(tr);
 }
 
-function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'Activo'}) {
-    const tbody = document.querySelector('#tablaExtension tbody');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-        <td><input type="text" value="${data.proyecto}" placeholder="Nombre Proyecto"></td>
-        <td><input type="text" value="${data.poblacion}" placeholder="Ej. 50 emprendedores"></td>
-        <td>
-            <select>
-                <option value="Activo" ${data.estado==='Activo'?'selected':''}>Activo</option>
-                <option value="Finalizado" ${data.estado==='Finalizado'?'selected':''}>Finalizado</option>
-            </select>
-        </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaExtension&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaExtension')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -578,7 +575,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Tutor</th>
                             <th>Estudiantes</th>
                             <th>Proyectos Activos</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -765,7 +762,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>Capacidad</th>
                             <th>Ocupación %</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -786,7 +783,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>Área m²</th>
                             <th>Dotación/Servicios</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -804,7 +801,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>E-Books</th>
                             <th>Bases de Datos</th>
                             <th>Usuarios Activos</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -822,7 +819,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>Computadores</th>
                             <th>Software Específico</th>
                             <th>Licencias</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -877,30 +874,32 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
     tbody.appendChild(tr);
 }
 
-function addRowBiblioteca(data = {periodo:'', fisicos:0, ebooks:0, bd:0, usuarios:0}) {
-    const tbody = document.querySelector('#tablaBiblioteca tbody');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-        <td><input type="number" value="${data.fisicos}"></td>
-        <td><input type="number" value="${data.ebooks}"></td>
-        <td><input type="number" value="${data.bd}"></td>
-        <td><input type="number" value="${data.usuarios}"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaBiblioteca&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaBiblioteca')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
     `;
     tbody.appendChild(tr);
 }
 
-function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licencias:0}) {
-    const tbody = document.querySelector('#tablaTecnologico tbody');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-        <td><input type="number" value="${data.labs}"></td>
-        <td><input type="number" value="${data.pc}"></td>
-        <td><input type="text" value="${data.software}" placeholder="Ej. SPSS, AutoCAD"></td>
-        <td><input type="number" value="${data.licencias}"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaTecnologico&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaTecnologico')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -1032,7 +1031,7 @@ async function loadFactor5DataGrid(factorId) {
                             <th>Horas Sem.</th>
                             <th>Núcleo Formación</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1052,7 +1051,7 @@ async function loadFactor5DataGrid(factorId) {
                             <th>Descripción</th>
                             <th>Tipo (Genérica/Específica)</th>
                             <th>Asignaturas Asociadas</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1069,7 +1068,7 @@ async function loadFactor5DataGrid(factorId) {
                             <th>Tipo de Revisión</th>
                             <th>Aspectos Modificados</th>
                             <th>Aprobación (Acta)</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1245,7 +1244,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Total Egresados</th>
                             <th>Ubicados Laboralmente</th>
                             <th>Sector Principal</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1283,7 +1282,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Tipo Vinculación</th>
                             <th>Estudiantes</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1300,7 +1299,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Proyecto</th>
                             <th>Población Beneficiada</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1370,20 +1369,17 @@ function addRowPractica(data = {periodo:'', empresa:'', tipo:'', estudiantes:0, 
     tbody.appendChild(tr);
 }
 
-function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'Activo'}) {
-    const tbody = document.querySelector('#tablaExtension tbody');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-        <td><input type="text" value="${data.proyecto}" placeholder="Nombre Proyecto"></td>
-        <td><input type="text" value="${data.poblacion}" placeholder="Ej. 50 emprendedores"></td>
-        <td>
-            <select>
-                <option value="Activo" ${data.estado==='Activo'?'selected':''}>Activo</option>
-                <option value="Finalizado" ${data.estado==='Finalizado'?'selected':''}>Finalizado</option>
-            </select>
-        </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaExtension&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaExtension')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -1532,7 +1528,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Tutor</th>
                             <th>Estudiantes</th>
                             <th>Proyectos Activos</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1719,7 +1715,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>Capacidad</th>
                             <th>Ocupación %</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1740,7 +1736,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>Área m²</th>
                             <th>Dotación/Servicios</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1758,7 +1754,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>E-Books</th>
                             <th>Bases de Datos</th>
                             <th>Usuarios Activos</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1776,7 +1772,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>Computadores</th>
                             <th>Software Específico</th>
                             <th>Licencias</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -1831,30 +1827,32 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
     tbody.appendChild(tr);
 }
 
-function addRowBiblioteca(data = {periodo:'', fisicos:0, ebooks:0, bd:0, usuarios:0}) {
-    const tbody = document.querySelector('#tablaBiblioteca tbody');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-        <td><input type="number" value="${data.fisicos}"></td>
-        <td><input type="number" value="${data.ebooks}"></td>
-        <td><input type="number" value="${data.bd}"></td>
-        <td><input type="number" value="${data.usuarios}"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaBiblioteca&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaBiblioteca')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
     `;
     tbody.appendChild(tr);
 }
 
-function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licencias:0}) {
-    const tbody = document.querySelector('#tablaTecnologico tbody');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-        <td><input type="number" value="${data.labs}"></td>
-        <td><input type="number" value="${data.pc}"></td>
-        <td><input type="text" value="${data.software}" placeholder="Ej. SPSS, AutoCAD"></td>
-        <td><input type="number" value="${data.licencias}"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaTecnologico&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaTecnologico')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -2134,7 +2132,7 @@ function updateFactor10Charts() {
                                 <th>Vinculación</th>
                                 <th>Nivel de Formación</th>
                                 <th>Años Exp.</th>
-                                <th>Acción</th>
+                                <th>Evidencia</th><th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2158,7 +2156,7 @@ function updateFactor10Charts() {
                             <tr>
                                 <th>Período</th>
                                 <th>Total Profesores</th>
-                                <th>Acción</th>
+                                <th>Evidencia</th><th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2213,48 +2211,33 @@ function updateFactor10Charts() {
             await fetchFactor4Data();
         }
 
-        function addRowProfesores(data = {periodo:'', nombre:'', dedicacion:'TC', vinculacion:'Planta', formacion:'Especialización', exp:''}) {
-            const tbody = document.querySelector('#tablaProfesores tbody');
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1" onchange="updateFactor4Charts()"></td>
-                <td><input type="text" value="${data.nombre}" placeholder="Nombre completo" onchange="updateFactor4Charts()"></td>
-                <td>
-                    <select onchange="updateFactor4Charts()">
-                        <option value="TC" ${data.dedicacion==='TC'?'selected':''}>Tiempo Completo</option>
-                        <option value="MT" ${data.dedicacion==='MT'?'selected':''}>Medio Tiempo</option>
-                        <option value="HC" ${data.dedicacion==='HC'?'selected':''}>Hora Cátedra</option>
-                    </select>
-                </td>
-                <td>
-                    <select>
-                        <option value="Planta" ${data.vinculacion==='Planta'?'selected':''}>Planta</option>
-                        <option value="Ocasional" ${data.vinculacion==='Ocasional'?'selected':''}>Ocasional</option>
-                        <option value="Catedrático" ${data.vinculacion==='Catedrático'?'selected':''}>Catedrático</option>
-                    </select>
-                </td>
-                <td>
-                    <select onchange="updateFactor4Charts()">
-                        <option value="Pregrado" ${data.formacion==='Pregrado'?'selected':''}>Pregrado</option>
-                        <option value="Especialización" ${data.formacion==='Especialización'?'selected':''}>Especialización</option>
-                        <option value="Maestría" ${data.formacion==='Maestría'?'selected':''}>Maestría</option>
-                        <option value="Doctorado" ${data.formacion==='Doctorado'?'selected':''}>Doctorado</option>
-                    </select>
-                </td>
-                <td><input type="number" value="${data.exp}" placeholder="Años"></td>
-                <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor4Charts();">X</button></td>
+        
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaProfesores&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaProfesores')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor4Charts();">X</button></td>
             `;
             tbody.appendChild(tr);
             updateFactor4Charts();
         }
 
-        function addRowHistorico(data = {periodo:'', total:0}) {
-            const tbody = document.querySelector('#tablaHistorico tbody');
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1" onchange="updateFactor4Charts()"></td>
-                <td><input type="number" value="${data.total}" onchange="updateFactor4Charts()"></td>
-                <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor4Charts();">X</button></td>
+        
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaHistorico&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaHistorico')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove(); updateFactor4Charts();">X</button></td>
             `;
             tbody.appendChild(tr);
             updateFactor4Charts();
@@ -2264,10 +2247,10 @@ function updateFactor10Charts() {
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
-                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=${encodeURIComponent((()=>{try{return decodeURIComponent(new URL(data.adjunto).pathname.split("/").pop())||"evidencia"}catch(e){return "evidencia"}})())}" download class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
-                    <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\'>Subir...<input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, \"tablaCapacitacion\")\'></label>'">✕</button>
+                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=${encodeURIComponent((()=>{try{return decodeURIComponent(new URL(data.adjunto).pathname.split("/").pop())||"evidencia"}catch(e){return "evidencia"}})())}" download class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;" title="Ver Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                    <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, \"tablaCapacitacion\")\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
                  </div>` 
-                : `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;">Subir...<input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaCapacitacion')"></label>`
+                : `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaCapacitacion')"></label>`
             }
         </td>
         <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
@@ -2279,10 +2262,10 @@ function updateFactor10Charts() {
         <td>
             ${data.adjunto ? 
                 `<div style="display:flex; gap:5px; align-items:center;">
-                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=${encodeURIComponent((()=>{try{return decodeURIComponent(new URL(data.adjunto).pathname.split("/").pop())||"evidencia"}catch(e){return "evidencia"}})())}" download class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
-                    <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\'>Subir...<input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, \"tablaEvaluacion\")\'></label>'">✕</button>
+                    <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=${encodeURIComponent((()=>{try{return decodeURIComponent(new URL(data.adjunto).pathname.split("/").pop())||"evidencia"}catch(e){return "evidencia"}})())}" download class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;" title="Ver Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                    <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, \"tablaEvaluacion\")\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
                  </div>` 
-                : `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;">Subir...<input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaEvaluacion')"></label>`
+                : `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaEvaluacion')"></label>`
             }
         </td>
         <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
@@ -2414,27 +2397,42 @@ function updateFactor10Charts() {
             const data = extractFactor4Data();
             
             // 1. Chart Formación vs Dedicación (Calculado de Tabla Profesores)
-            const stats = { 'Pregrado': 0, 'Especialización': 0, 'Maestría': 0, 'Doctorado': 0 };
-            data.profesores.forEach(p => {
-                if (p.formacion && stats[p.formacion] !== undefined) {
-                    stats[p.formacion]++;
-                }
-            });
-            
-            const ctxFormacion = document.getElementById('chartFormacionDedicacion');
-            if (ctxFormacion) {
-                if (chartFormacion) chartFormacion.destroy();
-                chartFormacion = new Chart(ctxFormacion, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Pregrado', 'Especialización', 'Maestría', 'Doctorado'],
-                        datasets: [{
-                            data: [stats['Pregrado'], stats['Especialización'], stats['Maestría'], stats['Doctorado']],
-                            backgroundColor: ['#94a3b8', '#3b82f6', '#8b5cf6', '#ec4899']
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            const statsByPeriod = {};
+                data.profesores.forEach(p => {
+                    if(!p.periodo) return;
+                    if(!statsByPeriod[p.periodo]) statsByPeriod[p.periodo] = { 'Pregrado': 0, 'Especialización': 0, 'Maestría': 0, 'Doctorado': 0 };
+                    if (p.formacion && statsByPeriod[p.periodo][p.formacion] !== undefined) {
+                        statsByPeriod[p.periodo][p.formacion]++;
+                    }
                 });
+                
+                const periods = Object.keys(statsByPeriod).sort();
+                const pregradoData = periods.map(per => statsByPeriod[per]['Pregrado']);
+                const especializacionData = periods.map(per => statsByPeriod[per]['Especialización']);
+                const maestriaData = periods.map(per => statsByPeriod[per]['Maestría']);
+                const doctoradoData = periods.map(per => statsByPeriod[per]['Doctorado']);
+                
+                const ctxFormacion = document.getElementById('chartFormacionDedicacion');
+                if (ctxFormacion) {
+                    if (chartFormacion) chartFormacion.destroy();
+                    chartFormacion = new Chart(ctxFormacion, {
+                        type: 'bar',
+                        data: {
+                            labels: periods,
+                            datasets: [
+                                { label: 'Pregrado', data: pregradoData, backgroundColor: '#94a3b8' },
+                                { label: 'Especialización', data: especializacionData, backgroundColor: '#3b82f6' },
+                                { label: 'Maestría', data: maestriaData, backgroundColor: '#8b5cf6' },
+                                { label: 'Doctorado', data: doctoradoData, backgroundColor: '#ec4899' }
+                            ]
+                        },
+                        options: { 
+                            responsive: true, 
+                            maintainAspectRatio: false, 
+                            scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
+                            plugins: { legend: { position: 'bottom' } } 
+                        }
+                    });
             }
 
             // 2. Chart Histórico
@@ -2595,7 +2593,7 @@ async function loadFactor5DataGrid(factorId) {
                             <th>Horas Sem.</th>
                             <th>Núcleo Formación</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -2615,7 +2613,7 @@ async function loadFactor5DataGrid(factorId) {
                             <th>Descripción</th>
                             <th>Tipo (Genérica/Específica)</th>
                             <th>Asignaturas Asociadas</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -2632,7 +2630,7 @@ async function loadFactor5DataGrid(factorId) {
                             <th>Tipo de Revisión</th>
                             <th>Aspectos Modificados</th>
                             <th>Aprobación (Acta)</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -2808,7 +2806,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Total Egresados</th>
                             <th>Ubicados Laboralmente</th>
                             <th>Sector Principal</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -2846,7 +2844,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Tipo Vinculación</th>
                             <th>Estudiantes</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -2863,7 +2861,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Proyecto</th>
                             <th>Población Beneficiada</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -2933,20 +2931,17 @@ function addRowPractica(data = {periodo:'', empresa:'', tipo:'', estudiantes:0, 
     tbody.appendChild(tr);
 }
 
-function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'Activo'}) {
-    const tbody = document.querySelector('#tablaExtension tbody');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-        <td><input type="text" value="${data.proyecto}" placeholder="Nombre Proyecto"></td>
-        <td><input type="text" value="${data.poblacion}" placeholder="Ej. 50 emprendedores"></td>
-        <td>
-            <select>
-                <option value="Activo" ${data.estado==='Activo'?'selected':''}>Activo</option>
-                <option value="Finalizado" ${data.estado==='Finalizado'?'selected':''}>Finalizado</option>
-            </select>
-        </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaExtension&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaExtension')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -3095,7 +3090,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Tutor</th>
                             <th>Estudiantes</th>
                             <th>Proyectos Activos</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3282,7 +3277,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>Capacidad</th>
                             <th>Ocupación %</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3303,7 +3298,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>Área m²</th>
                             <th>Dotación/Servicios</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3321,7 +3316,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>E-Books</th>
                             <th>Bases de Datos</th>
                             <th>Usuarios Activos</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3339,7 +3334,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>Computadores</th>
                             <th>Software Específico</th>
                             <th>Licencias</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3394,30 +3389,32 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
     tbody.appendChild(tr);
 }
 
-function addRowBiblioteca(data = {periodo:'', fisicos:0, ebooks:0, bd:0, usuarios:0}) {
-    const tbody = document.querySelector('#tablaBiblioteca tbody');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-        <td><input type="number" value="${data.fisicos}"></td>
-        <td><input type="number" value="${data.ebooks}"></td>
-        <td><input type="number" value="${data.bd}"></td>
-        <td><input type="number" value="${data.usuarios}"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaBiblioteca&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaBiblioteca')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
     `;
     tbody.appendChild(tr);
 }
 
-function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licencias:0}) {
-    const tbody = document.querySelector('#tablaTecnologico tbody');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-        <td><input type="number" value="${data.labs}"></td>
-        <td><input type="number" value="${data.pc}"></td>
-        <td><input type="text" value="${data.software}" placeholder="Ej. SPSS, AutoCAD"></td>
-        <td><input type="number" value="${data.licencias}"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaTecnologico&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaTecnologico')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -3524,7 +3521,7 @@ async function loadFactor5DataGrid(factorId) {
                             <th>Horas Sem.</th>
                             <th>Núcleo Formación</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3544,7 +3541,7 @@ async function loadFactor5DataGrid(factorId) {
                             <th>Descripción</th>
                             <th>Tipo (Genérica/Específica)</th>
                             <th>Asignaturas Asociadas</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3561,7 +3558,7 @@ async function loadFactor5DataGrid(factorId) {
                             <th>Tipo de Revisión</th>
                             <th>Aspectos Modificados</th>
                             <th>Aprobación (Acta)</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3737,7 +3734,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Total Egresados</th>
                             <th>Ubicados Laboralmente</th>
                             <th>Sector Principal</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3775,7 +3772,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Tipo Vinculación</th>
                             <th>Estudiantes</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3792,7 +3789,7 @@ async function loadFactor7DataGrid(factorId) {
                             <th>Proyecto</th>
                             <th>Población Beneficiada</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3862,20 +3859,17 @@ function addRowPractica(data = {periodo:'', empresa:'', tipo:'', estudiantes:0, 
     tbody.appendChild(tr);
 }
 
-function addRowExtension(data = {periodo:'', proyecto:'', poblacion:'', estado:'Activo'}) {
-    const tbody = document.querySelector('#tablaExtension tbody');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-        <td><input type="text" value="${data.proyecto}" placeholder="Nombre Proyecto"></td>
-        <td><input type="text" value="${data.poblacion}" placeholder="Ej. 50 emprendedores"></td>
-        <td>
-            <select>
-                <option value="Activo" ${data.estado==='Activo'?'selected':''}>Activo</option>
-                <option value="Finalizado" ${data.estado==='Finalizado'?'selected':''}>Finalizado</option>
-            </select>
-        </td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaExtension&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaExtension')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -4024,7 +4018,7 @@ async function loadFactor8DataGrid(factorId) {
                             <th>Tutor</th>
                             <th>Estudiantes</th>
                             <th>Proyectos Activos</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -4211,7 +4205,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>Capacidad</th>
                             <th>Ocupación %</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -4232,7 +4226,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>Área m²</th>
                             <th>Dotación/Servicios</th>
                             <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -4250,7 +4244,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>E-Books</th>
                             <th>Bases de Datos</th>
                             <th>Usuarios Activos</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -4268,7 +4262,7 @@ async function loadFactor10DataGrid(factorId) {
                             <th>Computadores</th>
                             <th>Software Específico</th>
                             <th>Licencias</th>
-                            <th>Acción</th>
+                            <th>Evidencia</th><th>Acción</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -4323,30 +4317,32 @@ function addRowOficina(data = {area:'', cantidad:0, m2:0, dotacion:'', estado:'B
     tbody.appendChild(tr);
 }
 
-function addRowBiblioteca(data = {periodo:'', fisicos:0, ebooks:0, bd:0, usuarios:0}) {
-    const tbody = document.querySelector('#tablaBiblioteca tbody');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-        <td><input type="number" value="${data.fisicos}"></td>
-        <td><input type="number" value="${data.ebooks}"></td>
-        <td><input type="number" value="${data.bd}"></td>
-        <td><input type="number" value="${data.usuarios}"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaBiblioteca&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaBiblioteca')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
     `;
     tbody.appendChild(tr);
 }
 
-function addRowTecnologico(data = {periodo:'', labs:0, pc:0, software:'', licencias:0}) {
-    const tbody = document.querySelector('#tablaTecnologico tbody');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td><input type="text" value="${data.periodo}" placeholder="Ej. 2023-1"></td>
-        <td><input type="number" value="${data.labs}"></td>
-        <td><input type="number" value="${data.pc}"></td>
-        <td><input type="text" value="${data.software}" placeholder="Ej. SPSS, AutoCAD"></td>
-        <td><input type="number" value="${data.licencias}"></td>
-        <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
+
+            <td>
+                ${data.adjunto ? 
+                    `<div style="display:flex; gap:5px; align-items:center;">
+                        <a href="/api/download?url=${encodeURIComponent(data.adjunto)}&name=evidencia" target="_blank" class="btn-ghost" style="padding:4px 8px; font-size:0.8rem; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6;" title="Ver/Descargar Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                        <button class="btn-ghost" style="color:#ef4444; padding:4px 8px; border:1px solid #fca5a5; border-radius:6px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\'cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:4px; border:1px dashed #93c5fd; border-radius:6px;\' title=\'Subir evidencia\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\'file\' style=\'display:none\' onchange=\'uploadGridEvidence(this, &quot;tablaTecnologico&quot;)\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                     </div>` 
+                    : `<label style="cursor:pointer; color:#3b82f6; display:flex; align-items:center; justify-content:center; padding:6px; border:1px dashed #93c5fd; border-radius:6px; transition:0.2s;" title="Subir evidencia" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, 'tablaTecnologico')"></label>`
+                }
+            </td>
+            <td style="text-align:center;"><button class="btn-ghost" style="color:red;" onclick="this.closest('tr').remove();">X</button></td>
     `;
     tbody.appendChild(tr);
 }
@@ -4451,8 +4447,8 @@ async function uploadGridEvidence(fileInput, tableId) {
             const downloadUrl = `/api/download?url=${encodeURIComponent(data.url)}&name=${encodeURIComponent(file.name)}`;
             td.innerHTML = `
                 <div style="display:flex; gap:5px; align-items:center;">
-                    <a href="${downloadUrl}" download class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;">⬇️ Ver</a>
-                    <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\\'>Subir...<input type=\\'file\\' style=\\'display:none\\' onchange=\\'uploadGridEvidence(this, &quot;${tableId}&quot;)\\'></label>'">✕</button>
+                    <a href="${downloadUrl}" download class="btn-ghost" style="padding:2px 8px; font-size:0.75rem; border:1px solid #e2e8f0; border-radius:4px; text-decoration:none;" title="Ver Evidencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>
+                    <button class="btn-ghost" style="color:red; font-size:0.75rem; padding:2px 5px; border:1px solid red; border-radius:4px;" onclick="this.closest('tr').dataset.adjunto=''; this.parentElement.innerHTML='<label style=\\'cursor:pointer; color:var(--primary-color); font-size:0.8rem;\\'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type=\\'file\\' style=\\'display:none\\' onchange=\\'uploadGridEvidence(this, &quot;${tableId}&quot;)\\'></label>'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
                 </div>`;
             
             const saveBtns = document.querySelectorAll('button[onclick^="saveFactor"]');
@@ -4472,7 +4468,7 @@ async function uploadGridEvidence(fileInput, tableId) {
 }
 
 function resetUploadBtn(td, tableId) {
-    td.innerHTML = `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;">Subir...<input type="file" style="display:none;" onchange="uploadGridEvidence(this, '${tableId}')"></label>`;
+    td.innerHTML = `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; display:flex; align-items:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><input type="file" style="display:none;" onchange="uploadGridEvidence(this, '${tableId}')"></label>`;
 }
 </script>
 </body>
