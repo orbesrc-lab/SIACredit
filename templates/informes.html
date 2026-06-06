@@ -987,8 +987,8 @@
                         if (a.evidencias && a.evidencias.length > 0) {
                             hasEvidences = true;
                             a.evidencias.forEach(ev => {
-                                const periodBadge = ev.period ? `<span style="background:#e2e8f0; color:#475569; padding:2px 6px; border-radius:4px; font-size:0.75rem; margin-right:5px; font-weight:600;">[${escapeHtml(ev.period)}]</span>` : '';
-                                evidencesHtml += `<li><b>[A${a.number}]</b> ${periodBadge} <a href="javascript:void(0)" onclick="abrirVisor('${ev.file_url}', '${escapeHtml(ev.name)}')" style="color:var(--primary-color); text-decoration:none;">👁️ ${escapeHtml(ev.name)}</a></li>`;
+                                const periodBadge = ev.period ? `<span style="background:#e2e8f0; color:#475569; padding:2px 6px; border-radius:4px; font-size:0.75rem; margin-right:5px; font-weight:600;">[${ev.period}]</span>` : '';
+                                evidencesHtml += `<li><b>[A${a.number}]</b> ${periodBadge} <a href="javascript:void(0)" onclick="abrirVisor('${ev.file_url || ''}', '${(ev.name || '').replace(/'/g, "\\'")}')" style="color:var(--primary-color); text-decoration:none;">👁️ ${ev.name}</a></li>`;
                             });
                         }
                     });
