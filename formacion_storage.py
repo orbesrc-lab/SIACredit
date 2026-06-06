@@ -63,46 +63,111 @@ def get_default_program_id(inst_id):
 # ==================== HELPERS ====================
 
 def _sb_load(table, filters=None):
-    """Load rows from Supabase table with optional eq filters. Returns list of data dicts."""
+    """Load rows from Supabase table mapping to 'statistics'. Returns list of data dicts."""
     sb = _get_supabase()
-    if not sb:
-        return None
+    if not sb: return None
     try:
-        q = sb.table(table).select('data')
-        if filters:
-            for k, v in filters.items():
-                q = q.eq(k, v)
+        if filters and 'inst_id' in filters:
+            inst_id = filters.get('inst_id')
+            table_key = f"{table.upper()}_{inst_id}"
+            q = sb.table('statistics').select('data_json').eq('table_id', table_key)
+        else:
+            q = sb.table('statistics').select('data_json').like('table_id', f"{table.upper()}_%")
+            
         res = q.execute()
-        return [r['data'] for r in res.data] if res.data else []
+        if res.data:
+            all_returned = []
+            for row in res.data:
+                all_records = json.loads(row['data_json'])
+                if filters:
+                    for rec in all_records:
+                        match = True
+                        for k, v in filters.items():
+                            if k == 'inst_id' and ('inst_id' in filters): 
+                                continue
+                            if rec.get(k) != v:
+                                match = False
+                                break
+                        if match:
+                            all_returned.append(rec.get('data', {}))
+                else:
+                    for rec in all_records:
+                        all_returned.append(rec.get('data', {}))
+            return all_returned
+        return []
     except Exception as e:
-        print(f"[supabase] Error loading {table}: {e}")
+        print(f"[supabase] Error loading {table} via statistics: {e}")
         return None
 
 def _sb_upsert(table, row):
-    """Upsert a row into Supabase. Returns True on success."""
+    """Upsert a row mapping to 'statistics' table. Returns True on success."""
     sb = _get_supabase()
-    if not sb:
-        return False
+    if not sb: return False
     try:
-        sb.table(table).upsert(row).execute()
+        inst_id = row.get('inst_id', 1)
+        table_key = f"{table.upper()}_{inst_id}"
+        
+        res = sb.table('statistics').select('id, data_json').eq('table_id', table_key).execute()
+        if res.data:
+            row_id = res.data[0]['id']
+            all_records = json.loads(res.data[0]['data_json'])
+            
+            found = False
+            for i, r in enumerate(all_records):
+                if r.get('id') == row.get('id'):
+                    all_records[i] = row
+                    found = True
+                    break
+            if not found:
+                all_records.append(row)
+                
+            sb.table('statistics').update({"data_json": json.dumps(all_records)}).eq("id", row_id).execute()
+        else:
+            sb.table('statistics').insert({
+                "table_id": table_key,
+                "data_json": json.dumps([row])
+            }).execute()
         return True
     except Exception as e:
-        print(f"[supabase] Error upserting {table}: {e}")
+        print(f"[supabase] Error upserting {table} via statistics: {e}")
         return False
 
 def _sb_delete(table, filters):
-    """Delete from Supabase table. Returns True on success."""
+    """Delete from Supabase mapping to 'statistics'. Returns True on success."""
     sb = _get_supabase()
-    if not sb:
-        return False
+    if not sb: return False
     try:
-        q = sb.table(table).delete()
-        for k, v in filters.items():
-            q = q.eq(k, v)
-        q.execute()
+        if filters and 'inst_id' in filters:
+            inst_id = filters.get('inst_id')
+            table_key = f"{table.upper()}_{inst_id}"
+            res = sb.table('statistics').select('id, data_json').eq('table_id', table_key).execute()
+        else:
+            res = sb.table('statistics').select('id, data_json').like('table_id', f"{table.upper()}_%").execute()
+            
+        if res.data:
+            for row in res.data:
+                row_id = row['id']
+                all_records = json.loads(row['data_json'])
+                
+                new_records = []
+                changed = False
+                for rec in all_records:
+                    match = True
+                    for k, v in filters.items():
+                        if k == 'inst_id' and ('inst_id' in filters): continue
+                        if rec.get(k) != v:
+                            match = False
+                            break
+                    if not match:
+                        new_records.append(rec)
+                    else:
+                        changed = True
+                        
+                if changed:
+                    sb.table('statistics').update({"data_json": json.dumps(new_records)}).eq("id", row_id).execute()
         return True
     except Exception as e:
-        print(f"[supabase] Error deleting from {table}: {e}")
+        print(f"[supabase] Error deleting {table} via statistics: {e}")
         return False
 
 def _local_query(sql, params=()):
