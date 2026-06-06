@@ -1503,7 +1503,7 @@
                 document.getElementById('courseEditorSection').style.display = 'block';
                 document.getElementById('courseEditorSection').scrollIntoView({ behavior: 'smooth' });
                 switchSubTab('general');
-            } catch(e) { alert("Error al abrir editor."); }
+            } catch(e) { alert("Error al abrir editor: " + e.message); }
         }
 
         function closeEditor() {
@@ -1565,7 +1565,7 @@
         function renderOutcomesList() {
             const listDiv = document.getElementById('editOutcomesList');
             listDiv.innerHTML = '';
-            const outcomes = activeCourse.outcomes || [];
+            const outcomes = Object.values(activeCourse.outcomes || {});
             
             if (outcomes.length === 0) {
                 listDiv.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">Ningún resultado agregado.</div>';
@@ -1598,7 +1598,7 @@
         function renderCompetenciesList() {
             const listDiv = document.getElementById('editCompetenciesList');
             listDiv.innerHTML = '';
-            const competencies = activeCourse.competencies || [];
+            const competencies = Object.values(activeCourse.competencies || {});
             
             if (competencies.length === 0) {
                 listDiv.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">Ninguna competencia agregada.</div>';
@@ -1634,7 +1634,7 @@
         function renderSyllabusList() {
             const container = document.getElementById('unitsContainer');
             container.innerHTML = '';
-            const units = activeCourse.units || [];
+            const units = Object.values(activeCourse.units || {});
             
             if (units.length === 0) {
                 container.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding:40px; border:2px dashed var(--border-color); border-radius:8px;">No hay unidades definidas. Añade una para comenzar.</div>';
@@ -1647,10 +1647,11 @@
                 unitDiv.style = 'margin-bottom: 25px; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm);';
                 
                 let topicsHtml = '';
-                if (!unit.topics || unit.topics.length === 0) {
+                const topics = Object.values(unit.topics || {});
+                if (topics.length === 0) {
                     topicsHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:5px; text-align:center;">Sin temas asignados.</div>';
                 } else {
-                    unit.topics.forEach((rawT, tIdx) => {
+                    topics.forEach((rawT, tIdx) => {
                         const t = typeof rawT === 'string' ? { id: 't_' + tIdx, title: rawT, content: "" } : rawT;
                         topicsHtml += `
                             <div class="topic-item">
@@ -1665,7 +1666,7 @@
                 }
 
                 let resourcesHtml = '';
-                const resources = unit.resources || [];
+                const resources = Object.values(unit.resources || {});
                 if (resources.length === 0) {
                     resourcesHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:8px; text-align:center;">Ningún recurso añadido (PDF, Video, Infografía).</div>';
                 } else {
@@ -1684,12 +1685,12 @@
                 }
 
                 let activitiesHtml = '';
-                const activities = unit.activities || [];
+                const activities = Object.values(unit.activities || {});
                 if (activities.length === 0) {
                     activitiesHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:8px; text-align:center;">Ninguna actividad creada (Talleres, Foros).</div>';
                 } else {
                     activities.forEach((act, actIdx) => {
-                        const subCount = (activeCourseSubmissions || []).filter(s => s.activity_id === act.id).length;
+                        const subCount = Object.values(activeCourseSubmissions || {}).filter(s => s.activity_id === act.id).length;
                         activitiesHtml += `
                             <div class="activity-item" style="display:flex; justify-content:space-between; align-items:center;">
                                 <div>
@@ -1706,7 +1707,7 @@
                 }
 
                 let evaluationsHtml = '';
-                const evaluations = unit.evaluations || [];
+                const evaluations = Object.values(unit.evaluations || {});
                 if (evaluations.length === 0) {
                     evaluationsHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:8px; text-align:center;">Ninguna evaluación creada.</div>';
                 } else {
@@ -1935,7 +1936,7 @@
         function renderMeetingsList() {
             const listDiv = document.getElementById('meetingsList');
             listDiv.innerHTML = '';
-            const meetings = activeCourse.meetings || [];
+            const meetings = Object.values(activeCourse.meetings || {});
             
             if (meetings.length === 0) {
                 listDiv.innerHTML = '<div style="color:var(--text-muted); font-size:0.88rem; text-align:center; padding:20px;">No hay clases programadas. Agrega una arriba.</div>';
@@ -2095,14 +2096,14 @@
                 loadStudentGamification(courseId);
 
                 const outcomesUl = document.getElementById('studentOutcomesList');
-                outcomesUl.innerHTML = (course.outcomes || []).map(o => `<li>${escapeHtml(o)}</li>`).join('') || '<li>Sin resultados registrados.</li>';
+                outcomesUl.innerHTML = Object.values(course.outcomes || {}).map(o => `<li>${escapeHtml(o)}</li>`).join('') || '<li>Sin resultados registrados.</li>';
                 
                 const competenciesUl = document.getElementById('studentCompetenciesList');
-                competenciesUl.innerHTML = (course.competencies || []).map(c => `<li>${escapeHtml(c)}</li>`).join('') || '<li>Sin competencias registradas.</li>';
+                competenciesUl.innerHTML = Object.values(course.competencies || {}).map(c => `<li>${escapeHtml(c)}</li>`).join('') || '<li>Sin competencias registradas.</li>';
                 
                 // Clases Sincrónicas (Videoconferencia)
                 const meetingsDiv = document.getElementById('studentMeetingsList');
-                const meetings = course.meetings || [];
+                const meetings = Object.values(course.meetings || {});
                 if (meetings.length === 0) {
                     meetingsDiv.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); padding:10px; text-align:center;">No hay videoconferencias programadas.</div>';
                 } else {
@@ -2118,7 +2119,7 @@
                 // Temario y Repositorio por Unidad
                 const unitsContainer = document.getElementById('studentUnitsContainer');
                 unitsContainer.innerHTML = '';
-                const units = course.units || [];
+                const units = Object.values(course.units || {});
                 
                 if (units.length === 0) {
                     unitsContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding:30px; border:1px dashed var(--border-color); border-radius:8px;">Este curso aún no tiene lecciones creadas.</div>';
@@ -2154,11 +2155,12 @@
 
                         // Temas con acordeón interactivo para ver el contenido HTML redactado por el profesor
                         let topicsHtml = '';
-                        if (!unit.topics || unit.topics.length === 0) {
+                        const tArr = Object.values(unit.topics || {});
+                        if (tArr.length === 0) {
                             topicsHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:5px;">Sin temas asignados.</div>';
                         } else {
                             topicsHtml = '<div style="display:flex; flex-direction:column; gap:8px; margin-top:5px;">';
-                            unit.topics.forEach((rawT, tIdx) => {
+                            tArr.forEach((rawT, tIdx) => {
                                 const t = typeof rawT === 'string' ? { id: 't_' + tIdx, title: rawT, content: "" } : rawT;
                                 const hasContent = t.content && t.content.trim() !== "";
                                 
@@ -2181,9 +2183,10 @@
                         
                         // Repositorio: Recursos para afianzar
                         let resHtml = '';
-                        if (unit.resources && unit.resources.length > 0) {
+                        const rArr = Object.values(unit.resources || {});
+                        if (rArr.length > 0) {
                             resHtml = '<strong style="display:block; font-size:0.85rem; color:var(--primary-color); margin-top:16px; margin-bottom: 6px;">📁 Recursos de Estudio (Repositorio):</strong>';
-                            unit.resources.forEach(r => {
+                            rArr.forEach(r => {
                                 const typeIcon = r.type === 'document' ? '📄 PDF' : (r.type === 'video' ? '🎥 Video' : (r.type === 'infographic' ? '📊 Infografía' : '🔗 Web'));
                                 resHtml += `
                                     <div class="resource-card" style="margin-top:5px;">
@@ -2195,9 +2198,10 @@
                         
                         // Actividades
                         let actHtml = '';
-                        if (unit.activities && unit.activities.length > 0) {
+                        const aArr = Object.values(unit.activities || {});
+                        if (aArr.length > 0) {
                             actHtml = '<strong style="display:block; font-size:0.85rem; color:var(--primary-color); margin-top:16px; margin-bottom: 6px;">📝 Actividades y Entregas:</strong>';
-                            unit.activities.forEach(act => {
+                            aArr.forEach(act => {
                                 // Buscar entrega existente para esta actividad
                                 const sub = studentSubmissions.find(s => s.activity_id === act.id);
                                 let statusHtml = '';
