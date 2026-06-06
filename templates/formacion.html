@@ -1471,8 +1471,7 @@
                 const course = await resp.json();
                 if (course.status === 'error') { alert("No se pudo abrir el curso."); return; }
                 
-                const courseData = course.data;
-                activeCourse = courseData;
+                activeCourse = course;
                 
                 // Cargar todas las entregas para este curso
                 try {
@@ -1483,15 +1482,15 @@
                     activeCourseSubmissions = [];
                 }
                 
-                document.getElementById('editCourseId').value = courseData.id;
-                document.getElementById('editorCourseTitle').textContent = `Administrar Curso: ${courseData.title}`;
-                document.getElementById('edit_title').value = courseData.title || '';
-                document.getElementById('edit_certifier').value = courseData.certifier || '';
-                document.getElementById('edit_teacher_id').value = courseData.teacher_id || '';
-                document.getElementById('edit_category').value = courseData.category || 'Educación';
-                document.getElementById('edit_duration').value = courseData.duration || 10;
-                document.getElementById('edit_level').value = courseData.level || 'Principiante';
-                document.getElementById('edit_description').value = courseData.description || '';
+                document.getElementById('editCourseId').value = activeCourse.id;
+                document.getElementById('editorCourseTitle').textContent = `Administrar Curso: ${activeCourse.title}`;
+                document.getElementById('edit_title').value = activeCourse.title || '';
+                document.getElementById('edit_certifier').value = activeCourse.certifier || '';
+                document.getElementById('edit_teacher_id').value = activeCourse.teacher_id || '';
+                document.getElementById('edit_category').value = activeCourse.category || 'Educación';
+                document.getElementById('edit_duration').value = activeCourse.duration || 10;
+                document.getElementById('edit_level').value = activeCourse.level || 'Principiante';
+                document.getElementById('edit_description').value = activeCourse.description || '';
                 
                 renderOutcomesList();
                 renderCompetenciesList();

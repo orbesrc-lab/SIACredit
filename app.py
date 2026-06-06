@@ -1452,7 +1452,7 @@ def get_informe_dinamico():
                         "id": a_id,
                         "number": a.get('number', ''),
                         "name": a.get('name', a.get('text', '')),
-                        "evidencias": [{"name": ev['name'], "file_path": ev.get('file_url', ev.get('file_path'))} for ev in evidencias]
+                        "evidencias": [{"name": ev['name'], "file_url": ev.get('file_url', ev.get('file_path')), "period": ev.get('period', '')} for ev in evidencias]
                     }
                     char_info['aspectos'].append(aspect_info)
                 
@@ -2530,6 +2530,12 @@ def handle_api_course_specific(course_id):
     if request.method == 'GET':
         course = formacion_storage.load_course(course_id)
         if course:
+            for arr_field in ['outcomes', 'competencies', 'units', 'meetings', 'resources']:
+                val = course.get(arr_field)
+                if isinstance(val, dict):
+                    course[arr_field] = list(val.values())
+                elif not val:
+                    course[arr_field] = []
             return jsonify(course)
         return jsonify({"status": "error", "message": "Curso no encontrado."}), 404
     elif request.method == 'PUT':

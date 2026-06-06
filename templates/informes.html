@@ -865,7 +865,14 @@
         function renderInforme(data, tipo) {
             const container = document.getElementById('informeContainer');
             document.getElementById('informeTitulo').textContent = `INFORME ${tipo.toUpperCase()} DE AUTOEVALUACIÓN`;
-            document.getElementById('informeFecha').textContent = `Generado el: ${new Date().toLocaleDateString()}`;
+            
+            let subtitleText = `Generado el: ${new Date().toLocaleDateString()}`;
+            if (tipo === 'parcial') {
+                subtitleText += ` &nbsp;|&nbsp; <span style="color:#d97706; font-weight:bold; background:#fef3c7; padding:4px 8px; border-radius:12px; font-size:0.9rem;">⚠️ Documento Preliminar en Construcción</span>`;
+            } else {
+                subtitleText += ` &nbsp;|&nbsp; <span style="color:#166534; font-weight:bold; background:#dcfce7; padding:4px 8px; border-radius:12px; font-size:0.9rem;">✅ Documento Final Oficial</span>`;
+            }
+            document.getElementById('informeFecha').innerHTML = subtitleText;
             
             const tbody = document.querySelector('#tablaResumen tbody');
             tbody.innerHTML = '';
@@ -980,7 +987,8 @@
                         if (a.evidencias && a.evidencias.length > 0) {
                             hasEvidences = true;
                             a.evidencias.forEach(ev => {
-                                evidencesHtml += `<li><b>[A${a.number}]</b> <a href="javascript:void(0)" onclick="abrirVisor('${ev.file_url}', '${ev.name}')" style="color:var(--primary-color); text-decoration:none;">👁️ ${ev.name}</a></li>`;
+                                const periodBadge = ev.period ? `<span style="background:#e2e8f0; color:#475569; padding:2px 6px; border-radius:4px; font-size:0.75rem; margin-right:5px; font-weight:600;">[${escapeHtml(ev.period)}]</span>` : '';
+                                evidencesHtml += `<li><b>[A${a.number}]</b> ${periodBadge} <a href="javascript:void(0)" onclick="abrirVisor('${ev.file_url}', '${escapeHtml(ev.name)}')" style="color:var(--primary-color); text-decoration:none;">👁️ ${escapeHtml(ev.name)}</a></li>`;
                             });
                         }
                     });
