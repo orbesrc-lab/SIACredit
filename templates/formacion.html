@@ -438,11 +438,13 @@
             height: 100%;
             border: 0;
         }
-
-        .student-classroom-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 25px;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
         }
 
         @media (max-width: 768px) {
@@ -615,7 +617,6 @@
                     </div>
 
                     <!-- SUB-TAB: CLASES SINCRONICAS -->
-                    <!-- SUB-TAB: CLASES SINCRONICAS -->
                     <div id="subTabSync" class="sub-tab-content" style="display: none;">
                         <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:20px; margin-bottom:20px;">
                             <h4 style="margin-bottom:10px; font-size:1.05rem; color:#10b981;">🎥 Sala Virtual del Curso (Jitsi Meet)</h4>
@@ -633,7 +634,6 @@
                                 <button class="btn-primary" id="btnSendTeacherForum" style="padding: 10px 20px; background: #3b82f6; border: none; border-radius: 8px; color: white;">Enviar</button>
                             </div>
                         </div>
-                    </div>
                     </div>
                     
                     <!-- SUB-TAB: ANALÍTICAS Y GAMIFICACIÓN -->
@@ -668,7 +668,7 @@
                     <button class="btn-primary" onclick="openCreateTeacherModal()">+ Nuevo Profesor</button>
                 </div>
 
-                <div class="grid-catalog" id="teachersGrid">
+                <div class="user-grid" id="teachersGrid">
                     <!-- Dinámicamente cargados -->
                 </div>
             </div>
@@ -680,15 +680,12 @@
                     <button class="btn-primary" onclick="openCreateStudentModal()">+ Registrar Estudiante</button>
                 </div>
 
-                <div class="grid-catalog" id="studentsGrid">
+                <div class="user-grid" id="studentsGrid">
                     <!-- Dinámicamente cargados -->
                 </div>
             </div>
 
-
-            <!-- ============================================== -->
-            <!-- TAB: STUDENT CLASSROOM (Solo Estudiantes)      -->
-            <!-- ============================================== -->
+            <!-- TAB: STUDENT CLASSROOM (Solo Estudiantes) -->
             <div id="studentClassroom" style="display: none;">
                 <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 25px;">Selecciona uno de tus cursos asignados para ingresar al Aula Virtual y acceder a tus materiales de estudio.</p>
                 
@@ -1174,7 +1171,8 @@
         async function preloadTeacherDropdown() {
             try {
                 const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
-                const teachers = await resp.json();
+                const res = await resp.json();
+                const teachers = res.data || [];
                 const selectEdit = document.getElementById('edit_teacher_id');
                 if (selectEdit) {
                     const currentValue = selectEdit.value;
@@ -1193,35 +1191,33 @@
 
         async function loadTeachersList() {
             const grid = document.getElementById('teachersGrid');
-            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando profesores...</div>';
-            
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando docentes...</div>';
             try {
-                const teachers = await preloadTeacherDropdown();
-                
-                if (teachers.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay profesores registrados aún.</div>';
-                    return;
-                }
-                
-                let html = '';
-                teachers.forEach(t => {
-                    const avatarSrc = t.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100';
-                    html += `
-                        <div class="course-card" style="padding: 20px; align-items: center; text-align: center;">
-                            <img src="${avatarSrc}" alt="${t.name}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 2px solid var(--primary-color);">
-                            <h3 style="font-size: 1.05rem; margin-bottom: 5px;">${t.name}</h3>
-                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">${t.email}</p>
-                            <span class="badge role-leader" style="font-size:0.75rem; margin-bottom: 15px;">${t.specialty || 'General'}</span>
-                            <div style="display: flex; gap: 10px; width: 100%;">
-                                <button class="btn-secondary" style="flex:1; padding: 6px; font-size:0.8rem;" onclick="editTeacher('${t.id}', '${escapeHtml(t.name)}', '${escapeHtml(t.email)}', '${escapeHtml(t.specialty || '')}', '${escapeHtml(t.avatar || '')}')">Editar</button>
-                                <button class="btn-danger" style="flex:1; padding: 6px; font-size:0.8rem;" onclick="deleteTeacher('${t.id}')">Eliminar</button>
+                const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    let html = '';
+                    if (res.data.length === 0) {
+                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay docentes registrados.</div>';
+                        return;
+                    }
+                    res.data.forEach(t => {
+                        html += `
+                            <div class="user-card fade-in">
+                                ${t.avatar ? `<img src="${t.avatar}" class="avatar-large">` : `<div class="avatar-large">👨‍🏫</div>`}
+                                <h4>${escapeHtml(t.name || 'Sin nombre')}</h4>
+                                <p>📧 ${escapeHtml(t.email || 'N/A')}</p>
+                                <span class="badge-role">${escapeHtml(t.specialty || 'Docente')}</span>
+                                <button class="btn-danger" onclick="deleteTeacher('${t.id}')">🗑️ Eliminar Docente</button>
                             </div>
-                        </div>
-                    `;
-                });
-                grid.innerHTML = html;
-            } catch(e) {
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error de red al cargar profesores.</div>';
+                        `;
+                    });
+                    grid.innerHTML = html;
+                } else {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error al cargar docentes.</div>';
+                }
+            } catch (e) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error de red al cargar docentes.</div>';
             }
         }
 
@@ -1292,81 +1288,36 @@
         async function loadStudentsList() {
             const grid = document.getElementById('studentsGrid');
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando estudiantes...</div>';
-            
             try {
-                const [studResp, courseResp] = await Promise.all([
-                    fetch(`/api/students?inst_id=${getInstId()}`),
-                    fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}`)
-                ]);
-                
-                const students = await studResp.json();
-                const courses = await courseResp.json();
-                
-                if (students.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay estudiantes registrados. Registra uno arriba.</div>';
-                    return;
-                }
-                
-                let html = '';
-                students.forEach(s => {
-                    const enrolledIds = s.enrolled_courses || [];
-                    const enrolledNames = courses.filter(c => enrolledIds.includes(c.id)).map(c => c.title);
-                    
-                    let enrolledHtml = '';
-                    if (enrolledNames.length === 0) {
-                        enrolledHtml = '<span style="color:var(--text-muted); font-size:0.8rem;">Sin cursos matriculados</span>';
-                    } else {
-                        enrolledHtml = enrolledNames.map(name => `<span class="badge role-leader" style="font-size:0.7rem; margin-right:3px; display:inline-block; margin-top:3px;">📘 ${escapeHtml(name)}</span>`).join(' ');
+                const resp = await fetch(`/api/students?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    let html = '';
+                    if (res.data.length === 0) {
+                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay participantes inscritos.</div>';
+                        return;
                     }
-                    
-                    const availableToEnroll = courses.filter(c => !enrolledIds.includes(c.id));
-                    let enrollDropdown = '';
-                    if (availableToEnroll.length > 0) {
-                        enrollDropdown = `
-                            <select onchange="enrollStudent('${s.id}', this.value); this.value='';" style="padding:5px; font-size:0.8rem; border-radius:6px; border:1px solid var(--border-color); width:100%; margin-top:10px;">
-                                <option value="">-- Matricular en Curso --</option>
-                                ${availableToEnroll.map(c => `<option value="${c.id}">${escapeHtml(c.title)}</option>`).join('')}
-                            </select>
+                    res.data.forEach(s => {
+                        html += `
+                            <div class="user-card fade-in">
+                                ${s.avatar ? `<img src="${s.avatar}" class="avatar-large">` : `<div class="avatar-large">👨‍🎓</div>`}
+                                <h4>${escapeHtml(s.name || 'Sin nombre')}</h4>
+                                <p>📧 ${escapeHtml(s.email || 'N/A')}</p>
+                                <div style="width: 100%; margin-bottom: 15px;">
+                                    <div style="font-size: 0.75rem; text-align: left; margin-bottom: 5px; color: var(--text-muted);">Progreso Global</div>
+                                    <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
+                                </div>
+                                <button class="btn-danger" onclick="deleteStudent('${s.id}')">🗑️ Eliminar Participante</button>
+                            </div>
                         `;
-                    }
-                    
-                    let activeUnenrollHtml = '';
-                    if (enrolledIds.length > 0) {
-                        activeUnenrollHtml = '<div style="margin-top:10px; font-size:0.75rem; color:var(--text-muted); text-align:left;">Cancelar Matrícula:<br>';
-                        courses.filter(c => enrolledIds.includes(c.id)).forEach(c => {
-                            activeUnenrollHtml += `
-                                <span style="display:flex; justify-content:space-between; align-items:center; background:#fee2e2; color:#ef4444; border-radius:4px; padding:3px 6px; margin-top:2px;">
-                                    ${escapeHtml(c.title.substring(0,25))}...
-                                    <button class="btn-ghost" style="color:#ef4444; padding:0; font-size:0.7rem;" onclick="unenrollStudent('${s.id}', '${c.id}')">❌</button>
-                                </span>`;
-                        });
-                        activeUnenrollHtml += '</div>';
-                    }
-
-                    html += `
-                        <div class="course-card" style="padding:20px; display:flex; flex-direction:column; justify-content:space-between; min-height:280px;">
-                            <div>
-                                <h3 style="font-size: 1.05rem; margin-bottom: 5px;">👤 ${escapeHtml(s.name)}</h3>
-                                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">✉️ ${s.email}</p>
-                                <div style="text-align:left; border-top:1px solid var(--border-color); padding-top:10px;">
-                                    <strong style="font-size:0.8rem;">Cursos Activos:</strong><br>
-                                    ${enrolledHtml}
-                                </div>
-                            </div>
-                            
-                            <div>
-                                ${enrollDropdown}
-                                ${activeUnenrollHtml}
-                                <div style="display: flex; gap: 10px; width: 100%; margin-top:15px; border-top:1px solid var(--border-color); padding-top:10px;">
-                                    <button class="btn-secondary" style="flex:1; padding: 6px; font-size:0.8rem;" onclick="editStudent('${s.id}', '${escapeHtml(s.name)}', '${escapeHtml(s.email)}')">Editar</button>
-                                    <button class="btn-danger" style="flex:1; padding: 6px; font-size:0.8rem;" onclick="deleteStudent('${s.id}')">Eliminar</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                grid.innerHTML = html;
-            } catch(e) { grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">Error al cargar participantes.</div>'; }
+                    });
+                    grid.innerHTML = html;
+                } else {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error al cargar.</div>';
+                }
+            } catch (e) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error de red.</div>';
+            }
         }
 
         function editStudent(id, name, email) {
@@ -1520,7 +1471,8 @@
                 const course = await resp.json();
                 if (course.status === 'error') { alert("No se pudo abrir el curso."); return; }
                 
-                activeCourse = course;
+                const courseData = course.data;
+                activeCourse = courseData;
                 
                 // Cargar todas las entregas para este curso
                 try {
@@ -1531,15 +1483,15 @@
                     activeCourseSubmissions = [];
                 }
                 
-                document.getElementById('editCourseId').value = course.id;
-                document.getElementById('editorCourseTitle').textContent = `Administrar Curso: ${course.title}`;
-                document.getElementById('edit_title').value = course.title || '';
-                document.getElementById('edit_certifier').value = course.certifier || '';
-                document.getElementById('edit_teacher_id').value = course.teacher_id || '';
-                document.getElementById('edit_category').value = course.category || 'Educación';
-                document.getElementById('edit_duration').value = course.duration || 10;
-                document.getElementById('edit_level').value = course.level || 'Principiante';
-                document.getElementById('edit_description').value = course.description || '';
+                document.getElementById('editCourseId').value = courseData.id;
+                document.getElementById('editorCourseTitle').textContent = `Administrar Curso: ${courseData.title}`;
+                document.getElementById('edit_title').value = courseData.title || '';
+                document.getElementById('edit_certifier').value = courseData.certifier || '';
+                document.getElementById('edit_teacher_id').value = courseData.teacher_id || '';
+                document.getElementById('edit_category').value = courseData.category || 'Educación';
+                document.getElementById('edit_duration').value = courseData.duration || 10;
+                document.getElementById('edit_level').value = courseData.level || 'Principiante';
+                document.getElementById('edit_description').value = courseData.description || '';
                 
                 renderOutcomesList();
                 renderCompetenciesList();
