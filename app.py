@@ -1704,35 +1704,21 @@ def evidences_confirm_upload():
         match = re.search(r'\d+', str(aspect_id))
         dependency = match.group() if match else "1"
 
-        check = supabase.table('evidences').select("id").eq("aspect_id", aspect_id).execute()
-        
-        if check.data and not is_annex:
-            # Update existing main evidence
-            supabase.table('evidences').update({
-                "name": filename,
-                "file_url": file_url,
-                "period": period,
-                "dependency": dependency,
-                "user_email": email,
-                "inst_id": inst_id,
-                "program_id": program_id
-            }).eq("id", check.data[0]['id']).execute()
-        else:
-            # Insert new evidence (main or annex)
-            insert_data = {
-                "name": filename,
-                "file_url": file_url,
-                "period": period,
-                "dependency": dependency,
-                "aspect_id": aspect_id,
-                "user_email": email,
-                "status": "pendiente",
-                "inst_id": inst_id,
-                "program_id": program_id
-            }
-            if is_annex:
-                insert_data['is_annex'] = True
-            supabase.table('evidences').insert(insert_data).execute()
+        # Siempre insertamos como una nueva evidencia para permitir múltiples adjuntos (y diferentes años)
+        insert_data = {
+            "name": filename,
+            "file_url": file_url,
+            "period": period,
+            "dependency": dependency,
+            "aspect_id": aspect_id,
+            "user_email": email,
+            "status": "pendiente",
+            "inst_id": inst_id,
+            "program_id": program_id
+        }
+        if is_annex:
+            insert_data['is_annex'] = True
+        supabase.table('evidences').insert(insert_data).execute()
 
         return jsonify({"status": "success"})
     except Exception as e:
