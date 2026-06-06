@@ -2488,6 +2488,16 @@ def handle_api_courses():
         print(f"Error loading courses: {e}")
         return jsonify([]), 200
 
+@app.route('/api/public/courses', methods=['GET'])
+def handle_api_public_courses():
+    try:
+        courses = formacion_storage.load_courses(1, 0)
+        return jsonify(courses)
+    except Exception as e:
+        print(f"Error loading public courses: {e}")
+        return jsonify([]), 200
+
+
 @app.route('/api/courses/<course_id>/forum', methods=['GET', 'POST'])
 def handle_course_forum(course_id):
     inst_id = int(request.args.get('inst_id', 1))
