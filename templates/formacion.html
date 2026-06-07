@@ -2916,13 +2916,13 @@
             for (let qIdx = 0; qIdx < questions.length; qIdx++) {
                 const q = questions[qIdx];
                 if (['single','truefalse','likert'].includes(q.type)) {
-                    const selected = document.querySelector(\`input[name="preview_q_\${qIdx}"]:checked\`);
+                    const selected = document.querySelector(`input[name="preview_q_${qIdx}"]:checked`);
                     if (selected) {
                         countable++;
                         if (selected.value === q.correctAnswer) correctAnswers++;
                     }
                 } else if (q.type === 'multiple') {
-                    const checked = [...document.querySelectorAll(\`input[name="preview_q_\${qIdx}"]:checked\`)];
+                    const checked = [...document.querySelectorAll(`input[name="preview_q_${qIdx}"]:checked`)];
                     if (checked.length > 0) {
                         countable++;
                         const ansStr = checked.map(c=>c.value).join('||');
