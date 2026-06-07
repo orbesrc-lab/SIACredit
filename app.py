@@ -2756,7 +2756,7 @@ def public_enroll_course():
 
     try:
         # 1. Check if user already exists
-        user_res = supabase.table('users').select("*").eq('email', email).execute()
+        user_res = sb.table('users').select("*").eq('email', email).execute()
         pending_name = f"[ASPIRANTE] {name}"
         
         if len(user_res.data) == 0:
@@ -2769,7 +2769,7 @@ def public_enroll_course():
                 "inst_id": inst_id,
                 "program_id": 0
             }
-            supabase.table('users').insert(new_user).execute()
+            sb.table('users').insert(new_user).execute()
 
         # 2. Check or create in lms_students
         students = formacion_storage.load_students(inst_id)
