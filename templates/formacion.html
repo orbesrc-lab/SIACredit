@@ -3549,7 +3549,7 @@
         }
 
         function renderQuizEditorQuestions() {
-            const container = document.getElementById('quizQuestionsContainer');
+            const container = document.getElementById('quizEditorQuestionsContainer');
             container.innerHTML = '';
             if (currentQuizQuestions.length === 0) {
                 container.innerHTML = '<div style="text-align:center; padding:30px; color:#64748b; font-size:0.9rem; border:2px dashed #cbd5e1; border-radius:8px;">Sin preguntas. Haz clic en "+ Nueva Pregunta".</div>';
@@ -3684,7 +3684,7 @@
             currentQuizQuestions.push({ type: 'single', text: '', options: ['Opción A', 'Opción B'], correctAnswer: 'Opción A' });
             renderQuizEditorQuestions();
             // Scroll to last question
-            const container = document.getElementById('quizQuestionsContainer');
+            const container = document.getElementById('quizEditorQuestionsContainer');
             container.scrollTop = container.scrollHeight;
         }
 
@@ -3858,7 +3858,7 @@
                 <span style="font-size:0.85rem; color:#64748b;">Construye las preguntas del examen.</span>
                 <button onclick="addQuizQuestion()" style="background:linear-gradient(135deg,#6366f1,#a855f7); color:white; border:none; border-radius:8px; padding:7px 14px; font-size:0.82rem; font-weight:600; cursor:pointer;">+ Nueva Pregunta</button>
             </div>
-            <div id="quizQuestionsContainer" style="flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:12px;">
+            <div id="quizEditorQuestionsContainer" style="flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:12px;">
             </div>
             <div style="padding:14px 20px; border-top:1px solid #e2e8f0; flex-shrink:0; background:#f8fafc;">
                 <button onclick="saveQuizQuestions()" style="width:100%; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; border-radius:10px; padding:12px; font-size:0.95rem; font-weight:700; cursor:pointer;">Guardar Cuestionario</button>
