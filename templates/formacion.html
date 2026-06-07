@@ -2449,61 +2449,117 @@
             }
         }
 
-        function promptInsertVideo() {
-            const embedCode = prompt("Pega el código de inserción (Iframe) o la URL de YouTube/Vimeo:");
-            if (embedCode) {
-                let videoHtml = "";
-                if (embedCode.includes('<iframe') || embedCode.includes('<video')) {
-                    // Si ya es código iframe, aseguramos que sea responsivo y adaptativo
-                    videoHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">${embedCode}</div>`;
-                    videoHtml = videoHtml.replace(/width="[^"]*"/, 'width="100%"').replace(/height="[^"]*"/, 'height="100%"').replace(/position:[^;]*/, '');
-                } else {
-                    // Si es solo una URL de YouTube, la convertimos a embed
-                    try {
-                        let videoId = "";
-                        if (embedCode.includes('youtube.com/watch?v=')) {
-                            videoId = embedCode.split('v=')[1].split('&')[0];
-                        } else if (embedCode.includes('youtu.be/')) {
-                            videoId = embedCode.split('youtu.be/')[1].split('?')[0];
-                        }
-                        
-                        if (videoId) {
-                            videoHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">
-                                <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"></iframe>
-                            </div>`;
-                        } else {
-                            alert("URL no soportada. Introduce el código embed completo o una URL de YouTube.");
-                            return;
-                        }
-                    } catch(e) {
-                        alert("Error al procesar la URL.");
-                        return;
-                    }
-                }
-                insertHtmlAtCursor(videoHtml);
+        function generateSmartLinkCard(url, customTitle) {
+            let type = "Enlace Web";
+            let icon = "🔗";
+            let color = "var(--primary-color)";
+            
+            const lowerUrl = url.toLowerCase();
+            
+            if (lowerUrl.includes("notebooklm.google.com")) {
+                type = "Podcast / Audio Inteligente";
+                icon = "🎧";
+                color = "#8b5cf6"; // Purple
+            } else if (lowerUrl.includes("canva.com") || lowerUrl.includes("genial.ly") || lowerUrl.includes("miro.com") || lowerUrl.includes("lucidchart.com")) {
+                type = "Mapa Conceptual / Presentación";
+                icon = "📊";
+                color = "#0ea5e9"; // Sky blue
+            } else if (lowerUrl.includes("quizlet.com") || lowerUrl.includes("kahoot.it") || lowerUrl.includes("blooket.com")) {
+                type = "Tarjetas de Estudio / Actividad";
+                icon = "🃏";
+                color = "#f59e0b"; // Amber
+            } else if (lowerUrl.includes("drive.google.com") || lowerUrl.includes("docs.google.com")) {
+                type = "Documento";
+                icon = "📄";
+                color = "#10b981"; // Emerald
+            } else if (lowerUrl.includes("spotify.com") || lowerUrl.includes("soundcloud.com") || lowerUrl.includes("ivoox.com")) {
+                type = "Podcast / Audio";
+                icon = "📻";
+                color = "#1db954"; // Spotify green
+            } else if (lowerUrl.includes("youtube.com") || lowerUrl.includes("youtu.be") || lowerUrl.includes("vimeo.com")) {
+                type = "Video";
+                icon = "🎥";
+                color = "#ef4444"; // Red
             }
+
+            const title = customTitle || type;
+            const domainMatch = url.match(/^https?:\/\/([^/?#]+)(?:[/?#]|$)/i);
+            const domain = domainMatch ? domainMatch[1] : "enlace externo";
+            
+            // Simple escape helper inline for safety
+            const esc = str => String(str).replace(/[&<>'"]/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[match]);
+
+            return `
+            <div class="rich-link-card" style="display:flex; align-items:center; gap:15px; padding:15px 20px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc; margin:20px 0; text-decoration:none; color:inherit; max-width: 100%; box-sizing: border-box;">
+                <div style="font-size:2.5rem; flex-shrink: 0;">${icon}</div>
+                <div style="flex:1; min-width:0;">
+                    <strong style="display:block; color:#0f172a; font-size:1.1rem; margin-bottom:4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(title)}</strong>
+                    <span style="font-size:0.85rem; color:#64748b; display:block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Fuente: ${esc(domain)}</span>
+                </div>
+                <div style="flex-shrink: 0;">
+                    <a href="${esc(url)}" target="_blank" style="display:inline-block; background:${color}; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition: opacity 0.2s;">Abrir</a>
+                </div>
+            </div><p><br></p>`;
+        }
+
+        function promptInsertVideo() {
+            const embedCode = prompt("Pega el código de inserción (Iframe) o la URL del Video:");
+            if (!embedCode) return;
+            let videoHtml = "";
+            if (embedCode.includes('<iframe') || embedCode.includes('<video')) {
+                videoHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">${embedCode}</div>`;
+                videoHtml = videoHtml.replace(/width="[^"]*"/, 'width="100%"').replace(/height="[^"]*"/, 'height="100%"').replace(/position:[^;]*/, '');
+            } else if (embedCode.startsWith('http')) {
+                try {
+                    let videoId = "";
+                    if (embedCode.includes('youtube.com/watch?v=')) {
+                        videoId = embedCode.split('v=')[1].split('&')[0];
+                    } else if (embedCode.includes('youtu.be/')) {
+                        videoId = embedCode.split('youtu.be/')[1].split('?')[0];
+                    }
+                    
+                    if (videoId) {
+                        videoHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">
+                            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"></iframe>
+                        </div><p><br></p>`;
+                    } else {
+                        const title = prompt("Título opcional para el video:");
+                        videoHtml = generateSmartLinkCard(embedCode, title || "Video / Media");
+                    }
+                } catch(e) {
+                    alert("Error al procesar la URL.");
+                    return;
+                }
+            } else {
+                alert("Entrada no válida.");
+                return;
+            }
+            insertHtmlAtCursor(videoHtml);
         }
 
         function promptInsertPodcast() {
-            const embedCode = prompt("Pega el código de inserción (Iframe) de Spotify, SoundCloud u otra plataforma:");
-            if (embedCode) {
-                let podcastHtml = "";
-                if (embedCode.includes('<iframe')) {
-                    podcastHtml = `<div class="podcast-container" style="margin:20px 0; width:100%; overflow:hidden; border-radius:12px;">${embedCode}</div>`;
-                    podcastHtml = podcastHtml.replace(/width="[^"]*"/, 'width="100%"');
-                } else {
-                    alert("Por favor, introduce el código embed (Iframe) oficial del podcast.");
-                    return;
-                }
-                insertHtmlAtCursor(podcastHtml);
+            const embedCode = prompt("Pega el enlace del Podcast (ej. NotebookLM, Spotify) o el código Iframe:");
+            if (!embedCode) return;
+            let podcastHtml = "";
+            if (embedCode.includes('<iframe')) {
+                podcastHtml = `<div class="podcast-container" style="margin:20px 0; width:100%; overflow:hidden; border-radius:12px;">${embedCode}</div>`;
+                podcastHtml = podcastHtml.replace(/width="[^"]*"/, 'width="100%"');
+            } else if (embedCode.startsWith('http')) {
+                const title = prompt("Título opcional para este podcast:");
+                podcastHtml = generateSmartLinkCard(embedCode, title || "Podcast / Audio");
+            } else {
+                alert("Introduce un enlace válido o un código Iframe oficial.");
+                return;
             }
+            insertHtmlAtCursor(podcastHtml);
         }
 
         function promptInsertLink() {
-            const url = prompt("Introduce la URL del enlace:");
-            if (url) {
-                execEditorCommand('createLink', url);
-            }
+            const url = prompt("Introduce la URL del enlace a compartir (Canva, Quizlet, Drive, etc.):");
+            if (!url) return;
+            const title = prompt("Título opcional para mostrar en la tarjeta (o deja en blanco):");
+            const cardHtml = generateSmartLinkCard(url, title);
+            insertHtmlAtCursor(cardHtml);
         }
 
         function insertHtmlAtCursor(html) {
