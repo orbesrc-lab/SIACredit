@@ -2757,13 +2757,9 @@ def public_enroll_course():
     try:
         # 1. Check if user already exists
         user_res = supabase.table('users').select("*").eq('email', email).execute()
+        pending_name = f"[ASPIRANTE] {name}"
         
-        if len(user_res.data) > 0:
-            user = user_res.data[0]
-            # User exists, just enroll them if they are an estudiante
-        else:
-            # Create user as ASPIRANTE
-            pending_name = f"[ASPIRANTE] {name}"
+        if len(user_res.data) == 0:
             new_user = {
                 "id": str(uuid.uuid4()),
                 "name": pending_name,
@@ -2773,9 +2769,7 @@ def public_enroll_course():
                 "inst_id": inst_id,
                 "program_id": 0
             }
-            res = supabase.table('users').insert(new_user).execute()
-            if not res.data:
-                return jsonify({"status": "error", "message": "Error al crear cuenta de usuario"}), 500
+            supabase.table('users').insert(new_user).execute()
 
         # 2. Check or create in lms_students
         students = formacion_storage.load_students(inst_id)
@@ -2784,7 +2778,7 @@ def public_enroll_course():
         if not student:
             # Create student record
             student_data = {
-                "name": f"[ASPIRANTE] {name}" if len(user_res.data) == 0 else name,
+                "name": pending_name,
                 "email": email,
                 "enrolled_courses": [course_id]
             }
@@ -2793,6 +2787,10 @@ def public_enroll_course():
             # Add to enrolled_courses if not there
             if course_id not in student.get('enrolled_courses', []):
                 formacion_storage.enroll_student_in_course(inst_id, student['id'], course_id)
+            
+            if '[ASPIRANTE]' not in student.get('name', ''):
+                student['name'] = f"[ASPIRANTE] {student.get('name', name).replace('[PENDING] ', '')}"
+                formacion_storage.save_student(inst_id, student)
                 
         return jsonify({"status": "success", "message": "Inscripción registrada correctamente"})
 
