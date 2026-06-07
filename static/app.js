@@ -59,8 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             if (role === 'operativo') {
-                // El operativo solo ve Dashboard y Evidencias
-                if (!text.includes('dashboard') && !text.includes('evidencias')) {
+                // El operativo solo ve Dashboard, Evidencias y Cerrar Sesión
+                if (!text.includes('dashboard') && !text.includes('evidencias') && !text.includes('cerrar')) {
                     item.style.display = 'none';
                 }
             } else if (role === 'lider') {
