@@ -2407,9 +2407,10 @@
                         
                         // Evaluaciones
                         let evalHtml = '';
-                        if (unit.evaluations && unit.evaluations.length > 0) {
+                        const evalArr = Object.values(unit.evaluations || {});
+                        if (evalArr.length > 0) {
                             evalHtml = '<strong style="display:block; font-size:0.85rem; color:var(--primary-color); margin-top:16px; margin-bottom: 6px;">🏆 Evaluaciones (Escala CNA):</strong>';
-                            unit.evaluations.forEach(ev => {
+                            evalArr.forEach(ev => {
                                 evalHtml += `
                                     <div class="evaluation-item" style="margin-top:5px;">
                                         <div>
@@ -2439,23 +2440,25 @@
                         
                         // Lógica para determinar si esta unidad habilita la siguiente
                         let currentUnitCompleted = true;
-                        if (unit.activities && unit.activities.length > 0) {
+                        const actArray = Object.values(unit.activities || {});
+                        if (actArray.length > 0) {
                             // Todas las actividades deben tener al menos una entrega
-                            const submittedCount = unit.activities.filter(act => 
+                            const submittedCount = actArray.filter(act => 
                                 studentSubmissions.some(s => s.activity_id === act.id)
                             ).length;
                             
-                            if (submittedCount < unit.activities.length) {
+                            if (submittedCount < actArray.length) {
                                 currentUnitCompleted = false;
                             }
                         }
                         
                         // Evaluaciones también deben tener entrega
-                        if (unit.evaluations && unit.evaluations.length > 0) {
-                            const submittedEvalsCount = unit.evaluations.filter(ev => 
+                        const evArrayObj = Object.values(unit.evaluations || {});
+                        if (evArrayObj.length > 0) {
+                            const submittedEvalsCount = evArrayObj.filter(ev => 
                                 studentSubmissions.some(s => s.activity_id === ev.id)
                             ).length;
-                            if (submittedEvalsCount < unit.evaluations.length) {
+                            if (submittedEvalsCount < evArrayObj.length) {
                                 currentUnitCompleted = false;
                             }
                         }
@@ -3871,6 +3874,91 @@
 
                 <!-- Modal para Presentar Cuestionario (Estudiante) -->
         <div id="takeQuizModal" style="display: none; position:fixed; inset:0; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); z-index: 2600; align-items:center; justify-content:center;">
+            <div class="modal-content" style="max-width: 700px; width: 95%;">
+                <div class="modal-header">
+                    <h3 id="takeQuizTitle" style="margin:0;">Examen</h3>
+                    <button class="close-btn" onclick="document.getElementById('takeQuizModal').style.display='none'">&times;</button>
+                </div>
+                <div id="takeQuizSub" style="font-size:0.85rem; color:var(--text-muted); padding: 5px 20px 15px;"></div>
+                <input type="hidden" id="takeQuizUnitIdx">
+                <input type="hidden" id="takeQuizEvId">
+                <div id="takeQuizQuestionsContainer" style="display: flex; flex-direction: column; gap: 20px; max-height: 55vh; overflow-y: auto; padding: 0 20px 10px;">
+                </div>
+                <div style="padding: 20px; border-top: 1px solid var(--border-color);">
+                    <button class="btn-primary" style="width:100%; background: linear-gradient(135deg,#10b981,#059669); border:none; color:white; font-weight:700;" onclick="submitQuizAnswers()">📨 Enviar Respuestas</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Entregar Trabajo (Estudiante) -->
+        <div id="submissionModal" class="modal-overlay" style="display: none; z-index: 2600;">
+            <div class="modal-content" style="max-width: 600px; width: 95%;">
+                <div class="modal-header">
+                    <h3 id="submissionModalTitle" style="margin:0;">Entregar Actividad</h3>
+                    <button class="close-btn" onclick="document.getElementById('submissionModal').style.display='none'">&times;</button>
+                </div>
+                <input type="hidden" id="subCourseId">
+                <input type="hidden" id="subUnitId">
+                <input type="hidden" id="subActId">
+                <div style="padding: 20px;">
+                    <label style="font-weight:600; display:block; margin-bottom:10px;">Respuesta o Enlace de Entrega:</label>
+                    <textarea id="subContent" class="form-input" rows="6" placeholder="Escribe tu respuesta, ensayo, o adjunta el enlace a tu trabajo..."></textarea>
+                    <button class="btn-primary" style="width:100%; margin-top:20px; background: var(--success-gradient);" onclick="processActivitySubmission()">Confirmar Entrega</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Crear Tema con Tipo -->
+        <div id="topicModal" class="modal-overlay" style="display: none; z-index: 2500;">
+            <div class="modal-content" style="max-width:480px;">
+                <div class="modal-header">
+                    <h3 style="margin:0;">Nuevo Tema</h3>
+                    <button class="close-btn" onclick="document.getElementById('topicModal').style.display='none'">&times;</button>
+                </div>
+                <input type="hidden" id="topicUnitIdx">
+                <div style="padding:20px; display:flex; flex-direction:column; gap:15px;">
+                    <div class="form-group">
+                        <label>Nombre del Tema</label>
+                        <input type="text" id="topicName" class="form-input" placeholder="Ej. Introducción al tema...">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Recurso / Icono</label>
+                        <select id="topicType" class="form-input">
+                            <option value="text">📖 Texto / Clase Magistral</option>
+                            <option value="video">🎥 Video</option>
+                            <option value="podcast">🎙️ Podcast / Audio</option>
+                            <option value="link">🔗 Hipervínculo / Web</option>
+                            <option value="file">📄 Archivo / PDF</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" onclick="submitAddTopic()">Guardar Tema</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Creador de Cuestionarios (Docente) -->
+        <div id="quizEditorModal" class="modal-overlay" style="display: none; z-index: 2500;">
+            <div class="modal-content" style="max-width: 700px; width: 95%;">
+                <div class="modal-header">
+                    <h3 id="quizEditorTitle" style="margin:0;">Editor de Preguntas</h3>
+                    <button class="close-btn" onclick="document.getElementById('quizEditorModal').style.display='none'">&times;</button>
+                </div>
+                <input type="hidden" id="quizEdUnitIdx">
+                <input type="hidden" id="quizEdEvIdx">
+                <div style="padding:0 20px 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size:0.85rem; color:var(--text-muted);">Crea y ordena las preguntas del examen.</span>
+                    <button class="btn-primary" style="padding:6px 14px; font-size:0.8rem;" onclick="addQuizQuestion()">+ Nueva Pregunta</button>
+                </div>
+                <div id="quizQuestionsContainer" style="display: flex; flex-direction: column; gap: 15px; max-height: 50vh; overflow-y: auto; padding: 0 20px 10px;">
+                </div>
+                <div style="padding:20px; border-top:1px solid var(--border-color);">
+                    <button class="btn-primary" style="width:100%;" onclick="saveQuizQuestions()">💾 Guardar Cuestionario</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Presentar Cuestionario (Estudiante) -->
+        <div id="takeQuizModal" class="modal-overlay" style="display: none; z-index: 2600;">
             <div class="modal-content" style="max-width: 700px; width: 95%;">
                 <div class="modal-header">
                     <h3 id="takeQuizTitle" style="margin:0;">Examen</h3>
