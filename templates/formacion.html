@@ -3394,70 +3394,196 @@
             document.getElementById('quizEditorModal').style.display = 'flex';
         }
 
+        // Guarda el estado actual de todos los inputs antes de re-renderizar
+        function syncQuizEditorState() {
+            currentQuizQuestions.forEach((q, qIdx) => {
+                const ta = document.getElementById('qtext_' + qIdx);
+                if (ta) q.text = ta.value;
+                const optIn = document.getElementById('qopts_' + qIdx);
+                if (optIn) q.options = optIn.value.split(',').map(s => s.trim());
+                const corrIn = document.getElementById('qcorr_' + qIdx);
+                if (corrIn) q.correctAnswer = corrIn.value.trim();
+                const tfSel = document.getElementById('qtf_' + qIdx);
+                if (tfSel) q.correctAnswer = tfSel.value;
+            });
+        }
+
+        function changeQuizQuestionType(qIdx, newType) {
+            syncQuizEditorState();
+            currentQuizQuestions[qIdx].type = newType;
+            if (newType === 'single' || newType === 'multiple') {
+                if (!currentQuizQuestions[qIdx].options || currentQuizQuestions[qIdx].options.length === 0) {
+                    currentQuizQuestions[qIdx].options = ['Opción A', 'Opción B'];
+                    currentQuizQuestions[qIdx].correctAnswer = 'Opción A';
+                }
+            }
+            renderQuizEditorQuestions();
+        }
+
+        function removeQuizQuestion(qIdx) {
+            syncQuizEditorState();
+            currentQuizQuestions.splice(qIdx, 1);
+            renderQuizEditorQuestions();
+        }
+
         function renderQuizEditorQuestions() {
             const container = document.getElementById('quizQuestionsContainer');
             container.innerHTML = '';
             if (currentQuizQuestions.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.9rem; border:2px dashed #cbd5e1; border-radius:8px;">Sin preguntas. Haz clic en "+ Nueva Pregunta".</div>';
+                container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:0.9rem; border:2px dashed #cbd5e1; border-radius:8px;">Sin preguntas. Haz clic en "+ Nueva Pregunta".</div>';
                 return;
             }
             currentQuizQuestions.forEach((q, qIdx) => {
                 const qBox = document.createElement('div');
-                qBox.style = 'border:1px solid var(--border-color); border-radius:8px; padding:15px; background:var(--bg-main); position:relative;';
-                let optionsHtml = '';
-                if (['multiple','single'].includes(q.type)) {
-                    optionsHtml = `
-                        <div style="margin-top:10px;">
-                            <label style="font-size:0.8rem; font-weight:600;">Opciones (separadas por coma):</label>
-                            <input type="text" class="form-input" style="margin:4px 0 8px;" value="${escapeHtml((q.options||[]).join(', '))}" oninput="currentQuizQuestions[${qIdx}].options=this.value.split(',').map(s=>s.trim())">
-                            <label style="font-size:0.8rem; font-weight:600;">Respuesta Correcta:</label>
-                            <input type="text" class="form-input" value="${escapeHtml(q.correctAnswer||'')}" oninput="currentQuizQuestions[${qIdx}].correctAnswer=this.value.trim()">
-                        </div>`;
+                qBox.style.cssText = 'border:1px solid var(--border-color); border-radius:10px; padding:18px; background:var(--bg-main); position:relative; margin-bottom:5px;';
+
+                // Header row: number + type selector + delete
+                const header = document.createElement('div');
+                header.style.cssText = 'display:flex; gap:10px; margin-bottom:12px; align-items:center;';
+
+                const numSpan = document.createElement('span');
+                numSpan.style.cssText = 'font-weight:700; color:var(--primary-color); min-width:28px; font-size:0.9rem;';
+                numSpan.textContent = '#' + (qIdx + 1);
+                header.appendChild(numSpan);
+
+                const typeSelect = document.createElement('select');
+                typeSelect.className = 'form-input';
+                typeSelect.style.cssText = 'flex:1; padding:6px 10px; font-size:0.82rem;';
+                [
+                    ['single', 'Única Respuesta'],
+                    ['multiple', 'Selección Múltiple'],
+                    ['truefalse', 'Verdadero / Falso'],
+                    ['likert', 'Escala Likert (1–5)'],
+                    ['open', 'Respuesta Abierta']
+                ].forEach(([val, label]) => {
+                    const opt = document.createElement('option');
+                    opt.value = val; opt.textContent = label;
+                    if (q.type === val) opt.selected = true;
+                    typeSelect.appendChild(opt);
+                });
+                typeSelect.addEventListener('change', () => changeQuizQuestionType(qIdx, typeSelect.value));
+                header.appendChild(typeSelect);
+
+                const delBtn = document.createElement('button');
+                delBtn.innerHTML = '🗑️';
+                delBtn.title = 'Eliminar pregunta';
+                delBtn.style.cssText = 'background:none; border:none; cursor:pointer; font-size:1.1rem; color:#ef4444; padding:2px 6px; flex-shrink:0;';
+                delBtn.addEventListener('click', () => removeQuizQuestion(qIdx));
+                header.appendChild(delBtn);
+
+                qBox.appendChild(header);
+
+                // Question text label + textarea
+                const textLabel = document.createElement('label');
+                textLabel.textContent = 'Enunciado de la pregunta:';
+                textLabel.style.cssText = 'font-size:0.82rem; font-weight:600; display:block; margin-bottom:5px; color:var(--text-main);';
+                qBox.appendChild(textLabel);
+
+                const ta = document.createElement('textarea');
+                ta.id = 'qtext_' + qIdx;
+                ta.className = 'form-input';
+                ta.rows = 2;
+                ta.placeholder = 'Escribe el enunciado de la pregunta aquí...';
+                ta.value = q.text || '';
+                ta.style.cssText = 'width:100%; resize:vertical; min-height:60px; box-sizing:border-box;';
+                qBox.appendChild(ta);
+
+                // Options area based on type
+                if (['single', 'multiple'].includes(q.type)) {
+                    const optsDiv = document.createElement('div');
+                    optsDiv.style.marginTop = '10px';
+
+                    const optsLabel = document.createElement('label');
+                    optsLabel.textContent = 'Opciones (separadas por coma):';
+                    optsLabel.style.cssText = 'font-size:0.82rem; font-weight:600; display:block; margin-bottom:4px;';
+                    optsDiv.appendChild(optsLabel);
+
+                    const optsIn = document.createElement('input');
+                    optsIn.type = 'text';
+                    optsIn.id = 'qopts_' + qIdx;
+                    optsIn.className = 'form-input';
+                    optsIn.value = (q.options || []).join(', ');
+                    optsIn.placeholder = 'Ej: Opción A, Opción B, Opción C';
+                    optsIn.style.marginBottom = '8px';
+                    optsDiv.appendChild(optsIn);
+
+                    const corrLabel = document.createElement('label');
+                    corrLabel.textContent = 'Respuesta Correcta (igual que la opción):';
+                    corrLabel.style.cssText = 'font-size:0.82rem; font-weight:600; display:block; margin-bottom:4px;';
+                    optsDiv.appendChild(corrLabel);
+
+                    const corrIn = document.createElement('input');
+                    corrIn.type = 'text';
+                    corrIn.id = 'qcorr_' + qIdx;
+                    corrIn.className = 'form-input';
+                    corrIn.value = q.correctAnswer || '';
+                    corrIn.placeholder = 'Ej: Opción A';
+                    optsDiv.appendChild(corrIn);
+
+                    qBox.appendChild(optsDiv);
+
                 } else if (q.type === 'truefalse') {
-                    optionsHtml = `
-                        <div style="margin-top:10px;">
-                            <label style="font-size:0.8rem; font-weight:600;">Respuesta Correcta:</label>
-                            <select class="form-input" onchange="currentQuizQuestions[${qIdx}].correctAnswer=this.value">
-                                <option value="Verdadero" ${q.correctAnswer==='Verdadero'?'selected':''}>Verdadero</option>
-                                <option value="Falso" ${q.correctAnswer==='Falso'?'selected':''}>Falso</option>
-                            </select>
-                        </div>`;
+                    const tfDiv = document.createElement('div');
+                    tfDiv.style.marginTop = '10px';
+
+                    const tfLabel = document.createElement('label');
+                    tfLabel.textContent = 'Respuesta Correcta:';
+                    tfLabel.style.cssText = 'font-size:0.82rem; font-weight:600; display:block; margin-bottom:4px;';
+                    tfDiv.appendChild(tfLabel);
+
+                    const tfSel = document.createElement('select');
+                    tfSel.id = 'qtf_' + qIdx;
+                    tfSel.className = 'form-input';
+                    ['Verdadero', 'Falso'].forEach(val => {
+                        const opt = document.createElement('option');
+                        opt.value = val; opt.textContent = val;
+                        if (q.correctAnswer === val) opt.selected = true;
+                        tfSel.appendChild(opt);
+                    });
+                    tfDiv.appendChild(tfSel);
+                    qBox.appendChild(tfDiv);
+
+                } else if (q.type === 'likert') {
+                    const infoDiv = document.createElement('div');
+                    infoDiv.style.cssText = 'margin-top:10px; padding:8px 12px; background:rgba(99,102,241,0.06); border-radius:6px; font-size:0.82rem; color:var(--text-muted);';
+                    infoDiv.textContent = 'Escala del 1 (Muy en desacuerdo) al 5 (Muy de acuerdo). Sin respuesta correcta, se cuenta automáticamente.';
+                    qBox.appendChild(infoDiv);
+
+                } else if (q.type === 'open') {
+                    const infoDiv = document.createElement('div');
+                    infoDiv.style.cssText = 'margin-top:10px; padding:8px 12px; background:rgba(245,158,11,0.08); border-radius:6px; font-size:0.82rem; color:#b06000;';
+                    infoDiv.textContent = '⚠️ Requiere calificación manual por el docente.';
+                    qBox.appendChild(infoDiv);
                 }
-                qBox.innerHTML = `
-                    <button style="position:absolute;top:8px;right:8px;color:#ef4444;background:none;border:none;cursor:pointer;font-size:1rem;" onclick="currentQuizQuestions.splice(${qIdx},1);renderQuizEditorQuestions()">🗑️</button>
-                    <div style="display:flex;gap:10px;margin-bottom:10px;align-items:center;">
-                        <span style="font-weight:700;color:var(--primary-color);min-width:24px;">#${qIdx+1}</span>
-                        <select class="form-input" style="width:auto;padding:4px 8px;font-size:0.8rem;" onchange="currentQuizQuestions[${qIdx}].type=this.value;renderQuizEditorQuestions()">
-                            <option value="single" ${q.type==='single'?'selected':''}>Única Respuesta</option>
-                            <option value="multiple" ${q.type==='multiple'?'selected':''}>Selección Múltiple</option>
-                            <option value="truefalse" ${q.type==='truefalse'?'selected':''}>Verdadero/Falso</option>
-                            <option value="likert" ${q.type==='likert'?'selected':''}>Escala Likert</option>
-                            <option value="open" ${q.type==='open'?'selected':''}>Respuesta Abierta</option>
-                        </select>
-                    </div>
-                    <textarea class="form-input" rows="2" placeholder="Escribe el enunciado de la pregunta..." oninput="currentQuizQuestions[${qIdx}].text=this.value">${escapeHtml(q.text||'')}</textarea>
-                    ${optionsHtml}
-                `;
+
                 container.appendChild(qBox);
             });
         }
 
         function addQuizQuestion() {
+            syncQuizEditorState();
             currentQuizQuestions.push({ type: 'single', text: '', options: ['Opción A', 'Opción B'], correctAnswer: 'Opción A' });
             renderQuizEditorQuestions();
+            // Scroll to last question
+            const container = document.getElementById('quizQuestionsContainer');
+            container.scrollTop = container.scrollHeight;
         }
 
         async function saveQuizQuestions() {
+            syncQuizEditorState();
             const unitIdx = parseInt(document.getElementById('quizEdUnitIdx').value);
             const evIdx = parseInt(document.getElementById('quizEdEvIdx').value);
-            for (let i=0; i<currentQuizQuestions.length; i++) {
-                if (!currentQuizQuestions[i].text.trim()) { alert(`La pregunta #${i+1} no tiene enunciado.`); return; }
+            for (let i = 0; i < currentQuizQuestions.length; i++) {
+                if (!currentQuizQuestions[i].text.trim()) {
+                    alert('La pregunta #' + (i + 1) + ' no tiene enunciado. Por favor escríbelo antes de guardar.');
+                    return;
+                }
             }
             activeCourse.units[unitIdx].evaluations[evIdx].questions = currentQuizQuestions;
             document.getElementById('quizEditorModal').style.display = 'none';
             renderSyllabusList();
             await updateCourseOnServer();
-            alert(`✅ ${currentQuizQuestions.length} pregunta(s) guardada(s) exitosamente.`);
+            alert(currentQuizQuestions.length + ' pregunta(s) guardada(s) exitosamente.');
         }
 
         // --- QUIZ TAKER (ESTUDIANTE) ---
