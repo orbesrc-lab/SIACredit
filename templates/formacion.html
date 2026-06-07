@@ -2449,7 +2449,7 @@
             }
         }
 
-        function generateSmartLinkCard(url, customTitle) {
+        function generateSmartLinkCard(url, customTitle, hintType = null) {
             let type = "Enlace Web";
             let icon = "🔗";
             let color = "var(--primary-color)";
@@ -2457,8 +2457,13 @@
             const lowerUrl = url.toLowerCase();
             
             if (lowerUrl.includes("notebooklm.google.com")) {
-                type = "Podcast / Audio Inteligente";
-                icon = "🎧";
+                if (hintType === 'video') {
+                    type = "Video Inteligente (NotebookLM)";
+                    icon = "🎥";
+                } else {
+                    type = "Podcast / Audio Inteligente";
+                    icon = "🎧";
+                }
                 color = "#8b5cf6"; // Purple
             } else if (lowerUrl.includes("canva.com") || lowerUrl.includes("genial.ly") || lowerUrl.includes("miro.com") || lowerUrl.includes("lucidchart.com")) {
                 type = "Mapa Conceptual / Presentación";
@@ -2524,7 +2529,7 @@
                         </div><p><br></p>`;
                     } else {
                         const title = prompt("Título opcional para el video:");
-                        videoHtml = generateSmartLinkCard(embedCode, title || "Video / Media");
+                        videoHtml = generateSmartLinkCard(embedCode, title, 'video');
                     }
                 } catch(e) {
                     alert("Error al procesar la URL.");
@@ -2546,7 +2551,7 @@
                 podcastHtml = podcastHtml.replace(/width="[^"]*"/, 'width="100%"');
             } else if (embedCode.startsWith('http')) {
                 const title = prompt("Título opcional para este podcast:");
-                podcastHtml = generateSmartLinkCard(embedCode, title || "Podcast / Audio");
+                podcastHtml = generateSmartLinkCard(embedCode, title, 'audio');
             } else {
                 alert("Introduce un enlace válido o un código Iframe oficial.");
                 return;
@@ -2558,7 +2563,7 @@
             const url = prompt("Introduce la URL del enlace a compartir (Canva, Quizlet, Drive, etc.):");
             if (!url) return;
             const title = prompt("Título opcional para mostrar en la tarjeta (o deja en blanco):");
-            const cardHtml = generateSmartLinkCard(url, title);
+            const cardHtml = generateSmartLinkCard(url, title, 'link');
             insertHtmlAtCursor(cardHtml);
         }
 
