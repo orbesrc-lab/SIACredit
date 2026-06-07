@@ -453,7 +453,33 @@
                 gap: 20px;
             }
         }
-    </style>
+    
+        /* Quiz editor inputs */
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: 'Outfit', sans-serif;
+            background: #ffffff;
+            color: #0f172a;
+            box-sizing: border-box;
+            outline: none;
+            display: block;
+        }
+        .form-input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+        }
+        select.form-input {
+            cursor: pointer;
+        }
+        textarea.form-input {
+            resize: vertical;
+            min-height: 70px;
+        }
+</style>
 </head>
 
 <body>
@@ -3430,25 +3456,24 @@
             const container = document.getElementById('quizQuestionsContainer');
             container.innerHTML = '';
             if (currentQuizQuestions.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:0.9rem; border:2px dashed #cbd5e1; border-radius:8px;">Sin preguntas. Haz clic en "+ Nueva Pregunta".</div>';
+                container.innerHTML = '<div style="text-align:center; padding:30px; color:#64748b; font-size:0.9rem; border:2px dashed #cbd5e1; border-radius:8px;">Sin preguntas. Haz clic en "+ Nueva Pregunta".</div>';
                 return;
             }
             currentQuizQuestions.forEach((q, qIdx) => {
                 const qBox = document.createElement('div');
-                qBox.style.cssText = 'border:1px solid var(--border-color); border-radius:10px; padding:18px; background:var(--bg-main); position:relative; margin-bottom:5px;';
+                qBox.style.cssText = 'border:1px solid #e2e8f0; border-radius:10px; padding:18px; background:#f8fafc; position:relative; margin-bottom:5px;';
 
                 // Header row: number + type selector + delete
                 const header = document.createElement('div');
                 header.style.cssText = 'display:flex; gap:10px; margin-bottom:12px; align-items:center;';
 
                 const numSpan = document.createElement('span');
-                numSpan.style.cssText = 'font-weight:700; color:var(--primary-color); min-width:28px; font-size:0.9rem;';
+                numSpan.style.cssText = 'font-weight:700; color:#6366f1; min-width:28px; font-size:0.9rem;';
                 numSpan.textContent = '#' + (qIdx + 1);
                 header.appendChild(numSpan);
 
                 const typeSelect = document.createElement('select');
-                typeSelect.className = 'form-input';
-                typeSelect.style.cssText = 'flex:1; padding:6px 10px; font-size:0.82rem;';
+                typeSelect.style.cssText = 'flex:1; padding:6px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.82rem; font-family:sans-serif; background:#fff; color:#0f172a;';
                 [
                     ['single', 'Única Respuesta'],
                     ['multiple', 'Selección Múltiple'],
@@ -3481,11 +3506,10 @@
 
                 const ta = document.createElement('textarea');
                 ta.id = 'qtext_' + qIdx;
-                ta.className = 'form-input';
-                ta.rows = 2;
+                ta.rows = 3;
                 ta.placeholder = 'Escribe el enunciado de la pregunta aquí...';
                 ta.value = q.text || '';
-                ta.style.cssText = 'width:100%; resize:vertical; min-height:60px; box-sizing:border-box;';
+                ta.style.cssText = 'width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem; font-family:sans-serif; background:#ffffff; color:#0f172a; box-sizing:border-box; resize:vertical; min-height:70px; display:block;';
                 qBox.appendChild(ta);
 
                 // Options area based on type
@@ -3501,10 +3525,9 @@
                     const optsIn = document.createElement('input');
                     optsIn.type = 'text';
                     optsIn.id = 'qopts_' + qIdx;
-                    optsIn.className = 'form-input';
                     optsIn.value = (q.options || []).join(', ');
                     optsIn.placeholder = 'Ej: Opción A, Opción B, Opción C';
-                    optsIn.style.marginBottom = '8px';
+                    optsIn.style.cssText = 'width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem; font-family:sans-serif; background:#fff; color:#0f172a; box-sizing:border-box; margin-bottom:8px; display:block;';
                     optsDiv.appendChild(optsIn);
 
                     const corrLabel = document.createElement('label');
@@ -3515,9 +3538,9 @@
                     const corrIn = document.createElement('input');
                     corrIn.type = 'text';
                     corrIn.id = 'qcorr_' + qIdx;
-                    corrIn.className = 'form-input';
                     corrIn.value = q.correctAnswer || '';
                     corrIn.placeholder = 'Ej: Opción A';
+                    corrIn.style.cssText = 'width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem; font-family:sans-serif; background:#fff; color:#0f172a; box-sizing:border-box; display:block;';
                     optsDiv.appendChild(corrIn);
 
                     qBox.appendChild(optsDiv);
@@ -3533,7 +3556,7 @@
 
                     const tfSel = document.createElement('select');
                     tfSel.id = 'qtf_' + qIdx;
-                    tfSel.className = 'form-input';
+                    tfSel.style.cssText = 'width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem; font-family:sans-serif; background:#fff; color:#0f172a; box-sizing:border-box;';
                     ['Verdadero', 'Falso'].forEach(val => {
                         const opt = document.createElement('option');
                         opt.value = val; opt.textContent = val;
@@ -3618,7 +3641,7 @@
                     } else if (q.type === 'likert') {
                         inputHtml = `<div style="display:flex;gap:15px;align-items:flex-end;margin-top:8px;">${[1,2,3,4,5].map(v=>`<label style="text-align:center;cursor:pointer;"><input type="radio" name="qans_${qIdx}" value="${v}"><br>${v}</label>`).join('')}</div><div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);max-width:220px;margin-top:3px;"><span>Muy en desacuerdo</span><span>Muy de acuerdo</span></div>`;
                     } else if (q.type === 'open') {
-                        inputHtml = `<textarea id="open_ans_${qIdx}" class="form-input" rows="3" style="margin-top:8px;" placeholder="Escribe tu respuesta..."></textarea>`;
+                        inputHtml = `<textarea id="open_ans_${qIdx}" rows="3" style="margin-top:8px; width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem; font-family:sans-serif; background:#fff; color:#0f172a; box-sizing:border-box; resize:vertical;" placeholder="Escribe tu respuesta..."></textarea>`;
                     }
                     qBox.innerHTML = `<p style="font-weight:600;margin:0 0 10px;">${qIdx+1}. ${escapeHtml(q.text)}</p>${inputHtml}`;
                     container.appendChild(qBox);
@@ -3714,7 +3737,7 @@
                     </div>
                     <div class="form-group">
                         <label>Tipo de Recurso / Icono</label>
-                        <select id="topicType" class="form-input">
+                        <select id="topicType" style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem; font-family:sans-serif; background:#fff; color:#0f172a; box-sizing:border-box; display:block;">
                             <option value="text">📖 Texto / Clase Magistral</option>
                             <option value="video">🎥 Video</option>
                             <option value="podcast">🎙️ Podcast / Audio</option>
