@@ -1158,15 +1158,15 @@ def activate_user(user_id):
 
             supabase.table('users').update({"role": new_role, "name": clean_name}).eq("id", user_id).execute()
             
-            if '[ASPIRANTE]' in current_name:
-                # Also update the name in lms_students if they exist
-                student_res = formacion_storage._local_query("SELECT data FROM lms_students WHERE student_email=?", (user_email,))
-                if student_res and len(student_res) > 0:
-                    for s in student_res:
-                        s_data = json.loads(s[0])
-                        if s_data.get('name') == current_name:
-                            s_data['name'] = clean_name
-                            formacion_storage.save_student(s_data.get('inst_id', 1), s_data)
+            # Always update the name in lms_students if they exist and still have the prefix
+            inst_id = user_res.data[0].get('inst_id', 1)
+            students = formacion_storage.load_students(inst_id)
+            for s in students:
+                if s.get('email') == user_email:
+                    s_name = s.get('name', '')
+                    if '[ASPIRANTE]' in s_name or '[PENDING]' in s_name:
+                        s['name'] = clean_name
+                        formacion_storage.save_student(inst_id, s)
         else:
             supabase.table('users').update({"role": new_role}).eq("id", user_id).execute()
         return jsonify({"status": "success"})

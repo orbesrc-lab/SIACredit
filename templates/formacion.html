@@ -2098,7 +2098,10 @@
                                         <span>🎓 Certifica: ${escapeHtml(c.certifier || 'SKEL')}</span>
                                     </div>
                                     <div class="course-card-actions">
-                                        <button class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); border:none;" onclick="openStudentCourse('${c.id}')">📖 Entrar al Aula</button>
+                                        ${user && user.name && user.name.includes('[ASPIRANTE]') ? 
+                                            `<button class="btn-primary" style="background: var(--text-muted); border:none; cursor:not-allowed;" disabled>🔒 Pendiente de Aprobación</button>` :
+                                            `<button class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); border:none;" onclick="openStudentCourse('${c.id}')">📖 Entrar al Aula</button>`
+                                        }
                                     </div>
                                 </div>
                             </div>

@@ -1283,9 +1283,24 @@
                     return;
                 }
 
+                // Filtrar estudiantes y aspirantes (estos se gestionan en Formación)
+                var adminUsers = users.filter(function(u) {
+                    var role = (u.role || '').toLowerCase();
+                    var name = u.name || '';
+                    if (role === 'estudiante' || name.includes('[ASPIRANTE]')) {
+                        return false;
+                    }
+                    return true;
+                });
+
+                if (adminUsers.length === 0) {
+                    container.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">No hay usuarios administrativos en este programa.</div>';
+                    return;
+                }
+
                 var html = '';
-                for (var i = 0; i < users.length; i++) {
-                    var u = users[i];
+                for (var i = 0; i < adminUsers.length; i++) {
+                    var u = adminUsers[i];
                     var isPending = u.name && u.name.indexOf('[PENDING]') === 0;
                     var cleanName = (u.name || u.email).replace('[PENDING] ','').replace('[PENDING]','');
                     var role = isPending ? 'pending' : (u.role || 'operativo');
