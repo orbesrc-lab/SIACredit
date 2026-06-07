@@ -2831,32 +2831,9 @@
         let jitsiApi = null;
         
         function openJitsiMeet(courseId, courseTitle) {
-            document.getElementById('jitsiModal').style.display = 'flex';
-            const domain = 'meet.jit.si';
             const roomName = `SIAClassroom_${getInstId()}_${courseId}`.replace(/[^a-zA-Z0-9]/g, "");
-            
-            const options = {
-                roomName: roomName,
-                width: '100%',
-                height: '100%',
-                parentNode: document.getElementById('jitsiContainer'),
-                userInfo: {
-                    email: user.email,
-                    displayName: user.name || user.email.split('@')[0]
-                },
-                configOverwrite: {
-                    startWithAudioMuted: true,
-                    startWithVideoMuted: true,
-                    prejoinPageEnabled: false
-                },
-                interfaceConfigOverwrite: {
-                    SHOW_JITSI_WATERMARK: false,
-                    SHOW_WATERMARK_FOR_GUESTS: false,
-                    DEFAULT_BACKGROUND: '#0f172a'
-                }
-            };
-            jitsiApi = new JitsiMeetExternalAPI(domain, options);
-            jitsiApi.executeCommand('subject', 'Sala Virtual: ' + courseTitle);
+            const url = `https://meet.jit.si/${roomName}`;
+            window.open(url, '_blank');
         }
 
         function closeJitsiMeet() {
