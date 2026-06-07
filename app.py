@@ -9,7 +9,7 @@ from supabase import create_client, Client
 from openai import OpenAI
 import survey_storage
 import formacion_storage
-
+import uuid
 
 load_dotenv()
 
@@ -2769,7 +2769,7 @@ def public_enroll_course():
                 "name": pending_name,
                 "email": email,
                 "password_hash": generate_password_hash(password),
-                "role": "estudiante",
+                "role": "operativo",
                 "inst_id": inst_id,
                 "program_id": 0
             }
