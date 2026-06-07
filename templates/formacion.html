@@ -1831,7 +1831,7 @@
                                     <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Escala CNA: Aprobación ${ev.min_grade || 3.0} / Máxima ${ev.max_grade || 5.0}</div>
                                 </div>
                                 <div style="display:flex; gap:10px;">
-                                    <button class="btn-ghost" style="color:var(--primary-color); padding:0 5px;" onclick="openQuizEditor(${uIdx}, ${evIdx})">📝 Preguntas (${(ev.questions || []).length})</button>
+                                    <button class="btn-ghost" style="color:var(--primary-color); padding:0 5px;" onclick="openQuizEditor(${uIdx}, ${evIdx})">📝 Preguntas (${(Array.isArray(ev.questions) ? ev.questions : Object.values(ev.questions || {})).length})</button>
                                     <button class="btn-ghost" style="color:var(--primary-color); padding:0 5px;" onclick="presentQuiz(${uIdx}, ${evIdx})">👁️ Vista Previa</button>
                                     <button class="btn-ghost" style="color:#ef4444; padding:0 5px;" onclick="removeUnitEvaluation(${uIdx}, ${evIdx})">🗑️</button>
                                 </div>
@@ -2852,7 +2852,9 @@
             document.getElementById('quizModalTitle').textContent = ev.title;
             document.getElementById('quizModalSub').innerHTML = `Evaluación formativa del LMS en Escala CNA (Aprobación: <strong>${currentQuizMinGrade.toFixed(1)}</strong> / Máxima: <strong>${currentQuizMaxGrade.toFixed(1)}</strong>)`;
             
-            let questions = (ev.questions && ev.questions.length > 0) ? ev.questions : cnaQuestionBank.map(cq => ({
+            let parsedQs = ev.questions ? JSON.parse(JSON.stringify(ev.questions)) : [];
+            if (!Array.isArray(parsedQs)) parsedQs = Object.values(parsedQs);
+            let questions = (parsedQs.length > 0) ? parsedQs : cnaQuestionBank.map(cq => ({
                 text: cq.q,
                 type: 'single',
                 options: cq.options,
@@ -3718,7 +3720,9 @@
             document.getElementById('takeQuizEvId').value = evId;
             document.getElementById('takeQuizTitle').textContent = ev.title;
             document.getElementById('takeQuizSub').innerHTML = `Evaluación CNA &mdash; Aprobación: <strong>${(ev.min_grade||3.0).toFixed(1)}</strong> / Máxima: <strong>${(ev.max_grade||5.0).toFixed(1)}</strong>`;
-            currentTakingQuiz = ev.questions || [];
+            let parsedQs = ev.questions ? JSON.parse(JSON.stringify(ev.questions)) : [];
+            if (!Array.isArray(parsedQs)) parsedQs = Object.values(parsedQs);
+            currentTakingQuiz = parsedQs;
             const container = document.getElementById('takeQuizQuestionsContainer');
             container.innerHTML = '';
             if (currentTakingQuiz.length === 0) {
