@@ -1772,7 +1772,10 @@
                                     <strong>🏆 ${escapeHtml(ev.title)}</strong>
                                     <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Escala CNA: Aprobación ${ev.min_grade || 3.0} / Máxima ${ev.max_grade || 5.0}</div>
                                 </div>
-                                <button class="btn-ghost" style="color:#ef4444; padding:0 5px;" onclick="removeUnitEvaluation(${uIdx}, ${evIdx})">🗑️</button>
+                                <div style="display:flex; gap:10px;">
+                                    <button class="btn-ghost" style="color:var(--primary-color); padding:0 5px;" onclick="presentQuiz('${escapeHtml(ev.title).replace(/'/g, "\\'")}', ${ev.min_grade || 3.0}, ${ev.max_grade || 5.0})">👁️ Vista Previa</button>
+                                    <button class="btn-ghost" style="color:#ef4444; padding:0 5px;" onclick="removeUnitEvaluation(${uIdx}, ${evIdx})">🗑️</button>
+                                </div>
                             </div>
                         `;
                     });
@@ -2374,44 +2377,70 @@
 
         // --- ENTREGA DE ACTIVIDADES POR PARTE DEL ESTUDIANTE ---
         async function submitActivityDelivery(courseId, unitId, actId, title) {
-            const answer = prompt(`Ingresa tu respuesta o la dirección/enlace de tu entrega (Google Drive, OneDrive, etc.) para la actividad:\n"${title}"`);
-            if (answer && answer.trim() !== '') {
-                try {
-                    // Buscar si existe una entrega anterior para actualizarla
-                    const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${actId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                    const existingSubs = await checkResp.json();
-                    
-                    const subData = {
-                        course_id: courseId,
-                        unit_id: unitId,
-                        activity_id: actId,
-                        student_email: user.email,
-                        student_name: user.name || user.email.split('@')[0],
-                        content: answer.trim(),
-                        submitted_at: new Date().toISOString(),
-                        status: 'pending'
-                    };
-                    
-                    if (existingSubs && existingSubs.length > 0) {
-                        subData.id = existingSubs[0].id;
-                    }
-                    
-                    const response = await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(subData)
-                    });
-                    
-                    if (response.ok) {
+            document.getElementById('subCourseId').value = courseId;
+            document.getElementById('subUnitId').value = unitId;
+            document.getElementById('subActId').value = actId;
+            document.getElementById('submissionModalTitle').textContent = 'Entregar Actividad: ' + title;
+            document.getElementById('subContent').value = '';
+            
+            // Check if there is an existing submission
+            try {
+                const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${actId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const existingSubs = await checkResp.json();
+                if (existingSubs && existingSubs.length > 0) {
+                    document.getElementById('subContent').value = existingSubs[0].content || '';
+                }
+            } catch(e) { console.error('Error pre-cargando entrega:', e); }
+            
+            document.getElementById('submissionModal').style.display = 'flex';
+        }
+        
+        async function processActivitySubmission() {
+            const courseId = document.getElementById('subCourseId').value;
+            const unitId = document.getElementById('subUnitId').value;
+            const actId = document.getElementById('subActId').value;
+            const answer = document.getElementById('subContent').value;
+            
+            if (!answer || answer.trim() === '') {
+                alert("Debes escribir una respuesta o adjuntar un enlace de entrega.");
+                return;
+            }
+            
+            document.getElementById('submissionModal').style.display = 'none';
+
+            try {
+                const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${actId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const existingSubs = await checkResp.json();
+                
+                const subData = {
+                    course_id: courseId,
+                    unit_id: unitId,
+                    activity_id: actId,
+                    student_email: user.email,
+                    student_name: user.name || user.email.split('@')[0],
+                    content: answer.trim(),
+                    submitted_at: new Date().toISOString(),
+                    status: 'pending'
+                };
+                
+                if (existingSubs && existingSubs.length > 0) {
+                    subData.id = existingSubs[0].id;
+                }
+                
+                const response = await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(subData)
+                });
+                
+                if (response.ok) {
                         const successModal = document.createElement('div');
                         successModal.style = 'position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; display:flex; align-items:center; justify-content:center; animation: fadeIn 0.3s ease;';
                         successModal.innerHTML = `
                             <div style="background: white; border-radius: 20px; padding: 40px; text-align: center; max-width: 450px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: slideUp 0.4s ease;">
                                 <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 40px; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);">✓</div>
                                 <h3 style="font-size: 1.5rem; color: #0f172a; margin-bottom: 10px; font-weight: 800;">¡Entrega Exitosa!</h3>
-                                <p style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Tu respuesta para la actividad <strong>"${escapeHtml(title)}"</strong> ha sido registrada y enviada al profesor para su calificación.</p>
+                                <p style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Tu respuesta para la actividad ha sido registrada y enviada al profesor para su calificación.</p>
                                 <button onclick="this.closest('div').parentElement.remove(); openStudentCourse('${courseId}');" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 30px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; width: 100%; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); transition: transform 0.2s;">Continuar en el Aula</button>
                             </div>
                         `;
