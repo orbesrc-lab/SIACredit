@@ -2349,7 +2349,7 @@
                 
                 document.getElementById('studentCourseViewer').style.display = 'block';
                 document.getElementById('studentCourseViewer').scrollIntoView({ behavior: 'smooth' });
-            } catch(e) { alert("Error al ingresar al curso."); }
+            } catch(e) { alert("Error al ingresar al curso: " + e.message); console.error(e); }
         }
 
         function closeStudentCourseViewer() {

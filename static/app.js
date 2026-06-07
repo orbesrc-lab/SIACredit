@@ -63,6 +63,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!text.includes('dashboard') && !text.includes('evidencias') && !text.includes('cerrar')) {
                     item.style.display = 'none';
                 }
+            } else if (role === 'estudiante') {
+                // El estudiante solo debe ver Cerrar Sesión en el menú (Formación ya está oculta por la regla de admin)
+                if (!text.includes('cerrar')) {
+                    item.style.display = 'none';
+                }
             } else if (role === 'lider') {
                 // El líder ve todo menos Configuración
                 if (text.includes('configuracion') || text.includes('configuración')) {
