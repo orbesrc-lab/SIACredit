@@ -2755,6 +2755,10 @@ def public_enroll_course():
         return jsonify({"status": "error", "message": "Datos incompletos"}), 400
 
     try:
+        sb = formacion_storage._get_supabase()
+        if not sb:
+            return jsonify({"status": "error", "message": "No database connection"}), 500
+
         # 1. Check if user already exists
         user_res = sb.table('users').select("*").eq('email', email).execute()
         pending_name = f"[ASPIRANTE] {name}"
