@@ -1356,7 +1356,7 @@
                     const actResp = await fetch(`/api/users/${userObj.id}/activate`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ role: 'operativo' })
+                        body: JSON.stringify({ role: 'estudiante' })
                     });
                     const actRes = await actResp.json();
                     if (actRes.status === 'success') {

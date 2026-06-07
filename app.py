@@ -2769,7 +2769,7 @@ def public_enroll_course():
                 "name": pending_name,
                 "email": email,
                 "password_hash": generate_password_hash(password),
-                "role": "operativo",
+                "role": "estudiante",
                 "inst_id": inst_id,
                 "program_id": 0
             }
