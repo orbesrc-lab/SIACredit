@@ -272,6 +272,10 @@
                 const result = await response.json();
                 
                 if (result.status === 'success') {
+                    if (result.user.name && result.user.name.includes('[ASPIRANTE]')) {
+                        alert('Su cuenta y matrícula se encuentran en proceso de revisión por parte de la institución. Por favor, intente ingresar más tarde.');
+                        return;
+                    }
                     localStorage.setItem('siac_user', JSON.stringify(result.user));
                     if (result.user.role === 'estudiante') {
                         window.location.href = 'formacion.html';

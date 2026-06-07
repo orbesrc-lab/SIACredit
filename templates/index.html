@@ -201,7 +201,7 @@
                     <p>Comprende el modelo de acreditación en alta calidad del CNA, sus factores y características principales aplicados a tu institución.</p>
                     <div class="course-actions-wrapper">
                         <a href="#contacto" class="course-action-btn btn-report">📄 Ver Temario</a>
-                        <a href="login.html" class="course-action-btn btn-access">🚪 Ingresar</a>
+                        <button onclick="openEnrollModal('c1', 'Fundamentos de Acreditación Institucional')" class="course-action-btn btn-access" style="cursor: pointer; border: none;">📝 Inscribirse</button>
                     </div>
                 </div>
             </div>
@@ -221,7 +221,7 @@
                     <p>Aprende metodologías innovadoras para recolectar, sistematizar y presentar evidencias cuantitativas y cualitativas ante pares académicos.</p>
                     <div class="course-actions-wrapper">
                         <a href="#contacto" class="course-action-btn btn-report">📄 Ver Temario</a>
-                        <a href="login.html" class="course-action-btn btn-access">🚪 Ingresar</a>
+                        <button onclick="openEnrollModal('c2', 'Diseño de Evidencias de Impacto')" class="course-action-btn btn-access" style="cursor: pointer; border: none;">📝 Inscribirse</button>
                     </div>
                 </div>
             </div>
@@ -241,7 +241,7 @@
                     <p>Domina las herramientas tecnológicas de SIAC para administrar la trazabilidad documental y articulación de líderes de manera óptima.</p>
                     <div class="course-actions-wrapper">
                         <a href="#contacto" class="course-action-btn btn-report">📄 Ver Temario</a>
-                        <a href="login.html" class="course-action-btn btn-access">🚪 Ingresar</a>
+                        <button onclick="openEnrollModal('c3', 'Gestión Eficiente con SIAC Digital')" class="course-action-btn btn-access" style="cursor: pointer; border: none;">📝 Inscribirse</button>
                     </div>
                 </div>
             </div>
@@ -529,7 +529,7 @@
                                 </div>
                                 <div class="course-actions-wrapper">
                                     <a href="/api/public/courses/${c.id}/report" target="_blank" class="course-action-btn btn-report">📄 Ver Informe</a>
-                                    <a href="login.html?redirect=formacion.html&course_id=${c.id}" class="course-action-btn btn-access">🚪 Ingresar</a>
+                                    <button onclick="openEnrollModal('${c.id}', '${escapeHtml(c.title).replace(/'/g, "\\'")}')" class="course-action-btn btn-access" style="cursor: pointer; border: none;">📝 Inscribirse</button>
                                 </div>
                             </div>
                         </div>
@@ -555,7 +555,94 @@
     }
 
     loadDynamicCatalog();
+
+    // Modal de Inscripción Logic
+    function openEnrollModal(courseId, courseTitle) {
+        document.getElementById('enrollCourseId').value = courseId;
+        document.getElementById('enrollCourseTitle').textContent = courseTitle;
+        document.getElementById('enrollModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEnrollModal() {
+        document.getElementById('enrollModal').style.display = 'none';
+        document.body.style.overflow = '';
+        document.getElementById('enrollForm').reset();
+    }
+
+    document.getElementById('enrollForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('enrollSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Procesando...';
+
+        const payload = {
+            course_id: document.getElementById('enrollCourseId').value,
+            name: document.getElementById('enrollName').value.trim(),
+            email: document.getElementById('enrollEmail').value.trim(),
+            password: document.getElementById('enrollPassword').value,
+            inst_id: 1 // Default to 1
+        };
+
+        try {
+            const resp = await fetch('/api/public/enroll_course', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const res = await resp.json();
+            
+            if (res.status === 'success') {
+                alert("¡Inscripción registrada correctamente! Tu cuenta está en proceso de revisión por parte de la institución. Te notificaremos cuando seas activado.");
+                closeEnrollModal();
+            } else {
+                alert("Error: " + res.message);
+            }
+        } catch (err) {
+            alert("Error de conexión al servidor.");
+        }
+        
+        btn.disabled = false;
+        btn.textContent = 'Enviar Solicitud de Inscripción';
+    });
 </script>
+
+<!-- Modal de Inscripción -->
+<div id="enrollModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--white); width: 100%; max-width: 450px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden;">
+        <div style="background: var(--primary-color); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 600;">📝 Pre-inscripción</h3>
+            <button onclick="closeEnrollModal()" style="background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        <div style="padding: 24px;">
+            <p style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); font-size: 0.95rem;">
+                Estás solicitando inscripción para:<br>
+                <strong id="enrollCourseTitle" style="color: var(--primary-color); display: block; margin-top: 8px;"></strong>
+            </p>
+            <form id="enrollForm">
+                <input type="hidden" id="enrollCourseId">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 0.88rem; font-weight: 500; color: var(--text-main);">Nombre Completo</label>
+                    <input type="text" id="enrollName" required placeholder="Ej. Juan Pérez" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 0.88rem; font-weight: 500; color: var(--text-main);">Correo Electrónico</label>
+                    <input type="email" id="enrollEmail" required placeholder="juan@correo.com" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit;">
+                </div>
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 0.88rem; font-weight: 500; color: var(--text-main);">Crea una Contraseña</label>
+                    <input type="password" id="enrollPassword" required placeholder="••••••••" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit;">
+                </div>
+                <button type="submit" id="enrollSubmitBtn" style="width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: background 0.2s;">
+                    Enviar Solicitud de Inscripción
+                </button>
+            </form>
+            <p style="margin-top: 16px; margin-bottom: 0; font-size: 0.8rem; color: var(--text-muted); text-align: center;">
+                Tus datos serán enviados al administrador para su revisión y activación.
+            </p>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>

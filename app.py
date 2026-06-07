@@ -1146,12 +1146,27 @@ def activate_user(user_id):
     data = request.json
     new_role = data.get('role', 'lider')
     try:
-        # Get current user to remove [PENDING] prefix
-        user_res = supabase.table('users').select("name, role").eq("id", user_id).execute()
+        # Get current user to remove [PENDING] or [ASPIRANTE] prefix
+        user_res = supabase.table('users').select("name, role, email").eq("id", user_id).execute()
         if user_res.data:
             current_name = user_res.data[0].get('name', '')
-            clean_name = current_name.replace('[PENDING] ', '').replace('[PENDING]', '')
+            user_email = user_res.data[0].get('email', '')
+            clean_name = current_name.replace('[PENDING] ', '').replace('[PENDING]', '').replace('[ASPIRANTE] ', '').replace('[ASPIRANTE]', '')
+            
+            if '[ASPIRANTE]' in current_name:
+                new_role = 'estudiante'
+
             supabase.table('users').update({"role": new_role, "name": clean_name}).eq("id", user_id).execute()
+            
+            if '[ASPIRANTE]' in current_name:
+                # Also update the name in lms_students if they exist
+                student_res = formacion_storage._local_query("SELECT data FROM lms_students WHERE student_email=?", (user_email,))
+                if student_res and len(student_res) > 0:
+                    for s in student_res:
+                        s_data = json.loads(s[0])
+                        if s_data.get('name') == current_name:
+                            s_data['name'] = clean_name
+                            formacion_storage.save_student(s_data.get('inst_id', 1), s_data)
         else:
             supabase.table('users').update({"role": new_role}).eq("id", user_id).execute()
         return jsonify({"status": "success"})
@@ -2727,6 +2742,64 @@ def get_course_enrolled_students(course_id):
     enrolled = [s for s in all_students if 'enrolled_courses' in s and course_id in s['enrolled_courses']]
     return jsonify(enrolled)
 
+@app.route('/api/public/enroll_course', methods=['POST'])
+def public_enroll_course():
+    data = request.json
+    name = data.get('name', '').strip()
+    email = data.get('email', '').strip()
+    password = data.get('password', '').strip()
+    course_id = data.get('course_id')
+    inst_id = data.get('inst_id', 1)
+    
+    if not name or not email or not password or not course_id:
+        return jsonify({"status": "error", "message": "Datos incompletos"}), 400
+
+    try:
+        # 1. Check if user already exists
+        user_res = supabase.table('users').select("*").eq('email', email).execute()
+        
+        if len(user_res.data) > 0:
+            user = user_res.data[0]
+            # User exists, just enroll them if they are an estudiante
+        else:
+            # Create user as ASPIRANTE
+            pending_name = f"[ASPIRANTE] {name}"
+            new_user = {
+                "id": str(uuid.uuid4()),
+                "name": pending_name,
+                "email": email,
+                "password_hash": generate_password_hash(password),
+                "role": "estudiante",
+                "inst_id": inst_id,
+                "program_id": 0
+            }
+            res = supabase.table('users').insert(new_user).execute()
+            if not res.data:
+                return jsonify({"status": "error", "message": "Error al crear cuenta de usuario"}), 500
+
+        # 2. Check or create in lms_students
+        students = formacion_storage.load_students(inst_id)
+        student = next((s for s in students if s.get('email') == email), None)
+        
+        if not student:
+            # Create student record
+            student_data = {
+                "name": f"[ASPIRANTE] {name}" if len(user_res.data) == 0 else name,
+                "email": email,
+                "enrolled_courses": [course_id]
+            }
+            formacion_storage.save_student(inst_id, student_data)
+        else:
+            # Add to enrolled_courses if not there
+            if course_id not in student.get('enrolled_courses', []):
+                formacion_storage.enroll_student_in_course(inst_id, student['id'], course_id)
+                
+        return jsonify({"status": "success", "message": "Inscripción registrada correctamente"})
+
+    except Exception as e:
+        print(f"Error en enroll_course: {e}")
+        return jsonify({"status": "error", "message": "Error interno"}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)

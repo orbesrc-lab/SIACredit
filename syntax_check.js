@@ -1,1069 +1,6 @@
-<!DOCTYPE html>
-<html lang="es">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>SKEL - Módulo de Formación y LMS</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
-        body, input, select, textarea, button {
-            font-family: 'Outfit', -apple-system, sans-serif !important;
-        }
 
-        :root {
-            --primary-gradient: linear-gradient(135deg, #6366f1, #a855f7);
-            --secondary-gradient: linear-gradient(135deg, #a855f7, #ec4899);
-            --success-gradient: linear-gradient(135deg, #10b981, #06b6d4);
-            --primary-color: #6366f1;
-            --primary-hover: #4f46e5;
-            --secondary-color: #a855f7;
-            --accent-color: #ec4899;
-            --card-bg: #ffffff;
-            --body-bg: #f8fafc;
-            --border-color: #e2e8f0;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --shadow-premium: 0 10px 30px -10px rgba(99, 102, 241, 0.12);
-            --shadow-premium-hover: 0 20px 40px -15px rgba(99, 102, 241, 0.25);
-            --shadow-premium-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.08);
-            --white: #ffffff;
-            --secondary-bg: #f8fafc;
-        }
-
-        [data-theme="dark"] {
-            --primary-gradient: linear-gradient(135deg, #818cf8, #c084fc);
-            --secondary-gradient: linear-gradient(135deg, #c084fc, #f472b6);
-            --success-gradient: linear-gradient(135deg, #34d399, #22d3ee);
-            --primary-color: #818cf8;
-            --primary-hover: #6366f1;
-            --secondary-color: #c084fc;
-            --accent-color: #f472b6;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --body-bg: #0b0f19;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-            --shadow-premium-hover: 0 20px 40px -15px rgba(99, 102, 241, 0.4);
-            --shadow-premium-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-            --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.3);
-            --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.4);
-            --white: #1e293b;
-            --secondary-bg: #0f172a;
-        }
-
-        .content-area {
-            padding: 35px;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-            overflow-y: auto;
-        }
-
-        .tab-nav {
-            display: inline-flex;
-            gap: 8px;
-            background: rgba(99, 102, 241, 0.06);
-            padding: 6px;
-            border-radius: 30px;
-            margin-bottom: 30px;
-            border: 1px solid var(--border-color);
-        }
-
-        .tab-btn {
-            padding: 10px 24px;
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 0.95rem;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .tab-btn:hover {
-            color: var(--primary-color);
-        }
-
-        .tab-btn.active {
-            background: var(--primary-gradient);
-            color: white !important;
-            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
-        }
-
-        .grid-catalog {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .course-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: var(--shadow-premium);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .course-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-premium-hover);
-            border-color: var(--primary-color);
-        }
-
-        .course-card-header {
-            background: var(--primary-gradient);
-            color: white;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: flex-start;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .course-card-header::after {
-            content: '';
-            position: absolute;
-            width: 150px;
-            height: 150px;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
-            top: -50px;
-            right: -50px;
-            border-radius: 50%;
-        }
-
-        .course-card-badge {
-            background: rgba(255, 255, 255, 0.18);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 30px;
-            font-size: 0.72rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            display: inline-block;
-            letter-spacing: 0.5px;
-        }
-
-        .course-card-title {
-            font-size: 1.25rem;
-            font-weight: 800;
-            line-height: 1.35;
-            margin: 0;
-            letter-spacing: -0.3px;
-        }
-
-        .course-card-body {
-            padding: 24px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            background: transparent;
-        }
-
-        .course-card-desc {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            line-height: 1.55;
-            margin-bottom: 20px;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .course-card-meta {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border-color);
-            padding-top: 15px;
-            margin-top: 10px;
-        }
-
-        .course-card-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .course-card-actions button {
-            height: 42px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .course-card-actions .btn-primary {
-            flex: 1;
-            padding: 10px 16px;
-        }
-
-        .course-card-actions .btn-danger {
-            flex: 0 0 42px;
-            width: 42px;
-            height: 42px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-        }
-
-        /* Editor Tabs */
-        .editor-container {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: var(--shadow-premium-lg);
-            margin-bottom: 30px;
-        }
-
-        .sub-tab-nav {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 25px;
-            background: rgba(99, 102, 241, 0.04);
-            padding: 5px;
-            border-radius: 14px;
-            border: 1px solid var(--border-color);
-        }
-
-        .sub-tab-btn {
-            flex: 1;
-            padding: 10px 14px;
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 10px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .sub-tab-btn.active {
-            background: var(--white);
-            color: var(--primary-color);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-        }
-
-        .unit-box {
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            margin-bottom: 20px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.02);
-            background: var(--card-bg);
-            transition: all 0.3s;
-        }
-
-        .unit-header {
-            background: var(--primary-gradient) !important;
-            color: white !important;
-            padding: 18px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 700;
-            font-size: 1.05rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .unit-header button {
-            border-radius: 10px;
-            padding: 6px 12px;
-            font-weight: 600;
-            font-size: 0.8rem;
-            transition: all 0.2s;
-        }
-
-        .topic-list {
-            padding: 15px;
-            background: transparent;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .topic-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 16px;
-            background: rgba(99, 102, 241, 0.04);
-            border: 1px solid rgba(99, 102, 241, 0.08);
-            border-radius: 12px;
-            font-size: 0.92rem;
-            transition: all 0.2s;
-        }
-
-        .topic-item:hover {
-            background: rgba(99, 102, 241, 0.08);
-            transform: translateX(4px);
-        }
-
-        .meeting-card {
-            border-left: 5px solid #10b981;
-            background: rgba(16, 185, 129, 0.06);
-            border: 1px solid rgba(16, 185, 129, 0.15);
-            border-left-width: 5px;
-            padding: 18px;
-            border-radius: 14px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-        }
-
-        .meeting-card:hover {
-            background: rgba(16, 185, 129, 0.09);
-            transform: translateY(-2px);
-        }
-
-        [data-theme="dark"] .meeting-card {
-            background: rgba(16, 185, 129, 0.1);
-        }
-
-        .resource-card {
-            border-left: 5px solid var(--primary-color);
-            background: rgba(99, 102, 241, 0.05);
-            border: 1px solid rgba(99, 102, 241, 0.1);
-            border-left-width: 5px;
-            padding: 12px 18px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.92rem;
-            transition: all 0.2s;
-        }
-
-        .resource-card:hover {
-            background: rgba(99, 102, 241, 0.08);
-            transform: translateY(-1px);
-        }
-
-        [data-theme="dark"] .resource-card {
-            background: rgba(99, 102, 241, 0.1);
-        }
-
-        .activity-item, .evaluation-item {
-            background: var(--white);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 14px 18px;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-        }
-
-        .activity-item:hover, .evaluation-item:hover {
-            border-color: var(--primary-color);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .grid-catalog button.btn-secondary {
-            border-radius: 12px;
-            padding: 10px 18px;
-        }
-
-        .btn-editor-tool {
-            padding: 8px 14px;
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #334155;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .btn-editor-tool:hover {
-            background: #e2e8f0;
-            border-color: #94a3b8;
-            color: #0f172a;
-        }
-
-        .responsive-media-container {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 */
-            height: 0;
-            overflow: hidden;
-            max-width: 100%;
-            border-radius: 12px;
-            margin: 15px 0;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-        }
-        
-        .responsive-media-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 0;
-        }
-            padding: 8px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        @media (max-width: 768px) {
-            .student-classroom-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <aside class="sidebar">
-        <div class="sidebar-header" style="justify-content: center; padding: 20px 15px;">
-            <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
-        </div>
-        <div class="sidebar-menu">
-            <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
-            <a href="evidencias.html" class="sidebar-item">📁 Evidencias</a>
-            <a href="autoevaluacion.html" class="sidebar-item">📝 Autoevaluación</a>
-            <a href="informes.html" class="sidebar-item">📄 Informes</a>
-            <a href="estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
-            <a href="biblioteca.html" class="sidebar-item">📚 Biblioteca</a>
-            <a href="encuestas.html" class="sidebar-item">📋 Encuestas</a>
-            <a href="formacion.html" class="sidebar-item active">🎓 Formación</a>
-            <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
-        </div>
-        <div class="sidebar-footer">
-            <button class="btn-ghost" onclick="logout()" style="color: #ef4444; width: 100%; text-align: left;">🚪
-                Cerrar Sesión</button>
-        </div>
-    </aside>
-
-    <main class="main-content">
-        <header class="topbar">
-            <div>
-                <h2 style="font-size: 1.25rem; margin: 0;">Módulo de Formación Smart (LMS)</h2>
-            </div>
-            <div id="userInfo" style="font-weight: 500;"></div>
-        </header>
-
-        <div class="content-area">
-            <h1 id="mainTitle" style="font-size: 1.8rem; margin-bottom: 20px;">🎓 Gestión de Capacitación y Cursos</h1>
-
-            <!-- Tab Navigation (Solo Admin) -->
-            <div class="tab-nav" id="adminTabNav">
-                <button class="tab-btn active" id="tabCourses" onclick="switchMainTab('courses')">📚 Cursos y Contenidos</button>
-                <button class="tab-btn" id="tabTeachers" onclick="switchMainTab('teachers')">👨‍🏫 Profesores / Docentes</button>
-                <button class="tab-btn" id="tabStudents" onclick="switchMainTab('students')">👥 Estudiantes / Participantes</button>
-            </div>
-
-            <!-- TAB: COURSES (Admin) -->
-            <div id="coursesTab" class="tab-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Administra el temario, videoconferencias, resultados de aprendizaje y recursos de tus cursos.</p>
-                    <button class="btn-primary" onclick="openCreateCourseModal()">+ Crear Nuevo Curso</button>
-                </div>
-
-                <div class="grid-catalog" id="coursesGrid">
-                    <!-- Dinámicamente cargados -->
-                </div>
-
-                <!-- Editor de Curso Detallado -->
-                <div id="courseEditorSection" class="editor-container" style="display: none; border-top: 4px solid var(--primary-color);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                        <h2 id="editorCourseTitle" style="font-size: 1.3rem; margin: 0;">Editar Curso: Fundamentos</h2>
-                        <button class="btn-ghost" onclick="closeEditor()" style="color: var(--text-muted);">❌ Cerrar Editor</button>
-                    </div>
-
-                    <!-- Sub Tab Navigation -->
-                    <div class="sub-tab-nav">
-                        <button class="sub-tab-btn active" id="subTabBtnGeneral" onclick="switchSubTab('general')">⚙️ Datos Generales</button>
-                        <button class="sub-tab-btn" id="subTabBtnSyllabus" onclick="switchSubTab('syllabus')">📖 Plan de Estudios y Recursos</button>
-                        <button class="sub-tab-btn" id="subTabBtnSync" onclick="switchSubTab('sync')">🎥 Clases Sincrónicas</button>
-                        <button class="sub-tab-btn" id="subTabBtnAnalytics" onclick="switchSubTab('analytics')">📊 Analíticas y Progreso</button>
-                    </div>
-
-                    <input type="hidden" id="editCourseId">
-
-                    <!-- SUB-TAB: GENERAL INFO -->
-                    <div id="subTabGeneral" class="sub-tab-content">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Título del Curso</label>
-                                <input type="text" id="edit_title">
-                            </div>
-                            <div class="form-group">
-                                <label>Entidad que Certifica</label>
-                                <input type="text" id="edit_certifier" placeholder="Ej: SKEL, UNICUCES">
-                            </div>
-                            <div class="form-group">
-                                <label>Profesor Asignado</label>
-                                <select id="edit_teacher_id">
-                                    <option value="">-- Seleccionar Docente --</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Categoría</label>
-                                <select id="edit_category">
-                                    <option value="Educación">Educación</option>
-                                    <option value="Tecnología">Tecnología</option>
-                                    <option value="Innovación">Innovación</option>
-                                    <option value="Administración">Administración</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Duración (Horas)</label>
-                                <input type="number" id="edit_duration" min="1">
-                            </div>
-                            <div class="form-group">
-                                <label>Nivel</label>
-                                <select id="edit_level">
-                                    <option value="Todos los niveles">Todos los niveles</option>
-                                    <option value="Principiante">Principiante</option>
-                                    <option value="Intermedio">Intermedio</option>
-                                    <option value="Avanzado">Avanzado</option>
-                                </select>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Descripción del Curso</label>
-                                <textarea id="edit_description" rows="3" style="width: 100%; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; font-family: var(--font-main);"></textarea>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label style="display: flex; justify-content: space-between; align-items: center;">
-                                    Resultados de Aprendizaje
-                                    <button class="btn-ghost" onclick="addOutcomePrompt()" style="font-size:0.75rem; padding: 2px 5px; color: var(--primary-color);">+ Añadir</button>
-                                </label>
-                                <div id="editOutcomesList" style="border:1px solid var(--border-color); border-radius:8px; padding:10px; min-height:80px; max-height:150px; overflow-y:auto; background:#fafafa;">
-                                    <!-- Dynamic -->
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label style="display: flex; justify-content: space-between; align-items: center;">
-                                    Competencias a Desarrollar
-                                    <button class="btn-ghost" onclick="addCompetencyPrompt()" style="font-size:0.75rem; padding: 2px 5px; color: var(--primary-color);">+ Añadir</button>
-                                </label>
-                                <div id="editCompetenciesList" style="border:1px solid var(--border-color); border-radius:8px; padding:10px; min-height:80px; max-height:150px; overflow-y:auto; background:#fafafa;">
-                                    <!-- Dynamic -->
-                                </div>
-                            </div>
-
-                            <!-- Estudiantes Matriculados -->
-                            <div class="form-group full-width" style="margin-top:20px;">
-                                <label style="border-bottom:1px solid var(--border-color); padding-bottom:6px; color:var(--primary-color); font-weight:700;">👥 Participantes Matriculados en este Curso</label>
-                                <div id="courseStudentsList" style="padding:10px; background:#fafafa; border-radius:8px; min-height:50px; font-size:0.9rem;">
-                                    <!-- Dynamic -->
-                                </div>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top:15px;">
-                            <button class="btn-secondary" onclick="closeEditor()">Cancelar</button>
-                            <button class="btn-primary" onclick="saveCourseGeneralInfo()">Guardar Cambios Generales</button>
-                        </div>
-                    </div>
-
-                    <!-- SUB-TAB: PLAN DE ESTUDIOS -->
-                    <div id="subTabSyllabus" class="sub-tab-content" style="display: none;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <div>
-                                <h3 style="font-size:1.05rem; margin:0;">Temario del Curso y Repositorio por Unidad</h3>
-                                <p style="font-size:0.8rem; color:var(--text-muted); margin:3px 0 0 0;">Carga los recursos, tareas y exámenes CNA directamente en la unidad correspondiente.</p>
-                            </div>
-                            <button class="btn-secondary" onclick="addUnitPrompt()" style="padding: 6px 12px; font-size: 0.85rem;">+ Añadir Unidad</button>
-                        </div>
-
-                        <div id="unitsContainer">
-                            <!-- Dynamic Unidades -->
-                        </div>
-                    </div>
-
-                    <!-- SUB-TAB: CLASES SINCRONICAS -->
-                    <div id="subTabSync" class="sub-tab-content" style="display: none;">
-                        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:20px; margin-bottom:20px;">
-                            <h4 style="margin-bottom:10px; font-size:1.05rem; color:#10b981;">🎥 Sala Virtual del Curso (Jitsi Meet)</h4>
-                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Inicia o ingresa a la sala virtual integrada para dictar tus clases en vivo.</p>
-                            <button class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); border:none; padding:12px 25px; font-weight:bold; border-radius:8px;" id="btnOpenJitsiTeacher">Ingresar como Moderador 🚀</button>
-                        </div>
-                        
-                        <div style="margin-bottom:20px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <h4 style="margin:0; font-size:1.05rem; color:var(--primary-color);">📅 Clases Programadas (Histórico y Futuras)</h4>
-                                <button class="btn-ghost" onclick="addMeetingPrompt()" style="font-size:0.8rem; padding: 4px 10px; color: var(--primary-color); border: 1px solid var(--primary-color); border-radius: 6px;">+ Programar Clase</button>
-                            </div>
-                            <div id="meetingsList" style="display:flex; flex-direction:column; gap:10px;">
-                                <!-- Dynamic Meetings -->
-                            </div>
-                        </div>
-                        
-                        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:20px; display: flex; flex-direction: column; height: 450px;">
-                            <h4 style="margin-bottom:10px; font-size:1.05rem; color:#3b82f6;">💬 Foro / Chat del Curso</h4>
-                            <div id="teacherForumMessages" style="flex: 1; background: white; border-radius: 8px; border: 1px solid #e2e8f0; overflow-y: auto; padding: 15px; margin-bottom: 15px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px;">
-                                <!-- Messages dynamic -->
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <input type="text" id="teacherForumInput" placeholder="Escribe un mensaje para tus estudiantes..." style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem;">
-                                <button class="btn-primary" id="btnSendTeacherForum" style="padding: 10px 20px; background: #3b82f6; border: none; border-radius: 8px; color: white;">Enviar</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- SUB-TAB: ANALÍTICAS Y GAMIFICACIÓN -->
-                    <div id="subTabAnalytics" class="sub-tab-content" style="display: none;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h3 style="font-size:1.05rem; margin:0; color: var(--primary-color);">📊 Analíticas y Progreso de Estudiantes</h3>
-                            <button class="btn-secondary" onclick="loadCourseAnalytics(document.getElementById('editCourseId').value)" style="padding: 6px 12px; font-size: 0.85rem;">🔄 Refrescar Datos</button>
-                        </div>
-                        <div class="table-responsive">
-                            <table style="width: 100%; text-align: left; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm);">
-                                <thead style="background: var(--secondary-bg);">
-                                    <tr>
-                                        <th style="padding: 12px 15px; border-bottom: 1px solid var(--border-color);">Estudiante</th>
-                                        <th style="padding: 12px 15px; border-bottom: 1px solid var(--border-color);">Actividades Entregadas</th>
-                                        <th style="padding: 12px 15px; border-bottom: 1px solid var(--border-color);">Progreso</th>
-                                        <th style="padding: 12px 15px; border-bottom: 1px solid var(--border-color);">Insignias Obtenidas</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="analyticsTableBody">
-                                    <tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">Cargando analíticas...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB: TEACHERS (Admin) -->
-            <div id="teachersTab" class="tab-content" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                    <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Administra el listado de docentes disponibles para capacitar a los líderes de tu organización.</p>
-                    <button class="btn-primary" onclick="openCreateTeacherModal()">+ Nuevo Profesor</button>
-                </div>
-
-                <div class="user-grid" id="teachersGrid">
-                    <!-- Dinámicamente cargados -->
-                </div>
-            </div>
-
-            <!-- TAB: STUDENTS (Admin) -->
-            <div id="studentsTab" class="tab-content" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                    <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Gestiona los participantes matriculados en los diferentes cursos de formación.</p>
-                    <button class="btn-primary" onclick="openCreateStudentModal()">+ Registrar Estudiante</button>
-                </div>
-
-                <div class="user-grid" id="studentsGrid">
-                    <!-- Dinámicamente cargados -->
-                </div>
-            </div>
-
-            <!-- TAB: STUDENT CLASSROOM (Solo Estudiantes) -->
-            <div id="studentClassroom" style="display: none;">
-                <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 25px;">Selecciona uno de tus cursos asignados para ingresar al Aula Virtual y acceder a tus materiales de estudio.</p>
-                
-                <div class="grid-catalog" id="studentCoursesGrid">
-                    <!-- Dynamic -->
-                </div>
-
-                <!-- Detalle del Curso (Estudiante) -->
-                <div id="studentCourseViewer" class="editor-container" style="display: none; border-top: 4px solid #10b981;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                        <h2 id="studentCourseTitle" style="font-size: 1.3rem; margin: 0;">Curso</h2>
-                        <button class="btn-ghost" onclick="closeStudentCourseViewer()" style="color: var(--text-muted);">❌ Salir del Aula</button>
-                    </div>
-
-                    <div style="margin-bottom: 20px;">
-                        <!-- GAMIFICATION PANEL -->
-                        <div id="studentGamificationPanel" style="background: var(--card-bg); backdrop-filter: blur(12px); border-radius: 16px; padding: 25px; margin-bottom: 25px; border: 1px solid var(--border-color); box-shadow: var(--shadow-premium); display: none;">
-                            <h3 style="font-size: 1.1rem; margin-top: 0; margin-bottom: 15px; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">🎮 Mi Progreso y Logros</h3>
-                            <div>
-                                <div style="display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">
-                                    <span style="color: var(--text-main);">Progreso del Curso</span>
-                                    <span id="studentProgressPct" style="color: var(--primary-color);">0%</span>
-                                </div>
-                                <div style="background: var(--secondary-bg); border-radius: 20px; height: 12px; overflow: hidden; width: 100%; border: 1px solid var(--border-color);">
-                                    <div id="studentProgressBar" style="background: var(--primary-gradient); height: 100%; width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 20px;"></div>
-                                </div>
-                            </div>
-                            <div style="margin-top: 20px;">
-                                <strong style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">🏆 Insignias Desbloqueadas</strong>
-                                <div id="studentBadgesContainer" style="display: flex; gap: 10px; flex-wrap: wrap; min-height: 30px;">
-                                    <span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Aún no tienes insignias. ¡Envía tu primera tarea!</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <p id="studentCourseDesc" style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);"></p>
-                        <div style="display: flex; gap: 15px; font-size: 0.85rem; color: var(--text-muted); margin-top: 10px; flex-wrap: wrap;">
-                            <span id="studentCourseDuration">⏱️</span>
-                            <span id="studentCourseLevel">📊</span>
-                            <span id="studentCourseCertifier">🎓</span>
-                        </div>
-                        <div id="studentCourseTeacherProfile" style="margin-top: 15px; padding: 12px; background: rgba(99,102,241,0.05); border-radius: 12px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(99,102,241,0.1); display: none;">
-                            <img id="studentCourseTeacherAvatar" src="" alt="Profesor" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color);">
-                            <div>
-                                <strong style="display: block; font-size: 0.95rem; color: var(--text-main);" id="studentCourseTeacherName">Nombre del Profesor</strong>
-                                <span style="font-size: 0.8rem; color: var(--text-muted);" id="studentCourseTeacherEmail">correo@ejemplo.com</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="student-classroom-grid">
-                        <!-- Columna Izquierda: Temario y Recursos por Unidad -->
-                        <div>
-                            <h3 style="font-size: 1.1rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; margin-bottom: 15px; color: var(--text-main);">📖 Unidades Académicas y Contenidos</h3>
-                            <div id="studentUnitsContainer">
-                                <!-- Dynamic -->
-                            </div>
-                        </div>
-
-                        <!-- Columna Derecha: Información Complementaria y Videollamadas -->
-                        <div>
-                            <div style="background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
-                                <h4 style="font-size: 0.9rem; margin-top: 0; color: var(--primary-color);">🎯 Competencias y Resultados</h4>
-                                <strong style="font-size: 0.8rem; display: block; margin-top: 10px;">Resultados de Aprendizaje:</strong>
-                                <ul id="studentOutcomesList" style="font-size: 0.8rem; padding-left: 15px; margin-top: 5px; line-height: 1.5;"></ul>
-                                <strong style="font-size: 0.8rem; display: block; margin-top: 10px;">Competencias:</strong>
-                                <ul id="studentCompetenciesList" style="font-size: 0.8rem; padding-left: 15px; margin-top: 5px; line-height: 1.5;"></ul>
-                            </div>
-
-                            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 15px;">
-                                <h4 style="font-size: 0.9rem; margin-top: 0; color: #10b981;">🎥 Sala Virtual Integrada</h4>
-                                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Ingresa a la videollamada en vivo con el docente y tus compañeros.</p>
-                                <button class="btn-primary" style="width: 100%; background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 10px; font-weight: bold; border-radius: 8px;" id="btnOpenJitsiStudent">Ingresar a Sala Virtual 🚀</button>
-                            </div>
-                            
-                            <!-- Foro del Curso -->
-                            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 15px; margin-top: 20px; display: flex; flex-direction: column; height: 400px;">
-                                <h4 style="font-size: 0.9rem; margin-top: 0; color: #3b82f6;">💬 Foro / Chat del Curso</h4>
-                                <div id="studentForumMessages" style="flex: 1; background: white; border-radius: 8px; border: 1px solid #e2e8f0; overflow-y: auto; padding: 10px; margin-bottom: 10px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px;">
-                                    <!-- Messages dynamic -->
-                                </div>
-                                <div style="display: flex; gap: 8px;">
-                                    <input type="text" id="studentForumInput" placeholder="Escribe un mensaje..." style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
-                                    <button class="btn-primary" id="btnSendStudentForum" style="padding: 8px 15px; background: #3b82f6; border: none; border-radius: 6px; color: white;">Enviar</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <!-- MODAL: CREAR CURSO -->
-    <div id="courseModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:16px; padding:30px; width:480px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <h3 style="margin-bottom:20px; font-size:1.2rem;" id="courseModalTitle">Crear Nuevo Curso</h3>
-            <div class="form-group">
-                <label>Nombre del Curso</label>
-                <input type="text" id="course_title" placeholder="Ej: Planificación de Indicadores de Acreditación">
-            </div>
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Entidad Certificadora</label>
-                <input type="text" id="course_certifier" value="SKEL" placeholder="Ej: SKEL">
-            </div>
-            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
-                <button class="btn-ghost" onclick="closeCourseModal()">Cancelar</button>
-                <button class="btn-primary" onclick="submitCreateCourse()">Crear Curso</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: CREAR DOCENTE -->
-    <div id="teacherModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:16px; padding:30px; width:460px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <h3 style="margin-bottom:20px; font-size:1.2rem;" id="teacherModalTitle">Registrar Nuevo Profesor</h3>
-            <input type="hidden" id="teacher_id">
-            <div class="form-group">
-                <label>Nombre Completo</label>
-                <input type="text" id="teacher_name" placeholder="Ej: Dr. Fernando Pérez">
-            </div>
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Correo Electrónico</label>
-                <input type="email" id="teacher_email" placeholder="fernando.perez@skel.edu.co">
-            </div>
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Especialidad / Biografía</label>
-                <input type="text" id="teacher_specialty" placeholder="Ej: Acreditación CNA, Gestión Curricular">
-            </div>
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Enlace de Avatar / Foto (Opcional)</label>
-                <input type="url" id="teacher_avatar" placeholder="https://...">
-            </div>
-            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
-                <button class="btn-ghost" onclick="closeTeacherModal()">Cancelar</button>
-                <button class="btn-primary" id="btnSubmitTeacher" onclick="submitCreateTeacher()">Registrar Docente</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: CREAR ESTUDIANTE -->
-    <div id="studentModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:16px; padding:30px; width:460px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <h3 style="margin-bottom:20px; font-size:1.2rem;" id="studentModalTitle">Registrar Estudiante / Participante</h3>
-            <input type="hidden" id="student_id">
-            <div class="form-group">
-                <label>Nombre Completo</label>
-                <input type="text" id="student_name" placeholder="Ej: Ing. Carolina Gómez">
-            </div>
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Correo Institucional</label>
-                <input type="email" id="student_email" placeholder="carolina.gomez@unicuces.edu.co">
-            </div>
-            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
-                <button class="btn-ghost" onclick="closeStudentModal()">Cancelar</button>
-                <button class="btn-primary" id="btnSubmitStudent" onclick="submitCreateStudent()">Registrar Estudiante</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: AÑADIR RECURSO A UNIDAD -->
-    <div id="unitResourceModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1001; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:16px; padding:30px; width:460px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <h3 style="margin-bottom:20px; font-size:1.2rem;">Añadir Recurso de Aprendizaje</h3>
-            <input type="hidden" id="resourceUnitIdx">
-            <div class="form-group">
-                <label>Nombre / Título del Recurso</label>
-                <input type="text" id="res_name" placeholder="Ej: Diapositivas o Infografía de Autoevaluación">
-            </div>
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Tipo de Recurso</label>
-                <select id="res_type">
-                    <option value="document">📄 Documento / PDF</option>
-                    <option value="video">🎥 Vídeo Explicativo</option>
-                    <option value="infographic">📊 Infografía</option>
-                    <option value="link">🔗 Enlace Web</option>
-                </select>
-            </div>
-            <div class="form-group" style="margin-top: 15px;">
-                <label>URL / Enlace del Archivo</label>
-                <input type="url" id="res_url" placeholder="https://drive.google.com/file/... o Youtube">
-            </div>
-            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
-                <button class="btn-ghost" onclick="closeUnitResourceModal()">Cancelar</button>
-                <button class="btn-primary" onclick="submitAddUnitResource()">Añadir Recurso</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: AÑADIR ACTIVIDAD A UNIDAD -->
-    <div id="unitActivityModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1001; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:16px; padding:30px; width:460px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <h3 style="margin-bottom:20px; font-size:1.2rem;">Crear Actividad / Tarea</h3>
-            <input type="hidden" id="activityUnitIdx">
-            <div class="form-group">
-                <label>Título de la Actividad</label>
-                <input type="text" id="act_title" placeholder="Ej: Taller Práctico - Definición de Factores">
-            </div>
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Instrucciones / Descripción</label>
-                <input type="text" id="act_description" placeholder="Instrucciones sobre qué subir o foro de dudas">
-            </div>
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Fecha Límite de Entrega</label>
-                <input type="date" id="act_date">
-            </div>
-            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
-                <button class="btn-ghost" onclick="closeUnitActivityModal()">Cancelar</button>
-                <button class="btn-primary" onclick="submitAddUnitActivity()">Crear Actividad</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: AÑADIR EVALUACION A UNIDAD -->
-    <div id="unitEvaluationModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1001; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:16px; padding:30px; width:460px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <h3 style="margin-bottom:20px; font-size:1.2rem;">Crear Evaluación (Escala CNA 1.0 - 5.0)</h3>
-            <input type="hidden" id="evaluationUnitIdx">
-            <div class="form-group">
-                <label>Título de la Evaluación / Examen</label>
-                <input type="text" id="eval_title" placeholder="Ej: Quiz - Factores 1 a 6">
-            </div>
-            <div class="form-grid" style="margin-top:15px; grid-template-columns:1fr 1fr;">
-                <div class="form-group">
-                    <label>Nota Mínima (Aprobación)</label>
-                    <input type="number" id="eval_min" step="0.1" min="1.0" max="5.0" value="3.0">
-                </div>
-                <div class="form-group">
-                    <label>Nota Máxima</label>
-                    <input type="number" id="eval_max" step="0.1" min="1.0" max="5.0" value="5.0">
-                </div>
-            </div>
-            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
-                <button class="btn-ghost" onclick="closeUnitEvaluationModal()">Cancelar</button>
-                <button class="btn-primary" onclick="submitAddUnitEvaluation()">Crear Evaluación</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: PRESENTAR EVALUACIÓN (ESTUDIANTE) -->
-    <div id="quizModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1001; align-items:center; justify-content:center;">
-        <div id="quizModalContent" style="background:white; border-radius:16px; padding:30px; width:500px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.3); max-height:85vh; overflow-y:auto;">
-            <h3 style="margin-bottom:10px; font-size:1.25rem; color: #0f172a;" id="quizModalTitle">Evaluación</h3>
-            <p id="quizModalSub" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:20px;"></p>
-            
-            <div id="quizQuestionsContainer" style="display:flex; flex-direction:column; gap:20px; margin-bottom:25px; color: #0f172a; text-align: left;">
-                <!-- Dynamic questions -->
-            </div>
-            
-            <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button class="btn-ghost" onclick="closeQuizModal()">Cancelar</button>
-                <button class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); border:none; color: white;" onclick="submitQuiz()">Enviar Respuestas</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: SALA VIRTUAL (JITSI) -->
-    <div id="jitsiModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1003; align-items:center; justify-content:center; flex-direction:column;">
-        <div style="width: 100%; display: flex; justify-content: flex-end; padding: 15px; box-sizing: border-box;">
-            <button class="btn-danger" onclick="closeJitsiMeet()" style="padding: 10px 20px; font-weight: bold; border-radius: 8px;">Cerrar Sala ✖</button>
-        </div>
-        <div id="jitsiContainer" style="width: 95%; height: 85%; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></div>
-    </div>
-
-    <!-- MODAL: EDITOR DE CONTENIDO DE TEMA (PROFESOR) -->
-    <div id="topicEditorModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1002; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:16px; padding:30px; width:750px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.3); display:flex; flex-direction:column; max-height:90vh;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
-                <h3 style="font-size:1.25rem; color: #0f172a;" id="topicEditorModalTitle">Editor de Tema: Nombre</h3>
-                <button class="btn-ghost" onclick="closeTopicEditorModal()" style="color: var(--text-muted); font-size: 1.2rem; cursor: pointer; background: transparent; border: none;">❌</button>
-            </div>
-            
-            <input type="hidden" id="editorUnitIdx">
-            <input type="hidden" id="editorTopicIdx">
-            
-            <!-- Barra de Herramientas del Editor -->
-            <div style="background:#f1f5f9; border:1px solid #cbd5e1; border-bottom:none; border-radius:8px 8px 0 0; padding:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-                <button class="btn-editor-tool" onclick="execEditorCommand('bold')" title="Negrita"><b>B</b></button>
-                <button class="btn-editor-tool" onclick="execEditorCommand('italic')" title="Cursiva"><i>I</i></button>
-                <button class="btn-editor-tool" onclick="execEditorCommand('underline')" title="Subrayado"><u>U</u></button>
-                <div style="width:1px; height:20px; background:#cbd5e1; margin:0 4px;"></div>
-                <button class="btn-editor-tool" onclick="execEditorCommand('justifyLeft')" title="Alinear izquierda">Align Left</button>
-                <button class="btn-editor-tool" onclick="execEditorCommand('justifyCenter')" title="Centrar">Align Center</button>
-                <button class="btn-editor-tool" onclick="execEditorCommand('justifyRight')" title="Alinear derecha">Align Right</button>
-                <div style="width:1px; height:20px; background:#cbd5e1; margin:0 4px;"></div>
-                <button class="btn-editor-tool" onclick="promptInsertImage()" title="Insertar Imagen">🖼️ Imagen</button>
-                <button class="btn-editor-tool" onclick="promptInsertVideo()" title="Embeber Video">🎥 Video</button>
-                <button class="btn-editor-tool" onclick="promptInsertPodcast()" title="Embeber Podcast">📻 Podcast</button>
-                <button class="btn-editor-tool" onclick="promptInsertLink()" title="Insertar Enlace">🔗 Enlace</button>
-                <div style="width:1px; height:20px; background:#cbd5e1; margin:0 4px;"></div>
-                <button class="btn-editor-tool" onclick="toggleHtmlView()" title="Ver HTML / Código Fuente">📝 HTML</button>
-            </div>
-            
-            <!-- Caja de Contenido Editable -->
-            <div id="richTextEditorBox" contenteditable="true" style="flex:1; border:1px solid #cbd5e1; border-radius:0 0 8px 8px; padding:20px; overflow-y:auto; min-height:250px; background:white; color: #0f172a; text-align: left; line-height: 1.6;"></div>
-            <textarea id="rawHtmlTextarea" style="display:none; flex:1; border:1px solid #cbd5e1; border-radius:0 0 8px 8px; padding:20px; overflow-y:auto; min-height:250px; background:#0f172a; color:#38bdf8; font-family:monospace; font-size:0.9rem; line-height:1.5; resize:none;"></textarea>
-            
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
-                <span style="font-size:0.75rem; color:var(--text-muted);">Puedes formatear texto, subir imágenes o embeber iframes de YouTube/Spotify.</span>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-ghost" onclick="closeTopicEditorModal()">Cancelar</button>
-                    <button class="btn-primary" onclick="saveTopicContent()">Guardar Contenido</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: VER ENTREGAS DE ACTIVIDAD (PROFESOR) -->
-    <div id="activitySubmissionsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1002; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:16px; padding:30px; width:800px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.3); display:flex; flex-direction:column; max-height:90vh;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
-                <h3 style="font-size:1.25rem; color: #0f172a;" id="activitySubmissionsModalTitle">Entregas de Actividad</h3>
-                <button class="btn-ghost" onclick="closeActivitySubmissionsModal()" style="color: var(--text-muted); font-size: 1.2rem; cursor: pointer; background: transparent; border: none;">❌</button>
-            </div>
-            
-            <input type="hidden" id="gradeUnitId">
-            <input type="hidden" id="gradeActivityId">
-            
-            <div style="flex:1; overflow-y:auto; min-height:300px; padding:5px 0;">
-                <table class="stat-table" style="width:100%; border-collapse: collapse; text-align: left;">
-                    <thead>
-                        <tr style="background:#f8fafc; border-bottom: 2px solid #e2e8f0;">
-                            <th style="padding:10px; font-size:0.85rem; color:var(--text-muted);">Estudiante</th>
-                            <th style="padding:10px; font-size:0.85rem; color:var(--text-muted);">Fecha</th>
-                            <th style="padding:10px; font-size:0.85rem; color:var(--text-muted);">Respuesta / Enlace</th>
-                            <th style="padding:10px; font-size:0.85rem; color:var(--text-muted);">Calificación</th>
-                            <th style="padding:10px; font-size:0.85rem; color:var(--text-muted);">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="activitySubmissionsTableBody">
-                        <!-- Submissions loaded dynamically -->
-                    </tbody>
-                </table>
-                <div id="noSubmissionsMessage" style="text-align:center; padding:40px; color:var(--text-muted); font-size:0.9rem;">
-                    Nadie ha entregado esta actividad todavía.
-                </div>
-            </div>
-
-            <!-- Formulario de calificación oculto por defecto -->
-            <div id="gradingFormContainer" style="display:none; margin-top:20px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:20px; text-align:left;">
-                <h4 style="margin:0 0 15px 0; font-size:1rem; color:#0f172a;" id="gradingFormTitle">Calificar Entrega</h4>
-                <input type="hidden" id="gradingSubmissionId">
-                
-                <div style="display:grid; grid-template-columns: 120px 1fr; gap:15px; align-items:center;">
-                    <label style="font-weight:600; font-size:0.85rem; color:var(--text-main);">Calificación:</label>
-                    <input type="number" id="gradingScore" min="1.0" max="5.0" step="0.1" placeholder="Ej: 4.5" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; width:100px; font-size:0.9rem;">
-                    
-                    <label style="font-weight:600; font-size:0.85rem; color:var(--text-main); align-self: flex-start; margin-top:6px;">Retroalimentación:</label>
-                    <textarea id="gradingFeedback" rows="3" placeholder="Escribe tus comentarios y sugerencias de mejora..." style="padding:10px; border:1px solid #cbd5e1; border-radius:8px; width:100%; font-size:0.9rem; font-family:sans-serif; resize:vertical;"></textarea>
-                </div>
-                
-                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
-                    <button class="btn-ghost" style="padding:6px 12px; font-size:0.8rem;" onclick="hideGradingForm()">Cancelar</button>
-                    <button class="btn-primary" style="padding:6px 15px; font-size:0.8rem; background: var(--primary-gradient); border:none; color:white; border-radius:8px;" onclick="saveGradingResult()">Guardar Nota</button>
-                </div>
-            </div>
-            
-            <div style="display:flex; justify-content:flex-end; margin-top:20px; border-top:1px solid var(--border-color); padding-top:15px;">
-                <button class="btn-secondary" onclick="closeActivitySubmissionsModal()">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Jitsi Meet API -->
-    <script src="https://meet.jit.si/external_api.js"></script>
-    <script src="{{ url_for('static', filename='data.js') }}?v=2.2"></script>
-    <script>
         // Sesión y Seguridad
         let user = null;
         let activeCourse = null;
@@ -1181,8 +118,7 @@
         async function preloadTeacherDropdown() {
             try {
                 const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
-                const res = await resp.json();
-                const teachers = Array.isArray(res) ? res : (res.data || []);
+                const teachers = await resp.json();
                 const selectEdit = document.getElementById('edit_teacher_id');
                 if (selectEdit) {
                     const currentValue = selectEdit.value;
@@ -1201,34 +137,35 @@
 
         async function loadTeachersList() {
             const grid = document.getElementById('teachersGrid');
-            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando docentes...</div>';
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando profesores...</div>';
+            
             try {
-                const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
-                const res = await resp.json();
-                
-                let teachers = Array.isArray(res) ? res : (res.data || []);
-                teachers = teachers.filter(t => t && t.id);
-                let html = '';
+                const teachers = await preloadTeacherDropdown();
                 
                 if (teachers.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay docentes registrados.</div>';
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay profesores registrados aún.</div>';
                     return;
                 }
                 
+                let html = '';
                 teachers.forEach(t => {
+                    const avatarSrc = t.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100';
                     html += `
-                        <div class="user-card fade-in">
-                            ${t.avatar ? `<img src="${t.avatar}" class="avatar-large">` : `<div class="avatar-large">👨‍🏫</div>`}
-                            <h4>${escapeHtml(t.name || 'Sin nombre')}</h4>
-                            <p>📧 ${escapeHtml(t.email || 'N/A')}</p>
-                            <span class="badge-role">${escapeHtml(t.specialty || 'Docente')}</span>
-                            <button class="btn-danger" onclick="deleteTeacher('${t.id}')">🗑️ Eliminar Docente</button>
+                        <div class="course-card" style="padding: 20px; align-items: center; text-align: center;">
+                            <img src="${avatarSrc}" alt="${t.name}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 2px solid var(--primary-color);">
+                            <h3 style="font-size: 1.05rem; margin-bottom: 5px;">${t.name}</h3>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">${t.email}</p>
+                            <span class="badge role-leader" style="font-size:0.75rem; margin-bottom: 15px;">${t.specialty || 'General'}</span>
+                            <div style="display: flex; gap: 10px; width: 100%;">
+                                <button class="btn-secondary" style="flex:1; padding: 6px; font-size:0.8rem;" onclick="editTeacher('${t.id}', '${escapeHtml(t.name)}', '${escapeHtml(t.email)}', '${escapeHtml(t.specialty || '')}', '${escapeHtml(t.avatar || '')}')">Editar</button>
+                                <button class="btn-danger" style="flex:1; padding: 6px; font-size:0.8rem;" onclick="deleteTeacher('${t.id}')">Eliminar</button>
+                            </div>
                         </div>
                     `;
                 });
                 grid.innerHTML = html;
-            } catch (e) {
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error de red al cargar docentes.</div>';
+            } catch(e) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error de red al cargar profesores.</div>';
             }
         }
 
@@ -1299,78 +236,81 @@
         async function loadStudentsList() {
             const grid = document.getElementById('studentsGrid');
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando estudiantes...</div>';
+            
             try {
-                const resp = await fetch(`/api/students?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const res = await resp.json();
+                const [studResp, courseResp] = await Promise.all([
+                    fetch(`/api/students?inst_id=${getInstId()}`),
+                    fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}`)
+                ]);
                 
-                let students = Array.isArray(res) ? res : (res.data || []);
-                students = students.filter(s => s && s.id);
-                let html = '';
+                const students = await studResp.json();
+                const courses = await courseResp.json();
                 
                 if (students.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay participantes inscritos.</div>';
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay estudiantes registrados. Registra uno arriba.</div>';
                     return;
                 }
                 
+                let html = '';
                 students.forEach(s => {
-                    const isAspirante = s.name && s.name.includes('[ASPIRANTE]');
-                    const nameDisplay = escapeHtml(s.name ? s.name.replace('[ASPIRANTE] ', '').replace('[ASPIRANTE]', '') : 'Sin nombre');
+                    const enrolledIds = s.enrolled_courses || [];
+                    const enrolledNames = courses.filter(c => enrolledIds.includes(c.id)).map(c => c.title);
                     
-                    let badgeHtml = '';
-                    let actionHtml = '';
-                    
-                    if (isAspirante) {
-                        badgeHtml = `<div style="background: #fef08a; color: #854d0e; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; display: inline-block;">🟡 Pendiente de Activación</div>`;
-                        actionHtml = `<button class="btn-primary" style="margin-bottom: 8px; width: 100%; background: #16a34a; border: none;" onclick="activateAspirante('${s.email}')">✅ Activar Aspirante</button>`;
+                    let enrolledHtml = '';
+                    if (enrolledNames.length === 0) {
+                        enrolledHtml = '<span style="color:var(--text-muted); font-size:0.8rem;">Sin cursos matriculados</span>';
+                    } else {
+                        enrolledHtml = enrolledNames.map(name => `<span class="badge role-leader" style="font-size:0.7rem; margin-right:3px; display:inline-block; margin-top:3px;">📘 ${escapeHtml(name)}</span>`).join(' ');
                     }
                     
+                    const availableToEnroll = courses.filter(c => !enrolledIds.includes(c.id));
+                    let enrollDropdown = '';
+                    if (availableToEnroll.length > 0) {
+                        enrollDropdown = `
+                            <select onchange="enrollStudent('${s.id}', this.value); this.value='';" style="padding:5px; font-size:0.8rem; border-radius:6px; border:1px solid var(--border-color); width:100%; margin-top:10px;">
+                                <option value="">-- Matricular en Curso --</option>
+                                ${availableToEnroll.map(c => `<option value="${c.id}">${escapeHtml(c.title)}</option>`).join('')}
+                            </select>
+                        `;
+                    }
+                    
+                    let activeUnenrollHtml = '';
+                    if (enrolledIds.length > 0) {
+                        activeUnenrollHtml = '<div style="margin-top:10px; font-size:0.75rem; color:var(--text-muted); text-align:left;">Cancelar Matrícula:<br>';
+                        courses.filter(c => enrolledIds.includes(c.id)).forEach(c => {
+                            activeUnenrollHtml += `
+                                <span style="display:flex; justify-content:space-between; align-items:center; background:#fee2e2; color:#ef4444; border-radius:4px; padding:3px 6px; margin-top:2px;">
+                                    ${escapeHtml(c.title.substring(0,25))}...
+                                    <button class="btn-ghost" style="color:#ef4444; padding:0; font-size:0.7rem;" onclick="unenrollStudent('${s.id}', '${c.id}')">❌</button>
+                                </span>`;
+                        });
+                        activeUnenrollHtml += '</div>';
+                    }
+
                     html += `
-                        <div class="user-card fade-in">
-                            ${s.avatar ? `<img src="${s.avatar}" class="avatar-large">` : `<div class="avatar-large">👨‍🎓</div>`}
-                            ${badgeHtml}
-                            <h4>${nameDisplay}</h4>
-                            <p>📧 ${escapeHtml(s.email || 'N/A')}</p>
-                            <div style="width: 100%; margin-bottom: 15px;">
-                                <div style="font-size: 0.75rem; text-align: left; margin-bottom: 5px; color: var(--text-muted);">Progreso Global</div>
-                                <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
+                        <div class="course-card" style="padding:20px; display:flex; flex-direction:column; justify-content:space-between; min-height:280px;">
+                            <div>
+                                <h3 style="font-size: 1.05rem; margin-bottom: 5px;">👤 ${escapeHtml(s.name)}</h3>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">✉️ ${s.email}</p>
+                                <div style="text-align:left; border-top:1px solid var(--border-color); padding-top:10px;">
+                                    <strong style="font-size:0.8rem;">Cursos Activos:</strong><br>
+                                    ${enrolledHtml}
+                                </div>
                             </div>
-                            ${actionHtml}
-                            <button class="btn-danger" onclick="deleteStudent('${s.id}')">🗑️ Eliminar Participante</button>
+                            
+                            <div>
+                                ${enrollDropdown}
+                                ${activeUnenrollHtml}
+                                <div style="display: flex; gap: 10px; width: 100%; margin-top:15px; border-top:1px solid var(--border-color); padding-top:10px;">
+                                    <button class="btn-secondary" style="flex:1; padding: 6px; font-size:0.8rem;" onclick="editStudent('${s.id}', '${escapeHtml(s.name)}', '${escapeHtml(s.email)}')">Editar</button>
+                                    <button class="btn-danger" style="flex:1; padding: 6px; font-size:0.8rem;" onclick="deleteStudent('${s.id}')">Eliminar</button>
+                                </div>
+                            </div>
                         </div>
                     `;
                 });
                 grid.innerHTML = html;
-            } catch (e) {
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error de red.</div>';
-            }
-        }
-
-        async function activateAspirante(email) {
-            if (!confirm('¿Activar a este aspirante? Se le quitará el bloqueo de cuenta y podrá ingresar al sistema inmediatamente.')) return;
-            try {
-                // Find user by email
-                const uResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=0`);
-                const users = await uResp.json();
-                const userObj = users.find(u => u.email === email);
-                if (userObj) {
-                    const actResp = await fetch(`/api/users/${userObj.id}/activate`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ role: 'estudiante' })
-                    });
-                    const actRes = await actResp.json();
-                    if (actRes.status === 'success') {
-                        alert('¡Aspirante activado con éxito!');
-                        loadStudentsList();
-                    } else {
-                        alert('Error al activar: ' + actRes.message);
-                    }
-                } else {
-                    alert('No se encontró una cuenta de usuario para este correo.');
-                }
-            } catch(e) {
-                alert('Error de red al activar aspirante.');
-            }
+            } catch(e) { grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">Error al cargar participantes.</div>'; }
         }
 
         function editStudent(id, name, email) {
@@ -1535,15 +475,15 @@
                     activeCourseSubmissions = [];
                 }
                 
-                document.getElementById('editCourseId').value = activeCourse.id;
-                document.getElementById('editorCourseTitle').textContent = `Administrar Curso: ${activeCourse.title}`;
-                document.getElementById('edit_title').value = activeCourse.title || '';
-                document.getElementById('edit_certifier').value = activeCourse.certifier || '';
-                document.getElementById('edit_teacher_id').value = activeCourse.teacher_id || '';
-                document.getElementById('edit_category').value = activeCourse.category || 'Educación';
-                document.getElementById('edit_duration').value = activeCourse.duration || 10;
-                document.getElementById('edit_level').value = activeCourse.level || 'Principiante';
-                document.getElementById('edit_description').value = activeCourse.description || '';
+                document.getElementById('editCourseId').value = course.id;
+                document.getElementById('editorCourseTitle').textContent = `Administrar Curso: ${course.title}`;
+                document.getElementById('edit_title').value = course.title || '';
+                document.getElementById('edit_certifier').value = course.certifier || '';
+                document.getElementById('edit_teacher_id').value = course.teacher_id || '';
+                document.getElementById('edit_category').value = course.category || 'Educación';
+                document.getElementById('edit_duration').value = course.duration || 10;
+                document.getElementById('edit_level').value = course.level || 'Principiante';
+                document.getElementById('edit_description').value = course.description || '';
                 
                 renderOutcomesList();
                 renderCompetenciesList();
@@ -1556,7 +496,7 @@
                 document.getElementById('courseEditorSection').style.display = 'block';
                 document.getElementById('courseEditorSection').scrollIntoView({ behavior: 'smooth' });
                 switchSubTab('general');
-            } catch(e) { alert("Error al abrir editor: " + e.message); }
+            } catch(e) { alert("Error al abrir editor."); }
         }
 
         function closeEditor() {
@@ -1618,7 +558,7 @@
         function renderOutcomesList() {
             const listDiv = document.getElementById('editOutcomesList');
             listDiv.innerHTML = '';
-            const outcomes = Object.values(activeCourse.outcomes || {});
+            const outcomes = activeCourse.outcomes || [];
             
             if (outcomes.length === 0) {
                 listDiv.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">Ningún resultado agregado.</div>';
@@ -1651,7 +591,7 @@
         function renderCompetenciesList() {
             const listDiv = document.getElementById('editCompetenciesList');
             listDiv.innerHTML = '';
-            const competencies = Object.values(activeCourse.competencies || {});
+            const competencies = activeCourse.competencies || [];
             
             if (competencies.length === 0) {
                 listDiv.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">Ninguna competencia agregada.</div>';
@@ -1687,7 +627,7 @@
         function renderSyllabusList() {
             const container = document.getElementById('unitsContainer');
             container.innerHTML = '';
-            const units = Object.values(activeCourse.units || {});
+            const units = activeCourse.units || [];
             
             if (units.length === 0) {
                 container.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding:40px; border:2px dashed var(--border-color); border-radius:8px;">No hay unidades definidas. Añade una para comenzar.</div>';
@@ -1700,11 +640,10 @@
                 unitDiv.style = 'margin-bottom: 25px; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm);';
                 
                 let topicsHtml = '';
-                const topics = Object.values(unit.topics || {});
-                if (topics.length === 0) {
+                if (!unit.topics || unit.topics.length === 0) {
                     topicsHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:5px; text-align:center;">Sin temas asignados.</div>';
                 } else {
-                    topics.forEach((rawT, tIdx) => {
+                    unit.topics.forEach((rawT, tIdx) => {
                         const t = typeof rawT === 'string' ? { id: 't_' + tIdx, title: rawT, content: "" } : rawT;
                         topicsHtml += `
                             <div class="topic-item">
@@ -1719,7 +658,7 @@
                 }
 
                 let resourcesHtml = '';
-                const resources = Object.values(unit.resources || {});
+                const resources = unit.resources || [];
                 if (resources.length === 0) {
                     resourcesHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:8px; text-align:center;">Ningún recurso añadido (PDF, Video, Infografía).</div>';
                 } else {
@@ -1738,12 +677,12 @@
                 }
 
                 let activitiesHtml = '';
-                const activities = Object.values(unit.activities || {});
+                const activities = unit.activities || [];
                 if (activities.length === 0) {
                     activitiesHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:8px; text-align:center;">Ninguna actividad creada (Talleres, Foros).</div>';
                 } else {
                     activities.forEach((act, actIdx) => {
-                        const subCount = Object.values(activeCourseSubmissions || {}).filter(s => s.activity_id === act.id).length;
+                        const subCount = (activeCourseSubmissions || []).filter(s => s.activity_id === act.id).length;
                         activitiesHtml += `
                             <div class="activity-item" style="display:flex; justify-content:space-between; align-items:center;">
                                 <div>
@@ -1760,7 +699,7 @@
                 }
 
                 let evaluationsHtml = '';
-                const evaluations = Object.values(unit.evaluations || {});
+                const evaluations = unit.evaluations || [];
                 if (evaluations.length === 0) {
                     evaluationsHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:8px; text-align:center;">Ninguna evaluación creada.</div>';
                 } else {
@@ -1989,7 +928,7 @@
         function renderMeetingsList() {
             const listDiv = document.getElementById('meetingsList');
             listDiv.innerHTML = '';
-            const meetings = Object.values(activeCourse.meetings || {});
+            const meetings = activeCourse.meetings || [];
             
             if (meetings.length === 0) {
                 listDiv.innerHTML = '<div style="color:var(--text-muted); font-size:0.88rem; text-align:center; padding:20px;">No hay clases programadas. Agrega una arriba.</div>';
@@ -2144,19 +1083,20 @@
                             teacherProfileDiv.style.display = 'flex';
                         } else { teacherProfileDiv.style.display = 'none'; }
                     } catch(e) { teacherProfileDiv.style.display = 'none'; }
+                    } catch(e) { teacherProfileDiv.style.display = 'none'; }
                 } else { teacherProfileDiv.style.display = 'none'; }
                 
                 loadStudentGamification(courseId);
 
                 const outcomesUl = document.getElementById('studentOutcomesList');
-                outcomesUl.innerHTML = Object.values(course.outcomes || {}).map(o => `<li>${escapeHtml(o)}</li>`).join('') || '<li>Sin resultados registrados.</li>';
+                outcomesUl.innerHTML = (course.outcomes || []).map(o => `<li>${escapeHtml(o)}</li>`).join('') || '<li>Sin resultados registrados.</li>';
                 
                 const competenciesUl = document.getElementById('studentCompetenciesList');
-                competenciesUl.innerHTML = Object.values(course.competencies || {}).map(c => `<li>${escapeHtml(c)}</li>`).join('') || '<li>Sin competencias registradas.</li>';
+                competenciesUl.innerHTML = (course.competencies || []).map(c => `<li>${escapeHtml(c)}</li>`).join('') || '<li>Sin competencias registradas.</li>';
                 
                 // Clases Sincrónicas (Videoconferencia)
                 const meetingsDiv = document.getElementById('studentMeetingsList');
-                const meetings = Object.values(course.meetings || {});
+                const meetings = course.meetings || [];
                 if (meetings.length === 0) {
                     meetingsDiv.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); padding:10px; text-align:center;">No hay videoconferencias programadas.</div>';
                 } else {
@@ -2172,7 +1112,7 @@
                 // Temario y Repositorio por Unidad
                 const unitsContainer = document.getElementById('studentUnitsContainer');
                 unitsContainer.innerHTML = '';
-                const units = Object.values(course.units || {});
+                const units = course.units || [];
                 
                 if (units.length === 0) {
                     unitsContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding:30px; border:1px dashed var(--border-color); border-radius:8px;">Este curso aún no tiene lecciones creadas.</div>';
@@ -2208,12 +1148,11 @@
 
                         // Temas con acordeón interactivo para ver el contenido HTML redactado por el profesor
                         let topicsHtml = '';
-                        const tArr = Object.values(unit.topics || {});
-                        if (tArr.length === 0) {
+                        if (!unit.topics || unit.topics.length === 0) {
                             topicsHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:5px;">Sin temas asignados.</div>';
                         } else {
                             topicsHtml = '<div style="display:flex; flex-direction:column; gap:8px; margin-top:5px;">';
-                            tArr.forEach((rawT, tIdx) => {
+                            unit.topics.forEach((rawT, tIdx) => {
                                 const t = typeof rawT === 'string' ? { id: 't_' + tIdx, title: rawT, content: "" } : rawT;
                                 const hasContent = t.content && t.content.trim() !== "";
                                 
@@ -2236,10 +1175,9 @@
                         
                         // Repositorio: Recursos para afianzar
                         let resHtml = '';
-                        const rArr = Object.values(unit.resources || {});
-                        if (rArr.length > 0) {
+                        if (unit.resources && unit.resources.length > 0) {
                             resHtml = '<strong style="display:block; font-size:0.85rem; color:var(--primary-color); margin-top:16px; margin-bottom: 6px;">📁 Recursos de Estudio (Repositorio):</strong>';
-                            rArr.forEach(r => {
+                            unit.resources.forEach(r => {
                                 const typeIcon = r.type === 'document' ? '📄 PDF' : (r.type === 'video' ? '🎥 Video' : (r.type === 'infographic' ? '📊 Infografía' : '🔗 Web'));
                                 resHtml += `
                                     <div class="resource-card" style="margin-top:5px;">
@@ -2251,10 +1189,9 @@
                         
                         // Actividades
                         let actHtml = '';
-                        const aArr = Object.values(unit.activities || {});
-                        if (aArr.length > 0) {
+                        if (unit.activities && unit.activities.length > 0) {
                             actHtml = '<strong style="display:block; font-size:0.85rem; color:var(--primary-color); margin-top:16px; margin-bottom: 6px;">📝 Actividades y Entregas:</strong>';
-                            aArr.forEach(act => {
+                            unit.activities.forEach(act => {
                                 // Buscar entrega existente para esta actividad
                                 const sub = studentSubmissions.find(s => s.activity_id === act.id);
                                 let statusHtml = '';
@@ -2490,122 +1427,61 @@
             }
         }
 
-        function generateSmartLinkCard(url, customTitle, hintType = null) {
-            let type = "Enlace Web";
-            let icon = "🔗";
-            let color = "var(--primary-color)";
-            
-            const lowerUrl = url.toLowerCase();
-            
-            if (lowerUrl.includes("notebooklm.google.com")) {
-                if (hintType === 'video') {
-                    type = "Video Inteligente (NotebookLM)";
-                    icon = "🎥";
-                } else {
-                    type = "Podcast / Audio Inteligente";
-                    icon = "🎧";
-                }
-                color = "#8b5cf6"; // Purple
-            } else if (lowerUrl.includes("canva.com") || lowerUrl.includes("genial.ly") || lowerUrl.includes("miro.com") || lowerUrl.includes("lucidchart.com")) {
-                type = "Mapa Conceptual / Presentación";
-                icon = "📊";
-                color = "#0ea5e9"; // Sky blue
-            } else if (lowerUrl.includes("quizlet.com") || lowerUrl.includes("kahoot.it") || lowerUrl.includes("blooket.com")) {
-                type = "Tarjetas de Estudio / Actividad";
-                icon = "🃏";
-                color = "#f59e0b"; // Amber
-            } else if (lowerUrl.includes("drive.google.com") || lowerUrl.includes("docs.google.com")) {
-                type = "Documento";
-                icon = "📄";
-                color = "#10b981"; // Emerald
-            } else if (lowerUrl.includes("spotify.com") || lowerUrl.includes("soundcloud.com") || lowerUrl.includes("ivoox.com")) {
-                type = "Podcast / Audio";
-                icon = "📻";
-                color = "#1db954"; // Spotify green
-            } else if (lowerUrl.includes("youtube.com") || lowerUrl.includes("youtu.be") || lowerUrl.includes("vimeo.com")) {
-                type = "Video";
-                icon = "🎥";
-                color = "#ef4444"; // Red
-            }
-
-            const title = customTitle || type;
-            const domainMatch = url.match(/^https?:\/\/([^/?#]+)(?:[/?#]|$)/i);
-            const domain = domainMatch ? domainMatch[1] : "enlace externo";
-            
-            // Simple escape helper inline for safety
-            const esc = str => String(str).replace(/[&<>'"]/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[match]);
-
-            return `
-            <div class="rich-link-card" style="display:flex; align-items:center; gap:15px; padding:15px 20px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc; margin:20px 0; text-decoration:none; color:inherit; max-width: 100%; box-sizing: border-box;">
-                <div style="font-size:2.5rem; flex-shrink: 0;">${icon}</div>
-                <div style="flex:1; min-width:0;">
-                    <strong style="display:block; color:#0f172a; font-size:1.1rem; margin-bottom:4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${esc(title)}</strong>
-                    <span style="font-size:0.85rem; color:#64748b; display:block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Fuente: ${esc(domain)}</span>
-                </div>
-                <div style="flex-shrink: 0;">
-                    <a href="${esc(url)}" target="_blank" style="display:inline-block; background:${color}; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition: opacity 0.2s;">Abrir</a>
-                </div>
-            </div><p><br></p>`;
-        }
-
         function promptInsertVideo() {
-            const embedCode = prompt("Pega el código de inserción (Iframe) o la URL del Video:");
-            if (!embedCode) return;
-            let videoHtml = "";
-            if (embedCode.includes('<iframe') || embedCode.includes('<video')) {
-                videoHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">${embedCode}</div>`;
-                videoHtml = videoHtml.replace(/width="[^"]*"/, 'width="100%"').replace(/height="[^"]*"/, 'height="100%"').replace(/position:[^;]*/, '');
-            } else if (embedCode.startsWith('http')) {
-                try {
-                    let videoId = "";
-                    if (embedCode.includes('youtube.com/watch?v=')) {
-                        videoId = embedCode.split('v=')[1].split('&')[0];
-                    } else if (embedCode.includes('youtu.be/')) {
-                        videoId = embedCode.split('youtu.be/')[1].split('?')[0];
+            const embedCode = prompt("Pega el código de inserción (Iframe) o la URL de YouTube/Vimeo:");
+            if (embedCode) {
+                let videoHtml = "";
+                if (embedCode.includes('<iframe') || embedCode.includes('<video')) {
+                    // Si ya es código iframe, aseguramos que sea responsivo y adaptativo
+                    videoHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">${embedCode}</div>`;
+                    videoHtml = videoHtml.replace(/width="[^"]*"/, 'width="100%"').replace(/height="[^"]*"/, 'height="100%"').replace(/position:[^;]*/, '');
+                } else {
+                    // Si es solo una URL de YouTube, la convertimos a embed
+                    try {
+                        let videoId = "";
+                        if (embedCode.includes('youtube.com/watch?v=')) {
+                            videoId = embedCode.split('v=')[1].split('&')[0];
+                        } else if (embedCode.includes('youtu.be/')) {
+                            videoId = embedCode.split('youtu.be/')[1].split('?')[0];
+                        }
+                        
+                        if (videoId) {
+                            videoHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">
+                                <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"></iframe>
+                            </div>`;
+                        } else {
+                            alert("URL no soportada. Introduce el código embed completo o una URL de YouTube.");
+                            return;
+                        }
+                    } catch(e) {
+                        alert("Error al procesar la URL.");
+                        return;
                     }
-                    
-                    if (videoId) {
-                        videoHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">
-                            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"></iframe>
-                        </div><p><br></p>`;
-                    } else {
-                        const title = prompt("Título opcional para el video:");
-                        videoHtml = generateSmartLinkCard(embedCode, title, 'video');
-                    }
-                } catch(e) {
-                    alert("Error al procesar la URL.");
-                    return;
                 }
-            } else {
-                alert("Entrada no válida.");
-                return;
+                insertHtmlAtCursor(videoHtml);
             }
-            insertHtmlAtCursor(videoHtml);
         }
 
         function promptInsertPodcast() {
-            const embedCode = prompt("Pega el enlace del Podcast (ej. NotebookLM, Spotify) o el código Iframe:");
-            if (!embedCode) return;
-            let podcastHtml = "";
-            if (embedCode.includes('<iframe')) {
-                podcastHtml = `<div class="podcast-container" style="margin:20px 0; width:100%; overflow:hidden; border-radius:12px;">${embedCode}</div>`;
-                podcastHtml = podcastHtml.replace(/width="[^"]*"/, 'width="100%"');
-            } else if (embedCode.startsWith('http')) {
-                const title = prompt("Título opcional para este podcast:");
-                podcastHtml = generateSmartLinkCard(embedCode, title, 'audio');
-            } else {
-                alert("Introduce un enlace válido o un código Iframe oficial.");
-                return;
+            const embedCode = prompt("Pega el código de inserción (Iframe) de Spotify, SoundCloud u otra plataforma:");
+            if (embedCode) {
+                let podcastHtml = "";
+                if (embedCode.includes('<iframe')) {
+                    podcastHtml = `<div class="podcast-container" style="margin:20px 0; width:100%; overflow:hidden; border-radius:12px;">${embedCode}</div>`;
+                    podcastHtml = podcastHtml.replace(/width="[^"]*"/, 'width="100%"');
+                } else {
+                    alert("Por favor, introduce el código embed (Iframe) oficial del podcast.");
+                    return;
+                }
+                insertHtmlAtCursor(podcastHtml);
             }
-            insertHtmlAtCursor(podcastHtml);
         }
 
         function promptInsertLink() {
-            const url = prompt("Introduce la URL del enlace a compartir (Canva, Quizlet, Drive, etc.):");
-            if (!url) return;
-            const title = prompt("Título opcional para mostrar en la tarjeta (o deja en blanco):");
-            const cardHtml = generateSmartLinkCard(url, title, 'link');
-            insertHtmlAtCursor(cardHtml);
+            const url = prompt("Introduce la URL del enlace:");
+            if (url) {
+                execEditorCommand('createLink', url);
+            }
         }
 
         function insertHtmlAtCursor(html) {
@@ -2933,9 +1809,32 @@
         let jitsiApi = null;
         
         function openJitsiMeet(courseId, courseTitle) {
+            document.getElementById('jitsiModal').style.display = 'flex';
+            const domain = 'meet.jit.si';
             const roomName = `SIAClassroom_${getInstId()}_${courseId}`.replace(/[^a-zA-Z0-9]/g, "");
-            const url = `https://meet.jit.si/${roomName}`;
-            window.open(url, '_blank');
+            
+            const options = {
+                roomName: roomName,
+                width: '100%',
+                height: '100%',
+                parentNode: document.getElementById('jitsiContainer'),
+                userInfo: {
+                    email: user.email,
+                    displayName: user.name || user.email.split('@')[0]
+                },
+                configOverwrite: {
+                    startWithAudioMuted: true,
+                    startWithVideoMuted: true,
+                    prejoinPageEnabled: false
+                },
+                interfaceConfigOverwrite: {
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false,
+                    DEFAULT_BACKGROUND: '#0f172a'
+                }
+            };
+            jitsiApi = new JitsiMeetExternalAPI(domain, options);
+            jitsiApi.executeCommand('subject', 'Sala Virtual: ' + courseTitle);
         }
 
         function closeJitsiMeet() {
@@ -3224,7 +2123,4 @@
         }
 
         window.onload = init;
-    </script>
-</body>
-
-</html>
+    
