@@ -1182,7 +1182,7 @@
             try {
                 const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
                 const res = await resp.json();
-                const teachers = res.data || [];
+                const teachers = Array.isArray(res) ? res : (res.data || []);
                 const selectEdit = document.getElementById('edit_teacher_id');
                 if (selectEdit) {
                     const currentValue = selectEdit.value;
@@ -1205,27 +1205,27 @@
             try {
                 const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
                 const res = await resp.json();
-                if (res.status === 'success') {
-                    let html = '';
-                    if (res.data.length === 0) {
-                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay docentes registrados.</div>';
-                        return;
-                    }
-                    res.data.forEach(t => {
-                        html += `
-                            <div class="user-card fade-in">
-                                ${t.avatar ? `<img src="${t.avatar}" class="avatar-large">` : `<div class="avatar-large">👨‍🏫</div>`}
-                                <h4>${escapeHtml(t.name || 'Sin nombre')}</h4>
-                                <p>📧 ${escapeHtml(t.email || 'N/A')}</p>
-                                <span class="badge-role">${escapeHtml(t.specialty || 'Docente')}</span>
-                                <button class="btn-danger" onclick="deleteTeacher('${t.id}')">🗑️ Eliminar Docente</button>
-                            </div>
-                        `;
-                    });
-                    grid.innerHTML = html;
-                } else {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error al cargar docentes.</div>';
+                
+                const teachers = Array.isArray(res) ? res : (res.data || []);
+                let html = '';
+                
+                if (teachers.length === 0) {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay docentes registrados.</div>';
+                    return;
                 }
+                
+                teachers.forEach(t => {
+                    html += `
+                        <div class="user-card fade-in">
+                            ${t.avatar ? `<img src="${t.avatar}" class="avatar-large">` : `<div class="avatar-large">👨‍🏫</div>`}
+                            <h4>${escapeHtml(t.name || 'Sin nombre')}</h4>
+                            <p>📧 ${escapeHtml(t.email || 'N/A')}</p>
+                            <span class="badge-role">${escapeHtml(t.specialty || 'Docente')}</span>
+                            <button class="btn-danger" onclick="deleteTeacher('${t.id}')">🗑️ Eliminar Docente</button>
+                        </div>
+                    `;
+                });
+                grid.innerHTML = html;
             } catch (e) {
                 grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error de red al cargar docentes.</div>';
             }
@@ -1301,30 +1301,30 @@
             try {
                 const resp = await fetch(`/api/students?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const res = await resp.json();
-                if (res.status === 'success') {
-                    let html = '';
-                    if (res.data.length === 0) {
-                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay participantes inscritos.</div>';
-                        return;
-                    }
-                    res.data.forEach(s => {
-                        html += `
-                            <div class="user-card fade-in">
-                                ${s.avatar ? `<img src="${s.avatar}" class="avatar-large">` : `<div class="avatar-large">👨‍🎓</div>`}
-                                <h4>${escapeHtml(s.name || 'Sin nombre')}</h4>
-                                <p>📧 ${escapeHtml(s.email || 'N/A')}</p>
-                                <div style="width: 100%; margin-bottom: 15px;">
-                                    <div style="font-size: 0.75rem; text-align: left; margin-bottom: 5px; color: var(--text-muted);">Progreso Global</div>
-                                    <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
-                                </div>
-                                <button class="btn-danger" onclick="deleteStudent('${s.id}')">🗑️ Eliminar Participante</button>
-                            </div>
-                        `;
-                    });
-                    grid.innerHTML = html;
-                } else {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error al cargar.</div>';
+                
+                const students = Array.isArray(res) ? res : (res.data || []);
+                let html = '';
+                
+                if (students.length === 0) {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay participantes inscritos.</div>';
+                    return;
                 }
+                
+                students.forEach(s => {
+                    html += `
+                        <div class="user-card fade-in">
+                            ${s.avatar ? `<img src="${s.avatar}" class="avatar-large">` : `<div class="avatar-large">👨‍🎓</div>`}
+                            <h4>${escapeHtml(s.name || 'Sin nombre')}</h4>
+                            <p>📧 ${escapeHtml(s.email || 'N/A')}</p>
+                            <div style="width: 100%; margin-bottom: 15px;">
+                                <div style="font-size: 0.75rem; text-align: left; margin-bottom: 5px; color: var(--text-muted);">Progreso Global</div>
+                                <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
+                            </div>
+                            <button class="btn-danger" onclick="deleteStudent('${s.id}')">🗑️ Eliminar Participante</button>
+                        </div>
+                    `;
+                });
+                grid.innerHTML = html;
             } catch (e) {
                 grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error de red.</div>';
             }
