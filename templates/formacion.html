@@ -1123,9 +1123,13 @@
                 document.getElementById('subTabBtnAnalytics').classList.add('active');
                 document.getElementById('subTabAnalytics').style.display = 'block';
                 loadCourseAnalytics(document.getElementById('editCourseId').value);
-            } else {
+            } else if (subTabId === 'sync') {
                 document.getElementById('subTabBtnSync').classList.add('active');
                 document.getElementById('subTabSync').style.display = 'block';
+            } else if (subTabId === 'submissions') {
+                document.getElementById('subTabBtnSubmissions').classList.add('active');
+                document.getElementById('subTabSubmissions').style.display = 'block';
+                loadCourseSubmissions(document.getElementById('editCourseId').value);
             }
         }
 
@@ -2462,7 +2466,6 @@
                     console.error("Error al enviar actividad:", e);
                     alert("❌ Error de red al registrar tu entrega.");
                 }
-            }
         }
 
         // --- EDITOR WYSIWYG PARA EL DOCENTE/PROFESOR ---
@@ -3253,6 +3256,94 @@
                 }
             } catch(e) {
                 console.error("Gamification error:", e);
+            }
+        }
+
+        // --- CALIFICACIÓN Y ENTREGAS (DOCENTE) ---
+        async function loadCourseSubmissions(courseId) {
+            const tbody = document.getElementById('submissionsTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Cargando entregas...</td></tr>';
+            try {
+                const resp = await fetch('/api/submissions?course_id=' + courseId + '&inst_id=' + getInstId() + '&program_id=' + getProgramId());
+                const subs = await resp.json();
+                if (!subs || subs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color:var(--text-muted);">No hay entregas registradas para este curso.</td></tr>';
+                    return;
+                }
+                
+                let html = '';
+                subs.forEach(sub => {
+                    const statusBadge = sub.status === 'graded' 
+                        ? '<span style="background:#e6f4ea; color:#137333; padding:4px 8px; border-radius:12px; font-size:0.75rem; font-weight:700;">Calificado (' + parseFloat(sub.grade).toFixed(1) + ')</span>'
+                        : '<span style="background:#fef7e0; color:#b06000; padding:4px 8px; border-radius:12px; font-size:0.75rem; font-weight:700;">Pendiente</span>';
+                    
+                    const actName = activeCourse && activeCourse.units && activeCourse.units[sub.unit_id] && activeCourse.units[sub.unit_id].activities && activeCourse.units[sub.unit_id].activities.find(a => a.id === sub.activity_id)
+                        ? activeCourse.units[sub.unit_id].activities.find(a => a.id === sub.activity_id).title
+                        : 'Actividad ID: ' + sub.activity_id;
+
+                    html += `
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 12px 15px;"><strong>${escapeHtml(sub.student_name || sub.student_email)}</strong><br><span style="font-size:0.75rem;color:var(--text-muted);">${sub.student_email}</span></td>
+                            <td style="padding: 12px 15px; font-size:0.85rem;">${escapeHtml(actName)}</td>
+                            <td style="padding: 12px 15px;">${statusBadge}</td>
+                            <td style="padding: 12px 15px;">
+                                <button class="btn-primary" style="font-size:0.75rem; padding:6px 12px;" onclick="openGradingModal('${sub.id}', '${escapeHtml(sub.content).replace(/'/g, "\\'")}', '${sub.grade || ''}', '${escapeHtml(sub.feedback || '').replace(/'/g, "\\'")}')">Calificar</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color:red;">Error al cargar entregas.</td></tr>';
+            }
+        }
+
+        function openGradingModal(subId, content, grade, feedback) {
+            document.getElementById('gradeSubId').value = subId;
+            document.getElementById('gradeContent').textContent = content;
+            document.getElementById('gradeScore').value = grade;
+            document.getElementById('gradeFeedback').value = feedback;
+            document.getElementById('gradingModal').style.display = 'flex';
+        }
+
+        async function processGrading() {
+            const subId = document.getElementById('gradeSubId').value;
+            const score = document.getElementById('gradeScore').value;
+            const feedback = document.getElementById('gradeFeedback').value;
+            
+            if (!score || isNaN(score) || parseFloat(score) < 1.0 || parseFloat(score) > 5.0) {
+                alert("Por favor ingresa una calificación válida entre 1.0 y 5.0");
+                return;
+            }
+            
+            try {
+                const courseId = document.getElementById('editCourseId').value;
+                const checkResp = await fetch('/api/submissions?course_id=' + courseId + '&inst_id=' + getInstId() + '&program_id=' + getProgramId());
+                const subs = await checkResp.json();
+                const targetSub = subs.find(s => s.id === subId);
+                
+                if (targetSub) {
+                    targetSub.grade = parseFloat(score);
+                    targetSub.feedback = feedback.trim();
+                    targetSub.status = 'graded';
+                    
+                    const response = await fetch('/api/submissions?inst_id=' + getInstId() + '&program_id=' + getProgramId(), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(targetSub)
+                    });
+                    
+                    if (response.ok) {
+                        document.getElementById('gradingModal').style.display = 'none';
+                        loadCourseSubmissions(courseId);
+                    } else {
+                        alert("Error guardando calificación");
+                    }
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Error al procesar la calificación");
             }
         }
 
