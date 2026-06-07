@@ -1206,7 +1206,8 @@
                 const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
                 const res = await resp.json();
                 
-                const teachers = Array.isArray(res) ? res : (res.data || []);
+                let teachers = Array.isArray(res) ? res : (res.data || []);
+                teachers = teachers.filter(t => t && t.id);
                 let html = '';
                 
                 if (teachers.length === 0) {
@@ -1302,7 +1303,8 @@
                 const resp = await fetch(`/api/students?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const res = await resp.json();
                 
-                const students = Array.isArray(res) ? res : (res.data || []);
+                let students = Array.isArray(res) ? res : (res.data || []);
+                students = students.filter(s => s && s.id);
                 let html = '';
                 
                 if (students.length === 0) {
