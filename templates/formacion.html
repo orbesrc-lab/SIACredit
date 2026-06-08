@@ -1121,6 +1121,18 @@
         
         document.getElementById('userInfo').textContent = user ? user.email : '';
 
+        // Ocultar items del sidebar que no sean formación para profesor y estudiante
+        if (user && (user.role === 'profesor' || user.role === 'estudiante')) {
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('.sidebar-item').forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    if (!text.includes('formacion') && !text.includes('formación') && !text.includes('cerrar')) {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        }
+
         function logout() {
             localStorage.removeItem('siac_user');
             window.location.href = 'index.html';
