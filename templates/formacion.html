@@ -1115,7 +1115,7 @@
         if (!user) { window.location.href = 'login.html'; }
         
         // Bloqueo de acceso directo para roles de la institución
-        if (user && user.role !== 'admin' && user.role !== 'estudiante') {
+        if (user && user.role !== 'admin' && user.role !== 'estudiante' && user.role !== 'profesor') {
             window.location.href = 'dashboard.html';
         }
         

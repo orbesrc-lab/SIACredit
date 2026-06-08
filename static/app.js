@@ -13,7 +13,7 @@ function getProgramId() {
 (function() {
     try {
         const user = JSON.parse(localStorage.getItem('siac_user'));
-        if (user && user.role === 'estudiante') {
+        if (user && (user.role === 'estudiante' || user.role === 'profesor')) {
             const path = window.location.pathname.toLowerCase();
             if (!path.includes('formacion.html') && !path.includes('login') && !path.includes('registro') && path !== '/' && !path.includes('index.html')) {
                 window.location.href = 'formacion.html';
@@ -51,8 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
         menuItems.forEach(item => {
             const text = item.textContent.toLowerCase();
             
-            // Ocultar Formación para cualquier rol excepto super-admin
-            if (role !== 'admin') {
+            // Ocultar Formación para cualquier rol excepto super-admin, profesor y estudiante
+            if (role !== 'admin' && role !== 'profesor' && role !== 'estudiante') {
                 if (text.includes('formacion') || text.includes('formación')) {
                     item.style.display = 'none';
                 }
@@ -63,9 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!text.includes('dashboard') && !text.includes('evidencias') && !text.includes('cerrar')) {
                     item.style.display = 'none';
                 }
-            } else if (role === 'estudiante') {
-                // El estudiante solo debe ver Cerrar Sesión en el menú (Formación ya está oculta por la regla de admin)
-                if (!text.includes('cerrar')) {
+            } else if (role === 'estudiante' || role === 'profesor') {
+                // El estudiante/profesor solo debe ver Formación y Cerrar Sesión en el menú
+                if (!text.includes('cerrar') && !text.includes('formacion') && !text.includes('formación')) {
                     item.style.display = 'none';
                 }
             } else if (role === 'lider') {
