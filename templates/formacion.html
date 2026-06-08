@@ -3656,17 +3656,15 @@
                                 🎓 Aula Virtual de Aprendizaje
                             </h2>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
                             <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.3;">
                                 <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);" id="studentHeaderName">Cargando...</span>
                                 <span style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(user.email)}</span>
                             </div>
-                            <div style="height: 24px; width: 1px; background: var(--border-color);"></div>
-                            <button onclick="openProfileModal()" class="btn-secondary" style="padding: 8px 16px; font-size: 0.85rem; font-weight: 600; border: 1.5px solid #3b82f6; color: #3b82f6; background: transparent; display: flex; align-items: center; gap: 6px; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s;">
-                                ⚙️ Mi Perfil
-                            </button>
-                            <button onclick="logout()" class="btn-secondary" style="padding: 8px 16px; font-size: 0.85rem; font-weight: 600; border: 1.5px solid #ef4444; color: #ef4444; background: transparent; display: flex; align-items: center; gap: 6px; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s;">
-                                🚪 Cerrar Sesión
+                            <img class="user-avatar" src="https://ui-avatars.com/api/?name=${escapeHtml(user.email)}&background=random" title="Configurar Mi Perfil" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="openProfileModal()">
+                            <div style="height: 24px; width: 1px; background: var(--border-color); margin: 0 5px;"></div>
+                            <button onclick="logout()" title="Cerrar Sesión" style="padding: 8px; font-size: 1.2rem; color: #ef4444; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='transparent'">
+                                🚪
                             </button>
                         </div>
                     `;
