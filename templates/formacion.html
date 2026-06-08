@@ -1577,17 +1577,8 @@
                 
                 const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
                 if (user.role === 'profesor') {
+                    // El profesor solo ve sus propios cursos
                     courses = courses.filter(c => c.teacher_email === user.email);
-                    
-                    // Ocultar pestañas de administración general
-                    const tabTeachers = document.getElementById('tabTeachers');
-                    if (tabTeachers) tabTeachers.style.display = 'none';
-                    
-                    const tabStudents = document.getElementById('tabStudents');
-                    if (tabStudents) tabStudents.style.display = 'none';
-                    
-                    const btnCreate = document.querySelector('[onclick="openCreateCourseModal()"]');
-                    if (btnCreate) btnCreate.style.display = 'none';
                 }
 
                 if (courses.length === 0) {
