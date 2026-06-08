@@ -543,6 +543,7 @@
                     <!-- Sub Tab Navigation -->
                     <div class="sub-tab-nav">
                         <button class="sub-tab-btn active" id="subTabBtnGeneral" onclick="switchSubTab('general')">⚙️ Datos Generales</button>
+                        <button class="sub-tab-btn" id="subTabBtnAnnouncements" onclick="switchSubTab('announcements')">📢 Anuncios</button>
                         <button class="sub-tab-btn" id="subTabBtnSyllabus" onclick="switchSubTab('syllabus')">📖 Plan de Estudios y Recursos</button>
                         <button class="sub-tab-btn" id="subTabBtnSync" onclick="switchSubTab('sync')">🎥 Clases Sincrónicas</button>
                         <button class="sub-tab-btn" id="subTabBtnAnalytics" onclick="switchSubTab('analytics')">📊 Analíticas y Progreso</button>
@@ -624,6 +625,33 @@
                         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top:15px;">
                             <button class="btn-secondary" onclick="closeEditor()">Cancelar</button>
                             <button class="btn-primary" onclick="saveCourseGeneralInfo()">Guardar Cambios Generales</button>
+                        </div>
+                    </div>
+
+                    <!-- SUB-TAB: ANNOUNCEMENTS -->
+                    <div id="subTabAnnouncements" class="sub-tab-content" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <div>
+                                <h3 style="font-size:1.05rem; margin:0;">Tablón de Anuncios del Curso</h3>
+                                <p style="font-size:0.8rem; color:var(--text-muted); margin:3px 0 0 0;">Publica avisos importantes que los estudiantes verán al entrar al curso.</p>
+                            </div>
+                        </div>
+                        
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:20px; margin-bottom:20px;">
+                            <h4 style="margin-bottom:15px; font-size:0.95rem; color:var(--text-color);">Nuevo Anuncio</h4>
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label>Título del Anuncio</label>
+                                <input type="text" id="announcementTitle" placeholder="Ej: Bienvenidos a la Unidad 1">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label>Mensaje</label>
+                                <textarea id="announcementContent" rows="3" placeholder="Escribe el mensaje para los estudiantes..."></textarea>
+                            </div>
+                            <button class="btn-primary" onclick="addAnnouncement()">Publicar Anuncio</button>
+                        </div>
+                        
+                        <div id="announcementsList" style="display: flex; flex-direction: column; gap: 15px;">
+                            <!-- Dinámicamente cargados -->
                         </div>
                     </div>
 
@@ -775,6 +803,12 @@
                     <div class="student-classroom-grid">
                         <!-- Columna Izquierda: Temario y Recursos por Unidad -->
                         <div>
+                            <!-- Anuncios Recientes -->
+                            <div id="studentAnnouncementsSection" style="margin-bottom: 25px; display: none;">
+                                <h3 style="font-size: 1.1rem; border-bottom: 2px solid #3b82f6; padding-bottom: 5px; margin-bottom: 15px; color: var(--text-main);">📢 Anuncios Recientes</h3>
+                                <div id="studentAnnouncementsContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                            </div>
+
                             <h3 style="font-size: 1.1rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; margin-bottom: 15px; color: var(--text-main);">📖 Unidades Académicas y Contenidos</h3>
                             <div id="studentUnitsContainer">
                                 <!-- Dynamic -->
@@ -783,6 +817,12 @@
 
                         <!-- Columna Derecha: Información Complementaria y Videollamadas -->
                         <div>
+                            <!-- Calendario de Actividades -->
+                            <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                                <h4 style="font-size: 0.9rem; margin-top: 0; color: #d97706;">📅 Calendario del Curso</h4>
+                                <div id="studentCalendarList" style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;"></div>
+                            </div>
+
                             <div style="background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
                                 <h4 style="font-size: 0.9rem; margin-top: 0; color: var(--primary-color);">🎯 Competencias y Resultados</h4>
                                 <strong style="font-size: 0.8rem; display: block; margin-top: 10px;">Resultados de Aprendizaje:</strong>
@@ -1170,6 +1210,9 @@
             } else if (subTabId === 'sync') {
                 document.getElementById('subTabBtnSync').classList.add('active');
                 document.getElementById('subTabSync').style.display = 'block';
+            } else if (subTabId === 'announcements') {
+                document.getElementById('subTabBtnAnnouncements').classList.add('active');
+                document.getElementById('subTabAnnouncements').style.display = 'block';
             } else if (subTabId === 'submissions') {
                 document.getElementById('subTabBtnSubmissions').classList.add('active');
                 document.getElementById('subTabSubmissions').style.display = 'block';
@@ -1679,6 +1722,7 @@
                 document.getElementById('edit_level').value = activeCourse.level || 'Principiante';
                 document.getElementById('edit_description').value = activeCourse.description || '';
                 
+                renderAnnouncementsList();
                 renderOutcomesList();
                 renderCompetenciesList();
                 renderSyllabusList();
@@ -1752,6 +1796,57 @@
             alert("✅ Información general guardada.");
             loadCoursesList();
             document.getElementById('editorCourseTitle').textContent = `Administrar Curso: ${activeCourse.title}`;
+        }
+
+        function renderAnnouncementsList() {
+            const listDiv = document.getElementById('announcementsList');
+            listDiv.innerHTML = '';
+            const announcements = activeCourse.announcements || [];
+            
+            if (announcements.length === 0) {
+                listDiv.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 0.9rem;">No hay anuncios publicados.</div>';
+                return;
+            }
+            
+            announcements.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach((ann, idx) => {
+                const div = document.createElement('div');
+                div.style.cssText = 'background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; display: flex; justify-content: space-between;';
+                div.innerHTML = `
+                    <div>
+                        <h4 style="margin: 0 0 5px 0; font-size: 1rem; color: var(--primary-color);">${escapeHtml(ann.title)}</h4>
+                        <p style="margin: 0 0 8px 0; font-size: 0.9rem; color: var(--text-color);">${escapeHtml(ann.content)}</p>
+                        <small style="color: var(--text-muted);">🗓️ Publicado: ${new Date(ann.date).toLocaleDateString()}</small>
+                    </div>
+                    <button class="btn-ghost" onclick="deleteAnnouncement('${ann.id}')" style="color: #ef4444;" title="Eliminar Anuncio">🗑️</button>
+                `;
+                listDiv.appendChild(div);
+            });
+        }
+
+        function addAnnouncement() {
+            const title = document.getElementById('announcementTitle').value.trim();
+            const content = document.getElementById('announcementContent').value.trim();
+            if (!title || !content) { alert('El título y mensaje son obligatorios.'); return; }
+            
+            activeCourse.announcements = activeCourse.announcements || [];
+            activeCourse.announcements.push({
+                id: 'ann_' + Date.now(),
+                title: title,
+                content: content,
+                date: new Date().toISOString()
+            });
+            
+            document.getElementById('announcementTitle').value = '';
+            document.getElementById('announcementContent').value = '';
+            renderAnnouncementsList();
+            updateCourseOnServer();
+        }
+
+        function deleteAnnouncement(annId) {
+            if(!confirm("¿Seguro que deseas eliminar este anuncio?")) return;
+            activeCourse.announcements = activeCourse.announcements.filter(a => a.id !== annId);
+            renderAnnouncementsList();
+            updateCourseOnServer();
         }
 
         function renderOutcomesList() {
@@ -2337,6 +2432,54 @@
                 } else { teacherProfileDiv.style.display = 'none'; }
                 
                 loadStudentGamification(courseId);
+
+                // Renderizar Anuncios
+                const announcementsDiv = document.getElementById('studentAnnouncementsContainer');
+                const announcementsSection = document.getElementById('studentAnnouncementsSection');
+                const announcements = course.announcements || [];
+                if (announcements.length > 0) {
+                    announcementsSection.style.display = 'block';
+                    announcementsDiv.innerHTML = [...announcements].sort((a,b) => new Date(b.date) - new Date(a.date)).map(ann => `
+                        <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px; border-radius: 6px;">
+                            <strong style="display:block; color: #1e3a8a; font-size: 0.95rem;">${escapeHtml(ann.title)}</strong>
+                            <span style="font-size: 0.75rem; color: #64748b;">🗓️ ${new Date(ann.date).toLocaleDateString()}</span>
+                            <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #334155;">${escapeHtml(ann.content)}</p>
+                        </div>
+                    `).join('');
+                } else {
+                    announcementsSection.style.display = 'none';
+                }
+
+                // Renderizar Calendario (Extraer fechas de meetings y activities)
+                const calendarEvents = [];
+                Object.values(course.meetings || {}).forEach(m => {
+                    if(m.date) calendarEvents.push({ date: new Date(m.date), title: `Videoconferencia: ${m.title}`, type: 'meeting' });
+                });
+                Object.values(course.units || {}).forEach((u, uIdx) => {
+                    Object.values(u.activities || {}).forEach(act => {
+                        if(act.dueDate) calendarEvents.push({ date: new Date(act.dueDate), title: `Entrega: ${act.title} (U${uIdx+1})`, type: 'activity' });
+                    });
+                });
+                
+                const calendarDiv = document.getElementById('studentCalendarList');
+                if (calendarEvents.length === 0) {
+                    calendarDiv.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">No hay eventos programados.</div>';
+                } else {
+                    calendarEvents.sort((a,b) => a.date - b.date);
+                    calendarDiv.innerHTML = calendarEvents.map(ev => {
+                        const icon = ev.type === 'meeting' ? '🎥' : '📝';
+                        const color = ev.type === 'meeting' ? '#10b981' : '#f59e0b';
+                        return `
+                            <div style="display: flex; gap: 10px; align-items: flex-start; font-size: 0.8rem; padding-bottom: 5px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <span style="font-size: 1rem;">${icon}</span>
+                                <div>
+                                    <strong style="display:block; color: var(--text-main);">${escapeHtml(ev.title)}</strong>
+                                    <span style="color: ${color}; font-weight: 500;">🗓️ ${ev.date.toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
 
                 const outcomesUl = document.getElementById('studentOutcomesList');
                 outcomesUl.innerHTML = Object.values(course.outcomes || {}).map(o => `<li>${escapeHtml(o)}</li>`).join('') || '<li>Sin resultados registrados.</li>';
