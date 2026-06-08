@@ -3830,23 +3830,29 @@
                 status = 'graded';
             }
             const payload = {
-                user_id: userEmail,
                 course_id: activeCourse.course_id,
                 unit_id: unit.id,
                 activity_id: evId,
-                content: JSON.stringify(studentAnswers)
+                student_email: user.email,
+                student_name: user.name || user.email.split('@')[0],
+                content: "Respuestas del Examen:\n" + JSON.stringify(studentAnswers, null, 2),
+                submitted_at: new Date().toISOString(),
+                status: status
             };
             try {
-                const res = await fetch(`https://siacmen.vercel.app/api/submissions?inst_id=${window.INST_ID}`, {
+                const res = await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
                     method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
                 });
-                if (res.ok && status === 'graded') {
-                    await fetch(`https://siacmen.vercel.app/api/submissions?inst_id=${window.INST_ID}`, {
-                        method: 'PUT', headers: {'Content-Type':'application/json'},
-                        body: JSON.stringify({ user_id: userEmail, course_id: activeCourse.course_id, activity_id: evId, grade: finalGrade, feedback: 'Calificado automáticamente por el sistema.' })
-                    });
-                }
+                
                 if (res.ok) {
+                    const savedData = await res.json();
+                    if (status === 'graded' && savedData.data && savedData.data.id) {
+                        await fetch(`/api/submissions/${savedData.data.id}/grade?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                            method: 'PUT', headers: {'Content-Type':'application/json'},
+                            body: JSON.stringify({ grade: finalGrade, feedback: 'Calificado automáticamente por el sistema.' })
+                        });
+                    }
+                    
                     document.getElementById('takeQuizModal').style.display = 'none';
                     const msg = requiresManual
                         ? '✅ Respuestas enviadas. Pendiente de revisión por el docente.'
