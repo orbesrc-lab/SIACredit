@@ -800,56 +800,74 @@
                         </div>
                     </div>
 
-                    <div class="student-classroom-grid">
-                        <!-- Columna Izquierda: Temario y Recursos por Unidad -->
-                        <div>
-                            <!-- Anuncios Recientes -->
-                            <div id="studentAnnouncementsSection" style="margin-bottom: 25px; display: none;">
-                                <h3 style="font-size: 1.1rem; border-bottom: 2px solid #3b82f6; padding-bottom: 5px; margin-bottom: 15px; color: var(--text-main);">📢 Anuncios Recientes</h3>
-                                <div id="studentAnnouncementsContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
-                            </div>
+                    <!-- STUDENT TABS NAV -->
+                    <div class="sub-tab-nav" style="margin-top: 25px;">
+                        <button class="sub-tab-btn active" id="stuTabBtnMain" onclick="switchStudentTab('main')">🚀 Panel Principal</button>
+                        <button class="sub-tab-btn" id="stuTabBtnUnits" onclick="switchStudentTab('units')">📖 Temario</button>
+                        <button class="sub-tab-btn" id="stuTabBtnForum" onclick="switchStudentTab('forum')">💬 Foro del Curso</button>
+                    </div>
 
-                            <h3 style="font-size: 1.1rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; margin-bottom: 15px; color: var(--text-main);">📖 Unidades Académicas y Contenidos</h3>
-                            <div id="studentUnitsContainer">
-                                <!-- Dynamic -->
-                            </div>
-                        </div>
-
-                        <!-- Columna Derecha: Información Complementaria y Videollamadas -->
-                        <div>
-                            <!-- Calendario de Actividades -->
-                            <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
-                                <h4 style="font-size: 0.9rem; margin-top: 0; color: #d97706;">📅 Calendario del Curso</h4>
-                                <div id="studentCalendarList" style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;"></div>
-                            </div>
-
-                            <div style="background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
-                                <h4 style="font-size: 0.9rem; margin-top: 0; color: var(--primary-color);">🎯 Competencias y Resultados</h4>
-                                <strong style="font-size: 0.8rem; display: block; margin-top: 10px;">Resultados de Aprendizaje:</strong>
-                                <ul id="studentOutcomesList" style="font-size: 0.8rem; padding-left: 15px; margin-top: 5px; line-height: 1.5;"></ul>
-                                <strong style="font-size: 0.8rem; display: block; margin-top: 10px;">Competencias:</strong>
-                                <ul id="studentCompetenciesList" style="font-size: 0.8rem; padding-left: 15px; margin-top: 5px; line-height: 1.5;"></ul>
-                            </div>
-
-                            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 15px;">
-                                <h4 style="font-size: 0.9rem; margin-top: 0; color: #10b981;">🎥 Sala Virtual Integrada</h4>
-                                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Ingresa a la videollamada en vivo con el docente y tus compañeros.</p>
-                                <div id="studentMeetingsList" style="margin-bottom: 10px;"></div>
-                                <button class="btn-primary" style="width: 100%; background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 10px; font-weight: bold; border-radius: 8px;" id="btnOpenJitsiStudent">Ingresar a Sala Virtual 🚀</button>
-                            </div>
-                            
-                            <!-- Foro del Curso -->
-                            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 15px; margin-top: 20px; display: flex; flex-direction: column; height: 400px;">
-                                <h4 style="font-size: 0.9rem; margin-top: 0; color: #3b82f6;">💬 Foro / Chat del Curso</h4>
-                                <div id="studentForumMessages" style="flex: 1; background: white; border-radius: 8px; border: 1px solid #e2e8f0; overflow-y: auto; padding: 10px; margin-bottom: 10px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px;">
-                                    <!-- Messages dynamic -->
+                    <!-- STUDENT TAB CONTENT: MAIN -->
+                    <div id="stuTabMain" class="sub-tab-content" style="display: block;">
+                        <div class="student-classroom-grid">
+                            <div>
+                                <!-- Anuncios Recientes -->
+                                <div id="studentAnnouncementsSection" style="margin-bottom: 25px; display: none;">
+                                    <h3 style="font-size: 1.1rem; border-bottom: 2px solid #3b82f6; padding-bottom: 5px; margin-bottom: 15px; color: var(--text-main);">📢 Anuncios Recientes</h3>
+                                    <div id="studentAnnouncementsContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
                                 </div>
-                                <div style="display: flex; gap: 8px;">
-                                    <input type="text" id="studentForumInput" placeholder="Escribe un mensaje..." style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
-                                    <button class="btn-primary" id="btnSendStudentForum" style="padding: 8px 15px; background: #3b82f6; border: none; border-radius: 6px; color: white;">Enviar</button>
+                                <!-- Sala Virtual -->
+                                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                                    <h4 style="font-size: 0.9rem; margin-top: 0; color: #10b981;">🎥 Sala Virtual Integrada</h4>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Ingresa a la videollamada en vivo con el docente y tus compañeros.</p>
+                                    <div id="studentMeetingsList" style="margin-bottom: 10px;"></div>
+                                    <button class="btn-primary" style="width: 100%; background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 10px; font-weight: bold; border-radius: 8px;" id="btnOpenJitsiStudent">Ingresar a Sala Virtual 🚀</button>
+                                </div>
+                            </div>
+                            <div>
+                                <!-- Calendario de Actividades -->
+                                <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                                    <h4 style="font-size: 0.9rem; margin-top: 0; color: #d97706;">📅 Calendario del Curso</h4>
+                                    <div id="studentCalendarList" style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;"></div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- STUDENT TAB CONTENT: UNITS -->
+                    <div id="stuTabUnits" class="sub-tab-content" style="display: none;">
+                        <div class="student-classroom-grid">
+                            <div>
+                                <h3 style="font-size: 1.1rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; margin-bottom: 15px; color: var(--text-main);">📖 Unidades Académicas y Contenidos</h3>
+                                <div id="studentUnitsContainer">
+                                    <!-- Dynamic -->
+                                </div>
+                            </div>
+                            <div>
+                                <div style="background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                                    <h4 style="font-size: 0.9rem; margin-top: 0; color: var(--primary-color);">🎯 Competencias y Resultados</h4>
+                                    <strong style="font-size: 0.8rem; display: block; margin-top: 10px;">Resultados de Aprendizaje:</strong>
+                                    <ul id="studentOutcomesList" style="font-size: 0.8rem; padding-left: 15px; margin-top: 5px; line-height: 1.5;"></ul>
+                                    <strong style="font-size: 0.8rem; display: block; margin-top: 10px;">Competencias:</strong>
+                                    <ul id="studentCompetenciesList" style="font-size: 0.8rem; padding-left: 15px; margin-top: 5px; line-height: 1.5;"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STUDENT TAB CONTENT: FORUM -->
+                    <div id="stuTabForum" class="sub-tab-content" style="display: none;">
+                        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; height: 500px;">
+                            <h4 style="font-size: 0.9rem; margin-top: 0; color: #3b82f6;">💬 Foro / Chat del Curso</h4>
+                            <div id="studentForumMessages" style="flex: 1; background: white; border-radius: 8px; border: 1px solid #e2e8f0; overflow-y: auto; padding: 10px; margin-bottom: 10px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px;">
+                                <!-- Messages dynamic -->
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="studentForumInput" placeholder="Escribe un mensaje..." style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+                                <button class="btn-primary" id="btnSendStudentForum" style="padding: 8px 15px; background: #3b82f6; border: none; border-radius: 6px; color: white;">Enviar</button>
+                            </div>
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -2777,7 +2795,29 @@
                 
                 document.getElementById('studentCourseViewer').style.display = 'block';
                 document.getElementById('studentCourseViewer').scrollIntoView({ behavior: 'smooth' });
+                initForum(courseId, false);
+                switchStudentTab('main');
             } catch(e) { alert("Error al ingresar al curso: " + e.message); console.error(e); }
+        }
+
+        function switchStudentTab(tabId) {
+            ['stuTabBtnMain', 'stuTabBtnUnits', 'stuTabBtnForum'].forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+            ['stuTabMain', 'stuTabUnits', 'stuTabForum'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+            
+            if (tabId === 'main') {
+                document.getElementById('stuTabBtnMain').classList.add('active');
+                document.getElementById('stuTabMain').style.display = 'block';
+            } else if (tabId === 'units') {
+                document.getElementById('stuTabBtnUnits').classList.add('active');
+                document.getElementById('stuTabUnits').style.display = 'block';
+            } else if (tabId === 'forum') {
+                document.getElementById('stuTabBtnForum').classList.add('active');
+                document.getElementById('stuTabForum').style.display = 'block';
+            }
         }
 
         function closeStudentCourseViewer() {
