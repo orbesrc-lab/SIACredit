@@ -2539,7 +2539,7 @@
                     const formData = new FormData();
                     formData.append('file', fileInput.files[0]);
                     
-                    const uploadResp = await fetch('/api/upload', {
+                    const uploadResp = await fetch('/api/lms_upload', {
                         method: 'POST',
                         body: formData
                     });

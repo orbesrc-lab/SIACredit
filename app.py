@@ -2618,7 +2618,7 @@ def get_course_analytics(course_id):
         })
     return jsonify({"course_id": course_id, "total_activities": total_activities, "students": analytics_data})
 
-@app.route('/api/upload', methods=['POST'])
+@app.route('/api/lms_upload', methods=['POST'])
 def api_upload_lms_file():
     if 'file' not in request.files:
         return jsonify({"status": "error", "message": "No file part"}), 400
