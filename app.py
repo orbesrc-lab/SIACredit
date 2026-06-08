@@ -1209,6 +1209,38 @@ def change_user_role(user_id):
             update_payload["inst_id"] = new_inst_id
 
         supabase.table('users').update(update_payload).eq("id", user_id).execute()
+        
+        # Integrar con el módulo de formación (LMS) si el rol es docente o estudiante
+        try:
+            user_res = supabase.table('users').select("email, inst_id").eq("id", user_id).execute()
+            if user_res.data:
+                user_email = user_res.data[0].get('email', '')
+                inst_id = new_inst_id if new_inst_id else user_res.data[0].get('inst_id', 1)
+                
+                if new_role == 'profesor':
+                    teachers = formacion_storage.load_teachers(inst_id)
+                    if not any(t.get('email') == user_email for t in teachers):
+                        import uuid
+                        new_teacher = {
+                            "id": str(uuid.uuid4())[:8],
+                            "name": update_payload.get("name", current_name),
+                            "email": user_email,
+                            "specialty": "Docente General"
+                        }
+                        formacion_storage.save_teacher(inst_id, new_teacher)
+                elif new_role == 'estudiante':
+                    students = formacion_storage.load_students(inst_id)
+                    if not any(s.get('email') == user_email for s in students):
+                        import uuid
+                        new_student = {
+                            "id": str(uuid.uuid4())[:8],
+                            "name": update_payload.get("name", current_name),
+                            "email": user_email
+                        }
+                        formacion_storage.save_student(inst_id, new_student)
+        except Exception as lms_err:
+            print(f"Error al integrar con LMS: {lms_err}")
+
         return jsonify({"status": "success", "message": f"Rol actualizado a '{new_role}' correctamente."})
     except Exception as e:
         print(f"Error al cambiar rol del usuario {user_id}: {e}")
