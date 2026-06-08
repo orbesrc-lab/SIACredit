@@ -1009,6 +1009,45 @@
         </div>
     </div>
 
+    <!-- MODAL: PROGRAMAR CLASE -->
+    <div id="syncMeetingModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1001; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:16px; padding:30px; width:460px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="margin-bottom:20px; font-size:1.2rem;">Programar Clase Sincrónica</h3>
+            <div class="form-group">
+                <label>Título de la Clase</label>
+                <input type="text" id="sync_title" placeholder="Ej: Introducción a Analítica">
+            </div>
+            <div class="form-grid" style="margin-top:15px; grid-template-columns:1fr 1fr;">
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" id="sync_date">
+                </div>
+                <div class="form-group">
+                    <label>Hora</label>
+                    <input type="time" id="sync_time">
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Plataforma</label>
+                <select id="sync_platform">
+                    <option value="Jitsi Meet">Jitsi Meet (Integrada)</option>
+                    <option value="Zoom">Zoom</option>
+                    <option value="Google Meet">Google Meet</option>
+                    <option value="Microsoft Teams">Microsoft Teams</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>URL de Acceso (Enlace)</label>
+                <input type="url" id="sync_url" placeholder="https://meet.jit.si/SKEL-..." value="https://meet.jit.si/SKEL-">
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
+                <button class="btn-ghost" onclick="closeMeetingPrompt()">Cancelar</button>
+                <button class="btn-primary" onclick="scheduleSyncClass()">Programar Clase</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL: PRESENTAR EVALUACIÓN (ESTUDIANTE) -->
     <div id="quizModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1001; align-items:center; justify-content:center;">
         <div id="quizModalContent" style="background:white; border-radius:16px; padding:30px; width:500px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.3); max-height:85vh; overflow-y:auto;">
@@ -2292,6 +2331,20 @@
             });
         }
 
+        function addMeetingPrompt() {
+            document.getElementById('sync_title').value = '';
+            const randomCode = Math.floor(Math.random() * 1000000);
+            document.getElementById('sync_url').value = `https://meet.jit.si/SKEL-${randomCode}`;
+            document.getElementById('sync_date').value = '';
+            document.getElementById('sync_time').value = '';
+            document.getElementById('sync_platform').value = 'Jitsi Meet';
+            document.getElementById('syncMeetingModal').style.display = 'flex';
+        }
+
+        function closeMeetingPrompt() {
+            document.getElementById('syncMeetingModal').style.display = 'none';
+        }
+
         async function scheduleSyncClass() {
             const title = document.getElementById('sync_title').value.trim();
             const url = document.getElementById('sync_url').value.trim();
@@ -2307,10 +2360,7 @@
             if (!activeCourse.meetings) activeCourse.meetings = [];
             activeCourse.meetings.push(newClass);
             
-            document.getElementById('sync_title').value = '';
-            document.getElementById('sync_url').value = '';
-            document.getElementById('sync_date').value = '';
-            document.getElementById('sync_time').value = '';
+            closeMeetingPrompt();
             
             renderMeetingsList();
             await updateCourseOnServer();
