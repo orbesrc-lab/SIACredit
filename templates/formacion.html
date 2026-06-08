@@ -568,12 +568,6 @@
                                 <input type="text" id="edit_certifier" placeholder="Ej: SKEL, UNICUCES">
                             </div>
                             <div class="form-group">
-                                <label>Profesor Asignado</label>
-                                <select id="edit_teacher_id">
-                                    <option value="">-- Seleccionar Docente --</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
                                 <label>Categoría</label>
                                 <select id="edit_category">
                                     <option value="Educación">Educación</option>
@@ -1510,11 +1504,12 @@
             const teacherSelect = document.getElementById('course_teacher_email');
             
             const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            document.getElementById('course_teacher_group').style.display = 'block';
             if (user.role === 'profesor') {
-                document.getElementById('course_teacher_group').style.display = 'none';
                 teacherSelect.value = user.email; // Se asigna automáticamente a sí mismo
+                teacherSelect.disabled = true;
             } else {
-                document.getElementById('course_teacher_group').style.display = 'block';
+                teacherSelect.disabled = false;
             }
             
             document.getElementById('courseModal').style.display = 'flex';
@@ -1670,11 +1665,13 @@
                 document.getElementById('edit_certifier').value = activeCourse.certifier || '';
                 
                 const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+                document.getElementById('edit_course_teacher_group').style.display = 'block';
+                await preloadTeacherDropdownForm('edit_teacher_email', activeCourse.teacher_email);
+                const editTeacherSelect = document.getElementById('edit_teacher_email');
                 if (user.role === 'profesor') {
-                    document.getElementById('edit_course_teacher_group').style.display = 'none';
+                    editTeacherSelect.disabled = true;
                 } else {
-                    document.getElementById('edit_course_teacher_group').style.display = 'block';
-                    await preloadTeacherDropdownForm('edit_teacher_email', activeCourse.teacher_email);
+                    editTeacherSelect.disabled = false;
                 }
 
                 document.getElementById('edit_category').value = activeCourse.category || 'Educación';
