@@ -1149,12 +1149,10 @@ def activate_user(user_id):
         # Get current user to remove [PENDING] or [ASPIRANTE] prefix
         user_res = supabase.table('users').select("name, role, email").eq("id", user_id).execute()
         if user_res.data:
+            import re
             current_name = user_res.data[0].get('name', '')
             user_email = user_res.data[0].get('email', '')
-            clean_name = current_name.replace('[PENDING] ', '').replace('[PENDING]', '').replace('[ASPIRANTE] ', '').replace('[ASPIRANTE]', '')
-            
-            if '[ASPIRANTE]' in current_name:
-                new_role = 'estudiante'
+            clean_name = re.sub(r'\[(?:PENDING|ASPIRANTE)[^\]]*\]\s*', '', current_name).strip()
 
             supabase.table('users').update({"role": new_role, "name": clean_name}).eq("id", user_id).execute()
             
@@ -1164,7 +1162,7 @@ def activate_user(user_id):
             for s in students:
                 if s.get('email') == user_email:
                     s_name = s.get('name', '')
-                    if '[ASPIRANTE]' in s_name or '[PENDING]' in s_name:
+                    if '[ASPIRANTE]' in s_name or '[PENDING' in s_name:
                         s['name'] = clean_name
                         formacion_storage.save_student(inst_id, s)
         else:
@@ -1186,7 +1184,7 @@ def change_user_role(user_id):
         return jsonify({"status": "error", "message": "El campo 'role' es requerido."}), 400
 
     # Roles válidos que se pueden asignar (no se puede asignar 'admin' desde aquí)
-    allowed_roles = {'lider', 'operativo', 'inst_admin'}
+    allowed_roles = {'lider', 'operativo', 'inst_admin', 'estudiante', 'profesor'}
     if new_role not in allowed_roles:
         return jsonify({"status": "error", "message": f"Rol inválido. Roles permitidos: {', '.join(allowed_roles)}"}), 400
 
@@ -1203,8 +1201,8 @@ def change_user_role(user_id):
         update_payload = {"role": new_role}
         # Limpiar prefijo [PENDING] si lo tiene
         current_name = target_res.data[0].get('name', '') or ''
-        if '[PENDING]' in current_name:
-            update_payload["name"] = current_name.replace('[PENDING] ', '').replace('[PENDING]', '').strip()
+        import re
+        update_payload["name"] = re.sub(r'\[(?:PENDING|ASPIRANTE)[^\]]*\]\s*', '', current_name).strip()
 
         # Si se proporciona un inst_id y el rol es inst_admin, actualizar institución
         if new_inst_id is not None and new_role == 'inst_admin':
