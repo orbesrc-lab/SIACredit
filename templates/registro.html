@@ -69,9 +69,11 @@
                 const select = document.getElementById('instSelect');
                 if (institutions && institutions.length > 0) {
                     select.innerHTML = '<option value="">-- Selecciona tu Institución --</option>' + 
-                        institutions.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+                        institutions.map(i => `<option value="${i.id}">${i.name}</option>`).join('') +
+                        '<option value="0">Institución no registrada (General)</option>';
                 } else {
-                    select.innerHTML = '<option value="">No hay instituciones registradas aún</option>';
+                    select.innerHTML = '<option value="">No hay instituciones registradas aún</option>' +
+                        '<option value="0">Institución no registrada (General)</option>';
                 }
             } catch (e) {
                 document.getElementById('instSelect').innerHTML = '<option value="">Error cargando instituciones</option>';
