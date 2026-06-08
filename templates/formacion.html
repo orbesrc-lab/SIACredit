@@ -61,6 +61,8 @@
         }
 
         .content-area {
+            flex: 1;
+            min-height: 0;
             padding: 35px;
             max-width: 1200px;
             margin: 0 auto;
@@ -756,10 +758,13 @@
 
             <!-- TAB: STUDENT CLASSROOM (Solo Estudiantes) -->
             <div id="studentClassroom" style="display: none;">
-                <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 25px;">Selecciona uno de tus cursos asignados para ingresar al Aula Virtual y acceder a tus materiales de estudio.</p>
-                
-                <div class="grid-catalog" id="studentCoursesGrid">
-                    <!-- Dynamic -->
+                <!-- Box de selección de curso -->
+                <div id="studentCourseSelectorBox" class="editor-container">
+                    <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 25px;">Selecciona uno de tus cursos asignados para ingresar al Aula Virtual y acceder a tus materiales de estudio.</p>
+                    
+                    <div class="grid-catalog" id="studentCoursesGrid">
+                        <!-- Dynamic -->
+                    </div>
                 </div>
 
                 <!-- Detalle del Curso (Estudiante) -->
@@ -2468,6 +2473,10 @@
 
         async function openStudentCourse(courseId) {
             try {
+                // Ocultar la caja de seleccionar curso
+                const selectorBox = document.getElementById('studentCourseSelectorBox');
+                if (selectorBox) selectorBox.style.display = 'none';
+
                 const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const course = await resp.json();
                 
@@ -2830,6 +2839,9 @@
 
         function closeStudentCourseViewer() {
             document.getElementById('studentCourseViewer').style.display = 'none';
+            // Mostrar de nuevo la caja de selección de curso
+            const selectorBox = document.getElementById('studentCourseSelectorBox');
+            if (selectorBox) selectorBox.style.display = 'block';
         }
 
         // --- ACORDEÓN DE TEMAS EN VISTA DEL ESTUDIANTE ---
