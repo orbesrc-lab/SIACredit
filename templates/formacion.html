@@ -546,6 +546,7 @@
                         <button class="sub-tab-btn" id="subTabBtnAnnouncements" onclick="switchSubTab('announcements')">📢 Anuncios</button>
                         <button class="sub-tab-btn" id="subTabBtnSyllabus" onclick="switchSubTab('syllabus')">📖 Plan de Estudios y Recursos</button>
                         <button class="sub-tab-btn" id="subTabBtnSync" onclick="switchSubTab('sync')">🎥 Clases Sincrónicas</button>
+                        <button class="sub-tab-btn" id="subTabBtnForumTeacher" onclick="switchSubTab('forum_teacher')">💬 Foro del Curso</button>
                         <button class="sub-tab-btn" id="subTabBtnAnalytics" onclick="switchSubTab('analytics')">📊 Analíticas y Progreso</button>
                     </div>
 
@@ -687,8 +688,12 @@
                                 <!-- Dynamic Meetings -->
                             </div>
                         </div>
-                        
-                        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:20px; display: flex; flex-direction: column; height: 450px;">
+                        </div>
+                    </div>
+                    
+                    <!-- SUB-TAB: FORO DEL CURSO -->
+                    <div id="subTabForumTeacher" class="sub-tab-content" style="display: none;">
+                        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:20px; display: flex; flex-direction: column; height: 500px;">
                             <h4 style="margin-bottom:10px; font-size:1.05rem; color:#3b82f6;">💬 Foro / Chat del Curso</h4>
                             <div id="teacherForumMessages" style="flex: 1; background: white; border-radius: 8px; border: 1px solid #e2e8f0; overflow-y: auto; padding: 15px; margin-bottom: 15px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px;">
                                 <!-- Messages dynamic -->
@@ -1274,6 +1279,9 @@
                 document.getElementById('subTabBtnSubmissions').classList.add('active');
                 document.getElementById('subTabSubmissions').style.display = 'block';
                 loadCourseSubmissions(document.getElementById('editCourseId').value);
+            } else if (subTabId === 'forum_teacher') {
+                document.getElementById('subTabBtnForumTeacher').classList.add('active');
+                document.getElementById('subTabForumTeacher').style.display = 'block';
             }
         }
 
