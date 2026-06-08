@@ -41,6 +41,14 @@
                         </select>
                     </div>
                     <div class="form-group full">
+                        <label>Perfil Solicitado</label>
+                        <select id="requestedProfile" required>
+                            <option value="estudiante">Estudiante / Participante</option>
+                            <option value="profesor">Profesor / Docente</option>
+                            <option value="operativo">Personal Administrativo</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
                         <label>Contraseña</label>
                         <input type="password" id="password" required placeholder="••••••••">
                     </div>
@@ -86,10 +94,11 @@
             const name = document.getElementById('fullName').value;
             const email = document.getElementById('emailInst').value;
             const password = document.getElementById('password').value;
+            const requestedProfile = document.getElementById('requestedProfile').value;
             
             try {
-                // Registrar usuario con rol 'operativo' (permitido por DB) pero con prefijo [PENDING]
-                const pendingName = '[PENDING] ' + name;
+                // Registrar usuario con rol 'operativo' (permitido por DB) pero con prefijo indicando el rol deseado
+                const pendingName = `[PENDING:${requestedProfile}] ` + name;
                 const userResp = await fetch(`/api/users?inst_id=${instId}&program_id=0`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

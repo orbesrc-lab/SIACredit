@@ -243,7 +243,7 @@
         try {
             const loggedUser = JSON.parse(localStorage.getItem('siac_user'));
             if (loggedUser && loggedUser.role) {
-                if (loggedUser.role === 'estudiante') {
+                if (loggedUser.role === 'estudiante' || loggedUser.role === 'profesor') {
                     window.location.href = 'formacion.html';
                 } else {
                     window.location.href = 'dashboard.html';
@@ -277,7 +277,7 @@
                         return;
                     }
                     localStorage.setItem('siac_user', JSON.stringify(result.user));
-                    if (result.user.role === 'estudiante') {
+                    if (result.user.role === 'estudiante' || result.user.role === 'profesor') {
                         window.location.href = 'formacion.html';
                     } else {
                         window.location.href = 'dashboard.html';

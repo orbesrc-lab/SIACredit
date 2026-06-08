@@ -1372,15 +1372,20 @@
                 }
                 
                 students.forEach(s => {
-                    const isAspirante = s.name && s.name.includes('[ASPIRANTE]');
-                    const nameDisplay = escapeHtml(s.name ? s.name.replace('[ASPIRANTE] ', '').replace('[ASPIRANTE]', '') : 'Sin nombre');
+                    const isAspirante = s.name && (s.name.includes('[ASPIRANTE]') || s.name.includes('[PENDING:'));
+                    let roleToAssign = 'estudiante';
+                    if (s.name && s.name.includes('[PENDING:profesor]')) roleToAssign = 'profesor';
+                    if (s.name && s.name.includes('[PENDING:operativo]')) roleToAssign = 'operativo';
+
+                    let nameDisplay = escapeHtml(s.name ? s.name.replace('[ASPIRANTE] ', '').replace('[ASPIRANTE]', '') : 'Sin nombre');
+                    nameDisplay = nameDisplay.replace(/\[PENDING:[^\]]+\]\s*/g, '');
                     
                     let badgeHtml = '';
                     let actionHtml = '';
                     
                     if (isAspirante) {
-                        badgeHtml = `<div style="background: #fef08a; color: #854d0e; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; display: inline-block;">🟡 Pendiente de Activación</div>`;
-                        actionHtml = `<button class="btn-primary" style="margin-bottom: 8px; width: 100%; background: #16a34a; border: none;" onclick="activateAspirante('${s.email}')">✅ Activar Aspirante</button>`;
+                        badgeHtml = `<div style="background: #fef08a; color: #854d0e; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; display: inline-block;">🟡 Pendiente de Activación (${roleToAssign})</div>`;
+                        actionHtml = `<button class="btn-primary" style="margin-bottom: 8px; width: 100%; background: #16a34a; border: none;" onclick="activateAspirante('${s.email}', '${roleToAssign}')">✅ Activar ${roleToAssign}</button>`;
                     }
                     
                     html += `
@@ -1404,8 +1409,8 @@
             }
         }
 
-        async function activateAspirante(email) {
-            if (!confirm('¿Activar a este aspirante? Se le quitará el bloqueo de cuenta y podrá ingresar al sistema inmediatamente.')) return;
+        async function activateAspirante(email, role = 'estudiante') {
+            if (!confirm(`¿Activar a esta cuenta como ${role}? Se le quitará el bloqueo de cuenta y podrá ingresar al sistema inmediatamente.`)) return;
             try {
                 // Find user by email
                 const uResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=0`);
@@ -1415,7 +1420,7 @@
                     const actResp = await fetch(`/api/users/${userObj.id}/activate`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ role: 'estudiante' })
+                        body: JSON.stringify({ role: role })
                     });
                     const actRes = await actResp.json();
                     if (actRes.status === 'success') {
