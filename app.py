@@ -1127,27 +1127,7 @@ def handle_users():
         return jsonify(res.data)
     except Exception as e:
         print(f"Error fetching users: {e}")
-
-@app.route('/api/profile/update_password', methods=['POST'])
-def update_profile_password():
-    data = request.json
-    user_id = data.get('user_id')
-    current_password = data.get('current_password')
-    new_password = data.get('new_password')
-    
-    try:
-        res = supabase.table('users').select("*").eq("id", user_id).execute()
-        if not res.data:
-            return jsonify({"status": "error", "message": "Usuario no encontrado"}), 404
-        user = res.data[0]
-        if check_password_hash(user['password_hash'], current_password):
-            new_hash = generate_password_hash(new_password)
-            supabase.table('users').update({"password_hash": new_hash}).eq("id", user_id).execute()
-            return jsonify({"status": "success", "message": "Contraseña actualizada exitosamente."})
-        else:
-            return jsonify({"status": "error", "message": "Contraseña actual incorrecta."}), 401
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify([])
 
 
 @app.route('/api/users/<user_id>/reset-password', methods=['POST'])

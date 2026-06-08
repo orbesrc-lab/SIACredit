@@ -110,7 +110,6 @@
             <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
         </div>
         <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <a href="javascript:void(0)" onclick="openProfileModal()" class="sidebar-item" style="color: #3b82f6;">⚙️ Mi Perfil</a>
             <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444;">🚪 Cerrar Sesión</a>
         </div>
     </aside>
@@ -227,138 +226,12 @@
         </div>
     </main>
 
-    <!-- MODAL DE PERFIL -->
-    <div id="profileModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:16px; padding:30px; width:450px; max-width:90vw; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3 style="margin:0; font-size:1.2rem; color:var(--text-main);">⚙️ Mi Perfil</h3>
-                <button class="btn-ghost" onclick="closeProfileModal()" style="font-size:1.2rem; padding:5px;">❌</button>
-            </div>
-            
-            <div style="text-align:center; margin-bottom: 20px;">
-                <img id="profileAvatarPreview" src="https://ui-avatars.com/api/?name=User&background=random" style="width:100px; height:100px; border-radius:50%; object-fit:cover; margin-bottom:10px; border: 3px solid var(--primary-color);">
-                <br>
-                <input type="file" id="profileAvatarUpload" style="display:none;" accept="image/*" onchange="previewProfileAvatar(event)">
-                <button class="btn-secondary" onclick="document.getElementById('profileAvatarUpload').click()" style="font-size:0.8rem;">📷 Cambiar Foto</button>
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <h4 style="margin-bottom:10px; font-size:1rem; border-bottom:1px solid #e2e8f0; padding-bottom:5px;">🎨 Apariencia</h4>
-                <div style="display:flex; gap:15px; align-items:center;">
-                    <div style="flex:1;">
-                        <label style="font-size:0.8rem; display:block; margin-bottom:5px;">Color Principal</label>
-                        <input type="color" id="themePrimaryColor" value="#3b82f6" style="width:100%; height:40px; border:none; border-radius:8px; cursor:pointer;" onchange="applyThemeColor()">
-                    </div>
-                    <div style="flex:1;">
-                        <label style="font-size:0.8rem; display:block; margin-bottom:5px;">Color de Acento</label>
-                        <input type="color" id="themeAccentColor" value="#10b981" style="width:100%; height:40px; border:none; border-radius:8px; cursor:pointer;" onchange="applyThemeColor()">
-                    </div>
-                </div>
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <h4 style="margin-bottom:10px; font-size:1rem; border-bottom:1px solid #e2e8f0; padding-bottom:5px;">🔒 Seguridad</h4>
-                <div class="form-group" style="margin-bottom:10px;">
-                    <label style="font-size:0.85rem;">Contraseña Actual</label>
-                    <input type="password" id="profileCurrentPassword" placeholder="Solo si deseas cambiarla" style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1;">
-                </div>
-                <div class="form-group" style="margin-bottom:10px;">
-                    <label style="font-size:0.85rem;">Nueva Contraseña</label>
-                    <input type="password" id="profileNewPassword" placeholder="Nueva contraseña" style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1;">
-                </div>
-            </div>
-
-            <button class="btn-primary" style="width:100%; background: linear-gradient(135deg, var(--primary-color), var(--accent-color)); border:none; padding:12px; border-radius:8px; color:white; font-weight:bold; cursor:pointer;" onclick="saveProfileChanges(event)">Guardar Cambios</button>
-        </div>
-    </div>
-
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
         const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'orbesrc@gmail.com' };
         document.getElementById('userInfo').textContent = user.email;
 
         function logout() { localStorage.removeItem('siac_user'); window.location.href = 'index.html'; }
-
-        // --- LÓGICA DE PERFIL Y TEMAS ---
-        function openProfileModal() {
-            document.getElementById('profileModal').style.display = 'flex';
-            const savedAvatar = localStorage.getItem('user_avatar_' + (user ? user.email : ''));
-            if (savedAvatar) document.getElementById('profileAvatarPreview').src = savedAvatar;
-            
-            const pColor = localStorage.getItem('theme_primary') || '#3b82f6';
-            const aColor = localStorage.getItem('theme_accent') || '#10b981';
-            document.getElementById('themePrimaryColor').value = pColor;
-            document.getElementById('themeAccentColor').value = aColor;
-        }
-
-        function closeProfileModal() { document.getElementById('profileModal').style.display = 'none'; }
-
-        function previewProfileAvatar(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) { document.getElementById('profileAvatarPreview').src = e.target.result; }
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function applyThemeColor() {
-            const pColor = document.getElementById('themePrimaryColor').value;
-            const aColor = document.getElementById('themeAccentColor').value;
-            document.documentElement.style.setProperty('--primary-color', pColor);
-            document.documentElement.style.setProperty('--accent-color', aColor);
-            document.documentElement.style.setProperty('--primary-hover', pColor + 'dd');
-        }
-
-        async function saveProfileChanges() {
-            const newAvatar = document.getElementById('profileAvatarPreview').src;
-            localStorage.setItem('user_avatar_' + (user ? user.email : ''), newAvatar);
-            localStorage.setItem('theme_primary', document.getElementById('themePrimaryColor').value);
-            localStorage.setItem('theme_accent', document.getElementById('themeAccentColor').value);
-            
-            const currentPw = document.getElementById('profileCurrentPassword').value;
-            const newPw = document.getElementById('profileNewPassword').value;
-            
-            if (currentPw && newPw) {
-                const btn = event.target;
-                btn.textContent = "Guardando..."; btn.disabled = true;
-                try {
-                    const resp = await fetch('/api/profile/update_password', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            user_id: user ? user.id : '', email: user ? user.email : '',
-                            current_password: currentPw, new_password: newPw
-                        })
-                    });
-                    const resData = await resp.json();
-                    if (resData.status === 'success') {
-                        alert(resData.message);
-                        document.getElementById('profileCurrentPassword').value = '';
-                        document.getElementById('profileNewPassword').value = '';
-                    } else {
-                        alert(resData.message || "Error cambiando contraseña");
-                        btn.textContent = "Guardar Cambios"; btn.disabled = false;
-                        return;
-                    }
-                } catch(e) { alert("Error de red"); btn.textContent = "Guardar Cambios"; btn.disabled = false; return; }
-                btn.textContent = "Guardar Cambios"; btn.disabled = false;
-            }
-            
-            closeProfileModal();
-            alert("Perfil actualizado correctamente");
-        }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            const pColor = localStorage.getItem('theme_primary');
-            const aColor = localStorage.getItem('theme_accent');
-            if (pColor && aColor) {
-                document.documentElement.style.setProperty('--primary-color', pColor);
-                document.documentElement.style.setProperty('--accent-color', aColor);
-                document.documentElement.style.setProperty('--primary-hover', pColor + 'dd');
-            }
-        });
-
 
         async function loadDashboardStats() {
             try {
