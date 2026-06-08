@@ -557,6 +557,12 @@
                                 <label>Título del Curso</label>
                                 <input type="text" id="edit_title">
                             </div>
+                            <div class="form-group" id="edit_course_teacher_group">
+                                <label>Profesor Asignado</label>
+                                <select id="edit_teacher_email" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                    <option value="">-- Sin asignar --</option>
+                                </select>
+                            </div>
                             <div class="form-group">
                                 <label>Entidad que Certifica</label>
                                 <input type="text" id="edit_certifier" placeholder="Ej: SKEL, UNICUCES">
@@ -828,6 +834,12 @@
             <div class="form-group" style="margin-top: 15px;">
                 <label>Entidad Certificadora</label>
                 <input type="text" id="course_certifier" value="SKEL" placeholder="Ej: SKEL">
+            </div>
+            <div class="form-group" style="margin-top: 15px;" id="course_teacher_group">
+                <label>Profesor Asignado</label>
+                <select id="course_teacher_email" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <option value="">-- Sin asignar --</option>
+                </select>
             </div>
             <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
                 <button class="btn-ghost" onclick="closeCourseModal()">Cancelar</button>
@@ -1191,6 +1203,22 @@
             if (id) payload.id = id;
             
             try {
+                // Si es un docente nuevo (sin id previo definido por nosotros), creamos la cuenta en el sistema
+                if (!id) {
+                    const userPayload = { name: name, email: email, role: 'profesor', password: 'SIACProfesor2025!' };
+                    const userResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(userPayload)
+                    });
+                    const userResult = await userResp.json();
+                    if (!userResp.ok && userResult.message !== 'El usuario ya existe') {
+                        alert("Error al crear cuenta de usuario: " + userResult.message);
+                        return;
+                    }
+                }
+
+                // Guardar datos en el LMS
                 const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1198,7 +1226,7 @@
                 });
                 const res = await resp.json();
                 if (res.status === 'success') {
-                    alert("Docente guardado correctamente.");
+                    alert("Docente guardado correctamente.\nContraseña temporal (si es nuevo): SIACProfesor2025!");
                     closeTeacherModal();
                     loadTeachersList();
                 } else {
@@ -1456,10 +1484,44 @@
 
         // ========== SECCIÓN CURSOS (Admin) ==========
 
-        function openCreateCourseModal() {
+        async function openCreateCourseModal() {
             document.getElementById('course_title').value = '';
             document.getElementById('course_certifier').value = 'SKEL';
+            
+            // Cargar docentes en el select
+            const teachers = await preloadTeacherDropdownForm();
+            const teacherSelect = document.getElementById('course_teacher_email');
+            
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            if (user.role === 'profesor') {
+                document.getElementById('course_teacher_group').style.display = 'none';
+                teacherSelect.value = user.email; // Se asigna automáticamente a sí mismo
+            } else {
+                document.getElementById('course_teacher_group').style.display = 'block';
+            }
+            
             document.getElementById('courseModal').style.display = 'flex';
+        }
+
+        async function preloadTeacherDropdownForm(selectId = 'course_teacher_email', selectedEmail = '') {
+            try {
+                const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
+                const res = await resp.json();
+                const teachers = Array.isArray(res) ? res : (res.data || []);
+                const select = document.getElementById(selectId);
+                if (select) {
+                    select.innerHTML = '<option value="">-- Sin asignar --</option>';
+                    teachers.forEach(t => {
+                        if(!t.email) return;
+                        const opt = document.createElement('option');
+                        opt.value = t.email;
+                        opt.textContent = `${t.name} (${t.email})`;
+                        if (selectedEmail && t.email === selectedEmail) opt.selected = true;
+                        select.appendChild(opt);
+                    });
+                }
+                return teachers;
+            } catch(e) { return []; }
         }
 
         function closeCourseModal() {
@@ -1469,10 +1531,18 @@
         async function submitCreateCourse() {
             const title = document.getElementById('course_title').value.trim();
             const certifier = document.getElementById('course_certifier').value.trim();
+            let teacherEmail = document.getElementById('course_teacher_email').value;
+            
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            if (user.role === 'profesor') {
+                teacherEmail = user.email;
+            }
+
             if (!title) { alert("El nombre del curso es obligatorio."); return; }
             
             const payload = {
                 title, certifier,
+                teacher_email: teacherEmail,
                 description: "Descripción básica de este curso de capacitación inteligente.",
                 duration: 10, level: "Principiante", category: "Educación"
             };
@@ -1498,8 +1568,23 @@
             
             try {
                 const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const courses = await resp.json();
+                let courses = await resp.json();
                 
+                const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+                if (user.role === 'profesor') {
+                    courses = courses.filter(c => c.teacher_email === user.email);
+                    
+                    // Ocultar pestañas de administración general
+                    const tabTeachers = document.getElementById('tabTeachers');
+                    if (tabTeachers) tabTeachers.style.display = 'none';
+                    
+                    const tabStudents = document.getElementById('tabStudents');
+                    if (tabStudents) tabStudents.style.display = 'none';
+                    
+                    const btnCreate = document.querySelector('[onclick="openCreateCourseModal()"]');
+                    if (btnCreate) btnCreate.style.display = 'none';
+                }
+
                 if (courses.length === 0) {
                     grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay cursos creados en este programa académico.</div>';
                     return;
@@ -1525,7 +1610,7 @@
                                     </div>
                                     <div class="course-card-actions">
                                         <button class="btn-primary" onclick="openEditor('${c.id}')">⚙️ Administrar</button>
-                                        <button class="btn-danger" style="flex:0 0 45px; padding:0; height:36px; border-radius:8px;" onclick="deleteCourse('${c.id}')">🗑️</button>
+                                        ${user.role !== 'profesor' ? `<button class="btn-danger" style="flex:0 0 45px; padding:0; height:36px; border-radius:8px;" onclick="deleteCourse('${c.id}')">🗑️</button>` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -1537,6 +1622,11 @@
         }
 
         async function deleteCourse(courseId) {
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            if (user.role === 'profesor') {
+                alert("No tienes permisos para eliminar cursos.");
+                return;
+            }
             if (!confirm("⚠️ ¿Estás seguro de eliminar este curso?")) return;
             try {
                 const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, { method: 'DELETE' });
@@ -1570,7 +1660,15 @@
                 document.getElementById('editorCourseTitle').textContent = `Administrar Curso: ${activeCourse.title}`;
                 document.getElementById('edit_title').value = activeCourse.title || '';
                 document.getElementById('edit_certifier').value = activeCourse.certifier || '';
-                document.getElementById('edit_teacher_id').value = activeCourse.teacher_id || '';
+                
+                const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+                if (user.role === 'profesor') {
+                    document.getElementById('edit_course_teacher_group').style.display = 'none';
+                } else {
+                    document.getElementById('edit_course_teacher_group').style.display = 'block';
+                    await preloadTeacherDropdownForm('edit_teacher_email', activeCourse.teacher_email);
+                }
+
                 document.getElementById('edit_category').value = activeCourse.category || 'Educación';
                 document.getElementById('edit_duration').value = activeCourse.duration || 10;
                 document.getElementById('edit_level').value = activeCourse.level || 'Principiante';
@@ -1633,7 +1731,12 @@
             if (!activeCourse) return;
             activeCourse.title = document.getElementById('edit_title').value.trim();
             activeCourse.certifier = document.getElementById('edit_certifier').value.trim();
-            activeCourse.teacher_id = document.getElementById('edit_teacher_id').value;
+            
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            if (user.role !== 'profesor') {
+                activeCourse.teacher_email = document.getElementById('edit_teacher_email').value;
+            }
+
             activeCourse.category = document.getElementById('edit_category').value;
             activeCourse.duration = parseInt(document.getElementById('edit_duration').value) || 10;
             activeCourse.level = document.getElementById('edit_level').value;
