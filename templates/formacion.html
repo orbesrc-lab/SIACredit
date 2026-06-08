@@ -3657,9 +3657,26 @@
                 // Forzar scroll global de la página para que el contenido NUNCA se corte
                 const scrollFix = document.createElement('style');
                 scrollFix.innerHTML = `
-                    body, html { height: auto !important; overflow: visible !important; min-height: 100vh; }
-                    .main-content { height: auto !important; overflow: visible !important; }
-                    .content-area { overflow: visible !important; height: auto !important; }
+                    html, body { 
+                        display: block !important; 
+                        height: auto !important; 
+                        min-height: 100vh !important; 
+                        overflow: auto !important; 
+                        position: static !important;
+                    }
+                    .main-content { 
+                        display: block !important; 
+                        height: auto !important; 
+                        overflow: visible !important; 
+                        padding-bottom: 80px !important;
+                    }
+                    .content-area { 
+                        display: block !important; 
+                        height: auto !important; 
+                        overflow: visible !important; 
+                    }
+                    /* Ocultar posibles modales buggeados que bloquean clicks */
+                    .modal-backdrop { display: none !important; }
                 `;
                 document.head.appendChild(scrollFix);
 
