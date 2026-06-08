@@ -3654,6 +3654,15 @@
                 const sidebarEl = document.querySelector('.sidebar');
                 if (sidebarEl) sidebarEl.style.display = 'none';
                 
+                // Forzar scroll global de la página para que el contenido NUNCA se corte
+                const scrollFix = document.createElement('style');
+                scrollFix.innerHTML = `
+                    body, html { height: auto !important; overflow: visible !important; min-height: 100vh; }
+                    .main-content { height: auto !important; overflow: visible !important; }
+                    .content-area { overflow: visible !important; height: auto !important; }
+                `;
+                document.head.appendChild(scrollFix);
+
                 // Rediseñar Topbar de forma premium para el estudiante con su información y botón de cerrar sesión
                 const topbarEl = document.querySelector('.topbar');
                 if (topbarEl) {
