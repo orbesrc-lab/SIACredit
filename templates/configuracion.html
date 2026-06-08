@@ -396,6 +396,8 @@
                     <p id="changeRoleEmail" style="font-size:0.85rem; color:#6b7280; margin-bottom:18px;"></p>
                     <label style="display:block; font-weight:500; margin-bottom:8px;">Nuevo Rol</label>
                     <select id="changeRoleSelect" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.95rem;" onchange="onChangeRoleSelectChanged(this.value)">
+                        <option value="estudiante">Estudiante / Participante</option>
+                        <option value="profesor">Profesor / Docente</option>
                         <option value="lider">Líder de Factor</option>
                         <option value="operativo">Operativo</option>
                         <option value="inst_admin">Administrador Institucional</option>
@@ -1301,15 +1303,19 @@
                 var html = '';
                 for (var i = 0; i < adminUsers.length; i++) {
                     var u = adminUsers[i];
-                    var isPending = u.name && u.name.indexOf('[PENDING]') === 0;
-                    var cleanName = (u.name || u.email).replace('[PENDING] ','').replace('[PENDING]','');
+                    var isPending = u.name && u.name.includes('[PENDING]');
+                    var cleanName = (u.name || u.email).replace(/\[PENDING[^\]]*\]\s*/g, '');
                     var role = isPending ? 'pending' : (u.role || 'operativo');
                     var isSelf = (u.email === currentUser.email);
 
-                    var labels = {admin:'Super Admin', inst_admin:'Admin Inst.', lider:'Líder', operativo:'Operativo', pending:'Pendiente'};
+                    var labels = {admin:'Super Admin', inst_admin:'Admin Inst.', lider:'Líder', operativo:'Operativo', pending:'Pendiente', profesor:'Profesor', estudiante:'Estudiante'};
                     var roleLabel = labels[role] || role;
                     var badgeBg = (role==='admin'||role==='inst_admin') ? '#fee2e2' : (role==='pending' ? '#fef3c7' : '#e0e7ff');
                     var badgeColor = (role==='admin'||role==='inst_admin') ? '#b91c1c' : (role==='pending' ? '#d97706' : '#4338ca');
+
+                    // Extraer rol solicitado si está pendiente
+                    var requestedRoleMatch = u.name ? u.name.match(/\[PENDING:([^\]]+)\]/) : null;
+                    var passedRole = isPending && requestedRoleMatch ? requestedRoleMatch[1] : (u.role || '');
 
                     html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #e5e7eb;background:#fafafa;">';
                     html += '<div>';
@@ -1319,12 +1325,13 @@
                     html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
                     html += '<span style="background:'+badgeBg+';color:'+badgeColor+';padding:3px 9px;border-radius:12px;font-size:0.72rem;font-weight:700;">' + roleLabel.toUpperCase() + '</span>';
 
+                    // Mostrar 'Activar' si es pendiente
                     if (isPending && canManage) {
-                        html += '<button data-act="activate" data-uid="'+u.id+'" data-email="'+u.email+'" data-role="'+(u.role||'')+'" style="font-size:0.72rem;padding:4px 10px;background:#5b45ff;color:white;border:none;border-radius:5px;cursor:pointer;">Activar</button>';
+                        html += '<button data-act="activate" data-uid="'+u.id+'" data-email="'+u.email+'" data-role="'+passedRole+'" style="font-size:0.72rem;padding:3px 10px;background:#5b45ff;color:white;border:none;border-radius:5px;cursor:pointer;">Activar</button>';
                     }
                     // Mostrar 'Cambiar Rol' solo si: no es uno mismo, no está pendiente, puede gestionar, y el target NO es superadmin
                     if (!isSelf && !isPending && canManage && role !== 'admin') {
-                        html += '<button data-act="changeRole" data-uid="'+u.id+'" data-email="'+u.email+'" data-role="'+(u.role||'')+'" style="font-size:0.72rem;padding:3px 10px;background:white;color:#5b45ff;border:1px solid #5b45ff;border-radius:5px;cursor:pointer;">Cambiar Rol</button>';
+                        html += '<button data-act="changeRole" data-uid="'+u.id+'" data-email="'+u.email+'" data-role="'+passedRole+'" style="font-size:0.72rem;padding:3px 10px;background:white;color:#5b45ff;border:1px solid #5b45ff;border-radius:5px;cursor:pointer;">Cambiar Rol</button>';
                     }
                     if (!isSelf && !isPending) {
                         html += '<button data-act="resetPass" data-uid="'+u.id+'" data-email="'+u.email+'" style="font-size:0.72rem;padding:3px 10px;background:white;color:#6b7280;border:1px solid #d1d5db;border-radius:5px;cursor:pointer;">Resetear Clave</button>';
@@ -1455,10 +1462,19 @@
         }
 
         async function submitActivateUser(uid, email, currentRole) {
-            var newRole = (currentRole && currentRole !== 'pending') ? currentRole : 'lider';
+            var newRole = (currentRole && currentRole !== 'pending' && currentRole !== 'operativo') ? currentRole : 'lider';
+            // Si el rol ya viene sugerido desde el PENDING (ej. profesor) usamos ese.
+            if (currentRole && currentRole !== 'pending' && currentRole !== 'operativo') newRole = currentRole;
             // Show role modal reusing changeRole modal
             document.getElementById('changeRoleUserId').value = uid;
             document.getElementById('changeRoleEmail').textContent = 'Activar: ' + email;
+            var sel = document.getElementById('changeRoleSelect');
+            if (currentRole && [...sel.options].some(o => o.value === currentRole)) {
+                sel.value = currentRole;
+            } else {
+                sel.value = newRole;
+            }
+            onChangeRoleSelectChanged(sel.value);
             document.getElementById('changeRoleModal').style.display = 'flex';
         }
 
