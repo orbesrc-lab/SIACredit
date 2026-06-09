@@ -4413,7 +4413,7 @@
                         <button class="close-btn" style="color:white; font-size: 1.8rem; line-height: 1;" onclick="closeLectorVirtual()">&times;</button>
                     </div>
                 </div>
-                <div id="lectorTextContainer" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; font-size: 2.5rem; text-align: center; overflow-y: auto; line-height: 1.5; font-weight: 500; transition: opacity 0.3s ease;">
+                <div id="lectorTextContainer" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 10%; font-size: clamp(1.5rem, 3.5vw, 2.5rem); text-align: center; overflow-y: auto; overflow-x: hidden; line-height: 1.6; font-weight: 500; transition: opacity 0.3s ease; word-break: break-word; overflow-wrap: break-word; width: 100%; box-sizing: border-box;">
                 </div>
                 <div style="padding: 20px 30px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: #1e293b;">
                     <span id="lectorProgress" style="font-size: 1.1rem; color: #94a3b8; font-weight: 600;">1 / 10</span>
@@ -4437,8 +4437,12 @@
                 const contentBody = accDiv.querySelector('.topic-content-body');
                 if (!contentBody) return;
 
-                const rawText = contentBody.textContent || contentBody.innerText;
-                const cleanText = rawText.replace(/\s+/g, ' ').trim();
+                // Extraer el texto preservando saltos de línea visuales como puntos y espacios
+                let rawText = contentBody.innerText;
+                if (!rawText) rawText = contentBody.textContent;
+                
+                // Limpiar espacios dobles pero mantener estructura básica
+                const cleanText = rawText.replace(/\n+/g, '. ').replace(/\s+/g, ' ').trim();
                 
                 let rawChunks = cleanText.split('. ');
                 lectorChunks = [];
