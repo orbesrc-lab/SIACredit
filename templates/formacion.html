@@ -2646,7 +2646,14 @@
                                             </span>
                                         </div>
                                         <div id="acc_${unit.id}_${t.id}" style="display: none; padding: 20px; background: var(--card-bg); border-top: 1px solid var(--border-color); font-size: 0.92rem; line-height: 1.7; color: var(--text-main); text-align: left; overflow-x: auto;">
-                                            ${hasContent ? t.content : '<span style="color:var(--text-muted); font-style:italic;">Esta lección no contiene texto ni recursos embebidos todavía.</span>'}
+                                            ${hasContent ? `
+                                            <div style="margin-bottom: 20px; display: flex; justify-content: flex-end;">
+                                                <button onclick="startLectorVirtual(this, '${escapeHtml(t.title).replace(/'/g, "\\'")}')" class="btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); border: none; padding: 8px 15px; font-size: 0.85rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);">
+                                                    🎧 Lector Virtual
+                                                </button>
+                                            </div>
+                                            <div class="topic-content-body">${t.content}</div>
+                                            ` : '<span style="color:var(--text-muted); font-style:italic;">Esta lección no contiene texto ni recursos embebidos todavía.</span>'}
                                         </div>
                                     </div>
                                 `;
@@ -4394,8 +4401,143 @@
                 </div>
             </div>
         </div>
+        </div>
+
+        <!-- Modal Lector Virtual -->
+        <div id="lectorVirtualModal" class="modal-overlay" style="display: none; z-index: 3000;">
+            <div class="modal-content" style="max-width: 900px; height: 85vh; padding: 0; display: flex; flex-direction: column; background: #0f172a; color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; background: #1e293b;">
+                    <h3 id="lectorTitle" style="margin:0; color: #38bdf8; font-size: 1.5rem; display: flex; align-items: center; gap: 10px;">🎧 Lector Virtual</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btnPausePlayLector" class="btn-primary" onclick="toggleLectorPause()" style="padding: 8px 15px; font-weight: 600; font-size: 0.9rem; border: none; border-radius: 8px;">⏸️ Pausar</button>
+                        <button class="close-btn" style="color:white; font-size: 1.8rem; line-height: 1;" onclick="closeLectorVirtual()">&times;</button>
+                    </div>
+                </div>
+                <div id="lectorTextContainer" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; font-size: 2.5rem; text-align: center; overflow-y: auto; line-height: 1.5; font-weight: 500; transition: opacity 0.3s ease;">
+                </div>
+                <div style="padding: 20px 30px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: #1e293b;">
+                    <span id="lectorProgress" style="font-size: 1.1rem; color: #94a3b8; font-weight: 600;">1 / 10</span>
+                    <div style="display: flex; gap: 15px;">
+                        <button onclick="lectorPrev()" class="btn-secondary" style="background: rgba(255,255,255,0.1); color: white; border: none; padding: 10px 20px; font-size: 1rem; border-radius: 8px; transition: background 0.2s;">⏮️ Anterior</button>
+                        <button onclick="lectorNext()" class="btn-secondary" style="background: rgba(255,255,255,0.1); color: white; border: none; padding: 10px 20px; font-size: 1rem; border-radius: 8px; transition: background 0.2s;">Siguiente ⏭️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // === LÓGICA DEL LECTOR VIRTUAL ===
+            let lectorChunks = [];
+            let currentLectorIndex = 0;
+            let currentUtterance = null;
+            let isLectorPlaying = false;
+
+            function startLectorVirtual(btnElem, title) {
+                const accDiv = btnElem.closest('div[id^="acc_"]');
+                const contentBody = accDiv.querySelector('.topic-content-body');
+                if (!contentBody) return;
+
+                const rawText = contentBody.textContent || contentBody.innerText;
+                const cleanText = rawText.replace(/\s+/g, ' ').trim();
+                
+                let rawChunks = cleanText.split('. ');
+                lectorChunks = [];
+                let tempChunk = "";
+                
+                for(let c of rawChunks) {
+                    if(!c.trim()) continue;
+                    if(tempChunk.length < 60) {
+                        tempChunk += (tempChunk ? ". " : "") + c;
+                    } else {
+                        lectorChunks.push(tempChunk + ".");
+                        tempChunk = c;
+                    }
+                }
+                if(tempChunk) lectorChunks.push(tempChunk + (!tempChunk.endsWith('.') ? '.' : ''));
+
+                if(lectorChunks.length === 0) {
+                    alert("No hay texto legible en esta lección.");
+                    return;
+                }
+
+                document.getElementById('lectorTitle').innerHTML = '🎧 ' + title;
+                document.getElementById('lectorVirtualModal').style.display = 'flex';
+                
+                playLectorChunk(0);
+            }
+
+            function playLectorChunk(index) {
+                if(index < 0 || index >= lectorChunks.length) {
+                    isLectorPlaying = false;
+                    document.getElementById('btnPausePlayLector').textContent = '▶️ Reiniciar';
+                    return;
+                }
+                currentLectorIndex = index;
+                
+                const textContainer = document.getElementById('lectorTextContainer');
+                textContainer.style.opacity = '0';
+                setTimeout(() => {
+                    textContainer.textContent = lectorChunks[index];
+                    textContainer.style.opacity = '1';
+                }, 150);
+
+                document.getElementById('lectorProgress').textContent = (index + 1) + ' / ' + lectorChunks.length;
+                
+                window.speechSynthesis.cancel();
+                
+                currentUtterance = new SpeechSynthesisUtterance(lectorChunks[index]);
+                currentUtterance.lang = 'es-ES';
+                currentUtterance.rate = 0.95; 
+                
+                currentUtterance.onend = function(event) {
+                    if(isLectorPlaying) {
+                        setTimeout(() => playLectorChunk(currentLectorIndex + 1), 600);
+                    }
+                };
+                
+                isLectorPlaying = true;
+                document.getElementById('btnPausePlayLector').textContent = '⏸️ Pausar';
+                window.speechSynthesis.speak(currentUtterance);
+            }
+
+            function toggleLectorPause() {
+                if(!currentUtterance) {
+                    if(lectorChunks.length > 0) playLectorChunk(0);
+                    return;
+                }
+                
+                if(window.speechSynthesis.paused) {
+                    window.speechSynthesis.resume();
+                    isLectorPlaying = true;
+                    document.getElementById('btnPausePlayLector').textContent = '⏸️ Pausar';
+                } else if(window.speechSynthesis.speaking) {
+                    window.speechSynthesis.pause();
+                    isLectorPlaying = false;
+                    document.getElementById('btnPausePlayLector').textContent = '▶️ Reanudar';
+                } else {
+                    playLectorChunk(currentLectorIndex);
+                }
+            }
+
+            function lectorNext() {
+                if(currentLectorIndex < lectorChunks.length - 1) {
+                    playLectorChunk(currentLectorIndex + 1);
+                }
+            }
+
+            function lectorPrev() {
+                if(currentLectorIndex > 0) {
+                    playLectorChunk(currentLectorIndex - 1);
+                }
+            }
+
+            function closeLectorVirtual() {
+                window.speechSynthesis.cancel();
+                isLectorPlaying = false;
+                document.getElementById('lectorVirtualModal').style.display = 'none';
+            }
+        </script>
 
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
-
 </html>
