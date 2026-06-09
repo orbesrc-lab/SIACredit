@@ -128,4 +128,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 30);
     }
+
+    // Asegurar que siempre exista un botón de cerrar sesión en la barra superior para todos los perfiles
+    const topbar = document.querySelector('.topbar');
+    const userInfo = document.getElementById('userInfo');
+    if (topbar && userInfo && !document.getElementById('globalLogoutBtn')) {
+        // Envolver userInfo y el botón en un contenedor flex si userInfo no está ya en uno
+        if (userInfo.parentElement === topbar) {
+            const userContainer = document.createElement('div');
+            userContainer.style.display = 'flex';
+            userContainer.style.alignItems = 'center';
+            userContainer.style.gap = '15px';
+            topbar.insertBefore(userContainer, userInfo);
+            userContainer.appendChild(userInfo);
+            
+            const logoutBtn = document.createElement('button');
+            logoutBtn.id = 'globalLogoutBtn';
+            logoutBtn.className = 'btn-ghost';
+            logoutBtn.style.cssText = 'color: #ef4444; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 5px; cursor: pointer; border: 1px solid #fca5a5; padding: 6px 12px; border-radius: 8px; background: rgba(239, 68, 68, 0.05);';
+            logoutBtn.innerHTML = '🚪 Cerrar Sesión';
+            logoutBtn.onclick = function() {
+                localStorage.removeItem('siac_user');
+                window.location.href = 'index.html';
+            };
+            userContainer.appendChild(logoutBtn);
+        }
+    }
 });
