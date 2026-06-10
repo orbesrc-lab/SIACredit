@@ -2791,9 +2791,9 @@
                         let currentUnitCompleted = true;
                         const actArray = Object.values(unit.activities || {});
                         if (actArray.length > 0) {
-                            // Todas las actividades deben tener al menos una entrega
+                            // Todas las actividades deben tener al menos una entrega calificada
                             const submittedCount = actArray.filter(act => 
-                                studentSubmissions.some(s => s.activity_id === act.id)
+                                studentSubmissions.some(s => s.activity_id === act.id && s.status === 'graded')
                             ).length;
                             
                             if (submittedCount < actArray.length) {
@@ -2805,7 +2805,7 @@
                         const evArrayObj = Object.values(unit.evaluations || {});
                         if (evArrayObj.length > 0) {
                             const submittedEvalsCount = evArrayObj.filter(ev => 
-                                studentSubmissions.some(s => s.activity_id === ev.id)
+                                studentSubmissions.some(s => s.activity_id === ev.id && s.status === 'graded')
                             ).length;
                             if (submittedEvalsCount < evArrayObj.length) {
                                 currentUnitCompleted = false;
@@ -4227,7 +4227,7 @@
                 status = 'graded';
             }
             const payload = {
-                course_id: activeCourse.course_id,
+                course_id: activeCourse.id,
                 unit_id: unit.id,
                 activity_id: evId,
                 student_email: user.email,

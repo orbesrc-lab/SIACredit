@@ -2626,7 +2626,7 @@ def get_course_analytics(course_id):
     course = formacion_storage.load_course(course_id)
     if not course:
         return jsonify({"status": "error", "message": "Course not found"}), 404
-    total_activities = sum(len(unit.get('activities', [])) for unit in course.get('units', []))
+    total_activities = sum(len(unit.get('activities', [])) + len(unit.get('evaluations', [])) for unit in course.get('units', []))
     submissions = formacion_storage.load_submissions(inst_id, program_id)
     course_submissions = [s for s in submissions if s.get('course_id') == course_id]
     students = formacion_storage.load_students(inst_id)
