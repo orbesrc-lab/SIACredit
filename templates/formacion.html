@@ -735,7 +735,10 @@
                     <div id="subTabGradebook" class="sub-tab-content" style="display: none;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                             <h3 style="font-size:1.05rem; margin:0; color: var(--primary-color);">💯 Libro de Calificaciones Ponderado</h3>
-                            <button class="btn-secondary" onclick="loadCourseGradebook(document.getElementById('editCourseId').value)" style="padding: 6px 12px; font-size: 0.85rem;">🔄 Refrescar Libro</button>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn-secondary" onclick="downloadGradebookCSV()" style="padding: 6px 12px; font-size: 0.85rem; background: #10b981; color: white; border: none;"><i class="fas fa-file-excel"></i> Descargar Excel</button>
+                                <button class="btn-secondary" onclick="loadCourseGradebook(document.getElementById('editCourseId').value)" style="padding: 6px 12px; font-size: 0.85rem;">🔄 Refrescar Libro</button>
+                            </div>
                         </div>
                         <div class="table-responsive" style="max-height: 500px; overflow-y: auto; overflow-x: auto;">
                             <table style="width: 100%; text-align: center; border-collapse: collapse; background: white; border-radius: 12px; box-shadow: var(--shadow-sm); font-size: 0.85rem; min-width: 800px;">
@@ -3936,6 +3939,56 @@
                 console.error(e);
                 tbody.innerHTML = `<tr><td colspan="100%" style="padding: 20px; color: #ef4444;">Error al cargar el libro de calificaciones.</td></tr>`;
             }
+        }
+
+        function downloadGradebookCSV() {
+            const thead = document.getElementById('gradebookTableHead');
+            const tbody = document.getElementById('gradebookTableBody');
+            
+            let csv = [];
+            
+            // Extraer cabeceras (limpiar HTML)
+            let headerCols = [];
+            const thElements = thead.querySelectorAll('th');
+            thElements.forEach(th => {
+                let text = th.innerText || th.textContent;
+                text = text.replace(/(\r\n|\n|\r)/gm, " ").trim();
+                headerCols.push(`"${text}"`);
+            });
+            csv.push(headerCols.join(","));
+            
+            // Extraer filas
+            const trElements = tbody.querySelectorAll('tr');
+            trElements.forEach(tr => {
+                let rowCols = [];
+                const tdElements = tr.querySelectorAll('td');
+                if(tdElements.length === 1 && tdElements[0].colSpan > 1) return; // skip 'cargando' or 'sin estudiantes'
+                tdElements.forEach(td => {
+                    let text = td.innerText || td.textContent;
+                    text = text.replace(/(\r\n|\n|\r)/gm, " ").trim();
+                    rowCols.push(`"${text}"`);
+                });
+                csv.push(rowCols.join(","));
+            });
+            
+            if(csv.length <= 1) {
+                alert("No hay datos para exportar.");
+                return;
+            }
+            
+            // Agregar BOM para UTF-8 en Excel
+            const csvData = "\uFEFF" + csv.join("\n");
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            let courseName = document.getElementById('edit_title').value || "Curso";
+            let filename = "Libro_Calificaciones_" + courseName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + ".csv";
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         async function loadStudentGamification(courseId) {
