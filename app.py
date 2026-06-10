@@ -2636,7 +2636,8 @@ def get_course_analytics(course_id):
         email = student.get('email')
         name = student.get('name', 'Estudiante')
         student_subs = [s for s in course_submissions if s.get('student_email') == email]
-        completed = len(student_subs)
+        completed_activity_ids = set(s.get('activity_id') for s in student_subs if s.get('status') == 'graded')
+        completed = len(completed_activity_ids)
         progress = int((completed / total_activities) * 100) if total_activities > 0 else 0
         badges = []
         if completed >= 1: badges.append("🥉 Primer Paso")

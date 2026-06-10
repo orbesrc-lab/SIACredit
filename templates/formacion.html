@@ -4255,7 +4255,7 @@
                         ? '✅ Respuestas enviadas. Pendiente de revisión por el docente.'
                         : `✅ Examen enviado. Tu nota es: ${finalGrade.toFixed(1)} / ${(ev.max_grade||5.0).toFixed(1)}`;
                     alert(msg);
-                    openStudentCourse(activeCourse.course_id);
+                    openStudentCourse(activeCourse.id);
                 } else {
                     alert('Error al enviar el examen. Intenta nuevamente.');
                 }
