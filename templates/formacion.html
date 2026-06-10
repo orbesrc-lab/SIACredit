@@ -2760,13 +2760,27 @@
                         if (evalArr.length > 0) {
                             evalHtml = '<strong style="display:block; font-size:0.85rem; color:var(--primary-color); margin-top:16px; margin-bottom: 6px;">🏆 Evaluaciones (Escala CNA):</strong>';
                             evalArr.forEach(ev => {
+                                const sub = studentSubmissions.find(s => s.activity_id === ev.id);
+                                let statusHtml = '';
+                                let buttonText = 'Presentar Examen';
+                                
+                                if (sub) {
+                                    if (sub.status === 'graded') {
+                                        statusHtml = ` <span class="status aprobado" style="font-size:0.7rem; padding: 2px 8px; border-radius: 12px; margin-left:8px; background: #e6f4ea; color: #137333; font-weight: 700;">Calificado: ${parseFloat(sub.grade).toFixed(1)}</span>`;
+                                        buttonText = 'Volver a Presentar';
+                                    } else {
+                                        statusHtml = ` <span class="status revision" style="font-size:0.7rem; padding: 2px 8px; border-radius: 12px; margin-left:8px; background: #fef7e0; color: #b06000; font-weight: 700;">Pendiente de calificación</span>`;
+                                        buttonText = 'Revisar Respuestas';
+                                    }
+                                }
+
                                 evalHtml += `
                                     <div class="evaluation-item" style="margin-top:5px;">
                                         <div>
-                                            <strong>${escapeHtml(ev.title)}</strong><br>
+                                            <strong>${escapeHtml(ev.title)}</strong>${statusHtml}<br>
                                             <span style="font-size:0.72rem; color:var(--text-muted);">Calificación CNA (Aprobación: ${ev.min_grade})</span>
                                         </div>
-                                        <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--primary-gradient); border:none; color:white; border-radius:10px;" onclick="takeQuiz(${uIdx}, '${ev.id}')">Presentar Examen</button>
+                                        <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--primary-gradient); border:none; color:white; border-radius:10px;" onclick="takeQuiz(${uIdx}, '${ev.id}')">${buttonText}</button>
                                     </div>`;
                             });
                         }
