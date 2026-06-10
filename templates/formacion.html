@@ -3872,7 +3872,13 @@
                 if (!subsRes.ok) throw new Error('Error fetching submissions');
                 const courseSubs = await subsRes.json() || [];
                 
-                const enrolled = activeCourse.enrolled_students || [];
+                // Fetch enrolled students via analytics endpoint
+                const analyticsRes = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                let enrolled = [];
+                if (analyticsRes.ok) {
+                    const analyticsData = await analyticsRes.json();
+                    enrolled = analyticsData.students || [];
+                }
                 
                 let columns = [];
                 let theadHtml = `<tr>
