@@ -2097,13 +2097,15 @@
                     evaluationsHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:8px; text-align:center;">Ninguna evaluación creada.</div>';
                 } else {
                     evaluations.forEach((ev, evIdx) => {
+                        const subCount = Object.values(activeCourseSubmissions || {}).filter(s => s.activity_id === ev.id).length;
                         evaluationsHtml += `
                             <div class="evaluation-item">
                                 <div>
                                     <strong>🏆 ${escapeHtml(ev.title)}</strong>
                                     <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Escala CNA: Aprobación ${ev.min_grade || 3.0} / Máxima ${ev.max_grade || 5.0}</div>
                                 </div>
-                                <div style="display:flex; gap:10px;">
+                                <div style="display:flex; gap:10px; align-items:center;">
+                                    <button class="btn-primary" style="padding:4px 10px; font-size:0.7rem; background: var(--primary-gradient); border:none; color:white; border-radius:8px; font-weight:600;" onclick="openActivitySubmissionsModal('${unit.id}', '${ev.id}', '${escapeHtml(ev.title).replace(/'/g, "\\'")}')">📥 Entregas (${subCount})</button>
                                     <button class="btn-ghost" style="color:var(--primary-color); padding:0 5px;" onclick="openQuizEditor(${uIdx}, ${evIdx})">📝 Preguntas (${(Array.isArray(ev.questions) ? ev.questions : Object.values(ev.questions || {})).length})</button>
                                     <button class="btn-ghost" style="color:var(--primary-color); padding:0 5px;" onclick="presentQuiz(${uIdx}, ${evIdx})">👁️ Vista Previa</button>
                                     <button class="btn-ghost" style="color:#ef4444; padding:0 5px;" onclick="removeUnitEvaluation(${uIdx}, ${evIdx})">🗑️</button>
