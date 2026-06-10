@@ -550,6 +550,7 @@
                         <button class="sub-tab-btn" id="subTabBtnSync" onclick="switchSubTab('sync')">🎥 Clases Sincrónicas</button>
                         <button class="sub-tab-btn" id="subTabBtnForumTeacher" onclick="switchSubTab('forum_teacher')">💬 Foro del Curso</button>
                         <button class="sub-tab-btn" id="subTabBtnAnalytics" onclick="switchSubTab('analytics')">📊 Analíticas y Progreso</button>
+                        <button class="sub-tab-btn" id="subTabBtnGradebook" onclick="switchSubTab('gradebook')">💯 Libro de Calificaciones</button>
                     </div>
 
                     <input type="hidden" id="editCourseId">
@@ -725,6 +726,24 @@
                                 </thead>
                                 <tbody id="analyticsTableBody">
                                     <tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">Cargando analíticas...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- SUB-TAB: LIBRO DE CALIFICACIONES -->
+                    <div id="subTabGradebook" class="sub-tab-content" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="font-size:1.05rem; margin:0; color: var(--primary-color);">💯 Libro de Calificaciones Ponderado</h3>
+                            <button class="btn-secondary" onclick="loadCourseGradebook(document.getElementById('editCourseId').value)" style="padding: 6px 12px; font-size: 0.85rem;">🔄 Refrescar Libro</button>
+                        </div>
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto; overflow-x: auto;">
+                            <table style="width: 100%; text-align: center; border-collapse: collapse; background: white; border-radius: 12px; box-shadow: var(--shadow-sm); font-size: 0.85rem; min-width: 800px;">
+                                <thead id="gradebookTableHead" style="background: var(--secondary-bg); position: sticky; top: 0; z-index: 10;">
+                                    <!-- Dynamic -->
+                                </thead>
+                                <tbody id="gradebookTableBody">
+                                    <tr><td colspan="100%" style="padding: 20px; color: var(--text-muted);">Cargando libro de calificaciones...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1004,6 +1023,10 @@
                 <label>Fecha Límite de Entrega</label>
                 <input type="date" id="act_date">
             </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Ponderación (%) de la Nota Final</label>
+                <input type="number" id="act_weight" min="0" max="100" value="0">
+            </div>
             <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
                 <button class="btn-ghost" onclick="closeUnitActivityModal()">Cancelar</button>
                 <button class="btn-primary" onclick="submitAddUnitActivity()">Crear Actividad</button>
@@ -1029,6 +1052,10 @@
                     <label>Nota Máxima</label>
                     <input type="number" id="eval_max" step="0.1" min="1.0" max="5.0" value="5.0">
                 </div>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Ponderación (%) de la Nota Final</label>
+                <input type="number" id="eval_weight" min="0" max="100" value="0">
             </div>
             <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
                 <button class="btn-ghost" onclick="closeUnitEvaluationModal()">Cancelar</button>
@@ -1274,6 +1301,10 @@
                 document.getElementById('subTabBtnAnalytics').classList.add('active');
                 document.getElementById('subTabAnalytics').style.display = 'block';
                 loadCourseAnalytics(document.getElementById('editCourseId').value);
+            } else if (subTabId === 'gradebook') {
+                document.getElementById('subTabBtnGradebook').classList.add('active');
+                document.getElementById('subTabGradebook').style.display = 'block';
+                loadCourseGradebook(document.getElementById('editCourseId').value);
             } else if (subTabId === 'sync') {
                 document.getElementById('subTabBtnSync').classList.add('active');
                 document.getElementById('subTabSync').style.display = 'block';
@@ -2079,7 +2110,7 @@
                         activitiesHtml += `
                             <div class="activity-item" style="display:flex; justify-content:space-between; align-items:center;">
                                 <div>
-                                    <strong>📝 ${escapeHtml(act.title)}</strong>
+                                    <strong>📝 ${escapeHtml(act.title)} <span style="font-size:0.75rem; color:white; background:var(--primary-color); padding:2px 6px; border-radius:10px;">${act.weight || 0}%</span></strong>
                                     <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Entrega: ${act.due_date || 'Sin fecha'} - ${escapeHtml(act.description || '')}</div>
                                 </div>
                                 <div style="display:flex; gap:6px; align-items:center;">
@@ -2101,7 +2132,7 @@
                         evaluationsHtml += `
                             <div class="evaluation-item">
                                 <div>
-                                    <strong>🏆 ${escapeHtml(ev.title)}</strong>
+                                    <strong>🏆 ${escapeHtml(ev.title)} <span style="font-size:0.75rem; color:white; background:var(--primary-color); padding:2px 6px; border-radius:10px;">${ev.weight || 0}%</span></strong>
                                     <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Escala CNA: Aprobación ${ev.min_grade || 3.0} / Máxima ${ev.max_grade || 5.0}</div>
                                 </div>
                                 <div style="display:flex; gap:10px; align-items:center;">
@@ -2254,12 +2285,22 @@
             updateCourseOnServer();
         }
 
+        function getCourseTotalWeight() {
+            let total = 0;
+            (activeCourse.units || []).forEach(u => {
+                Object.values(u.activities || {}).forEach(a => total += (parseFloat(a.weight) || 0));
+                Object.values(u.evaluations || {}).forEach(e => total += (parseFloat(e.weight) || 0));
+            });
+            return total;
+        }
+
         // --- ACCIONES ACTIVIDADES DE UNIDAD ---
         function openAddActivityModal(unitIdx) {
             document.getElementById('activityUnitIdx').value = unitIdx;
             document.getElementById('act_title').value = '';
             document.getElementById('act_description').value = '';
             document.getElementById('act_date').value = '';
+            document.getElementById('act_weight').value = '0';
             document.getElementById('unitActivityModal').style.display = 'flex';
         }
         function closeUnitActivityModal() { document.getElementById('unitActivityModal').style.display = 'none'; }
@@ -2268,10 +2309,12 @@
             const title = document.getElementById('act_title').value.trim();
             const description = document.getElementById('act_description').value.trim();
             const due_date = document.getElementById('act_date').value;
+            const weight = parseFloat(document.getElementById('act_weight').value) || 0;
             
             if (!title) { alert("El título es obligatorio."); return; }
+            if (getCourseTotalWeight() + weight > 100) { alert("Error: La suma de ponderaciones del curso excedería el 100%."); return; }
             
-            const newAct = { id: 'act_' + Math.random().toString(36).substr(2, 5), title, description, due_date };
+            const newAct = { id: 'act_' + Math.random().toString(36).substr(2, 5), title, description, due_date, weight };
             if (!activeCourse.units[unitIdx].activities) activeCourse.units[unitIdx].activities = [];
             activeCourse.units[unitIdx].activities.push(newAct);
             
@@ -2292,6 +2335,7 @@
             document.getElementById('eval_title').value = '';
             document.getElementById('eval_min').value = '3.0';
             document.getElementById('eval_max').value = '5.0';
+            document.getElementById('eval_weight').value = '0';
             document.getElementById('unitEvaluationModal').style.display = 'flex';
         }
         function closeUnitEvaluationModal() { document.getElementById('unitEvaluationModal').style.display = 'none'; }
@@ -2300,13 +2344,15 @@
             const title = document.getElementById('eval_title').value.trim();
             const min_grade = parseFloat(document.getElementById('eval_min').value) || 3.0;
             const max_grade = parseFloat(document.getElementById('eval_max').value) || 5.0;
+            const weight = parseFloat(document.getElementById('eval_weight').value) || 0;
             
             if (!title) { alert("El título es obligatorio."); return; }
             if (min_grade < 1.0 || max_grade > 5.0 || min_grade > max_grade) {
                 alert("Calificaciones inválidas en Escala CNA (1.0 - 5.0)."); return;
             }
+            if (getCourseTotalWeight() + weight > 100) { alert("Error: La suma de ponderaciones del curso excedería el 100%."); return; }
             
-            const newEval = { id: 'eval_' + Math.random().toString(36).substr(2, 5), title, min_grade, max_grade };
+            const newEval = { id: 'eval_' + Math.random().toString(36).substr(2, 5), title, min_grade, max_grade, weight };
             if (!activeCourse.units[unitIdx].evaluations) {
                 activeCourse.units[unitIdx].evaluations = [];
             } else if (!Array.isArray(activeCourse.units[unitIdx].evaluations)) {
@@ -2745,7 +2791,7 @@
                                     <div class="activity-item" style="margin-top:8px; display:flex; flex-direction:column; align-items:stretch; gap:6px;">
                                         <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                                             <div>
-                                                <strong>${escapeHtml(act.title)}</strong>${statusHtml}<br>
+                                                <strong>${escapeHtml(act.title)} <span style="font-size:0.75rem; color:white; background:var(--primary-color); padding:2px 6px; border-radius:10px;">${act.weight || 0}%</span></strong>${statusHtml}<br>
                                                 <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(act.description)}</span><br>
                                                 <span style="font-size:0.72rem; font-weight:700; color:var(--accent-color); display:block; margin-top:4px;">Fecha límite: ${act.due_date || 'Sin límite'}</span>
                                             </div>
@@ -2779,7 +2825,7 @@
                                 evalHtml += `
                                     <div class="evaluation-item" style="margin-top:5px;">
                                         <div>
-                                            <strong>${escapeHtml(ev.title)}</strong>${statusHtml}<br>
+                                            <strong>${escapeHtml(ev.title)} <span style="font-size:0.75rem; color:white; background:var(--primary-color); padding:2px 6px; border-radius:10px;">${ev.weight || 0}%</span></strong>${statusHtml}<br>
                                             <span style="font-size:0.72rem; color:var(--text-muted);">Calificación CNA (Aprobación: ${ev.min_grade})</span>
                                         </div>
                                         <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--primary-gradient); border:none; color:white; border-radius:10px;" onclick="takeQuiz(${uIdx}, '${ev.id}')">${buttonText}</button>
@@ -3811,6 +3857,78 @@
                 });
             } catch(e) {
                 console.error(e);
+            }
+        }
+
+        async function loadCourseGradebook(courseId) {
+            if(!courseId) return;
+            const thead = document.getElementById('gradebookTableHead');
+            const tbody = document.getElementById('gradebookTableBody');
+            thead.innerHTML = '<tr><th style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); text-align: left;">Estudiante</th></tr>';
+            tbody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 20px; color: var(--text-muted);">Cargando libro de calificaciones...</td></tr>';
+            try {
+                // Fetch all submissions for course
+                const subsRes = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                if (!subsRes.ok) throw new Error('Error fetching submissions');
+                const courseSubs = await subsRes.json() || [];
+                
+                const enrolled = activeCourse.enrolled_students || [];
+                
+                let columns = [];
+                let theadHtml = `<tr>
+                    <th style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); text-align: left; position: sticky; left: 0; background: var(--secondary-bg); z-index: 20;">Estudiante</th>`;
+                    
+                (activeCourse.units || []).forEach((u, uIdx) => {
+                    Object.values(u.activities || {}).forEach(a => {
+                        columns.push({ id: a.id, title: `U${uIdx+1}: ${a.title}`, type: 'act', weight: parseFloat(a.weight) || 0 });
+                    });
+                    Object.values(u.evaluations || {}).forEach(e => {
+                        columns.push({ id: e.id, title: `U${uIdx+1}: ${e.title}`, type: 'eval', weight: parseFloat(e.weight) || 0 });
+                    });
+                });
+                
+                columns.forEach(col => {
+                    theadHtml += `<th style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); min-width: 120px;"><div style="font-size:0.8rem; font-weight:600; line-height:1.2;">${escapeHtml(col.title)}<br><span style="color:var(--primary-color);">${col.weight}%</span></div></th>`;
+                });
+                theadHtml += `<th style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); color:var(--accent-color); position: sticky; right: 0; background: var(--secondary-bg); z-index: 20;">Nota Final</th></tr>`;
+                thead.innerHTML = theadHtml;
+                
+                let tbodyHtml = '';
+                if (enrolled.length === 0) {
+                    tbodyHtml = `<tr><td colspan="${columns.length + 2}" style="padding: 20px; color: var(--text-muted);">No hay estudiantes matriculados.</td></tr>`;
+                } else {
+                    enrolled.forEach(stu => {
+                        let rowHtml = `<tr><td style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); text-align: left; position: sticky; left: 0; background: white; font-weight: 500; z-index: 10;">
+                            ${escapeHtml(stu.name || 'Estudiante')} <br> <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">${escapeHtml(stu.email)}</span>
+                        </td>`;
+                        
+                        let finalGrade = 0;
+                        
+                        columns.forEach(col => {
+                            const sub = courseSubs.find(s => s.student_email === stu.email && s.activity_id === col.id && s.status === 'graded');
+                            let grade = 0;
+                            if (sub && sub.grade !== undefined && sub.grade !== null && sub.grade !== "") {
+                                grade = parseFloat(sub.grade);
+                            }
+                            
+                            finalGrade += (grade * col.weight) / 100;
+                            
+                            let cellColor = grade >= 3.0 ? '#137333' : (grade > 0 ? '#b00020' : 'var(--text-muted)');
+                            let cellVal = grade > 0 ? grade.toFixed(1) : '-';
+                            
+                            rowHtml += `<td style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); color: ${cellColor}; font-weight: 600;">${cellVal}</td>`;
+                        });
+                        
+                        let finalColor = finalGrade >= 3.0 ? 'var(--primary-color)' : '#b00020';
+                        rowHtml += `<td style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-weight: 700; color: ${finalColor}; font-size: 1.05rem; position: sticky; right: 0; background: white; z-index: 10;">${finalGrade.toFixed(2)}</td></tr>`;
+                        tbodyHtml += rowHtml;
+                    });
+                }
+                tbody.innerHTML = tbodyHtml;
+                
+            } catch(e) {
+                console.error(e);
+                tbody.innerHTML = `<tr><td colspan="100%" style="padding: 20px; color: #ef4444;">Error al cargar el libro de calificaciones.</td></tr>`;
             }
         }
 
