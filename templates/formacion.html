@@ -561,7 +561,7 @@
             </div>
 
             <!-- TAB: COURSES (Admin) -->
-            <div id="coursesTab" class="tab-content">
+            <div id="coursesTab" class="tab-content" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;">
                     <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Administra el temario, videoconferencias, resultados de aprendizaje y recursos de tus cursos.</p>
                     <button class="btn-primary" onclick="openCreateCourseModal()">+ Crear Nuevo Curso</button>
@@ -1334,22 +1334,20 @@
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active-tab');
-                content.style.display = 'none'; // Fallback
+                content.style.removeProperty('display'); // Dejar que CSS controle
             });
             
-            if (tabId === 'courses') {
-                document.getElementById('tabCourses').classList.add('active');
-                document.getElementById('coursesTab').classList.add('active-tab');
-                loadCoursesList();
-            } else if (tabId === 'teachers') {
-                document.getElementById('tabTeachers').classList.add('active');
-                document.getElementById('teachersTab').classList.add('active-tab');
-                loadTeachersList();
-            } else {
-                document.getElementById('tabStudents').classList.add('active');
-                document.getElementById('studentsTab').classList.add('active-tab');
-                loadStudentsList();
-            }
+            const targetTab = tabId === 'courses' ? 'coursesTab' : tabId === 'teachers' ? 'teachersTab' : 'studentsTab';
+            const targetBtn = tabId === 'courses' ? 'tabCourses' : tabId === 'teachers' ? 'tabTeachers' : 'tabStudents';
+            
+            document.getElementById(targetBtn).classList.add('active');
+            const tab = document.getElementById(targetTab);
+            tab.style.removeProperty('display'); // Limpiar cualquier inline
+            tab.classList.add('active-tab');
+            
+            if (tabId === 'courses') loadCoursesList();
+            else if (tabId === 'teachers') loadTeachersList();
+            else loadStudentsList();
         }
 
         // --- NAVEGACIÓN DE SUB-PESTAÑAS DE EDICIÓN ---
@@ -3901,11 +3899,13 @@
                 
                 document.querySelectorAll('.tab-content').forEach(content => {
                     content.classList.remove('active-tab');
-                    content.style.display = 'none';
+                    content.style.removeProperty('display');
                 });
                 
                 // Mostrar Aula del Estudiante
-                document.getElementById('studentClassroom').classList.add('active-tab');
+                const sc = document.getElementById('studentClassroom');
+                sc.style.removeProperty('display');
+                sc.classList.add('active-tab');
                 loadStudentCourses();
             } else {
                 // Admin flow normal
