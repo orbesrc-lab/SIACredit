@@ -961,21 +961,45 @@
     </div>
 
     <!-- MODAL: CREAR ESTUDIANTE -->
-    <div id="studentModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:16px; padding:30px; width:460px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <h3 style="margin-bottom:20px; font-size:1.2rem;" id="studentModalTitle">Registrar Estudiante / Participante</h3>
-            <input type="hidden" id="student_id">
-            <div class="form-group">
-                <label>Nombre Completo</label>
-                <input type="text" id="student_name" placeholder="Ej: Ing. Carolina Gómez">
-            </div>
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Correo Institucional</label>
-                <input type="email" id="student_email" placeholder="carolina.gomez@unicuces.edu.co">
-            </div>
-            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
-                <button class="btn-ghost" onclick="closeStudentModal()">Cancelar</button>
-                <button class="btn-primary" id="btnSubmitStudent" onclick="submitCreateStudent()">Registrar Estudiante</button>
+    <div id="studentModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index:1000; align-items:center; justify-content:center; animation: fadeIn 0.3s ease-out;">
+        <div style="background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 40px; width: 480px; max-width: 90vw; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; overflow: hidden; transform: translateY(0); transition: all 0.3s ease;">
+            <!-- Decorative gradient blobs -->
+            <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: var(--primary-gradient); filter: blur(60px); opacity: 0.3; border-radius: 50%; pointer-events: none;"></div>
+            <div style="position: absolute; bottom: -50px; left: -50px; width: 150px; height: 150px; background: var(--secondary-gradient); filter: blur(60px); opacity: 0.3; border-radius: 50%; pointer-events: none;"></div>
+            
+            <div style="position: relative; z-index: 1;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+                    <div style="width: 50px; height: 50px; border-radius: 16px; background: rgba(99, 102, 241, 0.1); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--primary-color);">
+                        🎓
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.4rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;" id="studentModalTitle">Registrar Participante</h3>
+                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">Ingresa los datos del nuevo estudiante al sistema.</p>
+                    </div>
+                </div>
+                
+                <input type="hidden" id="student_id">
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-main);">Nombre Completo</label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 1.1rem; color: var(--text-muted);">👤</span>
+                        <input type="text" id="student_name" placeholder="Ej: Ing. Carolina Gómez" style="width: 100%; padding: 14px 14px 14px 45px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 0.95rem; font-family: 'Outfit', sans-serif; background: var(--secondary-bg); color: var(--text-main); transition: all 0.2s ease; box-sizing: border-box; outline: none;" onfocus="this.style.borderColor='var(--primary-color)'; this.style.boxShadow='0 0 0 4px rgba(99, 102, 241, 0.15)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 30px;">
+                    <label style="display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-main);">Correo Institucional</label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 1.1rem; color: var(--text-muted);">✉️</span>
+                        <input type="email" id="student_email" placeholder="carolina.gomez@unicuces.edu.co" style="width: 100%; padding: 14px 14px 14px 45px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 0.95rem; font-family: 'Outfit', sans-serif; background: var(--secondary-bg); color: var(--text-main); transition: all 0.2s ease; box-sizing: border-box; outline: none;" onfocus="this.style.borderColor='var(--primary-color)'; this.style.boxShadow='0 0 0 4px rgba(99, 102, 241, 0.15)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 10px;">
+                    <button class="btn-ghost" onclick="closeStudentModal()" style="padding: 12px 24px; border-radius: 12px; font-weight: 600; color: var(--text-muted); background: transparent; border: 1px solid transparent; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.background='var(--secondary-bg)'; this.style.color='var(--text-main)';" onmouseout="this.style.background='transparent'; this.style.color='var(--text-muted)';">Cancelar</button>
+                    <button class="btn-primary" id="btnSubmitStudent" onclick="submitCreateStudent()" style="padding: 12px 28px; border-radius: 12px; font-weight: 700; background: var(--primary-gradient); color: white; border: none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); transition: all 0.2s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(99, 102, 241, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(99, 102, 241, 0.3)';">Registrar Estudiante</button>
+                </div>
             </div>
         </div>
     </div>
