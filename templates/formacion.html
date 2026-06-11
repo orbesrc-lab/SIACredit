@@ -166,11 +166,12 @@
         }
 
         .course-card-title {
-            font-size: 1.25rem;
-            font-weight: 800;
-            line-height: 1.35;
+            font-size: 1.3rem;
             margin: 0;
-            letter-spacing: -0.3px;
+            font-weight: 800;
+            line-height: 1.3;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: white !important;
         }
 
         .course-card-body {
@@ -1493,7 +1494,7 @@
                 
                 teachers.forEach(t => {
                     html += `
-                        <div class="user-card fade-in" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-sm); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-premium-hover)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
+                        <div class="user-card fade-in" style="background: var(--body-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-sm); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-premium-hover)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
                             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 80px; background: var(--primary-gradient); opacity: 0.1;"></div>
                             
                             <div style="position: relative; width: 80px; height: 80px; border-radius: 50%; background: white; padding: 4px; box-shadow: var(--shadow-md); margin-bottom: 15px; display: flex; align-items: center; justify-content: center;">
@@ -1619,7 +1620,7 @@
                     }
                     
                     html += `
-                        <div class="user-card fade-in" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-sm); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-premium-hover)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
+                        <div class="user-card fade-in" style="background: var(--body-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-sm); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-premium-hover)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
                             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 80px; background: var(--primary-gradient); opacity: 0.1;"></div>
                             
                             <div style="position: relative; width: 80px; height: 80px; border-radius: 50%; background: white; padding: 4px; box-shadow: var(--shadow-md); margin-bottom: 15px; display: flex; align-items: center; justify-content: center;">
