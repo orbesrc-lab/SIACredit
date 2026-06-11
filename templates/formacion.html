@@ -459,6 +459,33 @@
             }
         }
         
+        .content-area {
+            display: flex !important;
+            flex-direction: column !important;
+            height: calc(100vh - 70px) !important;
+            overflow: hidden !important;
+            padding-bottom: 0 !important;
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 35px;
+            padding-right: 10px; /* Space for scrollbar */
+        }
+        
+        /* Custom Scrollbar for tab-content to look elegant */
+        .tab-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .tab-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .tab-content::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+
         .user-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -536,8 +563,8 @@
             </div>
 
             <!-- TAB: COURSES (Admin) -->
-            <div id="coursesTab" class="tab-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div id="coursesTab" class="tab-content" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;">
                     <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Administra el temario, videoconferencias, resultados de aprendizaje y recursos de tus cursos.</p>
                     <button class="btn-primary" onclick="openCreateCourseModal()">+ Crear Nuevo Curso</button>
                 </div>
