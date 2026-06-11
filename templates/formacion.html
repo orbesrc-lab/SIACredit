@@ -532,13 +532,15 @@
         </header>
 
         <div class="content-area">
-            <h1 id="mainTitle" style="font-size: 1.8rem; margin-bottom: 20px;">🎓 Gestión de Capacitación y Cursos</h1>
+            <h1 id="mainTitle" style="font-size: 1.8rem; margin-bottom: 20px; text-align: center;">🎓 Gestión de Capacitación y Cursos</h1>
 
             <!-- Tab Navigation (Solo Admin) -->
-            <div class="tab-nav" id="adminTabNav">
-                <button class="tab-btn active" id="tabCourses" onclick="switchMainTab('courses')">📚 Cursos y Contenidos</button>
-                <button class="tab-btn" id="tabTeachers" onclick="switchMainTab('teachers')">👨‍🏫 Profesores / Docentes</button>
-                <button class="tab-btn" id="tabStudents" onclick="switchMainTab('students')">👥 Estudiantes / Participantes</button>
+            <div style="text-align: center; position: sticky; top: 0; z-index: 50; margin-bottom: 15px;">
+                <div class="tab-nav" id="adminTabNav" style="position: static; margin-bottom: 0;">
+                    <button class="tab-btn active" id="tabCourses" onclick="switchMainTab('courses')">📚 Cursos y Contenidos</button>
+                    <button class="tab-btn" id="tabTeachers" onclick="switchMainTab('teachers')">👨‍🏫 Profesores / Docentes</button>
+                    <button class="tab-btn" id="tabStudents" onclick="switchMainTab('students')">👥 Estudiantes / Participantes</button>
+                </div>
             </div>
 
             <!-- TAB: COURSES (Admin) -->
@@ -548,7 +550,7 @@
                     <button class="btn-primary" onclick="openCreateCourseModal()">+ Crear Nuevo Curso</button>
                 </div>
 
-                <div class="grid-catalog scrollable-grid" id="coursesGrid">
+                <div class="grid-catalog" id="coursesGrid">
                     <!-- Dinámicamente cargados -->
                 </div>
 
@@ -778,7 +780,7 @@
                     <button class="btn-primary" onclick="openCreateTeacherModal()">+ Nuevo Profesor</button>
                 </div>
 
-                <div class="user-grid scrollable-grid" id="teachersGrid">
+                <div class="user-grid" id="teachersGrid">
                     <!-- Dinámicamente cargados -->
                 </div>
             </div>
@@ -790,7 +792,7 @@
                     <button class="btn-primary" onclick="openCreateStudentModal()">+ Registrar Estudiante</button>
                 </div>
 
-                <div class="user-grid scrollable-grid" id="studentsGrid">
+                <div class="user-grid" id="studentsGrid">
                     <!-- Dinámicamente cargados -->
                 </div>
             </div>
