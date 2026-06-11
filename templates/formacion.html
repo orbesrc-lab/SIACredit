@@ -70,37 +70,14 @@
             overflow-y: auto;
         }
 
-        /* Scrollbar styles removed as per user request */
-
         .tab-nav {
             display: inline-flex;
             gap: 8px;
-            background: rgba(248, 250, 252, 0.95);
+            background: rgba(99, 102, 241, 0.06);
             padding: 6px;
             border-radius: 30px;
             margin-bottom: 30px;
             border: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .tab-content {
-            display: none !important;
-        }
-
-        .tab-content.active-tab {
-            display: block !important;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        #coursesTab, #teachersTab, #studentsTab {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            margin-top: 0 !important;
-            padding-top: 0 !important;
         }
 
         .tab-btn {
@@ -477,17 +454,6 @@
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
-            .user-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .user-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-            width: 100%;
         }
     
         /* Quiz editor inputs */
@@ -549,20 +515,18 @@
         </header>
 
         <div class="content-area">
-            <h1 id="mainTitle" style="font-size: 1.8rem; margin-bottom: 20px; text-align: center;">🎓 Gestión de Capacitación y Cursos</h1>
+            <h1 id="mainTitle" style="font-size: 1.8rem; margin-bottom: 20px;">🎓 Gestión de Capacitación y Cursos</h1>
 
             <!-- Tab Navigation (Solo Admin) -->
-            <div style="text-align: center; position: sticky; top: 0; z-index: 50; margin-bottom: 15px;">
-                <div class="tab-nav" id="adminTabNav" style="position: static; margin-bottom: 0;">
-                    <button class="tab-btn active" id="tabCourses" onclick="switchMainTab('courses')">📚 Cursos y Contenidos</button>
-                    <button class="tab-btn" id="tabTeachers" onclick="switchMainTab('teachers')">👨‍🏫 Profesores / Docentes</button>
-                    <button class="tab-btn" id="tabStudents" onclick="switchMainTab('students')">👥 Estudiantes / Participantes</button>
-                </div>
+            <div class="tab-nav" id="adminTabNav">
+                <button class="tab-btn active" id="tabCourses" onclick="switchMainTab('courses')">📚 Cursos y Contenidos</button>
+                <button class="tab-btn" id="tabTeachers" onclick="switchMainTab('teachers')">👨‍🏫 Profesores / Docentes</button>
+                <button class="tab-btn" id="tabStudents" onclick="switchMainTab('students')">👥 Estudiantes / Participantes</button>
             </div>
 
             <!-- TAB: COURSES (Admin) -->
-            <div id="coursesTab" class="tab-content" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;">
+            <div id="coursesTab" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Administra el temario, videoconferencias, resultados de aprendizaje y recursos de tus cursos.</p>
                     <button class="btn-primary" onclick="openCreateCourseModal()">+ Crear Nuevo Curso</button>
                 </div>
@@ -572,8 +536,8 @@
                 </div>
 
                 <!-- Editor de Curso Detallado -->
-                <div id="courseEditorSection" class="editor-container scrollable-grid" style="display: none; border-top: 4px solid var(--primary-color); margin-bottom: 0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-shrink: 0;">
+                <div id="courseEditorSection" class="editor-container" style="display: none; border-top: 4px solid var(--primary-color);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                         <h2 id="editorCourseTitle" style="font-size: 1.3rem; margin: 0;">Editar Curso: Fundamentos</h2>
                         <button class="btn-ghost" onclick="closeEditor()" style="color: var(--text-muted);">❌ Cerrar Editor</button>
                     </div>
@@ -792,7 +756,7 @@
 
             <!-- TAB: TEACHERS (Admin) -->
             <div id="teachersTab" class="tab-content" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-shrink: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                     <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Administra el listado de docentes disponibles para capacitar a los líderes de tu organización.</p>
                     <button class="btn-primary" onclick="openCreateTeacherModal()">+ Nuevo Profesor</button>
                 </div>
@@ -804,7 +768,7 @@
 
             <!-- TAB: STUDENTS (Admin) -->
             <div id="studentsTab" class="tab-content" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-shrink: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                     <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Gestiona los participantes matriculados en los diferentes cursos de formación.</p>
                     <button class="btn-primary" onclick="openCreateStudentModal()">+ Registrar Estudiante</button>
                 </div>
@@ -1332,22 +1296,21 @@
         // --- NAVEGACIÓN DE PESTAÑAS PRINCIPALES ---
         function switchMainTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active-tab');
-                content.style.removeProperty('display'); // Dejar que CSS controle
-            });
+            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
             
-            const targetTab = tabId === 'courses' ? 'coursesTab' : tabId === 'teachers' ? 'teachersTab' : 'studentsTab';
-            const targetBtn = tabId === 'courses' ? 'tabCourses' : tabId === 'teachers' ? 'tabTeachers' : 'tabStudents';
-            
-            document.getElementById(targetBtn).classList.add('active');
-            const tab = document.getElementById(targetTab);
-            tab.style.removeProperty('display'); // Limpiar cualquier inline
-            tab.classList.add('active-tab');
-            
-            if (tabId === 'courses') loadCoursesList();
-            else if (tabId === 'teachers') loadTeachersList();
-            else loadStudentsList();
+            if (tabId === 'courses') {
+                document.getElementById('tabCourses').classList.add('active');
+                document.getElementById('coursesTab').style.display = 'block';
+                loadCoursesList();
+            } else if (tabId === 'teachers') {
+                document.getElementById('tabTeachers').classList.add('active');
+                document.getElementById('teachersTab').style.display = 'block';
+                loadTeachersList();
+            } else {
+                document.getElementById('tabStudents').classList.add('active');
+                document.getElementById('studentsTab').style.display = 'block';
+                loadStudentsList();
+            }
         }
 
         // --- NAVEGACIÓN DE SUB-PESTAÑAS DE EDICIÓN ---
@@ -1490,25 +1453,12 @@
                 
                 teachers.forEach(t => {
                     html += `
-                        <div class="user-card fade-in" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-sm); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-premium-hover)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
-                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 80px; background: var(--primary-gradient); opacity: 0.1;"></div>
-                            
-                            <div style="position: relative; width: 80px; height: 80px; border-radius: 50%; background: white; padding: 4px; box-shadow: var(--shadow-md); margin-bottom: 15px; display: flex; align-items: center; justify-content: center;">
-                                ${t.avatar ? `<img src="${t.avatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` : `<div style="font-size:2.5rem; text-align:center;">👨‍🏫</div>`}
-                            </div>
-                            
-                            <span class="badge-role" style="background: var(--primary-gradient); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 10px;">${escapeHtml(t.specialty || 'Docente')}</span>
-                            
-                            <h4 style="margin: 0 0 5px 0; font-size: 1.15rem; font-weight: 700; color: var(--text-main); text-align: center;">${escapeHtml(t.name || 'Sin nombre')}</h4>
-                            <p style="margin: 0 0 20px 0; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                                ✉️ ${escapeHtml(t.email || 'N/A')}
-                            </p>
-                            
-                            <div style="width: 100%; margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
-                                <button onclick="deleteTeacher('${t.id}')" style="width: 100%; padding: 10px; border-radius: 10px; background: transparent; border: 1px solid #fee2e2; color: #ef4444; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#fca5a5';" onmouseout="this.style.background='transparent'; this.style.borderColor='#fee2e2';">
-                                    🗑️ Eliminar Docente
-                                </button>
-                            </div>
+                        <div class="user-card fade-in">
+                            ${t.avatar ? `<img src="${t.avatar}" class="avatar-large">` : `<div class="avatar-large">👨‍🏫</div>`}
+                            <h4>${escapeHtml(t.name || 'Sin nombre')}</h4>
+                            <p>📧 ${escapeHtml(t.email || 'N/A')}</p>
+                            <span class="badge-role">${escapeHtml(t.specialty || 'Docente')}</span>
+                            <button class="btn-danger" onclick="deleteTeacher('${t.id}')">🗑️ Eliminar Docente</button>
                         </div>
                     `;
                 });
@@ -1616,36 +1566,17 @@
                     }
                     
                     html += `
-                        <div class="user-card fade-in" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-sm); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-premium-hover)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
-                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 80px; background: var(--primary-gradient); opacity: 0.1;"></div>
-                            
-                            <div style="position: relative; width: 80px; height: 80px; border-radius: 50%; background: white; padding: 4px; box-shadow: var(--shadow-md); margin-bottom: 15px; display: flex; align-items: center; justify-content: center;">
-                                ${s.avatar ? `<img src="${s.avatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` : `<div style="font-size:2.5rem; text-align:center;">👨‍🎓</div>`}
-                            </div>
-                            
+                        <div class="user-card fade-in">
+                            ${s.avatar ? `<img src="${s.avatar}" class="avatar-large">` : `<div class="avatar-large">👨‍🎓</div>`}
                             ${badgeHtml}
-                            
-                            <h4 style="margin: 0 0 5px 0; font-size: 1.15rem; font-weight: 700; color: var(--text-main); text-align: center;">${nameDisplay}</h4>
-                            <p style="margin: 0 0 20px 0; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                                ✉️ ${escapeHtml(s.email || 'N/A')}
-                            </p>
-                            
-                            <div style="width: 100%; margin-bottom: 20px; background: rgba(99, 102, 241, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.1); box-sizing: border-box;">
-                                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; margin-bottom: 8px;">
-                                    <span style="color: var(--text-muted);">Progreso Global</span>
-                                    <span style="color: var(--primary-color);">0%</span>
-                                </div>
-                                <div style="width: 100%; height: 8px; background: var(--border-color); border-radius: 10px; overflow: hidden;">
-                                    <div style="width: 0%; height: 100%; background: var(--success-gradient); border-radius: 10px; transition: width 1s;"></div>
-                                </div>
+                            <h4>${nameDisplay}</h4>
+                            <p>📧 ${escapeHtml(s.email || 'N/A')}</p>
+                            <div style="width: 100%; margin-bottom: 15px;">
+                                <div style="font-size: 0.75rem; text-align: left; margin-bottom: 5px; color: var(--text-muted);">Progreso Global</div>
+                                <div class="progress-bar"><div class="progress-fill" style="width: 0%;"></div></div>
                             </div>
-                            
-                            <div style="width: 100%; margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
-                                ${actionHtml}
-                                <button onclick="deleteStudent('${s.id}')" style="width: 100%; padding: 10px; border-radius: 10px; background: transparent; border: 1px solid #fee2e2; color: #ef4444; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#fca5a5';" onmouseout="this.style.background='transparent'; this.style.borderColor='#fee2e2';">
-                                    🗑️ Eliminar Participante
-                                </button>
-                            </div>
+                            ${actionHtml}
+                            <button class="btn-danger" onclick="deleteStudent('${s.id}')">🗑️ Eliminar Participante</button>
                         </div>
                     `;
                 });
@@ -3896,16 +3827,12 @@
                 // Configurar título y ocultar paneles administrativos
                 document.getElementById('mainTitle').textContent = '🎓 Mi Aula Virtual';
                 document.getElementById('adminTabNav').style.display = 'none';
-                
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.remove('active-tab');
-                    content.style.removeProperty('display');
-                });
+                document.getElementById('coursesTab').style.display = 'none';
+                document.getElementById('teachersTab').style.display = 'none';
+                document.getElementById('studentsTab').style.display = 'none';
                 
                 // Mostrar Aula del Estudiante
-                const sc = document.getElementById('studentClassroom');
-                sc.style.removeProperty('display');
-                sc.classList.add('active-tab');
+                document.getElementById('studentClassroom').style.display = 'block';
                 loadStudentCourses();
             } else {
                 // Admin flow normal
