@@ -63,11 +63,46 @@
         .content-area {
             flex: 1;
             min-height: 0;
-            padding: 35px;
+            padding: 35px 35px 0 35px;
             max-width: 1200px;
             margin: 0 auto;
             width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tab-content {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+        
+        .tab-content[style*="display: block"] {
+            display: flex !important;
+        }
+
+        .scrollable-grid {
+            flex: 1;
             overflow-y: auto;
+            padding-right: 10px;
+            padding-bottom: 35px;
+        }
+
+        .scrollable-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+        .scrollable-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scrollable-grid::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 10px;
+        }
+        .scrollable-grid::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.6);
         }
 
         .tab-nav {
@@ -537,18 +572,18 @@
 
             <!-- TAB: COURSES (Admin) -->
             <div id="coursesTab" class="tab-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;">
                     <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Administra el temario, videoconferencias, resultados de aprendizaje y recursos de tus cursos.</p>
                     <button class="btn-primary" onclick="openCreateCourseModal()">+ Crear Nuevo Curso</button>
                 </div>
 
-                <div class="grid-catalog" id="coursesGrid">
+                <div class="grid-catalog scrollable-grid" id="coursesGrid">
                     <!-- Dinámicamente cargados -->
                 </div>
 
                 <!-- Editor de Curso Detallado -->
-                <div id="courseEditorSection" class="editor-container" style="display: none; border-top: 4px solid var(--primary-color);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                <div id="courseEditorSection" class="editor-container scrollable-grid" style="display: none; border-top: 4px solid var(--primary-color); margin-bottom: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-shrink: 0;">
                         <h2 id="editorCourseTitle" style="font-size: 1.3rem; margin: 0;">Editar Curso: Fundamentos</h2>
                         <button class="btn-ghost" onclick="closeEditor()" style="color: var(--text-muted);">❌ Cerrar Editor</button>
                     </div>
@@ -767,24 +802,24 @@
 
             <!-- TAB: TEACHERS (Admin) -->
             <div id="teachersTab" class="tab-content" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-shrink: 0;">
                     <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Administra el listado de docentes disponibles para capacitar a los líderes de tu organización.</p>
                     <button class="btn-primary" onclick="openCreateTeacherModal()">+ Nuevo Profesor</button>
                 </div>
 
-                <div class="user-grid" id="teachersGrid">
+                <div class="user-grid scrollable-grid" id="teachersGrid">
                     <!-- Dinámicamente cargados -->
                 </div>
             </div>
 
             <!-- TAB: STUDENTS (Admin) -->
             <div id="studentsTab" class="tab-content" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-shrink: 0;">
                     <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Gestiona los participantes matriculados en los diferentes cursos de formación.</p>
                     <button class="btn-primary" onclick="openCreateStudentModal()">+ Registrar Estudiante</button>
                 </div>
 
-                <div class="user-grid" id="studentsGrid">
+                <div class="user-grid scrollable-grid" id="studentsGrid">
                     <!-- Dinámicamente cargados -->
                 </div>
             </div>
