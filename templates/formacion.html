@@ -63,45 +63,24 @@
         .content-area {
             flex: 1;
             min-height: 0;
-            padding: 35px 35px 0 35px;
+            padding: 35px;
             max-width: 1200px;
             margin: 0 auto;
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .tab-content {
-            flex: 1;
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            min-height: 0;
-        }
-        
-        .tab-content[style*="display: block"] {
-            display: flex !important;
-        }
-
-        .scrollable-grid {
-            flex: 1;
             overflow-y: auto;
-            padding-right: 10px;
-            padding-bottom: 35px;
         }
 
-        .scrollable-grid::-webkit-scrollbar {
+        .content-area::-webkit-scrollbar {
             width: 8px;
         }
-        .scrollable-grid::-webkit-scrollbar-track {
+        .content-area::-webkit-scrollbar-track {
             background: transparent;
         }
-        .scrollable-grid::-webkit-scrollbar-thumb {
+        .content-area::-webkit-scrollbar-thumb {
             background: rgba(99, 102, 241, 0.3);
             border-radius: 10px;
         }
-        .scrollable-grid::-webkit-scrollbar-thumb:hover {
+        .content-area::-webkit-scrollbar-thumb:hover {
             background: rgba(99, 102, 241, 0.6);
         }
 
