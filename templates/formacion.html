@@ -86,6 +86,23 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
+        .tab-content {
+            display: none !important;
+        }
+
+        .tab-content.active-tab {
+            display: block !important;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        #coursesTab, #teachersTab, #studentsTab {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+
         .tab-btn {
             padding: 10px 24px;
             background: transparent;
@@ -1315,19 +1332,22 @@
         // --- NAVEGACIÓN DE PESTAÑAS PRINCIPALES ---
         function switchMainTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active-tab');
+                content.style.display = 'none'; // Fallback
+            });
             
             if (tabId === 'courses') {
                 document.getElementById('tabCourses').classList.add('active');
-                document.getElementById('coursesTab').style.display = 'block';
+                document.getElementById('coursesTab').classList.add('active-tab');
                 loadCoursesList();
             } else if (tabId === 'teachers') {
                 document.getElementById('tabTeachers').classList.add('active');
-                document.getElementById('teachersTab').style.display = 'block';
+                document.getElementById('teachersTab').classList.add('active-tab');
                 loadTeachersList();
             } else {
                 document.getElementById('tabStudents').classList.add('active');
-                document.getElementById('studentsTab').style.display = 'block';
+                document.getElementById('studentsTab').classList.add('active-tab');
                 loadStudentsList();
             }
         }
@@ -3878,12 +3898,14 @@
                 // Configurar título y ocultar paneles administrativos
                 document.getElementById('mainTitle').textContent = '🎓 Mi Aula Virtual';
                 document.getElementById('adminTabNav').style.display = 'none';
-                document.getElementById('coursesTab').style.display = 'none';
-                document.getElementById('teachersTab').style.display = 'none';
-                document.getElementById('studentsTab').style.display = 'none';
+                
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active-tab');
+                    content.style.display = 'none';
+                });
                 
                 // Mostrar Aula del Estudiante
-                document.getElementById('studentClassroom').style.display = 'block';
+                document.getElementById('studentClassroom').classList.add('active-tab');
                 loadStudentCourses();
             } else {
                 // Admin flow normal
