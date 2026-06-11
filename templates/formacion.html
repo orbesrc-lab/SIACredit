@@ -454,43 +454,12 @@
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
-            .user-grid {
-                grid-template-columns: 1fr !important;
-            }
         }
         
-        .content-area {
-            display: flex !important;
-            flex-direction: column !important;
-            height: calc(100vh - 70px) !important;
-            overflow: hidden !important;
-            padding-bottom: 0 !important;
-        }
-
-        .tab-content {
-            flex: 1;
-            overflow-y: auto;
-            padding-bottom: 35px;
-            padding-right: 10px; /* Space for scrollbar */
-        }
-        
-        /* Custom Scrollbar for tab-content to look elegant */
-        .tab-content::-webkit-scrollbar {
-            width: 8px;
-        }
-        .tab-content::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .tab-content::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 20px;
-        }
-
-        .user-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
             width: 100%;
         }
     
@@ -799,7 +768,7 @@
                     <button class="btn-primary" onclick="openCreateTeacherModal()">+ Nuevo Profesor</button>
                 </div>
 
-                <div class="user-grid" id="teachersGrid">
+                <div class="user-list" id="teachersGrid">
                     <!-- Dinámicamente cargados -->
                 </div>
             </div>
@@ -811,7 +780,7 @@
                     <button class="btn-primary" onclick="openCreateStudentModal()">+ Registrar Estudiante</button>
                 </div>
 
-                <div class="user-grid" id="studentsGrid">
+                <div class="user-list" id="studentsGrid">
                     <!-- Dinámicamente cargados -->
                 </div>
             </div>
@@ -1491,22 +1460,21 @@
                 
                 teachers.forEach(t => {
                     html += `
-                        <div class="user-card fade-in" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-sm); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-premium-hover)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
-                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 80px; background: var(--primary-gradient); opacity: 0.1;"></div>
-                            
-                            <div style="position: relative; width: 80px; height: 80px; border-radius: 50%; background: white; padding: 4px; box-shadow: var(--shadow-md); margin-bottom: 15px; display: flex; align-items: center; justify-content: center;">
-                                ${t.avatar ? `<img src="${t.avatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` : `<div style="font-size:2.5rem; text-align:center;">👨‍🏫</div>`}
+                        <div class="user-list-item fade-in" style="background: var(--white); border: 1px solid var(--border-color); border-radius: 16px; padding: 15px 25px; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: space-between; gap: 20px; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='var(--shadow-md)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='var(--shadow-sm)'; this.style.transform='translateY(0)';">
+                            <div style="display: flex; align-items: center; gap: 20px; flex: 1;">
+                                <div style="width: 55px; height: 55px; border-radius: 50%; background: rgba(99, 102, 241, 0.1); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                    ${t.avatar ? `<img src="${t.avatar}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="font-size:1.8rem;">👨‍🏫</div>`}
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0 0 5px 0; font-size: 1.1rem; font-weight: 700; color: var(--text-main);">${escapeHtml(t.name || 'Sin nombre')}</h4>
+                                    <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85rem; color: var(--text-muted);">
+                                        <span style="display: flex; align-items: center; gap: 5px;">✉️ ${escapeHtml(t.email || 'N/A')}</span>
+                                        <span style="background: var(--primary-gradient); color: white; padding: 3px 10px; border-radius: 20px; font-weight: 600; font-size: 0.75rem;">${escapeHtml(t.specialty || 'Docente')}</span>
+                                    </div>
+                                </div>
                             </div>
-                            
-                            <span class="badge-role" style="background: var(--primary-gradient); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 10px;">${escapeHtml(t.specialty || 'Docente')}</span>
-                            
-                            <h4 style="margin: 0 0 5px 0; font-size: 1.15rem; font-weight: 700; color: var(--text-main); text-align: center;">${escapeHtml(t.name || 'Sin nombre')}</h4>
-                            <p style="margin: 0 0 20px 0; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                                ✉️ ${escapeHtml(t.email || 'N/A')}
-                            </p>
-                            
-                            <div style="width: 100%; margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
-                                <button onclick="deleteTeacher('${t.id}')" style="width: 100%; padding: 10px; border-radius: 10px; background: transparent; border: 1px solid #fee2e2; color: #ef4444; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#fca5a5';" onmouseout="this.style.background='transparent'; this.style.borderColor='#fee2e2';">
+                            <div style="display: flex; gap: 10px; flex-shrink: 0;">
+                                <button onclick="deleteTeacher('${t.id}')" style="background: transparent; border: 1px solid #fee2e2; color: #ef4444; padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#fca5a5';" onmouseout="this.style.background='transparent'; this.style.borderColor='#fee2e2';">
                                     🗑️ Eliminar Docente
                                 </button>
                             </div>
@@ -1617,34 +1585,31 @@
                     }
                     
                     html += `
-                        <div class="user-card fade-in" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-sm); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-premium-hover)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)';">
-                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 80px; background: var(--primary-gradient); opacity: 0.1;"></div>
-                            
-                            <div style="position: relative; width: 80px; height: 80px; border-radius: 50%; background: white; padding: 4px; box-shadow: var(--shadow-md); margin-bottom: 15px; display: flex; align-items: center; justify-content: center;">
-                                ${s.avatar ? `<img src="${s.avatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` : `<div style="font-size:2.5rem; text-align:center;">👨‍🎓</div>`}
-                            </div>
-                            
-                            ${badgeHtml}
-                            
-                            <h4 style="margin: 0 0 5px 0; font-size: 1.15rem; font-weight: 700; color: var(--text-main); text-align: center;">${nameDisplay}</h4>
-                            <p style="margin: 0 0 20px 0; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                                ✉️ ${escapeHtml(s.email || 'N/A')}
-                            </p>
-                            
-                            <div style="width: 100%; margin-bottom: 20px; background: rgba(99, 102, 241, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.1); box-sizing: border-box;">
-                                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; margin-bottom: 8px;">
-                                    <span style="color: var(--text-muted);">Progreso Global</span>
-                                    <span style="color: var(--primary-color);">0%</span>
+                        <div class="user-list-item fade-in" style="background: var(--white); border: 1px solid var(--border-color); border-radius: 16px; padding: 15px 25px; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: space-between; gap: 20px; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='var(--shadow-md)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='var(--shadow-sm)'; this.style.transform='translateY(0)';">
+                            <div style="display: flex; align-items: center; gap: 20px; flex: 1;">
+                                <div style="width: 55px; height: 55px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                    ${s.avatar ? `<img src="${s.avatar}" style="width:100%; height:100%; object-fit:cover;">` : `<div style="font-size:1.8rem;">👨‍🎓</div>`}
                                 </div>
-                                <div style="width: 100%; height: 8px; background: var(--border-color); border-radius: 10px; overflow: hidden;">
-                                    <div style="width: 0%; height: 100%; background: var(--success-gradient); border-radius: 10px; transition: width 1s;"></div>
+                                <div style="flex: 1;">
+                                    <h4 style="margin: 0 0 5px 0; font-size: 1.1rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
+                                        ${nameDisplay}
+                                        ${badgeHtml}
+                                    </h4>
+                                    <div style="display: flex; align-items: center; gap: 20px; font-size: 0.85rem; color: var(--text-muted);">
+                                        <span style="display: flex; align-items: center; gap: 5px;">✉️ ${escapeHtml(s.email || 'N/A')}</span>
+                                        <div style="display: flex; align-items: center; gap: 8px; width: 150px;">
+                                            <span style="font-size: 0.75rem; font-weight: 600;">Progreso: 0%</span>
+                                            <div style="flex: 1; height: 6px; background: var(--border-color); border-radius: 10px; overflow: hidden;">
+                                                <div style="width: 0%; height: 100%; background: var(--success-gradient); border-radius: 10px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <div style="width: 100%; margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; gap: 10px; align-items: center; flex-shrink: 0;">
                                 ${actionHtml}
-                                <button onclick="deleteStudent('${s.id}')" style="width: 100%; padding: 10px; border-radius: 10px; background: transparent; border: 1px solid #fee2e2; color: #ef4444; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#fca5a5';" onmouseout="this.style.background='transparent'; this.style.borderColor='#fee2e2';">
-                                    🗑️ Eliminar Participante
+                                <button onclick="deleteStudent('${s.id}')" style="background: transparent; border: 1px solid #fee2e2; color: #ef4444; padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#fca5a5';" onmouseout="this.style.background='transparent'; this.style.borderColor='#fee2e2';">
+                                    🗑️ Eliminar
                                 </button>
                             </div>
                         </div>
