@@ -1960,7 +1960,32 @@ def delete_library_doc(aspect_id, doc_id):
         print(f"Error deleting library doc: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+
+import urllib.request
+import urllib.parse
+import urllib.error
+import json
+
+@app.route('/api/library/search', methods=['GET'])
+def library_search():
+    try:
+        q = request.args.get('q', '')
+        if not q:
+            return jsonify({'results': []})
+        
+        # Prepare the OpenAlex API URL
+        url = f"https://api.openalex.org/works?search={urllib.parse.quote(q)}&filter=is_oa:true&per-page=20"
+        
+        req = urllib.request.Request(url, headers={'User-Agent': 'SIACredit/1.0 (mailto:orbesrc@gmail.com)'})
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            return jsonify(data)
+    except Exception as e:
+        print(f"Error fetching OpenAlex: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/library/saved', methods=['GET', 'POST'])
+
 def handle_saved_resources():
     if request.method == 'POST':
         data = request.json
