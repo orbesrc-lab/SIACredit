@@ -1960,6 +1960,49 @@ def delete_library_doc(aspect_id, doc_id):
         print(f"Error deleting library doc: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/api/library/saved', methods=['GET', 'POST'])
+def handle_saved_resources():
+    if request.method == 'POST':
+        data = request.json
+        user_email = data.get('email')
+        if not user_email:
+            return jsonify({"status": "error", "message": "Email requerido"}), 400
+            
+        try:
+            supabase.table('saved_resources').insert({
+                "user_email": user_email,
+                "resource_id": data.get('resource_id'),
+                "title": data.get('title'),
+                "authors": data.get('authors', ''),
+                "year": data.get('year'),
+                "url": data.get('url', ''),
+                "apa_citation": data.get('apa_citation', '')
+            }).execute()
+            return jsonify({"status": "success"})
+        except Exception as e:
+            print(f"Error saving resource: {e}")
+            return jsonify({"status": "error", "message": str(e)}), 500
+            
+    # GET
+    user_email = request.args.get('email')
+    if not user_email:
+        return jsonify([])
+    try:
+        res = supabase.table('saved_resources').select('*').eq('user_email', user_email).order('saved_at', desc=True).execute()
+        return jsonify(res.data)
+    except Exception as e:
+        print(f"Error fetching saved resources: {e}")
+        return jsonify([])
+
+@app.route('/api/library/saved/<int:id>', methods=['DELETE'])
+def delete_saved_resource(id):
+    try:
+        supabase.table('saved_resources').delete().eq('id', id).execute()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        print(f"Error deleting saved resource: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/api/global-settings', methods=['GET', 'POST'])
 def global_settings():
     try:
