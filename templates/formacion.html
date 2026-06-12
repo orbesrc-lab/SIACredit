@@ -5092,6 +5092,19 @@
                 alert('Error de red');
             }
         }
+    
+        function openPdfViewer(url) {
+            document.getElementById('pdfViewerLoading').style.display = 'block';
+            document.getElementById('pdfViewerIframe').src = url;
+            document.getElementById('pdfViewerExternalBtn').onclick = () => window.open(url, '_blank');
+            document.getElementById('pdfViewerModal').style.display = 'flex';
+        }
+        
+        function closePdfViewer() {
+            document.getElementById('pdfViewerModal').style.display = 'none';
+            document.getElementById('pdfViewerIframe').src = '';
+        }
+
     </script>
 
     <!-- MODAL: VISOR DE PDF -->
