@@ -4940,7 +4940,6 @@
             resultsDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #6366f1; margin-bottom: 15px;"></i><br>Buscando en OpenAlex...</div>';
             
             try {
-                // Buscamos cualquier recurso Open Access
                 const url = `https://api.openalex.org/works?search=${encodeURIComponent(query)}&filter=is_oa:true&per-page=20`;
                 const response = await fetch(url);
                 const data = await response.json();
@@ -4954,13 +4953,14 @@
                 data.results.forEach(work => {
                     const title = work.title || 'Sin título';
                     const year = work.publication_year || 'S.F.';
-                    let authorsStr = '';
+                    
+                    let validAuthors = [];
                     if(work.authorships && work.authorships.length > 0) {
-                        authorsStr = work.authorships.map(a => a.author.display_name).slice(0, 3).join(', ');
-                        if(work.authorships.length > 3) authorsStr += ' et al.';
-                    } else {
-                        authorsStr = 'Autor desconocido';
+                        validAuthors = work.authorships.filter(a => a.author && a.author.display_name).map(a => a.author.display_name);
                     }
+                    
+                    let authorsStr = validAuthors.length > 0 ? validAuthors.slice(0, 3).join(', ') : 'Autor desconocido';
+                    if(validAuthors.length > 3) authorsStr += ' et al.';
                     
                     const source = (work.primary_location && work.primary_location.source && work.primary_location.source.display_name) ? work.primary_location.source.display_name : 'Publicación Independiente';
                     const doi = work.doi || '';
@@ -4968,10 +4968,10 @@
                     
                     // APA 7
                     let apaCitation = '';
-                    if(work.authorships && work.authorships.length > 0) {
-                        const firstAuthor = work.authorships[0].author.display_name.split(' ');
-                        const lastName = firstAuthor[firstAuthor.length-1];
-                        const initials = firstAuthor.slice(0, firstAuthor.length-1).map(n => n.charAt(0)+'.').join(' ');
+                    if(validAuthors.length > 0) {
+                        const firstAuthorParts = validAuthors[0].split(' ');
+                        const lastName = firstAuthorParts[firstAuthorParts.length-1];
+                        const initials = firstAuthorParts.slice(0, firstAuthorParts.length-1).map(n => n.charAt(0)+'.').join(' ');
                         apaCitation = `${lastName}, ${initials} (${year}). <i>${title}</i>. ${source}. ${doi}`;
                     } else {
                         apaCitation = `${title}. (${year}). ${source}. ${doi}`;
@@ -4982,9 +4982,9 @@
                     card.onmouseover = () => { card.style.transform = 'translateY(-4px)'; card.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)'; };
                     card.onmouseout = () => { card.style.transform = 'translateY(0)'; card.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; };
                     
-                    const safeTitle = title.replace(/`/g, "'").replace(/'/g, "\\'");
-                    const safeAuthors = authorsStr.replace(/`/g, "'").replace(/'/g, "\\'");
-                    const safeApa = apaCitation.replace(/`/g, "'").replace(/'/g, "\\'").replace(/<[^>]*>?/gm, '');
+                    const safeTitle = title.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                    const safeAuthors = authorsStr.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                    const safeApa = apaCitation.replace(/'/g, "&#39;").replace(/"/g, "&quot;").replace(/<[^>]*>?/gm, '');
 
                     card.innerHTML = `
                         <div>
@@ -5007,7 +5007,7 @@
                 });
             } catch (err) {
                 console.error("OpenAlex Error:", err);
-                resultsDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #ef4444;"><i class="fas fa-exclamation-triangle" style="font-size:2rem; margin-bottom:10px;"></i><br>Error al buscar recursos. Intente nuevamente.</div>';
+                resultsDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #ef4444;"><i class="fas fa-exclamation-triangle" style="font-size:2rem; margin-bottom:10px;"></i><br>Error al buscar recursos. ' + err.message + '</div>';
             }
         }
 
