@@ -5283,7 +5283,7 @@
             if(platform === 'quizizz') url = `https://quizizz.com/admin/search/${enc}`;
             if(platform === 'youtube') url = `https://www.youtube.com/results?search_query=${enc}+educativo`;
             
-            window.open(url, '_blank');
+            openNativeViewer(url);
         }
 
         async function loadOvas() {
