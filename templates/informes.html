@@ -563,12 +563,19 @@
                 </div>
                 <!-- Footer -->
                 <div class="rrc-footer">
-                    <p class="rrc-footer-note">
-                        ⚠️ Este documento es un <strong>soporte de construcción</strong>. Debe ser revisado y validado por el equipo académico antes de presentarse al MEN.
-                    </p>
+                    <div style="flex: 1;">
+                        <p class="rrc-footer-note" style="margin-bottom:10px;">
+                            ⚠️ Este documento es un <strong>soporte de construcción</strong>. Debe ser revisado y validado por el equipo académico antes de presentarse al MEN.
+                        </p>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <label for="justificationFileRRC" style="font-size:0.85rem; font-weight:600;">Soporte / Justificación (Opcional):</label>
+                            <input type="file" id="justificationFileRRC" accept=".pdf,.docx,.xlsx" style="font-size:0.8rem;">
+                        </div>
+                    </div>
                     <div class="rrc-footer-actions">
                         <button class="btn-secondary" onclick="imprimirRRC()">🖨️ Imprimir / PDF</button>
-                        <button class="btn-rrc" onclick="regenerarRRC()">🔄 Regenerar con IA</button>
+                        <button class="btn-primary" onclick="guardarReporteRRC()">💾 Guardar Cambios</button>
+                        <button class="btn-rrc" onclick="regenerarRRC()">🔄 Generar con IA</button>
                     </div>
                 </div>
             </div>
@@ -1963,16 +1970,34 @@
             document.getElementById('rrcLoading').classList.add('active');
             document.getElementById('rrcContent').style.display = 'none';
             _rrcIAReport = null;
-            generarSoporteRRC();
+            _rrcManualEditObj = null;
+            generarSoporteRRC(true);
         }
 
         // ---------------------------------------------------------------
         // Flujo principal
         // ---------------------------------------------------------------
-        async function generarSoporteRRC() {
+        let _rrcManualEditObj = null;
+
+        async function generarSoporteRRC(forceRegenerate = false) {
             try {
                 const instId    = getInstId();
                 const programId = getProgramId();
+
+                // Intentar cargar reporte persistido si no es regeneración forzada
+                if (!forceRegenerate && !_rrcIAReport && !_rrcManualEditObj) {
+                    try {
+                        const savedRes = await fetch(`/api/rrc/report?inst_id=${instId}&program_id=${programId}`);
+                        const savedData = await savedRes.json();
+                        if (savedData.report) {
+                            if (typeof savedData.report === 'string' && savedData.report.trim() !== '') {
+                                _rrcIAReport = savedData.report;
+                            } else if (typeof savedData.report === 'object' && Object.keys(savedData.report).length > 0) {
+                                _rrcManualEditObj = savedData.report;
+                            }
+                        }
+                    } catch(e) { console.error("Error cargando reporte persistido", e); }
+                }
 
                 // 1. Cargar datos institución y programa
                 const [instResp, progResp] = await Promise.all([
@@ -1982,7 +2007,6 @@
                 const instData  = await instResp.json();
                 const programs  = await progResp.json();
 
-                // Encontrar el programa activo por program_id
                 const programaActivo = programs.find(p => p.id == programId);
                 _rrcInstName = instData.name || 'Institución';
                 _rrcProgName = programaActivo ? programaActivo.name : (instData.program || 'Programa Académico');
@@ -1990,30 +2014,56 @@
                 document.getElementById('rrcProgramaTitle').textContent =
                     `${_rrcProgName} · ${_rrcInstName}`;
 
-                // 2. Obtener informe dinámico del programa activo
                 const informeRes = await fetch(`/api/informe_dinamico?inst_id=${instId}&program_id=${programId}`);
                 _rrcInformeData  = await informeRes.json();
 
-                // 3. Mapear factores de autoevaluación a las 9 condiciones
                 _rrcCondData = mapearCondicionesRRC(_rrcInformeData, instData, programaActivo);
 
-                // 4. Llamar a IA para análisis
-                const aiRes = await fetch('/api/ai/generar_rrc', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        inst_id:      instId,
-                        program_id:   programId,
-                        program_name: _rrcProgName,
-                        inst_name:    _rrcInstName,
-                        condiciones:  _rrcCondData
-                    })
-                });
-                const aiData = await aiRes.json();
-                _rrcIAReport = (aiData.status === 'success') ? aiData.report : null;
+                if (!_rrcIAReport && !_rrcManualEditObj) {
+                    // Subir archivo de justificación si existe
+                    const justFile = document.getElementById('justificationFileRRC').files[0];
+                    let justification_url = '';
+                    if (justFile) {
+                        document.getElementById('rrcLoading').innerHTML = '<div class="rrc-loader"></div><div style="text-align:center;"><strong>Subiendo archivo y analizando con IA...</strong></div>';
+                        const formData = new FormData();
+                        formData.append('file', justFile);
+                        formData.append('plan_id', 'RRC_JUSTIFICATION');
+                        try {
+                            const upRes = await fetch('/api/planes_mejora/upload_soporte', { method: 'POST', body: formData });
+                            const upData = await upRes.json();
+                            if (upData.url) justification_url = upData.url;
+                        } catch (e) { console.error("Error upload justificacion", e); }
+                    } else {
+                        document.getElementById('rrcLoading').innerHTML = '<div class="rrc-loader"></div><div style="text-align:center;"><strong>Generando soporte documental con IA...</strong><p>Procesando metadatos y cuadros estadísticos...</p></div>';
+                    }
+
+                    // 4. Llamar a IA para análisis
+                    const aiRes = await fetch('/api/ai/generar_rrc', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            inst_id:      instId,
+                            program_id:   programId,
+                            program_name: _rrcProgName,
+                            inst_name:    _rrcInstName,
+                            condiciones:  _rrcCondData,
+                            justification_url: justification_url
+                        })
+                    });
+                    const aiData = await aiRes.json();
+                    _rrcIAReport = (aiData.status === 'success') ? aiData.report : null;
+                    
+                    if (_rrcIAReport) {
+                        await fetch(`/api/rrc/report?inst_id=${instId}&program_id=${programId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ report: _rrcIAReport })
+                        });
+                    }
+                }
 
                 // 5. Parsear el reporte IA por condición
-                const analisisIA = _rrcIAReport ? parsearReporteIA(_rrcIAReport) : {};
+                const analisisIA = _rrcManualEditObj ? _rrcManualEditObj : (_rrcIAReport ? parsearReporteIA(_rrcIAReport) : {});
 
                 // 6. Renderizar
                 renderizarRRC(_rrcCondData, analisisIA);
@@ -2022,6 +2072,34 @@
                 console.error('Error RRC:', err);
                 document.getElementById('rrcLoading').innerHTML =
                     `<p style="color:#ef4444; text-align:center;">❌ Error generando soporte: ${err.message}</p>`;
+            }
+        }
+
+        async function guardarReporteRRC() {
+            const instId = getInstId();
+            const programId = getProgramId();
+            
+            let objAGuardar = {};
+            RRC_CONDICIONES.forEach(cond => {
+                const el = document.getElementById(`rrc-edit-content-${cond.num}`);
+                if (el) {
+                    objAGuardar[cond.num] = el.innerHTML;
+                }
+            });
+            
+            _rrcManualEditObj = objAGuardar;
+            _rrcIAReport = null;
+
+            try {
+                const res = await fetch(`/api/rrc/report?inst_id=${instId}&program_id=${programId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ report: objAGuardar })
+                });
+                if (res.ok) alert('✅ Informe guardado correctamente. Los cambios no se perderán.');
+                else alert('❌ Error al guardar el informe.');
+            } catch(e) {
+                alert('❌ Error de conexión al guardar.');
             }
         }
 
@@ -2298,15 +2376,18 @@
                     textoIA = obtenerTextoSoporteLocal(cond, cd);
                 }
 
-                const htmlIA = textoIA
-                    .replace(/###\s*(.*)/g, '<strong style="color:#4c1d95;display:block;margin:10px 0 4px;">$1</strong>')
-                    .replace(/##\s*(.*)/g, '')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                    .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
-                    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-                    .replace(/\n\n/g, '</p><p>')
-                    .replace(/\n/g, '<br>');
+                let htmlIA = textoIA;
+                if (!textoIA.includes('<p>') && !textoIA.includes('<br>') && !textoIA.includes('<strong>')) {
+                    htmlIA = textoIA
+                        .replace(/###\s*(.*)/g, '<strong style="color:#4c1d95;display:block;margin:10px 0 4px;">$1</strong>')
+                        .replace(/##\s*(.*)/g, '')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
+                        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+                        .replace(/\n\n/g, '</p><p>')
+                        .replace(/\n/g, '<br>');
+                }
 
                 const iaHtml = `
                     <div class="rrc-ai-analysis" style="border: 2px dashed #93c5fd; background: #f0f7ff; margin-top: 18px; border-radius: 12px; padding: 20px;">

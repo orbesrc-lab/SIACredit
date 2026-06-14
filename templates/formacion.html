@@ -423,31 +423,26 @@
 
         .responsive-media-container {
             position: relative;
-            padding-bottom: 56.25%; /* 16:9 */
-            height: 0;
-            overflow: hidden;
+            width: 100%;
             max-width: 100%;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
             border-radius: 12px;
             margin: 15px 0;
             box-shadow: var(--shadow-md);
             border: 1px solid var(--border-color);
         }
         
-        .responsive-media-container iframe {
+        .responsive-media-container iframe,
+        .responsive-media-container video,
+        .responsive-media-container object,
+        .responsive-media-container embed {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100% !important;
+            height: 100% !important;
             border: 0;
-        }
-            padding: 8px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
         }
 
         @media (max-width: 768px) {
@@ -455,8 +450,28 @@
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
-            .user-grid {
+            .user-grid, .grid-catalog {
                 grid-template-columns: 1fr !important;
+            }
+            .content-area {
+                height: auto !important;
+                overflow: visible !important;
+                display: block !important;
+                padding: 15px !important;
+                padding-bottom: 80px !important;
+            }
+            .editor-container {
+                padding: 15px !important;
+                margin-bottom: 20px !important;
+            }
+            .course-card-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .tab-content {
+                overflow: visible !important;
+                flex: none !important;
+                padding: 0 !important;
             }
         }
         
@@ -473,6 +488,7 @@
             overflow-y: auto;
             padding-bottom: 35px;
             padding-right: 10px; /* Space for scrollbar */
+            -webkit-overflow-scrolling: touch;
         }
         
         /* Custom Scrollbar for tab-content to look elegant */
@@ -519,6 +535,15 @@
         textarea.form-input {
             resize: vertical;
             min-height: 70px;
+        }
+
+        @media (max-width: 768px) {
+            .topic-content-body iframe,
+            .topic-content-body video,
+            div[id^="acc_"] iframe,
+            div[id^="acc_"] video {
+                max-width: calc(100vw - 60px) !important;
+            }
         }
 </style>
 </head>
@@ -820,7 +845,7 @@
             </div>
 
             <!-- TAB: STUDENT CLASSROOM (Solo Estudiantes) -->
-            <div id="studentClassroom" style="display: none;">
+            <div id="studentClassroom" class="tab-content" style="display: none;">
                 <!-- Box de selección de curso -->
                 <div id="studentCourseSelectorBox" class="editor-container" style="max-width: 1000px; margin: 0 auto;">
                     <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 25px;">Selecciona uno de tus cursos asignados para ingresar al Aula Virtual y acceder a tus materiales de estudio.</p>
@@ -2271,9 +2296,9 @@
                         
                         resourcesHtml += `
                             <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; margin-bottom: 8px;">
-                                <div onclick="toggleTopicAccordion('${resId}')" style="padding: 12px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; color: var(--text-main); transition: background 0.2s;">
+                                <div onclick="toggleTopicAccordion('${resId}')" style="padding: 12px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; color: var(--text-main); transition: background 0.2s; flex-wrap: wrap; gap: 8px;">
                                     <span><strong>${typeIcon}:</strong> ${escapeHtml(r.name)}</span>
-                                    <div style="display:flex; gap:10px; align-items:center;">
+                                    <div style="display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
                                         <span style="font-size:0.75rem; color:var(--text-muted); border:1px solid #cbd5e1; padding:2px 8px; border-radius:12px;">Ver embebido 👁️</span>
                                         <a href="${r.url}" target="_blank" onclick="event.stopPropagation()" style="color:var(--primary-color); font-weight:600; text-decoration:none; font-size:0.75rem;">Abrir</a>
                                         <button class="btn-ghost" onclick="event.stopPropagation(); removeUnitResource(${uIdx}, ${rIdx})" style="color:#ef4444; padding:0 3px;">🗑️</button>
@@ -2322,7 +2347,7 @@
                                     <strong>🏆 ${escapeHtml(ev.title)} <span style="font-size:0.75rem; color:white; background:var(--primary-color); padding:2px 6px; border-radius:10px;">${ev.weight || 0}%</span></strong>
                                     <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Escala CNA: Aprobación ${ev.min_grade || 3.0} / Máxima ${ev.max_grade || 5.0}</div>
                                 </div>
-                                <div style="display:flex; gap:10px; align-items:center;">
+                                <div style="display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
                                     <button class="btn-primary" style="padding:4px 10px; font-size:0.7rem; background: var(--primary-gradient); border:none; color:white; border-radius:8px; font-weight:600;" onclick="openActivitySubmissionsModal('${unit.id}', '${ev.id}', '${escapeHtml(ev.title).replace(/'/g, "\\'")}')">📥 Entregas (${subCount})</button>
                                     <button class="btn-ghost" style="color:var(--primary-color); padding:0 5px;" onclick="openQuizEditor(${uIdx}, ${evIdx})">📝 Preguntas (${(Array.isArray(ev.questions) ? ev.questions : Object.values(ev.questions || {})).length})</button>
                                     <button class="btn-ghost" style="color:var(--primary-color); padding:0 5px;" onclick="presentQuiz(${uIdx}, ${evIdx})">👁️ Vista Previa</button>
@@ -2842,7 +2867,7 @@
                         if (!previousUnitCompleted) {
                             box.style.opacity = '0.6';
                             box.innerHTML = `
-                                <div class="unit-header" style="background: #e2e8f0; color: #64748b; border-color: #cbd5e1; display:flex; justify-content:space-between; align-items:center;">
+                                <div class="unit-header" style="background: #e2e8f0; color: #64748b; border-color: #cbd5e1; display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px;">
                                     <span>🔒 Unidad ${uIdx + 1}: ${escapeHtml(unit.name)}</span>
                                     <span style="font-size:0.75rem; background:white; padding:2px 8px; border-radius:12px;">Bloqueada</span>
                                 </div>
@@ -2874,7 +2899,7 @@
                                 
                                 topicsHtml += `
                                     <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: rgba(99,102,241,0.02);">
-                                        <div onclick="toggleTopicAccordion('${unit.id}_${t.id}')" style="padding: 12px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: rgba(99,102,241,0.04); color: var(--text-main); transition: background 0.2s;">
+                                        <div onclick="toggleTopicAccordion('${unit.id}_${t.id}')" style="padding: 12px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: rgba(99,102,241,0.04); color: var(--text-main); transition: background 0.2s; flex-wrap: wrap; gap: 8px;">
                                             <span>${icon} ${escapeHtml(t.title)}</span>
                                             <span style="font-size:0.75rem; color:var(--primary-color); font-weight:700;">
                                                 ${hasContent ? 'Leer Lección 👁️' : 'Sin Contenido'}
@@ -2914,7 +2939,7 @@
                                         videoId = r.url.split('youtu.be/')[1].split('?')[0];
                                     }
                                     if (videoId) {
-                                        embedHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:10px 0; box-shadow:var(--shadow-md);">
+                                        embedHtml = `<div class="responsive-media-container" style="position:relative; aspect-ratio:16/9; width:100%; height:auto; overflow:hidden; border-radius:10px; margin:10px 0; box-shadow:var(--shadow-md);">
                                             <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"></iframe>
                                         </div>`;
                                     } else { embedHtml = `<iframe src="${r.url}" style="width:100%; height:400px; border:none; border-radius:8px;"></iframe>`; }
@@ -2926,9 +2951,9 @@
                                 
                                 resHtml += `
                                     <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: #fff;">
-                                        <div onclick="toggleTopicAccordion('${resId}')" style="padding: 12px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; color: var(--text-main); transition: background 0.2s;">
+                                        <div onclick="toggleTopicAccordion('${resId}')" style="padding: 12px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; color: var(--text-main); transition: background 0.2s; flex-wrap: wrap; gap: 8px;">
                                             <span><strong>${typeIcon}:</strong> ${escapeHtml(r.name)}</span>
-                                            <div style="display:flex; gap:10px; align-items:center;">
+                                            <div style="display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
                                                 <a href="${r.url}" target="_blank" onclick="event.stopPropagation()" style="color:var(--primary-color); font-weight:600; text-decoration:none; font-size:0.75rem; border:1px solid var(--primary-color); padding:2px 8px; border-radius:12px;">Abrir en Pestaña</a>
                                                 <span style="font-size:0.75rem; color:var(--text-muted);">Ver aquí 👁️</span>
                                             </div>
@@ -2976,7 +3001,7 @@
 
                                 actHtml += `
                                     <div class="activity-item" style="margin-top:8px; display:flex; flex-direction:column; align-items:stretch; gap:6px;">
-                                        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap: wrap; gap: 10px;">
                                             <div>
                                                 <strong>${escapeHtml(act.title)} <span style="font-size:0.75rem; color:white; background:var(--primary-color); padding:2px 6px; border-radius:10px;">${act.weight || 0}%</span></strong>${statusHtml}<br>
                                                 <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(act.description)}</span><br>
@@ -3353,7 +3378,7 @@
             if (!embedCode) return;
             let videoHtml = "";
             if (embedCode.includes('<iframe') || embedCode.includes('<video')) {
-                videoHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">${embedCode}</div>`;
+                videoHtml = `<div class="responsive-media-container" style="position:relative; aspect-ratio:16/9; width:100%; height:auto; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">${embedCode}</div>`;
                 videoHtml = videoHtml.replace(/width="[^"]*"/, 'width="100%"').replace(/height="[^"]*"/, 'height="100%"').replace(/position:[^;]*/, '');
             } else if (embedCode.startsWith('http')) {
                 try {
@@ -3365,7 +3390,7 @@
                     }
                     
                     if (videoId) {
-                        videoHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">
+                        videoHtml = `<div class="responsive-media-container" style="position:relative; aspect-ratio:16/9; width:100%; height:auto; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">
                             <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"></iframe>
                         </div><p><br></p>`;
                     } else {

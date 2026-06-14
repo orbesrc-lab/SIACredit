@@ -437,7 +437,6 @@ th {
 /* SMART MOBILE RESPONSIVENESS (NO JS REQUIRED)         */
 /* ==================================================== */
 @media (max-width: 768px) {
-    /* Change flex direction to stack elements */
     body, .dashboard-container {
         flex-direction: column !important;
         height: 100dvh !important;
@@ -447,7 +446,7 @@ th {
     /* Convert Sidebar to Bottom Navigation */
     .sidebar {
         width: 100% !important;
-        height: 65px !important;
+        height: 70px !important;
         flex-direction: row !important;
         order: 2 !important; /* Move to bottom */
         position: fixed !important;
@@ -456,10 +455,10 @@ th {
         right: 0 !important;
         z-index: 1000 !important;
         border-right: none !important;
-        border-top: 1px solid var(--border-color) !important;
+        border-top: 1px solid rgba(255,255,255,0.1) !important;
         background: #0f172a !important;
         padding: 0 !important;
-        box-shadow: 0 -4px 10px rgba(0,0,0,0.1) !important;
+        box-shadow: 0 -4px 15px rgba(0,0,0,0.15) !important;
     }
     
     .sidebar-header, .sidebar-footer {
@@ -468,29 +467,41 @@ th {
     
     .sidebar-menu {
         flex-direction: row !important;
-        padding: 0 !important;
+        padding: 0 10px !important;
         overflow-x: auto !important;
         overflow-y: hidden !important;
         white-space: nowrap !important;
         width: 100% !important;
-        justify-content: space-around !important;
+        justify-content: flex-start !important;
         align-items: center !important;
-        gap: 0 !important;
+        gap: 8px !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* Hide scrollbar for sidebar menu on mobile but keep it functional */
+    .sidebar-menu::-webkit-scrollbar {
+        display: none !important;
     }
     
     .sidebar-item {
         flex-direction: column !important;
-        padding: 5px 1px !important;
-        font-size: 0.55rem !important;
-        gap: 1px !important;
+        padding: 8px 12px !important;
+        font-size: 0.75rem !important;
+        gap: 5px !important;
         border-left: none !important;
         border-bottom: 3px solid transparent !important;
         justify-content: center !important;
-        flex: 1 !important;
+        flex: 0 0 auto !important;
         text-align: center !important;
-        min-width: 0 !important;
+        min-width: 70px !important;
         white-space: nowrap !important;
         border-radius: 0 !important;
+    }
+    
+    .sidebar-item svg {
+        width: 20px !important;
+        height: 20px !important;
+        margin-bottom: 2px !important;
     }
     
     .sidebar-item:hover {
@@ -504,6 +515,7 @@ th {
         border-top: none !important;
         display: flex !important;
         align-items: center !important;
+        flex: 0 0 auto !important;
     }
     
     .sidebar div[style*="border-top"] .sidebar-item {
@@ -520,20 +532,21 @@ th {
     /* Adjust Main Content to leave space for bottom nav */
     .main-content {
         order: 1 !important;
-        padding-bottom: 65px !important;
+        padding-bottom: 70px !important;
         width: 100% !important;
-        height: calc(100dvh - 65px) !important;
+        height: calc(100dvh - 70px) !important;
         overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
     }
     
     /* Fix Topbar */
     .topbar {
         height: auto !important;
-        min-height: 70px !important;
-        padding: 10px 15px !important;
+        min-height: 60px !important;
+        padding: 12px 15px !important;
         flex-direction: column !important;
         align-items: stretch !important;
-        gap: 5px !important;
+        gap: 10px !important;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
     }
     
@@ -542,16 +555,17 @@ th {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
     }
 
     .topbar h2 { 
-        font-size: 0.9rem !important; 
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-        max-width: 180px !important;
+        font-size: 1.1rem !important; 
+        white-space: normal !important;
+        max-width: none !important;
     }
-    .topbar h3 { font-size: 0.75rem !important; }
+    
+    .topbar h3 { font-size: 0.85rem !important; }
     #userInfo { font-size: 0.8rem !important; margin-top: 2px; }
     #inst_logo { height: 35px !important; }
 
@@ -592,19 +606,33 @@ th {
     /* Prevent table blowouts */
     .table-responsive {
         margin-top: 10px;
+        position: relative;
     }
+    
+    .table-responsive::after {
+        content: '';
+        position: absolute;
+        top: 0; right: 0; bottom: 0; width: 15px;
+        background: linear-gradient(to right, transparent, rgba(0,0,0,0.05));
+        pointer-events: none;
+    }
+    
     table {
         display: block !important;
         overflow-x: auto !important;
         white-space: nowrap !important;
         width: 100% !important;
+        -webkit-overflow-scrolling: touch !important;
     }
     
     /* Fix Modals */
     .modal-content {
         max-width: 95% !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
         padding: 20px !important;
         margin: 10px !important;
+        -webkit-overflow-scrolling: touch !important;
     }
 
     /* Adjust Buttons */
@@ -613,7 +641,8 @@ th {
         align-items: stretch;
         gap: 10px;
     }
-    .dashboard-header button {
+    .dashboard-header button, .dashboard-header a {
         width: 100%;
+        justify-content: center;
     }
 }

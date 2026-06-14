@@ -260,6 +260,30 @@
                         <label>Periodo del Proceso</label>
                         <input type="text" id="prog_period" placeholder="Ej: 2026 - 2032">
                     </div>
+                    <div class="form-group">
+                        <label>Nivel de Formación</label>
+                        <select id="prog_nivel" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                            <option value="Técnico">Técnico</option>
+                            <option value="Tecnológico">Tecnológico</option>
+                            <option value="Pregrado" selected>Pregrado</option>
+                            <option value="Especialización">Especialización</option>
+                            <option value="Maestría">Maestría</option>
+                            <option value="Doctorado">Doctorado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Metodología</label>
+                        <select id="prog_metodologia" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                            <option value="Presencial" selected>Presencial</option>
+                            <option value="Virtual">Virtual</option>
+                            <option value="Distancia">Distancia</option>
+                            <option value="Dual/Híbrida">Dual/Híbrida</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Área de Conocimiento</label>
+                        <input type="text" id="prog_area" placeholder="Ej: Ingeniería, Ciencias de la Salud, etc.">
+                    </div>
                 </div>
                 <button class="btn-primary" onclick="saveProgram()" style="margin-top: 10px;">Guardar Programa</button>
             </div>
@@ -1636,6 +1660,14 @@
                         // Populate fields
                         document.getElementById('prog_name').value = prog.name || '';
                         document.getElementById('prog_period').value = prog.period || '';
+                        // Fetch and populate metadata
+                        fetch(`/api/programs/metadata?inst_id=${getInstId()}&program_id=${prog.id}`)
+                            .then(r => r.json())
+                            .then(meta => {
+                                if(meta.nivel_formacion) document.getElementById('prog_nivel').value = meta.nivel_formacion;
+                                if(meta.metodologia) document.getElementById('prog_metodologia').value = meta.metodologia;
+                                if(meta.area_conocimiento) document.getElementById('prog_area').value = meta.area_conocimiento;
+                            }).catch(console.error);
                     }
                     select.appendChild(opt);
                 });
@@ -1664,6 +1696,9 @@
             document.getElementById('progSelect').value = '0';
             document.getElementById('prog_name').value = '';
             document.getElementById('prog_period').value = '';
+            document.getElementById('prog_nivel').value = 'Pregrado';
+            document.getElementById('prog_metodologia').value = 'Presencial';
+            document.getElementById('prog_area').value = '';
             document.getElementById('prog_name').focus();
             
             const userData = JSON.parse(localStorage.getItem('siac_user'));
@@ -1675,12 +1710,23 @@
         async function saveProgram() {
             const name = document.getElementById('prog_name').value.trim();
             const period = document.getElementById('prog_period').value.trim();
+            const nivel = document.getElementById('prog_nivel').value;
+            const metodologia = document.getElementById('prog_metodologia').value;
+            const area = document.getElementById('prog_area').value.trim();
             
             if (!name || !period) {
                 alert("Debes llenar el Nombre del Programa y el Periodo."); return;
             }
 
             const currentProgId = getProgramId();
+            
+            const saveMetadata = async (prog_id) => {
+                await fetch(`/api/programs/metadata?inst_id=${getInstId()}&program_id=${prog_id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nivel_formacion: nivel, metodologia: metodologia, area_conocimiento: area })
+                });
+            };
             
             if(!currentProgId || currentProgId == 0) {
                 // Crear nuevo programa
@@ -1692,6 +1738,7 @@
                     });
                     const result = await resp.json();
                     if (result.status === 'success') {
+                        await saveMetadata(result.data.id);
                         alert(`Programa '${name}' creado correctamente.`);
                         const userData = JSON.parse(localStorage.getItem('siac_user'));
                         userData.program_id = parseInt(result.data.id);
@@ -1713,6 +1760,7 @@
                     });
 
                     if (resp.ok) {
+                        await saveMetadata(currentProgId);
                         alert('Programa guardado correctamente.');
                         loadAllPrograms();
                     } else {
