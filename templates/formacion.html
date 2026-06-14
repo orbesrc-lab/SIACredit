@@ -478,17 +478,12 @@
         .content-area {
             display: flex !important;
             flex-direction: column !important;
-            height: calc(100vh - 70px) !important;
-            overflow: hidden !important;
-            padding-bottom: 0 !important;
+            min-height: calc(100vh - 70px) !important;
+            padding-bottom: 35px !important;
         }
 
         .tab-content {
             flex: 1;
-            overflow-y: auto;
-            padding-bottom: 35px;
-            padding-right: 10px; /* Space for scrollbar */
-            -webkit-overflow-scrolling: touch;
         }
         
         /* Custom Scrollbar for tab-content to look elegant */
