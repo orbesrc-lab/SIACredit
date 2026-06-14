@@ -476,14 +476,15 @@
         }
         
         .content-area {
-            display: flex !important;
-            flex-direction: column !important;
+            display: block !important;
             min-height: calc(100vh - 70px) !important;
             padding-bottom: 35px !important;
+            overflow-y: auto !important;
         }
 
         .tab-content {
-            flex: 1;
+            display: none; /* Managed by JS */
+            padding-bottom: 35px;
         }
         
         /* Custom Scrollbar for tab-content to look elegant */
