@@ -2820,6 +2820,7 @@ def get_course_analytics(course_id):
         completed_activity_ids = set(s.get('activity_id') for s in student_subs if s.get('status') == 'graded')
         completed = len(completed_activity_ids)
         progress = int((completed / total_activities) * 100) if total_activities > 0 else 0
+        progress = min(100, progress)
         badges = []
         if completed >= 1: badges.append("🥉 Primer Paso")
         if progress >= 50: badges.append("🥈 Acelerado")
