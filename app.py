@@ -2817,14 +2817,39 @@ def get_course_analytics(course_id):
         email = student.get('email')
         name = student.get('name', 'Estudiante')
         student_subs = [s for s in course_submissions if s.get('student_email') == email]
-        completed_activity_ids = set(s.get('activity_id') for s in student_subs if s.get('status') == 'graded')
-        completed = len(completed_activity_ids)
-        progress = int((completed / total_activities) * 100) if total_activities > 0 else 0
+        total_units = len(course.get('units', []))
+        completed_units = 0
+        for unit in course.get('units', []):
+            acts = list(unit.get('activities', {}).values()) if isinstance(unit.get('activities'), dict) else unit.get('activities', [])
+            evals = list(unit.get('evaluations', {}).values()) if isinstance(unit.get('evaluations'), dict) else unit.get('evaluations', [])
+            unit_acts = acts + evals
+            if not unit_acts:
+                continue
+            unit_passed = True
+            for act in unit_acts:
+                sub = next((s for s in student_subs if s.get('activity_id') == act.get('id')), None)
+                if not sub or sub.get('status') != 'graded':
+                    unit_passed = False
+                    break
+                min_grade = float(act.get('min_grade') or 3.0)
+                try:
+                    grade = float(sub.get('grade') or 0)
+                except ValueError:
+                    grade = 0
+                if grade < min_grade:
+                    unit_passed = False
+                    break
+            if unit_passed:
+                completed_units += 1
+
+        completed = completed_units
+        progress = int((completed_units / total_units) * 100) if total_units > 0 else 0
         progress = min(100, progress)
+        
         badges = []
-        if completed >= 1: badges.append("🥉 Primer Paso")
-        if progress >= 50: badges.append("🥈 Acelerado")
-        if progress >= 100: badges.append("🥇 Maestría")
+        if completed_units >= 1: badges.append("🥉 Unidad 1 Superada")
+        if completed_units >= 2: badges.append("🥈 Unidad 2 Superada")
+        if progress == 100 and total_units > 0: badges.append("🥇 Graduado con Honores")
         analytics_data.append({
             "email": email, "name": name, "completed": completed,
             "total_activities": total_activities, "progress": progress, "badges": badges

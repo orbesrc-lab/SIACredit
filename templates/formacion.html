@@ -3061,23 +3061,23 @@
                         let currentUnitCompleted = true;
                         const actArray = Object.values(unit.activities || {});
                         if (actArray.length > 0) {
-                            // Todas las actividades deben tener al menos una entrega calificada
-                            const submittedCount = actArray.filter(act => 
-                                studentSubmissions.some(s => s.activity_id === act.id && s.status === 'graded')
-                            ).length;
+                            const passedCount = actArray.filter(act => {
+                                const min = parseFloat(act.min_grade || 3.0);
+                                return studentSubmissions.some(s => s.activity_id === act.id && s.status === 'graded' && parseFloat(s.grade || 0) >= min);
+                            }).length;
                             
-                            if (submittedCount < actArray.length) {
+                            if (passedCount < actArray.length) {
                                 currentUnitCompleted = false;
                             }
                         }
                         
-                        // Evaluaciones también deben tener entrega
                         const evArrayObj = Object.values(unit.evaluations || {});
                         if (evArrayObj.length > 0) {
-                            const submittedEvalsCount = evArrayObj.filter(ev => 
-                                studentSubmissions.some(s => s.activity_id === ev.id && s.status === 'graded')
-                            ).length;
-                            if (submittedEvalsCount < evArrayObj.length) {
+                            const passedEvalsCount = evArrayObj.filter(ev => {
+                                const min = parseFloat(ev.min_grade || 3.0);
+                                return studentSubmissions.some(s => s.activity_id === ev.id && s.status === 'graded' && parseFloat(s.grade || 0) >= min);
+                            }).length;
+                            if (passedEvalsCount < evArrayObj.length) {
                                 currentUnitCompleted = false;
                             }
                         }
