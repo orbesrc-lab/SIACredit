@@ -3691,12 +3691,15 @@
                 tr.style.borderBottom = '1px solid #e2e8f0';
                 
                 // Formatear entrega (link o texto)
-                let contentHtml = '';
-                const isLink = s.content.startsWith('http://') || s.content.startsWith('https://');
-                if (isLink) {
+                let contentHtml = escapeHtml(s.content);
+                // Regex to convert markdown links [text](url) to HTML <a> tags
+                const mdLinkRegex = /\[(.*?)\]\((.*?)\)/g;
+                contentHtml = contentHtml.replace(mdLinkRegex, '<br><a href="$2" target="_blank" style="color:var(--primary-color); font-weight:600; text-decoration:none; display:inline-block; margin-top:4px;">🔗 $1</a>');
+                // Auto-link raw URLs if they start with http
+                if (s.content.startsWith('http://') || s.content.startsWith('https://')) {
                     contentHtml = `<a href="${escapeHtml(s.content)}" target="_blank" style="color:var(--primary-color); font-weight:600; text-decoration:none;">🔗 Abrir Enlace</a>`;
                 } else {
-                    contentHtml = `<span style="font-size:0.85rem; display:inline-block; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(s.content)}">${escapeHtml(s.content)}</span>`;
+                    contentHtml = `<div style="font-size:0.85rem; max-width:280px; word-wrap:break-word;">${contentHtml}</div>`;
                 }
                 
                 const gradeLabel = s.status === 'graded' ? `<span style="font-weight:700; color:#137333;">${parseFloat(s.grade).toFixed(1)}</span>` : '<span style="color:#b06000; font-style:italic; font-size:0.8rem;">Pendiente</span>';
