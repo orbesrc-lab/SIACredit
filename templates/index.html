@@ -26,12 +26,7 @@
 <nav class="navbar">
     <div class="nav-inner">
         <a href="#" class="nav-logo">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/>
-                <path d="M2 12l10 5 10-5"/>
-            </svg>
-            SK<span style="color:var(--accent-light)">EL</span>
+            <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL" style="height: 48px; width: auto; object-fit: contain;">
         </a>
         <ul class="nav-links">
             <li><a href="#servicios">Servicios</a></li>
@@ -428,7 +423,9 @@
 <footer class="footer">
     <div class="footer-inner">
         <div class="footer-brand">
-            <div class="logo-text">SK<span style="color:var(--accent-light)">EL</span></div>
+            <div class="logo-text">
+                <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL" style="height: 55px; width: auto; object-fit: contain; margin-bottom: 10px;">
+            </div>
             <p>Expertos en Proyectos de Educación Superior. Acompañamos a las IES en sus procesos de autoevaluación y acreditación de alta calidad ante el CNA.</p>
         </div>
         <div class="footer-col">
