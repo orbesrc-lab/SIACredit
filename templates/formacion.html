@@ -3060,25 +3060,31 @@
                         // Lógica para determinar si esta unidad habilita la siguiente
                         let currentUnitCompleted = true;
                         const actArray = Object.values(unit.activities || {});
-                        if (actArray.length > 0) {
-                            const passedCount = actArray.filter(act => {
-                                const min = parseFloat(act.min_grade || 3.0);
-                                return studentSubmissions.some(s => s.activity_id === act.id && s.status === 'graded' && parseFloat(s.grade || 0) >= min);
-                            }).length;
-                            
-                            if (passedCount < actArray.length) {
-                                currentUnitCompleted = false;
-                            }
-                        }
-                        
                         const evArrayObj = Object.values(unit.evaluations || {});
-                        if (evArrayObj.length > 0) {
-                            const passedEvalsCount = evArrayObj.filter(ev => {
-                                const min = parseFloat(ev.min_grade || 3.0);
-                                return studentSubmissions.some(s => s.activity_id === ev.id && s.status === 'graded' && parseFloat(s.grade || 0) >= min);
-                            }).length;
-                            if (passedEvalsCount < evArrayObj.length) {
-                                currentUnitCompleted = false;
+                        
+                        // Si la unidad no tiene entregables, no puede auto-completarse para desbloquear las demás.
+                        if (actArray.length === 0 && evArrayObj.length === 0) {
+                            currentUnitCompleted = false;
+                        } else {
+                            if (actArray.length > 0) {
+                                const passedCount = actArray.filter(act => {
+                                    const min = parseFloat(act.min_grade || 3.0);
+                                    return studentSubmissions.some(s => s.activity_id === act.id && s.status === 'graded' && parseFloat(s.grade || 0) >= min);
+                                }).length;
+                                
+                                if (passedCount < actArray.length) {
+                                    currentUnitCompleted = false;
+                                }
+                            }
+                            
+                            if (evArrayObj.length > 0) {
+                                const passedEvalsCount = evArrayObj.filter(ev => {
+                                    const min = parseFloat(ev.min_grade || 3.0);
+                                    return studentSubmissions.some(s => s.activity_id === ev.id && s.status === 'graded' && parseFloat(s.grade || 0) >= min);
+                                }).length;
+                                if (passedEvalsCount < evArrayObj.length) {
+                                    currentUnitCompleted = false;
+                                }
                             }
                         }
                         
