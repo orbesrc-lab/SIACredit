@@ -990,7 +990,23 @@
                                 <p style="font-size: 0.9rem; color: #475569; margin-bottom: 15px;">Encuentra y guarda referencias de acceso abierto para tus cursos. Generamos la cita APA automáticamente.</p>
                                 <div style="display: flex; gap: 10px;">
                                     <input type="text" id="openLibrarySearchQuery" placeholder="Ej: Calidad Educativa, Machine Learning, etc." style="flex: 1; padding: 12px 18px; border-radius: 12px; border: 1px solid #cbd5e1; font-size: 0.95rem; outline: none; transition: border-color 0.3s;" onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#cbd5e1'" onkeydown="if(event.key==='Enter') searchOpenLibrary()">
+                                    <select id="openLibraryLimit" style="padding: 12px 18px; border-radius: 12px; border: 1px solid #cbd5e1; font-size: 0.95rem; outline: none; transition: border-color 0.3s; background: white; cursor: pointer;">
+                                        <option value="10">10 Resultados</option>
+                                        <option value="20" selected>20 Resultados</option>
+                                        <option value="50">50 Resultados</option>
+                                        <option value="100">100 Resultados</option>
+                                    </select>
                                     <button class="btn-primary" onclick="searchOpenLibrary()" style="padding: 0 30px; border-radius: 12px; font-size: 1rem; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); transition: transform 0.2s;"><i class="fas fa-search"></i> Buscar</button>
+                                </div>
+                                <div style="margin-top: 15px; border-top: 1px solid rgba(99, 102, 241, 0.1); padding-top: 15px;">
+                                    <span style="font-size: 0.85rem; color: #475569; margin-bottom: 10px; display: block;"><strong>Búsqueda Extendida en Repositorios Externos:</strong></span>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                        <button class="btn-primary" onclick="openExternalRepo('scielo')" style="flex:1; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; background: white; color: #1e293b; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.borderColor='#f59e0b'; this.style.color='#f59e0b'" onmouseout="this.style.borderColor='#cbd5e1'; this.style.color='#1e293b'"><i class="fas fa-book"></i> SciELO</button>
+                                        <button class="btn-primary" onclick="openExternalRepo('redalyc')" style="flex:1; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; background: white; color: #1e293b; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.borderColor='#ef4444'; this.style.color='#ef4444'" onmouseout="this.style.borderColor='#cbd5e1'; this.style.color='#1e293b'"><i class="fas fa-book-open"></i> Redalyc</button>
+                                        <button class="btn-primary" onclick="openExternalRepo('dialnet')" style="flex:1; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; background: white; color: #1e293b; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.borderColor='#3b82f6'; this.style.color='#3b82f6'" onmouseout="this.style.borderColor='#cbd5e1'; this.style.color='#1e293b'"><i class="fas fa-university"></i> Dialnet</button>
+                                        <button class="btn-primary" onclick="openExternalRepo('europepmc')" style="flex:1; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; background: white; color: #1e293b; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.borderColor='#10b981'; this.style.color='#10b981'" onmouseout="this.style.borderColor='#cbd5e1'; this.style.color='#1e293b'"><i class="fas fa-flask"></i> Europe PMC</button>
+                                        <button class="btn-primary" onclick="openExternalRepo('doaj')" style="flex:1; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; background: white; color: #1e293b; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;" onmouseover="this.style.borderColor='#f97316'; this.style.color='#f97316'" onmouseout="this.style.borderColor='#cbd5e1'; this.style.color='#1e293b'"><i class="fas fa-globe-europe"></i> DOAJ</button>
+                                    </div>
                                 </div>
                             </div>
                             <div id="openLibraryResults" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
@@ -5022,6 +5038,7 @@
 
         async function searchOpenLibrary() {
             const query = document.getElementById('openLibrarySearchQuery').value.trim();
+            const limit = document.getElementById('openLibraryLimit').value;
             if(!query) return;
             
             const resultsDiv = document.getElementById('openLibraryResults');
@@ -5030,7 +5047,7 @@
             resultsDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #6366f1; margin-bottom: 15px;"></i><br>Buscando en OpenAlex...</div>';
             
             try {
-                const url = `/api/library/search?q=${encodeURIComponent(query)}`;
+                const url = `/api/library/search?q=${encodeURIComponent(query)}&limit=${limit}`;
                 const response = await fetch(url);
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
@@ -5093,12 +5110,63 @@
                             ${pdfUrl ? `<button class="btn-primary" onclick="openPdfViewer('${pdfUrl}')" style="flex: 1; padding: 8px; font-size: 0.85rem; background: #10b981; border: none; box-shadow: 0 2px 4px rgba(16,185,129,0.3);"><i class="fas fa-external-link-alt"></i> Leer/PDF</button>` : `<button class="btn-primary" onclick="window.open('https://doi.org/${doi}', '_blank')" style="flex: 1; padding: 8px; font-size: 0.85rem; background: #64748b; border: none;"><i class="fas fa-link"></i> Ver Fuente</button>`}
                             <button class="btn-secondary" onclick="saveResource('${work.id}', '${safeTitle}', '${safeAuthors}', ${year}, '${pdfUrl || doi}', '${safeApa}')" style="flex: 1; padding: 8px; font-size: 0.85rem; border: 1px solid #cbd5e1; background: white;"><i class="far fa-star"></i> Guardar</button>
                         </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; justify-content: flex-end;">
+                            <button class="btn-ghost" onclick="translateCard(this, 'es')" style="font-size: 0.75rem; padding: 4px 8px; color: #64748b; border: 1px solid #e2e8f0; border-radius: 4px; background: white; transition: all 0.2s;"><i class="fas fa-language"></i> Traducir 🇪🇸</button>
+                            <button class="btn-ghost" onclick="translateCard(this, 'en')" style="font-size: 0.75rem; padding: 4px 8px; color: #64748b; border: 1px solid #e2e8f0; border-radius: 4px; background: white; transition: all 0.2s;"><i class="fas fa-language"></i> Traducir 🇬🇧</button>
+                        </div>
                     `;
                     resultsDiv.appendChild(card);
                 });
             } catch (err) {
                 console.error("OpenAlex Error:", err);
                 resultsDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #ef4444;"><i class="fas fa-exclamation-triangle" style="font-size:2rem; margin-bottom:10px;"></i><br>Error al buscar recursos. ' + err.message + '</div>';
+            }
+        }
+
+        function openExternalRepo(repo) {
+            const query = document.getElementById('openLibrarySearchQuery').value.trim() || 'Educación';
+            let url = '';
+            switch(repo) {
+                case 'scielo': url = `https://search.scielo.org/?q=${encodeURIComponent(query)}`; break;
+                case 'redalyc': url = `https://www.redalyc.org/busquedaArticuloFiltros.oa?q=${encodeURIComponent(query)}`; break;
+                case 'dialnet': url = `https://dialnet.unirioja.es/buscar/documentos?querysDismax.DOCUMENTAL_TODO=${encodeURIComponent(query)}`; break;
+                case 'europepmc': url = `https://europepmc.org/search?query=${encodeURIComponent(query)}`; break;
+                case 'doaj': url = `https://doaj.org/search/articles?source={"query":{"query_string":{"query":"${encodeURIComponent(query)}"}},"size":50}`; break;
+            }
+            if(url) window.open(url, '_blank');
+        }
+
+        async function translateCard(btnElement, targetLang) {
+            const cardDiv = btnElement.closest('div').previousElementSibling.previousElementSibling;
+            const titleEl = cardDiv.querySelector('h4');
+            const apaEl = cardDiv.querySelector('div'); 
+            const originalText = titleEl.innerText + "\n\n" + apaEl.innerText;
+            
+            const originalBtnText = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>...';
+            btnElement.disabled = true;
+            
+            try {
+                const res = await fetch('/api/library/translate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({text: originalText, target_lang: targetLang})
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    const parts = data.translated.split("\n\n");
+                    titleEl.innerText = parts[0] || data.translated;
+                    if(parts.length > 1) {
+                        apaEl.innerHTML = `<strong>Traducción APA:</strong><br> ${parts.slice(1).join("<br>")}`;
+                    }
+                } else {
+                    alert('Error en traducción: ' + data.message);
+                }
+            } catch(e) {
+                alert('Error de conexión al traducir.');
+            } finally {
+                btnElement.innerHTML = originalBtnText;
+                btnElement.disabled = false;
             }
         }
 

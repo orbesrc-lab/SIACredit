@@ -2004,11 +2004,17 @@ import json
 def library_search():
     try:
         q = request.args.get('q', '')
+        limit = request.args.get('limit', '20')
+        if not limit.isdigit():
+            limit = '20'
+        if int(limit) > 100:
+            limit = '100'
+            
         if not q:
             return jsonify({'results': []})
         
-        # Prepare the OpenAlex API URL
-        url = f"https://api.openalex.org/works?search={urllib.parse.quote(q)}&filter=is_oa:true&per-page=20"
+        # Prepare the OpenAlex API URL with has_pdf:true and user limit
+        url = f"https://api.openalex.org/works?search={urllib.parse.quote(q)}&filter=is_oa:true,has_pdf:true&per-page={limit}"
         
         req = urllib.request.Request(url, headers={'User-Agent': 'SIACredit/1.0 (mailto:orbesrc@gmail.com)'})
         with urllib.request.urlopen(req) as response:
@@ -2017,6 +2023,33 @@ def library_search():
     except Exception as e:
         print(f"Error fetching OpenAlex: {e}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/library/translate', methods=['POST'])
+def library_translate():
+    try:
+        data = request.json
+        text = data.get('text', '')
+        target_lang = data.get('target_lang', 'es') # 'es' o 'en'
+        
+        if not text:
+            return jsonify({"status": "error", "message": "Texto vacío"}), 400
+            
+        lang_name = "Español" if target_lang == "es" else "Inglés"
+        prompt = f"Traduce el siguiente texto académico al {lang_name}. Mantén el tono formal y académico. Solo devuelve el texto traducido, sin comillas ni explicaciones extra:\n\n{text}"
+        
+        translated_text = call_ai(
+            messages=[
+                {"role": "system", "content": "Eres un traductor académico profesional experto en terminología científica e investigativa."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=800
+        )
+        
+        return jsonify({"status": "success", "translated": translated_text.strip()})
+    except Exception as e:
+        print(f"Error Translate: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @app.route('/api/library/ovas', methods=['GET'])
