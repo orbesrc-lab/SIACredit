@@ -2373,6 +2373,62 @@ def ai_generate_report():
         print(f"Error AI Generate Report: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/ai/generate_dofa', methods=['POST'])
+def ai_generate_dofa():
+    data = request.json
+    report_text = data.get('report_text', '')
+    
+    try:
+        # Limitar tamaño si es excesivamente largo
+        if len(report_text) > 40000:
+            report_text = report_text[:40000] + "... [Texto truncado]"
+
+        prompt = f"""
+        Actúa como un analista experto en planeación estratégica institucional.
+        Se te proporciona el Informe Parcial/Total de Autoevaluación de un programa académico.
+        Tu tarea es determinar cuáles son las Fortalezas y Debilidades (Factores Internos) del programa basándote EXCLUSIVAMENTE en el texto provisto.
+        
+        Debes clasificar y priorizar estos factores de mayor a menor nivel de importancia.
+        Utiliza estrictamente el formato D1, D2, D3... para las Debilidades y F1, F2, F3... para las Fortalezas, donde el número 1 es el más importante y crítico.
+        Pueden diferenciarse en cantidad (p.ej. 5 Fortalezas y 3 Debilidades, o viceversa, extrae las más relevantes).
+        
+        Texto del Informe:
+        {report_text}
+        
+        Debes devolver tu respuesta ESTRICTAMENTE en formato JSON válido, con la siguiente estructura:
+        {{
+            "fortalezas": [
+                {{"id": "F1", "descripcion": "Descripción concisa...", "importancia": 1}}
+            ],
+            "debilidades": [
+                {{"id": "D1", "descripcion": "Descripción concisa...", "importancia": 1}}
+            ]
+        }}
+        Devuelve únicamente el texto JSON y NADA MÁS.
+        """
+        
+        dofa_res = call_ai(
+            messages=[
+                {"role": "system", "content": "Eres un asistente experto que solo devuelve estructuras JSON puras y válidas."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=2500
+        )
+        
+        # Limpieza básica por si el LLM incluye formato de bloque de código
+        dofa_res = dofa_res.replace('```json', '').replace('```', '').strip()
+        
+        try:
+            dofa_json = json.loads(dofa_res)
+        except:
+            dofa_json = {"fortalezas": [], "debilidades": [], "error_parseo": "El formato generado no fue un JSON válido."}
+            
+        return jsonify({"status": "success", "dofa": dofa_json})
+    except Exception as e:
+        print(f"Error AI Generate DOFA: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/api/ai/generar_rrc', methods=['POST'])
 def ai_generar_rrc():

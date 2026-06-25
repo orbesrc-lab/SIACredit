@@ -483,6 +483,7 @@
                     <button class="btn-secondary large" onclick="generarInforme('parcial')">📋 Generar Informe Parcial</button>
                     <button class="btn-primary large" onclick="generarInforme('final')">🏆 Generar Informe Final</button>
                     <button class="btn-primary large" onclick="generarInformeIA()" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border:none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">✨ Generar con IA</button>
+                    <button class="btn-primary large" onclick="generarDOFAInterno()" style="background: linear-gradient(135deg, #10b981, #059669); border:none; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">🛡️ Factores DOFA</button>
                     <button class="btn-rrc" id="btnRRC" onclick="abrirModalRRC()">
                         🏛️ Soporte Renovación RC
                     </button>
@@ -577,6 +578,41 @@
                         <button class="btn-primary" onclick="guardarReporteRRC()">💾 Guardar Cambios</button>
                         <button class="btn-rrc" onclick="regenerarRRC()">🔄 Generar con IA</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL DOFA INTERNO ===== -->
+    <div id="dofaOverlay" class="rrc-overlay" onclick="if(event.target===this) cerrarModalDOFA()">
+        <div class="rrc-modal" style="max-width: 900px;">
+            <div class="rrc-header" style="background: linear-gradient(135deg, #064e3b 0%, #059669 100%);">
+                <div class="rrc-header-left">
+                    <h2>🛡️ Factores Internos DOFA</h2>
+                    <p>Fortalezas y Debilidades extraídas estratégicamente por IA</p>
+                </div>
+                <button class="rrc-close-btn" onclick="cerrarModalDOFA()" title="Cerrar">✕</button>
+            </div>
+            <div id="dofaLoading" class="rrc-loading active">
+                <div class="rrc-loader" style="border-top-color: #059669;"></div>
+                <div style="text-align:center;">
+                    <strong>Analizando el informe maestro...</strong>
+                    <p>Identificando y priorizando Fortalezas y Debilidades bajo el formato D1, F1</p>
+                </div>
+            </div>
+            <div id="dofaContent" style="display:none; padding: 30px;">
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3 style="color: #059669; border-bottom: 2px solid #34d399; padding-bottom: 8px; margin-bottom: 15px;">⭐ Fortalezas</h3>
+                        <div id="dofaFortalezasList" style="display:flex; flex-direction:column; gap:10px;"></div>
+                    </div>
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3 style="color: #dc2626; border-bottom: 2px solid #f87171; padding-bottom: 8px; margin-bottom: 15px;">⚠️ Debilidades</h3>
+                        <div id="dofaDebilidadesList" style="display:flex; flex-direction:column; gap:10px;"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 30px; padding: 15px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; color: #166534; font-size: 0.95rem;">
+                    <strong>¡Análisis Guardado Exitosamente!</strong> Estos factores internos han sido almacenados de forma automática en la base de datos de tu programa, y estarán listos para ser utilizados en la Matriz del futuro módulo de <b>Diagnóstico DOFA</b>.
                 </div>
             </div>
         </div>
@@ -2783,6 +2819,93 @@
             container.style.display = 'block';
             document.getElementById('btnImprimir').style.display = 'inline-block';
             document.getElementById('loadingSpinner').style.display = 'none';
+            window.currentAiReport = markdownText; // Guardar reporte en memoria para DOFA
+        }
+
+        // --- Lógica Generación DOFA Interno ---
+        function abrirModalDOFA() {
+            document.getElementById('dofaOverlay').classList.add('open');
+            document.getElementById('dofaLoading').style.display = 'flex';
+            document.getElementById('dofaContent').style.display = 'none';
+        }
+        
+        function cerrarModalDOFA() {
+            document.getElementById('dofaOverlay').classList.remove('open');
+        }
+
+        async function generarDOFAInterno() {
+            if (!window.currentAiReport) {
+                alert("⚠️ Primero debes generar un informe usando el botón '✨ Generar con IA'. El análisis DOFA requiere evaluar ese texto maestro para poder extraer las fortalezas y debilidades reales.");
+                return;
+            }
+
+            abrirModalDOFA();
+
+            try {
+                const aiRes = await fetch('/api/ai/generate_dofa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ report_text: window.currentAiReport })
+                });
+                
+                const aiData = await aiRes.json();
+                
+                if (aiData.status === 'success' && aiData.dofa && !aiData.dofa.error_parseo) {
+                    renderDOFA(aiData.dofa);
+                    
+                    // Auto-guardar factores DOFA internamente para uso futuro
+                    await fetch('/api/estadisticas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            table_id: 'DOFA_INTERNAL',
+                            inst_id: getInstId(),
+                            program_id: getProgramId(),
+                            data: aiData.dofa
+                        })
+                    });
+                    
+                } else {
+                    alert("Error en la IA al extraer el DOFA: " + (aiData.error || aiData.dofa?.error_parseo || "Formato de respuesta inválido."));
+                    cerrarModalDOFA();
+                }
+            } catch (err) {
+                alert("Error contactando el generador de Factores DOFA: " + err);
+                cerrarModalDOFA();
+            }
+        }
+
+        function renderDOFA(dofaData) {
+            document.getElementById('dofaLoading').style.display = 'none';
+            document.getElementById('dofaContent').style.display = 'block';
+            
+            const fList = document.getElementById('dofaFortalezasList');
+            const dList = document.getElementById('dofaDebilidadesList');
+            fList.innerHTML = ''; dList.innerHTML = '';
+            
+            if(dofaData.fortalezas && dofaData.fortalezas.length > 0) {
+                // Ordenar por importancia (1 es la más alta)
+                dofaData.fortalezas.sort((a,b) => a.importancia - b.importancia).forEach(f => {
+                    fList.innerHTML += `<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px;">
+                        <strong style="color:#059669; font-size:1.1rem;">${f.id}</strong> <span style="font-size:0.8rem; background:#d1fae5; color:#065f46; padding:2px 6px; border-radius:12px; margin-left:5px;">Prioridad ${f.importancia}</span>
+                        <div style="margin-top:6px; font-size:0.95rem; color:#334155; line-height:1.5;">${f.descripcion}</div>
+                    </div>`;
+                });
+            } else {
+                fList.innerHTML = '<p style="color:#64748b; font-size:0.9rem;">No se identificaron fortalezas claras.</p>';
+            }
+
+            if(dofaData.debilidades && dofaData.debilidades.length > 0) {
+                // Ordenar por importancia
+                dofaData.debilidades.sort((a,b) => a.importancia - b.importancia).forEach(d => {
+                    dList.innerHTML += `<div style="background:#fff1f2; border:1px solid #ffe4e6; padding:12px; border-radius:8px;">
+                        <strong style="color:#dc2626; font-size:1.1rem;">${d.id}</strong> <span style="font-size:0.8rem; background:#fee2e2; color:#991b1b; padding:2px 6px; border-radius:12px; margin-left:5px;">Prioridad ${d.importancia}</span>
+                        <div style="margin-top:6px; font-size:0.95rem; color:#334155; line-height:1.5;">${d.descripcion}</div>
+                    </div>`;
+                });
+            } else {
+                dList.innerHTML = '<p style="color:#64748b; font-size:0.9rem;">No se identificaron debilidades claras.</p>';
+            }
         }
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
