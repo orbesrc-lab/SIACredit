@@ -5484,6 +5484,40 @@
             renderPdfIframe();
         }
 
+        function openMiniTranslator() {
+            document.getElementById('miniTranslatorModal').style.display = 'flex';
+            document.getElementById('miniTranslatorSource').value = '';
+            document.getElementById('miniTranslatorResult').value = '';
+            document.getElementById('miniTranslatorResult').style.display = 'none';
+        }
+
+        async function translateMiniText() {
+            const text = document.getElementById('miniTranslatorSource').value.trim();
+            if (!text) return;
+            
+            document.getElementById('miniTranslatorLoading').style.display = 'block';
+            document.getElementById('miniTranslatorResult').style.display = 'none';
+            
+            try {
+                const resp = await fetch('/api/library/translate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({text: text, target_lang: 'es'})
+                });
+                const res = await resp.json();
+                document.getElementById('miniTranslatorLoading').style.display = 'none';
+                
+                if (res.status === 'success') {
+                    document.getElementById('miniTranslatorResult').value = res.translated;
+                    document.getElementById('miniTranslatorResult').style.display = 'block';
+                } else {
+                    alert("Error: " + res.message);
+                }
+            } catch(e) {
+                document.getElementById('miniTranslatorLoading').style.display = 'none';
+                alert("Error de red al traducir.");
+            }
+        }
     </script>
 
     <!-- MODAL: VISOR DE PDF -->
@@ -5493,6 +5527,7 @@
                 <h3 style="margin:0; font-size:1.2rem; display:flex; align-items:center;"><i class="fas fa-file-pdf" style="margin-right:10px;"></i> Visor de Documentos Integrado</h3>
                 <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                     <button onclick="toggleViewerType()" class="btn-ghost" style="color:white; border:1px solid rgba(255,255,255,0.3); padding:6px 12px; border-radius:8px; background:rgba(255,255,255,0.1); cursor:pointer;"><i class="fas fa-sync-alt"></i> Cambiar Motor de Visor</button>
+                    <button onclick="openMiniTranslator()" class="btn-ghost" style="color:white; border:none; padding:6px 12px; border-radius:8px; background:#10b981; cursor:pointer;"><i class="fas fa-language"></i> Traductor</button>
                     <button id="pdfViewerExternalBtn" class="btn-ghost" style="color:white; border:1px solid rgba(255,255,255,0.3); padding:6px 12px; border-radius:8px; background:rgba(255,255,255,0.1); cursor:pointer;"><i class="fas fa-external-link-alt"></i> Abrir Original</button>
                     <button onclick="closePdfViewer()" style="background:transparent; border:none; color:white; font-size:1.8rem; cursor:pointer; line-height:1; opacity:0.8; transition:opacity 0.2s; margin-left:10px;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">&times;</button>
                 </div>
@@ -5506,6 +5541,25 @@
         </div>
     </div>
 
+    <!-- MODAL: MINI TRADUCTOR LIBRE -->
+    <div id="miniTranslatorModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.7); z-index:10000; align-items:center; justify-content:center;">
+        <div style="background:white; width: 90%; max-width: 600px; border-radius: 16px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--primary-color);"><i class="fas fa-language"></i> Traductor Rápido</h3>
+                <button class="btn-ghost" onclick="document.getElementById('miniTranslatorModal').style.display='none'" style="color: var(--text-muted); font-size: 1.5rem; border: none; background: transparent; cursor: pointer;">&times;</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Copia texto del documento y pégalo aquí para traducirlo del inglés al español usando el motor gratuito.</p>
+            <textarea id="miniTranslatorSource" rows="6" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: var(--font-main); font-size: 0.9rem; outline: none; margin-bottom: 15px; resize: vertical;" placeholder="Pega el texto en inglés original aquí..."></textarea>
+            
+            <button class="btn-primary" onclick="translateMiniText()" style="width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; background: var(--primary-gradient); color: white; border: none; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);">Traducir al Español</button>
+            
+            <div id="miniTranslatorLoading" style="display: none; text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">
+                <i class="fas fa-spinner fa-spin" style="color: #6366f1;"></i> Traduciendo (vía Google Translate)...
+            </div>
+            
+            <textarea id="miniTranslatorResult" rows="6" style="width: 100%; border: 1px solid #10b981; background: rgba(16, 185, 129, 0.05); border-radius: 8px; padding: 12px; font-family: var(--font-main); font-size: 0.9rem; outline: none; display: none; resize: vertical;" readonly placeholder="Traducción..."></textarea>
+        </div>
+    </div>
 </body>
 
 </html>
