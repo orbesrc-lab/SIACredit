@@ -2013,8 +2013,8 @@ def library_search():
         if not q:
             return jsonify({'results': []})
         
-        # Prepare the OpenAlex API URL with has_pdf:true and user limit
-        url = f"https://api.openalex.org/works?search={urllib.parse.quote(q)}&filter=is_oa:true,has_pdf:true&per-page={limit}"
+        # Prepare the OpenAlex API URL with has_pdf_url:true and user limit
+        url = f"https://api.openalex.org/works?search={urllib.parse.quote(q)}&filter=is_oa:true,has_pdf_url:true&per-page={limit}"
         
         req = urllib.request.Request(url, headers={'User-Agent': 'SIACredit/1.0 (mailto:orbesrc@gmail.com)'})
         with urllib.request.urlopen(req) as response:
