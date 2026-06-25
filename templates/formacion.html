@@ -839,7 +839,10 @@
             <div id="studentsTab" class="tab-content" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                     <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Gestiona los participantes matriculados en los diferentes cursos de formación.</p>
-                    <button class="btn-primary" onclick="openCreateStudentModal()">+ Registrar Estudiante</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-ghost" id="btnExportStudents" style="display: none; border: 1px solid var(--border-color); background: white;" onclick="exportStudentsCSV()"><i class="fas fa-file-csv" style="color: #10b981;"></i> Exportar a CSV</button>
+                        <button class="btn-primary" onclick="openCreateStudentModal()">+ Registrar Estudiante</button>
+                    </div>
                 </div>
 
                 <div class="user-grid" id="studentsGrid">
@@ -1710,6 +1713,7 @@
             } catch(e) { alert("Error de red."); }
         }
 
+        window.allStudentsCache = [];
         async function loadStudentsList() {
             const grid = document.getElementById('studentsGrid');
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando estudiantes...</div>';
@@ -1719,6 +1723,13 @@
                 
                 let students = Array.isArray(res) ? res : (res.data || []);
                 students = students.filter(s => s && s.id);
+                window.allStudentsCache = students;
+                
+                const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+                const btnExport = document.getElementById('btnExportStudents');
+                if (btnExport && user && user.role === 'admin') {
+                    btnExport.style.display = 'block';
+                }
                 let html = '';
                 
                 if (students.length === 0) {
