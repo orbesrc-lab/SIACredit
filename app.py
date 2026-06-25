@@ -181,6 +181,10 @@ def autoevaluacion():
 def informes():
     return render_template('informes.html')
 
+@app.route('/dofa.html')
+def dofa():
+    return render_template('dofa.html')
+
 @app.route('/estadisticas.html')
 def estadisticas():
     return render_template('estadisticas.html')
@@ -2429,6 +2433,64 @@ def ai_generate_dofa():
         print(f"Error AI Generate DOFA: {e}")
         return jsonify({"error": str(e)}), 500
 
+
+@app.route('/api/ai/cruce_dofa', methods=['POST'])
+def ai_cruce_dofa():
+    data = request.json
+    fortalezas = data.get('fortalezas', [])
+    debilidades = data.get('debilidades', [])
+    oportunidades = data.get('oportunidades', [])
+    amenazas = data.get('amenazas', [])
+    
+    try:
+        prompt = f"""
+        Actúa como un analista experto en planeación estratégica institucional universitaria.
+        Se te proporcionan los factores internos (F, D) y externos (O, A) de un programa académico:
+        
+        FORTALEZAS: {json.dumps(fortalezas, ensure_ascii=False)}
+        DEBILIDADES: {json.dumps(debilidades, ensure_ascii=False)}
+        OPORTUNIDADES: {json.dumps(oportunidades, ensure_ascii=False)}
+        AMENAZAS: {json.dumps(amenazas, ensure_ascii=False)}
+        
+        Realiza el Cruce Estratégico (Matriz TOWS / DOFA) para generar las estrategias óptimas.
+        Genera al menos 2 estrategias concretas, ejecutables y de alto impacto para cada cuadrante:
+        - Estrategias FO (Maxi-Maxi): Usar fortalezas para aprovechar oportunidades.
+        - Estrategias DO (Mini-Maxi): Superar debilidades aprovechando oportunidades.
+        - Estrategias FA (Maxi-Mini): Usar fortalezas para evitar o mitigar amenazas.
+        - Estrategias DA (Mini-Mini): Tácticas defensivas para reducir debilidades y evitar amenazas.
+        
+        Cada estrategia DEBE iniciar indicando explícitamente qué variables cruza (ej. "(F1, O2) Crear un plan de...").
+        
+        Devuelve tu respuesta ESTRICTAMENTE en formato JSON válido, con la siguiente estructura:
+        {{
+            "FO": ["Estrategia 1...", "Estrategia 2..."],
+            "DO": ["Estrategia 1...", "Estrategia 2..."],
+            "FA": ["Estrategia 1...", "Estrategia 2..."],
+            "DA": ["Estrategia 1...", "Estrategia 2..."]
+        }}
+        Devuelve ÚNICAMENTE el texto JSON puro sin etiquetas Markdown.
+        """
+        
+        cruce_res = call_ai(
+            messages=[
+                {"role": "system", "content": "Eres un experto en planeación estratégica corporativa. Responde solo con JSON válido."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.5,
+            max_tokens=2500
+        )
+        
+        cruce_res = cruce_res.replace('```json', '').replace('```', '').strip()
+        
+        try:
+            cruce_json = json.loads(cruce_res)
+        except:
+            cruce_json = {"FO":[], "DO":[], "FA":[], "DA":[], "error_parseo": "JSON inválido devuelto por la IA."}
+            
+        return jsonify({"status": "success", "matriz": cruce_json})
+    except Exception as e:
+        print(f"Error AI Cruce DOFA: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/ai/generar_rrc', methods=['POST'])
 def ai_generar_rrc():
