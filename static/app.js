@@ -58,6 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
+            // Ocultar Informes y DOFA para cualquier rol que no sea admin
+            if (role !== 'admin' && role !== 'super-admin' && role !== 'superadmin') {
+                if (text.includes('informes') || text.includes('dofa')) {
+                    item.style.display = 'none';
+                }
+            }
+            
             if (role === 'operativo') {
                 // El operativo solo ve Dashboard, Evidencias y Cerrar Sesión
                 if (!text.includes('dashboard') && !text.includes('evidencias') && !text.includes('cerrar')) {
