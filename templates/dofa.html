@@ -107,7 +107,7 @@
             <div id="tabInternos" class="dofa-panel active">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
                     <h3>🔍 Fortalezas y Debilidades</h3>
-                    <button class="btn-secondary" onclick="loadInternos()">🔄 Recargar desde Informes</button>
+                    <button class="btn-secondary" onclick="loadInternos(true)">🔄 Recargar desde Informes</button>
                 </div>
                 <p style="color:#64748b; font-size:0.9rem; margin-bottom: 20px;">
                     Estos factores fueron extraídos automáticamente en la sección de <b>Informes</b> usando Inteligencia Artificial.
@@ -246,18 +246,23 @@
         }
 
         // --- INTERNOS ---
-        async function loadInternos() {
+        async function loadInternos(isManualReload = false) {
             try {
                 const res = await fetch(`/api/estadisticas?table_id=DOFA_INTERNAL&inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const data = await res.json();
                 if(data && data.length > 0) {
                     internalFactors = data[0].data_json;
                     renderInternos();
+                    if (isManualReload) alert("✅ Factores Internos recargados correctamente desde la base de datos.");
                 } else {
                     document.getElementById('listF').innerHTML = '<p style="color:#64748b; font-size:0.85rem;">No hay fortalezas. Ve a Informes y usa "Factores DOFA".</p>';
                     document.getElementById('listD').innerHTML = '<p style="color:#64748b; font-size:0.85rem;">No hay debilidades. Ve a Informes y usa "Factores DOFA".</p>';
+                    if (isManualReload) alert("⚠️ No se encontraron factores guardados para este programa.\n\nPor favor, ve a la sección de Informes, carga un informe y presiona el botón '🛡️ Factores DOFA' para que la IA los genere y guarde.");
                 }
-            } catch(e) { console.error("Error loadInternos", e); }
+            } catch(e) { 
+                console.error("Error loadInternos", e);
+                if (isManualReload) alert("Error al recargar: " + e);
+            }
         }
 
         function renderInternos() {
