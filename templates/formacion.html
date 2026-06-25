@@ -634,6 +634,13 @@
                                 <input type="text" id="edit_certifier" placeholder="Ej: SKEL, UNICUCES">
                             </div>
                             <div class="form-group">
+                                <label>Logo Entidad (Opcional)</label>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="file" id="edit_certifier_logo_file" accept="image/*" onchange="encodeCertifierLogo()" style="font-size: 0.85rem; width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 8px;">
+                                    <img id="edit_certifier_logo_preview" src="" style="width: 35px; height: 35px; object-fit: contain; display: none; border: 1px solid var(--border-color); border-radius: 4px; padding: 2px;">
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label>Categoría</label>
                                 <select id="edit_category">
                                     <option value="Educación">Educación</option>
@@ -854,7 +861,10 @@
                 <!-- Detalle del Curso (Estudiante) -->
                 <div id="studentCourseViewer" class="editor-container" style="display: none; border-top: 4px solid #10b981; max-width: 1000px; margin: 0 auto;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                        <h2 id="studentCourseTitle" style="font-size: 1.3rem; margin: 0;">Curso</h2>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <img id="studentCourseCertifierLogo" src="" style="height: 40px; width: 40px; object-fit: contain; display: none; border-radius: 4px; border: 1px solid rgba(0,0,0,0.1);">
+                            <h2 id="studentCourseTitle" style="font-size: 1.3rem; margin: 0;">Curso</h2>
+                        </div>
                         <button class="btn-ghost" onclick="closeStudentCourseViewer()" style="color: var(--text-muted);">❌ Salir del Aula</button>
                     </div>
 
@@ -2022,6 +2032,16 @@
                 document.getElementById('edit_title').value = activeCourse.title || '';
                 document.getElementById('edit_certifier').value = activeCourse.certifier || '';
                 
+                const logoPreview = document.getElementById('edit_certifier_logo_preview');
+                if (activeCourse.certifier_logo) {
+                    logoPreview.src = activeCourse.certifier_logo;
+                    logoPreview.style.display = 'block';
+                } else {
+                    logoPreview.src = '';
+                    logoPreview.style.display = 'none';
+                }
+                document.getElementById('edit_certifier_logo_file').value = '';
+                
                 const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
                 document.getElementById('edit_course_teacher_group').style.display = 'block';
                 await preloadTeacherDropdownForm('edit_teacher_email', activeCourse.teacher_email);
@@ -2087,6 +2107,19 @@
                     </div>
                 `).join('');
             } catch(e) { listDiv.innerHTML = '<span style="color:#ef4444">Error al cargar participantes del curso.</span>'; }
+        }
+
+        function encodeCertifierLogo() {
+            const file = document.getElementById('edit_certifier_logo_file').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('edit_certifier_logo_preview').src = e.target.result;
+                    document.getElementById('edit_certifier_logo_preview').style.display = 'block';
+                    if(activeCourse) activeCourse.certifier_logo = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
         // --- OUTCOMES & COMPETENCIES ---
@@ -2757,6 +2790,13 @@
                 activeCourseSubmissions = studentSubmissions;
                 
                 document.getElementById('studentCourseTitle').textContent = `Aula Virtual: ${course.title}`;
+                const certifierLogo = document.getElementById('studentCourseCertifierLogo');
+                if (course.certifier_logo) {
+                    certifierLogo.src = course.certifier_logo;
+                    certifierLogo.style.display = 'block';
+                } else {
+                    certifierLogo.style.display = 'none';
+                }
                 document.getElementById('studentCourseDesc').textContent = course.description || '';
                 document.getElementById('studentCourseDuration').textContent = `⏱️ Duración: ${course.duration || 10} horas`;
                 document.getElementById('studentCourseLevel').textContent = `📊 Nivel: ${course.level || 'Principiante'}`;
