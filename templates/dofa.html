@@ -6,6 +6,7 @@
     <title>Diagnóstico DOFA - SKEL SIAC</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         .dofa-header { margin-bottom: 25px; }
         .dofa-header h1 { font-size: 1.8rem; margin-bottom: 8px; color: var(--primary-color); }
@@ -133,6 +134,18 @@
                 <p style="color:#64748b; font-size:0.9rem; margin-bottom: 20px;">
                     Agrega los factores del entorno que afectan al programa. Priorízalos de 1 (más importante) en adelante.
                 </p>
+                
+                <div style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <strong style="display: block; font-size: 0.95rem; color: var(--primary-color);">Carga Masiva por Excel</strong>
+                        <span style="font-size: 0.8rem; color: #64748b;">Descarga la plantilla, llénala y súbela para cargar múltiples factores a la vez.</span>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button class="btn-secondary" onclick="downloadDOFATemplate()" style="font-size: 0.85rem;">⬇️ Descargar Plantilla</button>
+                        <input type="file" id="excelUpload" accept=".xlsx, .xls" style="display: none;" onchange="uploadDOFATemplate(event)">
+                        <button class="btn-secondary" onclick="document.getElementById('excelUpload').click()" style="font-size: 0.85rem;">⬆️ Subir Excel</button>
+                    </div>
+                </div>
                 
                 <div class="factor-grid">
                     <!-- OPORTUNIDADES -->
@@ -354,6 +367,88 @@
                 });
                 alert("✅ Factores Externos guardados correctamente.");
             } catch(e) { alert("Error al guardar: " + e); }
+        }
+
+        // --- Carga por Excel ---
+        function downloadDOFATemplate() {
+            const wb = XLSX.utils.book_new();
+            
+            const wsO = XLSX.utils.json_to_sheet([
+                { "Tipo": "Oportunidad", "Descripcion": "Ej: Apertura de nuevos mercados internacionales gracias a acuerdos comerciales", "Importancia (1-Muy Alta, 4-Baja)": 1 },
+                { "Tipo": "Oportunidad", "Descripcion": "", "Importancia (1-Muy Alta, 4-Baja)": "" }
+            ]);
+            
+            const wsA = XLSX.utils.json_to_sheet([
+                { "Tipo": "Amenaza", "Descripcion": "Ej: Crisis económica y recortes de presupuesto del gobierno", "Importancia (1-Muy Alta, 4-Baja)": 1 },
+                { "Tipo": "Amenaza", "Descripcion": "", "Importancia (1-Muy Alta, 4-Baja)": "" }
+            ]);
+
+            const wscols = [{wch:15}, {wch:75}, {wch:30}];
+            wsO['!cols'] = wscols;
+            wsA['!cols'] = wscols;
+
+            XLSX.utils.book_append_sheet(wb, wsO, "Oportunidades");
+            XLSX.utils.book_append_sheet(wb, wsA, "Amenazas");
+
+            XLSX.writeFile(wb, "Plantilla_Factores_Externos_DOFA.xlsx");
+        }
+
+        function uploadDOFATemplate(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    let newO = [];
+                    let newA = [];
+
+                    if (workbook.Sheets["Oportunidades"]) {
+                        const arrO = XLSX.utils.sheet_to_json(workbook.Sheets["Oportunidades"]);
+                        arrO.forEach(row => {
+                            if (row.Descripcion && !row.Descripcion.startsWith('Ej:')) {
+                                newO.push({
+                                    id: `O${externalFactors.oportunidades.length + newO.length + 1}`,
+                                    descripcion: row.Descripcion,
+                                    importancia: parseInt(row["Importancia (1-Muy Alta, 4-Baja)"]) || 2
+                                });
+                            }
+                        });
+                    }
+
+                    if (workbook.Sheets["Amenazas"]) {
+                        const arrA = XLSX.utils.sheet_to_json(workbook.Sheets["Amenazas"]);
+                        arrA.forEach(row => {
+                            if (row.Descripcion && !row.Descripcion.startsWith('Ej:')) {
+                                newA.push({
+                                    id: `A${externalFactors.amenazas.length + newA.length + 1}`,
+                                    descripcion: row.Descripcion,
+                                    importancia: parseInt(row["Importancia (1-Muy Alta, 4-Baja)"]) || 2
+                                });
+                            }
+                        });
+                    }
+
+                    if (newO.length === 0 && newA.length === 0) {
+                        alert("⚠️ No se encontraron factores válidos. Recuerda llenar la tabla (evitando la fila de ejemplo).");
+                        return;
+                    }
+
+                    if(newO.length > 0) externalFactors.oportunidades = externalFactors.oportunidades.concat(newO);
+                    if(newA.length > 0) externalFactors.amenazas = externalFactors.amenazas.concat(newA);
+
+                    renderExternos();
+                    alert(`✅ Cargados exitosamente:\n- ${newO.length} Oportunidades\n- ${newA.length} Amenazas\n\nNo olvides presionar 'Guardar Factores Externos' para conservar los cambios.`);
+                } catch (err) {
+                    alert("Error procesando el archivo Excel: " + err);
+                } finally {
+                    event.target.value = ""; // Reset input
+                }
+            };
+            reader.readAsArrayBuffer(file);
         }
 
         // --- MATRIZ ---
