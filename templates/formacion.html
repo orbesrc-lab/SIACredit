@@ -5486,6 +5486,11 @@
 
         function openMiniTranslator() {
             document.getElementById('miniTranslatorModal').style.display = 'flex';
+            
+            // Ocultar el iframe para que no bloquee el foco ni los atajos de teclado (Ctrl+V)
+            const iframe = document.getElementById('pdfViewerIframe');
+            if(iframe) iframe.style.visibility = 'hidden';
+
             document.getElementById('miniTranslatorSource').value = '';
             document.getElementById('miniTranslatorResult').value = '';
             document.getElementById('miniTranslatorResult').style.display = 'none';
@@ -5496,14 +5501,25 @@
             }, 150);
         }
 
+        function closeMiniTranslator() {
+            document.getElementById('miniTranslatorModal').style.display = 'none';
+            // Restaurar el iframe
+            const iframe = document.getElementById('pdfViewerIframe');
+            if(iframe) iframe.style.visibility = 'visible';
+        }
+
         async function pasteToTranslator() {
             try {
                 const text = await navigator.clipboard.readText();
+                if (!text || text.trim() === '') {
+                    alert("⚠️ El portapapeles está vacío o no contiene texto.\n\nAsegúrate de seleccionar el texto en el PDF y presionar 'Ctrl + C' (o clic derecho > Copiar) ANTES de usar este botón.");
+                    return;
+                }
                 const ta = document.getElementById('miniTranslatorSource');
                 ta.value = text;
                 ta.focus();
             } catch (err) {
-                alert("Tu navegador bloqueó el acceso automático al portapapeles. Intenta usar 'Ctrl + V' dentro de la caja de texto.");
+                alert("❌ Tu navegador bloqueó el acceso al portapapeles por seguridad.\n\nPor favor, haz clic dentro de la caja de texto blanca y presiona 'Ctrl + V' en tu teclado para pegar manualmente.");
             }
         }
 
@@ -5562,7 +5578,7 @@
         <div style="background:white; width: 95%; max-width: 650px; border-radius: 16px; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); position:relative; pointer-events:auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h3 style="margin: 0; font-size: 1.3rem; color: var(--primary-color);"><i class="fas fa-language"></i> Traductor Rápido</h3>
-                <button class="btn-ghost" onclick="document.getElementById('miniTranslatorModal').style.display='none'" style="color: var(--text-muted); font-size: 1.8rem; border: none; background: transparent; cursor: pointer;">&times;</button>
+                <button class="btn-ghost" onclick="closeMiniTranslator()" style="color: var(--text-muted); font-size: 1.8rem; border: none; background: transparent; cursor: pointer;">&times;</button>
             </div>
             
             <div style="background: #f8fafc; border-left: 4px solid #3b82f6; padding: 10px; margin-bottom: 15px; border-radius: 4px; font-size: 0.85rem; color: #334155;">
