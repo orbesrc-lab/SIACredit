@@ -5558,27 +5558,32 @@
     </div>
 
     <!-- MODAL: MINI TRADUCTOR LIBRE -->
-    <div id="miniTranslatorModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.7); z-index:10000; align-items:center; justify-content:center;">
-        <div style="background:white; width: 90%; max-width: 600px; border-radius: 16px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+    <div id="miniTranslatorModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.85); z-index:999999; align-items:center; justify-content:center; pointer-events:auto;">
+        <div style="background:white; width: 95%; max-width: 650px; border-radius: 16px; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); position:relative; pointer-events:auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin: 0; font-size: 1.2rem; color: var(--primary-color);"><i class="fas fa-language"></i> Traductor Rápido</h3>
-                <button class="btn-ghost" onclick="document.getElementById('miniTranslatorModal').style.display='none'" style="color: var(--text-muted); font-size: 1.5rem; border: none; background: transparent; cursor: pointer;">&times;</button>
+                <h3 style="margin: 0; font-size: 1.3rem; color: var(--primary-color);"><i class="fas fa-language"></i> Traductor Rápido</h3>
+                <button class="btn-ghost" onclick="document.getElementById('miniTranslatorModal').style.display='none'" style="color: var(--text-muted); font-size: 1.8rem; border: none; background: transparent; cursor: pointer;">&times;</button>
             </div>
             
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Copia texto del documento y pégalo aquí.</p>
-                <button onclick="pasteToTranslator()" style="background: var(--primary-color); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 5px;"><i class="fas fa-paste"></i> Pegar Texto</button>
+            <div style="background: #f8fafc; border-left: 4px solid #3b82f6; padding: 10px; margin-bottom: 15px; border-radius: 4px; font-size: 0.85rem; color: #334155;">
+                <strong>Instrucciones:</strong><br>
+                1. Sombrea el texto en el documento y cópialo presionando <b>Ctrl+C</b> (o clic derecho > Copiar).<br>
+                2. Haz clic en el botón azul o pega el texto directamente en la caja de abajo.
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                <button onclick="pasteToTranslator()" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.9rem; font-weight:bold; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(59,130,246,0.3);"><i class="fas fa-paste"></i> Pegar Texto Copiado</button>
             </div>
             
-            <textarea id="miniTranslatorSource" rows="6" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: var(--font-main); font-size: 0.9rem; outline: none; margin-bottom: 15px; resize: vertical; user-select: text; -webkit-user-select: text;" placeholder="Pega el texto en inglés original aquí..."></textarea>
+            <textarea id="miniTranslatorSource" rows="6" style="width: 100%; border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; font-family: var(--font-main); font-size: 0.95rem; outline: none; margin-bottom: 15px; resize: vertical; user-select: text; -webkit-user-select: text; pointer-events: auto; background: white; color: black; z-index:9999999; position:relative;" placeholder="Haz clic aquí y presiona Ctrl + V para pegar tu texto..."></textarea>
             
-            <button class="btn-primary" onclick="translateMiniText()" style="width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; background: var(--primary-gradient); color: white; border: none; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);">Traducir al Español</button>
+            <button class="btn-primary" onclick="translateMiniText()" style="width: 100%; padding: 14px; border-radius: 8px; font-weight: bold; background: var(--primary-gradient); color: white; border: none; margin-bottom: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); font-size: 1rem;">Traducir al Español</button>
             
-            <div id="miniTranslatorLoading" style="display: none; text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">
+            <div id="miniTranslatorLoading" style="display: none; text-align: center; color: var(--text-muted); font-size: 0.95rem; margin-bottom: 15px;">
                 <i class="fas fa-spinner fa-spin" style="color: #6366f1;"></i> Traduciendo (vía Google Translate)...
             </div>
             
-            <textarea id="miniTranslatorResult" rows="6" style="width: 100%; border: 1px solid #10b981; background: rgba(16, 185, 129, 0.05); border-radius: 8px; padding: 12px; font-family: var(--font-main); font-size: 0.9rem; outline: none; display: none; resize: vertical; user-select: text; -webkit-user-select: text;" readonly placeholder="Traducción..."></textarea>
+            <textarea id="miniTranslatorResult" rows="6" style="width: 100%; border: 2px solid #10b981; background: #f0fdf4; border-radius: 8px; padding: 15px; font-family: var(--font-main); font-size: 0.95rem; outline: none; display: none; resize: vertical; user-select: text; -webkit-user-select: text; pointer-events: auto; color: #065f46;" readonly placeholder="Traducción..."></textarea>
         </div>
     </div>
 </body>
