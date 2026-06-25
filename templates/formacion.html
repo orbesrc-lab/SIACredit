@@ -1730,6 +1730,7 @@
                 if (btnExport && user && user.role === 'admin') {
                     btnExport.style.display = 'block';
                 }
+                
                 let html = '';
                 
                 if (students.length === 0) {
@@ -1792,6 +1793,40 @@
             } catch (e) {
                 grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error de red.</div>';
             }
+        }
+
+        function exportStudentsCSV() {
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            if (!user || user.role !== 'admin') {
+                alert("Solo el administrador puede exportar esta información.");
+                return;
+            }
+
+            if (!window.allStudentsCache || window.allStudentsCache.length === 0) {
+                alert("No hay estudiantes para exportar.");
+                return;
+            }
+            
+            let csvContent = "Nombre,Estado,Correo Electrónico,Contraseña\n";
+            window.allStudentsCache.forEach(s => {
+                const isAspirante = s.name && (s.name.includes('[ASPIRANTE]') || s.name.includes('[PENDING:'));
+                const status = isAspirante ? "Pendiente" : "Activo";
+                const cleanName = (s.name || '').replace(/\[ASPIRANTE\]/gi, '').replace(/\[PENDING:.*?\]/gi, '').trim();
+                const email = s.email || '';
+                const password = s.password || s.raw_password || '(Oculta/Protegida)';
+                
+                csvContent += `"${cleanName}","${status}","${email}","${password}"\n`;
+            });
+            
+            const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "estudiantes.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         async function activateAspirante(email, role = 'estudiante') {
