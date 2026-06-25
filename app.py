@@ -2034,18 +2034,12 @@ def library_translate():
         if not text:
             return jsonify({"status": "error", "message": "Texto vacío"}), 400
             
-        lang_name = "Español" if target_lang == "es" else "Inglés"
-        prompt = f"Traduce el siguiente texto académico al {lang_name}. Mantén el tono formal y académico. Solo devuelve el texto traducido, sin comillas ni explicaciones extra:\n\n{text}"
-        
-        translated_text = call_ai(
-            messages=[
-                {"role": "system", "content": "Eres un traductor académico profesional experto en terminología científica e investigativa."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.3,
-            max_tokens=800
-        )
-        
+        url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl={target_lang}&dt=t&q={urllib.parse.quote(text)}"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            translated_text = ''.join([sentence[0] for sentence in data[0] if sentence[0]])
+            
         return jsonify({"status": "success", "translated": translated_text.strip()})
     except Exception as e:
         print(f"Error Translate: {e}")
