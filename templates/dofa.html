@@ -249,9 +249,9 @@
         async function loadInternos(isManualReload = false) {
             try {
                 const res = await fetch(`/api/estadisticas?table_id=DOFA_INTERNAL&inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const data = await res.json();
-                if(data && data.length > 0) {
-                    internalFactors = data[0].data_json;
+                const responseData = await res.json();
+                if(responseData && responseData.data) {
+                    internalFactors = responseData.data;
                     renderInternos();
                     if (isManualReload) alert("✅ Factores Internos recargados correctamente desde la base de datos.");
                 } else {
@@ -287,9 +287,9 @@
         async function loadExternos() {
             try {
                 const res = await fetch(`/api/estadisticas?table_id=DOFA_EXTERNAL&inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const data = await res.json();
-                if(data && data.length > 0) {
-                    externalFactors = data[0].data_json;
+                const responseData = await res.json();
+                if(responseData && responseData.data) {
+                    externalFactors = responseData.data;
                     renderExternos();
                 }
             } catch(e) { console.error("Error loadExternos", e); }
@@ -360,9 +360,9 @@
         async function loadMatriz() {
             try {
                 const res = await fetch(`/api/estadisticas?table_id=DOFA_MATRIX&inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const data = await res.json();
-                if(data && data.length > 0) {
-                    currentMatrix = data[0].data_json;
+                const responseData = await res.json();
+                if(responseData && responseData.data) {
+                    currentMatrix = responseData.data;
                     renderMatriz();
                 }
             } catch(e) { console.error("Error loadMatriz", e); }
