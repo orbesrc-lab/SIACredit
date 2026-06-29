@@ -3403,7 +3403,7 @@ def upload_prospects():
         for row in reader:
             name = row.get('Nombre', row.get('name', '')).strip()
             if not name:
-                continue
+                name = "Por Definir"
                 
             institution = row.get('Institucion', row.get('Institución', row.get('institution', ''))).strip()
             if not institution:
