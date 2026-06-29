@@ -3427,6 +3427,26 @@ def upload_prospects():
         print(f"Error uploading prospects: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+
+@app.route('/api/crm/prospects/bulk_delete', methods=['POST'])
+def bulk_delete_prospects():
+    data = request.json
+    if not data or 'ids' not in data:
+        return jsonify({'status': 'error', 'message': 'No ids provided'}), 400
+    
+    ids = data['ids']
+    if not isinstance(ids, list) or len(ids) == 0:
+        return jsonify({'status': 'error', 'message': 'Invalid ids array'}), 400
+        
+    try:
+        deleted_count = 0
+        for pid in ids:
+            supabase.table('prospects').delete().eq('id', pid).execute()
+            deleted_count += 1
+        return jsonify({'status': 'success', 'deleted_count': deleted_count})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
