@@ -2088,7 +2088,7 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
-                const userDataStr = localStorage.getItem('userData');
+                const userDataStr = localStorage.getItem('siac_user');
                 if(userDataStr) {
                     const userData = JSON.parse(userDataStr);
                     if(userData.role === 'superadmin') {
