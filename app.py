@@ -101,8 +101,6 @@ def get_partners():
 
 @app.route('/api/partners', methods=['POST'])
 def add_partner():
-    if session.get('role') != 'superadmin':
-        return jsonify({"status": "error", "message": "Acceso denegado"}), 403
     try:
         data = request.json
         res = supabase.table('partners').insert({
@@ -116,8 +114,6 @@ def add_partner():
 
 @app.route('/api/partners/<int:partner_id>', methods=['DELETE'])
 def delete_partner(partner_id):
-    if session.get('role') != 'superadmin':
-        return jsonify({"status": "error", "message": "Acceso denegado"}), 403
     try:
         res = supabase.table('partners').delete().eq("id", partner_id).execute()
         return jsonify({"status": "success"})
