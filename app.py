@@ -212,6 +212,10 @@ def static_from_root_robots():
 def static_from_root_sitemap():
     return send_from_directory(app.static_folder, request.path[1:])
 
+@app.route('/google3bc9f2eb5c06c742.html')
+def static_from_root_google_verification():
+    return send_from_directory(app.static_folder, request.path[1:])
+
 # --- Rutas para servir las páginas HTML ---
 @app.route('/')
 @app.route('/index.html')
