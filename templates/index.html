@@ -205,30 +205,31 @@
 </section>
 
 <!-- FORMACIÓN SMART -->
-<section class="formacion-section" id="formacion">
-    <div class="container">
-        <div class="formacion-header">
-            <video src="{{ url_for('static', filename='video_skel_2.mp4') }}" class="formacion-logo" id="skelVideo" style="width: 100vw; max-width: none; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; margin-bottom: 40px; display: block; border-radius: 0; box-shadow: none;" muted playsinline onmouseenter="this.play()" onmouseleave="this.pause()" onended="this.currentTime = 0;"></video>
-            <script>
-                document.addEventListener("DOMContentLoaded", function() {
-                    var v = document.getElementById("skelVideo");
-                    var hasPlayed = false;
-                    var obs = new IntersectionObserver((entries) => {
-                        entries.forEach(e => {
-                            if(e.isIntersecting) { 
-                                if(!hasPlayed) {
-                                    v.play().catch(()=>{}); 
-                                    hasPlayed = true;
-                                }
-                            } 
-                            else { 
-                                v.pause(); 
-                            }
-                        });
-                    }, { threshold: 0.3 });
-                    if(v) obs.observe(v);
+<section class="formacion-section" id="formacion" style="padding-top: 0; overflow: hidden;">
+    <!-- VIDEO FULL WIDTH FUERA DEL CONTENEDOR -->
+    <video src="{{ url_for('static', filename='video_skel_2.mp4') }}" id="skelVideo" style="width: 100%; height: auto; min-width: 100vw; object-fit: cover; margin: 0; display: block;" muted playsinline onmouseenter="this.play()" onmouseleave="this.pause()" onended="this.currentTime = 0;"></video>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var v = document.getElementById("skelVideo");
+            var hasPlayed = false;
+            var obs = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if(e.isIntersecting) { 
+                        if(!hasPlayed) {
+                            v.play().catch(()=>{}); 
+                            hasPlayed = true;
+                        }
+                    } else { 
+                        v.pause(); 
+                    }
                 });
-            </script>
+            }, { threshold: 0.3 });
+            if(v) obs.observe(v);
+        });
+    </script>
+    
+    <div class="container" style="margin-top: 40px;">
+        <div class="formacion-header">
             <h2 class="section-title">Academia SKEL: Formación de Alto Impacto para <br><em>Profesionales y Empresas</em></h2>
             <p class="section-sub">Desarrolla el máximo potencial de tu equipo con nuestra metodología Smart. Capacitaciones corporativas 100% online, asincrónicas y orientadas a resultados rápidos en cualquier industria.</p>
         </div>
