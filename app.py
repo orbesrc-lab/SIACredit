@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, Response
+from flask import Flask, render_template, request, jsonify, session, Response, send_from_directory
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
@@ -202,6 +202,15 @@ def route_force_update_gemini():
             return jsonify({"status": "success", "action": "insert", "data": res.data})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# --- Rutas para SEO (Indexación) ---
+@app.route('/robots.txt')
+def static_from_root_robots():
+    return send_from_directory(app.static_folder, request.path[1:])
+
+@app.route('/sitemap.xml')
+def static_from_root_sitemap():
+    return send_from_directory(app.static_folder, request.path[1:])
 
 # --- Rutas para servir las páginas HTML ---
 @app.route('/')
