@@ -211,13 +211,7 @@
 <body>
     <div class="login-card">
         <div class="logo">
-            <svg width="55" height="55" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/>
-                <path d="M2 12l10 5 10-5"/>
-            </svg>
-            <h1>SK<span>EL</span></h1>
-            <p>Expertos en Educación Superior</p>
+            <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL" style="max-height: 90px; width: auto; object-fit: contain;">
         </div>
         <form id="loginForm">
             <div class="form-group">
