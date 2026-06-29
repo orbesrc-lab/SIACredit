@@ -13,7 +13,7 @@
     <meta property="og:description" content="Plataforma y consultoría para procesos de autoevaluación y acreditación en educación superior.">
     <meta property="og:image" content="https://siacmen.vercel.app/static/logo_skel.png">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}?v=2.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}?v=2.1">
 </head>
 <body class="{{ theme + '-theme' if theme and theme != 'dark' else '' }}">
 
@@ -35,6 +35,10 @@
             <li><a href="#plataforma">Plataforma</a></li>
             <li><a href="#testimonios">Testimonios</a></li>
             <li><a href="#contacto">Contacto</a></li>
+            <li class="mobile-cta" style="display: none; margin-top: 20px; width: 100%; text-align: center;">
+                <a href="login.html" class="btn-outline" style="display: block; margin-bottom: 15px; width: 100%;">Ingresar</a>
+                <a href="#contacto" class="btn-gold" style="display: block; width: 100%;">Agendar Demo</a>
+            </li>
         </ul>
         <div class="nav-cta">
             <a href="login.html" class="btn-outline">Ingresar</a>

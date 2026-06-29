@@ -417,18 +417,16 @@ opacity: 0; pointer-events: none; transition: opacity 0.3s;
   .nav-links a { font-size: 1.5rem; font-weight: 600; color: var(--white); transition: all 0.3s ease; }
   .nav-links a:hover { color: var(--accent-light); transform: scale(1.05); }
   .nav-cta {
-    position: fixed; bottom: -100%; left: 0; width: 100%;
-    padding: 30px 40px; background: transparent; border-top: none;
-    display: flex; flex-direction: column; gap: 15px;
-    transition: bottom 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 1060;
+    display: none !important;
   }
-  .nav-cta.active { bottom: 30px; right: 0; }
-  .nav-cta .btn-outline, .nav-cta .btn-gold {
+  .mobile-cta {
+    display: block !important;
+  }
+  .mobile-cta .btn-outline, .mobile-cta .btn-gold {
     width: 90%; max-width: 320px; margin: 0 auto; padding: 14px; font-size: 1.1rem; border-radius: 30px; text-align: center;
   }
-  .nav-cta .btn-outline { border-color: var(--accent-light); color: var(--white); background: rgba(37, 99, 235, 0.1); }
-  .nav-cta .btn-gold { background: linear-gradient(135deg, var(--accent), var(--accent-deep)); color: #fff; border: none; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
+  .mobile-cta .btn-outline { border-color: var(--accent-light); color: var(--white); background: rgba(37, 99, 235, 0.1); }
+  .mobile-cta .btn-gold { background: linear-gradient(135deg, var(--accent), var(--accent-deep)); color: #fff; border: none; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
   
   .hamburger { display: block; }
   .hamburger.active svg line:nth-child(1) { transform: translateY(6px) rotate(45deg); transform-origin: center; }
