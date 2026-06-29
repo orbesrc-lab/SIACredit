@@ -132,10 +132,17 @@
                                 <td style="padding: 10px; display: flex; gap: 10px; align-items: center; overflow: visible;">
                                     <div style="position: relative; display: inline-block;">
                                         <button onclick="const m = this.nextElementSibling; document.querySelectorAll('.email-menu').forEach(x => {if(x!==m) x.style.display='none'}); m.style.display = m.style.display==='block'?'none':'block';" style="background:#3b82f6; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size: 0.9rem;" title="Enviar Correo">📧 Enviar</button>
-                                        <div class="email-menu" style="display:none; position:absolute; right:0; background:white; min-width:120px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:100; border-radius:4px; overflow:hidden; border: 1px solid #e2e8f0; margin-top: 5px;">
-                                            <a href="#" onclick="sendMailTo(1, ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Plantilla 1</a>
-                                            <a href="#" onclick="sendMailTo(2, ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Plantilla 2</a>
-                                            <a href="#" onclick="sendMailTo(3, ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; font-size: 0.85rem;">Plantilla 3</a>
+                                        <div class="email-menu" style="display:none; position:absolute; right:0; background:white; min-width:160px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:100; border-radius:4px; overflow:hidden; border: 1px solid #e2e8f0; margin-top: 5px;">
+                                            <div style="padding: 4px 12px; font-weight: bold; background: #f8fafc; font-size: 0.75rem; color: #64748b;">Universidades (IES)</div>
+                                            <a href="#" onclick="sendMailTo('IES_1', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Correo 1 (Contacto)</a>
+                                            <a href="#" onclick="sendMailTo('IES_2', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Correo 2 (Valor)</a>
+                                            <a href="#" onclick="sendMailTo('IES_3', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; font-size: 0.85rem;">Correo 3 (Cierre)</a>
+                                            <div style="padding: 4px 12px; font-weight: bold; background: #f8fafc; font-size: 0.75rem; color: #64748b; border-top:1px solid #e2e8f0;">Técnicos (ETDH)</div>
+                                            <a href="#" onclick="sendMailTo('ETDH_1', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Correo 1 (Captar)</a>
+                                            <a href="#" onclick="sendMailTo('ETDH_2', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; font-size: 0.85rem;">Correo 2 (Valor)</a>
+                                            <div style="padding: 4px 12px; font-weight: bold; background: #f8fafc; font-size: 0.75rem; color: #64748b; border-top:1px solid #e2e8f0;">Empresas</div>
+                                            <a href="#" onclick="sendMailTo('EMP_1', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Correo 1 (RRHH)</a>
+                                            <a href="#" onclick="sendMailTo('EMP_2', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; font-size: 0.85rem;">Correo 2 (Auditoría)</a>
                                         </div>
                                     </div>
                                     ${p.linkedin ? `<a href="${p.linkedin}" target="_blank" style="color:#0077b5; text-decoration: none; font-size: 1.2rem;" title="LinkedIn">🔗</a>` : ''}
@@ -273,17 +280,33 @@
 
             // Email templates
             const emailTemplates = {
-                1: {
+                'IES_1': {
                     subject: (n, i) => `${n}, optimización de calidad y ahorros para ${i}`,
                     body: (n, i) => `Hola ${n},\n\nHe estado siguiendo de cerca los recientes procesos de ${i} y sé lo complejo que puede ser mantener el estándar del CNA e ISO sin inflar los costos administrativos.\n\nEn SKEL 360 hemos desarrollado SIAC, una plataforma integral que reduce los tiempos de preparación de condiciones institucionales en un 40% y unifica todas las áreas (Académica, Calidad, Financiera) bajo el mismo modelo de calidad de Mineducación.\n\nMe encantaría robarle 10 minutos la próxima semana para mostrarle cómo otras instituciones de la región ya están centralizando su autoevaluación y evidencias con nosotros.\n\n¿Tendría un espacio el próximo martes o jueves en la mañana?\n\nQuedo atento.`
                 },
-                2: {
+                'IES_2': {
                     subject: (n, i) => `Re: ${n}, optimización de calidad y ahorros para ${i}`,
                     body: (n, i) => `Hola ${n},\n\nLe escribo brevemente para hacerle seguimiento a mi correo anterior.\n\nEntiendo perfectamente que su agenda debe estar a tope en esta época. Solo quería reiterarle que con SIAC, ${i} puede consolidar todos los tableros de control (PowerBI), reportes estadísticos y evidencias documentales en una única bóveda segura, evitando la dispersión de Excel e información entre áreas.\n\n¿Le parece bien si hacemos una llamada rápida de 5 minutos el próximo miércoles para explorar si esto hace sentido para su modelo actual?\n\nSaludos cordiales,`
                 },
-                3: {
+                'IES_3': {
                     subject: (n, i) => `Último intento: SIAC para ${i}`,
                     body: (n, i) => `Hola ${n},\n\nComo no he tenido respuesta, asumo que este no es el momento ideal para hablar sobre la optimización del sistema de calidad en ${i}, o quizás hay otra persona a cargo del tema.\n\nSi es así, ¿sería tan amable de indicarme con quién podría conversar sobre las herramientas tecnológicas de Aseguramiento de la Calidad?\n\nDejaré de insistir por ahora, pero le dejo el enlace a nuestro sitio web (skel360.online) por si en algún momento del año buscan centralizar su información.\n\nMuchas gracias por su tiempo.`
+                },
+                'ETDH_1': {
+                    subject: (n, i) => `¿Listos para la próxima visita de inspección en ${i}?`,
+                    body: (n, i) => `Estimado/a ${n},\n\nSabemos que para las instituciones de Educación para el Trabajo y Desarrollo Humano, mantener la trazabilidad exacta de las competencias adquiridas y el repositorio documental al día para las visitas de la Secretaría de Educación representa un esfuerzo enorme.\n\nDesde SKEL 360, hemos desarrollado un entorno tecnológico que automatiza la recolección de evidencias y centraliza el seguimiento a estudiantes. Esto reduce drásticamente las no conformidades y horas de trabajo administrativo.\n\n¿Tendría disponibilidad para una breve reunión de 15 minutos la próxima semana donde le muestre cómo estamos modernizando este proceso?\n\nCordialmente,`
+                },
+                'ETDH_2': {
+                    subject: (n, i) => `Re: ¿Listos para la próxima visita de inspección en ${i}?`,
+                    body: (n, i) => `Estimado/a ${n},\n\nQuería compartirle un dato importante: el 70% del tiempo invertido en la gestión de calidad en instituciones ETDH se pierde buscando carpetas y persiguiendo a docentes por sus evidencias.\n\nNuestra plataforma permite modelar sus propios factores de evaluación y centralizar el repositorio en la nube, accesible a un clic durante auditorías.\n\nMe encantaría mostrarle la plataforma en acción. ¿Le vendría bien que hablemos este jueves?\n\nAtentamente,`
+                },
+                'EMP_1': {
+                    subject: (n, i) => `Trazabilidad real de sus planes de formación corporativa en ${i}`,
+                    body: (n, i) => `Estimado/a ${n},\n\nAsegurar que los planes de formación corporativa se ejecuten correctamente y que las evaluaciones de desempeño no se queden en un Excel olvidado, es uno de los mayores retos de Recursos Humanos.\n\nEn SKEL 360 hemos adaptado nuestra robusta arquitectura de calidad al sector corporativo. Proporcionamos una plataforma integral donde puede crear sus modelos de evaluación, registrar planes de formación y tener un repositorio listo para auditorías ISO 9001.\n\nMe gustaría mostrarle cómo centralizar la trazabilidad de su talento en un solo lugar. ¿Dispondría de 15 minutos para una breve demostración?\n\nCordialmente,`
+                },
+                'EMP_2': {
+                    subject: (n, i) => `Re: Trazabilidad real de sus planes de formación corporativa en ${i}`,
+                    body: (n, i) => `Estimado/a ${n},\n\nRetomando mi comunicación anterior, uno de los módulos más valorados por los líderes de Recursos Humanos que utilizan nuestra herramienta es nuestro Gestor de Planes de Mejora.\n\nEn lugar de que las acciones correctivas se pierdan, SKEL 360 asigna automáticamente tareas con fechas límite y responsables, conectando todo con evidencias tangibles que facilitan las auditorías corporativas.\n\n¿Estaría abierto/a a conocer cómo adaptaríamos nuestro modelo a las métricas específicas de ${i}?\n\nAtentamente,`
                 }
             };
 
@@ -293,13 +316,13 @@
                     return;
                 }
                 const name = (nameStr && nameStr !== 'Por Definir' && nameStr !== '-') ? nameStr.split(' ')[0] : 'Rector(a)';
-                const inst = institution || 'su institución';
+                const inst = institution || 'su empresa';
                 
                 const subject = encodeURIComponent(emailTemplates[templateId].subject(name, inst));
                 const body = encodeURIComponent(emailTemplates[templateId].body(name, inst));
                 
                 // Automatically set status to Correo X if it was Pendiente
-                updateStatus(prospectId, `Correo ${templateId}`);
+                updateStatus(prospectId, `Correo ${templateId.split('_')[1]}`);
                 
                 window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
             }
