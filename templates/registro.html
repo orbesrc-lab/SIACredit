@@ -3,63 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SKEL - Expertos en Proyectos de Educación Superior</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>SKEL - Crear Cuenta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .auth-container { display: flex; min-height: 100vh; align-items: center; justify-content: center; background-color: var(--secondary-bg); padding: 20px; }
-        .auth-card { background: var(--white); padding: 40px; border-radius: 12px; box-shadow: var(--shadow-lg); width: 100%; max-width: 500px; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group.full { grid-column: span 2; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem; }
-        .form-group input, .form-group select { width: 100%; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; }
-        .btn-full { width: 100%; margin-top: 20px; }
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1e40af;
+            --bg-deep: #020818;
+            --card-bg: rgba(6, 16, 41, 0.85);
+            --text-main: #f0f6ff;
+            --text-muted: #6b8aad;
+            --border: rgba(37, 99, 235, 0.35);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+            padding: 40px 20px;
+        }
+
+        /* Ambient Glow Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -10%;
+            left: -10%;
+            width: 40%;
+            height: 40%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, transparent 70%);
+            z-index: 0;
+            filter: blur(60px);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -10%;
+            right: -10%;
+            width: 40%;
+            height: 40%;
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.15) 0%, transparent 70%);
+            z-index: 0;
+            filter: blur(60px);
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            position: relative;
+            z-index: 1;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo svg, .logo img { 
+            margin-bottom: 16px; 
+            filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.45));
+        }
+
+        .logo h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #fff;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 5px;
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .form-group select option {
+            background: var(--bg-deep);
+            color: #fff;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
+        }
+
+        .form-group input::placeholder { color: #475569; }
+
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 25px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+            grid-column: span 2;
+        }
+
+        .btn-login:hover { 
+            background: var(--primary-hover); 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-login:active { transform: translateY(0); }
+
+        .links {
+            text-align: center;
+            margin-top: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+
+        .links a:hover { color: var(--primary); }
+
+        .links a.primary { 
+            color: var(--primary); 
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; gap: 15px; }
+            .form-group.full { grid-column: span 1; }
+            .btn-login { grid-column: span 1; }
+            .login-card { padding: 40px 24px; }
+            .logo h2 { font-size: 1.5rem; }
+        }
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <div class="auth-card">
-            <h2 style="text-align: center; margin-bottom: 30px;">Crear Cuenta Institucional</h2>
-            <form id="registerForm">
-                <div class="form-grid">
-                    <div class="form-group full">
-                        <label>Nombre Completo</label>
-                        <input type="text" id="fullName" required placeholder="Ej. Dr. Juan Pérez">
-                    </div>
-                    <div class="form-group">
-                        <label>Email Institucional</label>
-                        <input type="email" id="emailInst" required placeholder="juan@universidad.edu.co">
-                    </div>
-                    <div class="form-group">
-                        <label>Email Personal (Recuperación)</label>
-                        <input type="email" id="emailPers" required placeholder="juan.personal@gmail.com">
-                    </div>
-                    <div class="form-group full">
-                        <label>Institución a la que perteneces</label>
-                        <select id="instSelect" required>
-                            <option value="">Cargando instituciones...</option>
-                        </select>
-                    </div>
-                    <div class="form-group full">
-                        <label>Perfil Solicitado</label>
-                        <select id="requestedProfile" required>
-                            <option value="estudiante">Estudiante / Participante</option>
-                            <option value="profesor">Profesor / Docente</option>
-                            <option value="operativo">Personal Administrativo</option>
-                        </select>
-                    </div>
-                    <div class="form-group full">
-                        <label>Contraseña</label>
-                        <input type="password" id="password" required placeholder="••••••••">
-                    </div>
+    <div class="login-card">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL" style="max-height: 70px; width: auto; object-fit: contain;">
+            <h2>Crear Cuenta Institucional</h2>
+        </div>
+        <form id="registerForm">
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="fullName" required placeholder="Ej. Dr. Juan Pérez">
                 </div>
-                <button type="submit" class="btn-primary large btn-full">Registrarse</button>
-            </form>
-            <p style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: var(--text-muted);">
-                ¿Ya tienes cuenta? <a href="login.html" style="color: var(--primary-color); text-decoration: none;">Inicia sesión aquí</a>
-            </p>
+                <div class="form-group">
+                    <label>Email Institucional</label>
+                    <input type="email" id="emailInst" required placeholder="juan@universidad.edu.co">
+                </div>
+                <div class="form-group">
+                    <label>Email Personal</label>
+                    <input type="email" id="emailPers" required placeholder="juan.personal@gmail.com">
+                </div>
+                <div class="form-group full">
+                    <label>Institución a la que perteneces</label>
+                    <select id="instSelect" required>
+                        <option value="">Cargando instituciones...</option>
+                    </select>
+                </div>
+                <div class="form-group full">
+                    <label>Perfil Solicitado</label>
+                    <select id="requestedProfile" required>
+                        <option value="estudiante">Estudiante / Participante</option>
+                        <option value="profesor">Profesor / Docente</option>
+                        <option value="operativo">Personal Administrativo</option>
+                    </select>
+                </div>
+                <div class="form-group full">
+                    <label>Contraseña</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-login">Solicitar Registro</button>
+            </div>
+        </form>
+        <div class="links">
+            <a href="login.html" class="primary">¿Ya tienes cuenta? Inicia sesión aquí</a>
+            <a href="index.html">← Volver al inicio</a>
         </div>
     </div>
+
     <script>
         // Cargar instituciones al cargar la página
         window.addEventListener('DOMContentLoaded', async () => {
@@ -97,7 +283,6 @@
             const requestedProfile = document.getElementById('requestedProfile').value;
             
             try {
-                // Registrar usuario con rol 'operativo' (permitido por DB) pero con prefijo indicando el rol deseado
                 const pendingName = `[PENDING:${requestedProfile}] ` + name;
                 const userResp = await fetch(`/api/users?inst_id=${instId}&program_id=0`, {
                     method: 'POST',
@@ -116,7 +301,7 @@
                 alert('Error de conexión con el servidor.');
             }
             btn.disabled = false;
-            btn.textContent = 'Registrarse';
+            btn.textContent = 'Solicitar Registro';
         });
     </script>
 </body>
