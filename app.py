@@ -41,7 +41,36 @@ def add_security_headers(response):
     
     return response
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
+def send_email(to_email, subject, html_content):
+    smtp_server = os.getenv("SMTP_SERVER", "smtp.hostinger.com")
+    smtp_port = int(os.getenv("SMTP_PORT", "465"))
+    smtp_user = os.getenv("SMTP_EMAIL", "orbesunicuces@skel360.online")
+    smtp_pass = os.getenv("SMTP_PASSWORD", "")
+    
+    if not smtp_pass:
+        print("Advertencia: SMTP_PASSWORD no configurado. Correo no enviado.")
+        return False
+        
+    msg = MIMEMultipart()
+    msg['From'] = f"SKEL 360 <{smtp_user}>"
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    
+    msg.attach(MIMEText(html_content, 'html'))
+    
+    try:
+        # Usamos SMTP_SSL para el puerto 465 que es el estándar de Hostinger
+        with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
+            server.login(smtp_user, smtp_pass)
+            server.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"Error enviando correo a {to_email}: {e}")
+        return False
 
 def get_active_inst_id(requested_id):
     try:
@@ -1109,6 +1138,53 @@ def change_password():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/api/forgot-password', methods=['POST'])
+def forgot_password():
+    data = request.json
+    email = data.get('email')
+    if not email:
+        return jsonify({"status": "error", "message": "Email requerido"}), 400
+    try:
+        res = supabase.table('users').select("*").eq("email", email).execute()
+        if not res.data:
+            # Por seguridad, retornamos éxito aunque no exista para no revelar usuarios
+            return jsonify({"status": "success", "message": "Si el correo existe, recibirás las instrucciones."})
+            
+        import string
+        import random
+        # Generar contraseña temporal segura
+        alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+        temp_password = ''.join(random.choice(alphabet) for i in range(10))
+        
+        # Actualizar en BD
+        new_hash = generate_password_hash(temp_password)
+        supabase.table('users').update({"password_hash": new_hash}).eq("email", email).execute()
+        
+        # Enviar correo
+        html_content = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+            <h2 style="color: #2563eb;">Recuperación de Contraseña</h2>
+            <p>Hola,</p>
+            <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en SKEL 360.</p>
+            <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>Tu nueva contraseña temporal es:</strong> <span style="font-family: monospace; font-size: 1.1em; font-weight: bold; color: #b91c1c;">{temp_password}</span></p>
+            </div>
+            <p><strong>URL de acceso:</strong> <a href="https://skel360.online/login.html">https://skel360.online/login.html</a></p>
+            <p>Te recomendamos encarecidamente que cambies esta contraseña por una propia tan pronto ingreses al sistema, en la sección de Configuración.</p>
+            <p style="color: #64748b; font-size: 0.9em; margin-top: 30px;">Si no solicitaste este cambio, por favor contacta al administrador.</p>
+        </div>
+        """
+        success = send_email(email, "Recuperación de Contraseña - SKEL 360", html_content)
+        
+        if success:
+            return jsonify({"status": "success", "message": "Si el correo existe, recibirás las instrucciones."})
+        else:
+            return jsonify({"status": "error", "message": "Error al enviar el correo. Por favor contacta al administrador."}), 500
+            
+    except Exception as e:
+        print(f"Error in forgot-password: {e}")
+        return jsonify({"status": "error", "message": "Error interno del servidor"}), 500
+
 @app.route('/api/init-admin', methods=['GET'])
 def init_admin():
     try:
@@ -1173,6 +1249,24 @@ def handle_users():
                         "role": data.get('role', 'lider'),
                         "inst_id": inst_id
                     }).execute()
+            
+            # Enviar correo de bienvenida
+            html_content = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+                <h2 style="color: #2563eb;">¡Bienvenido a SKEL 360!</h2>
+                <p>Hola,</p>
+                <p>Se ha creado una cuenta para ti en nuestra plataforma.</p>
+                <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 5px 0;"><strong>URL de acceso:</strong> <a href="https://skel360.online/login.html">https://skel360.online/login.html</a></p>
+                    <p style="margin: 5px 0;"><strong>Usuario:</strong> {email}</p>
+                    <p style="margin: 5px 0;"><strong>Contraseña temporal:</strong> {temp_password}</p>
+                </div>
+                <p>Te recomendamos cambiar tu contraseña una vez hayas ingresado, en la sección de Configuración.</p>
+                <p style="color: #64748b; font-size: 0.9em;">Saludos,<br>El equipo de SKEL 360</p>
+            </div>
+            """
+            send_email(email, "¡Bienvenido a SKEL 360! - Tus credenciales de acceso", html_content)
+            
             return jsonify({"status": "success", "data": res.data[0], "temp_password": temp_password})
         except Exception as e:
             return jsonify({"status": "error", "message": str(e)}), 500

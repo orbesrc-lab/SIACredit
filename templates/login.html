@@ -206,6 +206,28 @@
             .login-card { margin: 20px; padding: 40px 24px; }
             .logo h1 { font-size: 1.75rem; }
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1000;
+            justify-content: center; align-items: center;
+        }
+        .modal {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 16px; padding: 30px; width: 90%; max-width: 400px;
+            text-align: center; color: white; box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+        }
+        .modal h3 { margin-top: 0; margin-bottom: 15px; }
+        .modal p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; }
+        .modal .btn-close {
+            background: transparent; border: 1px solid rgba(255,255,255,0.2);
+            color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-top: 15px;
+        }
+        .modal .btn-submit {
+            background: var(--primary); border: none;
+            color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -227,8 +249,25 @@
         </form>
         <div class="links">
             <a href="registro.html" class="primary">¿No tienes cuenta? Regístrate aquí</a>
-            <a href="#" onclick="alert('Se ha enviado un código de recuperación a tu email.')">Olvidé mi contraseña</a>
+            <a href="#" onclick="document.getElementById('forgotModal').style.display='flex'">Olvidé mi contraseña</a>
             <a href="index.html">← Volver al inicio</a>
+        </div>
+    </div>
+
+    <!-- Modal Recuperar Contraseña -->
+    <div id="forgotModal" class="modal-overlay">
+        <div class="modal">
+            <h3>Recuperar Contraseña</h3>
+            <p>Ingresa tu correo electrónico registrado y te enviaremos una nueva contraseña temporal.</p>
+            <form id="forgotForm">
+                <div class="form-group" style="text-align: left;">
+                    <input type="email" id="forgotEmail" required placeholder="usuario@correo.com">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button type="button" class="btn-close" onclick="document.getElementById('forgotModal').style.display='none'">Cancelar</button>
+                    <button type="submit" class="btn-submit" id="btnForgotSubmit">Enviar Nueva Clave</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -282,6 +321,36 @@
             } catch (err) {
                 console.error(err);
                 alert('Error de conexión al servidor.');
+            }
+        });
+
+        document.getElementById('forgotForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value;
+            const btn = document.getElementById('btnForgotSubmit');
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+            
+            try {
+                const response = await fetch('/api/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    alert('Se ha enviado una nueva contraseña temporal a tu correo.');
+                    document.getElementById('forgotModal').style.display='none';
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error de conexión al servidor.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Enviar Nueva Clave';
             }
         });
     </script>
