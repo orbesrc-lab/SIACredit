@@ -73,6 +73,7 @@
                 <div style="display: flex; gap: 10px; align-items: center;">
                 <button onclick="bulkDelete()" id="btnBulkDelete" style="display:none; padding: 10px 15px; border-radius: 6px; background-color: #ef4444; color: white; border: none; font-weight: 600; cursor: pointer;">🗑️ Eliminar Seleccionados</button>
                 <a href="#" style="color: #4338ca; font-weight: 600; text-decoration: none; font-size: 0.9rem;">Descargar JSON</a>
+                <button onclick="addEmptyProspect()" style="padding: 10px 15px; border-radius: 6px; background-color: #10b981; color: white; border: none; font-weight: 600; cursor: pointer;">➕ Nuevo Contacto</button>
                 <label style="padding: 10px 15px; border-radius: 6px; background-color: #3b82f6; color: white; border: none; font-weight: 600; cursor: pointer;">
                     Subir CSV
                     <input type="file" id="csvFile" style="display: none;" accept=".csv" onchange="uploadCSV(event)">
@@ -118,7 +119,10 @@
                                 <td style="padding: 15px;"><input type="checkbox" class="prospect-checkbox" value="${p.id}" onchange="updateBulkDeleteButton()"></td>
                                 <td style="padding: 15px; font-weight: 600; color: #0f172a;" contenteditable="true" onblur="saveField(${p.id}, 'name', this.innerText)" title="Clic para editar">${p.name || '-'}</td>
                                 <td style="padding: 15px; color: #475569; font-size: 0.9rem;" contenteditable="true" onblur="saveField(${p.id}, 'position', this.innerText)" title="Clic para editar">${p.position || '-'}</td>
-                                <td style="padding: 10px;">${p.institution}<br><small>SNIES: ${p.snies_code || '-'}</small></td>
+                                <td style="padding: 10px;">
+                                    <div contenteditable="true" onblur="saveField(${p.id}, 'institution', this.innerText)" title="Editar Entidad" style="font-weight:500;">${p.institution || 'Nueva Entidad'}</div>
+                                    <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">SNIES/NIT: <span contenteditable="true" onblur="saveField(${p.id}, 'snies_code', this.innerText)" title="Editar código">${p.snies_code || '-'}</span></div>
+                                </td>
                                 <td style="padding: 10px;" contenteditable="true" onblur="saveField(${p.id}, 'email', this.innerText)" title="Clic para editar">${p.email || '-'}</td>
                                 <td style="padding: 10px;">
                                     <select onchange="updateStatus(${p.id}, this.value)" style="padding: 5px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-input);">
@@ -258,6 +262,24 @@
                 } finally {
                     e.target.value = '';
                 }
+            }
+
+            async function addEmptyProspect() {
+                try {
+                    const res = await fetch('/api/crm/prospects', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ name: 'Nuevo Contacto', institution: 'Nueva Entidad' })
+                    });
+                    const data = await res.json();
+                    if(data.status === 'success') {
+                        loadProspects();
+                        // Scroll to bottom where the new prospect is added (if order is by created_at asc)
+                        setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 500);
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                } catch(e) { console.error(e); }
             }
 
             // Authentication check script to block non-admins
