@@ -208,16 +208,24 @@
 <section class="formacion-section" id="formacion">
     <div class="container">
         <div class="formacion-header">
-            <video src="{{ url_for('static', filename='video_skel_2.mp4') }}" class="formacion-logo" id="skelVideo" style="width: 100%; max-width: 550px; margin: 15px auto 25px auto; display: block; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" muted playsinline loop onmouseenter="this.play()" onmouseleave="this.pause()"></video>
+            <video src="{{ url_for('static', filename='video_skel_2.mp4') }}" class="formacion-logo" id="skelVideo" style="width: 100%; max-width: 1200px; margin: 20px auto 40px auto; display: block; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.6);" muted playsinline onmouseenter="this.play()" onmouseleave="this.pause()" onended="this.currentTime = 0;"></video>
             <script>
                 document.addEventListener("DOMContentLoaded", function() {
                     var v = document.getElementById("skelVideo");
+                    var hasPlayed = false;
                     var obs = new IntersectionObserver((entries) => {
                         entries.forEach(e => {
-                            if(e.isIntersecting) { v.play().catch(()=>{}); } 
-                            else { v.pause(); }
+                            if(e.isIntersecting) { 
+                                if(!hasPlayed) {
+                                    v.play().catch(()=>{}); 
+                                    hasPlayed = true;
+                                }
+                            } 
+                            else { 
+                                v.pause(); 
+                            }
                         });
-                    }, { threshold: 0.5 });
+                    }, { threshold: 0.3 });
                     if(v) obs.observe(v);
                 });
             </script>
