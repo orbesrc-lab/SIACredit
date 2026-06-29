@@ -116,10 +116,10 @@
                             tr.style.borderBottom = '1px solid #f1f5f9';
                             tr.innerHTML = `
                                 <td style="padding: 15px;"><input type="checkbox" class="prospect-checkbox" value="${p.id}" onchange="updateBulkDeleteButton()"></td>
-                                <td style="padding: 15px; font-weight: 600; color: #0f172a;">${p.name || '-'}</td>
-                                <td style="padding: 15px; color: #475569; font-size: 0.9rem;">${p.position || '-'}</td>
+                                <td style="padding: 15px; font-weight: 600; color: #0f172a;" contenteditable="true" onblur="saveField(${p.id}, 'name', this.innerText)" title="Clic para editar">${p.name || '-'}</td>
+                                <td style="padding: 15px; color: #475569; font-size: 0.9rem;" contenteditable="true" onblur="saveField(${p.id}, 'position', this.innerText)" title="Clic para editar">${p.position || '-'}</td>
                                 <td style="padding: 10px;">${p.institution}<br><small>SNIES: ${p.snies_code || '-'}</small></td>
-                                <td style="padding: 10px;">${p.email || '-'}</td>
+                                <td style="padding: 10px;" contenteditable="true" onblur="saveField(${p.id}, 'email', this.innerText)" title="Clic para editar">${p.email || '-'}</td>
                                 <td style="padding: 10px;">
                                     <select onchange="updateStatus(${p.id}, this.value)" style="padding: 5px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-input);">
                                         <option value="Pendiente" ${p.status==='Pendiente'?'selected':''}>Pendiente</option>
@@ -140,6 +140,19 @@
                 } catch(e) {
                     console.error(e);
                 }
+            }
+
+            async function saveField(id, field, value) {
+                if(value.trim() === '-') value = '';
+                const body = {};
+                body[field] = value.trim();
+                try {
+                    await fetch('/api/crm/prospects/' + id, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(body)
+                    });
+                } catch(e) { console.error(e); }
             }
 
             async function updateStatus(id, newStatus) {
@@ -211,6 +224,9 @@
             async function uploadCSV(e) {
                 const file = e.target.files[0];
                 if(!file) return;
+                
+                document.getElementById('prospectsBody').innerHTML = '<tr><td colspan="7" style="padding: 20px; text-align: center; font-weight: bold; color: #3b82f6;">⏳ Subiendo archivo y procesando datos, por favor espera...</td></tr>';
+                
                 const formData = new FormData();
                 formData.append('file', file);
                 try {
@@ -222,7 +238,10 @@
                     alert(data.message);
                     loadProspects();
                 } catch(err) {
-                    alert('Error subiendo CSV');
+                    alert('Error subiendo CSV. Es posible que haya tardado demasiado. Refresca la página para ver los datos.');
+                    loadProspects();
+                } finally {
+                    e.target.value = '';
                 }
             }
 

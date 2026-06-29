@@ -3400,6 +3400,7 @@ def upload_prospects():
         reader = csv.DictReader(stream, delimiter=delimiter)
         
         inserted_count = 0
+        prospects_to_insert = []
         for row in reader:
             name = row.get('Nombre', row.get('name', '')).strip()
             if not name:
@@ -3419,8 +3420,11 @@ def upload_prospects():
                 "notes": row.get('Notas', row.get('notes', '')),
                 "status": "Pendiente"
             }
-            supabase.table('prospects').insert(prospect_data).execute()
-            inserted_count += 1
+            prospects_to_insert.append(prospect_data)
+            
+        if prospects_to_insert:
+            supabase.table('prospects').insert(prospects_to_insert).execute()
+            inserted_count = len(prospects_to_insert)
             
         return jsonify({"status": "success", "message": f"{inserted_count} prospectos subidos correctamente"})
     except Exception as e:
