@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKEL SIAC - Datos Estadísticos CNA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='downloader.js') }}"></script>
+    <script src="{{ url_for('static', filename='viewer.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body { background-color: var(--secondary-bg); display: flex; height: 100vh; overflow: hidden; }
+
+        
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: var(--white); padding: 15px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        
+        .content-area { padding: 30px; max-width: 1100px; margin: 0 auto; width: 100%; overflow-y: auto; }
+        
+        .stat-card { background: var(--white); border-radius: 12px; padding: 25px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 30px; }
+        .stat-card h3 { font-size: 1.1rem; margin-bottom: 20px; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .stat-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .stat-table th, .stat-table td { border: 1px solid var(--border-color); padding: 12px; text-align: center; font-size: 0.9rem; }
+        .stat-table th { background: #f8fafc; font-weight: 600; color: var(--text-muted); }
+        .stat-table input { width: 100%; border: none; background: transparent; text-align: center; font-family: inherit; font-size: 0.95rem; color: var(--text-main); }
+        .stat-table input:focus { outline: 2px solid var(--primary-color); border-radius: 4px; }
+        
+        .save-banner { position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); color: white; padding: 12px 25px; border-radius: 50px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; transform: translateY(100px); transition: 0.3s; z-index: 1000; cursor: pointer; }
+        .save-banner.show { transform: translateY(0); }
+        
+        /* Mobile overrides */
+        @media (max-width: 768px) {
+            body { overflow-y: auto !important; height: auto !important; }
+            .main-content { overflow-y: auto !important; height: auto !important; padding-bottom: 80px !important; }
+            .content-area { padding: 15px !important; padding-bottom: 90px !important; }
+            .topbar { padding: 12px 15px !important; flex-direction: column; align-items: flex-start; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header" style="justify-content: center; padding: 20px 15px;">
+            <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
+        </div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
+            <a href="evidencias.html" class="sidebar-item">📁 Evidencias</a>
+            <a href="autoevaluacion.html" class="sidebar-item">📝 Autoevaluación</a>
+            <a href="estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
+            <a href="informes.html" class="sidebar-item">📄 Informes</a>
+            <a href="dofa.html" class="sidebar-item">🎯 Diagnóstico DOFA</a>
+            <a href="biblioteca.html" class="sidebar-item">📚 Biblioteca</a>
+            <a href="encuestas.html" class="sidebar-item">📋 Encuestas</a>
+            <a href="formacion.html" class="sidebar-item">🎓 Formación</a>
+            <a href="crm.html" class="sidebar-item active" id="menuCrm">🚀 CRM B2B</a>
+            <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
+        </div>
+        <div class="sidebar-footer">
+            <button class="btn-ghost" onclick="logout()" style="color: #ef4444; width: 100%; text-align: left;">🚪 Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div><h2 style="font-size: 1.25rem; margin: 0;">Anexos Estadísticos CNA</h2></div>
+            <div id="userInfo" style="font-weight: 500;"></div>
+        </header>
+
+        <div class="content-area">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1 style="font-size: 1.8rem; margin: 0;">CRM B2B - Prospecci&oacute;n</h1>
+                <div>
+                    <a href="/api/crm/prospects" download="prospects.json" class="btn-outline">Descargar JSON</a>
+                    <button class="btn-primary" onclick="document.getElementById('uploadFile').click()">Subir CSV</button>
+                    <input type="file" id="uploadFile" style="display:none" accept=".csv" onchange="uploadCSV(event)">
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 20px; padding: 20px;">
+                <h3>Base de Datos de Prospectos</h3>
+                <div style="overflow-x: auto; margin-top: 15px;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <th style="padding: 10px;">Nombre</th>
+                                <th style="padding: 10px;">Cargo</th>
+                                <th style="padding: 10px;">Instituci&oacute;n</th>
+                                <th style="padding: 10px;">Correo</th>
+                                <th style="padding: 10px;">Estado</th>
+                                <th style="padding: 10px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prospectsBody">
+                            <!-- Se llena por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            async function loadProspects() {
+                try {
+                    const res = await fetch('/api/crm/prospects');
+                    const data = await res.json();
+                    if(data.status === 'success') {
+                        const tbody = document.getElementById('prospectsBody');
+                        tbody.innerHTML = '';
+                        data.data.forEach(p => {
+                            const tr = document.createElement('tr');
+                            tr.style.borderBottom = "1px solid var(--border-color)";
+                            tr.innerHTML = `
+                                <td style="padding: 10px;"><b>${p.name}</b></td>
+                                <td style="padding: 10px;">${p.position || '-'}</td>
+                                <td style="padding: 10px;">${p.institution}<br><small>SNIES: ${p.snies_code || '-'}</small></td>
+                                <td style="padding: 10px;">${p.email || '-'}</td>
+                                <td style="padding: 10px;">
+                                    <select onchange="updateStatus(${p.id}, this.value)" style="padding: 5px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-input);">
+                                        <option value="Pendiente" ${p.status==='Pendiente'?'selected':''}>Pendiente</option>
+                                        <option value="Correo 1" ${p.status==='Correo 1'?'selected':''}>Correo 1</option>
+                                        <option value="Correo 2" ${p.status==='Correo 2'?'selected':''}>Correo 2</option>
+                                        <option value="Interesado" ${p.status==='Interesado'?'selected':''}>Interesado</option>
+                                        <option value="Rechazado" ${p.status==='Rechazado'?'selected':''}>Rechazado</option>
+                                    </select>
+                                </td>
+                                <td style="padding: 10px;">
+                                    ${p.linkedin ? `<a href="${p.linkedin}" target="_blank" style="color:#0077b5;">🔗 In</a>` : ''}
+                                </td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                } catch(e) {
+                    console.error(e);
+                }
+            }
+
+            async function updateStatus(id, newStatus) {
+                try {
+                    await fetch('/api/crm/prospects/' + id, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({status: newStatus})
+                    });
+                } catch(e) { console.error(e); }
+            }
+
+            async function uploadCSV(e) {
+                const file = e.target.files[0];
+                if(!file) return;
+                const formData = new FormData();
+                formData.append('file', file);
+                try {
+                    const res = await fetch('/api/crm/upload_prospects', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+                    alert(data.message);
+                    loadProspects();
+                } catch(err) {
+                    alert('Error subiendo CSV');
+                }
+            }
+
+            // Authentication check script to block non-admins
+            document.addEventListener('DOMContentLoaded', () => {
+                const user = JSON.parse(localStorage.getItem('siac_user'));
+                if(!user || user.role !== 'admin') {
+                    window.location.href = '/dashboard.html';
+                } else {
+                    document.getElementById('userInfo').innerText = user.name || user.email;
+                    loadProspects();
+                }
+            });
+        </script>
+        </main>
+
+
+    <div id="saveBanner" class="save-banner" onclick="saveAllStats()">
+        <span>💾</span>
+        <span>Guardar Cambios</span>
+    </div>
+
+    <script src="{{ url_for('static', filename='data.js') }}"></script>
+    <script>
+        const user = JSON.parse(localStorage.getItem('siac_user')) || { email: 'admin@universidad.edu.co' };
+        document.getElementById('userInfo').textContent = user.email;
+
+        function logout() {
+            localStorage.removeItem('siac_user');
+            window.location.href = 'index.html';
+        }
+
+        const tableConfigs = {
+            'table_estudiantes': ['periodo', 'inscritos', 'admitidos', 'matriculados1', 'totalMatriculados', 'graduados', 'adjunto'],
+            'table_docentes': ['periodo', 'doctorado', 'maestria', 'especializacion', 'pregrado', 'totalDocentes', 'adjunto'],
+            'table_desercion': ['cohorte', 'estudiantesInic', 'desercion', 'retencion', 'graduados', 'adjunto'],
+            'table_vinculacion_docente': ['periodo', 'tc', 'mt', 'catedra', 'auxiliar', 'asistente', 'asociado', 'titular', 'adjunto'],
+            'table_investigacion': ['nombre', 'clasificacion', 'lider', 'integrantes', 'lineas', 'adjunto'],
+            'table_productividad': ['anio', 'articulos', 'libros', 'capitulos', 'ponencias', 'patentes', 'adjunto'],
+            'table_extension': ['nombre', 'poblacion', 'impacto', 'docentes', 'estudiantes', 'adjunto'],
+            'table_infraestructura': ['item', 'cantidad', 'capacidad', 'estado', 'obs', 'adjunto']
+        };
+
+        function renderTables() {
+            const stats = getStatistics() || {};
+            
+            for (const [tableId, columns] of Object.entries(tableConfigs)) {
+                const tbody = document.querySelector(`#${tableId} tbody`);
+                if (!tbody) continue;
+                tbody.innerHTML = '';
+                
+                const data = stats[tableId] || [];
+                
+                // Si no hay datos, poner una fila inicial vacía
+                if (data.length === 0) {
+                    data.push(createEmptyRow(columns));
+                    stats[tableId] = data;
+                }
+
+                data.forEach((rowData, rowIndex) => {
+                    const tr = document.createElement('tr');
+                    columns.forEach(col => {
+                        const td = document.createElement('td');
+                        if (col === 'adjunto') {
+                            const adjList = Array.isArray(rowData[col]) ? rowData[col] : 
+                                            (rowData[col] ? [{url: rowData[col], name: rowData[col].split('/').pop() || 'evidencia_cuadro'}] : []);
+                            
+                            let html = `<div style="display:flex; flex-direction:column; gap:5px; align-items:center;">`;
+                            
+                            adjList.forEach((adj, idx) => {
+                                const displayName = (adj.name && adj.name.length > 12) ? adj.name.substring(0, 10) + '...' : (adj.name || 'Doc');
+                                html += `<div style="display:flex; align-items:center; justify-content:center; gap:5px;">
+                                    <button onclick="abrirVisor('${adj.url}','${(adj.name || 'archivo').replace(/'/g, "\\'")}')" title="Ver" style="font-size:0.75rem; padding:4px 8px; background:#f0fdf4; color:#166534; border-radius:4px; border:none; cursor:pointer; font-weight:600; white-space:nowrap; margin-right:4px;">
+                                        👁️ Ver
+                                    </button>
+                                    <button onclick="forceDownload('${adj.url}','${(adj.name || 'archivo').replace(/'/g, "\\'")}')" title="${adj.name}" style="font-size:0.75rem; padding:4px 8px; background:#e0e7ff; color:#4338ca; border-radius:4px; border:none; cursor:pointer; font-weight:600; white-space:nowrap;">
+                                        ⬇️ ${displayName}
+                                    </button>
+                                    <button onclick="removeStatFile('${tableId}', ${rowIndex}, ${idx})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1rem; padding:2px 5px;" title="Eliminar soporte">✕</button>
+                                </div>`;
+                            });
+
+                            html += `<label style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; text-decoration:underline; white-space:nowrap; margin-top:5px;">
+                                ${adjList.length > 0 ? '+ Otro Archivo' : 'Subir Archivo...'}
+                                <input type="file" style="display:none;" onchange="uploadStatFile('${tableId}', ${rowIndex}, this)">
+                            </label>`;
+                            
+                            html += `</div>`;
+                            td.innerHTML = html;
+                        } else {
+                            const input = document.createElement('input');
+                            input.type = "text";
+                            input.value = rowData[col] || '';
+                            input.oninput = () => showSaveBanner();
+                            input.onchange = (e) => updateData(tableId, rowIndex, col, e.target.value);
+                            td.appendChild(input);
+                        }
+                        tr.appendChild(td);
+                    });
+                    
+                    // Botón borrar fila
+                    const delTd = document.createElement('td');
+                    delTd.style.width = "60px";
+                    delTd.innerHTML = `<button onclick="deleteRow('${tableId}', ${rowIndex})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.1rem; padding: 5px;">✕</button>`;
+                    tr.appendChild(delTd);
+                    
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        function createEmptyRow(columns) {
+            const obj = {};
+            columns.forEach(c => obj[c] = '');
+            return obj;
+        }
+
+        function addRow(tableId) {
+            const stats = getStatistics();
+            if (!stats[tableId]) stats[tableId] = [];
+            stats[tableId].push(createEmptyRow(tableConfigs[tableId]));
+            renderTables();
+            showSaveBanner();
+        }
+
+        function deleteRow(tableId, rowIndex) {
+            if (confirm('¿Eliminar esta fila?')) {
+                const stats = getStatistics();
+                stats[tableId].splice(rowIndex, 1);
+                renderTables();
+                showSaveBanner();
+            }
+        }
+
+        function updateData(tableId, rowIndex, col, value) {
+            const stats = getStatistics();
+            if (!stats[tableId]) stats[tableId] = [];
+            if (!stats[tableId][rowIndex]) stats[tableId][rowIndex] = createEmptyRow(tableConfigs[tableId]);
+            stats[tableId][rowIndex][col] = value;
+        }
+
+        function showSaveBanner() {
+            const progId = getProgramId();
+            if (progId && progId != 0) {
+                document.getElementById('saveBanner').classList.add('show');
+            }
+        }
+
+        async function uploadStatFile(tableId, rowIndex, fileInput) {
+            if (!fileInput.files || fileInput.files.length === 0) return;
+            const file = fileInput.files[0];
+            const progId = getProgramId();
+            if (!progId || progId == 0) {
+                alert("Debes seleccionar un programa antes de subir evidencias.");
+                return;
+            }
+
+            const inst_id = typeof getInstId === 'function' ? getInstId() : (user.inst_id || 1);
+            fileInput.parentElement.innerHTML = 'Subiendo...';
+
+            try {
+                // Paso 1: Solicitar Signed URL al backend
+                const urlRes = await fetch('/api/direct_upload/url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        aspect_id: 'STAT_' + tableId,
+                        period: 'Estadisticas',
+                        inst_id: inst_id,
+                        program_id: progId
+                    })
+                });
+                
+                const urlData = await urlRes.json();
+                if (!urlRes.ok || urlData.error) {
+                    throw new Error(urlData.error || 'Error obteniendo URL de subida');
+                }
+                
+                const { signed_url, file_url } = urlData;
+                
+                // Paso 2: Subir archivo directamente a Supabase
+                const uploadRes = await fetch(signed_url, {
+                    method: 'PUT',
+                    body: file,
+                    headers: {
+                        'Content-Type': file.type || 'application/octet-stream'
+                    }
+                });
+                
+                if (!uploadRes.ok) {
+                    throw new Error('Error al subir el archivo a Supabase');
+                }
+
+                // Para Estadísticas, no hay Paso 3 de confirmación en base de datos.
+                // Se guarda cuando el usuario hace clic en "Guardar Cuadros".
+                const stats = getStatistics();
+                let currentAdj = stats[tableId][rowIndex]['adjunto'];
+                if (!currentAdj) currentAdj = [];
+                else if (!Array.isArray(currentAdj)) currentAdj = [{url: currentAdj, name: currentAdj.split('/').pop() || 'evidencia_cuadro'}];
+                
+                currentAdj.push({url: file_url, name: file.name});
+                updateData(tableId, rowIndex, 'adjunto', currentAdj);
+                renderTables();
+                showSaveBanner();
+
+            } catch (err) {
+                console.error(err);
+                alert("Error al subir archivo: " + err.message);
+                renderTables();
+            }
+        }
+
+        function removeStatFile(tableId, rowIndex, fileIndex) {
+            if (confirm("¿Estás seguro de quitar este archivo adjunto?")) {
+                const stats = getStatistics();
+                let currentAdj = stats[tableId][rowIndex]['adjunto'];
+                if (Array.isArray(currentAdj)) {
+                    currentAdj.splice(fileIndex, 1);
+                    updateData(tableId, rowIndex, 'adjunto', currentAdj);
+                } else {
+                    updateData(tableId, rowIndex, 'adjunto', []);
+                }
+                renderTables();
+                showSaveBanner();
+            }
+        }
+
+        async function saveAllStats() {
+            const progId = getProgramId();
+            if (!progId || progId == 0) {
+                alert("⚠️ No puedes guardar cambios sin un programa académico seleccionado.");
+                return;
+            }
+
+            const stats = getStatistics();
+            const banner = document.getElementById('saveBanner');
+            
+            banner.innerHTML = "<span>⌛</span><span>Guardando...</span>";
+            
+            try {
+                const res = await saveStatistics(stats);
+                banner.classList.remove('show');
+                
+                const originalHtml = "<span>💾</span><span>Guardar Cambios</span>";
+                banner.innerHTML = "<span>✅</span><span>¡Datos Sincronizados!</span>";
+                banner.classList.add('show');
+                
+                setTimeout(() => {
+                    banner.classList.remove('show');
+                    setTimeout(() => {
+                        banner.innerHTML = originalHtml;
+                    }, 300);
+                }, 2000);
+            } catch(e) {
+                alert("❌ Error al guardar datos: " + e.message);
+                banner.innerHTML = "<span>❌</span><span>Error al guardar</span>";
+            }
+        }
+
+        async function generateAIAnalysis(tableId = null) {
+            const btn = tableId ? null : document.getElementById('btnAnalyze');
+            const resultDiv = tableId ? document.getElementById(`analysis_${tableId}`) : document.getElementById('aiResult');
+            const stats = getStatistics();
+
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Analizando con IA...";
+            }
+            if (resultDiv) {
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = "<em>⌛ Analizando datos del cuadro...</em>";
+            }
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        table_id: tableId,
+                        all_data: stats
+                    })
+                });
+                const data = await response.json();
+                
+                if (resultDiv) {
+                    if (data.analysis.includes("Error procesando")) {
+                        resultDiv.innerHTML = data.analysis;
+                    } else {
+                        // Guardar en backend
+                        const key = tableId ? `ai_analysis_${tableId}` : 'ai_analysis_global';
+                        const stats = getStatistics();
+                        stats[key] = data.analysis;
+                        fetch(`/api/estadisticas?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                table_id: key,
+                                data: data.analysis,
+                                inst_id: getInstId(),
+                                program_id: getProgramId()
+                            })
+                        });
+
+                        try {
+                            resultDiv.innerHTML = marked.parse(data.analysis);
+                        } catch(e) {
+                            resultDiv.innerHTML = data.analysis;
+                        }
+                    }
+                }
+            } catch (err) {
+                alert("Error al conectar con el motor de IA.");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = "Generar Informe Global con IA";
+                }
+            }
+        }
+        
+        function renderAIAnalyses() {
+            const stats = getStatistics() || {};
+            // Render individual table analyses
+            for (const tableId of Object.keys(tableConfigs)) {
+                const key = `ai_analysis_${tableId}`;
+                if (stats[key]) {
+                    const resultDiv = document.getElementById(`analysis_${tableId}`);
+                    if (resultDiv) {
+                        resultDiv.style.display = 'block';
+                        try {
+                            resultDiv.innerHTML = marked.parse(stats[key]);
+                        } catch(e) {
+                            resultDiv.innerHTML = stats[key];
+                        }
+                    }
+                }
+            }
+            
+            // Render global analysis
+            if (stats['ai_analysis_global']) {
+                const globalDiv = document.getElementById('aiResult');
+                if (globalDiv) {
+                    globalDiv.style.display = 'block';
+                    try {
+                        globalDiv.innerHTML = marked.parse(stats['ai_analysis_global']);
+                    } catch(e) {
+                        globalDiv.innerHTML = stats['ai_analysis_global'];
+                    }
+                }
+            }
+        }
+
+        function getProgramId() {
+            try {
+                const u = JSON.parse(localStorage.getItem('siac_user'));
+                return u ? (u.program_id || 0) : 0;
+            } catch(e) { return 0; }
+        }
+
+        async function init() {
+            const progId = getProgramId();
+            if (!progId || progId == 0) {
+                document.getElementById('noProgramAlert').style.display = 'block';
+                // Deshabilitar todos los botones e inputs
+                setTimeout(() => {
+                    document.querySelectorAll('.stat-card button, .stat-card input').forEach(el => el.disabled = true);
+                    document.getElementById('btnAnalyze').disabled = true;
+                }, 100);
+            }
+            
+            await loadDataFromAPI();
+            renderTables();
+            renderAIAnalyses();
+        }
+        init();
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

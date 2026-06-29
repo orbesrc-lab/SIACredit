@@ -3343,6 +3343,90 @@ def public_enroll_course():
         print(f"Error en enroll_course: {e}")
         return jsonify({"status": "error", "message": "Error interno"}), 500
 
+# --- CRM / PROSPECTOS RUTAS ---
+
+@app.route('/crm.html')
+def crm_view():
+    return render_template('crm.html')
+
+@app.route('/api/crm/prospects', methods=['GET'])
+def get_prospects():
+    try:
+        res = supabase.table('prospects').select('*').order('created_at', desc=True).execute()
+        return jsonify({"status": "success", "data": res.data})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/crm/prospects/<int:pid>', methods=['PUT', 'DELETE'])
+def update_delete_prospect(pid):
+    if request.method == 'DELETE':
+        try:
+            supabase.table('prospects').delete().eq('id', pid).execute()
+            return jsonify({"status": "success"})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
+    if request.method == 'PUT':
+        data = request.json
+        try:
+            res = supabase.table('prospects').update(data).eq('id', pid).execute()
+            return jsonify({"status": "success", "data": res.data})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
+
+import csv
+import io
+
+@app.route('/api/crm/upload_prospects', methods=['POST'])
+def upload_prospects():
+    if 'file' not in request.files:
+        return jsonify({"status": "error", "message": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"status": "error", "message": "No selected file"}), 400
+    
+    try:
+        # Detect encoding safely
+        content = file.stream.read()
+        try:
+            decoded_content = content.decode("utf-8")
+        except:
+            decoded_content = content.decode("latin-1")
+            
+        stream = io.StringIO(decoded_content, newline=None)
+        # Try to detect delimiter
+        first_line = decoded_content.split('\n')[0]
+        delimiter = ';' if ';' in first_line else ','
+        
+        reader = csv.DictReader(stream, delimiter=delimiter)
+        
+        inserted_count = 0
+        for row in reader:
+            name = row.get('Nombre', row.get('name', '')).strip()
+            if not name:
+                continue
+                
+            institution = row.get('Institucion', row.get('Institución', row.get('institution', ''))).strip()
+            if not institution:
+                continue
+                
+            prospect_data = {
+                "name": name,
+                "position": row.get('Cargo', row.get('position', '')),
+                "institution": institution,
+                "snies_code": row.get('SNIES', row.get('snies_code', '')),
+                "email": row.get('Correo', row.get('email', '')),
+                "linkedin": row.get('LinkedIn', row.get('linkedin', '')),
+                "notes": row.get('Notas', row.get('notes', '')),
+                "status": "Pendiente"
+            }
+            supabase.table('prospects').insert(prospect_data).execute()
+            inserted_count += 1
+            
+        return jsonify({"status": "success", "message": f"{inserted_count} prospectos subidos correctamente"})
+    except Exception as e:
+        print(f"Error uploading prospects: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
