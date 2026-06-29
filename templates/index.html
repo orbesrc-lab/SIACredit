@@ -208,7 +208,7 @@
 <section class="formacion-section" id="formacion">
     <div class="container">
         <div class="formacion-header">
-            <video src="{{ url_for('static', filename='video_skel_2.mp4') }}" class="formacion-logo" id="skelVideo" style="width: 100%; max-width: 1200px; margin: 20px auto 40px auto; display: block; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.6);" muted playsinline onmouseenter="this.play()" onmouseleave="this.pause()" onended="this.currentTime = 0;"></video>
+            <video src="{{ url_for('static', filename='video_skel_2.mp4') }}" class="formacion-logo" id="skelVideo" style="width: 100vw; max-width: none; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; margin-bottom: 40px; display: block; border-radius: 0; box-shadow: none;" muted playsinline onmouseenter="this.play()" onmouseleave="this.pause()" onended="this.currentTime = 0;"></video>
             <script>
                 document.addEventListener("DOMContentLoaded", function() {
                     var v = document.getElementById("skelVideo");
