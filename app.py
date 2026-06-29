@@ -90,6 +90,41 @@ try:
 except Exception:
     pass
 
+# --- RUTAS DE PARTNERS ---
+@app.route('/api/partners', methods=['GET'])
+def get_partners():
+    try:
+        res = supabase.table('partners').select("*").order("created_at", desc=False).execute()
+        return jsonify({"status": "success", "data": res.data})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/partners', methods=['POST'])
+def add_partner():
+    if session.get('role') != 'superadmin':
+        return jsonify({"status": "error", "message": "Acceso denegado"}), 403
+    try:
+        data = request.json
+        res = supabase.table('partners').insert({
+            "name": data.get("name"),
+            "url": data.get("url"),
+            "logo_base64": data.get("logo_base64")
+        }).execute()
+        return jsonify({"status": "success", "data": res.data})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/partners/<int:partner_id>', methods=['DELETE'])
+def delete_partner(partner_id):
+    if session.get('role') != 'superadmin':
+        return jsonify({"status": "error", "message": "Acceso denegado"}), 403
+    try:
+        res = supabase.table('partners').delete().eq("id", partner_id).execute()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 # Ruta de depuración para arreglar la base de datos
 @app.route('/api/debug/fix-db')
 def fix_db():

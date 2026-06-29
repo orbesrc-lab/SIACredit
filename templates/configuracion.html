@@ -215,6 +215,33 @@
                 <button class="btn-primary" onclick="saveGlobalSettings()" style="margin-top: 15px;">Guardar Configuración Global</button>
             </div>
 
+            <!-- Gestión de Aliados/Partners (Solo para Superadmins) -->
+            <div id="partnersCard" class="settings-card" style="display: none; border-left: 5px solid #8b5cf6;">
+                <h3>Gestión de Instituciones Aliadas (Partners)</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Agrega logos y enlaces de aliados para mostrar en el carrusel de la página principal.</p>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre del Aliado</label>
+                        <input type="text" id="partner_name" placeholder="Ej: Universidad de Ejemplo">
+                    </div>
+                    <div class="form-group">
+                        <label>URL (Enlace)</label>
+                        <input type="url" id="partner_url" placeholder="https://...">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Logo del Aliado (Imagen)</label>
+                        <input type="file" id="partner_logo_file" accept="image/*" style="padding: 10px; background: white; border-radius: 8px; width: 100%;">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="addPartner()" style="margin-top: 10px;">Guardar Aliado</button>
+                
+                <h4 style="margin-top: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">Aliados Actuales</h4>
+                <div class="user-list" id="partnersList">
+                    <div style="padding: 20px; text-align: center; color: var(--text-muted);">Cargando aliados...</div>
+                </div>
+            </div>
+
             <!-- Gestión de Institución (Solo para Admins) -->
             <div id="instSelectorCard" class="settings-card premium-border" style="display: none;">
                 <h3>Gestión de Organización</h3>
@@ -1980,6 +2007,98 @@
                 alert("❌ Error de conexión al guardar configuración global.");
             }
         }
+        async function loadPartners() {
+            try {
+                const res = await fetch('/api/partners?t=' + Date.now());
+                const data = await res.json();
+                const list = document.getElementById('partnersList');
+                if(data.status === 'success') {
+                    list.innerHTML = '';
+                    if(data.data.length === 0) {
+                        list.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted);">No hay aliados registrados.</div>';
+                    } else {
+                        data.data.forEach(p => {
+                            list.innerHTML += `
+                                <div class="user-item">
+                                    <div class="user-info" style="flex-direction: row; gap: 15px; align-items: center;">
+                                        <img src="${p.logo_base64}" style="width: 50px; height: 50px; object-fit: contain; border-radius: 4px; border: 1px solid #e5e7eb;">
+                                        <div>
+                                            <div class="user-name">${p.name}</div>
+                                            <div class="user-role"><a href="${p.url || '#'}" target="_blank" style="color:var(--primary-color)">${p.url || 'Sin enlace'}</a></div>
+                                        </div>
+                                    </div>
+                                    <button class="btn-danger-solid" onclick="deletePartner(${p.id})" style="padding: 6px 12px; font-size: 0.8rem;">Eliminar</button>
+                                </div>
+                            `;
+                        });
+                    }
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        function addPartner() {
+            const name = document.getElementById('partner_name').value;
+            const url = document.getElementById('partner_url').value;
+            const fileInput = document.getElementById('partner_logo_file');
+
+            if(!name || !fileInput.files[0]) {
+                alert("Nombre y Logo son obligatorios.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64 = e.target.result;
+                try {
+                    const res = await fetch('/api/partners', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({name: name, url: url, logo_base64: base64})
+                    });
+                    const data = await res.json();
+                    if(data.status === 'success') {
+                        alert("Aliado agregado exitosamente");
+                        document.getElementById('partner_name').value = '';
+                        document.getElementById('partner_url').value = '';
+                        fileInput.value = '';
+                        loadPartners();
+                    } else {
+                        alert("Error: " + data.message);
+                    }
+                } catch(err) {
+                    alert("Error guardando aliado");
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function deletePartner(id) {
+            if(!confirm("¿Eliminar este aliado?")) return;
+            try {
+                const res = await fetch('/api/partners/' + id, { method: 'DELETE' });
+                const data = await res.json();
+                if(data.status === 'success') loadPartners();
+            } catch(e) {
+                alert("Error eliminando aliado");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => {
+                const userDataStr = localStorage.getItem('userData');
+                if(userDataStr) {
+                    const userData = JSON.parse(userDataStr);
+                    if(userData.role === 'superadmin') {
+                        const pcard = document.getElementById('partnersCard');
+                        if(pcard) pcard.style.display = 'block';
+                        loadPartners();
+                    }
+                }
+            }, 800);
+        });
     </script>
     <script src="{{ url_for('static', filename='app.js') }}?v=2.2"></script>
 </body>
