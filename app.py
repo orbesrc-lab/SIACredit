@@ -46,9 +46,9 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 def send_email(to_email, subject, html_content):
-    smtp_server = os.getenv("SMTP_SERVER", "smtp.hostinger.com")
+    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
     smtp_port = int(os.getenv("SMTP_PORT", "465"))
-    smtp_user = os.getenv("SMTP_EMAIL", "orbesunicuces@skel360.online")
+    smtp_user = os.getenv("SMTP_EMAIL", "orbesrc@gmail.com")
     smtp_pass = os.getenv("SMTP_PASSWORD", "")
     
     if not smtp_pass:
