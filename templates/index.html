@@ -50,9 +50,27 @@
 <div class="mobile-menu-overlay"></div>
 
 <!-- HERO -->
-<section class="hero" id="inicio">
+<section class="hero" id="inicio" style="position: relative;">
     <div class="hero-bg"></div>
     <div class="hero-overlay"></div>
+    
+    <!-- VIDEO EN HERO (oculto en móviles, a la derecha en desktop) -->
+    <style>
+        .hero-video-container { display: none; }
+        @media (min-width: 992px) {
+            .hero-video-container { 
+                display: block; position: absolute; right: 5%; top: 48%; transform: translateY(-50%); 
+                width: 45%; max-width: 700px; z-index: 2; 
+            }
+            .hero-video-container video {
+                width: 100%; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); display: block;
+            }
+        }
+    </style>
+    <div class="hero-video-container">
+        <video src="{{ url_for('static', filename='video_skel_2.mp4') }}" muted playsinline autoplay onended="this.currentTime = 0;" onmouseenter="this.play()" onmouseleave="this.pause()"></video>
+    </div>
+
     <div class="hero-content">
         <div class="hero-tag">Categoría: Aseguramiento Integral de Calidad Educativa</div>
         <h1>La acreditación no se gestiona,<br><em>se asegura.</em></h1>
@@ -208,27 +226,7 @@
 <section class="formacion-section" id="formacion">
     <div class="container">
         <div class="formacion-header">
-            <!-- VIDEO A 70% APROX (max-width: 850px) -->
-            <video src="{{ url_for('static', filename='video_skel_2.mp4') }}" class="formacion-logo" id="skelVideo" style="width: 100%; max-width: 850px; margin: 0 auto 40px auto; display: block; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.5);" muted playsinline onmouseenter="this.play()" onmouseleave="this.pause()" onended="this.currentTime = 0;"></video>
-            <script>
-                document.addEventListener("DOMContentLoaded", function() {
-                    var v = document.getElementById("skelVideo");
-                    var hasPlayed = false;
-                    var obs = new IntersectionObserver((entries) => {
-                        entries.forEach(e => {
-                            if(e.isIntersecting) { 
-                                if(!hasPlayed) {
-                                    v.play().catch(()=>{}); 
-                                    hasPlayed = true;
-                                }
-                            } else { 
-                                v.pause(); 
-                            }
-                        });
-                    }, { threshold: 0.3 });
-                    if(v) obs.observe(v);
-                });
-            </script>
+            <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Formación" class="formacion-logo" style="transform: scale(1.35); margin-top: 15px; margin-bottom: 25px;">
             <h2 class="section-title">Academia SKEL: Formación de Alto Impacto para <br><em>Profesionales y Empresas</em></h2>
             <p class="section-sub">Desarrolla el máximo potencial de tu equipo con nuestra metodología Smart. Capacitaciones corporativas 100% online, asincrónicas y orientadas a resultados rápidos en cualquier industria.</p>
         </div>
