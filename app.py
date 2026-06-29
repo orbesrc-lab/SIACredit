@@ -1330,6 +1330,26 @@ def activate_user(user_id):
                         formacion_storage.save_student(inst_id, s)
         else:
             supabase.table('users').update({"role": new_role}).eq("id", user_id).execute()
+            
+        # Send Activation Email if we have the user data
+        if user_res.data and user_email:
+            try:
+                html_content = f"""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+                    <h2 style="color: #2563eb;">¡Cuenta Activada Exitosamente!</h2>
+                    <p>Hola <strong>{clean_name}</strong>,</p>
+                    <p>¡Tenemos excelentes noticias! Tu cuenta institucional en <strong>SKEL 360</strong> ha sido aprobada y activada por un administrador del sistema.</p>
+                    <p>Ya puedes acceder a la plataforma y explorar los módulos asignados a tu perfil.</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="https://skel360.online/login.html" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Ingresar a SKEL 360</a>
+                    </div>
+                    <p style="color: #64748b; font-size: 0.9em; margin-top: 40px;">Saludos cordiales,<br>El equipo de SKEL 360</p>
+                </div>
+                """
+                send_email(user_email, "¡Tu cuenta en SKEL 360 ha sido activada!", html_content)
+            except Exception as e:
+                print(f"DEBUG: Error enviando correo de activacion: {e}")
+                
         return jsonify({"status": "success"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
