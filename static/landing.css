@@ -97,7 +97,7 @@ body {
 }
 .hero-bg {
   position: absolute; inset: 0;
-  background-image: url('/static/skel_hero_bg.png');
+  background-image: url('/static/skel_hero_bg.webp');
   background-size: cover; background-position: center;
   filter: brightness(0.28) saturate(1.3);
 }
