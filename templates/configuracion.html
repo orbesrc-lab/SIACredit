@@ -2091,7 +2091,7 @@
                 const userDataStr = localStorage.getItem('siac_user');
                 if(userDataStr) {
                     const userData = JSON.parse(userDataStr);
-                    if(userData.role === 'superadmin') {
+                    if(userData.role === 'admin') {
                         const pcard = document.getElementById('partnersCard');
                         if(pcard) pcard.style.display = 'block';
                         loadPartners();
