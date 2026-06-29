@@ -208,7 +208,19 @@
 <section class="formacion-section" id="formacion">
     <div class="container">
         <div class="formacion-header">
-            <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Formación" class="formacion-logo" style="transform: scale(1.35); margin-top: 15px; margin-bottom: 25px;">
+            <video src="{{ url_for('static', filename='video_skel_2.mp4') }}" class="formacion-logo" id="skelVideo" style="width: 100%; max-width: 550px; margin: 15px auto 25px auto; display: block; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" muted playsinline loop onmouseenter="this.play()" onmouseleave="this.pause()"></video>
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    var v = document.getElementById("skelVideo");
+                    var obs = new IntersectionObserver((entries) => {
+                        entries.forEach(e => {
+                            if(e.isIntersecting) { v.play().catch(()=>{}); } 
+                            else { v.pause(); }
+                        });
+                    }, { threshold: 0.5 });
+                    if(v) obs.observe(v);
+                });
+            </script>
             <h2 class="section-title">Academia SKEL: Formación de Alto Impacto para <br><em>Profesionales y Empresas</em></h2>
             <p class="section-sub">Desarrolla el máximo potencial de tu equipo con nuestra metodología Smart. Capacitaciones corporativas 100% online, asincrónicas y orientadas a resultados rápidos en cualquier industria.</p>
         </div>
