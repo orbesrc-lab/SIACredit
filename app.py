@@ -3486,10 +3486,10 @@ def send_email_route():
     subject = data['subject']
     body = data['body']
     
-    smtp_server = os.getenv('SMTP_SERVER')
+    smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
     smtp_port = os.getenv('SMTP_PORT', '465')
-    smtp_username = os.getenv('SMTP_EMAIL') or os.getenv('SMTP_USERNAME')
-    smtp_password = os.getenv('SMTP_PASSWORD')
+    smtp_username = os.getenv('SMTP_EMAIL') or os.getenv('SMTP_USERNAME') or 'orbesrc@gmail.com'
+    smtp_password = os.getenv('SMTP_PASSWORD', 'xplguaejibtfyqdn')
     
     if not smtp_server or not smtp_username or not smtp_password:
         return jsonify({'status': 'error', 'message': 'SMTP configuration is missing on the server. Please check your .env file.'}), 500
