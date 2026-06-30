@@ -559,7 +559,8 @@
             <a href="biblioteca.html" class="sidebar-item">📚 Biblioteca</a>
             <a href="encuestas.html" class="sidebar-item">📋 Encuestas</a>
             <a href="formacion.html" class="sidebar-item active">🎓 Formación</a>
-            <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
+            <a href="crm.html" class="sidebar-item" id="menuCrm" style="display:none; color: #10b981;">🚀 CRM B2B</a>
+            <a href="configuracion.html"  class="sidebar-item">⚙️ Configuración</a>
         </div>
         <div class="sidebar-footer">
             <button class="btn-ghost" onclick="logout()" style="color: #ef4444; width: 100%; text-align: left;">🚪
@@ -5603,6 +5604,15 @@
             <textarea id="miniTranslatorResult" rows="6" style="width: 100%; border: 2px solid #10b981; background: #f0fdf4; border-radius: 8px; padding: 15px; font-family: var(--font-main); font-size: 0.95rem; outline: none; display: none; resize: vertical; user-select: text; -webkit-user-select: text; pointer-events: auto; color: #065f46;" readonly placeholder="Traducción..."></textarea>
         </div>
     </div>
+<script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            if(user.role === 'admin') {
+                const crmLink = document.getElementById('menuCrm');
+                if(crmLink) crmLink.style.display = 'block';
+            }
+        });
+        </script>
 </body>
 
 </html>

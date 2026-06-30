@@ -4,6 +4,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import json
 import urllib.request
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 from supabase import create_client, Client
 from openai import OpenAI
@@ -3472,6 +3475,46 @@ def bulk_delete_prospects():
         return jsonify({'status': 'success', 'deleted_count': deleted_count})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/crm/send_email', methods=['POST'])
+def send_email_route():
+    data = request.json
+    if not data or 'email' not in data or 'subject' not in data or 'body' not in data:
+        return jsonify({'status': 'error', 'message': 'Missing email, subject, or body'}), 400
+    
+    to_email = data['email']
+    subject = data['subject']
+    body = data['body']
+    
+    smtp_server = os.getenv('SMTP_SERVER')
+    smtp_port = os.getenv('SMTP_PORT', '465')
+    smtp_username = os.getenv('SMTP_EMAIL') or os.getenv('SMTP_USERNAME')
+    smtp_password = os.getenv('SMTP_PASSWORD')
+    
+    if not smtp_server or not smtp_username or not smtp_password:
+        return jsonify({'status': 'error', 'message': 'SMTP configuration is missing on the server. Please check your .env file.'}), 500
+        
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = smtp_username
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
+        
+        if int(smtp_port) == 465:
+            server = smtplib.SMTP_SSL(smtp_server, int(smtp_port))
+        else:
+            server = smtplib.SMTP(smtp_server, int(smtp_port))
+            server.starttls()
+            
+        server.login(smtp_username, smtp_password)
+        server.send_message(msg)
+        server.quit()
+        
+        return jsonify({'status': 'success', 'message': 'Email sent successfully'})
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return jsonify({'status': 'error', 'message': f"Failed to send email: {str(e)}"}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

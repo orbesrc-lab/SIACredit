@@ -41,7 +41,8 @@
             <a href="biblioteca.html" class="sidebar-item active">📚 Biblioteca</a>
             <a href="encuestas.html" class="sidebar-item">📋 Encuestas</a>
             <a href="formacion.html" class="sidebar-item">🎓 Formación</a>
-            <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
+            <a href="crm.html" class="sidebar-item" id="menuCrm" style="display:none; color: #10b981;">🚀 CRM B2B</a>
+            <a href="configuracion.html"  class="sidebar-item">⚙️ Configuración</a>
         </div>
         <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
             <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444;">🚪 Cerrar Sesión</a>
@@ -243,5 +244,14 @@
         loadLibrary();
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
+<script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            if(user.role === 'admin') {
+                const crmLink = document.getElementById('menuCrm');
+                if(crmLink) crmLink.style.display = 'block';
+            }
+        });
+        </script>
 </body>
 </html>

@@ -117,13 +117,13 @@
                             tr.style.borderBottom = '1px solid #f1f5f9';
                             tr.innerHTML = `
                                 <td style="padding: 15px;"><input type="checkbox" class="prospect-checkbox" value="${p.id}" onchange="updateBulkDeleteButton()"></td>
-                                <td style="padding: 15px; font-weight: 600; color: #0f172a;" contenteditable="true" onblur="saveField(${p.id}, 'name', this.innerText)" title="Clic para editar">${p.name || '-'}</td>
+                                <td id="name_${p.id}" style="padding: 15px; font-weight: 600; color: #0f172a;" contenteditable="true" onblur="saveField(${p.id}, 'name', this.innerText)" title="Clic para editar">${p.name || '-'}</td>
                                 <td style="padding: 15px; color: #475569; font-size: 0.9rem;" contenteditable="true" onblur="saveField(${p.id}, 'position', this.innerText)" title="Clic para editar">${p.position || '-'}</td>
                                 <td style="padding: 10px;">
-                                    <div contenteditable="true" onblur="saveField(${p.id}, 'institution', this.innerText)" title="Editar Entidad" style="font-weight:500;">${p.institution || 'Nueva Entidad'}</div>
+                                    <div id="institution_${p.id}" contenteditable="true" onblur="saveField(${p.id}, 'institution', this.innerText)" title="Editar Entidad" style="font-weight:500;">${p.institution || 'Nueva Entidad'}</div>
                                     <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">SNIES/NIT: <span contenteditable="true" onblur="saveField(${p.id}, 'snies_code', this.innerText)" title="Editar código">${p.snies_code || '-'}</span></div>
                                 </td>
-                                <td style="padding: 10px;" contenteditable="true" onblur="saveField(${p.id}, 'email', this.innerText)" title="Clic para editar">${p.email || '-'}</td>
+                                <td id="email_${p.id}" style="padding: 10px;" contenteditable="true" onblur="saveField(${p.id}, 'email', this.innerText)" title="Clic para editar">${p.email || '-'}</td>
                                 <td style="padding: 10px;">
                                     <select onchange="updateStatus(${p.id}, this.value)" style="padding: 5px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-input);">
                                         <option value="Pendiente" ${p.status==='Pendiente'?'selected':''}>Pendiente</option>
@@ -138,15 +138,15 @@
                                         <button onclick="const m = this.nextElementSibling; document.querySelectorAll('.email-menu').forEach(x => {if(x!==m) x.style.display='none'}); m.style.display = m.style.display==='block'?'none':'block';" style="background:#3b82f6; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size: 0.9rem;" title="Enviar Correo">📧 Enviar</button>
                                         <div class="email-menu" style="display:none; position:absolute; right:0; background:white; min-width:160px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:100; border-radius:4px; overflow:hidden; border: 1px solid #e2e8f0; margin-top: 5px;">
                                             <div style="padding: 4px 12px; font-weight: bold; background: #f8fafc; font-size: 0.75rem; color: #64748b;">Universidades (IES)</div>
-                                            <a href="#" onclick="sendMailTo('IES_1', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Correo 1 (Contacto)</a>
-                                            <a href="#" onclick="sendMailTo('IES_2', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Correo 2 (Valor)</a>
-                                            <a href="#" onclick="sendMailTo('IES_3', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; font-size: 0.85rem;">Correo 3 (Cierre)</a>
+                                            <a href="#" onclick="sendMailTo('IES_1', ${p.id}); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Correo 1 (Contacto)</a>
+                                            <a href="#" onclick="sendMailTo('IES_2', ${p.id}); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Correo 2 (Valor)</a>
+                                            <a href="#" onclick="sendMailTo('IES_3', ${p.id}); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; font-size: 0.85rem;">Correo 3 (Cierre)</a>
                                             <div style="padding: 4px 12px; font-weight: bold; background: #f8fafc; font-size: 0.75rem; color: #64748b; border-top:1px solid #e2e8f0;">Técnicos (ETDH)</div>
-                                            <a href="#" onclick="sendMailTo('ETDH_1', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Correo 1 (Captar)</a>
-                                            <a href="#" onclick="sendMailTo('ETDH_2', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; font-size: 0.85rem;">Correo 2 (Valor)</a>
+                                            <a href="#" onclick="sendMailTo('ETDH_1', ${p.id}); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Correo 1 (Captar)</a>
+                                            <a href="#" onclick="sendMailTo('ETDH_2', ${p.id}); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; font-size: 0.85rem;">Correo 2 (Valor)</a>
                                             <div style="padding: 4px 12px; font-weight: bold; background: #f8fafc; font-size: 0.75rem; color: #64748b; border-top:1px solid #e2e8f0;">Empresas</div>
-                                            <a href="#" onclick="sendMailTo('EMP_1', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Correo 1 (RRHH)</a>
-                                            <a href="#" onclick="sendMailTo('EMP_2', ${p.id}, '${(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${(p.institution||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}', '${p.email||''}'); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; font-size: 0.85rem;">Correo 2 (Auditoría)</a>
+                                            <a href="#" onclick="sendMailTo('EMP_1', ${p.id}); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; border-bottom:1px solid #f1f5f9; font-size: 0.85rem;">Correo 1 (RRHH)</a>
+                                            <a href="#" onclick="sendMailTo('EMP_2', ${p.id}); this.parentElement.style.display='none'; return false;" style="display:block; padding:8px 12px; color:#334155; text-decoration:none; font-size: 0.85rem;">Correo 2 (Auditoría)</a>
                                         </div>
                                     </div>
                                     ${p.linkedin ? `<a href="${p.linkedin}" target="_blank" style="color:#0077b5; text-decoration: none; font-size: 1.2rem;" title="LinkedIn">🔗</a>` : ''}
@@ -332,21 +332,75 @@
                 }
             };
 
-            function sendMailTo(templateId, prospectId, nameStr, institution, email) {
+            async function sendMailTo(templateId, prospectId) {
+                const emailEl = document.getElementById('email_' + prospectId);
+                const nameEl = document.getElementById('name_' + prospectId);
+                const instEl = document.getElementById('institution_' + prospectId);
+                
+                const email = emailEl ? emailEl.innerText : '';
+                const nameStr = nameEl ? nameEl.innerText : '';
+                const institution = instEl ? instEl.innerText : '';
+                
                 if(!email || email.trim() === '-' || email.trim() === '') {
                     alert('Este contacto no tiene correo registrado. Escríbelo en la tabla primero.');
                     return;
                 }
                 const name = (nameStr && nameStr !== 'Por Definir' && nameStr !== '-') ? nameStr.split(' ')[0] : 'Rector(a)';
-                const inst = institution || 'su empresa';
+                const inst = institution && institution !== 'Nueva Entidad' && institution !== '-' ? institution : 'su empresa';
                 
-                const subject = encodeURIComponent(emailTemplates[templateId].subject(name, inst));
-                const body = encodeURIComponent(emailTemplates[templateId].body(name, inst));
+                const subject = emailTemplates[templateId].subject(name, inst);
+                const body = emailTemplates[templateId].body(name, inst);
                 
                 // Automatically set status to Correo X if it was Pendiente
                 updateStatus(prospectId, `Correo ${templateId.split('_')[1]}`);
                 
-                window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+                const originalText = document.getElementById('saveBanner') ? document.getElementById('saveBanner').innerHTML : null;
+                const banner = document.getElementById('saveBanner');
+                if (banner) {
+                    banner.innerHTML = "<span>⌛</span><span>Enviando correo...</span>";
+                    banner.classList.add('show');
+                }
+                
+                try {
+                    const res = await fetch('/api/crm/send_email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email: email.trim(),
+                            subject: subject,
+                            body: body
+                        })
+                    });
+                    const data = await res.json();
+                    
+                    if (data.status === 'success') {
+                        if (banner) {
+                            banner.innerHTML = "<span>✅</span><span>¡Correo enviado!</span>";
+                            setTimeout(() => {
+                                banner.classList.remove('show');
+                                setTimeout(() => banner.innerHTML = originalText, 300);
+                            }, 2000);
+                        } else {
+                            alert("¡Correo enviado exitosamente!");
+                        }
+                    } else {
+                        if (banner) {
+                            banner.innerHTML = "<span>❌</span><span>Error al enviar</span>";
+                            setTimeout(() => {
+                                banner.classList.remove('show');
+                                setTimeout(() => banner.innerHTML = originalText, 300);
+                            }, 3000);
+                        }
+                        alert('Error enviando correo: ' + data.message);
+                    }
+                } catch(e) {
+                    console.error(e);
+                    if (banner) {
+                        banner.classList.remove('show');
+                        setTimeout(() => banner.innerHTML = originalText, 300);
+                    }
+                    alert('Error de conexión al enviar correo.');
+                }
             }
         </script>
         </main>

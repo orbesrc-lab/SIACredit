@@ -35,4 +35,9 @@ def insert_crm_link(filepath):
             f.write(content)
         print(f"Updated {filepath}")
 
-insert_crm_link(r"c:\SIAC\templates\dashboard.html")
+import glob
+
+template_dir = r"c:\SIAC\templates"
+for filepath in glob.glob(os.path.join(template_dir, "*.html")):
+    if not filepath.endswith("crm.html"):
+        insert_crm_link(filepath)
