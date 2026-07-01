@@ -1959,8 +1959,10 @@
                     const keyInput = document.getElementById('aiApiKeyInput');
                     if (keyInput) {
                         if (data.has_api_key) {
-                            keyInput.placeholder = "•••••••••••• (Guardada en el servidor)";
+                            keyInput.value = "••••••••••••••••••••••••";
+                            keyInput.dataset.saved = "true";
                         } else {
+                            keyInput.value = "";
                             keyInput.placeholder = "Ingresa la API Key (dejar en blanco para mantener actual)";
                         }
                     }
@@ -1982,8 +1984,8 @@
                 ai_model: aiModel
             };
             
-            // Only send API Key if the user typed something
-            if (aiApiKey.trim() !== '') {
+            // Only send API Key if the user typed something new
+            if (aiApiKey.trim() !== '' && !aiApiKey.includes('••••')) {
                 payload.ai_api_key = aiApiKey.trim();
             }
 
