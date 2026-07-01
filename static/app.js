@@ -34,9 +34,10 @@ function getProgramId() {
                 }
             }
 
-            // 3. Ocultar del menú lateral si no es administrador
+            // 3. Ocultar del menú lateral si es un rol restringido
             document.addEventListener("DOMContentLoaded", () => {
-                if (!isAdmin) {
+                const restrictedRoles = ['estudiante', 'profesor', 'operativo', 'lider', 'coordinador'];
+                if (restrictedRoles.includes((user.role || '').toLowerCase())) {
                     const menuInformes = document.querySelector('a[href="informes.html"]');
                     const menuDofa = document.querySelector('a[href="dofa.html"]');
                     if (menuInformes) menuInformes.style.display = 'none';

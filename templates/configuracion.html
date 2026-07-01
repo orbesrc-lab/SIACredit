@@ -1961,6 +1961,12 @@
                         if (data.has_api_key) {
                             keyInput.value = "••••••••••••••••••••••••";
                             keyInput.dataset.saved = "true";
+                            keyInput.onfocus = function() {
+                                if (this.dataset.saved === "true") {
+                                    this.value = "";
+                                    this.dataset.saved = "false";
+                                }
+                            };
                         } else {
                             keyInput.value = "";
                             keyInput.placeholder = "Ingresa la API Key (dejar en blanco para mantener actual)";
