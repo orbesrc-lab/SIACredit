@@ -9,18 +9,43 @@ function getProgramId() {
     return user ? (user.program_id || 0) : 0;
 }
 
-// Redirección de Estudiantes para evitar que accedan a páginas administrativas
+// Redirección de Accesos y Roles
 (function() {
     try {
         const user = JSON.parse(localStorage.getItem('siac_user'));
-        if (user && (user.role === 'estudiante' || user.role === 'profesor')) {
+        if (user) {
             const path = window.location.pathname.toLowerCase();
-            if (!path.includes('formacion.html') && !path.includes('login') && !path.includes('registro') && path !== '/' && !path.includes('index.html')) {
-                window.location.href = 'formacion.html';
+            const isAdmin = (user.role === 'admin' || user.role === 'superadmin');
+
+            // 1. Evitar que estudiantes y profesores accedan a páginas administrativas
+            if (user.role === 'estudiante' || user.role === 'profesor') {
+                if (!path.includes('formacion.html') && !path.includes('login') && !path.includes('registro') && path !== '/' && !path.includes('index.html')) {
+                    window.location.href = 'formacion.html';
+                    return;
+                }
             }
+
+            // 2. Proteger exclusivamente los módulos DOFA e INFORMES para administradores
+            if (path.includes('dofa.html') || path.includes('informes.html')) {
+                if (!isAdmin) {
+                    alert('Acceso denegado. Este módulo es de uso exclusivo para Administradores de la plataforma.');
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+            }
+
+            // 3. Ocultar del menú lateral si no es administrador
+            document.addEventListener("DOMContentLoaded", () => {
+                if (!isAdmin) {
+                    const menuInformes = document.querySelector('a[href="informes.html"]');
+                    const menuDofa = document.querySelector('a[href="dofa.html"]');
+                    if (menuInformes) menuInformes.style.display = 'none';
+                    if (menuDofa) menuDofa.style.display = 'none';
+                }
+            });
         }
     } catch (e) {
-        console.error("Error in student check:", e);
+        console.error("Error in role check:", e);
     }
 })();
 
