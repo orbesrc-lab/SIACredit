@@ -486,6 +486,7 @@
                     <button class="btn-primary large" onclick="generarInforme('final')">🏆 Generar Informe Final</button>
                     <button class="btn-primary large" onclick="generarInformeIA()" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border:none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">✨ Generar con IA</button>
                     <button class="btn-primary large" onclick="generarDOFAInterno()" style="background: linear-gradient(135deg, #10b981, #059669); border:none; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">🛡️ Factores DOFA</button>
+                    <button class="btn-primary large" onclick="generarDOFAExterno()" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); border:none; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);">🌍 Factores PESTA (Externos)</button>
                     <button class="btn-rrc" id="btnRRC" onclick="abrirModalRRC()">
                         🏛️ Soporte Renovación RC
                     </button>
@@ -615,6 +616,46 @@
                 </div>
                 <div style="margin-top: 30px; padding: 15px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; color: #166534; font-size: 0.95rem;">
                     <strong>¡Análisis Guardado Exitosamente!</strong> Estos factores internos han sido almacenados de forma automática en la base de datos de tu programa, y estarán listos para ser utilizados en la Matriz del futuro módulo de <b>Diagnóstico DOFA</b>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL PESTA EXTERNO ===== -->
+    <div id="pestaOverlay" class="rrc-overlay" onclick="if(event.target===this) cerrarModalPESTA()">
+        <div class="rrc-modal" style="max-width: 1000px; max-height: 90vh; display:flex; flex-direction:column;">
+            <div class="rrc-header" style="background: linear-gradient(135deg, #075985 0%, #0284c7 100%);">
+                <div class="rrc-header-left">
+                    <h2>🌍 Factores Externos (PESTA)</h2>
+                    <p>Barrido referencial y análisis del entorno global, sectorial y disciplinar.</p>
+                </div>
+                <button class="rrc-close-btn" onclick="cerrarModalPESTA()" title="Cerrar">✕</button>
+            </div>
+            <div id="pestaLoading" class="rrc-loading active">
+                <div class="rrc-loader" style="border-top-color: #0284c7;"></div>
+                <div style="text-align:center;">
+                    <strong>Realizando barrido referencial PESTA...</strong>
+                    <p>Identificando tendencias, Oportunidades y Amenazas en el entorno estratégico.</p>
+                </div>
+            </div>
+            <div id="pestaContent" style="display:none; padding: 30px; overflow-y: auto; background: #f8fafc;">
+                <div style="display:flex; justify-content: flex-end; margin-bottom: 15px;">
+                    <button class="btn-secondary" onclick="imprimirPESTA()">🖨️ Exportar Informe PESTA</button>
+                </div>
+                <div id="pestaMarkdownReport" style="line-height: 1.6; font-size: 1.05rem; padding: 30px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 20px;"></div>
+                
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3 style="color: #0284c7; border-bottom: 2px solid #38bdf8; padding-bottom: 8px; margin-bottom: 15px;">🚀 Oportunidades</h3>
+                        <div id="pestaOportunidadesList" style="display:flex; flex-direction:column; gap:10px;"></div>
+                    </div>
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3 style="color: #b45309; border-bottom: 2px solid #fbbf24; padding-bottom: 8px; margin-bottom: 15px;">⚡ Amenazas</h3>
+                        <div id="pestaAmenazasList" style="display:flex; flex-direction:column; gap:10px;"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 30px; padding: 15px; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; color: #115e59; font-size: 0.95rem;">
+                    <strong>¡Factores Externos Guardados Exitosamente!</strong> Las Oportunidades y Amenazas extraídas han sido almacenadas y estarán disponibles en el <b>Diagnóstico DOFA</b>.
                 </div>
             </div>
         </div>
@@ -2877,6 +2918,112 @@
                 alert("Error contactando el generador de Factores DOFA: " + err);
                 cerrarModalDOFA();
             }
+        }
+
+        // --- Lógica Generación PESTA / DOFA Externo ---
+        function abrirModalPESTA() {
+            document.getElementById('pestaOverlay').classList.add('open');
+            document.getElementById('pestaLoading').style.display = 'flex';
+            document.getElementById('pestaContent').style.display = 'none';
+        }
+        
+        function cerrarModalPESTA() {
+            document.getElementById('pestaOverlay').classList.remove('open');
+        }
+
+        async function generarDOFAExterno() {
+            abrirModalPESTA();
+            try {
+                // Obtenemos el contexto (p.ej. Colombia o departamento)
+                // Se podría agregar un prompt dinámico para que el usuario escriba el contexto espacial deseado
+                let ctxE = prompt("Ingresa el contexto espacial de evaluación (Ej. Colombia, Internacional, Valle del Cauca...)", "Colombia");
+                if(!ctxE) { cerrarModalPESTA(); return; } // Si cancela
+
+                const aiRes = await fetch('/api/ai/generate_pesta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        inst_id: getInstId(),
+                        program_id: getProgramId(),
+                        contexto: ctxE 
+                    })
+                });
+                
+                const aiData = await aiRes.json();
+                
+                if (aiData.status === 'success' && aiData.pesta && !aiData.pesta.error_parseo) {
+                    renderPESTA(aiData.pesta);
+                    
+                    // Auto-guardar factores externos
+                    await fetch('/api/estadisticas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            table_id: 'DOFA_EXTERNAL',
+                            inst_id: getInstId(),
+                            program_id: getProgramId(),
+                            data: {
+                                oportunidades: aiData.pesta.oportunidades,
+                                amenazas: aiData.pesta.amenazas
+                            }
+                        })
+                    });
+                } else {
+                    alert("Error en la IA al generar PESTA: " + (aiData.error || aiData.pesta?.error_parseo || "Formato de respuesta inválido."));
+                    cerrarModalPESTA();
+                }
+            } catch (err) {
+                alert("Error contactando el generador PESTA: " + err);
+                cerrarModalPESTA();
+            }
+        }
+
+        function renderPESTA(pestaData) {
+            document.getElementById('pestaLoading').style.display = 'none';
+            document.getElementById('pestaContent').style.display = 'block';
+            
+            // Renderizar informe PESTA markdown
+            const mdDiv = document.getElementById('pestaMarkdownReport');
+            if(pestaData.informe_pesta) {
+                mdDiv.innerHTML = marked.parse(pestaData.informe_pesta);
+            } else {
+                mdDiv.innerHTML = "<i>No se generó informe detallado.</i>";
+            }
+            
+            // Renderizar listas O y A
+            const oList = document.getElementById('pestaOportunidadesList');
+            const aList = document.getElementById('pestaAmenazasList');
+            oList.innerHTML = ''; aList.innerHTML = '';
+            
+            if(pestaData.oportunidades && pestaData.oportunidades.length > 0) {
+                pestaData.oportunidades.forEach(o => {
+                    oList.innerHTML += `<div style="background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #0ea5e9; border-radius: 4px;"><strong>${o.id}</strong>: ${o.descripcion}</div>`;
+                });
+            } else { oList.innerHTML = '<i>No se identificaron oportunidades.</i>'; }
+            
+            if(pestaData.amenazas && pestaData.amenazas.length > 0) {
+                pestaData.amenazas.forEach(a => {
+                    aList.innerHTML += `<div style="background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #f59e0b; border-radius: 4px;"><strong>${a.id}</strong>: ${a.descripcion}</div>`;
+                });
+            } else { aList.innerHTML = '<i>No se identificaron amenazas.</i>'; }
+        }
+
+        function imprimirPESTA() {
+            const contenido = document.getElementById('pestaMarkdownReport').innerHTML;
+            const win = window.open('', '_blank', 'width=900,height=700');
+            win.document.write(`
+                <html><head>
+                <title>Informe PESTA</title>
+                <style>
+                    body { font-family: 'Inter', sans-serif; padding: 40px; color: #333; line-height:1.6; }
+                    h1, h2, h3 { color: #0284c7; }
+                </style>
+                </head><body>
+                ${contenido}
+                <script>window.onload = function() { setTimeout(()=> { window.print(); }, 500); }<\/script>
+                </body></html>
+            `);
+            win.document.close();
         }
 
         function renderDOFA(dofaData) {
