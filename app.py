@@ -2674,40 +2674,43 @@ def ai_cruce_dofa():
     
     try:
         prompt = f"""
-        Actúa como un analista experto en planeación estratégica institucional universitaria.
-        Se te proporcionan los factores internos (F, D) y externos (O, A) de un programa académico:
+        Actúa como un Doctor en Planeación Estratégica Gerencial y Académica.
+        Se te proporcionan los factores internos (F, D) y externos (O, A) de un proceso de diagnóstico de una institución o programa académico:
         
         FORTALEZAS: {json.dumps(fortalezas, ensure_ascii=False)}
         DEBILIDADES: {json.dumps(debilidades, ensure_ascii=False)}
         OPORTUNIDADES: {json.dumps(oportunidades, ensure_ascii=False)}
         AMENAZAS: {json.dumps(amenazas, ensure_ascii=False)}
         
-        Realiza el Cruce Estratégico (Matriz TOWS / DOFA) para generar las estrategias óptimas.
-        Genera al menos 2 estrategias concretas, ejecutables y de alto impacto para cada cuadrante:
+        Realiza el Cruce Estratégico (Matriz TOWS / DOFA) para generar estrategias maestras de alto impacto.
+        NO te limites a un número algorítmico o fijo de estrategias (como 2 por cada cuadrante). 
+        Analiza profundamente la interacción real de los datos empíricos que recibes, y determina con un grado de importancia e inteligencia cuántas estrategias son verdaderamente necesarias, viables y críticas para cada dimensión. Un cuadrante puede tener múltiples estrategias maestras si los datos lo justifican, y otro cuadrante puede tener muy pocas.
+        
+        Tipos de estrategias esperadas:
         - Estrategias FO (Maxi-Maxi): Usar fortalezas para aprovechar oportunidades.
         - Estrategias DO (Mini-Maxi): Superar debilidades aprovechando oportunidades.
         - Estrategias FA (Maxi-Mini): Usar fortalezas para evitar o mitigar amenazas.
         - Estrategias DA (Mini-Mini): Tácticas defensivas para reducir debilidades y evitar amenazas.
         
-        Cada estrategia DEBE iniciar indicando explícitamente qué variables cruza (ej. "(F1, O2) Crear un plan de...").
+        Cada estrategia DEBE iniciar indicando explícitamente qué variables cruza (ej. "(F1, F2, O2) Diseñar un sistema de...").
         
-        Devuelve tu respuesta ESTRICTAMENTE en formato JSON válido, con la siguiente estructura:
+        Devuelve tu respuesta ESTRICTAMENTE en formato JSON válido, con la siguiente estructura (los arreglos pueden tener la cantidad de estrategias que consideres estratégicamente pertinentes):
         {{
-            "FO": ["Estrategia 1...", "Estrategia 2..."],
-            "DO": ["Estrategia 1...", "Estrategia 2..."],
-            "FA": ["Estrategia 1...", "Estrategia 2..."],
-            "DA": ["Estrategia 1...", "Estrategia 2..."]
+            "FO": ["Estrategia 1...", "Estrategia 2...", "..."],
+            "DO": ["Estrategia 1...", "..."],
+            "FA": ["Estrategia 1...", "Estrategia 2...", "Estrategia 3...", "..."],
+            "DA": ["Estrategia 1...", "..."]
         }}
         Devuelve ÚNICAMENTE el texto JSON puro sin etiquetas Markdown.
         """
         
         cruce_res = call_ai(
             messages=[
-                {"role": "system", "content": "Eres un experto en planeación estratégica corporativa. Responde solo con JSON válido."},
+                {"role": "system", "content": "Eres un Doctor experto en Planeación Estratégica Gerencial. Responde solo con JSON válido."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.5,
-            max_tokens=2500
+            temperature=0.6,
+            max_tokens=3000
         )
         
         cruce_res = cruce_res.replace('```json', '').replace('```', '').strip()
