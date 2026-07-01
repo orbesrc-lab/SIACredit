@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const text = item.textContent.toLowerCase();
             
             // Ocultar Formación para cualquier rol excepto super-admin, profesor y estudiante
-            if (role !== 'admin' && role !== 'profesor' && role !== 'estudiante' && role !== 'inst_admin' && role !== 'superadmin') {
+            if (role !== 'admin' && role !== 'profesor' && role !== 'estudiante' && role !== 'superadmin' && role !== 'super-admin') {
                 if (text.includes('formacion') || text.includes('formación')) {
                     item.style.display = 'none';
                 }
