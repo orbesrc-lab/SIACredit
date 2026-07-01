@@ -1811,12 +1811,12 @@ def analyze_stats():
     try:
         if table_id:
             data_context = json.dumps(all_data.get(table_id, []), ensure_ascii=False)
-            prompt = f"Actúa como par académico del CNA. Analiza los siguientes datos estadísticos del cuadro '{table_id}' e identifica tendencias, fortalezas o aspectos críticos. Responde directamente con el análisis en formato Markdown. Datos: {data_context}"
+            prompt = f"Actúa como un evaluador experto y consultor analítico de alto nivel. Analiza de manera formal y rigurosa los siguientes datos estadísticos del cuadro '{table_id}' e identifica tendencias, fortalezas o aspectos críticos. Emplea un lenguaje técnico y académico. Responde directamente con el análisis en formato Markdown. Datos: {data_context}"
         else:
             data_context = json.dumps(all_data, ensure_ascii=False)
             if len(data_context) > 30000:
                 data_context = data_context[:30000] + "... [truncado]"
-            prompt = f"Actúa como par académico del CNA. Analiza de manera integral los siguientes cuadros de datos estadísticos institucionales. Resalta los aspectos más importantes, tendencias globales y posibles oportunidades de mejora. Responde directamente con el análisis en formato Markdown. Datos: {data_context}"
+            prompt = f"Actúa como un evaluador experto y consultor analítico de alto nivel. Analiza de manera formal, integral y rigurosa los siguientes cuadros de datos estadísticos institucionales. Resalta los aspectos más importantes, tendencias globales y posibles oportunidades de mejora. Emplea un lenguaje técnico y académico. Responde directamente con el análisis en formato Markdown. Datos: {data_context}"
 
         answer = call_ai(
             messages=[{"role": "user", "content": prompt}],
@@ -2464,11 +2464,11 @@ def ai_chat():
                 file_context = f"[Error al leer el archivo adjunto: {e}]"
 
         system_prompt = (
-            "Te llamas Margy. Eres una asistente experta en acreditación de alta calidad para "
-            "instituciones de educación superior en Colombia (CNA) desarrollada por SKEL. "
-            "Responde de manera concisa, profesional y analítica basándote en estándares de "
-            "calidad académica. Si te preguntan cómo te llamas o quién eres, responde que te llamas "
-            "Margy, la asistente de acreditación de SKEL."
+            "Te llamas Margy. Eres una asistente experta en evaluación y aseguramiento de alta calidad "
+            "para organizaciones, instituciones educativas y empresas, desarrollada por SKEL. "
+            "Responde de manera formal, académica, profesional y analítica basándote en altos estándares "
+            "de calidad. Si te preguntan cómo te llamas o quién eres, responde que te llamas "
+            "Margy, la asistente de evaluación de SKEL."
         )
         
         final_prompt = question
@@ -2503,30 +2503,34 @@ def ai_generate_report():
             data_str = data_str[:30000] + "... [Datos truncados]"
 
         prompt = f"""
-        Actúa como un Par Académico experto del Consejo Nacional de Acreditación (CNA) de Colombia.
-        A continuación se te provee un JSON con la información de la autoevaluación de un programa académico.
-        Incluye calificaciones del líder de autoevaluación, justificaciones, referencias a cuadros estadísticos,
-        así como el promedio de percepción y comentarios cualitativos de encuestas aplicadas a la comunidad 
-        (estudiantes, profesores, egresados, etc.) bajo los campos `percepcion_promedio`, `percepcion_cantidad` y `percepcion_comentarios`.
+        Actúa como un evaluador experto y consultor analítico de alto nivel.
+        A continuación se te provee un JSON con la información de la evaluación de una organización, institución o programa académico.
+        Incluye calificaciones de autoevaluación, justificaciones, evidencias documentales adjuntas y referencias a cuadros estadísticos,
+        así como resultados cualitativos y cuantitativos de encuestas aplicadas, en caso de existir.
         
-        JSON de Autoevaluación:
+        JSON de Evaluación:
         {data_str}
 
         Por favor, redacta un informe ejecutivo y analítico exhaustivo en formato Markdown estructurado.
         Estructura obligatoria del informe:
-        # Informe de Autoevaluación con fines de Acreditación
+        # Informe de Evaluación Analítica Integral
         ## 1. Introducción y Apreciación General
-        ## 2. Análisis por Factores
-        (Para cada factor, analiza cuantitativa y cualitativamente sus características. Si existen encuestas de percepción de la comunidad para sus características, realiza un contraste crítico entre la autoevaluación de la institución y la percepción real de los encuestados, mencionando promedios y citando textualmente comentarios relevantes o ideas fuerza encontradas en 'percepcion_comentarios'. Identifica fortalezas y oportunidades de mejora del factor basándote en esta articulación).
+        ## 2. Análisis Detallado por Factores
+        (Para cada factor o dimensión, DEBES triangular y analizar conjuntamente los siguientes 4 elementos, si están disponibles:
+        1. **Autoevaluación**: Resultados y justificaciones declaradas.
+        2. **Evidencias**: Nivel de soporte documental referenciado.
+        3. **Estadísticas**: Datos, cifras y cuadros estadísticos asociados.
+        4. **Encuestas**: En caso de existir, contrasta la percepción (promedios y comentarios) con la autoevaluación.
+        Identifica de manera rigurosa las fortalezas y oportunidades de mejora basándote en la articulación de estos 4 elementos).
         ## 3. Conclusiones
-        ## 4. Recomendaciones y Plan de Mejoramiento
+        ## 4. Recomendaciones Estratégicas y Plan de Mejoramiento
         
-        Escribe de forma formal, propositiva, con un lenguaje técnico académico y basado estrictamente en los datos provistos.
+        Escribe de forma formal, propositiva, con un lenguaje técnico, académico u organizacional avanzado, basado estrictamente en los datos provistos.
         """
         
         report_text = call_ai(
             messages=[
-                {"role": "system", "content": "Eres el redactor experto de informes de acreditación institucional."},
+                {"role": "system", "content": "Eres un redactor experto de informes analíticos institucionales y organizacionales de alto nivel."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
@@ -2686,11 +2690,10 @@ def ai_generar_rrc():
             data_str = data_str[:28000] + "... [datos truncados]"
 
         system_prompt = (
-            "Eres un experto en aseguramiento de la calidad en educación superior (Ministerio de Educación "
-            "Nacional de Colombia y CNA). Dominas el modelo de acreditación CESU (Acuerdo 01/2025), el "
-            "Decreto 1330 de 2019 y el Decreto 529 de 2024. Tu función es generar el SOPORTE DOCUMENTAL "
-            "de Renovación de Registro Calificado articulando las 9 condiciones de calidad con los 55 "
-            "indicadores comunes del proceso de autoevaluación."
+            "Eres un evaluador experto y consultor analítico de alto nivel en aseguramiento de la calidad. "
+            "Dominas estándares normativos y de evaluación de alto rigor académico y organizacional. "
+            "Tu función es generar un SOPORTE DOCUMENTAL formal, técnico y estrictamente analítico "
+            "articulando de forma rigurosa los criterios de calidad con los indicadores evaluados."
         )
 
         prompt = f"""
