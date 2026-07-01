@@ -101,7 +101,7 @@ def force_update_gemini_config():
             "theme": "dark",
             "ai_provider": "gemini",
             "ai_model": "gemini-2.5-flash",
-            "ai_api_key": "AIzaSyCUzl0g6_n35SGaBoMH8cf7mvSP8TkszUg"
+            "ai_api_key": ""
         })
         check = supabase.table('statistics').select("id").eq("table_id", "GLOBAL_CONFIG").order("id", desc=True).limit(1).execute()
         if check.data:
@@ -183,7 +183,7 @@ def route_force_update_gemini():
             "theme": "dark",
             "ai_provider": "gemini",
             "ai_model": "gemini-2.5-flash",
-            "ai_api_key": "AIzaSyCUzl0g6_n35SGaBoMH8cf7mvSP8TkszUg"
+            "ai_api_key": ""
         })
         check = supabase.table('statistics').select("id").eq("table_id", "GLOBAL_CONFIG").order("id", desc=True).limit(1).execute()
         if check.data:
