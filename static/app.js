@@ -78,14 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const text = item.textContent.toLowerCase();
             
             // Ocultar Formación para cualquier rol excepto super-admin, profesor y estudiante
-            if (role !== 'admin' && role !== 'profesor' && role !== 'estudiante') {
+            if (role !== 'admin' && role !== 'profesor' && role !== 'estudiante' && role !== 'inst_admin' && role !== 'superadmin') {
                 if (text.includes('formacion') || text.includes('formación')) {
                     item.style.display = 'none';
                 }
             }
             
             // Ocultar Informes y DOFA para cualquier rol que no sea admin
-            if (role !== 'admin' && role !== 'super-admin' && role !== 'superadmin') {
+            if (role !== 'admin' && role !== 'super-admin' && role !== 'superadmin' && role !== 'inst_admin') {
                 if (text.includes('informes') || text.includes('dofa')) {
                     item.style.display = 'none';
                 }
