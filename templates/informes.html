@@ -642,7 +642,15 @@
                 <div style="display:flex; justify-content: flex-end; margin-bottom: 15px;">
                     <button class="btn-secondary" onclick="imprimirPESTA()">🖨️ Exportar Informe PESTA</button>
                 </div>
-                <div id="pestaMarkdownReport" style="line-height: 1.6; font-size: 1.05rem; padding: 30px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 20px;"></div>
+                <style>
+                    #pestaMarkdownReport h1 { font-size: 1.6rem; color: #075985; margin-bottom: 1rem; border-bottom: 2px solid #e0f2fe; padding-bottom: 0.5rem; }
+                    #pestaMarkdownReport h2 { font-size: 1.3rem; color: #0284c7; margin-top: 1.5rem; margin-bottom: 0.8rem; }
+                    #pestaMarkdownReport h3 { font-size: 1.15rem; color: #0369a1; margin-top: 1.2rem; }
+                    #pestaMarkdownReport p { margin-bottom: 1rem; color: #334155; }
+                    #pestaMarkdownReport ul, #pestaMarkdownReport ol { margin-left: 1.5rem; margin-bottom: 1rem; color: #334155; }
+                    #pestaMarkdownReport li { margin-bottom: 0.3rem; }
+                </style>
+                <div id="pestaMarkdownReport" style="line-height: 1.6; font-size: 1rem; padding: 30px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 20px;"></div>
                 
                 <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                     <div style="flex: 1; min-width: 300px;">
@@ -2985,7 +2993,8 @@
             // Renderizar informe PESTA markdown
             const mdDiv = document.getElementById('pestaMarkdownReport');
             if(pestaData.informe_pesta) {
-                mdDiv.innerHTML = marked.parse(pestaData.informe_pesta);
+                let rawText = pestaData.informe_pesta.replace(/\\n/g, '\n'); // Reemplazar saltos literales
+                mdDiv.innerHTML = marked.parse(rawText);
             } else {
                 mdDiv.innerHTML = "<i>No se generó informe detallado.</i>";
             }
