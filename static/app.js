@@ -15,7 +15,7 @@ function getProgramId() {
         const user = JSON.parse(localStorage.getItem('siac_user'));
         if (user) {
             const path = window.location.pathname.toLowerCase();
-            const isAdmin = (user.role === 'admin' || user.role === 'superadmin');
+            const isAdmin = (user.role === 'admin' || user.role === 'superadmin' || user.role === 'inst_admin');
 
             // 1. Evitar que estudiantes y profesores accedan a páginas administrativas
             if (user.role === 'estudiante' || user.role === 'profesor') {
