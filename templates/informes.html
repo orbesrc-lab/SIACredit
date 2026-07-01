@@ -2992,11 +2992,22 @@
             
             // Renderizar informe PESTA markdown
             const mdDiv = document.getElementById('pestaMarkdownReport');
+            const logoSrc = document.getElementById('inst_logo_img')?.src || '';
+            const instName = document.getElementById('inst_name_display')?.innerText || '';
+            
+            let headerHtml = '';
+            if (logoSrc && !logoSrc.endsWith('/informes.html')) {
+                headerHtml = `<div style="text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0;">
+                                <img src="${logoSrc}" alt="Logo Institución" style="max-height: 90px; object-fit: contain;">
+                                <h3 style="color: #64748b; margin-top: 10px; font-size: 1.1rem; text-transform: uppercase;">${instName}</h3>
+                              </div>`;
+            }
+
             if(pestaData.informe_pesta) {
                 let rawText = pestaData.informe_pesta.replace(/\\n/g, '\n'); // Reemplazar saltos literales
-                mdDiv.innerHTML = marked.parse(rawText);
+                mdDiv.innerHTML = headerHtml + marked.parse(rawText);
             } else {
-                mdDiv.innerHTML = "<i>No se generó informe detallado.</i>";
+                mdDiv.innerHTML = headerHtml + "<i>No se generó informe detallado.</i>";
             }
             
             // Renderizar listas O y A
