@@ -1375,15 +1375,6 @@
     <h2>Detalle por Factores</h2>
     ${detalle}
   </div>
-<script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
-            if(user.role === 'admin') {
-                const crmLink = document.getElementById('menuCrm');
-                if(crmLink) crmLink.style.display = 'block';
-            }
-        });
-        </script>
 </body>
 </html>`;
 
@@ -2771,15 +2762,6 @@
     ${condicionesHtml}
   </div>
 
-<script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
-            if(user.role === 'admin') {
-                const crmLink = document.getElementById('menuCrm');
-                if(crmLink) crmLink.style.display = 'block';
-            }
-        });
-        </script>
 </body>
 </html>`;
 
