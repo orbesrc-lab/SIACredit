@@ -2960,9 +2960,35 @@
                 const aiData = await aiRes.json();
                 
                 if (aiData.status === 'success' && aiData.pesta && !aiData.pesta.error_parseo) {
+                    // Recuperar factores externos existentes para acumular
+                    let accumulatedOportunidades = aiData.pesta.oportunidades || [];
+                    let accumulatedAmenazas = aiData.pesta.amenazas || [];
+                    
+                    try {
+                        const getRes = await fetch(`/api/estadisticas?table_id=DOFA_EXTERNAL&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                        const getResData = await getRes.json();
+                        if (getResData && getResData.data) {
+                            if (getResData.data.oportunidades) {
+                                accumulatedOportunidades = getResData.data.oportunidades.concat(accumulatedOportunidades);
+                            }
+                            if (getResData.data.amenazas) {
+                                accumulatedAmenazas = getResData.data.amenazas.concat(accumulatedAmenazas);
+                            }
+                        }
+                    } catch(e) {
+                        console.warn("No se pudieron obtener factores anteriores para acumular", e);
+                    }
+                    
+                    // Reenumerar para mantener consistencia
+                    accumulatedOportunidades.forEach((o, idx) => o.id = `O${idx+1}`);
+                    accumulatedAmenazas.forEach((a, idx) => a.id = `A${idx+1}`);
+                    
+                    aiData.pesta.oportunidades = accumulatedOportunidades;
+                    aiData.pesta.amenazas = accumulatedAmenazas;
+
                     renderPESTA(aiData.pesta);
                     
-                    // Auto-guardar factores externos
+                    // Auto-guardar factores externos acumulados
                     await fetch('/api/estadisticas', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -2971,8 +2997,8 @@
                             inst_id: getInstId(),
                             program_id: getProgramId(),
                             data: {
-                                oportunidades: aiData.pesta.oportunidades,
-                                amenazas: aiData.pesta.amenazas
+                                oportunidades: accumulatedOportunidades,
+                                amenazas: accumulatedAmenazas
                             }
                         })
                     });
