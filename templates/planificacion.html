@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planificación y Control - SKEL SIAC</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .header-title { margin-bottom: 20px; }
+        .header-title h1 { font-size: 1.8rem; margin-bottom: 8px; color: var(--primary-color); }
+        .header-title p { color: var(--text-muted); font-size: 0.95rem; }
+
+        /* Tree Structure Styles */
+        .tree-container {
+            background: white; border-radius: 12px; padding: 25px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .axis-card {
+            border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 15px; overflow: hidden;
+        }
+        .axis-header {
+            background: #f1f5f9; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            font-weight: bold; color: #1e293b;
+        }
+        .axis-header:hover { background: #e2e8f0; }
+        
+        .axis-body { padding: 15px; display: none; }
+        
+        .strategy-card {
+            border: 1px solid #bae6fd; border-radius: 6px; margin-bottom: 15px; background: #f0f9ff;
+        }
+        .strategy-header {
+            padding: 12px; border-bottom: 1px solid #bae6fd; font-weight: 600; color: #0369a1;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+        }
+        .strategy-body { padding: 15px; display: none; }
+
+        .gen-obj-card {
+            border: 1px solid #bbf7d0; border-radius: 6px; margin-bottom: 15px; background: #f0fdf4;
+        }
+        .gen-obj-header {
+            padding: 10px; border-bottom: 1px solid #bbf7d0; font-weight: 600; color: #166534;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+        }
+        .gen-obj-body { padding: 12px; display: none; }
+
+        .spec-obj-card {
+            border: 1px solid #fef08a; border-radius: 6px; margin-bottom: 15px; background: #fefce8;
+        }
+        .spec-obj-header {
+            padding: 10px; border-bottom: 1px solid #fef08a; font-weight: 600; color: #854d0e;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+        }
+        .spec-obj-body { padding: 12px; display: none; }
+
+        .activity-card {
+            border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 10px; background: white;
+            padding: 12px; position: relative;
+        }
+        .activity-header { font-weight: 600; color: #374151; margin-bottom: 5px; }
+        .activity-meta { font-size: 0.85rem; color: #6b7280; display: flex; gap: 15px; flex-wrap: wrap; }
+        
+        .badge {
+            padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;
+        }
+        .badge-pending { background: #fee2e2; color: #991b1b; }
+        .badge-progress { background: #fef3c7; color: #92400e; }
+        .badge-done { background: #dcfce3; color: #166534; }
+
+        .action-btn { background: none; border: none; cursor: pointer; color: #64748b; font-size: 1rem; padding: 5px;}
+        .action-btn:hover { color: #2563eb; }
+
+        .btn-add { background: #2563eb; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; border: none; cursor: pointer; margin-top: 5px;}
+        .btn-add:hover { background: #1d4ed8; }
+
+        /* MODAL */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background-color: #fff; padding: 25px; border-radius: 12px; width: 500px; max-width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header { font-size: 1.25rem; font-weight: bold; margin-bottom: 15px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 5px; font-size: 0.9rem; color: #475569; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header" style="justify-content: center; padding: 20px 15px;">
+            <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
+        </div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
+            <a href="planificacion.html" class="sidebar-item active">📅 Planificación</a>
+            <a href="evidencias.html" class="sidebar-item">📁 Evidencias</a>
+            <a href="autoevaluacion.html" class="sidebar-item">📝 Autoevaluación</a>
+            <a href="informes.html" class="sidebar-item">📄 Informes</a>
+            <a href="dofa.html" class="sidebar-item">🎯 Diagnóstico DOFA</a>
+            <a href="estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
+            <a href="biblioteca.html" class="sidebar-item">📚 Biblioteca</a>
+            <a href="encuestas.html" class="sidebar-item">📋 Encuestas</a>
+            <a href="formacion.html" class="sidebar-item">🎓 Formación</a>
+            <a href="crm.html" class="sidebar-item" id="menuCrm" style="display:none; color: #10b981;">🚀 CRM B2B</a>
+            <a href="configuracion.html"  class="sidebar-item">⚙️ Configuración</a>
+        </div>
+        <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444;">🚪 Cerrar Sesión</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div id="inst_header" style="display: flex; align-items: center; gap: 15px;">
+                <img id="inst_logo_img" src="" alt="" style="height: 40px; display: none;">
+                <h2 id="inst_name_display" style="font-size: 1.25rem; margin: 0; color: var(--primary-color);">Cargando...</h2>
+            </div>
+            <div id="userInfo" style="font-weight: 500; margin-left: 10px;"></div>
+        </header>
+
+        <div class="content-area">
+            <div class="header-title">
+                <h1>Planificación Estratégica y Control</h1>
+                <p>Gestiona los ejes, estrategias (derivadas del DOFA), objetivos y actividades de tu institución.</p>
+            </div>
+
+            <div class="tree-container" id="planningTree">
+                <div style="text-align: center; padding: 40px; color: #64748b;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p style="margin-top: 10px;">Cargando estructura estratégica...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='data.js') }}"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            document.getElementById('userInfo').textContent = user.email || 'Usuario';
+            if(user.role === 'admin') {
+                const crmLink = document.getElementById('menuCrm');
+                if(crmLink) crmLink.style.display = 'block';
+            }
+            
+            // Iniciar carga
+            loadPlanningData();
+        });
+
+        // Toggle acordeones
+        function toggleBody(btn, bodyClass) {
+            const container = btn.closest('.' + bodyClass.replace('-body', '-card'));
+            const body = container.querySelector('.' + bodyClass);
+            const icon = btn.querySelector('i.fa-chevron-down') || btn.querySelector('i.fa-chevron-up');
+            
+            if(body.style.display === 'block') {
+                body.style.display = 'none';
+                if(icon) icon.className = 'fas fa-chevron-down';
+            } else {
+                body.style.display = 'block';
+                if(icon) icon.className = 'fas fa-chevron-up';
+            }
+        }
+
+        async function loadPlanningData() {
+            try {
+                const res = await fetch(`/api/planning/tree?inst_id=${getInstId()}`);
+                const data = await res.json();
+                if(data.status === 'success') {
+                    renderTree(data.tree);
+                } else {
+                    document.getElementById('planningTree').innerHTML = `<p style="color:red">Error: ${data.message}</p>`;
+                }
+            } catch(e) {
+                document.getElementById('planningTree').innerHTML = `<p style="color:red">Error de red: ${e}</p>`;
+            }
+        }
+
+        function renderTree(tree) {
+            const container = document.getElementById('planningTree');
+            if(!tree || tree.length === 0) {
+                container.innerHTML = `<div style="text-align: center; padding: 40px; color: #64748b;">
+                    <i class="fas fa-seedling fa-3x" style="color: #cbd5e1; margin-bottom:15px;"></i>
+                    <p>No hay Ejes Estratégicos. Por favor ve al módulo DOFA y guarda la matriz para generar las estrategias base.</p>
+                </div>`;
+                return;
+            }
+
+            let html = '';
+            tree.forEach(axis => {
+                html += `
+                <div class="axis-card">
+                    <div class="axis-header" onclick="toggleBody(this, 'axis-body')">
+                        <div>
+                            <i class="fas fa-sitemap" style="margin-right:8px; color:#475569;"></i>
+                            Eje Estratégico: ${axis.name}
+                        </div>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="axis-body" style="display:block;">
+                        <p style="font-size:0.9rem; color:#64748b; margin-top:0;">${axis.description || ''}</p>
+                        ${renderStrategies(axis.strategies, axis.id)}
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderStrategies(strats, axisId) {
+            if(!strats || !strats.length) return `<p style="font-size:0.85rem; color:#94a3b8;">Sin estrategias. <button class="btn-add" onclick="addNode('strategy', ${axisId})">+ Estrategia</button></p>`;
+            let html = '';
+            strats.forEach(st => {
+                html += `
+                <div class="strategy-card">
+                    <div class="strategy-header" onclick="toggleBody(this, 'strategy-body')">
+                        <div>
+                            <span class="badge" style="background:#e0f2fe; color:#0284c7; margin-right:8px;">${st.quadrant || 'MANUAL'}</span>
+                            Estrategia: ${st.description.substring(0, 80)}...
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:0.85rem; background:white; padding:2px 8px; border-radius:12px;">Peso: ${st.weight_percentage}%</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="strategy-body">
+                        <p style="font-size:0.9rem; margin-top:0;">${st.description}</p>
+                        <div style="margin-top:15px; border-left:2px solid #bae6fd; padding-left:15px;">
+                            <h5 style="margin:0 0 10px 0; color:#0369a1;">Objetivos Generales</h5>
+                            ${renderGenObjs(st.general_objectives, st.id)}
+                            <button class="btn-add" onclick="addNode('gen_obj', ${st.id})" style="margin-top:10px;">+ Obj. General</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            return html;
+        }
+
+        function renderGenObjs(gens, stratId) {
+            if(!gens || !gens.length) return `<p style="font-size:0.85rem; color:#94a3b8;">Sin objetivos generales.</p>`;
+            let html = '';
+            gens.forEach(g => {
+                html += `
+                <div class="gen-obj-card">
+                    <div class="gen-obj-header" onclick="toggleBody(this, 'gen-obj-body')">
+                        <div>Obj. General: ${g.description}</div>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="gen-obj-body">
+                        <div style="border-left:2px solid #bbf7d0; padding-left:15px;">
+                            <h5 style="margin:0 0 10px 0; color:#166534;">Objetivos Específicos</h5>
+                            ${renderSpecObjs(g.specific_objectives, g.id)}
+                            <button class="btn-add" onclick="addNode('spec_obj', ${g.id})" style="margin-top:10px; background:#16a34a;">+ Obj. Específico</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            return html;
+        }
+
+        function renderSpecObjs(specs, genId) {
+            if(!specs || !specs.length) return `<p style="font-size:0.85rem; color:#94a3b8;">Sin objetivos específicos.</p>`;
+            let html = '';
+            specs.forEach(s => {
+                html += `
+                <div class="spec-obj-card">
+                    <div class="spec-obj-header" onclick="toggleBody(this, 'spec-obj-body')">
+                        <div>Obj. Específico: ${s.description} <span class="badge" style="background:white; margin-left:10px;">Peso: ${s.weight_percentage}%</span></div>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="spec-obj-body">
+                        <p style="font-size:0.85rem; margin-top:0;"><strong>Indicador:</strong> ${s.indicator_type || 'N/A'} - ${s.indicator_description || ''}</p>
+                        <div style="border-left:2px solid #fef08a; padding-left:15px;">
+                            <h5 style="margin:10px 0; color:#854d0e;">Actividades</h5>
+                            ${renderActivities(s.activities, s.id)}
+                            <button class="btn-add" onclick="addNode('activity', ${s.id})" style="margin-top:10px; background:#ca8a04;">+ Actividad Manual</button>
+                            <button class="btn-add" onclick="suggestActivitiesAI(${s.id})" style="margin-top:10px; background:#8b5cf6; margin-left:5px;"><i class="fas fa-robot"></i> Sugerir IA</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            return html;
+        }
+
+        function renderActivities(acts, specId) {
+            if(!acts || !acts.length) return `<p style="font-size:0.85rem; color:#94a3b8;">Sin actividades.</p>`;
+            let html = '';
+            acts.forEach(a => {
+                let badgeClass = 'badge-pending';
+                if(a.status === 'En Progreso') badgeClass = 'badge-progress';
+                if(a.status === 'Completado') badgeClass = 'badge-done';
+                
+                html += `
+                <div class="activity-card">
+                    <div style="display:flex; justify-content:space-between;">
+                        <div class="activity-header">${a.description}</div>
+                        <span class="badge ${badgeClass}">${a.status || 'Pendiente'}</span>
+                    </div>
+                    <div class="activity-meta" style="margin-top:8px;">
+                        <span><i class="far fa-calendar"></i> ${a.start_date || 'N/A'} - ${a.end_date || 'N/A'}</span>
+                        <span><i class="fas fa-bullseye"></i> ${a.goal || 'Sin meta'}</span>
+                        <span><i class="fas fa-money-bill-wave"></i> $${(a.financial_budget || 0).toLocaleString()}</span>
+                    </div>
+                </div>`;
+            });
+            return html;
+        }
+
+        // Placeholder for Add Modals
+        function addNode(type, parentId) {
+            alert("Apertura de formulario modal para: " + type + " con padre " + parentId);
+        }
+        function suggestActivitiesAI(specId) {
+            alert("LLamando a Gemini AI para sugerir actividades para: " + specId);
+        }
+    </script>
+</body>
+</html>

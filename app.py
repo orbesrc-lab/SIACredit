@@ -3767,6 +3767,59 @@ def migrate_dofa():
         # Retornamos error 500 pero envuelto de manera segura (el front capturará esto si falla por la tabla que no existe aún)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+@app.route('/api/planning/tree', methods=['GET'])
+def get_planning_tree():
+    try:
+        inst_id = request.args.get('inst_id')
+        if not inst_id:
+            return jsonify({'status': 'error', 'message': 'inst_id is required'})
+
+        axes = supabase.table('planning_axes').select('*').eq('inst_id', inst_id).execute().data
+        strategies = supabase.table('planning_strategies').select('*').eq('inst_id', inst_id).execute().data
+        
+        strat_ids = [s['id'] for s in strategies] if strategies else []
+        gen_objs = []
+        if strat_ids:
+            gen_objs = supabase.table('planning_general_objectives').select('*').in_('strategy_id', strat_ids).execute().data
+            
+        gen_obj_ids = [g['id'] for g in gen_objs] if gen_objs else []
+        spec_objs = []
+        if gen_obj_ids:
+            spec_objs = supabase.table('planning_specific_objectives').select('*').in_('general_objective_id', gen_obj_ids).execute().data
+            
+        spec_obj_ids = [s['id'] for s in spec_objs] if spec_objs else []
+        activities = []
+        if spec_obj_ids:
+            activities = supabase.table('planning_activities').select('*').in_('specific_objective_id', spec_obj_ids).execute().data
+
+        act_by_spec = {}
+        for a in activities:
+            act_by_spec.setdefault(a['specific_objective_id'], []).append(a)
+            
+        spec_by_gen = {}
+        for s in spec_objs:
+            s['activities'] = act_by_spec.get(s['id'], [])
+            spec_by_gen.setdefault(s['general_objective_id'], []).append(s)
+            
+        gen_by_strat = {}
+        for g in gen_objs:
+            g['specific_objectives'] = spec_by_gen.get(g['id'], [])
+            gen_by_strat.setdefault(g['strategy_id'], []).append(g)
+            
+        strat_by_axis = {}
+        for s in strategies:
+            s['general_objectives'] = gen_by_strat.get(s['id'], [])
+            strat_by_axis.setdefault(s['axis_id'], []).append(s)
+            
+        tree = []
+        for ax in axes:
+            ax['strategies'] = strat_by_axis.get(ax['id'], [])
+            tree.append(ax)
+
+        return jsonify({'status': 'success', 'tree': tree})
+    except Exception as e:
+        print(f"Error in planning tree: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
