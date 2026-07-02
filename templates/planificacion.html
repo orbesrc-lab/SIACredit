@@ -615,6 +615,9 @@
             btn.textContent = 'Guardando...';
             btn.disabled = true;
 
+            let nodeIdStr = document.getElementById('nodeId') ? document.getElementById('nodeId').value : null;
+            let nodeId = nodeIdStr ? parseInt(nodeIdStr) : null;
+
             const payload = {
                 inst_id: getInstId(),
                 type: currentNodeType,
@@ -665,16 +668,13 @@
             btn.disabled = false;
         }
 
-        function deleteNode(type, id, event) {
+        async function deleteNode(type, id, event) {
             if(event) event.stopPropagation(); // Evitar que se abra el acordeón
             if(!confirm('¿Estás seguro de que deseas eliminar este elemento? Todos los elementos hijos también se eliminarán de forma irreversible.')) return;
 
             try {
-                
-            if (nodeId) payload.id = nodeId;
-            
-            const res = await fetch('/api/planning/node', {
-                    method: 'DELETE',
+                const res = await fetch('/api/planning/node/delete', {
+                    method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: type, id: id })
                 });
@@ -698,7 +698,7 @@
                 descField.disabled = true;
                 
                 const res = await fetch('/api/planning/suggest', {
-                    method: nodeId ? 'PUT' : 'POST',
+                    method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'gen_obj', target_id: strategyId, inst_id: getInstId() })
                 });
@@ -726,7 +726,7 @@
                 descField.disabled = true;
 
                 const res = await fetch('/api/planning/suggest', {
-                    method: nodeId ? 'PUT' : 'POST',
+                    method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'activity', target_id: specId, inst_id: getInstId() })
                 });
@@ -753,7 +753,7 @@
                 descField.disabled = true;
                 
                 const res = await fetch('/api/planning/suggest', {
-                    method: nodeId ? 'PUT' : 'POST',
+                    method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'spec_obj', target_id: genId, inst_id: getInstId() })
                 });
