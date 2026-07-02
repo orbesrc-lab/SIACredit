@@ -254,7 +254,8 @@
             // Clear previous
             document.getElementById('gantt').innerHTML = '';
             
-            ganttChart = new Gantt("#gantt", activities, {
+            setTimeout(() => {
+                ganttChart = new Gantt("#gantt", activities, {
                 on_date_change: async function(task, start, end) {
                     const dbId = task.id.replace('act_', '');
                     const s = start.toISOString().substring(0,10);
