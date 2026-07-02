@@ -208,7 +208,6 @@
             </span>`;
         }
 
-        async 
         let ganttChart = null;
 
         function openGantt() {
@@ -276,7 +275,7 @@
             ganttChart.change_view_mode('Week');
         }
 
-        function loadPlanningData() {
+        async function loadPlanningData() {
             try {
                 const res = await fetch(`/api/planning/tree?inst_id=${getInstId()}`);
                 const data = await res.json();
@@ -623,7 +622,6 @@
                 description: document.getElementById('f_desc') ? document.getElementById('f_desc').value : ''
             };
 
-            
             if(currentNodeType === 'axis') {
                 payload.name = document.getElementById('f_name').value || '';
             } else if(currentNodeType === 'strategy') {
@@ -641,15 +639,14 @@
                 payload.goal = document.getElementById('f_goal').value || '';
                 payload.responsible = document.getElementById('f_resp').value || '';
                 let budget = parseFloat(document.getElementById('f_budget').value || 0);
-                payload.financial_budget = budget * 1.54; // Carga prestacional
+                payload.financial_budget = budget * 1.54;
             }
 
             try {
-                
-            if (nodeId) payload.id = nodeId;
-            
-            const res = await fetch('/api/planning/node', {
-                    method: nodeId ? 'PUT' : 'POST',
+                if (nodeId) payload.id = nodeId;
+                const endpoint = nodeId ? '/api/planning/node/edit' : '/api/planning/node';
+                const res = await fetch(endpoint, {
+                    method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
                 });
@@ -663,12 +660,12 @@
             } catch(e) {
                 alert('Error de conexión');
             }
-            
+
             btn.textContent = 'Guardar';
             btn.disabled = false;
         }
 
-        async function deleteNode(type, id, event) {
+        function deleteNode(type, id, event) {
             if(event) event.stopPropagation(); // Evitar que se abra el acordeón
             if(!confirm('¿Estás seguro de que deseas eliminar este elemento? Todos los elementos hijos también se eliminarán de forma irreversible.')) return;
 

@@ -1,2437 +1,605 @@
 
-        // Sesión y Seguridad
-        let user = null;
-        let activeCourse = null;
-        let activeCourseSubmissions = [];
-        try {
-            user = JSON.parse(localStorage.getItem('siac_user'));
-        } catch(e) {
-            console.error("Error parsing siac_user:", e);
-        }
-        if (!user) { window.location.href = 'login.html'; }
-        
-        // Bloqueo de acceso directo para roles de la institución
-        if (user && user.role !== 'admin' && user.role !== 'estudiante') {
-            window.location.href = 'dashboard.html';
-        }
-        
-        document.getElementById('userInfo').textContent = user ? user.email : '';
-
-        function logout() {
-            localStorage.removeItem('siac_user');
-            window.location.href = 'index.html';
-        }
-
-        // --- NAVEGACIÓN DE PESTAÑAS PRINCIPALES ---
-        function switchMainTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+        document.addEventListener("DOMContentLoaded", () => {
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            document.getElementById('userInfo').textContent = user.email || 'Usuario';
+            if(user.role === 'admin') {
+                const crmLink = document.getElementById('menuCrm');
+                if(crmLink) crmLink.style.display = 'block';
+            }
             
-            if (tabId === 'courses') {
-                document.getElementById('tabCourses').classList.add('active');
-                document.getElementById('coursesTab').style.display = 'block';
-                loadCoursesList();
-            } else if (tabId === 'teachers') {
-                document.getElementById('tabTeachers').classList.add('active');
-                document.getElementById('teachersTab').style.display = 'block';
-                loadTeachersList();
+            // Iniciar carga
+            loadPlanningData();
+        });
+
+        // Toggle acordeones
+        function toggleBody(btn) {
+            const container = btn.closest('.node-content');
+            if(!container) return;
+            const body = container.querySelector('.node-body');
+            const icon = btn.querySelector('.toggle-icon');
+            if(!body) return;
+            
+            if(body.style.display === 'block') {
+                body.style.display = 'none';
+                if(icon) icon.className = 'fas fa-chevron-down toggle-icon';
             } else {
-                document.getElementById('tabStudents').classList.add('active');
-                document.getElementById('studentsTab').style.display = 'block';
-                loadStudentsList();
+                body.style.display = 'block';
+                if(icon) icon.className = 'fas fa-chevron-up toggle-icon';
             }
         }
 
-        // --- NAVEGACIÓN DE SUB-PESTAÑAS DE EDICIÓN ---
-        function switchSubTab(subTabId) {
-            document.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.sub-tab-content').forEach(content => content.style.display = 'none');
-            
-            if (subTabId === 'general') {
-                document.getElementById('subTabBtnGeneral').classList.add('active');
-                document.getElementById('subTabGeneral').style.display = 'block';
-            } else if (subTabId === 'syllabus') {
-                document.getElementById('subTabBtnSyllabus').classList.add('active');
-                document.getElementById('subTabSyllabus').style.display = 'block';
-            } else if (subTabId === 'analytics') {
-                document.getElementById('subTabBtnAnalytics').classList.add('active');
-                document.getElementById('subTabAnalytics').style.display = 'block';
-                loadCourseAnalytics(document.getElementById('editCourseId').value);
-            } else {
-                document.getElementById('subTabBtnSync').classList.add('active');
-                document.getElementById('subTabSync').style.display = 'block';
-            }
+        function getWeightBadge(items, max = 100) {
+            if(!items) return '';
+            const total = items.reduce((sum, item) => sum + parseFloat(item.weight_percentage || 0), 0);
+            const isError = total !== max;
+            return `<span class="badge badge-weight ${isError ? 'error' : ''}" title="Suma de pesos de los hijos">
+                <i class="${isError ? 'fas fa-exclamation-circle' : 'fas fa-check-circle'}"></i> 
+                Pesos Hijos: ${total}%
+            </span>`;
         }
 
-        // ========== SECCIÓN DOCENTES (TEACHERS) ==========
+        let ganttChart = null;
 
-        function openCreateTeacherModal() {
-            document.getElementById('teacher_id').value = '';
-            document.getElementById('teacher_name').value = '';
-            document.getElementById('teacher_email').value = '';
-            document.getElementById('teacher_specialty').value = '';
-            document.getElementById('teacher_avatar').value = '';
-            document.getElementById('teacherModalTitle').textContent = 'Registrar Nuevo Profesor';
-            document.getElementById('btnSubmitTeacher').textContent = 'Registrar Docente';
-            document.getElementById('teacherModal').style.display = 'flex';
-        }
-
-        function closeTeacherModal() {
-            document.getElementById('teacherModal').style.display = 'none';
-        }
-
-        async function submitCreateTeacher() {
-            const id = document.getElementById('teacher_id').value;
-            const name = document.getElementById('teacher_name').value.trim();
-            const email = document.getElementById('teacher_email').value.trim();
-            const specialty = document.getElementById('teacher_specialty').value.trim();
-            const avatar = document.getElementById('teacher_avatar').value.trim();
-            
-            if (!name || !email) {
-                alert("Nombre y Correo son obligatorios."); return;
-            }
-            
-            const payload = { name, email, specialty, avatar };
-            if (id) payload.id = id;
-            
-            try {
-                const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const res = await resp.json();
-                if (res.status === 'success') {
-                    alert("Docente guardado correctamente.");
-                    closeTeacherModal();
-                    loadTeachersList();
-                } else {
-                    alert("Error: " + res.message);
-                }
-            } catch(e) {
-                alert("Error al conectar con el servidor.");
-            }
-        }
-
-        async function preloadTeacherDropdown() {
-            try {
-                const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
-                const teachers = await resp.json();
-                const selectEdit = document.getElementById('edit_teacher_id');
-                if (selectEdit) {
-                    const currentValue = selectEdit.value;
-                    selectEdit.innerHTML = '<option value="">-- Seleccionar Docente --</option>';
-                    teachers.forEach(t => {
-                        const opt = document.createElement('option');
-                        opt.value = t.id;
-                        opt.textContent = t.name;
-                        selectEdit.appendChild(opt);
-                    });
-                    if (currentValue) selectEdit.value = currentValue;
-                }
-                return teachers;
-            } catch(e) { console.error("Error preloading teachers", e); return []; }
-        }
-
-        async function loadTeachersList() {
-            const grid = document.getElementById('teachersGrid');
-            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando profesores...</div>';
-            
-            try {
-                const teachers = await preloadTeacherDropdown();
-                
-                if (teachers.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay profesores registrados aún.</div>';
-                    return;
-                }
-                
-                let html = '';
-                teachers.forEach(t => {
-                    const avatarSrc = t.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100';
-                    html += `
-                        <div class="course-card" style="padding: 20px; align-items: center; text-align: center;">
-                            <img src="${avatarSrc}" alt="${t.name}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 2px solid var(--primary-color);">
-                            <h3 style="font-size: 1.05rem; margin-bottom: 5px;">${t.name}</h3>
-                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">${t.email}</p>
-                            <span class="badge role-leader" style="font-size:0.75rem; margin-bottom: 15px;">${t.specialty || 'General'}</span>
-                            <div style="display: flex; gap: 10px; width: 100%;">
-                                <button class="btn-secondary" style="flex:1; padding: 6px; font-size:0.8rem;" onclick="editTeacher('${t.id}', '${escapeHtml(t.name)}', '${escapeHtml(t.email)}', '${escapeHtml(t.specialty || '')}', '${escapeHtml(t.avatar || '')}')">Editar</button>
-                                <button class="btn-danger" style="flex:1; padding: 6px; font-size:0.8rem;" onclick="deleteTeacher('${t.id}')">Eliminar</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                grid.innerHTML = html;
-            } catch(e) {
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error de red al cargar profesores.</div>';
-            }
-        }
-
-        function editTeacher(id, name, email, specialty, avatar) {
-            document.getElementById('teacher_id').value = id;
-            document.getElementById('teacher_name').value = name;
-            document.getElementById('teacher_email').value = email;
-            document.getElementById('teacher_specialty').value = specialty;
-            document.getElementById('teacher_avatar').value = avatar;
-            document.getElementById('teacherModalTitle').textContent = 'Editar Profesor';
-            document.getElementById('btnSubmitTeacher').textContent = 'Guardar Cambios';
-            document.getElementById('teacherModal').style.display = 'flex';
-        }
-
-        async function deleteTeacher(teacherId) {
-            if (!confirm("¿Estás seguro de eliminar este docente?")) return;
-            try {
-                const resp = await fetch(`/api/teachers/${teacherId}?inst_id=${getInstId()}`, { method: 'DELETE' });
-                if (resp.ok) loadTeachersList();
-            } catch(e) { alert("Error de red."); }
-        }
-
-
-        // ========== SECCIÓN ESTUDIANTES / PARTICIPANTES (Admin) ==========
-
-        function openCreateStudentModal() {
-            document.getElementById('student_id').value = '';
-            document.getElementById('student_name').value = '';
-            document.getElementById('student_email').value = '';
-            document.getElementById('studentModalTitle').textContent = 'Registrar Estudiante / Participante';
-            document.getElementById('btnSubmitStudent').textContent = 'Registrar Estudiante';
-            document.getElementById('studentModal').style.display = 'flex';
-        }
-
-        function closeStudentModal() {
-            document.getElementById('studentModal').style.display = 'none';
-        }
-
-        async function submitCreateStudent() {
-            const id = document.getElementById('student_id').value;
-            const name = document.getElementById('student_name').value.trim();
-            const email = document.getElementById('student_email').value.trim();
-            
-            if (!name || !email) {
-                alert("El Nombre y Correo Electrónico son obligatorios."); return;
-            }
-            
-            const payload = { name, email };
-            if (id) payload.id = id;
-            
-            try {
-                const resp = await fetch(`/api/students?inst_id=${getInstId()}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const res = await resp.json();
-                if (res.status === 'success') {
-                    alert("Estudiante registrado correctamente.");
-                    closeStudentModal();
-                    loadStudentsList();
-                } else {
-                    alert("Error: " + res.message);
-                }
-            } catch(e) { alert("Error de red."); }
-        }
-
-        async function loadStudentsList() {
-            const grid = document.getElementById('studentsGrid');
-            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando estudiantes...</div>';
-            
-            try {
-                const [studResp, courseResp] = await Promise.all([
-                    fetch(`/api/students?inst_id=${getInstId()}`),
-                    fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}`)
-                ]);
-                
-                const students = await studResp.json();
-                const courses = await courseResp.json();
-                
-                if (students.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay estudiantes registrados. Registra uno arriba.</div>';
-                    return;
-                }
-                
-                let html = '';
-                students.forEach(s => {
-                    const enrolledIds = s.enrolled_courses || [];
-                    const enrolledNames = courses.filter(c => enrolledIds.includes(c.id)).map(c => c.title);
-                    
-                    let enrolledHtml = '';
-                    if (enrolledNames.length === 0) {
-                        enrolledHtml = '<span style="color:var(--text-muted); font-size:0.8rem;">Sin cursos matriculados</span>';
-                    } else {
-                        enrolledHtml = enrolledNames.map(name => `<span class="badge role-leader" style="font-size:0.7rem; margin-right:3px; display:inline-block; margin-top:3px;">📘 ${escapeHtml(name)}</span>`).join(' ');
-                    }
-                    
-                    const availableToEnroll = courses.filter(c => !enrolledIds.includes(c.id));
-                    let enrollDropdown = '';
-                    if (availableToEnroll.length > 0) {
-                        enrollDropdown = `
-                            <select onchange="enrollStudent('${s.id}', this.value); this.value='';" style="padding:5px; font-size:0.8rem; border-radius:6px; border:1px solid var(--border-color); width:100%; margin-top:10px;">
-                                <option value="">-- Matricular en Curso --</option>
-                                ${availableToEnroll.map(c => `<option value="${c.id}">${escapeHtml(c.title)}</option>`).join('')}
-                            </select>
-                        `;
-                    }
-                    
-                    let activeUnenrollHtml = '';
-                    if (enrolledIds.length > 0) {
-                        activeUnenrollHtml = '<div style="margin-top:10px; font-size:0.75rem; color:var(--text-muted); text-align:left;">Cancelar Matrícula:<br>';
-                        courses.filter(c => enrolledIds.includes(c.id)).forEach(c => {
-                            activeUnenrollHtml += `
-                                <span style="display:flex; justify-content:space-between; align-items:center; background:#fee2e2; color:#ef4444; border-radius:4px; padding:3px 6px; margin-top:2px;">
-                                    ${escapeHtml(c.title.substring(0,25))}...
-                                    <button class="btn-ghost" style="color:#ef4444; padding:0; font-size:0.7rem;" onclick="unenrollStudent('${s.id}', '${c.id}')">❌</button>
-                                </span>`;
+        function openGantt() {
+            const activities = [];
+            // Recorrer todo el árbol para extraer actividades
+            planningData.forEach(axis => {
+                (axis.strategies || []).forEach(st => {
+                    (st.general_objectives || []).forEach(go => {
+                        (go.specific_objectives || []).forEach(so => {
+                            (so.activities || []).forEach(act => {
+                                // Default dates if none
+                                let start = act.start_date ? act.start_date.substring(0, 10) : new Date().toISOString().substring(0, 10);
+                                let end = act.end_date ? act.end_date.substring(0, 10) : new Date(Date.now() + 86400000).toISOString().substring(0, 10);
+                                
+                                // Frappe Gantt requires specific format
+                                activities.push({
+                                    id: 'act_' + act.id,
+                                    name: act.description,
+                                    start: start,
+                                    end: end,
+                                    progress: act.status === 'Completada' ? 100 : (act.status === 'En Proceso' ? 50 : 0),
+                                    custom_class: act.status === 'Completada' ? 'gantt-green' : 'gantt-blue'
+                                });
+                            });
                         });
-                        activeUnenrollHtml += '</div>';
-                    }
+                    });
+                });
+            });
 
-                    html += `
-                        <div class="course-card" style="padding:20px; display:flex; flex-direction:column; justify-content:space-between; min-height:280px;">
+            if(activities.length === 0) {
+                alert('No hay actividades para mostrar en el cronograma.');
+                return;
+            }
+
+            document.getElementById('ganttModal').style.display = 'flex';
+            
+            // Clear previous
+            document.getElementById('gantt').innerHTML = '';
+            
+            ganttChart = new Gantt("#gantt", activities, {
+                on_date_change: async function(task, start, end) {
+                    const dbId = task.id.replace('act_', '');
+                    const s = start.toISOString().substring(0,10);
+                    const e = end.toISOString().substring(0,10);
+                    
+                    try {
+                        await fetch('/api/planning/node/edit', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: 'activity',
+                                id: parseInt(dbId),
+                                start_date: s,
+                                end_date: e
+                            })
+                        });
+                        // Recargar datos en background
+                        loadPlanningData();
+                    } catch(err) {
+                        console.error('Error updating gantt date', err);
+                    }
+                },
+                language: 'es'
+            });
+            ganttChart.change_view_mode('Week');
+        }
+
+        async function loadPlanningData() {
+            try {
+                const res = await fetch(`/api/planning/tree?inst_id=${getInstId()}`);
+                const data = await res.json();
+                if(data.status === 'success') {
+                    renderTree(data.tree);
+                } else {
+                    document.getElementById('planningTree').innerHTML = `<p style="color:red">Error: ${data.message}</p>`;
+                }
+            } catch(e) {
+                document.getElementById('planningTree').innerHTML = `<p style="color:red">Error de red: ${e}</p>`;
+            }
+        }
+
+        function renderTree(tree) {
+            const container = document.getElementById('planningTree');
+            if(!tree || tree.length === 0) {
+                container.innerHTML = `<div style="text-align: center; padding: 40px; color: #64748b;">
+                    <i class="fas fa-seedling fa-3x" style="color: #cbd5e1; margin-bottom:15px;"></i>
+                    <p>No hay Ejes Estratégicos. Por favor ve al módulo DOFA y guarda la matriz para generar las estrategias base.</p>
+                </div>`;
+                return;
+            }
+
+            let html = '';
+            tree.forEach(axis => {
+                html += `
+                <div class="node-wrapper lvl-axis">
+                    
+                    <div class="node-content">
+                        <div class="node-header" onclick="toggleBody(this)">
                             <div>
-                                <h3 style="font-size: 1.05rem; margin-bottom: 5px;">👤 ${escapeHtml(s.name)}</h3>
-                                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">✉️ ${s.email}</p>
-                                <div style="text-align:left; border-top:1px solid var(--border-color); padding-top:10px;">
-                                    <strong style="font-size:0.8rem;">Cursos Activos:</strong><br>
-                                    ${enrolledHtml}
+                                <span style="color:#64748b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Eje Estratégico</span>
+                                ${axis.name}
+                            </div>
+                            <i class="fas fa-chevron-down toggle-icon" style="color:#94a3b8;"></i>
+                        </div>
+                        
+                          <div class="node-body" style="display:block;">
+                              <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                                  <button class="btn-toolbar" onclick="editNode('axis', ${axis.id}, {'name': \`${axis.name.replace(/`/g, '')}\`, 'description': \`${(axis.description||'').replace(/`/g, '')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Eje</button>
+                                  <button class="btn-toolbar delete" onclick="deleteNode('axis', ${axis.id}, event)"><i class="fas fa-trash"></i> Eliminar Eje</button>
+                                  <button class="btn-toolbar" onclick="addNode('strategy', ${axis.id})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
+                              </div>
+
+                            <p style="font-size:0.9rem; color:#64748b; margin-top:0; margin-bottom:20px;">${axis.description || 'Sin descripción'}</p>
+                            ${renderStrategies(axis.strategies, axis.id)}
+                        </div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderStrategies(strats, axisId) {
+            let html = '<div class="children-list">';
+            if(strats && strats.length > 0) {
+                strats.forEach(st => {
+                    const wBadge = getWeightBadge(st.general_objectives, 100);
+                    html += `
+                    <div class="node-wrapper lvl-strat">
+                        
+                        <div class="node-content">
+                            <div class="node-header" onclick="toggleBody(this)">
+                                <div style="flex-grow:1; padding-right:15px;">
+                                    <span class="badge" style="background:#e0f2fe; color:#0284c7; margin-bottom:5px;">${st.quadrant || 'MANUAL'}</span>
+                                    <div style="font-weight:600; line-height:1.4;">${st.description}</div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                                    <span class="badge badge-weight">Peso: ${st.weight_percentage}%</span>
+                                    ${wBadge}
+                                    
+                                    <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
                                 </div>
                             </div>
                             
-                            <div>
-                                ${enrollDropdown}
-                                ${activeUnenrollHtml}
-                                <div style="display: flex; gap: 10px; width: 100%; margin-top:15px; border-top:1px solid var(--border-color); padding-top:10px;">
-                                    <button class="btn-secondary" style="flex:1; padding: 6px; font-size:0.8rem;" onclick="editStudent('${s.id}', '${escapeHtml(s.name)}', '${escapeHtml(s.email)}')">Editar</button>
-                                    <button class="btn-danger" style="flex:1; padding: 6px; font-size:0.8rem;" onclick="deleteStudent('${s.id}')">Eliminar</button>
+                            <div class="node-body">
+                                <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                                    <button class="btn-toolbar" onclick="editNode('strategy', ${st.id}, {'description': \`${st.description.replace(/`/g, '')}\`, 'weight_percentage': ${st.weight_percentage||0}}, event)"><i class="fas fa-pencil-alt"></i> Editar Estrategia</button>
+                                    <button class="btn-toolbar delete" onclick="deleteNode('strategy', ${st.id}, event)"><i class="fas fa-trash"></i> Eliminar Estrategia</button>
+                                    <button class="btn-toolbar" onclick="addNode('gen_obj', ${st.id})"><i class="fas fa-plus"></i> Añadir Obj. General</button>
                                 </div>
+                                ${renderGenObjs(st.general_objectives, st.id)}
                             </div>
                         </div>
-                    `;
+                    </div>`;
                 });
-                grid.innerHTML = html;
-            } catch(e) { grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">Error al cargar participantes.</div>'; }
+            } else {
+                html += `<p style="font-size:0.85rem; color:#94a3b8; ">No hay estrategias definidas.</p>`;
+            }
+            html += `
+                <div style=" margin-top:10px;">
+                    <button class="btn-add" onclick="addNode('strategy', ${axisId})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
+                </div>
+            </div>`;
+            return html;
         }
 
-        function editStudent(id, name, email) {
-            document.getElementById('student_id').value = id;
-            document.getElementById('student_name').value = name;
-            document.getElementById('student_email').value = email;
-            document.getElementById('studentModalTitle').textContent = 'Editar Estudiante';
-            document.getElementById('btnSubmitStudent').textContent = 'Guardar Cambios';
-            document.getElementById('studentModal').style.display = 'flex';
-        }
-
-        async function deleteStudent(studentId) {
-            if (!confirm("¿Deseas eliminar este participante de forma permanente?")) return;
-            try {
-                const resp = await fetch(`/api/students/${studentId}?inst_id=${getInstId()}`, { method: 'DELETE' });
-                if (resp.ok) loadStudentsList();
-            } catch(e) { alert("Error de red."); }
-        }
-
-        async function enrollStudent(studentId, courseId) {
-            if (!courseId) return;
-            try {
-                const resp = await fetch(`/api/students/${studentId}/enroll?inst_id=${getInstId()}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ course_id: courseId })
+        function renderGenObjs(gens, stratId) {
+            let html = '<div class="children-list">';
+            if(gens && gens.length > 0) {
+                gens.forEach(g => {
+                    const wBadge = getWeightBadge(g.specific_objectives, 100);
+                    // Validar cantidad (2 a 4)
+                    let countErr = (g.specific_objectives && (g.specific_objectives.length < 2 || g.specific_objectives.length > 4));
+                    let countWarning = countErr ? `<span class="badge badge-weight error" style="margin-left:5px;"><i class="fas fa-exclamation-triangle"></i> Requisito: 2 a 4 Obj. Específicos</span>` : '';
+                    
+                    html += `
+                    <div class="node-wrapper lvl-gen">
+                        
+                        <div class="node-content">
+                            <div class="node-header" onclick="toggleBody(this)">
+                                <div style="flex-grow:1; padding-right:15px;">
+                                    <span style="color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Objetivo General</span>
+                                    <div style="font-weight:600; line-height:1.4;">${g.description}</div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                                    ${wBadge}
+                                    
+                                    <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="node-body">
+                                <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                                    <button class="btn-toolbar" onclick="editNode('gen_obj', ${g.id}, {'description': \`${g.description.replace(/`/g, '')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Objetivo</button>
+                                    <button class="btn-toolbar delete" onclick="deleteNode('gen_obj', ${g.id}, event)"><i class="fas fa-trash"></i> Eliminar Objetivo</button>
+                                    <button class="btn-toolbar" onclick="addNode('spec_obj', ${g.id})"><i class="fas fa-plus"></i> Añadir Obj. Específico</button>
+                                </div>
+                                ${countWarning ? `<div style="margin-bottom:15px;">${countWarning}</div>` : ''}
+                                ${renderSpecObjs(g.specific_objectives, g.id)}
+                            </div>
+                        </div>
+                    </div>`;
                 });
-                if (resp.ok) {
-                    loadStudentsList();
-                    const openCId = document.getElementById('editCourseId').value;
-                    if (openCId === courseId) loadCourseStudentsList(courseId);
-                }
-            } catch(e) { alert("Error de red al matricular."); }
+            } else {
+                html += `<p style="font-size:0.85rem; color:#94a3b8; ">Sin objetivos generales.</p>`;
+            }
+            html += `
+                <div style=" margin-top:10px; display:flex; gap:10px;">
+                    <button class="btn-add" onclick="addNode('gen_obj', ${stratId})"><i class="fas fa-plus"></i> Obj. General Manual</button>
+                    <button class="btn-add btn-ai" onclick="suggestGenObjAI(${stratId})"><i class="fas fa-robot"></i> Sugerir IA</button>
+                </div>
+            </div>`;
+            return html;
         }
 
-        async function unenrollStudent(studentId, courseId) {
-            if (!confirm("¿Cancelar matrícula de este estudiante en este curso?")) return;
-            try {
-                const resp = await fetch(`/api/students/${studentId}/unenroll?inst_id=${getInstId()}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ course_id: courseId })
+        function renderSpecObjs(specs, genId) {
+            let html = '<div class="children-list">';
+            if(specs && specs.length > 0) {
+                specs.forEach(s => {
+                    // Validar cantidad (2 a 5)
+                    let acts = s.activities || [];
+                    let countErr = (acts.length < 2 || acts.length > 5);
+                    let countWarning = countErr ? `<span class="badge badge-weight error" style="margin-left:5px;"><i class="fas fa-exclamation-triangle"></i> Requisito: 2 a 5 Actividades</span>` : '';
+
+                    html += `
+                    <div class="node-wrapper lvl-spec">
+                        
+                        <div class="node-content">
+                            <div class="node-header" onclick="toggleBody(this)">
+                                <div style="flex-grow:1; padding-right:15px;">
+                                    <span style="color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Objetivo Específico</span>
+                                    <div style="font-weight:600; line-height:1.4;">${s.description}</div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                                    <span class="badge badge-weight">Peso: ${s.weight_percentage}%</span>
+                                    
+                                    <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                                </div>
+                            </div>
+                            <div class="node-body">
+                                <div style="background:#f8fafc; padding:10px 15px; border-radius:6px; margin-bottom:15px; font-size:0.85rem; color:#475569;">
+                                    <i class="fas fa-chart-line" style="margin-right:5px; color:#f59e0b;"></i> <strong>Indicador:</strong> ${s.indicator_type || 'N/A'} - ${s.indicator_description || ''}
+                                </div>
+                                ${countWarning ? `<div style="margin-bottom:15px;">${countWarning}</div>` : ''}
+                                ${renderActivities(s.activities, s.id)}
+                            </div>
+                        </div>
+                    </div>`;
                 });
-                if (resp.ok) {
-                    loadStudentsList();
-                    const openCId = document.getElementById('editCourseId').value;
-                    if (openCId === courseId) loadCourseStudentsList(courseId);
-                }
-            } catch(e) { alert("Error de red."); }
+            } else {
+                html += `<p style="font-size:0.85rem; color:#94a3b8; ">Sin objetivos específicos.</p>`;
+            }
+            html += `
+                <div style=" margin-top:10px; display:flex; gap:10px;">
+                    <button class="btn-add" onclick="addNode('spec_obj', ${genId})"><i class="fas fa-plus"></i> Obj. Específico Manual</button>
+                    <button class="btn-add btn-ai" onclick="suggestSpecObjAI(${genId})"><i class="fas fa-robot"></i> Sugerir IA</button>
+                </div>
+            </div>`;
+            return html;
         }
 
+        function renderActivities(acts, specId) {
+            let html = '<div class="children-list">';
+            if(acts && acts.length > 0) {
+                acts.forEach(a => {
+                    let badgeClass = 'badge-pending';
+                    if(a.status === 'En Progreso') badgeClass = 'badge-progress';
+                    if(a.status === 'Completado') badgeClass = 'badge-done';
+                    
+                    html += `
+                    <div class="node-wrapper lvl-act">
+                        
+                        <div class="node-content">
+                            <div class="node-header" style="cursor:default;">
+                                <div style="flex-grow:1;">
+                                    <div style="font-weight:600; line-height:1.4; color:#334155;">${a.description}</div>
+                                    <div class="activity-meta" style="margin-top:10px;">
+                                        <span title="Responsable"><i class="fas fa-user"></i> ${a.responsible || 'Sin responsable'}</span>
+                                        <span title="Fechas"><i class="far fa-calendar"></i> ${a.start_date || 'N/A'} a ${a.end_date || 'N/A'}</span>
+                                        <span title="Presupuesto Financiero (Incluye carga prestacional)"><i class="fas fa-money-bill-wave"></i> $${(a.financial_budget || 0).toLocaleString('es-CO')}</span>
+                                    </div>
+                                </div>
+                                <div style="flex-shrink:0; margin-left:15px;">
+                                    
+                                      <span class="badge ${badgeClass}">${a.status || 'Pendiente'}</span>
+                                  </div>
+                                  <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+                                      <button class="btn-toolbar" onclick="editNode('activity', ${a.id}, {'description': \`${a.description.replace(/`/g, '')}\`, 'start_date': \`${(a.start_date||'').substring(0,10)}\`, 'end_date': \`${(a.end_date||'').substring(0,10)}\`, 'financial_budget': ${a.financial_budget||0}, 'responsible': \`${(a.responsible||'').replace(/`/g, '')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Actividad</button>
+                                      <button class="btn-toolbar delete" onclick="deleteNode('activity', ${a.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
+                                  </div>
 
-        // ========== SECCIÓN CURSOS (Admin) ==========
-
-        function openCreateCourseModal() {
-            document.getElementById('course_title').value = '';
-            document.getElementById('course_certifier').value = 'SKEL';
-            document.getElementById('courseModal').style.display = 'flex';
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                html += `<p style="font-size:0.85rem; color:#94a3b8; ">Sin actividades.</p>`;
+            }
+            html += `
+                <div style=" margin-top:10px; display:flex; gap:10px;">
+                    <button class="btn-add" onclick="addNode('activity', ${specId})"><i class="fas fa-plus"></i> Actividad Manual</button>
+                    <button class="btn-add btn-ai" onclick="suggestActivitiesAI(${specId})"><i class="fas fa-robot"></i> Sugerir IA</button>
+                </div>
+            </div>`;
+            return html;
         }
 
-        function closeCourseModal() {
-            document.getElementById('courseModal').style.display = 'none';
-        }
+        let currentNodeType = '';
+        let currentParentId = 0;
 
-        async function submitCreateCourse() {
-            const title = document.getElementById('course_title').value.trim();
-            const certifier = document.getElementById('course_certifier').value.trim();
-            if (!title) { alert("El nombre del curso es obligatorio."); return; }
+        
+        function editNode(type, id, data, event) {
+            if(event) event.stopPropagation();
+            document.getElementById('nodeForm').reset();
+            document.getElementById('nodeType').value = type;
+            document.getElementById('parentId').value = '';
+            document.getElementById('nodeId').value = id;
+            document.getElementById('modalTitle').textContent = 'Editar Elemento';
             
+            const body = document.getElementById('modalBody');
+            if(type === 'axis') {
+                body.innerHTML = `
+                    <div class="form-group"><label>Nombre del Eje</label><input type="text" id="f_name" value="${data.name || ''}"></div>
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                `;
+            } else if(type === 'strategy') {
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                    <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="${data.weight_percentage || 0}" min="0" max="100"></div>
+                `;
+            } else if(type === 'gen_obj') {
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                `;
+            } else if(type === 'spec_obj') {
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                    <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="${data.weight_percentage || 0}" min="0" max="100"></div>
+                    <div class="form-group"><label>Tipo de Indicador</label><input type="text" id="f_ind_type" value="${data.indicator_type || ''}"></div>
+                    <div class="form-group"><label>Descripción del Indicador</label><input type="text" id="f_ind_desc" value="${data.indicator_description || ''}"></div>
+                `;
+            } else if(type === 'activity') {
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="form-group" style="flex:1;"><label>Fecha Inicio</label><input type="date" id="f_start" value="${data.start_date || ''}"></div>
+                        <div class="form-group" style="flex:1;"><label>Fecha Fin</label><input type="date" id="f_end" value="${data.end_date || ''}"></div>
+                    </div>
+                    <div class="form-group"><label>Presupuesto Financiero ($)</label><input type="number" id="f_budget" value="${data.financial_budget || 0}"></div>
+                    <div class="form-group"><label>Responsable</label><input type="text" id="f_resp" value="${data.responsible || ''}"></div>
+                `;
+            }
+            document.getElementById('nodeModal').style.display = 'flex';
+        }
+
+        function addNode(type, parentId) {
+            currentNodeType = type;
+            currentParentId = parentId;
+            const modal = document.getElementById('nodeModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            
+            if(type === 'strategy') {
+                title.textContent = 'Nueva Estrategia';
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
+                    <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="0" min="0" max="100"></div>
+                `;
+            } else if(type === 'gen_obj') {
+                title.textContent = 'Nuevo Objetivo General';
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
+                    <div class="form-group"><label>Alineación (PDI)</label><input type="text" id="f_align" placeholder="Opcional"></div>
+                `;
+            } else if(type === 'spec_obj') {
+                title.textContent = 'Nuevo Objetivo Específico';
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
+                    <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="0" min="0" max="100"></div>
+                    <div class="form-group"><label>Tipo de Indicador</label><input type="text" id="f_ind_type" placeholder="Ej: Porcentaje, Número..."></div>
+                    <div class="form-group"><label>Descripción del Indicador</label><input type="text" id="f_ind_desc"></div>
+                `;
+            } else if(type === 'activity') {
+                title.textContent = 'Nueva Actividad';
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="form-group" style="flex:1;"><label>Fecha Inicio</label><input type="date" id="f_start"></div>
+                        <div class="form-group" style="flex:1;"><label>Fecha Fin</label><input type="date" id="f_end"></div>
+                    </div>
+                    <div class="form-group"><label>Meta Numérica / Entregable</label><input type="text" id="f_goal"></div>
+                    <div class="form-group"><label>Responsable</label><input type="text" id="f_resp"></div>
+                    <div class="form-group"><label>Presupuesto (Valor Hora Base)</label><input type="number" id="f_budget" placeholder="Si aplica (el sistema calculará +1.54)"></div>
+                `;
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('nodeModal').style.display = 'none';
+        }
+
+        async function saveNode() {
+            const btn = document.getElementById('btnSaveNode');
+            btn.textContent = 'Guardando...';
+            btn.disabled = true;
+
             const payload = {
-                title, certifier,
-                description: "Descripción básica de este curso de capacitación inteligente.",
-                duration: 10, level: "Principiante", category: "Educación"
+                inst_id: getInstId(),
+                type: currentNodeType,
+                parent_id: currentParentId,
+                description: document.getElementById('f_desc') ? document.getElementById('f_desc').value : ''
             };
+
             
+            if(currentNodeType === 'axis') {
+                payload.name = document.getElementById('f_name').value || '';
+            } else if(currentNodeType === 'strategy') {
+                payload.weight_percentage = document.getElementById('f_weight').value || 0;
+                payload.quadrant = 'MANUAL';
+            } else if(currentNodeType === 'gen_obj') {
+                payload.alignment_pdi = document.getElementById('f_align').value || '';
+            } else if(currentNodeType === 'spec_obj') {
+                payload.weight_percentage = document.getElementById('f_weight').value || 0;
+                payload.indicator_type = document.getElementById('f_ind_type').value || '';
+                payload.indicator_description = document.getElementById('f_ind_desc').value || '';
+            } else if(currentNodeType === 'activity') {
+                payload.start_date = document.getElementById('f_start').value || null;
+                payload.end_date = document.getElementById('f_end').value || null;
+                payload.goal = document.getElementById('f_goal').value || '';
+                payload.responsible = document.getElementById('f_resp').value || '';
+                let budget = parseFloat(document.getElementById('f_budget').value || 0);
+                payload.financial_budget = budget * 1.54; // Carga prestacional
+            }
+
             try {
-                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                
+            if (nodeId) payload.id = nodeId;
+            
+            const res = await fetch('/api/planning/node', {
+                    method: nodeId ? 'PUT' : 'POST',
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
                 });
-                const res = await resp.json();
-                if (res.status === 'success') {
-                    closeCourseModal();
-                    loadCoursesList();
-                    openEditor(res.data.id);
-                } else { alert("Error: " + res.message); }
-            } catch(e) { alert("Error de red."); }
-        }
-
-        async function loadCoursesList() {
-            const grid = document.getElementById('coursesGrid');
-            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando cursos...</div>';
-            
-            try {
-                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const courses = await resp.json();
-                
-                if (courses.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No hay cursos creados en este programa académico.</div>';
-                    return;
-                }
-                
-                let html = '';
-                courses.forEach(c => {
-                    html += `
-                        <div class="course-card">
-                            <div class="course-card-header">
-                                <span class="course-card-badge">${escapeHtml(c.category || 'Curso')}</span>
-                                <h3 class="course-card-title">${escapeHtml(c.title)}</h3>
-                            </div>
-                            <div class="course-card-body">
-                                <p class="course-card-desc">${escapeHtml(c.description || 'Sin descripción.')}</p>
-                                <div>
-                                    <div class="course-card-meta">
-                                        <span>⏱️ ${c.duration || 10} Horas</span>
-                                        <span>📊 ${escapeHtml(c.level || 'Principiante')}</span>
-                                    </div>
-                                    <div class="course-card-meta" style="border:none; padding-top:0;">
-                                        <span>🎓 Certifica: ${escapeHtml(c.certifier || 'SKEL')}</span>
-                                    </div>
-                                    <div class="course-card-actions">
-                                        <button class="btn-primary" onclick="openEditor('${c.id}')">⚙️ Administrar</button>
-                                        <button class="btn-danger" style="flex:0 0 45px; padding:0; height:36px; border-radius:8px;" onclick="deleteCourse('${c.id}')">🗑️</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                grid.innerHTML = html;
-            } catch(e) { grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error de red al cargar cursos.</div>'; }
-        }
-
-        async function deleteCourse(courseId) {
-            if (!confirm("⚠️ ¿Estás seguro de eliminar este curso?")) return;
-            try {
-                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, { method: 'DELETE' });
-                if (resp.ok) {
-                    loadCoursesList();
-                    if (document.getElementById('editCourseId').value === courseId) closeEditor();
-                }
-            } catch(e) { alert("Error de red."); }
-        }
-
-        // ========== EDITOR DETALLADO DEL CURSO SELECCIONADO (Admin) ==========
-
-        async function openEditor(courseId) {
-            try {
-                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const course = await resp.json();
-                if (course.status === 'error') { alert("No se pudo abrir el curso."); return; }
-                
-                activeCourse = course;
-                
-                // Cargar todas las entregas para este curso
-                try {
-                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                    activeCourseSubmissions = await subResp.json();
-                } catch (e) {
-                    console.error("Error al cargar entregas del curso:", e);
-                    activeCourseSubmissions = [];
-                }
-                
-                document.getElementById('editCourseId').value = course.id;
-                document.getElementById('editorCourseTitle').textContent = `Administrar Curso: ${course.title}`;
-                document.getElementById('edit_title').value = course.title || '';
-                document.getElementById('edit_certifier').value = course.certifier || '';
-                document.getElementById('edit_teacher_id').value = course.teacher_id || '';
-                document.getElementById('edit_category').value = course.category || 'Educación';
-                document.getElementById('edit_duration').value = course.duration || 10;
-                document.getElementById('edit_level').value = course.level || 'Principiante';
-                document.getElementById('edit_description').value = course.description || '';
-                
-                renderOutcomesList();
-                renderCompetenciesList();
-                renderSyllabusList();
-                renderMeetingsList();
-                loadCourseStudentsList(courseId);
-                
-                initForum(courseId, true);
-
-                document.getElementById('courseEditorSection').style.display = 'block';
-                document.getElementById('courseEditorSection').scrollIntoView({ behavior: 'smooth' });
-                switchSubTab('general');
-            } catch(e) { alert("Error al abrir editor."); }
-        }
-
-        function closeEditor() {
-            document.getElementById('courseEditorSection').style.display = 'none';
-            activeCourse = null;
-        }
-
-        async function updateCourseOnServer() {
-            if (!activeCourse) return;
-            try {
-                await fetch(`/api/courses/${activeCourse.id}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(activeCourse)
-                });
-            } catch(e) { console.error("Error saving course edits:", e); }
-        }
-
-        async function loadCourseStudentsList(courseId) {
-            const listDiv = document.getElementById('courseStudentsList');
-            listDiv.innerHTML = '<span style="color:var(--text-muted)">Cargando participantes...</span>';
-            try {
-                const resp = await fetch(`/api/courses/${courseId}/students?inst_id=${getInstId()}`);
-                const students = await resp.json();
-                
-                if (students.length === 0) {
-                    listDiv.innerHTML = '<span style="color:var(--text-muted); font-size:0.85rem;">Ningún participante matriculado en este curso todavía.</span>';
-                    return;
-                }
-                
-                listDiv.innerHTML = students.map(s => `
-                    <div style="background:#fff; border:1px solid var(--border-color); border-radius:6px; padding:6px 10px; display:flex; justify-content:space-between; align-items:center;">
-                        <span>👤 ${escapeHtml(s.name)}</span>
-                        <button class="btn-ghost" style="color:#ef4444; padding:0; font-size:0.75rem;" onclick="unenrollStudent('${s.id}', '${courseId}')">Retirar</button>
-                    </div>
-                `).join('');
-            } catch(e) { listDiv.innerHTML = '<span style="color:#ef4444">Error al cargar participantes del curso.</span>'; }
-        }
-
-        // --- OUTCOMES & COMPETENCIES ---
-
-        async function saveCourseGeneralInfo() {
-            if (!activeCourse) return;
-            activeCourse.title = document.getElementById('edit_title').value.trim();
-            activeCourse.certifier = document.getElementById('edit_certifier').value.trim();
-            activeCourse.teacher_id = document.getElementById('edit_teacher_id').value;
-            activeCourse.category = document.getElementById('edit_category').value;
-            activeCourse.duration = parseInt(document.getElementById('edit_duration').value) || 10;
-            activeCourse.level = document.getElementById('edit_level').value;
-            activeCourse.description = document.getElementById('edit_description').value.trim();
-            
-            if (!activeCourse.title) { alert("El título es obligatorio."); return; }
-            await updateCourseOnServer();
-            alert("✅ Información general guardada.");
-            loadCoursesList();
-            document.getElementById('editorCourseTitle').textContent = `Administrar Curso: ${activeCourse.title}`;
-        }
-
-        function renderOutcomesList() {
-            const listDiv = document.getElementById('editOutcomesList');
-            listDiv.innerHTML = '';
-            const outcomes = activeCourse.outcomes || [];
-            
-            if (outcomes.length === 0) {
-                listDiv.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">Ningún resultado agregado.</div>';
-                return;
-            }
-            outcomes.forEach((o, index) => {
-                const div = document.createElement('div');
-                div.style = 'display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; background:white; border:1px solid var(--border-color); border-radius:6px; padding:4px 8px; margin-bottom:4px;';
-                div.innerHTML = `<span>• ${escapeHtml(o)}</span><button class="btn-ghost" style="color:#ef4444; padding:0 3px;" onclick="removeOutcome(${index})">🗑️</button>`;
-                listDiv.appendChild(div);
-            });
-        }
-
-        function addOutcomePrompt() {
-            const res = prompt("Ingresa el Resultado de Aprendizaje:");
-            if (res && res.trim() !== '') {
-                if (!activeCourse.outcomes) activeCourse.outcomes = [];
-                activeCourse.outcomes.push(res.trim());
-                renderOutcomesList();
-                updateCourseOnServer();
-            }
-        }
-
-        function removeOutcome(index) {
-            activeCourse.outcomes.splice(index, 1);
-            renderOutcomesList();
-            updateCourseOnServer();
-        }
-
-        function renderCompetenciesList() {
-            const listDiv = document.getElementById('editCompetenciesList');
-            listDiv.innerHTML = '';
-            const competencies = activeCourse.competencies || [];
-            
-            if (competencies.length === 0) {
-                listDiv.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">Ninguna competencia agregada.</div>';
-                return;
-            }
-            competencies.forEach((c, index) => {
-                const div = document.createElement('div');
-                div.style = 'display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; background:white; border:1px solid var(--border-color); border-radius:6px; padding:4px 8px; margin-bottom:4px;';
-                div.innerHTML = `<span>• ${escapeHtml(c)}</span><button class="btn-ghost" style="color:#ef4444; padding:0 3px;" onclick="removeCompetency(${index})">🗑️</button>`;
-                listDiv.appendChild(div);
-            });
-        }
-
-        function addCompetencyPrompt() {
-            const res = prompt("Ingresa la Competencia:");
-            if (res && res.trim() !== '') {
-                if (!activeCourse.competencies) activeCourse.competencies = [];
-                activeCourse.competencies.push(res.trim());
-                renderCompetenciesList();
-                updateCourseOnServer();
-            }
-        }
-
-        function removeCompetency(index) {
-            activeCourse.competencies.splice(index, 1);
-            renderCompetenciesList();
-            updateCourseOnServer();
-        }
-
-
-        // --- PLAN DE ESTUDIOS (UNIDADES, REPOSITORIO, ACTIVIDADES, EVALUACIONES) ---
-
-        function renderSyllabusList() {
-            const container = document.getElementById('unitsContainer');
-            container.innerHTML = '';
-            const units = activeCourse.units || [];
-            
-            if (units.length === 0) {
-                container.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding:40px; border:2px dashed var(--border-color); border-radius:8px;">No hay unidades definidas. Añade una para comenzar.</div>';
-                return;
-            }
-            
-            units.forEach((unit, uIdx) => {
-                const unitDiv = document.createElement('div');
-                unitDiv.className = 'unit-box';
-                unitDiv.style = 'margin-bottom: 25px; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm);';
-                
-                let topicsHtml = '';
-                if (!unit.topics || unit.topics.length === 0) {
-                    topicsHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:5px; text-align:center;">Sin temas asignados.</div>';
+                const data = await res.json();
+                if(data.status === 'success') {
+                    closeModal();
+                    loadPlanningData();
                 } else {
-                    unit.topics.forEach((rawT, tIdx) => {
-                        const t = typeof rawT === 'string' ? { id: 't_' + tIdx, title: rawT, content: "" } : rawT;
-                        topicsHtml += `
-                            <div class="topic-item">
-                                <span style="font-weight:600; color:var(--text-main);">📖 ${escapeHtml(t.title)}</span>
-                                <div style="display:flex; gap:6px; align-items:center;">
-                                    <button class="btn-primary" style="padding:6px 12px; font-size:0.75rem; background: var(--primary-gradient); border:none; color:white; border-radius:8px; font-weight:600;" onclick="openTopicEditor(${uIdx}, ${tIdx})">📝 Contenido</button>
-                                    <button class="btn-ghost" style="color:#ef4444; padding:2px 6px; font-size:0.75rem;" onclick="removeTopic(${uIdx}, ${tIdx})">Eliminar</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-
-                let resourcesHtml = '';
-                const resources = unit.resources || [];
-                if (resources.length === 0) {
-                    resourcesHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:8px; text-align:center;">Ningún recurso añadido (PDF, Video, Infografía).</div>';
-                } else {
-                    resources.forEach((r, rIdx) => {
-                        const typeIcon = r.type === 'document' ? '📄 PDF' : (r.type === 'video' ? '🎥 Video' : (r.type === 'infographic' ? '📊 Infografía' : '🔗 Web/Texto'));
-                        resourcesHtml += `
-                            <div class="resource-card">
-                                <span><strong>${typeIcon}:</strong> ${escapeHtml(r.name)}</span>
-                                <div style="display:flex; gap:10px; align-items:center;">
-                                    <a href="${r.url}" target="_blank" style="color:var(--primary-color); font-weight:600; text-decoration:none;">Abrir</a>
-                                    <button class="btn-ghost" style="color:#ef4444; padding:0 3px;" onclick="removeUnitResource(${uIdx}, ${rIdx})">🗑️</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-
-                let activitiesHtml = '';
-                const activities = unit.activities || [];
-                if (activities.length === 0) {
-                    activitiesHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:8px; text-align:center;">Ninguna actividad creada (Talleres, Foros).</div>';
-                } else {
-                    activities.forEach((act, actIdx) => {
-                        const subCount = (activeCourseSubmissions || []).filter(s => s.activity_id === act.id).length;
-                        activitiesHtml += `
-                            <div class="activity-item" style="display:flex; justify-content:space-between; align-items:center;">
-                                <div>
-                                    <strong>📝 ${escapeHtml(act.title)}</strong>
-                                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Entrega: ${act.due_date || 'Sin fecha'} - ${escapeHtml(act.description || '')}</div>
-                                </div>
-                                <div style="display:flex; gap:6px; align-items:center;">
-                                    <button class="btn-primary" style="padding:4px 10px; font-size:0.7rem; background: var(--primary-gradient); border:none; color:white; border-radius:8px; font-weight:600;" onclick="openActivitySubmissionsModal('${unit.id}', '${act.id}', '${escapeHtml(act.title).replace(/'/g, "\\'")}')">📥 Entregas (${subCount})</button>
-                                    <button class="btn-ghost" style="color:#ef4444; padding:0 5px;" onclick="removeUnitActivity(${uIdx}, ${actIdx})">🗑️</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-
-                let evaluationsHtml = '';
-                const evaluations = unit.evaluations || [];
-                if (evaluations.length === 0) {
-                    evaluationsHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:8px; text-align:center;">Ninguna evaluación creada.</div>';
-                } else {
-                    evaluations.forEach((ev, evIdx) => {
-                        evaluationsHtml += `
-                            <div class="evaluation-item">
-                                <div>
-                                    <strong>🏆 ${escapeHtml(ev.title)}</strong>
-                                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Escala CNA: Aprobación ${ev.min_grade || 3.0} / Máxima ${ev.max_grade || 5.0}</div>
-                                </div>
-                                <button class="btn-ghost" style="color:#ef4444; padding:0 5px;" onclick="removeUnitEvaluation(${uIdx}, ${evIdx})">🗑️</button>
-                            </div>
-                        `;
-                    });
-                }
-                
-                unitDiv.innerHTML = `
-                    <div class="unit-header">
-                        <span>Unidad ${uIdx + 1}: ${escapeHtml(unit.name)}</span>
-                        <button class="btn-ghost" style="color:white; font-size:0.8rem; border:1px solid rgba(255,255,255,0.4); padding:4px 10px; border-radius:10px;" onclick="removeUnit(${uIdx})">Eliminar Unidad</button>
-                    </div>
-                    
-                    <div style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; background: var(--card-bg);">
-                        <div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">
-                                <h4 style="font-size:0.9rem; margin:0; color:var(--primary-color);">📖 Temas Académicos</h4>
-                                <button class="btn-ghost" style="font-size:0.75rem; padding:2px 6px; color:var(--primary-color);" onclick="addTopicPrompt(${uIdx})">+ Tema</button>
-                            </div>
-                            <div class="topic-list" style="padding:0; margin-bottom:20px;">
-                                ${topicsHtml}
-                            </div>
-                            
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">
-                                <h4 style="font-size:0.9rem; margin:0; color:var(--primary-color);">📁 Repositorio de la Unidad (PDF, Videos, Infografías)</h4>
-                                <button class="btn-ghost" style="font-size:0.75rem; padding:2px 6px; color:var(--primary-color);" onclick="openAddResourceModal(${uIdx})">+ Recurso</button>
-                            </div>
-                            <div style="margin-bottom:10px;">
-                                ${resourcesHtml}
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">
-                                <h4 style="font-size:0.9rem; margin:0; color:var(--primary-color);">📝 Actividades / Tareas</h4>
-                                <button class="btn-ghost" style="font-size:0.75rem; padding:2px 6px; color:var(--primary-color);" onclick="openAddActivityModal(${uIdx})">+ Actividad</button>
-                            </div>
-                            <div style="margin-bottom:20px;">
-                                ${activitiesHtml}
-                            </div>
-                            
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">
-                                <h4 style="font-size:0.9rem; margin:0; color:var(--primary-color);">🏆 Evaluaciones (Escala CNA 1.0 - 5.0)</h4>
-                                <button class="btn-ghost" style="font-size:0.75rem; padding:2px 6px; color:var(--primary-color);" onclick="openAddEvaluationModal(${uIdx})">+ Evaluación</button>
-                            </div>
-                            <div>
-                                ${evaluationsHtml}
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                container.appendChild(unitDiv);
-            });
-        }
-
-        function addUnitPrompt() {
-            const name = prompt("Nombre de la Unidad:");
-            if (name && name.trim() !== '') {
-                if (!activeCourse.units) activeCourse.units = [];
-                activeCourse.units.push({
-                    id: 'u_' + Math.random().toString(36).substr(2, 5),
-                    name: name.trim(),
-                    topics: [], resources: [], activities: [], evaluations: []
-                });
-                renderSyllabusList();
-                updateCourseOnServer();
-            }
-        }
-
-        function removeUnit(index) {
-            if (!confirm("¿Eliminar esta unidad completa?")) return;
-            activeCourse.units.splice(index, 1);
-            renderSyllabusList();
-            updateCourseOnServer();
-        }
-
-        function addTopicPrompt(unitIdx) {
-            const name = prompt("Nombre del Tema:");
-            if (name && name.trim() !== '') {
-                if (!activeCourse.units[unitIdx].topics) activeCourse.units[unitIdx].topics = [];
-                activeCourse.units[unitIdx].topics.push(name.trim());
-                renderSyllabusList();
-                updateCourseOnServer();
-            }
-        }
-
-        function removeTopic(unitIdx, topicIdx) {
-            activeCourse.units[unitIdx].topics.splice(topicIdx, 1);
-            renderSyllabusList();
-            updateCourseOnServer();
-        }
-
-        // --- ACCIONES REPOSITORIO DE UNIDAD ---
-        function openAddResourceModal(unitIdx) {
-            document.getElementById('resourceUnitIdx').value = unitIdx;
-            document.getElementById('res_name').value = '';
-            document.getElementById('res_url').value = '';
-            document.getElementById('unitResourceModal').style.display = 'flex';
-        }
-        function closeUnitResourceModal() { document.getElementById('unitResourceModal').style.display = 'none'; }
-        async function submitAddUnitResource() {
-            const unitIdx = parseInt(document.getElementById('resourceUnitIdx').value);
-            let name = document.getElementById('res_name').value.trim();
-            const url = document.getElementById('res_url').value.trim();
-            const type = document.getElementById('res_type').value;
-            
-            if (!url) { 
-                alert("Por favor, introduce el enlace o URL del recurso."); 
-                return; 
-            }
-            
-            // Si el nombre está vacío, generar un nombre inteligente por defecto en lugar de bloquear al usuario
-            if (!name) {
-                if (type === 'document') name = "Documento de la Unidad";
-                else if (type === 'video') name = "Vídeo de la Unidad";
-                else if (type === 'infographic') name = "Infografía de la Unidad";
-                else name = "Enlace de la Unidad";
-                
-                try {
-                    const parsedUrl = new URL(url);
-                    const pathParts = parsedUrl.pathname.split('/');
-                    const lastPart = pathParts[pathParts.length - 1];
-                    if (lastPart && lastPart.length > 3) {
-                        name = decodeURIComponent(lastPart).substring(0, 35);
-                    } else {
-                        name += " (" + parsedUrl.hostname + ")";
-                    }
-                } catch(e) {}
-            }
-            
-            const newRes = { id: 'r_' + Math.random().toString(36).substr(2, 5), name, url, type };
-            if (!activeCourse.units[unitIdx].resources) activeCourse.units[unitIdx].resources = [];
-            activeCourse.units[unitIdx].resources.push(newRes);
-            
-            closeUnitResourceModal();
-            renderSyllabusList();
-            await updateCourseOnServer();
-        }
-        function removeUnitResource(unitIdx, resIdx) {
-            if (!confirm("¿Eliminar este recurso de esta unidad?")) return;
-            activeCourse.units[unitIdx].resources.splice(resIdx, 1);
-            renderSyllabusList();
-            updateCourseOnServer();
-        }
-
-        // --- ACCIONES ACTIVIDADES DE UNIDAD ---
-        function openAddActivityModal(unitIdx) {
-            document.getElementById('activityUnitIdx').value = unitIdx;
-            document.getElementById('act_title').value = '';
-            document.getElementById('act_description').value = '';
-            document.getElementById('act_date').value = '';
-            document.getElementById('unitActivityModal').style.display = 'flex';
-        }
-        function closeUnitActivityModal() { document.getElementById('unitActivityModal').style.display = 'none'; }
-        async function submitAddUnitActivity() {
-            const unitIdx = parseInt(document.getElementById('activityUnitIdx').value);
-            const title = document.getElementById('act_title').value.trim();
-            const description = document.getElementById('act_description').value.trim();
-            const due_date = document.getElementById('act_date').value;
-            
-            if (!title) { alert("El título es obligatorio."); return; }
-            
-            const newAct = { id: 'act_' + Math.random().toString(36).substr(2, 5), title, description, due_date };
-            if (!activeCourse.units[unitIdx].activities) activeCourse.units[unitIdx].activities = [];
-            activeCourse.units[unitIdx].activities.push(newAct);
-            
-            closeUnitActivityModal();
-            renderSyllabusList();
-            await updateCourseOnServer();
-        }
-        function removeUnitActivity(unitIdx, actIdx) {
-            if (!confirm("¿Eliminar esta actividad?")) return;
-            activeCourse.units[unitIdx].activities.splice(actIdx, 1);
-            renderSyllabusList();
-            updateCourseOnServer();
-        }
-
-        // --- ACCIONES EVALUACIONES DE UNIDAD (ESCALA CNA) ---
-        function openAddEvaluationModal(unitIdx) {
-            document.getElementById('evaluationUnitIdx').value = unitIdx;
-            document.getElementById('eval_title').value = '';
-            document.getElementById('eval_min').value = '3.0';
-            document.getElementById('eval_max').value = '5.0';
-            document.getElementById('unitEvaluationModal').style.display = 'flex';
-        }
-        function closeUnitEvaluationModal() { document.getElementById('unitEvaluationModal').style.display = 'none'; }
-        async function submitAddUnitEvaluation() {
-            const unitIdx = parseInt(document.getElementById('evaluationUnitIdx').value);
-            const title = document.getElementById('eval_title').value.trim();
-            const min_grade = parseFloat(document.getElementById('eval_min').value) || 3.0;
-            const max_grade = parseFloat(document.getElementById('eval_max').value) || 5.0;
-            
-            if (!title) { alert("El título es obligatorio."); return; }
-            if (min_grade < 1.0 || max_grade > 5.0 || min_grade > max_grade) {
-                alert("Calificaciones inválidas en Escala CNA (1.0 - 5.0)."); return;
-            }
-            
-            const newEval = { id: 'eval_' + Math.random().toString(36).substr(2, 5), title, min_grade, max_grade };
-            if (!activeCourse.units[unitIdx].evaluations) activeCourse.units[unitIdx].evaluations = [];
-            activeCourse.units[unitIdx].evaluations.push(newEval);
-            
-            closeUnitEvaluationModal();
-            renderSyllabusList();
-            await updateCourseOnServer();
-        }
-        function removeUnitEvaluation(unitIdx, evIdx) {
-            if (!confirm("¿Eliminar esta evaluación?")) return;
-            activeCourse.units[unitIdx].evaluations.splice(evIdx, 1);
-            renderSyllabusList();
-            updateCourseOnServer();
-        }
-
-
-        // --- SUB-TAB: CLASES SINCRONICAS ---
-
-        function renderMeetingsList() {
-            const listDiv = document.getElementById('meetingsList');
-            listDiv.innerHTML = '';
-            const meetings = activeCourse.meetings || [];
-            
-            if (meetings.length === 0) {
-                listDiv.innerHTML = '<div style="color:var(--text-muted); font-size:0.88rem; text-align:center; padding:20px;">No hay clases programadas. Agrega una arriba.</div>';
-                return;
-            }
-            
-            meetings.forEach((m, idx) => {
-                const card = document.createElement('div');
-                card.className = 'meeting-card';
-                card.innerHTML = `
-                    <div>
-                        <div style="font-weight:600; font-size:0.95rem; color:var(--text-main);">${escapeHtml(m.title)}</div>
-                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:3px;">
-                            📅 ${m.date} a las 🕒 ${m.time} &nbsp;·&nbsp; <strong>${escapeHtml(m.platform)}</strong>
-                        </div>
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <a href="${m.url}" target="_blank" class="btn-primary" style="padding: 6px 12px; font-size:0.8rem; text-decoration:none;">Unirse 🚀</a>
-                        <button class="btn-danger" style="padding: 6px 10px; font-size:0.8rem;" onclick="cancelSyncClass(${idx})">Cancelar</button>
-                    </div>
-                `;
-                listDiv.appendChild(card);
-            });
-        }
-
-        async function scheduleSyncClass() {
-            const title = document.getElementById('sync_title').value.trim();
-            const url = document.getElementById('sync_url').value.trim();
-            const date = document.getElementById('sync_date').value;
-            const time = document.getElementById('sync_time').value;
-            const platform = document.getElementById('sync_platform').value;
-            
-            if (!title || !url || !date || !time) {
-                alert("Completa todos los campos de programación."); return;
-            }
-            
-            const newClass = { id: 'm_' + Math.random().toString(36).substr(2, 5), title, url, date, time, platform };
-            if (!activeCourse.meetings) activeCourse.meetings = [];
-            activeCourse.meetings.push(newClass);
-            
-            document.getElementById('sync_title').value = '';
-            document.getElementById('sync_url').value = '';
-            document.getElementById('sync_date').value = '';
-            document.getElementById('sync_time').value = '';
-            
-            renderMeetingsList();
-            await updateCourseOnServer();
-        }
-
-        function cancelSyncClass(index) {
-            if (!confirm("¿Cancelar esta clase?")) return;
-            activeCourse.meetings.splice(index, 1);
-            renderMeetingsList();
-            updateCourseOnServer();
-        }
-
-
-        // ====================================================
-        // VISTA DEL ESTUDIANTE: CARGA Y NAVEGACIÓN
-        // ====================================================
-
-        async function loadStudentCourses() {
-            const grid = document.getElementById('studentCoursesGrid');
-            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando tus cursos...</div>';
-            
-            try {
-                // Obtener perfil del estudiante
-                const studResp = await fetch(`/api/students?inst_id=${getInstId()}`);
-                const students = await studResp.json();
-                const student = students.find(s => s.email === user.email);
-                
-                if (!student) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⚠️ No se encontró tu perfil de estudiante. Pide al administrador que te registre con este correo.</div>';
-                    return;
-                }
-                
-                // Obtener todos los cursos
-                const courseResp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const courses = await courseResp.json();
-                
-                const enrolledIds = student.enrolled_courses || [];
-                const studentCourses = courses.filter(c => enrolledIds.includes(c.id));
-                
-                if (studentCourses.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">📘 Aún no estás matriculado en ningún curso. Contacta al administrador para que te asigne tus clases.</div>';
-                    return;
-                }
-                
-                let html = '';
-                studentCourses.forEach(c => {
-                    html += `
-                        <div class="course-card">
-                            <div class="course-card-header" style="background: linear-gradient(135deg, #10b981, #059669);">
-                                <span class="course-card-badge">${escapeHtml(c.category || 'Curso')}</span>
-                                <h3 class="course-card-title">${escapeHtml(c.title)}</h3>
-                            </div>
-                            <div class="course-card-body">
-                                <p class="course-card-desc">${escapeHtml(c.description || 'Sin descripción.')}</p>
-                                <div>
-                                    <div class="course-card-meta">
-                                        <span>⏱️ ${c.duration || 10} Horas</span>
-                                        <span>📊 ${escapeHtml(c.level || 'Principiante')}</span>
-                                    </div>
-                                    <div class="course-card-meta" style="border:none; padding-top:0;">
-                                        <span>🎓 Certifica: ${escapeHtml(c.certifier || 'SKEL')}</span>
-                                    </div>
-                                    <div class="course-card-actions">
-                                        <button class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); border:none;" onclick="openStudentCourse('${c.id}')">📖 Entrar al Aula</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                grid.innerHTML = html;
-            } catch (e) {
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">Error al cargar tus cursos.</div>';
-            }
-        }
-
-        async function openStudentCourse(courseId) {
-            try {
-                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const course = await resp.json();
-                
-                // Cargar entregas de este estudiante para este curso
-                let studentSubmissions = [];
-                try {
-                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                    studentSubmissions = await subResp.json();
-                } catch (e) {
-                    console.error("Error al cargar entregas:", e);
-                }
-                
-                document.getElementById('studentCourseTitle').textContent = `Aula Virtual: ${course.title}`;
-                document.getElementById('studentCourseDesc').textContent = course.description || '';
-                document.getElementById('studentCourseDuration').textContent = `⏱️ Duración: ${course.duration || 10} horas`;
-                document.getElementById('studentCourseLevel').textContent = `📊 Nivel: ${course.level || 'Principiante'}`;
-                document.getElementById('studentCourseCertifier').textContent = `🎓 Certifica: ${course.certifier || 'SKEL'}`;
-                
-                // Mostrar perfil del profesor asignado
-                const teacherProfileDiv = document.getElementById('studentCourseTeacherProfile');
-                if (course.teacher_id) {
-                    try {
-                        const tResp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
-                        const teachers = await tResp.json();
-                        const teacher = teachers.find(t => t.id === course.teacher_id);
-                        if (teacher) {
-                            document.getElementById('studentCourseTeacherAvatar').src = teacher.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100';
-                            document.getElementById('studentCourseTeacherName').textContent = `Profesor: ${teacher.name}`;
-                            document.getElementById('studentCourseTeacherEmail').textContent = teacher.email;
-                            teacherProfileDiv.style.display = 'flex';
-                        } else { teacherProfileDiv.style.display = 'none'; }
-                    } catch(e) { teacherProfileDiv.style.display = 'none'; }
-                    } catch(e) { teacherProfileDiv.style.display = 'none'; }
-                } else { teacherProfileDiv.style.display = 'none'; }
-                
-                loadStudentGamification(courseId);
-
-                const outcomesUl = document.getElementById('studentOutcomesList');
-                outcomesUl.innerHTML = (course.outcomes || []).map(o => `<li>${escapeHtml(o)}</li>`).join('') || '<li>Sin resultados registrados.</li>';
-                
-                const competenciesUl = document.getElementById('studentCompetenciesList');
-                competenciesUl.innerHTML = (course.competencies || []).map(c => `<li>${escapeHtml(c)}</li>`).join('') || '<li>Sin competencias registradas.</li>';
-                
-                // Clases Sincrónicas (Videoconferencia)
-                const meetingsDiv = document.getElementById('studentMeetingsList');
-                const meetings = course.meetings || [];
-                if (meetings.length === 0) {
-                    meetingsDiv.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); padding:10px; text-align:center;">No hay videoconferencias programadas.</div>';
-                } else {
-                    meetingsDiv.innerHTML = meetings.map(m => `
-                        <div style="background:white; border:1px solid #bbf7d0; border-radius:8px; padding:10px; margin-bottom:8px; font-size:0.8rem;">
-                            <strong>${escapeHtml(m.title)}</strong><br>
-                            📅 ${m.date} - 🕒 ${m.time}<br>
-                            <a href="${m.url}" target="_blank" class="btn-primary" style="display:block; text-align:center; padding:6px; margin-top:8px; font-size:0.75rem; text-decoration:none; background: linear-gradient(135deg, #10b981, #059669); border:none; color:white; border-radius:6px; font-weight:600;">Ingresar a Clase 🚀</a>
-                        </div>
-                    `).join('');
-                }
-                
-                // Temario y Repositorio por Unidad
-                const unitsContainer = document.getElementById('studentUnitsContainer');
-                unitsContainer.innerHTML = '';
-                const units = course.units || [];
-                
-                if (units.length === 0) {
-                    unitsContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding:30px; border:1px dashed var(--border-color); border-radius:8px;">Este curso aún no tiene lecciones creadas.</div>';
-                } else {
-                    let previousUnitCompleted = true; // La unidad 1 siempre inicia desbloqueada
-
-                    units.forEach((unit, uIdx) => {
-                        const box = document.createElement('div');
-                        box.className = 'unit-box';
-                        box.style = 'margin-bottom: 20px; transition: all 0.3s ease;';
-                        
-                        // Si la unidad anterior no fue completada, bloqueamos esta unidad
-                        if (!previousUnitCompleted) {
-                            box.style.opacity = '0.6';
-                            box.innerHTML = `
-                                <div class="unit-header" style="background: #e2e8f0; color: #64748b; border-color: #cbd5e1; display:flex; justify-content:space-between; align-items:center;">
-                                    <span>🔒 Unidad ${uIdx + 1}: ${escapeHtml(unit.name)}</span>
-                                    <span style="font-size:0.75rem; background:white; padding:2px 8px; border-radius:12px;">Bloqueada</span>
-                                </div>
-                                <div style="padding:30px; background: #f8fafc; text-align: center; color: var(--text-muted); border: 1px solid #e2e8f0; border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
-                                    <div style="font-size: 2rem; margin-bottom: 10px;">🔒</div>
-                                    <h4 style="margin: 0 0 10px 0; color: #64748b;">Contenido Bloqueado</h4>
-                                    <p style="font-size: 0.85rem; margin: 0; max-width: 400px; margin-left: auto; margin-right: auto;">Para acceder a esta unidad, primero debes completar y enviar todas las actividades de la unidad anterior.</p>
-                                </div>
-                            `;
-                            unitsContainer.appendChild(box);
-                            
-                            // Como esta unidad está bloqueada, lógicamente no está completada
-                            // por lo que las siguientes también se bloquearán.
-                            previousUnitCompleted = false;
-                            return; // No renderizamos el contenido
-                        }
-
-                        // Temas con acordeón interactivo para ver el contenido HTML redactado por el profesor
-                        let topicsHtml = '';
-                        if (!unit.topics || unit.topics.length === 0) {
-                            topicsHtml = '<div style="color:var(--text-muted); font-size:0.8rem; padding:5px;">Sin temas asignados.</div>';
-                        } else {
-                            topicsHtml = '<div style="display:flex; flex-direction:column; gap:8px; margin-top:5px;">';
-                            unit.topics.forEach((rawT, tIdx) => {
-                                const t = typeof rawT === 'string' ? { id: 't_' + tIdx, title: rawT, content: "" } : rawT;
-                                const hasContent = t.content && t.content.trim() !== "";
-                                
-                                topicsHtml += `
-                                    <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: rgba(99,102,241,0.02);">
-                                        <div onclick="toggleTopicAccordion('${unit.id}_${t.id}')" style="padding: 12px 18px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: rgba(99,102,241,0.04); color: var(--text-main); transition: background 0.2s;">
-                                            <span>📖 ${escapeHtml(t.title)}</span>
-                                            <span style="font-size:0.75rem; color:var(--primary-color); font-weight:700;">
-                                                ${hasContent ? 'Leer Lección 👁️' : 'Sin Contenido'}
-                                            </span>
-                                        </div>
-                                        <div id="acc_${unit.id}_${t.id}" style="display: none; padding: 20px; background: var(--card-bg); border-top: 1px solid var(--border-color); font-size: 0.92rem; line-height: 1.7; color: var(--text-main); text-align: left; overflow-x: auto;">
-                                            ${hasContent ? t.content : '<span style="color:var(--text-muted); font-style:italic;">Esta lección no contiene texto ni recursos embebidos todavía.</span>'}
-                                        </div>
-                                    </div>
-                                `;
-                            });
-                            topicsHtml += '</div>';
-                        }
-                        
-                        // Repositorio: Recursos para afianzar
-                        let resHtml = '';
-                        if (unit.resources && unit.resources.length > 0) {
-                            resHtml = '<strong style="display:block; font-size:0.85rem; color:var(--primary-color); margin-top:16px; margin-bottom: 6px;">📁 Recursos de Estudio (Repositorio):</strong>';
-                            unit.resources.forEach(r => {
-                                const typeIcon = r.type === 'document' ? '📄 PDF' : (r.type === 'video' ? '🎥 Video' : (r.type === 'infographic' ? '📊 Infografía' : '🔗 Web'));
-                                resHtml += `
-                                    <div class="resource-card" style="margin-top:5px;">
-                                        <span><strong>${typeIcon}:</strong> ${escapeHtml(r.name)}</span>
-                                        <a href="${r.url}" target="_blank" style="color:var(--primary-color); font-weight:700; text-decoration:none;">Abrir Recurso</a>
-                                    </div>`;
-                            });
-                        }
-                        
-                        // Actividades
-                        let actHtml = '';
-                        if (unit.activities && unit.activities.length > 0) {
-                            actHtml = '<strong style="display:block; font-size:0.85rem; color:var(--primary-color); margin-top:16px; margin-bottom: 6px;">📝 Actividades y Entregas:</strong>';
-                            unit.activities.forEach(act => {
-                                // Buscar entrega existente para esta actividad
-                                const sub = studentSubmissions.find(s => s.activity_id === act.id);
-                                let statusHtml = '';
-                                let buttonText = 'Entregar Trabajo';
-                                let feedbackHtml = '';
-                                
-                                if (sub) {
-                                    if (sub.status === 'graded') {
-                                        statusHtml = ` <span class="status aprobado" style="font-size:0.7rem; padding: 2px 8px; border-radius: 12px; margin-left:8px; background: #e6f4ea; color: #137333; font-weight: 700;">Calificado: ${parseFloat(sub.grade).toFixed(1)}</span>`;
-                                        buttonText = 'Volver a Entregar';
-                                        feedbackHtml = `
-                                            <div style="background: rgba(16,185,129,0.04); border-left: 4px solid #10b981; border-radius: 6px; padding: 10px; margin-top: 8px; font-size: 0.8rem; text-align: left;">
-                                                <strong style="color:#10b981;">Nota:</strong> ${parseFloat(sub.grade).toFixed(1)} / 5.0<br>
-                                                <strong>Retroalimentación:</strong> ${escapeHtml(sub.feedback || 'Sin comentarios.')}
-                                            </div>
-                                        `;
-                                    } else {
-                                        statusHtml = ` <span class="status revision" style="font-size:0.7rem; padding: 2px 8px; border-radius: 12px; margin-left:8px; background: #fef7e0; color: #b06000; font-weight: 700;">Entregado (Pendiente)</span>`;
-                                        buttonText = 'Actualizar Entrega';
-                                        feedbackHtml = `
-                                            <div style="background: rgba(245,158,11,0.04); border-left: 4px solid #f59e0b; border-radius: 6px; padding: 10px; margin-top: 8px; font-size: 0.8rem; text-align: left; color: var(--text-muted);">
-                                                <strong>Tu entrega actual:</strong> <span style="font-style:italic;">${escapeHtml(sub.content)}</span>
-                                            </div>
-                                        `;
-                                    }
-                                }
-
-                                actHtml += `
-                                    <div class="activity-item" style="margin-top:8px; display:flex; flex-direction:column; align-items:stretch; gap:6px;">
-                                        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                                            <div>
-                                                <strong>${escapeHtml(act.title)}</strong>${statusHtml}<br>
-                                                <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(act.description)}</span><br>
-                                                <span style="font-size:0.72rem; font-weight:700; color:var(--accent-color); display:block; margin-top:4px;">Fecha límite: ${act.due_date || 'Sin límite'}</span>
-                                            </div>
-                                            <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--success-gradient); border:none; color:white; font-weight:600; border-radius:10px;" onclick="submitActivityDelivery('${courseId}', '${unit.id}', '${act.id}', '${escapeHtml(act.title).replace(/'/g, "\\'")}')">${buttonText}</button>
-                                        </div>
-                                        ${feedbackHtml}
-                                    </div>`;
-                            });
-                        }
-                        
-                        // Evaluaciones
-                        let evalHtml = '';
-                        if (unit.evaluations && unit.evaluations.length > 0) {
-                            evalHtml = '<strong style="display:block; font-size:0.85rem; color:var(--primary-color); margin-top:16px; margin-bottom: 6px;">🏆 Evaluaciones (Escala CNA):</strong>';
-                            unit.evaluations.forEach(ev => {
-                                evalHtml += `
-                                    <div class="evaluation-item" style="margin-top:5px;">
-                                        <div>
-                                            <strong>${escapeHtml(ev.title)}</strong><br>
-                                            <span style="font-size:0.72rem; color:var(--text-muted);">Calificación CNA (Aprobación: ${ev.min_grade})</span>
-                                        </div>
-                                        <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--primary-gradient); border:none; color:white; border-radius:10px;" onclick="presentQuiz('${courseId}', '${unit.id}', '${ev.id}', '${escapeHtml(ev.title).replace(/'/g, "\\'")}', ${ev.min_grade || 3.0}, ${ev.max_grade || 5.0}, '${escapeHtml(JSON.stringify(ev.questions || [])).replace(/'/g, "\\'")}')">Presentar Examen</button>
-                                    </div>`;
-                            });
-                        }
-                        
-                        box.innerHTML = `
-                            <div class="unit-header">
-                                Unidad ${uIdx + 1}: ${escapeHtml(unit.name)}
-                            </div>
-                            <div style="padding:20px; background: var(--card-bg);">
-                                <div style="font-size:0.88rem; line-height:1.5; color:var(--text-muted);">
-                                    <strong>Lecciones del Tema:</strong><br>
-                                    ${topicsHtml}
-                                </div>
-                                ${resHtml}
-                                ${actHtml}
-                                ${evalHtml}
-                            </div>
-                        `;
-                        unitsContainer.appendChild(box);
-                        
-                        // Lógica para determinar si esta unidad habilita la siguiente
-                        let currentUnitCompleted = true;
-                        if (unit.activities && unit.activities.length > 0) {
-                            // Todas las actividades deben tener al menos una entrega
-                            const submittedCount = unit.activities.filter(act => 
-                                studentSubmissions.some(s => s.activity_id === act.id)
-                            ).length;
-                            
-                            if (submittedCount < unit.activities.length) {
-                                currentUnitCompleted = false;
-                            }
-                        }
-                        
-                        // Actualizar el flag para la siguiente iteración
-                        previousUnitCompleted = currentUnitCompleted;
-                    });
-                }
-                
-                document.getElementById('studentCourseViewer').style.display = 'block';
-                document.getElementById('studentCourseViewer').scrollIntoView({ behavior: 'smooth' });
-            } catch(e) { alert("Error al ingresar al curso."); }
-        }
-
-        function closeStudentCourseViewer() {
-            document.getElementById('studentCourseViewer').style.display = 'none';
-        }
-
-        // --- ACORDEÓN DE TEMAS EN VISTA DEL ESTUDIANTE ---
-        function toggleTopicAccordion(id) {
-            const el = document.getElementById('acc_' + id);
-            if (el) {
-                if (el.style.display === 'none' || el.style.display === '') {
-                    el.style.display = 'block';
-                } else {
-                    el.style.display = 'none';
-                }
-            }
-        }
-
-        // --- ENTREGA DE ACTIVIDADES POR PARTE DEL ESTUDIANTE ---
-                async function submitActivityDelivery(courseId, unitId, actId, title) {
-            document.getElementById('submitCourseId').value = courseId;
-            document.getElementById('submitUnitId').value = unitId;
-            document.getElementById('submitActId').value = actId;
-            document.getElementById('submitActivityTitleDesc').textContent = "Actividad: " + title;
-            document.getElementById('submitTextContent').value = '';
-            document.getElementById('submitFile').value = '';
-            document.getElementById('studentSubmitActivityModal').style.display = 'flex';
-        }
-        
-        async function confirmActivityDelivery() {
-            const btn = document.getElementById('btnConfirmDelivery');
-            btn.textContent = "Subiendo...";
-            btn.disabled = true;
-            
-            const courseId = document.getElementById('submitCourseId').value;
-            const unitId = document.getElementById('submitUnitId').value;
-            const actId = document.getElementById('submitActId').value;
-            let contentText = document.getElementById('submitTextContent').value;
-            const fileInput = document.getElementById('submitFile');
-            
-            // Subir archivo si existe
-            if (fileInput.files.length > 0) {
-                const fileUrl = await uploadFileToLMS(fileInput.files[0]);
-                if(fileUrl) {
-                    contentText += "
-
-Archivo adjunto: " + fileUrl;
-                } else {
-                    btn.textContent = "Enviar Actividad";
-                    btn.disabled = false;
-                    return;
-                }
-            }
-            
-            if (contentText.trim() === '') {
-                alert("Debes escribir un mensaje o adjuntar un archivo.");
-                btn.textContent = "Enviar Actividad";
-                btn.disabled = false;
-                return;
-            }
-            
-            try {
-                // Buscar si existe una entrega anterior para actualizarla
-                const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${actId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const existingSubs = await checkResp.json();
-                
-                const subData = {
-                    course_id: courseId,
-                    unit_id: unitId,
-                    activity_id: actId,
-                    student_email: user.email,
-                    student_name: user.name || user.email.split('@')[0],
-                    content: contentText.trim(),
-                    submitted_at: new Date().toISOString(),
-                    status: 'pending'
-                };
-                
-                if (existingSubs && existingSubs.length > 0) {
-                    subData.id = existingSubs[0].id;
-                }
-                
-                const response = await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(subData)
-                });
-                
-                if (response.ok) {
-                    alert("Actividad enviada exitosamente. ¡Buen trabajo!");
-                    document.getElementById('studentSubmitActivityModal').style.display = 'none';
-                    openStudentCourse(courseId);
-                } else {
-                    alert("Error al enviar la actividad.");
+                    alert('Error: ' + data.message);
                 }
             } catch(e) {
-                console.error(e);
-                alert("Error de conexión al enviar actividad.");
+                alert('Error de conexión');
             }
-            btn.textContent = "Enviar Actividad";
+            
+            btn.textContent = 'Guardar';
             btn.disabled = false;
-        } catch (e) {
-                    console.error("Error al enviar actividad:", e);
-                    alert("❌ Error de red al registrar tu entrega.");
-                }
-            }
         }
 
-        // --- EDITOR WYSIWYG PARA EL DOCENTE/PROFESOR ---
-        function openTopicEditor(unitIdx, topicIdx) {
-            isHtmlView = false;
-            document.getElementById('richTextEditorBox').style.display = 'block';
-            document.getElementById('rawHtmlTextarea').style.display = 'none';
-            
-            document.getElementById('editorUnitIdx').value = unitIdx;
-            document.getElementById('editorTopicIdx').value = topicIdx;
-            
-            const rawTopic = activeCourse.units[unitIdx].topics[topicIdx];
-            const topic = typeof rawTopic === 'string' ? { id: 't_' + topicIdx, title: rawTopic, content: "" } : rawTopic;
-            
-            document.getElementById('topicEditorModalTitle').textContent = `Editor de Contenido: ${topic.title}`;
-            document.getElementById('richTextEditorBox').innerHTML = topic.content || "";
-            
-            document.getElementById('topicEditorModal').style.display = 'flex';
-        }
+        async function deleteNode(type, id, event) {
+            if(event) event.stopPropagation(); // Evitar que se abra el acordeón
+            if(!confirm('¿Estás seguro de que deseas eliminar este elemento? Todos los elementos hijos también se eliminarán de forma irreversible.')) return;
 
-        function closeTopicEditorModal() {
-            document.getElementById('topicEditorModal').style.display = 'none';
-        }
-
-        async function saveTopicContent() {
-            const unitIdx = parseInt(document.getElementById('editorUnitIdx').value);
-            const topicIdx = parseInt(document.getElementById('editorTopicIdx').value);
-            
-            const editorBox = document.getElementById('richTextEditorBox');
-            const textarea = document.getElementById('rawHtmlTextarea');
-            
-            const htmlContent = isHtmlView ? textarea.value : editorBox.innerHTML;
-            
-            const rawTopic = activeCourse.units[unitIdx].topics[topicIdx];
-            let topic = typeof rawTopic === 'string' ? { id: 't_' + topicIdx, title: rawTopic } : rawTopic;
-            
-            topic.content = htmlContent;
-            
-            // Re-guardar en la estructura del curso
-            activeCourse.units[unitIdx].topics[topicIdx] = topic;
-            
-            closeTopicEditorModal();
-            renderSyllabusList();
-            await updateCourseOnServer();
-            alert("✅ Contenido del tema guardado correctamente.");
-        }
-
-        function execEditorCommand(command, value = null) {
-            document.execCommand(command, false, value);
-            document.getElementById('richTextEditorBox').focus();
-        }
-
-        function promptInsertImage() {
-            const url = prompt("Introduce la URL de la imagen (debe comenzar con http/https):");
-            if (url) {
-                const imgHtml = `<img src="${url}" alt="Imagen del Tema" style="max-width:100%; height:auto; border-radius:10px; margin: 15px 0; box-shadow: var(--shadow-md);">`;
-                insertHtmlAtCursor(imgHtml);
-            }
-        }
-
-        function promptInsertVideo() {
-            const embedCode = prompt("Pega el código de inserción (Iframe) o la URL de YouTube/Vimeo:");
-            if (embedCode) {
-                let videoHtml = "";
-                if (embedCode.includes('<iframe') || embedCode.includes('<video')) {
-                    // Si ya es código iframe, aseguramos que sea responsivo y adaptativo
-                    videoHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">${embedCode}</div>`;
-                    videoHtml = videoHtml.replace(/width="[^"]*"/, 'width="100%"').replace(/height="[^"]*"/, 'height="100%"').replace(/position:[^;]*/, '');
-                } else {
-                    // Si es solo una URL de YouTube, la convertimos a embed
-                    try {
-                        let videoId = "";
-                        if (embedCode.includes('youtube.com/watch?v=')) {
-                            videoId = embedCode.split('v=')[1].split('&')[0];
-                        } else if (embedCode.includes('youtu.be/')) {
-                            videoId = embedCode.split('youtu.be/')[1].split('?')[0];
-                        }
-                        
-                        if (videoId) {
-                            videoHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:20px 0; box-shadow:var(--shadow-md);">
-                                <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"></iframe>
-                            </div>`;
-                        } else {
-                            alert("URL no soportada. Introduce el código embed completo o una URL de YouTube.");
-                            return;
-                        }
-                    } catch(e) {
-                        alert("Error al procesar la URL.");
-                        return;
-                    }
-                }
-                insertHtmlAtCursor(videoHtml);
-            }
-        }
-
-        function promptInsertPodcast() {
-            const embedCode = prompt("Pega el código de inserción (Iframe) de Spotify, SoundCloud u otra plataforma:");
-            if (embedCode) {
-                let podcastHtml = "";
-                if (embedCode.includes('<iframe')) {
-                    podcastHtml = `<div class="podcast-container" style="margin:20px 0; width:100%; overflow:hidden; border-radius:12px;">${embedCode}</div>`;
-                    podcastHtml = podcastHtml.replace(/width="[^"]*"/, 'width="100%"');
-                } else {
-                    alert("Por favor, introduce el código embed (Iframe) oficial del podcast.");
-                    return;
-                }
-                insertHtmlAtCursor(podcastHtml);
-            }
-        }
-
-        function promptInsertLink() {
-            const url = prompt("Introduce la URL del enlace:");
-            if (url) {
-                execEditorCommand('createLink', url);
-            }
-        }
-
-        function insertHtmlAtCursor(html) {
-            let sel, range;
-            if (window.getSelection) {
-                sel = window.getSelection();
-                if (sel.getRangeAt && sel.rangeCount) {
-                    range = sel.getRangeAt(0);
-                    range.deleteContents();
-                    const el = document.createElement("div");
-                    el.innerHTML = html;
-                    const frag = document.createDocumentFragment();
-                    let node, lastNode;
-                    while ((node = el.firstChild)) {
-                        lastNode = frag.appendChild(node);
-                    }
-                    range.insertNode(frag);
-                    if (lastNode) {
-                        range = range.cloneRange();
-                        range.setStartAfter(lastNode);
-                        range.collapse(true);
-                        sel.removeAllRanges();
-                        sel.addRange(range);
-                    }
-                }
-            }
-        }
-
-        let isHtmlView = false;
-        function toggleHtmlView() {
-            const editorBox = document.getElementById('richTextEditorBox');
-            const textarea = document.getElementById('rawHtmlTextarea');
-            
-            if (!isHtmlView) {
-                textarea.value = editorBox.innerHTML;
-                editorBox.style.display = 'none';
-                textarea.style.display = 'block';
-                isHtmlView = true;
-            } else {
-                editorBox.innerHTML = textarea.value;
-                textarea.style.display = 'none';
-                editorBox.style.display = 'block';
-                isHtmlView = false;
-            }
-        }
-
-        // --- SISTEMA DE EVALUACIONES INTERACTIVAS CNA PARA EL ESTUDIANTE ---
-        let currentQuizMinGrade = 3.0;
-        let currentQuizMaxGrade = 5.0;
-        let currentQuizTitle = "";
-        
-        const cnaQuestionBank = [
-            {
-                q: "¿Cuál es el rango oficial de la escala cuantitativa de acreditación del CNA de Colombia?",
-                options: [
-                    "De 0.0 a 10.0 con números enteros.",
-                    "De 1.0 a 5.0 con un decimal.",
-                    "De 0.0 a 5.0 en formato porcentual.",
-                    "Deficiente, Aceptable, Alto y Excelente."
-                ],
-                correct: 1
-            },
-            {
-                q: "¿Qué promedio de calificación se requiere como mínimo para estimar que una característica 'Se cumple en alto grado'?",
-                options: [
-                    "Menos de 3.0",
-                    "Entre 3.0 y 3.9",
-                    "Entre 4.0 y 4.4",
-                    "De 4.5 a 5.0"
-                ],
-                correct: 2
-            },
-            {
-                q: "El Registro Calificado y las condiciones mínimas de calidad están regidas por:",
-                options: [
-                    "El Ministerio de Hacienda y Crédito Público.",
-                    "El Decreto 1330 de 2019 y la Resolución 0529 del MEN.",
-                    "Las asociaciones de estudiantes y egresados.",
-                    "El escalafón docente internacional."
-                ],
-                correct: 1
-            },
-            {
-                q: "¿Cuáles son factores de evaluación definidos por el CESU en los lineamientos vigentes?",
-                options: [
-                    "Infraestructura física, profesores, estudiantes e investigación.",
-                    "Ganancias financieras netas anuales de la universidad.",
-                    "Número total de vehículos matriculados en el campus.",
-                    "Venta de patentes y marcas comerciales."
-                ],
-                correct: 0
-            }
-        ];
-
-        function presentQuiz(title, minGrade, maxGrade) {
-            currentQuizTitle = title;
-            currentQuizMinGrade = minGrade;
-            currentQuizMaxGrade = maxGrade;
-            
-            document.getElementById('quizModalTitle').textContent = title;
-            document.getElementById('quizModalSub').innerHTML = `Evaluación formativa del LMS en Escala CNA (Aprobación: <strong>${minGrade.toFixed(1)}</strong> / Máxima: <strong>${maxGrade.toFixed(1)}</strong>)`;
-            
-            // Renderizar preguntas
-            const container = document.getElementById('quizQuestionsContainer');
-            container.innerHTML = cnaQuestionBank.map((item, qIdx) => `
-                <div style="border-bottom:1px solid #f1f5f9; padding-bottom:15px;">
-                    <strong style="display:block; font-size:0.9rem; margin-bottom:8px; color: #1e293b;">${qIdx + 1}. ${escapeHtml(item.q)}</strong>
-                    <div style="display:flex; flex-direction:column; gap:6px;">
-                        ${item.options.map((opt, oIdx) => `
-                            <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color: #475569;">
-                                <input type="radio" name="q_${qIdx}" value="${oIdx}">
-                                ${escapeHtml(opt)}
-                            </label>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
-            
-            document.getElementById('quizModal').style.display = 'flex';
-        }
-
-        function closeQuizModal() {
-            document.getElementById('quizModal').style.display = 'none';
-            // Restaurar contenido original del modal por si se mostró pantalla de resultados
-            const modalContent = document.getElementById('quizModalContent');
-            modalContent.innerHTML = `
-                <h3 style="margin-bottom:10px; font-size:1.25rem; color: #0f172a;" id="quizModalTitle">Evaluación</h3>
-                <p id="quizModalSub" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:20px;"></p>
-                <div id="quizQuestionsContainer" style="display:flex; flex-direction:column; gap:20px; margin-bottom:25px; color: #0f172a; text-align: left;"></div>
-                <div style="display:flex; gap:10px; justify-content:flex-end;">
-                    <button class="btn-ghost" onclick="closeQuizModal()">Cancelar</button>
-                    <button class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); border:none; color: white;" onclick="submitQuiz()">Enviar Respuestas</button>
-                </div>
-            `;
-        }
-
-        function submitQuiz() {
-            let correctAnswers = 0;
-            let answeredCount = 0;
-            
-            cnaQuestionBank.forEach((item, qIdx) => {
-                const selected = document.querySelector(`input[name="q_${qIdx}"]:checked`);
-                if (selected) {
-                    answeredCount++;
-                    if (parseInt(selected.value) === item.correct) {
-                        correctAnswers++;
-                    }
-                }
-            });
-            
-            if (answeredCount < cnaQuestionBank.length) {
-                alert("Por favor, responde todas las preguntas del cuestionario antes de enviar.");
-                return;
-            }
-            
-            // Calcular nota en Escala CNA: de 1.0 a 5.0
-            // Fórmula: Nota = 1.0 + (aciertos / total) * 4.0
-            const grade = 1.0 + (correctAnswers / cnaQuestionBank.length) * 4.0;
-            const approved = grade >= currentQuizMinGrade;
-            
-            // Mostrar pantalla de resultados premium dentro del modal
-            const modalContent = document.getElementById('quizModalContent');
-            modalContent.innerHTML = `
-                <div style="text-align:center; padding:20px; color: #0f172a;">
-                    <div style="font-size:4rem; margin-bottom:15px; animation: bounce 1s infinite;">
-                        ${approved ? '🏆' : '⚠️'}
-                    </div>
-                    <h3 style="font-size:1.4rem; font-weight:800; margin-bottom:8px; color: ${approved ? '#10b981' : '#ef4444'};">
-                        ${approved ? 'Cuestionario Aprobado' : 'Cuestionario Reprobado'}
-                    </h3>
-                    <p style="font-size:0.95rem; color:var(--text-muted); margin-bottom:20px;">
-                        Has finalizado la evaluación formativa del curso.
-                    </p>
-                    
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:15px 20px; display:inline-block; margin-bottom:25px;">
-                        <span style="font-size:0.8rem; text-transform:uppercase; font-weight:700; color:var(--text-muted); display:block; letter-spacing:0.05em;">
-                            Nota Obtenida (Escala CNA)
-                        </span>
-                        <strong style="font-size:2.8rem; font-weight:900; color: ${approved ? '#10b981' : '#ef4444'}; line-height:1.2;">
-                            ${grade.toFixed(1)}
-                        </strong>
-                        <span style="font-size:0.85rem; display:block; color:var(--text-muted); margin-top:5px;">
-                            Mínimo para aprobar: ${currentQuizMinGrade.toFixed(1)} / 5.0
-                        </span>
-                    </div>
-                    
-                    <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:25px; line-height:1.5; padding: 0 15px;">
-                        ${approved 
-                            ? `¡Felicitaciones! Has obtenido un excelente resultado académico alineado con los estándares del CNA. Tu nota de ${grade.toFixed(1)} demuestra apropiación de las lecciones.`
-                            : `Tu nota de ${grade.toFixed(1)} es inferior al mínimo de aprobación del curso (${currentQuizMinGrade.toFixed(1)}). Te recomendamos repasar los materiales y repositorio de la unidad y volver a presentar.`
-                        }
-                    </div>
-                    
-                    <button class="btn-primary" style="width:100%; padding:12px; border-radius:10px; font-weight:700;" onclick="closeQuizModal()">
-                        Volver al Aula Virtual
-                    </button>
-                </div>
-            `;
-        }
-
-        // ========== GESTIÓN DE ENTREGAS Y CALIFICACIONES (PROFESOR) ==========
-        let currentActivitySubmissions = [];
-
-        function openActivitySubmissionsModal(unitId, actId, title) {
-            document.getElementById('gradeUnitId').value = unitId;
-            document.getElementById('gradeActivityId').value = actId;
-            document.getElementById('activitySubmissionsModalTitle').textContent = `Entregas: ${title}`;
-            
-            hideGradingForm();
-            renderActivitySubmissionsList(actId);
-            
-            document.getElementById('activitySubmissionsModal').style.display = 'flex';
-        }
-
-        function closeActivitySubmissionsModal() {
-            document.getElementById('activitySubmissionsModal').style.display = 'none';
-        }
-
-        function renderActivitySubmissionsList(actId) {
-            const tbody = document.getElementById('activitySubmissionsTableBody');
-            const noSubsMsg = document.getElementById('noSubmissionsMessage');
-            
-            tbody.innerHTML = '';
-            currentActivitySubmissions = activeCourseSubmissions.filter(s => s.activity_id === actId);
-            
-            if (currentActivitySubmissions.length === 0) {
-                noSubsMsg.style.display = 'block';
-                return;
-            }
-            
-            noSubsMsg.style.display = 'none';
-            currentActivitySubmissions.forEach(s => {
-                const tr = document.createElement('tr');
-                tr.style.borderBottom = '1px solid #e2e8f0';
-                
-                // Formatear entrega (link o texto)
-                let contentHtml = '';
-                const isLink = s.content.startsWith('http://') || s.content.startsWith('https://');
-                if (isLink) {
-                    contentHtml = `<a href="${escapeHtml(s.content)}" target="_blank" style="color:var(--primary-color); font-weight:600; text-decoration:none;">🔗 Abrir Enlace</a>`;
-                } else {
-                    contentHtml = `<span style="font-size:0.85rem; display:inline-block; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(s.content)}">${escapeHtml(s.content)}</span>`;
-                }
-                
-                const gradeLabel = s.status === 'graded' ? `<span style="font-weight:700; color:#137333;">${parseFloat(s.grade).toFixed(1)}</span>` : '<span style="color:#b06000; font-style:italic; font-size:0.8rem;">Pendiente</span>';
-                const dateStr = s.submitted_at ? new Date(s.submitted_at).toLocaleDateString() + ' ' + new Date(s.submitted_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Sin fecha';
-                
-                tr.innerHTML = `
-                    <td style="padding:12px 10px; font-size:0.88rem; font-weight:600; color:#0f172a;">${escapeHtml(s.student_name || s.student_email.split('@')[0])}<br><span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">${escapeHtml(s.student_email)}</span></td>
-                    <td style="padding:12px 10px; font-size:0.8rem; color:var(--text-muted);">${dateStr}</td>
-                    <td style="padding:12px 10px;">${contentHtml}</td>
-                    <td style="padding:12px 10px; font-size:0.88rem;">${gradeLabel}</td>
-                    <td style="padding:12px 10px;">
-                        <button class="btn-primary" style="padding: 6px 12px; font-size: 0.75rem; background: var(--primary-gradient); border:none; color:white; border-radius:8px; font-weight:600;" onclick="showGradingForm('${s.id}', '${escapeHtml(s.student_name || s.student_email.split('@')[0]).replace(/'/g, "\\'")}', ${s.grade || 'null'}, '${escapeHtml(s.feedback || '').replace(/'/g, "\\'")}')">📝 Calificar</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function showGradingForm(subId, studentName, currentGrade, currentFeedback) {
-            document.getElementById('gradingSubmissionId').value = subId;
-            document.getElementById('gradingFormTitle').textContent = `Calificar entrega de: ${studentName}`;
-            document.getElementById('gradingScore').value = currentGrade !== null ? parseFloat(currentGrade).toFixed(1) : '';
-            document.getElementById('gradingFeedback').value = currentFeedback || '';
-            document.getElementById('gradingFormContainer').style.display = 'block';
-            document.getElementById('gradingFormContainer').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        function hideGradingForm() {
-            document.getElementById('gradingFormContainer').style.display = 'none';
-            document.getElementById('gradingSubmissionId').value = '';
-            document.getElementById('gradingScore').value = '';
-            document.getElementById('gradingFeedback').value = '';
-        }
-
-        async function saveGradingResult() {
-            const subId = document.getElementById('gradingSubmissionId').value;
-            const rawScore = document.getElementById('gradingScore').value;
-            const feedback = document.getElementById('gradingFeedback').value.trim();
-            
-            const score = parseFloat(rawScore);
-            if (isNaN(score) || score < 1.0 || score > 5.0) {
-                alert("Por favor, ingresa una calificación válida en Escala CNA (entre 1.0 y 5.0).");
-                return;
-            }
-            
             try {
-                const response = await fetch(`/api/submissions/${subId}/grade?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        grade: score,
-                        feedback: feedback,
-                        teacher_id: user.email,
-                        graded_at: new Date().toISOString()
-                    })
+                
+            if (nodeId) payload.id = nodeId;
+            
+            const res = await fetch('/api/planning/node', {
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type: type, id: id })
                 });
-                
-                if (response.ok) {
-                    alert("✅ Calificación y retroalimentación guardadas con éxito.");
-                    hideGradingForm();
-                    
-                    const actId = document.getElementById('gradeActivityId').value;
-                    const courseId = document.getElementById('editCourseId').value;
-                    
-                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                    activeCourseSubmissions = await subResp.json();
-                    
-                    renderActivitySubmissionsList(actId);
-                    renderSyllabusList();
-                } else {
-                    alert("❌ Hubo un error al registrar la calificación en el servidor.");
-                }
-            } catch (e) {
-                console.error("Error al registrar calificación:", e);
-                alert("❌ Error de red al calificar la entrega.");
-            }
-        }
-
-
-        // ========== JITSI MEET API ==========
-        let jitsiApi = null;
-        
-        function openJitsiMeet(courseId, courseTitle) {
-            document.getElementById('jitsiModal').style.display = 'flex';
-            const domain = 'meet.jit.si';
-            const roomName = `SIAClassroom_${getInstId()}_${courseId}`.replace(/[^a-zA-Z0-9]/g, "");
-            
-            const options = {
-                roomName: roomName,
-                width: '100%',
-                height: '100%',
-                parentNode: document.getElementById('jitsiContainer'),
-                userInfo: {
-                    email: user.email,
-                    displayName: user.name || user.email.split('@')[0]
-                },
-                configOverwrite: {
-                    startWithAudioMuted: true,
-                    startWithVideoMuted: true,
-                    prejoinPageEnabled: false
-                },
-                interfaceConfigOverwrite: {
-                    SHOW_JITSI_WATERMARK: false,
-                    SHOW_WATERMARK_FOR_GUESTS: false,
-                    DEFAULT_BACKGROUND: '#0f172a'
-                }
-            };
-            jitsiApi = new JitsiMeetExternalAPI(domain, options);
-            jitsiApi.executeCommand('subject', 'Sala Virtual: ' + courseTitle);
-        }
-
-        function closeJitsiMeet() {
-            if (jitsiApi) {
-                jitsiApi.dispose();
-                jitsiApi = null;
-            }
-            document.getElementById('jitsiModal').style.display = 'none';
-        }
-
-        // ========== FORO DEL CURSO ==========
-        let currentForumCourseId = null;
-        let forumInterval = null;
-
-        async function loadForumMessages(courseId, isTeacher = false) {
-            try {
-                const resp = await fetch(`/api/courses/${courseId}/forum?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const messages = await resp.json();
-                
-                const containerId = isTeacher ? 'teacherForumMessages' : 'studentForumMessages';
-                const container = document.getElementById(containerId);
-                if (!container) return;
-                
-                if (messages.length === 0) {
-                    container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">No hay mensajes aún. ¡Sé el primero en escribir!</div>';
-                    return;
-                }
-                
-                let html = '';
-                messages.forEach(msg => {
-                    const isMe = msg.user_email === user.email;
-                    const date = new Date(msg.timestamp);
-                    const timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    const dateStr = date.toLocaleDateString();
-                    
-                    const roleBadge = msg.role === 'admin' || msg.role === 'profesor' ? '<span style="background:#10b981; color:white; padding:2px 5px; border-radius:4px; font-size:0.6rem; margin-left:5px;">Docente</span>' : '';
-                    
-                    html += `
-                        <div style="align-self: ${isMe ? 'flex-end' : 'flex-start'}; background: ${isMe ? '#dbeafe' : '#f8fafc'}; border: 1px solid ${isMe ? '#bfdbfe' : '#e2e8f0'}; border-radius: 12px; padding: 10px 14px; max-width: 80%;">
-                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; display:flex; align-items:center; justify-content:${isMe ? 'flex-end' : 'flex-start'}; gap:5px;">
-                                <strong>${isMe ? 'Tú' : escapeHtml(msg.user_name)}</strong> ${roleBadge}
-                            </div>
-                            <div style="color: #0f172a; line-height: 1.4;">${escapeHtml(msg.content)}</div>
-                            <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 5px; text-align: right;">${dateStr} ${timeStr}</div>
-                        </div>
-                    `;
-                });
-                
-                // Only scroll if we added new messages or on first load
-                const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 50;
-                container.innerHTML = html;
-                if (isScrolledToBottom) {
-                    container.scrollTop = container.scrollHeight;
-                }
-            } catch(e) {
-                console.error("Error loading forum", e);
-            }
-        }
-
-        async function sendForumMessage(courseId, content, isTeacher = false) {
-            if (!content || !content.trim()) return;
-            try {
-                const resp = await fetch(`/api/courses/${courseId}/forum?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_email: user.email,
-                        user_name: user.name || user.email.split('@')[0],
-                        role: user.role,
-                        content: content.trim()
-                    })
-                });
-                if (resp.ok) {
-                    loadForumMessages(courseId, isTeacher);
-                }
-            } catch(e) {
-                console.error("Error sending message", e);
-            }
-        }
-
-        function initForum(courseId, isTeacher) {
-            currentForumCourseId = courseId;
-            if (forumInterval) clearInterval(forumInterval);
-            
-            loadForumMessages(courseId, isTeacher);
-            
-            // Poll for new messages every 10 seconds
-            forumInterval = setInterval(() => {
-                if (currentForumCourseId === courseId) {
-                    loadForumMessages(courseId, isTeacher);
-                } else {
-                    clearInterval(forumInterval);
-                }
-            }, 10000);
-            
-            const btnId = isTeacher ? 'btnSendTeacherForum' : 'btnSendStudentForum';
-            const inputId = isTeacher ? 'teacherForumInput' : 'studentForumInput';
-            
-            const btn = document.getElementById(btnId);
-            const input = document.getElementById(inputId);
-            if (!btn || !input) return;
-            
-            // Remove old listeners by cloning
-            const newBtn = btn.cloneNode(true);
-            btn.parentNode.replaceChild(newBtn, btn);
-            const newInput = input.cloneNode(true);
-            input.parentNode.replaceChild(newInput, input);
-            
-            newBtn.addEventListener('click', () => {
-                sendForumMessage(courseId, newInput.value, isTeacher);
-                newInput.value = '';
-            });
-            
-            newInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    sendForumMessage(courseId, newInput.value, isTeacher);
-                    newInput.value = '';
-                }
-            });
-            
-            const jitsiBtnId = isTeacher ? 'btnOpenJitsiTeacher' : 'btnOpenJitsiStudent';
-            const jitsiBtn = document.getElementById(jitsiBtnId);
-            if (jitsiBtn) {
-                const newJitsiBtn = jitsiBtn.cloneNode(true);
-                jitsiBtn.parentNode.replaceChild(newJitsiBtn, jitsiBtn);
-                
-                const titleEl = document.getElementById(isTeacher ? 'edit_title' : 'studentCourseTitle');
-                const courseTitle = titleEl ? (titleEl.value || titleEl.textContent) : 'Aula';
-                newJitsiBtn.addEventListener('click', () => {
-                    openJitsiMeet(courseId, courseTitle);
-                });
-            }
-        }
-
-        // ========== CONTROLADORES DE CARGA INICIAL ==========
-
-        async function init() {
-            await loadDataFromAPI();
-            preloadTeacherDropdown();
-            
-            // Verificar rol de usuario
-            if (user && user.role === 'estudiante') {
-                // Ocultar la barra lateral por completo para no ver el resto de la aplicación
-                const sidebarEl = document.querySelector('.sidebar');
-                if (sidebarEl) sidebarEl.style.display = 'none';
-                
-                // Rediseñar Topbar de forma premium para el estudiante con su información y botón de cerrar sesión
-                const topbarEl = document.querySelector('.topbar');
-                if (topbarEl) {
-                    topbarEl.style.background = 'var(--white)';
-                    topbarEl.style.borderBottom = '1px solid var(--border-color)';
-                    topbarEl.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 15px;">
-                            <img src="/static/logo_skel.png" alt="SKEL" style="height: 40px; max-width: 120px; object-fit: contain;">
-                            <div style="height: 24px; width: 1px; background: var(--border-color);"></div>
-                            <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--primary-color); margin: 0; display: flex; align-items: center; gap: 8px;">
-                                🎓 Aula Virtual de Aprendizaje
-                            </h2>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 20px;">
-                            <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.3;">
-                                <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);" id="studentHeaderName">Cargando...</span>
-                                <span style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(user.email)}</span>
-                            </div>
-                            <div style="height: 24px; width: 1px; background: var(--border-color);"></div>
-                            <button onclick="logout()" class="btn-secondary" style="padding: 8px 16px; font-size: 0.85rem; font-weight: 600; border: 1.5px solid #ef4444; color: #ef4444; background: transparent; display: flex; align-items: center; gap: 6px; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s;">
-                                🚪 Cerrar Sesión
-                            </button>
-                        </div>
-                    `;
-                }
-
-                // Cargar nombre del estudiante
-                try {
-                    const studResp = await fetch(`/api/students?inst_id=${getInstId()}`);
-                    const students = await studResp.json();
-                    const student = students.find(s => s.email === user.email);
-                    if (student) {
-                        user.name = student.name;
-                        if (document.getElementById('studentHeaderName')) {
-                            document.getElementById('studentHeaderName').textContent = student.name;
-                        }
-                    } else if (document.getElementById('studentHeaderName')) {
-                        document.getElementById('studentHeaderName').textContent = 'Estudiante';
-                    }
-                } catch(err) {
-                    console.error("Error fetching student name:", err);
-                    if (document.getElementById('studentHeaderName')) {
-                        document.getElementById('studentHeaderName').textContent = 'Estudiante';
-                    }
-                }
-
-                // Configurar título y ocultar paneles administrativos
-                document.getElementById('mainTitle').textContent = '🎓 Mi Aula Virtual';
-                document.getElementById('adminTabNav').style.display = 'none';
-                document.getElementById('coursesTab').style.display = 'none';
-                document.getElementById('teachersTab').style.display = 'none';
-                document.getElementById('studentsTab').style.display = 'none';
-                
-                // Mostrar Aula del Estudiante
-                document.getElementById('studentClassroom').style.display = 'block';
-                loadStudentCourses();
-            } else {
-                // Admin flow normal
-                loadCoursesList();
-            }
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return text.toString().replace(/[&<>"']/g, function(m) { return map[m]; });
-        }
-
-        async function loadCourseAnalytics(courseId) {
-            if(!courseId) return;
-            try {
-                const res = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const data = await res.json();
-                const tbody = document.getElementById('analyticsTableBody');
-                tbody.innerHTML = '';
-                
-                if(!data.students || data.students.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No hay estudiantes inscritos con progreso.</td></tr>';
-                    return;
+                if(data.status === 'success') {
+                    loadPlanningData();
+                } else {
+                    alert('Error al eliminar: ' + data.message);
                 }
-                
-                data.students.forEach(s => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-weight: 500; color: var(--text-main);">
-                            ${escapeHtml(s.name)} <br> <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">${escapeHtml(s.email)}</span>
-                        </td>
-                        <td style="padding: 12px 15px; border-bottom: 1px solid var(--border-color); color: var(--text-main);">${s.completed} / ${s.total_activities}</td>
-                        <td style="padding: 12px 15px; border-bottom: 1px solid var(--border-color);">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="flex: 1; background: var(--border-color); border-radius: 10px; height: 8px; overflow: hidden; width: 100px;">
-                                    <div style="background: var(--success-gradient); height: 100%; width: ${s.progress}%; border-radius: 10px;"></div>
-                                </div>
-                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">${s.progress}%</span>
-                            </div>
-                        </td>
-                        <td style="padding: 12px 15px; border-bottom: 1px solid var(--border-color);">
-                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                                ${s.badges.map(b => `<span style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; color: #475569;">${escapeHtml(b)}</span>`).join('')}
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
             } catch(e) {
-                console.error(e);
+                alert('Error de conexión al intentar eliminar');
             }
         }
 
-        async function loadStudentGamification(courseId) {
+        async function suggestGenObjAI(strategyId) {
             try {
-                const res = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                // Pre-open the modal so the user sees it loading
+                addNode('gen_obj', strategyId);
+                const descField = document.getElementById('f_desc');
+                descField.value = 'Generando sugerencia con Inteligencia Artificial...';
+                descField.disabled = true;
+                
+                const res = await fetch('/api/planning/suggest', {
+                    method: nodeId ? 'PUT' : 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type: 'gen_obj', target_id: strategyId, inst_id: getInstId() })
+                });
                 const data = await res.json();
                 
-                const userEmail = user.email; // from global var
-                const myData = data.students.find(s => s.email === userEmail);
-                
-                document.getElementById('studentGamificationPanel').style.display = 'block';
-                
-                if(myData) {
-                    document.getElementById('studentProgressPct').textContent = `${myData.progress}%`;
-                    setTimeout(() => {
-                        document.getElementById('studentProgressBar').style.width = `${myData.progress}%`;
-                    }, 300);
-                    
-                    const badgesContainer = document.getElementById('studentBadgesContainer');
-                    if(myData.badges && myData.badges.length > 0) {
-                        badgesContainer.innerHTML = myData.badges.map(b => `
-                            <span style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.1)); border: 1px solid rgba(99,102,241,0.2); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; color: var(--primary-color); box-shadow: 0 2px 5px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 5px; animation: fadeIn 0.5s ease-out;">
-                                ${escapeHtml(b)}
-                            </span>
-                        `).join('');
-                    } else {
-                        badgesContainer.innerHTML = `<span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Aún no tienes insignias. ¡Envía tu primera tarea!</span>`;
-                    }
+                descField.disabled = false;
+                if(data.status === 'success') {
+                    descField.value = data.suggestion;
+                } else {
+                    descField.value = 'Error al sugerir: ' + data.message;
                 }
             } catch(e) {
-                console.error("Gamification error:", e);
+                document.getElementById('f_desc').disabled = false;
+                document.getElementById('f_desc').value = 'Error de red al conectar con IA.';
             }
         }
 
-        let quillEditorInstance = null;
-        function initQuill() {
-            if (!quillEditorInstance && document.getElementById('quillEditor')) {
-                quillEditorInstance = new Quill('#quillEditor', {
-                    theme: 'snow',
-                    modules: {
-                        toolbar: [
-                            [{ 'header': [1, 2, 3, false] }],
-                            ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                            [{ 'color': [] }, { 'background': [] }],
-                            ['link', 'image', 'video'],
-                            ['clean']
-                        ]
-                    }
-                });
-            }
-        }
-        
-        // Custom generic uploader
-        async function uploadFileToLMS(file) {
-            const formData = new FormData();
-            formData.append('file', file);
+        async function suggestActivitiesAI(specId) {
             try {
-                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                // We pre-open the modal but wait... suggestActivitiesAI might suggest multiple activities!
+                // For now, let's suggest ONE activity to fit in the modal, or a block of text
+                addNode('activity', specId);
+                const descField = document.getElementById('f_desc');
+                descField.value = 'Generando actividad con Inteligencia Artificial...';
+                descField.disabled = true;
+
+                const res = await fetch('/api/planning/suggest', {
+                    method: nodeId ? 'PUT' : 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type: 'activity', target_id: specId, inst_id: getInstId() })
+                });
                 const data = await res.json();
-                if(data.status === 'success') return data.url;
-                else throw new Error(data.message);
-            } catch(e) {
-                console.error("Upload error:", e);
-                alert("Error al subir archivo: " + e.message);
-                return null;
-            }
-        }
-        
-
-        // --- CONSTRUCTOR DE EXAMENES ---
-        let quizBuilderQuestions = [];
-        
-        function addQuizBuilderQuestion() {
-            quizBuilderQuestions.push({
-                text: '',
-                options: ['', '', '', ''],
-                correct: 0
-            });
-            renderQuizBuilder();
-        }
-        window.addQuizBuilderQuestion = addQuizBuilderQuestion;
-        
-        function removeQuizBuilderQuestion(idx) {
-            quizBuilderQuestions.splice(idx, 1);
-            renderQuizBuilder();
-        }
-        window.removeQuizBuilderQuestion = removeQuizBuilderQuestion;
-        
-        function updateQuizBuilderQuestion(idx, field, value, optIdx = null) {
-            if (field === 'text') quizBuilderQuestions[idx].text = value;
-            else if (field === 'correct') quizBuilderQuestions[idx].correct = parseInt(value);
-            else if (field === 'option') quizBuilderQuestions[idx].options[optIdx] = value;
-        }
-        window.updateQuizBuilderQuestion = updateQuizBuilderQuestion;
-        
-        function renderQuizBuilder() {
-            const container = document.getElementById('quizBuilderContainer');
-            if (quizBuilderQuestions.length === 0) {
-                container.innerHTML = '<p style="color:#64748b; font-size:0.9rem; text-align:center;">No hay preguntas. Haz clic en "Añadir Pregunta".</p>';
-                return;
-            }
-            
-            container.innerHTML = quizBuilderQuestions.map((q, qIdx) => `
-                <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:15px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <strong style="font-size:0.9rem;">Pregunta ${qIdx + 1}</strong>
-                        <button class="btn-ghost" style="color:#ef4444; padding:2px 8px; font-size:0.8rem;" onclick="removeQuizBuilderQuestion(${qIdx})">Eliminar</button>
-                    </div>
-                    <input type="text" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" placeholder="Enunciado de la pregunta" value="${escapeHtml(q.text)}" onchange="updateQuizBuilderQuestion(${qIdx}, 'text', this.value)">
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                        ${q.options.map((opt, oIdx) => `
-                            <div style="display:flex; align-items:center; gap:5px;">
-                                <input type="radio" name="correct_${qIdx}" value="${oIdx}" ${q.correct === oIdx ? 'checked' : ''} onchange="updateQuizBuilderQuestion(${qIdx}, 'correct', this.value)">
-                                <input type="text" style="flex:1; padding:6px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.85rem;" placeholder="Opción ${oIdx + 1}" value="${escapeHtml(opt)}" onchange="updateQuizBuilderQuestion(${qIdx}, 'option', this.value, ${oIdx})">
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        window.openAddEvaluationModal = function(unitIdx) {
-            document.getElementById('evaluationUnitIdx').value = unitIdx;
-            document.getElementById('eval_title').value = '';
-            document.getElementById('eval_min').value = '3.0';
-            document.getElementById('eval_max').value = '5.0';
-            quizBuilderQuestions = [];
-            renderQuizBuilder();
-            document.getElementById('unitEvaluationModal').style.display = 'flex';
-        };
-
-        window.submitAddUnitEvaluation = async function() {
-            const unitIdx = parseInt(document.getElementById('evaluationUnitIdx').value);
-            const title = document.getElementById('eval_title').value.trim();
-            const min_grade = parseFloat(document.getElementById('eval_min').value) || 3.0;
-            const max_grade = parseFloat(document.getElementById('eval_max').value) || 5.0;
-            
-            if (!title) { alert("El título es obligatorio."); return; }
-            if (min_grade < 1.0 || max_grade > 5.0 || min_grade > max_grade) {
-                alert("Calificaciones inválidas en Escala CNA (1.0 - 5.0)."); return;
-            }
-            if (quizBuilderQuestions.length === 0) {
-                if(!confirm("El examen no tiene preguntas. ¿Deseas guardarlo de todos modos?")) return;
-            }
-            
-            for(let i=0; i<quizBuilderQuestions.length; i++) {
-                if(!quizBuilderQuestions[i].text) {
-                    alert(`La pregunta ${i+1} no tiene enunciado.`); return;
-                }
-            }
-            
-            const newEval = { 
-                id: 'eval_' + Math.random().toString(36).substr(2, 5), 
-                title: title, 
-                min_grade: min_grade, 
-                max_grade: max_grade,
-                questions: JSON.parse(JSON.stringify(quizBuilderQuestions))
-            };
-            
-            if (!activeCourse.units[unitIdx].evaluations) activeCourse.units[unitIdx].evaluations = [];
-            activeCourse.units[unitIdx].evaluations.push(newEval);
-            
-            document.getElementById('unitEvaluationModal').style.display = 'none';
-            renderSyllabusList();
-            updateCourseOnServer();
-        };
-
-        let currentQuizQuestions = [];
-        
-        window.presentQuiz = function(courseId, unitId, evalId, title, minGrade, maxGrade, questionsJsonString) {
-            currentQuizMinGrade = parseFloat(minGrade);
-            currentQuizMaxGrade = parseFloat(maxGrade);
-            
-            document.getElementById('takeQuizCourseId').value = courseId;
-            document.getElementById('takeQuizUnitId').value = unitId;
-            document.getElementById('takeQuizEvalId').value = evalId;
-            
-            try {
-                currentQuizQuestions = JSON.parse(questionsJsonString);
-            } catch(e) {
-                currentQuizQuestions = [];
-            }
-            
-            document.getElementById('quizModalTitle').textContent = title;
-            document.getElementById('quizModalSub').innerHTML = `Evaluación formativa del LMS en Escala CNA (Aprobación: <strong>${currentQuizMinGrade.toFixed(1)}</strong> / Máxima: <strong>${currentQuizMaxGrade.toFixed(1)}</strong>)`;
-            
-            const container = document.getElementById('quizQuestionsContainer');
-            
-            if (currentQuizQuestions.length === 0) {
-                container.innerHTML = '<p style="text-align:center; padding:20px; color:#64748b;">Este examen no tiene preguntas configuradas.</p>';
-                document.getElementById('btnSubmitQuiz').style.display = 'none';
-            } else {
-                document.getElementById('btnSubmitQuiz').style.display = 'block';
-                container.innerHTML = currentQuizQuestions.map((item, qIdx) => `
-                    <div style="border-bottom:1px solid #f1f5f9; padding-bottom:15px;">
-                        <strong style="display:block; font-size:0.95rem; margin-bottom:10px; color: #1e293b;">${qIdx + 1}. ${escapeHtml(item.text)}</strong>
-                        <div style="display:flex; flex-direction:column; gap:8px;">
-                            ${item.options.map((opt, oIdx) => `
-                                <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem; cursor:pointer; color: #475569; padding:8px; border-radius:6px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
-                                    <input type="radio" name="q_${qIdx}" value="${oIdx}">
-                                    ${escapeHtml(opt)}
-                                </label>
-                            `).join('')}
-                        </div>
-                    </div>
-                `).join('');
-            }
-            
-            document.getElementById('quizModalFooter').style.display = 'flex';
-            const contentDiv = document.getElementById('quizModalContent');
-            if (contentDiv.querySelector('div[style*="font-size:4rem"]')) {
-               contentDiv.innerHTML = `
-                <input type="hidden" id="takeQuizCourseId" value="${courseId}">
-                <input type="hidden" id="takeQuizUnitId" value="${unitId}">
-                <input type="hidden" id="takeQuizEvalId" value="${evalId}">
-                <div id="quizQuestionsContainer" style="display:flex; flex-direction:column; gap:25px;"></div>
-               `;
-               presentQuiz(courseId, unitId, evalId, title, minGrade, maxGrade, questionsJsonString);
-               return;
-            }
-            
-            document.getElementById('quizModal').style.display = 'flex';
-        };
-
-        window.submitQuiz = async function() {
-            if (currentQuizQuestions.length === 0) return;
-            
-            let correctAnswers = 0;
-            let answeredCount = 0;
-            
-            currentQuizQuestions.forEach((item, qIdx) => {
-                const selected = document.querySelector(`input[name="q_${qIdx}"]:checked`);
-                if (selected) {
-                    answeredCount++;
-                    if (parseInt(selected.value) === item.correct) {
-                        correctAnswers++;
-                    }
-                }
-            });
-            
-            if (answeredCount < currentQuizQuestions.length) {
-                alert("Por favor, responde todas las preguntas del cuestionario antes de enviar.");
-                return;
-            }
-            
-            const btn = document.getElementById('btnSubmitQuiz');
-            btn.disabled = true;
-            btn.textContent = "Evaluando...";
-            
-            const grade = 1.0 + (correctAnswers / currentQuizQuestions.length) * 4.0;
-            const approved = grade >= currentQuizMinGrade;
-            
-            const courseId = document.getElementById('takeQuizCourseId').value;
-            const unitId = document.getElementById('takeQuizUnitId').value;
-            const evalId = document.getElementById('takeQuizEvalId').value;
-            
-            try {
-                const subData = {
-                    course_id: courseId,
-                    unit_id: unitId,
-                    activity_id: evalId,
-                    student_email: user.email,
-                    student_name: user.name || user.email.split('@')[0],
-                    content: `Examen: ${correctAnswers}/${currentQuizQuestions.length} correctas.`,
-                    submitted_at: new Date().toISOString(),
-                    status: 'graded',
-                    grade: grade.toFixed(1),
-                    feedback: 'Calificación automática del sistema.'
-                };
                 
-                const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${evalId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const existingSubs = await checkResp.json();
-                if (existingSubs && existingSubs.length > 0) {
-                    subData.id = existingSubs[0].id;
+                descField.disabled = false;
+                if(data.status === 'success') {
+                    descField.value = data.suggestion;
+                    // Optional: parse if AI returns dates, but text is fine for description
+                } else {
+                    descField.value = 'Error al sugerir: ' + data.message;
                 }
+            } catch(e) {
+                document.getElementById('f_desc').disabled = false;
+                document.getElementById('f_desc').value = 'Error de red al conectar con IA.';
+            }
+        }
+
+        async function suggestSpecObjAI(genId) {
+            try {
+                addNode('spec_obj', genId);
+                const descField = document.getElementById('f_desc');
+                descField.value = 'Generando sugerencia con Inteligencia Artificial...';
+                descField.disabled = true;
                 
-                await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(subData)
+                const res = await fetch('/api/planning/suggest', {
+                    method: nodeId ? 'PUT' : 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type: 'spec_obj', target_id: genId, inst_id: getInstId() })
                 });
+                const data = await res.json();
                 
+                descField.disabled = false;
+                if(data.status === 'success') {
+                    descField.value = data.suggestion;
+                } else {
+                    descField.value = 'Error al sugerir: ' + data.message;
+                }
             } catch(e) {
-                console.error("Error saving quiz score", e);
+                document.getElementById('f_desc').disabled = false;
+                document.getElementById('f_desc').value = 'Error de red al conectar con IA.';
             }
-            
-            const modalContent = document.getElementById('quizModalContent');
-            modalContent.innerHTML = `
-                <div style="text-align:center; padding:20px; color: #0f172a;">
-                    <div style="font-size:4rem; margin-bottom:15px; animation: bounce 1s infinite;">
-                        ${approved ? '🏆' : '⚠️'}
-                    </div>
-                    <h3 style="font-size:1.4rem; font-weight:800; margin-bottom:8px; color: ${approved ? '#10b981' : '#ef4444'};">
-                        ${approved ? 'Examen Aprobado' : 'Examen Reprobado'}
-                    </h3>
-                    <p style="font-size:0.95rem; color:var(--text-muted); margin-bottom:20px;">
-                        Tus respuestas han sido evaluadas.
-                    </p>
-                    
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:15px 20px; display:inline-block; margin-bottom:25px;">
-                        <div style="font-size:0.85rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:5px;">Tu Calificación CNA</div>
-                        <div style="font-size:2.5rem; font-weight:900; color: ${approved ? '#10b981' : '#ef4444'}; line-height:1;">
-                            ${grade.toFixed(1)}
-                        </div>
-                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;">
-                            (Aprobación requerida: ${currentQuizMinGrade.toFixed(1)})
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('quizModalFooter').style.display = 'none';
-            btn.disabled = false;
-            btn.textContent = "Enviar Examen";
-            
-            openStudentCourse(courseId);
-        };
-
-        window.onload = function() {
-            init();
-            initQuill();
-        };
+        }
     
