@@ -407,7 +407,7 @@
                             
                             <div class="node-body">
                                 <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                                    <button class="btn-toolbar" onclick="editNode('gen_obj', ${g.id}, {'description': \`${g.description.replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Objetivo</button>
+                                    <button class="btn-toolbar" onclick=\"editNode('gen_obj', ${g.id}, {'description': \`${g.description.replace(/`/g, '').replace(/\"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'alignment_pdi': \`${(g.alignment_pdi||'').replace(/`/g, '').replace(/\"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)\"><i class="fas fa-pencil-alt"></i> Editar Objetivo</button>
                                     <button class="btn-toolbar delete" onclick="deleteNode('gen_obj', ${g.id}, event)"><i class="fas fa-trash"></i> Eliminar Objetivo</button>
                                     <button class="btn-toolbar" onclick="addNode('spec_obj', ${g.id})"><i class="fas fa-plus"></i> Añadir Obj. Específico</button>
                                 </div>
@@ -454,6 +454,10 @@
                                 </div>
                             </div>
                             <div class="node-body">
+                                <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                                    <button class="btn-toolbar" onclick="editNode('spec_obj', ${s.id}, {'description': \`${s.description.replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'weight_percentage': ${s.weight_percentage||0}, 'indicator_type': \`${(s.indicator_type||'').replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'indicator_description': \`${(s.indicator_description||'').replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Específico</button>
+                                    <button class="btn-toolbar delete" onclick="deleteNode('spec_obj', ${s.id}, event)"><i class="fas fa-trash"></i> Eliminar Específico</button>
+                                </div>
                                 <div style="background:#f8fafc; padding:10px 15px; border-radius:6px; margin-bottom:15px; font-size:0.85rem; color:#475569;">
                                     <i class="fas fa-chart-line" style="margin-right:5px; color:#f59e0b;"></i> <strong>Indicador:</strong> ${s.indicator_type || 'N/A'} - ${s.indicator_description || ''}
                                 </div>
@@ -501,7 +505,7 @@
                                       <span class="badge ${badgeClass}">${a.status || 'Pendiente'}</span>
                                   </div>
                                   <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
-                                      <button class="btn-toolbar" onclick="editNode('activity', ${a.id}, {'description': \`${a.description.replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'start_date': \`${(a.start_date||'').substring(0,10)}\`, 'end_date': \`${(a.end_date||'').substring(0,10)}\`, 'financial_budget': ${a.financial_budget||0}, 'responsible': \`${(a.responsible||'').replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Actividad</button>
+                                      <button class="btn-toolbar" onclick=\"editNode('activity', ${a.id}, {'description': \`${a.description.replace(/`/g, '').replace(/\"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'start_date': \`${(a.start_date||'').substring(0,10)}\`, 'end_date': \`${(a.end_date||'').substring(0,10)}\`, 'goal': \`${(a.goal||'').replace(/`/g, '').replace(/\"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'financial_budget': ${a.financial_budget||0}, 'responsible': \`${(a.responsible||'').replace(/`/g, '').replace(/\"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)\"><i class="fas fa-pencil-alt"></i> Editar Actividad</button>
                                       <button class="btn-toolbar delete" onclick="deleteNode('activity', ${a.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
                                   </div>
 
@@ -545,6 +549,7 @@
             } else if(type === 'gen_obj') {
                 body.innerHTML = `
                     <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                    <div class="form-group"><label>Alineación (PDI)</label><input type="text" id="f_align" value="${data.alignment_pdi || ''}"></div>
                 `;
             } else if(type === 'spec_obj') {
                 body.innerHTML = `
@@ -560,6 +565,7 @@
                         <div class="form-group" style="flex:1;"><label>Fecha Inicio</label><input type="date" id="f_start" value="${data.start_date || ''}"></div>
                         <div class="form-group" style="flex:1;"><label>Fecha Fin</label><input type="date" id="f_end" value="${data.end_date || ''}"></div>
                     </div>
+                    <div class="form-group"><label>Meta Numérica / Entregable</label><input type="text" id="f_goal" value="${data.goal || ''}"></div>
                     <div class="form-group"><label>Presupuesto Financiero ($)</label><input type="number" id="f_budget" value="${data.financial_budget || 0}"></div>
                     <div class="form-group"><label>Responsable</label><input type="text" id="f_resp" value="${data.responsible || ''}"></div>
                 `;
