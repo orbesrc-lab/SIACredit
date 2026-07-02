@@ -322,7 +322,7 @@
                         
                           <div class="node-body" style="display:block;">
                               <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                                  <button class="btn-toolbar" onclick="editNode('axis', ${axis.id}, {'name': \`${axis.name.replace(/`/g, '')}\`, 'description': \`${(axis.description||'').replace(/`/g, '')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Eje</button>
+                                  <button class="btn-toolbar" onclick="editNode('axis', ${axis.id}, {'name': \`${axis.name.replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'description': \`${(axis.description||'').replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Eje</button>
                                   <button class="btn-toolbar delete" onclick="deleteNode('axis', ${axis.id}, event)"><i class="fas fa-trash"></i> Eliminar Eje</button>
                                   <button class="btn-toolbar" onclick="addNode('strategy', ${axis.id})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
                               </div>
@@ -360,7 +360,7 @@
                             
                             <div class="node-body">
                                 <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                                    <button class="btn-toolbar" onclick="editNode('strategy', ${st.id}, {'description': \`${st.description.replace(/`/g, '')}\`, 'weight_percentage': ${st.weight_percentage||0}}, event)"><i class="fas fa-pencil-alt"></i> Editar Estrategia</button>
+                                    <button class="btn-toolbar" onclick="editNode('strategy', ${st.id}, {'description': \`${st.description.replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'weight_percentage': ${st.weight_percentage||0}}, event)"><i class="fas fa-pencil-alt"></i> Editar Estrategia</button>
                                     <button class="btn-toolbar delete" onclick="deleteNode('strategy', ${st.id}, event)"><i class="fas fa-trash"></i> Eliminar Estrategia</button>
                                     <button class="btn-toolbar" onclick="addNode('gen_obj', ${st.id})"><i class="fas fa-plus"></i> Añadir Obj. General</button>
                                 </div>
@@ -407,7 +407,7 @@
                             
                             <div class="node-body">
                                 <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                                    <button class="btn-toolbar" onclick="editNode('gen_obj', ${g.id}, {'description': \`${g.description.replace(/`/g, '')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Objetivo</button>
+                                    <button class="btn-toolbar" onclick="editNode('gen_obj', ${g.id}, {'description': \`${g.description.replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Objetivo</button>
                                     <button class="btn-toolbar delete" onclick="deleteNode('gen_obj', ${g.id}, event)"><i class="fas fa-trash"></i> Eliminar Objetivo</button>
                                     <button class="btn-toolbar" onclick="addNode('spec_obj', ${g.id})"><i class="fas fa-plus"></i> Añadir Obj. Específico</button>
                                 </div>
@@ -501,7 +501,7 @@
                                       <span class="badge ${badgeClass}">${a.status || 'Pendiente'}</span>
                                   </div>
                                   <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
-                                      <button class="btn-toolbar" onclick="editNode('activity', ${a.id}, {'description': \`${a.description.replace(/`/g, '')}\`, 'start_date': \`${(a.start_date||'').substring(0,10)}\`, 'end_date': \`${(a.end_date||'').substring(0,10)}\`, 'financial_budget': ${a.financial_budget||0}, 'responsible': \`${(a.responsible||'').replace(/`/g, '')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Actividad</button>
+                                      <button class="btn-toolbar" onclick="editNode('activity', ${a.id}, {'description': \`${a.description.replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'start_date': \`${(a.start_date||'').substring(0,10)}\`, 'end_date': \`${(a.end_date||'').substring(0,10)}\`, 'financial_budget': ${a.financial_budget||0}, 'responsible': \`${(a.responsible||'').replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Actividad</button>
                                       <button class="btn-toolbar delete" onclick="deleteNode('activity', ${a.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
                                   </div>
 
@@ -523,16 +523,14 @@
 
         let currentNodeType = '';
         let currentParentId = 0;
+        let currentNodeId = null;
 
         
         function editNode(type, id, data, event) {
             if(event) event.stopPropagation();
-            document.getElementById('nodeForm').reset();
-            document.getElementById('nodeType').value = type;
-            document.getElementById('parentId').value = '';
-            document.getElementById('nodeId').value = id;
+            currentNodeType = type;
+            currentNodeId = id;
             document.getElementById('modalTitle').textContent = 'Editar Elemento';
-            
             const body = document.getElementById('modalBody');
             if(type === 'axis') {
                 body.innerHTML = `
@@ -570,6 +568,8 @@
         }
 
         function addNode(type, parentId) {
+            currentNodeId = null;
+
             currentNodeType = type;
             currentParentId = parentId;
             const modal = document.getElementById('nodeModal');
@@ -622,8 +622,8 @@
             btn.textContent = 'Guardando...';
             btn.disabled = true;
 
-            let nodeIdStr = document.getElementById('nodeId') ? document.getElementById('nodeId').value : null;
-            let nodeId = nodeIdStr ? parseInt(nodeIdStr) : null;
+            
+            
 
             const payload = {
                 inst_id: getInstId(),
@@ -653,8 +653,8 @@
             }
 
             try {
-                if (nodeId) payload.id = nodeId;
-                const endpoint = nodeId ? '/api/planning/node/edit' : '/api/planning/node';
+                if (currentNodeId) payload.id = currentNodeId;
+                const endpoint = currentNodeId ? '/api/planning/node/edit' : '/api/planning/node';
                 const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
