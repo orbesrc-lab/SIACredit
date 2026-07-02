@@ -3821,6 +3821,58 @@ def get_planning_tree():
         print(f"Error in planning tree: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+@app.route('/api/planning/node', methods=['POST'])
+def add_planning_node():
+    try:
+        data = request.json
+        node_type = data.get('type')
+        inst_id = data.get('inst_id')
+        parent_id = data.get('parent_id')
+        
+        if not node_type or not inst_id or not parent_id:
+            return jsonify({'status': 'error', 'message': 'Faltan parámetros'})
+
+        if node_type == 'strategy':
+            supabase.table('planning_strategies').insert({
+                'inst_id': inst_id,
+                'axis_id': parent_id,
+                'description': data.get('description', ''),
+                'weight_percentage': data.get('weight_percentage', 0),
+                'quadrant': data.get('quadrant', 'MANUAL')
+            }).execute()
+        elif node_type == 'gen_obj':
+            supabase.table('planning_general_objectives').insert({
+                'strategy_id': parent_id,
+                'description': data.get('description', ''),
+                'alignment_pdi': data.get('alignment_pdi', '')
+            }).execute()
+        elif node_type == 'spec_obj':
+            supabase.table('planning_specific_objectives').insert({
+                'general_objective_id': parent_id,
+                'description': data.get('description', ''),
+                'weight_percentage': data.get('weight_percentage', 0),
+                'indicator_type': data.get('indicator_type', ''),
+                'indicator_description': data.get('indicator_description', '')
+            }).execute()
+        elif node_type == 'activity':
+            supabase.table('planning_activities').insert({
+                'specific_objective_id': parent_id,
+                'description': data.get('description', ''),
+                'start_date': data.get('start_date'),
+                'end_date': data.get('end_date'),
+                'goal': data.get('goal', ''),
+                'responsible': data.get('responsible', ''),
+                'financial_budget': data.get('financial_budget', 0),
+                'status': 'Pendiente'
+            }).execute()
+        else:
+            return jsonify({'status': 'error', 'message': 'Tipo inválido'})
+
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        print(f"Error in add planning node: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)

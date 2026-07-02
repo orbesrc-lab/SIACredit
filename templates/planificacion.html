@@ -138,7 +138,18 @@
                     <p style="margin-top: 10px;">Cargando estructura estratégica...</p>
                 </div>
             </div>
+        <!-- Modal -->
+        <div id="nodeModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header" id="modalTitle">Nuevo Elemento</div>
+                <div id="modalBody"></div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button class="btn-add" style="background:#64748b; margin-right:10px;" onclick="closeModal()">Cancelar</button>
+                    <button class="btn-add" id="btnSaveNode" onclick="saveNode()">Guardar</button>
+                </div>
+            </div>
         </div>
+
     </main>
 
     <script src="{{ url_for('static', filename='data.js') }}"></script>
@@ -314,10 +325,108 @@
             return html;
         }
 
-        // Placeholder for Add Modals
+        let currentNodeType = '';
+        let currentParentId = 0;
+
         function addNode(type, parentId) {
-            alert("Apertura de formulario modal para: " + type + " con padre " + parentId);
+            currentNodeType = type;
+            currentParentId = parentId;
+            const modal = document.getElementById('nodeModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            
+            if(type === 'strategy') {
+                title.textContent = 'Nueva Estrategia';
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
+                    <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="0" min="0" max="100"></div>
+                `;
+            } else if(type === 'gen_obj') {
+                title.textContent = 'Nuevo Objetivo General';
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
+                    <div class="form-group"><label>Alineación (PDI)</label><input type="text" id="f_align" placeholder="Opcional"></div>
+                `;
+            } else if(type === 'spec_obj') {
+                title.textContent = 'Nuevo Objetivo Específico';
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
+                    <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="0" min="0" max="100"></div>
+                    <div class="form-group"><label>Tipo de Indicador</label><input type="text" id="f_ind_type" placeholder="Ej: Porcentaje, Número..."></div>
+                    <div class="form-group"><label>Descripción del Indicador</label><input type="text" id="f_ind_desc"></div>
+                `;
+            } else if(type === 'activity') {
+                title.textContent = 'Nueva Actividad';
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="form-group" style="flex:1;"><label>Fecha Inicio</label><input type="date" id="f_start"></div>
+                        <div class="form-group" style="flex:1;"><label>Fecha Fin</label><input type="date" id="f_end"></div>
+                    </div>
+                    <div class="form-group"><label>Meta Numérica / Entregable</label><input type="text" id="f_goal"></div>
+                    <div class="form-group"><label>Responsable</label><input type="text" id="f_resp"></div>
+                    <div class="form-group"><label>Presupuesto (Valor Hora Base)</label><input type="number" id="f_budget" placeholder="Si aplica (el sistema calculará +1.54)"></div>
+                `;
+            }
+
+            modal.style.display = 'flex';
         }
+
+        function closeModal() {
+            document.getElementById('nodeModal').style.display = 'none';
+        }
+
+        async function saveNode() {
+            const btn = document.getElementById('btnSaveNode');
+            btn.textContent = 'Guardando...';
+            btn.disabled = true;
+
+            const payload = {
+                inst_id: getInstId(),
+                type: currentNodeType,
+                parent_id: currentParentId,
+                description: document.getElementById('f_desc') ? document.getElementById('f_desc').value : ''
+            };
+
+            if(currentNodeType === 'strategy') {
+                payload.weight_percentage = document.getElementById('f_weight').value || 0;
+                payload.quadrant = 'MANUAL';
+            } else if(currentNodeType === 'gen_obj') {
+                payload.alignment_pdi = document.getElementById('f_align').value || '';
+            } else if(currentNodeType === 'spec_obj') {
+                payload.weight_percentage = document.getElementById('f_weight').value || 0;
+                payload.indicator_type = document.getElementById('f_ind_type').value || '';
+                payload.indicator_description = document.getElementById('f_ind_desc').value || '';
+            } else if(currentNodeType === 'activity') {
+                payload.start_date = document.getElementById('f_start').value || null;
+                payload.end_date = document.getElementById('f_end').value || null;
+                payload.goal = document.getElementById('f_goal').value || '';
+                payload.responsible = document.getElementById('f_resp').value || '';
+                let budget = parseFloat(document.getElementById('f_budget').value || 0);
+                payload.financial_budget = budget * 1.54; // Carga prestacional
+            }
+
+            try {
+                const res = await fetch('/api/planning/node', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    closeModal();
+                    loadPlanningData();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch(e) {
+                alert('Error de conexión');
+            }
+            
+            btn.textContent = 'Guardar';
+            btn.disabled = false;
+        }
+
         function suggestActivitiesAI(specId) {
             alert("LLamando a Gemini AI para sugerir actividades para: " + specId);
         }
