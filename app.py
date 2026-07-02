@@ -3974,6 +3974,47 @@ def add_planning_node():
         print(f"Error in add planning node: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+@app.route('/api/planning/node', methods=['PUT'])
+def edit_planning_node():
+    try:
+        data = request.json
+        node_type = data.get('type')
+        node_id = data.get('id')
+        
+        if not node_type or not node_id:
+            return jsonify({'status': 'error', 'message': 'Faltan parámetros'})
+
+        table_map = {
+            'axis': 'planning_axes',
+            'strategy': 'planning_strategies',
+            'gen_obj': 'planning_general_objectives',
+            'spec_obj': 'planning_specific_objectives',
+            'activity': 'planning_activities'
+        }
+        
+        table_name = table_map.get(node_type)
+        if not table_name:
+            return jsonify({'status': 'error', 'message': 'Tipo inválido'})
+            
+        update_data = {}
+        if 'description' in data: update_data['description'] = data['description']
+        if 'name' in data: update_data['name'] = data['name']
+        if 'weight_percentage' in data: update_data['weight_percentage'] = data['weight_percentage']
+        if 'alignment_pdi' in data: update_data['alignment_pdi'] = data['alignment_pdi']
+        if 'indicator_type' in data: update_data['indicator_type'] = data['indicator_type']
+        if 'indicator_description' in data: update_data['indicator_description'] = data['indicator_description']
+        if 'start_date' in data: update_data['start_date'] = data['start_date']
+        if 'end_date' in data: update_data['end_date'] = data['end_date']
+        if 'goal' in data: update_data['goal'] = data['goal']
+        if 'responsible' in data: update_data['responsible'] = data['responsible']
+        if 'financial_budget' in data: update_data['financial_budget'] = data['financial_budget']
+
+        if update_data:
+            supabase.table(table_name).update(update_data).eq('id', node_id).execute()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @app.route('/api/planning/node', methods=['DELETE'])
 def delete_planning_node():
     try:

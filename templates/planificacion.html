@@ -57,6 +57,11 @@
         .action-btn { background: none; border: none; cursor: pointer; color: #64748b; font-size: 1rem; padding: 5px;}
         .action-btn:hover { color: #2563eb; }
 
+        
+        .btn-toolbar { background: white; color: #475569; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px;}
+        .btn-toolbar:hover { background: #f8fafc; color: #2563eb; border-color: #94a3b8; }
+        .btn-toolbar.delete:hover { color: #ef4444; border-color: #fca5a5; background: #fef2f2; }
+
         .btn-add { background: white; color: #3b82f6; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px dashed #3b82f6; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;}
         .btn-add:hover { background: #eff6ff; border-color: #2563eb; }
         
@@ -218,7 +223,14 @@
                             </div>
                             <i class="fas fa-chevron-down toggle-icon" style="color:#94a3b8;"></i>
                         </div>
-                        <div class="node-body" style="display:block;">
+                        
+                          <div class="node-body" style="display:block;">
+                              <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                                  <button class="btn-toolbar" onclick="editNode('axis', ${axis.id}, {'name': \`${axis.name.replace(/`/g, '')}\`, 'description': \`${(axis.description||'').replace(/`/g, '')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Eje</button>
+                                  <button class="btn-toolbar delete" onclick="deleteNode('axis', ${axis.id}, event)"><i class="fas fa-trash"></i> Eliminar Eje</button>
+                                  <button class="btn-toolbar" onclick="addNode('strategy', ${axis.id})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
+                              </div>
+
                             <p style="font-size:0.9rem; color:#64748b; margin-top:0; margin-bottom:20px;">${axis.description || 'Sin descripción'}</p>
                             ${renderStrategies(axis.strategies, axis.id)}
                         </div>
@@ -245,11 +257,17 @@
                                 <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                                     <span class="badge badge-weight">Peso: ${st.weight_percentage}%</span>
                                     ${wBadge}
-                                    <button class="action-btn" onclick="deleteNode('strategy', ${st.id}, event)" title="Eliminar Estrategia"><i class="fas fa-trash" style="color:#ef4444;"></i></button>
+                                    
                                     <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
                                 </div>
                             </div>
+                            
                             <div class="node-body">
+                                <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                                    <button class="btn-toolbar" onclick="editNode('strategy', ${st.id}, {'description': \`${st.description.replace(/`/g, '')}\`, 'weight_percentage': ${st.weight_percentage||0}}, event)"><i class="fas fa-pencil-alt"></i> Editar Estrategia</button>
+                                    <button class="btn-toolbar delete" onclick="deleteNode('strategy', ${st.id}, event)"><i class="fas fa-trash"></i> Eliminar Estrategia</button>
+                                    <button class="btn-toolbar" onclick="addNode('gen_obj', ${st.id})"><i class="fas fa-plus"></i> Añadir Obj. General</button>
+                                </div>
                                 ${renderGenObjs(st.general_objectives, st.id)}
                             </div>
                         </div>
@@ -286,11 +304,17 @@
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                                     ${wBadge}
-                                    <button class="action-btn" onclick="deleteNode('gen_obj', ${g.id}, event)" title="Eliminar Objetivo General"><i class="fas fa-trash" style="color:#ef4444;"></i></button>
+                                    
                                     <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
                                 </div>
                             </div>
+                            
                             <div class="node-body">
+                                <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                                    <button class="btn-toolbar" onclick="editNode('gen_obj', ${g.id}, {'description': \`${g.description.replace(/`/g, '')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Objetivo</button>
+                                    <button class="btn-toolbar delete" onclick="deleteNode('gen_obj', ${g.id}, event)"><i class="fas fa-trash"></i> Eliminar Objetivo</button>
+                                    <button class="btn-toolbar" onclick="addNode('spec_obj', ${g.id})"><i class="fas fa-plus"></i> Añadir Obj. Específico</button>
+                                </div>
                                 ${countWarning ? `<div style="margin-bottom:15px;">${countWarning}</div>` : ''}
                                 ${renderSpecObjs(g.specific_objectives, g.id)}
                             </div>
@@ -329,7 +353,7 @@
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                                     <span class="badge badge-weight">Peso: ${s.weight_percentage}%</span>
-                                    <button class="action-btn" onclick="deleteNode('spec_obj', ${s.id}, event)" title="Eliminar Objetivo Específico"><i class="fas fa-trash" style="color:#ef4444;"></i></button>
+                                    
                                     <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
                                 </div>
                             </div>
@@ -377,9 +401,14 @@
                                     </div>
                                 </div>
                                 <div style="flex-shrink:0; margin-left:15px;">
-                                    <span class="badge ${badgeClass}">${a.status || 'Pendiente'}</span>
-                                    <button class="action-btn" onclick="deleteNode('activity', ${a.id}, event)" title="Eliminar Actividad" style="margin-left:10px;"><i class="fas fa-trash" style="color:#ef4444;"></i></button>
-                                </div>
+                                    
+                                      <span class="badge ${badgeClass}">${a.status || 'Pendiente'}</span>
+                                  </div>
+                                  <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+                                      <button class="btn-toolbar" onclick="editNode('activity', ${a.id}, {'description': \`${a.description.replace(/`/g, '')}\`, 'start_date': \`${(a.start_date||'').substring(0,10)}\`, 'end_date': \`${(a.end_date||'').substring(0,10)}\`, 'financial_budget': ${a.financial_budget||0}, 'responsible': \`${(a.responsible||'').replace(/`/g, '')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Actividad</button>
+                                      <button class="btn-toolbar delete" onclick="deleteNode('activity', ${a.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
+                                  </div>
+
                             </div>
                         </div>
                     </div>`;
@@ -398,6 +427,51 @@
 
         let currentNodeType = '';
         let currentParentId = 0;
+
+        
+        function editNode(type, id, data, event) {
+            if(event) event.stopPropagation();
+            document.getElementById('nodeForm').reset();
+            document.getElementById('nodeType').value = type;
+            document.getElementById('parentId').value = '';
+            document.getElementById('nodeId').value = id;
+            document.getElementById('modalTitle').textContent = 'Editar Elemento';
+            
+            const body = document.getElementById('modalBody');
+            if(type === 'axis') {
+                body.innerHTML = `
+                    <div class="form-group"><label>Nombre del Eje</label><input type="text" id="f_name" value="${data.name || ''}"></div>
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                `;
+            } else if(type === 'strategy') {
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                    <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="${data.weight_percentage || 0}" min="0" max="100"></div>
+                `;
+            } else if(type === 'gen_obj') {
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                `;
+            } else if(type === 'spec_obj') {
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                    <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="${data.weight_percentage || 0}" min="0" max="100"></div>
+                    <div class="form-group"><label>Tipo de Indicador</label><input type="text" id="f_ind_type" value="${data.indicator_type || ''}"></div>
+                    <div class="form-group"><label>Descripción del Indicador</label><input type="text" id="f_ind_desc" value="${data.indicator_description || ''}"></div>
+                `;
+            } else if(type === 'activity') {
+                body.innerHTML = `
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="form-group" style="flex:1;"><label>Fecha Inicio</label><input type="date" id="f_start" value="${data.start_date || ''}"></div>
+                        <div class="form-group" style="flex:1;"><label>Fecha Fin</label><input type="date" id="f_end" value="${data.end_date || ''}"></div>
+                    </div>
+                    <div class="form-group"><label>Presupuesto Financiero ($)</label><input type="number" id="f_budget" value="${data.financial_budget || 0}"></div>
+                    <div class="form-group"><label>Responsable</label><input type="text" id="f_resp" value="${data.responsible || ''}"></div>
+                `;
+            }
+            document.getElementById('nodeModal').style.display = 'flex';
+        }
 
         function addNode(type, parentId) {
             currentNodeType = type;
@@ -459,7 +533,10 @@
                 description: document.getElementById('f_desc') ? document.getElementById('f_desc').value : ''
             };
 
-            if(currentNodeType === 'strategy') {
+            
+            if(currentNodeType === 'axis') {
+                payload.name = document.getElementById('f_name').value || '';
+            } else if(currentNodeType === 'strategy') {
                 payload.weight_percentage = document.getElementById('f_weight').value || 0;
                 payload.quadrant = 'MANUAL';
             } else if(currentNodeType === 'gen_obj') {
@@ -478,8 +555,11 @@
             }
 
             try {
-                const res = await fetch('/api/planning/node', {
-                    method: 'POST',
+                
+            if (nodeId) payload.id = nodeId;
+            
+            const res = await fetch('/api/planning/node', {
+                    method: nodeId ? 'PUT' : 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
                 });
@@ -503,7 +583,10 @@
             if(!confirm('¿Estás seguro de que deseas eliminar este elemento? Todos los elementos hijos también se eliminarán de forma irreversible.')) return;
 
             try {
-                const res = await fetch('/api/planning/node', {
+                
+            if (nodeId) payload.id = nodeId;
+            
+            const res = await fetch('/api/planning/node', {
                     method: 'DELETE',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: type, id: id })
@@ -528,7 +611,7 @@
                 descField.disabled = true;
                 
                 const res = await fetch('/api/planning/suggest', {
-                    method: 'POST',
+                    method: nodeId ? 'PUT' : 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'gen_obj', target_id: strategyId, inst_id: getInstId() })
                 });
@@ -556,7 +639,7 @@
                 descField.disabled = true;
 
                 const res = await fetch('/api/planning/suggest', {
-                    method: 'POST',
+                    method: nodeId ? 'PUT' : 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'activity', target_id: specId, inst_id: getInstId() })
                 });
@@ -583,7 +666,7 @@
                 descField.disabled = true;
                 
                 const res = await fetch('/api/planning/suggest', {
-                    method: 'POST',
+                    method: nodeId ? 'PUT' : 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'spec_obj', target_id: genId, inst_id: getInstId() })
                 });
