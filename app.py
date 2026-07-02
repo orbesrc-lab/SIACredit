@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, Response, send_from_directory
+from flask import Flask, render_template, request, jsonify, session, Response, send_from_directory, redirect
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
@@ -2457,6 +2457,35 @@ def update_evidence_status():
     except Exception as e:
         print(f"Error updating status: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/proxy/external_pdf', methods=['GET'])
+def proxy_external_pdf():
+    file_url = request.args.get('url', '')
+    if not file_url:
+        return jsonify({'error': 'URL requerida'}), 400
+    try:
+        import urllib.request
+        import urllib.parse
+        
+        # Ensure the URL is properly encoded if it contains spaces
+        parsed = urllib.parse.urlparse(file_url)
+        safe_path = urllib.parse.quote(parsed.path, safe='/:@%')
+        safe_url = parsed._replace(path=safe_path).geturl()
+        
+        req = urllib.request.Request(safe_url, headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'application/pdf,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        })
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = resp.read()
+            return Response(data, mimetype='application/pdf', headers={
+                'Content-Disposition': 'inline; filename="documento.pdf"',
+                'Access-Control-Allow-Origin': '*'
+            })
+    except Exception as e:
+        print(f"Error proxying external PDF: {e}")
+        # If it fails, fallback by redirecting to the URL so at least it opens
+        return redirect(file_url)
 
 @app.route('/api/download')
 def proxy_download():

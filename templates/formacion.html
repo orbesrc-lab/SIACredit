@@ -5352,6 +5352,10 @@
             let viewerUrl = currentPdfUrl;
             if(useGoogleViewer) {
                 viewerUrl = 'https://docs.google.com/gview?url=' + encodeURIComponent(currentPdfUrl) + '&embedded=true';
+            } else {
+                if(currentPdfUrl.toLowerCase().includes('.pdf')) {
+                    viewerUrl = '/api/proxy/external_pdf?url=' + encodeURIComponent(currentPdfUrl);
+                }
             }
             document.getElementById('pdfViewerIframe').src = viewerUrl;
         }
