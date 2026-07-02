@@ -149,19 +149,28 @@
     </style>
 </head>
 <body>
-<aside class="sidebar" id="sidebar">
-    <div class="sidebar-header"><div class="logo">SKEL</div></div>
-    <nav class="sidebar-nav">
-        <a href="/dashboard" class="nav-item"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
-        <a href="/planificacion" class="nav-item"><i class="fas fa-project-diagram"></i><span>Planificación</span></a>
-        <a href="/evidencias" class="nav-item"><i class="fas fa-file-alt"></i><span>Evidencias</span></a>
-        <a href="/autoevaluacion" class="nav-item"><i class="fas fa-clipboard-check"></i><span>Autoevaluación</span></a>
-        <a href="/informes" class="nav-item"><i class="fas fa-chart-bar"></i><span>Informes</span></a>
-        <a href="/estadisticas" class="nav-item"><i class="fas fa-chart-pie"></i><span>Estadísticas</span></a>
-        <a href="/backup" class="nav-item active"><i class="fas fa-database"></i><span>Backup</span></a>
-        <a href="/configuracion" class="nav-item"><i class="fas fa-cog"></i><span>Configuración</span></a>
-    </nav>
-</aside>
+<aside class="sidebar">
+        <div class="sidebar-header" style="justify-content: center; padding: 20px 15px;">
+            <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
+        </div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="sidebar-item active">📊 Dashboard</a>
+            <a href="evidencias.html" class="sidebar-item">📁 Evidencias</a>
+            <a href="autoevaluacion.html" class="sidebar-item">📝 Autoevaluación</a>
+            <a href="informes.html" class="sidebar-item">📄 Informes</a>
+            <a href="dofa.html" class="sidebar-item">🎯 Diagnóstico DOFA</a>
+            <a href="estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
+            <a href="biblioteca.html" class="sidebar-item">📚 Biblioteca</a>
+            <a href="encuestas.html" class="sidebar-item">📋 Encuestas</a>
+            <a href="formacion.html" class="sidebar-item">🎓 Formación</a>
+            <a href="crm.html" class="sidebar-item" id="menuCrm" style="display:none; color: #10b981;">🚀 CRM B2B</a>
+            <a href="/backup" class="sidebar-item" id="menuBackup" style="display:none;">🛡️ Backup y Seguridad</a>
+            <a href="configuracion.html"  class="sidebar-item">⚙️ Configuración</a>
+        </div>
+        <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444;">🚪 Cerrar Sesión</a>
+        </div>
+    </aside>
 
 <main class="main-content">
     <div class="backup-header">
@@ -389,6 +398,46 @@
             </table>
         </div>
     </div>
+
+    <!-- Logs de Seguridad -->
+    <div class="backup-card" style="margin-top:20px;">
+        <div class="card-header">
+            <div class="card-icon c-red"><i class="fas fa-shield-alt"></i></div>
+            <div><div class="card-title">Auditoría de Seguridad</div><div class="card-subtitle">Registro de descargas de backups</div></div>
+        </div>
+        <div class="card-body">
+            <button class="btn-backup" style="background:#1e293b; color:white; width:auto; margin-bottom:15px;" onclick="loadSecurityLogs()"><i class="fas fa-sync"></i> Actualizar Logs</button>
+            <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; color:#333; text-align:left;">
+                    <thead>
+                        <tr style="border-bottom:1px solid #eee;">
+                            <th style="padding:10px;">Fecha</th>
+                            <th style="padding:10px;">Usuario</th>
+                            <th style="padding:10px;">Tipo</th>
+                            <th style="padding:10px;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="securityLogsBody">
+                        <tr><td colspan="4" style="padding:10px; color:#999;">Haz clic en Actualizar Logs</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Modal -->
+    <div id="securityModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:#1e293b; padding:30px; border-radius:12px; width:400px; max-width:90%; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+            <h3 style="color:white; margin-top:0; display:flex; align-items:center; gap:10px;"><i class="fas fa-lock" style="color:#ef4444;"></i> Autenticación Requerida</h3>
+            <p style="color:rgba(255,255,255,0.7); font-size:14px; margin-bottom:20px;">Por seguridad, debes ingresar tu contraseña para generar y descargar este archivo. El ZIP estará encriptado con esta misma clave.</p>
+            <input type="password" id="securityPassword" placeholder="Contraseña de administrador" style="width:100%; padding:12px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:white; margin-bottom:20px; box-sizing:border-box;">
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button onclick="document.getElementById('securityModal').style.display='none'" style="padding:10px 15px; border-radius:6px; border:none; background:rgba(255,255,255,0.1); color:white; cursor:pointer;">Cancelar</button>
+                <button onclick="confirmSecurity()" style="padding:10px 15px; border-radius:6px; border:none; background:#3b82f6; color:white; cursor:pointer; font-weight:bold;"><i class="fas fa-check"></i> Verificar y Descargar</button>
+            </div>
+        </div>
+    </div>
+
 </main>
 
 <script>
@@ -655,5 +704,6 @@
         } catch(e) { alert('Error: ' + e.message); }
     }
 </script>
+<script src="{{ url_for('static', filename='app.js') }}?v=3.3"></script>
 </body>
 </html>
