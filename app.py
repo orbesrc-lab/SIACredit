@@ -4098,6 +4098,23 @@ def suggest_planning_node():
         print(f"Error in suggest_planning_node: {e}")
         return jsonify({'status': 'error', 'message': str(e)})
 
+@app.route('/api/planning/users', methods=['GET'])
+def get_planning_users():
+    """Returns list of users in the institution for assignment dropdowns."""
+    try:
+        inst_id = request.args.get('inst_id')
+        if not inst_id:
+            return jsonify({'status': 'error', 'message': 'inst_id required'})
+        res = supabase.table('users').select('id, name, email, role').eq('inst_id', inst_id).execute()
+        users = res.data or []
+        # Sort by role priority
+        role_order = {'admin': 0, 'lider': 1, 'operador': 2, 'docente': 3, 'estudiante': 4}
+        users.sort(key=lambda u: role_order.get(u.get('role', 'estudiante'), 99))
+        return jsonify({'status': 'success', 'users': users})
+    except Exception as e:
+        print(f"Error in get_planning_users: {e}")
+        return jsonify({'status': 'error', 'message': str(e)})
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)

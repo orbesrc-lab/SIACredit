@@ -7,87 +7,293 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .header-title { margin-bottom: 20px; }
-        .header-title h1 { font-size: 1.8rem; margin-bottom: 8px; color: var(--primary-color); }
-        .header-title p { color: var(--text-muted); font-size: 0.95rem; }
+        /* ================================================================
+           SIAC – Planificación Estratégica - Professional Theme
+           ================================================================ */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-        /* Tree Structure Styles */
-        .tree-container {
-            background: white; border-radius: 12px; padding: 25px; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;
-            margin-bottom: 20px;
+        body { font-family: 'Inter', sans-serif; }
+
+        .planning-wrapper { padding: 0 4px; }
+
+        /* ── Page Header ─────────────────────────────────────────────── */
+        .page-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 28px;
+        }
+        .page-header-text h1 {
+            font-size: 1.75rem; font-weight: 700; color: #0f172a; margin: 0 0 4px;
+        }
+        .page-header-text p { color: #64748b; font-size: 0.9rem; margin: 0; }
+        .btn-gantt {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white; border: none; padding: 12px 22px; border-radius: 10px;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex;
+            align-items: center; gap: 8px;
+            box-shadow: 0 4px 14px rgba(16,185,129,0.4);
+            transition: all 0.2s ease; white-space: nowrap;
+        }
+        .btn-gantt:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(16,185,129,0.5); }
+
+        /* ── Level Cards ─────────────────────────────────────────────── */
+        .tree-container { display: flex; flex-direction: column; gap: 16px; }
+
+        .lvl-axis-card {
+            background: white; border-radius: 14px; overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07); border: 1px solid #e2e8f0;
+            transition: box-shadow 0.2s;
+        }
+        .lvl-axis-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.11); }
+
+        .axis-header {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            padding: 16px 20px; display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; user-select: none;
+        }
+        .axis-header-left { display: flex; align-items: center; gap: 12px; }
+        .axis-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: rgba(255,255,255,0.2); display: flex;
+            align-items: center; justify-content: center; font-size: 1.1rem; color: white;
+        }
+        .axis-label { font-size: 0.7rem; color: rgba(255,255,255,0.75); font-weight: 500;
+            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px; }
+        .axis-name { font-size: 1rem; font-weight: 700; color: white; line-height: 1.3; }
+        .axis-toggle { color: rgba(255,255,255,0.8); font-size: 0.9rem; transition: transform 0.3s; }
+        .axis-toggle.open { transform: rotate(180deg); }
+
+        .axis-body { padding: 20px; display: none; }
+        .axis-body.open { display: block; }
+
+        .axis-desc {
+            font-size: 0.875rem; color: #475569; margin-bottom: 16px;
+            padding: 10px 14px; background: #f8fafc; border-radius: 8px;
+            border-left: 3px solid #3b82f6;
         }
 
-        .node-wrapper { margin-bottom: 15px; }
-        
-        .node-content { 
-            background: white; border: 1px solid #e2e8f0; border-radius: 8px; 
-            overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;
+        .axis-actions { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+
+        /* ── Strategy Cards ──────────────────────────────────────────── */
+        .strategies-grid { display: flex; flex-direction: column; gap: 12px; }
+
+        .lvl-strat-card {
+            background: #fafafa; border: 1px solid #e2e8f0; border-radius: 12px;
+            overflow: hidden; border-left: 4px solid #8b5cf6;
         }
-        .node-content:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        
-        .node-header {
-            padding: 12px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-            background: #f8fafc; font-weight: 600; color: #1e293b; user-select: none; border-left: 5px solid transparent;
+        .strat-header {
+            padding: 13px 16px; display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; user-select: none;
         }
-        .node-header:hover { background: #f1f5f9; }
-        .node-body { padding: 15px 15px 15px 25px; display: none; background: white; border-top: 1px solid #f1f5f9; }
-        .children-list { margin-top: 10px; padding-left: 30px; border-left: 2px dashed #e2e8f0; }
+        .strat-header:hover { background: #f1f5f9; }
+        .strat-left { display: flex; align-items: flex-start; gap: 10px; }
+        .strat-dot { width: 10px; height: 10px; border-radius: 50%; background: #8b5cf6; margin-top: 5px; flex-shrink: 0; }
+        .strat-quadrant { font-size: 0.65rem; background: #ede9fe; color: #7c3aed;
+            padding: 2px 8px; border-radius: 10px; font-weight: 600; letter-spacing: 0.5px; }
+        .strat-desc { font-size: 0.875rem; font-weight: 600; color: #1e293b; margin-top: 3px; line-height: 1.4; }
+        .strat-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .strat-body { padding: 14px 16px 16px; border-top: 1px solid #e2e8f0; display: none; }
+        .strat-body.open { display: block; }
 
-        /* Level Colors */
-        .lvl-axis .node-header { border-left-color: #3b82f6; }
-        .lvl-strat .node-header { border-left-color: #8b5cf6; font-size: 0.95rem; }
-        .lvl-gen .node-header { border-left-color: #10b981; font-size: 0.95rem; }
-        .lvl-spec .node-header { border-left-color: #f59e0b; font-size: 0.95rem; }
-        .lvl-act .node-header { border-left-color: #f43f5e; cursor: default; }
-        .lvl-act .node-header:hover { background: #f8fafc; }
+        /* ── General Objective Cards ─────────────────────────────────── */
+        .gen-objs-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
 
-        .activity-meta { font-size: 0.85rem; color: #6b7280; display: flex; gap: 15px; flex-wrap: wrap; }
-
-        .badge {
-            padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
+        .lvl-gen-card {
+            background: white; border: 1px solid #d1fae5; border-radius: 10px;
+            overflow: hidden; border-left: 4px solid #10b981;
         }
-        .badge-weight { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
-        .badge-weight.error { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
-        
-        .badge-pending { background: #fee2e2; color: #991b1b; }
-        .badge-progress { background: #fef3c7; color: #92400e; }
-        .badge-done { background: #dcfce3; color: #166534; }
+        .gen-header {
+            padding: 12px 14px; display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; user-select: none;
+        }
+        .gen-header:hover { background: #f0fdf4; }
+        .gen-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; flex-shrink: 0; }
+        .gen-title { font-size: 0.85rem; font-weight: 600; color: #064e3b; }
+        .gen-body { padding: 12px 14px 14px; border-top: 1px solid #d1fae5; display: none; }
+        .gen-body.open { display: block; }
 
-        .action-btn { background: none; border: none; cursor: pointer; color: #64748b; font-size: 1rem; padding: 5px;}
-        .action-btn:hover { color: #2563eb; }
+        /* ── Specific Objective Cards ────────────────────────────────── */
+        .spec-objs-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
 
-        
-        .btn-toolbar { background: white; color: #475569; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px;}
-        .btn-toolbar:hover { background: #f8fafc; color: #2563eb; border-color: #94a3b8; }
-        .btn-toolbar.delete:hover { color: #ef4444; border-color: #fca5a5; background: #fef2f2; }
+        .lvl-spec-card {
+            background: white; border: 1px solid #fef3c7; border-radius: 10px;
+            overflow: hidden; border-left: 4px solid #f59e0b;
+        }
+        .spec-header {
+            padding: 11px 13px; display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; user-select: none;
+        }
+        .spec-header:hover { background: #fffbeb; }
+        .spec-dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; flex-shrink: 0; }
+        .spec-title { font-size: 0.82rem; font-weight: 600; color: #78350f; }
+        .spec-indicator { font-size: 0.75rem; color: #92400e; margin-top: 2px; }
+        .spec-body { padding: 11px 13px 13px; border-top: 1px solid #fef3c7; display: none; }
+        .spec-body.open { display: block; }
 
-        .btn-add { background: white; color: #3b82f6; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px dashed #3b82f6; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;}
-        .btn-add:hover { background: #eff6ff; border-color: #2563eb; }
-        
-        .btn-ai { color: #8b5cf6; border-color: #8b5cf6; }
-        .btn-ai:hover { background: #f5f3ff; border-color: #7c3aed; }
+        /* ── Activity Cards ──────────────────────────────────────────── */
+        .activities-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 
-        /* MODAL */
+        .act-card {
+            background: white; border: 1px solid #fce7f3; border-radius: 9px;
+            padding: 12px 14px; border-left: 4px solid #f43f5e;
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+        }
+        .act-card-left { flex: 1; }
+        .act-title { font-size: 0.82rem; font-weight: 600; color: #1e293b; margin-bottom: 8px; line-height: 1.4; }
+        .act-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+        .act-meta-item {
+            font-size: 0.73rem; color: #64748b; display: flex; align-items: center; gap: 4px;
+            background: #f8fafc; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0;
+        }
+        .act-meta-item i { color: #94a3b8; font-size: 0.7rem; }
+        .act-card-right { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; flex-shrink: 0; }
+
+        /* ── Status Badges ───────────────────────────────────────────── */
+        .badge-status {
+            font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-progress { background: #dbeafe; color: #1e40af; }
+        .status-done { background: #d1fae5; color: #065f46; }
+
+        .badge-weight {
+            font-size: 0.68rem; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+            background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
+        }
+        .badge-weight.error { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+        .badge-weight.ok { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+
+        /* ── Action Buttons ──────────────────────────────────────────── */
+        .btn-action {
+            font-size: 0.72rem; font-weight: 600; padding: 5px 11px; border-radius: 7px;
+            border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center;
+            gap: 5px; transition: all 0.15s ease; white-space: nowrap;
+        }
+        .btn-action-edit { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+        .btn-action-edit:hover { background: #dbeafe; }
+        .btn-action-del { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+        .btn-action-del:hover { background: #ffe4e6; }
+        .btn-action-add { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+        .btn-action-add:hover { background: #dcfce7; }
+        .btn-action-ai {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white;
+            border: none; box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+        }
+        .btn-action-ai:hover { box-shadow: 0 4px 12px rgba(99,102,241,0.4); transform: translateY(-1px); }
+        .btn-action-primary {
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6); color: white; border: none;
+            padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; gap: 6px;
+            box-shadow: 0 2px 8px rgba(14,165,233,0.3); transition: all 0.2s;
+        }
+        .btn-action-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(14,165,233,0.4); }
+
+        .actions-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+
+        /* ── Warning alerts ──────────────────────────────────────────── */
+        .req-alert {
+            font-size: 0.72rem; padding: 6px 10px; border-radius: 7px;
+            margin-bottom: 8px; display: flex; align-items: center; gap: 5px;
+            background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; font-weight: 600;
+        }
+
+        /* ── Empty State ─────────────────────────────────────────────── */
+        .empty-state {
+            text-align: center; padding: 28px; color: #94a3b8;
+            font-size: 0.85rem; font-style: italic;
+        }
+
+        /* ── Modals ──────────────────────────────────────────────────── */
         .modal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15,23,42,0.6); z-index: 9000; justify-content: center;
+            align-items: center; backdrop-filter: blur(4px);
         }
+        .modal.open { display: flex; }
         .modal-content {
-            background-color: #fff; padding: 25px; border-radius: 12px; width: 500px; max-width: 90%;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto;
+            background: white; border-radius: 16px; padding: 28px; max-width: 540px;
+            width: 92%; max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.25); animation: modalIn 0.2s ease;
         }
-        .modal-header { font-size: 1.25rem; font-weight: bold; margin-bottom: 15px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-weight: 500; margin-bottom: 5px; font-size: 0.9rem; color: #475569; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit;
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: none; } }
+        .modal-header-row {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px;
         }
-    
+        .modal-title { font-size: 1.1rem; font-weight: 700; color: #0f172a; }
+        .modal-close-btn {
+            background: #f1f5f9; border: none; border-radius: 8px; width: 32px; height: 32px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: #64748b; font-size: 1rem; transition: all 0.15s;
+        }
+        .modal-close-btn:hover { background: #e2e8f0; color: #0f172a; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 6px; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 9px 12px; border: 1.5px solid #e2e8f0; border-radius: 9px;
+            font-size: 0.875rem; font-family: inherit; background: #f8fafc;
+            transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box; outline: none;
+            color: #1e293b;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        .form-row { display: flex; gap: 12px; }
+        .form-row .form-group { flex: 1; }
+
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 18px; }
+
+        .btn-save {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white;
+            border: none; padding: 10px 24px; border-radius: 9px; font-size: 0.875rem;
+            font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-save:hover { box-shadow: 0 4px 12px rgba(59,130,246,0.4); transform: translateY(-1px); }
+        .btn-cancel {
+            background: #f1f5f9; color: #64748b; border: none;
+            padding: 10px 20px; border-radius: 9px; font-size: 0.875rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-cancel:hover { background: #e2e8f0; }
+
+        /* ── Gantt Modal ─────────────────────────────────────────────── */
+        .gantt-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15,23,42,0.75); z-index: 9999; justify-content: center;
+            align-items: center; backdrop-filter: blur(4px);
+        }
+        .gantt-modal.open { display: flex; }
+        .gantt-panel {
+            background: white; border-radius: 16px; width: 95%; height: 88%;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.3);
+        }
+        .gantt-panel-header {
+            padding: 18px 24px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .gantt-panel-header h2 { font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0; }
+        .gantt-panel-body { flex: 1; overflow: auto; background: white; padding: 20px; }
         .gantt-green .bar { fill: #10b981; }
         .gantt-blue .bar { fill: #3b82f6; }
         .gantt .bar-wrapper:hover .bar { fill: #6366f1; }
 
+        /* ── Role badge ──────────────────────────────────────────────── */
+        .role-badge {
+            font-size: 0.63rem; font-weight: 600; padding: 2px 7px; border-radius: 8px;
+            text-transform: uppercase; letter-spacing: 0.4px;
+        }
+        .role-admin { background: #fef3c7; color: #b45309; }
+        .role-lider { background: #ede9fe; color: #6d28d9; }
+        .role-operador { background: #dbeafe; color: #1e40af; }
+        .role-docente { background: #d1fae5; color: #065f46; }
+        .role-estudiante { background: #f1f5f9; color: #475569; }
+
+        /* ── Loading State ───────────────────────────────────────────── */
+        .loading-state {
+            text-align: center; padding: 60px 20px; color: #94a3b8;
+        }
+        .loading-state i { display: block; font-size: 2.5rem; margin-bottom: 14px; color: #cbd5e1; }
     </style>
     <!-- Frappe Gantt via jsDelivr (reliable) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.css" />
@@ -127,45 +333,52 @@
         </header>
 
         <div class="content-area">
-            <div class="header-title">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
+            <div class="planning-wrapper">
+                <div class="page-header">
+                    <div class="page-header-text">
                         <h1>Planificación Estratégica y Control</h1>
-                        <p>Gestiona los ejes, estrategias (derivadas del DOFA), objetivos y actividades de tu institución.</p>
+                        <p>Gestiona ejes, estrategias DOFA, objetivos y actividades de tu institución de forma estructurada</p>
                     </div>
-                    <button class="btn-add" style="background:#10b981; color:white; border:none; padding:12px 24px; font-size:1rem; box-shadow: 0 4px 6px rgba(16,185,129,0.3);" onclick="openGantt()">
-                        <i class="fas fa-chart-bar" style="margin-right:8px;"></i> Ver Cronograma (Gantt)
+                    <button class="btn-gantt" onclick="openGantt()">
+                        <i class="fas fa-stream"></i> Ver Cronograma (Gantt)
                     </button>
                 </div>
-            </div>
 
-            <div class="tree-container" id="planningTree">
-                <div style="text-align: center; padding: 40px; color: #64748b;">
-                    <i class="fas fa-spinner fa-spin fa-2x"></i>
-                    <p style="margin-top: 10px;">Cargando estructura estratégica...</p>
+                <div class="tree-container" id="planningTree">
+                    <div class="loading-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando estructura estratégica...</p>
+                    </div>
                 </div>
             </div>
-        <!-- Modal -->
+        <!-- Modal Editar/Crear -->
         <div id="nodeModal" class="modal">
             <div class="modal-content">
-                <div class="modal-header" id="modalTitle">Nuevo Elemento</div>
+                <div class="modal-header-row">
+                    <div class="modal-title" id="modalTitle">Nuevo Elemento</div>
+                    <button class="modal-close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
+                </div>
                 <div id="modalBody"></div>
-                <div style="text-align: right; margin-top: 20px;">
-                    <button class="btn-add" style="background:#64748b; margin-right:10px;" onclick="closeModal()">Cancelar</button>
-                    <button class="btn-add" id="btnSaveNode" onclick="saveNode()">Guardar</button>
+                <div class="modal-footer">
+                    <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                    <button class="btn-save" id="btnSaveNode" onclick="saveNode()">
+                        <i class="fas fa-save" style="margin-right:6px;"></i>Guardar
+                    </button>
                 </div>
             </div>
         </div>
 
     
         <!-- Modal Gantt -->
-        <div class="modal" id="ganttModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-            <div class="modal-content" style="width:95%; height:90%; display:flex; flex-direction:column;">
-                <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span id="ganttTitle">Cronograma de Actividades (Gantt)</span>
-                    <button class="btn-add" style="background:#ef4444;" onclick="document.getElementById('ganttModal').style.display='none'">Cerrar</button>
+        <div id="ganttModal" class="gantt-modal">
+            <div class="gantt-panel">
+                <div class="gantt-panel-header">
+                    <h2><i class="fas fa-stream" style="color:#3b82f6; margin-right:8px;"></i> Cronograma de Actividades (Gantt)</h2>
+                    <button class="btn-action btn-action-del" onclick="document.getElementById('ganttModal').classList.remove('open')">
+                        <i class="fas fa-times"></i> Cerrar
+                    </button>
                 </div>
-                <div id="ganttContainer" style="flex:1; overflow:auto; background:#fff; padding:20px; border-radius:8px; margin-top:10px;">
+                <div class="gantt-panel-body" id="ganttContainer">
                     <svg id="gantt"></svg>
                 </div>
             </div>
@@ -194,6 +407,7 @@
                 if(crmLink) crmLink.style.display = 'block';
             }
             loadPlanningData();
+            loadInstitutionUsers();
         });
 
         function getInstId() {
@@ -203,20 +417,26 @@
 
         // ─── Toggle acordeón ────────────────────────────────────────
         function toggleBody(btn) {
-            const container = btn.closest('.node-content');
-            if(!container) return;
-            const body = container.querySelector('.node-body');
-            const icon = btn.querySelector('.toggle-icon');
             const key = btn.getAttribute('data-node-key');
+            // Find body: could be axis-body, strat-body, gen-body, spec-body, node-body
+            const parent = btn.parentElement;
+            const body = parent.querySelector('.axis-body, .strat-body, .gen-body, .spec-body, .node-body');
+            const icon = btn.querySelector('.axis-toggle, .fa-chevron-down, .fa-chevron-up');
             if(!body) return;
-            if(body.style.display === 'block') {
-                body.style.display = 'none';
-                if(icon) icon.className = 'fas fa-chevron-down toggle-icon';
+            const isOpen = body.classList.contains('open');
+            if(isOpen) {
+                body.classList.remove('open');
                 if(key) expandedNodes.delete(key);
+                // Update chevron icon
+                if(btn.querySelector('.axis-toggle')) btn.querySelector('.axis-toggle').classList.remove('open');
+                const chevrons = btn.querySelectorAll('.fa-chevron-up');
+                chevrons.forEach(c => { c.className = c.className.replace('fa-chevron-up', 'fa-chevron-down'); });
             } else {
-                body.style.display = 'block';
-                if(icon) icon.className = 'fas fa-chevron-up toggle-icon';
+                body.classList.add('open');
                 if(key) expandedNodes.add(key);
+                if(btn.querySelector('.axis-toggle')) btn.querySelector('.axis-toggle').classList.add('open');
+                const chevrons = btn.querySelectorAll('.fa-chevron-down');
+                chevrons.forEach(c => { c.className = c.className.replace('fa-chevron-down', 'fa-chevron-up'); });
             }
         }
 
@@ -306,8 +526,79 @@
             return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
         }
 
+        // ─── Load users for assignment dropdowns ──────────────────────
+        let institutionUsers = [];
+        async function loadInstitutionUsers() {
+            try {
+                const res = await fetch(`/api/planning/users?inst_id=${getInstId()}`);
+                const data = await res.json();
+                if(data.status === 'success') institutionUsers = data.users;
+            } catch(e) { console.warn('Could not load users list', e); }
+        }
+
+        function buildUserSelect(selectedValue = '') {
+            const roleLabels = {
+                'admin': 'Administrador', 'lider': 'Líder de Factor',
+                'operador': 'Operador', 'docente': 'Docente', 'estudiante': 'Estudiante'
+            };
+            let opts = `<option value="">-- Seleccionar responsable --</option>`;
+            institutionUsers.forEach(u => {
+                const label = roleLabels[u.role] || u.role || '';
+                const sel = u.name === selectedValue || u.email === selectedValue ? 'selected' : '';
+                opts += `<option value="${escHtml(u.name)}" ${sel}>${escHtml(u.name)} (${label})</option>`;
+            });
+            // Add current value if not in list
+            if(selectedValue && !institutionUsers.find(u => u.name === selectedValue || u.email === selectedValue)) {
+                opts += `<option value="${escHtml(selectedValue)}" selected>${escHtml(selectedValue)}</option>`;
+            }
+            return `<select id="f_resp">${opts}</select>`;
+        }
+
+        // ─── Render Tree (professional) ───────────────────────────────
+        function renderTree(tree) {
+            nodeDataMap = {};
+            const container = document.getElementById('planningTree');
+            if(!tree || tree.length === 0) {
+                container.innerHTML = `<div class="empty-state">
+                    <i class="fas fa-seedling fa-3x" style="font-size:3rem; margin-bottom:15px;"></i>
+                    <p>No hay Ejes Estratégicos. Ve al módulo DOFA y guarda la matriz para generarlos.</p>
+                </div>`;
+                return;
+            }
+            let html = '<div class="tree-container">';
+            tree.forEach(axis => {
+                const axisKey = 'axis-' + axis.id;
+                nodeDataMap[axisKey] = { type: 'axis', id: axis.id, data: { name: axis.name, description: axis.description || '' }};
+                const isOpen = expandedNodes.has(axisKey);
+                html += `
+                <div class="lvl-axis-card">
+                    <div class="axis-header" onclick="toggleBody(this)" data-node-key="${axisKey}">
+                        <div class="axis-header-left">
+                            <div class="axis-icon"><i class="fas fa-layer-group"></i></div>
+                            <div>
+                                <div class="axis-label">Eje Estratégico</div>
+                                <div class="axis-name">${escHtml(axis.name)}</div>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down axis-toggle ${isOpen ? 'open' : ''}"></i>
+                    </div>
+                    <div class="axis-body ${isOpen ? 'open' : ''}">
+                        ${axis.description ? `<div class="axis-desc">${escHtml(axis.description)}</div>` : ''}
+                        <div class="axis-actions">
+                            <button class="btn-action btn-action-edit" onclick="editNodeById('${axisKey}')"><i class="fas fa-pencil-alt"></i> Editar Eje</button>
+                            <button class="btn-action btn-action-del" onclick="deleteNode('axis', ${axis.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
+                            <button class="btn-action btn-action-add" onclick="addNode('strategy', ${axis.id})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
+                        </div>
+                        ${renderStrategies(axis.strategies, axis.id)}
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
         function renderStrategies(strats, axisId) {
-            let html = '<div class="children-list">';
+            let html = '<div class="strategies-grid">';
             if(strats && strats.length > 0) {
                 strats.forEach(st => {
                     const stKey = 'strategy-' + st.id;
@@ -315,175 +606,164 @@
                     const wBadge = getWeightBadge(st.general_objectives, 100);
                     const isOpen = expandedNodes.has(stKey);
                     html += `
-                    <div class="node-wrapper lvl-strat">
-                        <div class="node-content">
-                            <div class="node-header" onclick="toggleBody(this)" data-node-key="${stKey}">
-                                <div style="flex-grow:1; padding-right:15px;">
-                                    <span class="badge" style="background:#e0f2fe; color:#0284c7; margin-bottom:5px;">${escHtml(st.quadrant || 'MANUAL')}</span>
-                                    <div style="font-weight:600; line-height:1.4;">${escHtml(st.description)}</div>
-                                </div>
-                                <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
-                                    <span class="badge badge-weight">Peso: ${st.weight_percentage}%</span>
-                                    ${wBadge}
-                                    <i class="fas fa-${isOpen ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                    <div class="lvl-strat-card">
+                        <div class="strat-header" onclick="toggleBody(this)" data-node-key="${stKey}">
+                            <div class="strat-left">
+                                <div class="strat-dot"></div>
+                                <div>
+                                    <div class="strat-quadrant">${escHtml(st.quadrant || 'MANUAL')}</div>
+                                    <div class="strat-desc">${escHtml(st.description)}</div>
                                 </div>
                             </div>
-                            <div class="node-body" style="display:${isOpen ? 'block' : 'none'};">
-                                <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                                    <button class="btn-toolbar" onclick="editNodeById('${stKey}')"><i class="fas fa-pencil-alt"></i> Editar Estrategia</button>
-                                    <button class="btn-toolbar delete" onclick="deleteNode('strategy', ${st.id}, event)"><i class="fas fa-trash"></i> Eliminar Estrategia</button>
-                                    <button class="btn-toolbar" onclick="addNode('gen_obj', ${st.id})"><i class="fas fa-plus"></i> Añadir Obj. General</button>
-                                </div>
-                                ${renderGenObjs(st.general_objectives, st.id)}
+                            <div class="strat-right">
+                                <span class="badge-weight">Peso: ${st.weight_percentage}%</span>
+                                ${wBadge}
+                                <i class="fas fa-chevron-${isOpen ? 'up' : 'down'}" style="color:#94a3b8;"></i>
                             </div>
+                        </div>
+                        <div class="strat-body ${isOpen ? 'open' : ''}">
+                            <div class="actions-row">
+                                <button class="btn-action btn-action-edit" onclick="editNodeById('${stKey}')"><i class="fas fa-pencil-alt"></i> Editar</button>
+                                <button class="btn-action btn-action-del" onclick="deleteNode('strategy', ${st.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
+                                <button class="btn-action btn-action-add" onclick="addNode('gen_obj', ${st.id})"><i class="fas fa-plus"></i> Obj. General</button>
+                            </div>
+                            ${renderGenObjs(st.general_objectives, st.id)}
                         </div>
                     </div>`;
                 });
             } else {
-                html += `<p style="font-size:0.85rem; color:#94a3b8;">Sin estrategias definidas.</p>`;
+                html += `<div class="empty-state">Sin estrategias definidas aún.</div>`;
             }
-            html += `
-                <div style="margin-top:10px; display:flex; gap:10px;">
-                    <button class="btn-add" onclick="addNode('strategy', ${axisId})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
-                </div>
+            html += `</div><div class="actions-row" style="margin-top:10px;">
+                <button class="btn-action-primary" onclick="addNode('strategy', ${axisId})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
             </div>`;
             return html;
         }
 
         function renderGenObjs(gens, stratId) {
-            let html = '<div class="children-list">';
+            let html = '<div class="gen-objs-container" style="margin-top:14px;">';
             if(gens && gens.length > 0) {
                 gens.forEach(g => {
                     const gKey = 'gen_obj-' + g.id;
                     nodeDataMap[gKey] = { type: 'gen_obj', id: g.id, data: { description: g.description, alignment_pdi: g.alignment_pdi || '' }};
                     const wBadge = getWeightBadge(g.specific_objectives, 100);
                     let countErr = (g.specific_objectives && (g.specific_objectives.length < 2 || g.specific_objectives.length > 4));
-                    let countWarning = countErr ? `<span class="badge badge-weight error" style="margin-left:5px;"><i class="fas fa-exclamation-triangle"></i> Requisito: 2 a 4 Obj. Específicos</span>` : '';
+                    let countWarning = countErr ? `<div class="req-alert"><i class="fas fa-exclamation-triangle"></i> Requisito: 2 a 4 Objetivos Específicos</div>` : '';
                     const isOpen = expandedNodes.has(gKey);
                     html += `
-                    <div class="node-wrapper lvl-gen">
-                        <div class="node-content">
-                            <div class="node-header" onclick="toggleBody(this)" data-node-key="${gKey}">
-                                <div style="flex-grow:1; padding-right:15px;">
-                                    <span style="color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Objetivo General</span>
-                                    <div style="font-weight:600; line-height:1.4;">${escHtml(g.description)}</div>
-                                </div>
-                                <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
-                                    ${wBadge}
-                                    <i class="fas fa-${isOpen ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                    <div class="lvl-gen-card">
+                        <div class="gen-header" onclick="toggleBody(this)" data-node-key="${gKey}">
+                            <div style="display:flex; align-items:flex-start; gap:8px; flex:1;">
+                                <div class="gen-dot" style="margin-top:4px;"></div>
+                                <div>
+                                    <div class="gen-title">${escHtml(g.description)}</div>
+                                    ${g.alignment_pdi ? `<div style="font-size:0.72rem; color:#059669; margin-top:2px;"><i class="fas fa-link" style="margin-right:3px;"></i>${escHtml(g.alignment_pdi)}</div>` : ''}
                                 </div>
                             </div>
-                            <div class="node-body" style="display:${isOpen ? 'block' : 'none'};">
-                                <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                                    <button class="btn-toolbar" onclick="editNodeById('${gKey}')"><i class="fas fa-pencil-alt"></i> Editar Objetivo</button>
-                                    <button class="btn-toolbar delete" onclick="deleteNode('gen_obj', ${g.id}, event)"><i class="fas fa-trash"></i> Eliminar Objetivo</button>
-                                    <button class="btn-toolbar" onclick="addNode('spec_obj', ${g.id})"><i class="fas fa-plus"></i> Añadir Obj. Específico</button>
-                                </div>
-                                ${countWarning ? `<div style="margin-bottom:15px;">${countWarning}</div>` : ''}
-                                ${renderSpecObjs(g.specific_objectives, g.id)}
+                            <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                ${wBadge}
+                                <i class="fas fa-chevron-${isOpen ? 'up' : 'down'}" style="color:#94a3b8;"></i>
                             </div>
+                        </div>
+                        <div class="gen-body ${isOpen ? 'open' : ''}">
+                            ${countWarning}
+                            <div class="actions-row">
+                                <button class="btn-action btn-action-edit" onclick="editNodeById('${gKey}')"><i class="fas fa-pencil-alt"></i> Editar</button>
+                                <button class="btn-action btn-action-del" onclick="deleteNode('gen_obj', ${g.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
+                                <button class="btn-action btn-action-add" onclick="addNode('spec_obj', ${g.id})"><i class="fas fa-plus"></i> Obj. Específico</button>
+                            </div>
+                            ${renderSpecObjs(g.specific_objectives, g.id)}
                         </div>
                     </div>`;
                 });
             } else {
-                html += `<p style="font-size:0.85rem; color:#94a3b8;">Sin objetivos generales.</p>`;
+                html += `<div class="empty-state">Sin objetivos generales aún.</div>`;
             }
-            html += `
-                <div style="margin-top:10px; display:flex; gap:10px;">
-                    <button class="btn-add" onclick="addNode('gen_obj', ${stratId})"><i class="fas fa-plus"></i> Obj. General Manual</button>
-                    <button class="btn-add btn-ai" onclick="suggestGenObjAI(${stratId})"><i class="fas fa-robot"></i> Sugerir IA</button>
-                </div>
+            html += `</div><div class="actions-row" style="margin-top:8px;">
+                <button class="btn-action-primary" onclick="addNode('gen_obj', ${stratId})"><i class="fas fa-plus"></i> Obj. General</button>
+                <button class="btn-action btn-action-ai" onclick="suggestGenObjAI(${stratId})"><i class="fas fa-robot"></i> Sugerir con IA</button>
             </div>`;
             return html;
         }
 
         function renderSpecObjs(specs, genId) {
-            let html = '<div class="children-list">';
+            let html = '<div class="spec-objs-container" style="margin-top:12px;">';
             if(specs && specs.length > 0) {
                 specs.forEach(s => {
                     const sKey = 'spec_obj-' + s.id;
                     nodeDataMap[sKey] = { type: 'spec_obj', id: s.id, data: { description: s.description, weight_percentage: s.weight_percentage || 0, indicator_type: s.indicator_type || '', indicator_description: s.indicator_description || '' }};
                     let acts = s.activities || [];
                     let countErr = (acts.length < 2 || acts.length > 5);
-                    let countWarning = countErr ? `<span class="badge badge-weight error" style="margin-left:5px;"><i class="fas fa-exclamation-triangle"></i> Requisito: 2 a 5 Actividades</span>` : '';
+                    let countWarning = countErr ? `<div class="req-alert"><i class="fas fa-exclamation-triangle"></i> Requisito: 2 a 5 Actividades (actualmente: ${acts.length})</div>` : '';
                     const isOpen = expandedNodes.has(sKey);
                     html += `
-                    <div class="node-wrapper lvl-spec">
-                        <div class="node-content">
-                            <div class="node-header" onclick="toggleBody(this)" data-node-key="${sKey}">
-                                <div style="flex-grow:1; padding-right:15px;">
-                                    <span style="color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Objetivo Específico</span>
-                                    <div style="font-weight:600; line-height:1.4;">${escHtml(s.description)}</div>
-                                </div>
-                                <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
-                                    <span class="badge badge-weight">Peso: ${s.weight_percentage}%</span>
-                                    <i class="fas fa-${isOpen ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                    <div class="lvl-spec-card">
+                        <div class="spec-header" onclick="toggleBody(this)" data-node-key="${sKey}">
+                            <div style="display:flex; align-items:flex-start; gap:7px; flex:1;">
+                                <div class="spec-dot" style="margin-top:4px;"></div>
+                                <div>
+                                    <div class="spec-title">${escHtml(s.description)}</div>
+                                    <div class="spec-indicator"><i class="fas fa-chart-line" style="margin-right:3px;"></i>${escHtml(s.indicator_type || 'N/A')}${s.indicator_description ? ': ' + escHtml(s.indicator_description) : ''}</div>
                                 </div>
                             </div>
-                            <div class="node-body" style="display:${isOpen ? 'block' : 'none'};">
-                                <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                                    <button class="btn-toolbar" onclick="editNodeById('${sKey}')"><i class="fas fa-pencil-alt"></i> Editar Específico</button>
-                                    <button class="btn-toolbar delete" onclick="deleteNode('spec_obj', ${s.id}, event)"><i class="fas fa-trash"></i> Eliminar Específico</button>
-                                </div>
-                                <div style="background:#f8fafc; padding:10px 15px; border-radius:6px; margin-bottom:15px; font-size:0.85rem; color:#475569;">
-                                    <i class="fas fa-chart-line" style="margin-right:5px; color:#f59e0b;"></i> <strong>Indicador:</strong> ${escHtml(s.indicator_type || 'N/A')} - ${escHtml(s.indicator_description || '')}
-                                </div>
-                                ${countWarning ? `<div style="margin-bottom:15px;">${countWarning}</div>` : ''}
-                                ${renderActivities(s.activities, s.id)}
+                            <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                <span class="badge-weight">Peso: ${s.weight_percentage}%</span>
+                                <i class="fas fa-chevron-${isOpen ? 'up' : 'down'}" style="color:#94a3b8;"></i>
                             </div>
+                        </div>
+                        <div class="spec-body ${isOpen ? 'open' : ''}">
+                            ${countWarning}
+                            <div class="actions-row">
+                                <button class="btn-action btn-action-edit" onclick="editNodeById('${sKey}')"><i class="fas fa-pencil-alt"></i> Editar</button>
+                                <button class="btn-action btn-action-del" onclick="deleteNode('spec_obj', ${s.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
+                            </div>
+                            ${renderActivities(s.activities, s.id)}
                         </div>
                     </div>`;
                 });
             } else {
-                html += `<p style="font-size:0.85rem; color:#94a3b8;">Sin objetivos específicos.</p>`;
+                html += `<div class="empty-state">Sin objetivos específicos aún.</div>`;
             }
-            html += `
-                <div style="margin-top:10px; display:flex; gap:10px;">
-                    <button class="btn-add" onclick="addNode('spec_obj', ${genId})"><i class="fas fa-plus"></i> Obj. Específico Manual</button>
-                    <button class="btn-add btn-ai" onclick="suggestSpecObjAI(${genId})"><i class="fas fa-robot"></i> Sugerir IA</button>
-                </div>
+            html += `</div><div class="actions-row" style="margin-top:8px;">
+                <button class="btn-action-primary" onclick="addNode('spec_obj', ${genId})"><i class="fas fa-plus"></i> Obj. Específico</button>
+                <button class="btn-action btn-action-ai" onclick="suggestSpecObjAI(${genId})"><i class="fas fa-robot"></i> Sugerir con IA</button>
             </div>`;
             return html;
         }
 
         function renderActivities(acts, specId) {
-            let html = '<div class="children-list">';
+            let html = '<div class="activities-list" style="margin-top:12px;">';
             if(acts && acts.length > 0) {
                 acts.forEach(a => {
                     const aKey = 'activity-' + a.id;
                     nodeDataMap[aKey] = { type: 'activity', id: a.id, data: { description: a.description, start_date: (a.start_date||'').substring(0,10), end_date: (a.end_date||'').substring(0,10), goal: a.goal || '', financial_budget: a.financial_budget || 0, responsible: a.responsible || '' }};
-                    let badgeClass = 'badge-pending';
-                    if(a.status === 'En Progreso') badgeClass = 'badge-progress';
-                    if(a.status === 'Completado') badgeClass = 'badge-done';
+                    let statusClass = 'status-pending';
+                    if(a.status === 'En Progreso') statusClass = 'status-progress';
+                    if(a.status === 'Completado') statusClass = 'status-done';
                     html += `
-                    <div class="node-wrapper lvl-act">
-                        <div class="node-content">
-                            <div class="node-header" style="cursor:default;">
-                                <div style="flex-grow:1;">
-                                    <div style="font-weight:600; line-height:1.4; color:#334155;">${escHtml(a.description)}</div>
-                                    <div class="activity-meta" style="margin-top:10px;">
-                                        <span title="Responsable"><i class="fas fa-user"></i> ${escHtml(a.responsible || 'Sin responsable')}</span>
-                                        <span title="Fechas"><i class="far fa-calendar"></i> ${a.start_date || 'N/A'} a ${a.end_date || 'N/A'}</span>
-                                        <span title="Presupuesto"><i class="fas fa-money-bill-wave"></i> $${(a.financial_budget || 0).toLocaleString('es-CO')}</span>
-                                    </div>
-                                </div>
-                                <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0; align-items:flex-end;">
-                                    <span class="badge ${badgeClass}">${a.status || 'Pendiente'}</span>
-                                    <button class="btn-toolbar" onclick="editNodeById('${aKey}')"><i class="fas fa-pencil-alt"></i> Editar Actividad</button>
-                                    <button class="btn-toolbar delete" onclick="deleteNode('activity', ${a.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
-                                </div>
+                    <div class="act-card">
+                        <div class="act-card-left">
+                            <div class="act-title">${escHtml(a.description)}</div>
+                            <div class="act-meta">
+                                <span class="act-meta-item"><i class="fas fa-user"></i> ${escHtml(a.responsible || 'Sin asignar')}</span>
+                                <span class="act-meta-item"><i class="far fa-calendar-alt"></i> ${a.start_date ? a.start_date.substring(0,10) : 'N/A'} → ${a.end_date ? a.end_date.substring(0,10) : 'N/A'}</span>
+                                ${a.financial_budget ? `<span class="act-meta-item"><i class="fas fa-coins"></i> $${Number(a.financial_budget).toLocaleString('es-CO')}</span>` : ''}
+                                ${a.goal ? `<span class="act-meta-item"><i class="fas fa-bullseye"></i> ${escHtml(a.goal)}</span>` : ''}
                             </div>
+                        </div>
+                        <div class="act-card-right">
+                            <span class="badge-status ${statusClass}">${a.status || 'Pendiente'}</span>
+                            <button class="btn-action btn-action-edit" onclick="editNodeById('${aKey}')"><i class="fas fa-pencil-alt"></i> Editar</button>
+                            <button class="btn-action btn-action-del" onclick="deleteNode('activity', ${a.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
                         </div>
                     </div>`;
                 });
             } else {
-                html += `<p style="font-size:0.85rem; color:#94a3b8;">Sin actividades.</p>`;
+                html += `<div class="empty-state" style="padding:12px;">Sin actividades registradas aún.</div>`;
             }
-            html += `
-                <div style="margin-top:10px; display:flex; gap:10px;">
-                    <button class="btn-add" onclick="addNode('activity', ${specId})"><i class="fas fa-plus"></i> Actividad Manual</button>
-                    <button class="btn-add btn-ai" onclick="suggestActivitiesAI(${specId})"><i class="fas fa-robot"></i> Sugerir IA</button>
-                </div>
+            html += `</div><div class="actions-row" style="margin-top:8px;">
+                <button class="btn-action-primary" onclick="addNode('activity', ${specId})"><i class="fas fa-plus"></i> Actividad</button>
+                <button class="btn-action btn-action-ai" onclick="suggestActivitiesAI(${specId})"><i class="fas fa-robot"></i> Sugerir con IA</button>
             </div>`;
             return html;
         }
@@ -520,17 +800,17 @@
                 `;
             } else if(type === 'activity') {
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
-                    <div style="display:flex; gap:10px;">
-                        <div class="form-group" style="flex:1;"><label>Fecha Inicio</label><input type="date" id="f_start" value="${data.start_date || ''}"></div>
-                        <div class="form-group" style="flex:1;"><label>Fecha Fin</label><input type="date" id="f_end" value="${data.end_date || ''}"></div>
+                    <div class="form-group"><label>Descripción de la Actividad</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
+                    <div class="form-row">
+                        <div class="form-group"><label><i class="far fa-calendar" style="margin-right:4px;"></i>Fecha Inicio</label><input type="date" id="f_start" value="${data.start_date || ''}"></div>
+                        <div class="form-group"><label><i class="far fa-calendar-check" style="margin-right:4px;"></i>Fecha Fin</label><input type="date" id="f_end" value="${data.end_date || ''}"></div>
                     </div>
-                    <div class="form-group"><label>Meta Numérica / Entregable</label><input type="text" id="f_goal" value="${escHtml(data.goal || '')}"></div>
-                    <div class="form-group"><label>Presupuesto Financiero ($)</label><input type="number" id="f_budget" value="${data.financial_budget || 0}"></div>
-                    <div class="form-group"><label>Responsable</label><input type="text" id="f_resp" value="${escHtml(data.responsible || '')}"></div>
+                    <div class="form-group"><label><i class="fas fa-bullseye" style="margin-right:4px;"></i>Meta / Entregable</label><input type="text" id="f_goal" value="${escHtml(data.goal || '')}"></div>
+                    <div class="form-group"><label><i class="fas fa-user-tie" style="margin-right:4px;"></i>Responsable</label>${buildUserSelect(data.responsible || '')}</div>
+                    <div class="form-group"><label><i class="fas fa-coins" style="margin-right:4px;"></i>Presupuesto Financiero ($)</label><input type="number" id="f_budget" value="${data.financial_budget || 0}"></div>
                 `;
             }
-            document.getElementById('nodeModal').style.display = 'flex';
+            document.getElementById('nodeModal').classList.add('open');
         }
 
         function addNode(type, parentId) {
@@ -569,21 +849,21 @@
             } else if(type === 'activity') {
                 title.textContent = 'Nueva Actividad';
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
-                    <div style="display:flex; gap:10px;">
-                        <div class="form-group" style="flex:1;"><label>Fecha Inicio</label><input type="date" id="f_start"></div>
-                        <div class="form-group" style="flex:1;"><label>Fecha Fin</label><input type="date" id="f_end"></div>
+                    <div class="form-group"><label>Descripción de la Actividad</label><textarea id="f_desc" rows="3" placeholder="Describe claramente la actividad a realizar..."></textarea></div>
+                    <div class="form-row">
+                        <div class="form-group"><label><i class="far fa-calendar" style="margin-right:4px;"></i>Fecha Inicio</label><input type="date" id="f_start"></div>
+                        <div class="form-group"><label><i class="far fa-calendar-check" style="margin-right:4px;"></i>Fecha Fin</label><input type="date" id="f_end"></div>
                     </div>
-                    <div class="form-group"><label>Meta Numérica / Entregable</label><input type="text" id="f_goal"></div>
-                    <div class="form-group"><label>Responsable</label><input type="text" id="f_resp"></div>
-                    <div class="form-group"><label>Presupuesto (Valor Hora Base)</label><input type="number" id="f_budget" placeholder="El sistema calculará +1.54x"></div>
+                    <div class="form-group"><label><i class="fas fa-bullseye" style="margin-right:4px;"></i>Meta / Entregable</label><input type="text" id="f_goal" placeholder="Ej: 3 talleres realizados, 1 informe entregado..."></div>
+                    <div class="form-group"><label><i class="fas fa-user-tie" style="margin-right:4px;"></i>Responsable</label>${buildUserSelect()}</div>
+                    <div class="form-group"><label><i class="fas fa-coins" style="margin-right:4px;"></i>Presupuesto (Valor Hora Base)</label><input type="number" id="f_budget" placeholder="El sistema aplicará factor prestacional ×1.54"></div>
                 `;
             }
             modal.style.display = 'flex';
         }
 
         function closeModal() {
-            document.getElementById('nodeModal').style.display = 'none';
+            document.getElementById('nodeModal').classList.remove('open');
         }
 
         async function saveNode() {
@@ -630,6 +910,7 @@
                 if(data.status === 'success') {
                     closeModal();
                     loadPlanningData();
+            loadInstitutionUsers();
                 } else {
                     alert('Error: ' + data.message);
                 }
@@ -653,6 +934,7 @@
                 const data = await res.json();
                 if(data.status === 'success') {
                     loadPlanningData();
+            loadInstitutionUsers();
                 } else {
                     alert('Error al eliminar: ' + data.message);
                 }
@@ -687,7 +969,7 @@
                 return;
             }
 
-            document.getElementById('ganttModal').style.display = 'flex';
+            document.getElementById('ganttModal').classList.add('open');
             document.getElementById('gantt').innerHTML = '';
 
             setTimeout(() => {
