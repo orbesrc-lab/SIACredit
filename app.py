@@ -3903,12 +3903,16 @@ def suggest_planning_node():
         if not prompt:
             return jsonify({'status': 'error', 'message': 'Tipo inválido'})
 
-        import google.generativeai as genai
-        # app.py configures gemini globally
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(prompt)
+        suggestion = call_ai(
+            messages=[
+                {"role": "system", "content": "Eres un experto en Planeación Estratégica. Responde ÚNICAMENTE con el texto de la sugerencia, sin markdown ni explicaciones adicionales."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
         
-        suggestion = response.text.strip()
+        suggestion = suggestion.strip()
         if suggestion.startswith('"') and suggestion.endswith('"'):
             suggestion = suggestion[1:-1]
         
