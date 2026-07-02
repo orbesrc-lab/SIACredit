@@ -943,62 +943,151 @@
             }
         }
 
-        // ─── Gantt ───────────────────────────────────────────────────
+        // ─── Gantt (Custom HTML/CSS - no external lib) ───────────────
         function openGantt() {
             const activities = [];
-            // Extraer datos del nodeDataMap en lugar de planningData
             for(const key in nodeDataMap) {
                 if(key.startsWith('activity-')) {
                     const entry = nodeDataMap[key];
                     const d = entry.data;
-                    let start = d.start_date || new Date().toISOString().substring(0, 10);
-                    let end = d.end_date || new Date(Date.now() + 86400000).toISOString().substring(0, 10);
-                    if(start >= end) end = new Date(new Date(start).getTime() + 86400000).toISOString().substring(0, 10);
-                    activities.push({
-                        id: key,
-                        name: d.description || 'Actividad',
-                        start: start,
-                        end: end,
-                        progress: 0
-                    });
+                    if(d.start_date && d.end_date) {
+                        activities.push({
+                            id: key,
+                            name: d.description || 'Actividad',
+                            responsible: d.responsible || 'Sin asignar',
+                            start: d.start_date,
+                            end: d.end_date,
+                            goal: d.goal || ''
+                        });
+                    }
                 }
             }
 
             if(activities.length === 0) {
-                alert('No hay actividades con fechas para mostrar en el cronograma. Por favor agrega al menos una actividad con fechas de inicio y fin.');
+                alert('No hay actividades con fechas de inicio y fin para mostrar en el cronograma.');
                 return;
             }
 
             document.getElementById('ganttModal').classList.add('open');
-            document.getElementById('gantt').innerHTML = '';
+            renderCustomGantt(activities);
+        }
 
-            setTimeout(() => {
-                try {
-                    ganttChart = new Gantt("#gantt", activities, {
-                        on_date_change: async function(task, start, end) {
-                            const dbId = task.id.replace('activity-', '');
-                            try {
-                                await fetch('/api/planning/node/edit', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        type: 'activity',
-                                        id: parseInt(dbId),
-                                        start_date: start.toISOString().substring(0,10),
-                                        end_date: end.toISOString().substring(0,10)
-                                    })
-                                });
-                            } catch(e) {
-                                console.error('Error actualizando fecha:', e);
-                            }
-                        },
-                        language: 'es'
-                    });
-                    ganttChart.change_view_mode('Week');
-                } catch(err) {
-                    document.getElementById('ganttContainer').innerHTML = '<p style="color:red;">Error al dibujar el cronograma: ' + err + '</p>';
+        function renderCustomGantt(activities) {
+            // Find date range
+            let minDate = new Date(activities[0].start);
+            let maxDate = new Date(activities[0].end);
+            activities.forEach(a => {
+                const s = new Date(a.start), e = new Date(a.end);
+                if(s < minDate) minDate = s;
+                if(e > maxDate) maxDate = e;
+            });
+            // Pad by 7 days each side
+            minDate = new Date(minDate.getTime() - 7 * 86400000);
+            maxDate = new Date(maxDate.getTime() + 7 * 86400000);
+
+            const totalDays = Math.ceil((maxDate - minDate) / 86400000);
+            const rowH = 44;
+            const labelW = 220;
+            const dayW = Math.max(22, Math.floor((window.innerWidth - labelW - 60) / totalDays));
+
+            const colors = [
+                '#6366f1','#10b981','#f59e0b','#f43f5e','#3b82f6','#8b5cf6','#14b8a6','#ec4899'
+            ];
+
+            // Build month headers
+            let monthsHtml = '';
+            let cur = new Date(minDate);
+            let prevMonth = -1;
+            let monthStart = 0;
+            const monthNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+            const monthRanges = [];
+            for(let d = 0; d < totalDays; d++) {
+                const m = cur.getMonth();
+                if(m !== prevMonth) {
+                    if(prevMonth !== -1) monthRanges.push({ label: monthNames[prevMonth] + ' ' + (cur.getFullYear()), start: monthStart, end: d });
+                    monthStart = d;
+                    prevMonth = m;
                 }
-            }, 100);
+                cur.setDate(cur.getDate() + 1);
+            }
+            monthRanges.push({ label: monthNames[prevMonth] + ' ' + cur.getFullYear(), start: monthStart, end: totalDays });
+
+            monthsHtml = monthRanges.map(r => {
+                const w = (r.end - r.start) * dayW;
+                return `<div style="width:${w}px; border-right:1px solid #e2e8f0; padding:0 8px; font-size:0.72rem; font-weight:700; color:#64748b; display:flex; align-items:center;">${r.label}</div>`;
+            }).join('');
+
+            // Day columns
+            let dayCols = '';
+            for(let d = 0; d < totalDays; d++) {
+                const dd = new Date(minDate.getTime() + d * 86400000);
+                const isWeekend = dd.getDay() === 0 || dd.getDay() === 6;
+                dayCols += `<div style="width:${dayW}px; min-width:${dayW}px; border-right:1px solid #f1f5f9; background:${isWeekend ? '#fafafa' : 'white'}; height:100%;"></div>`;
+            }
+
+            // Rows
+            let rowsHtml = '';
+            activities.forEach((a, i) => {
+                const sDay = Math.floor((new Date(a.start) - minDate) / 86400000);
+                const eDay = Math.ceil((new Date(a.end) - minDate) / 86400000);
+                const barStart = sDay * dayW;
+                const barWidth = Math.max((eDay - sDay) * dayW, dayW);
+                const color = colors[i % colors.length];
+                const duration = eDay - sDay;
+
+                rowsHtml += `
+                <div style="display:flex; height:${rowH}px; align-items:center; border-bottom:1px solid #f1f5f9; position:relative;">
+                    <div style="width:${labelW}px; min-width:${labelW}px; padding:0 12px; font-size:0.75rem; font-weight:600; color:#1e293b; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; border-right:2px solid #e2e8f0; z-index:2; background:white;">
+                        <div style="overflow:hidden; text-overflow:ellipsis;">${escHtml(a.name)}</div>
+                        <div style="font-size:0.65rem; color:#94a3b8; font-weight:400; margin-top:1px;"><i class="fas fa-user" style="margin-right:2px;"></i>${escHtml(a.responsible)}</div>
+                    </div>
+                    <div style="position:relative; flex:1; height:${rowH}px; overflow:hidden;">
+                        <div style="display:flex; height:100%; position:absolute; top:0; left:0; width:${totalDays * dayW}px;">
+                            ${dayCols}
+                        </div>
+                        <div title="${escHtml(a.name)} | ${a.start} → ${a.end} | ${duration}d | ${escHtml(a.responsible)}" 
+                             style="position:absolute; left:${barStart}px; top:8px; width:${barWidth}px; height:${rowH - 18}px;
+                                    background:${color}; border-radius:6px; z-index:1; cursor:pointer;
+                                    display:flex; align-items:center; padding:0 8px; box-sizing:border-box;
+                                    box-shadow:0 2px 6px ${color}44;">
+                            <span style="font-size:0.65rem; color:white; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                ${duration}d ${a.goal ? '· ' + escHtml(a.goal.substring(0,20)) : ''}
+                            </span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            // Today marker
+            const todayDay = Math.floor((new Date() - minDate) / 86400000);
+            const todayLeft = labelW + todayDay * dayW;
+
+            const ganttHtml = `
+            <div style="font-family:'Inter',sans-serif; overflow:auto; background:white; border-radius:12px;">
+                <!-- Header -->
+                <div style="display:flex; position:sticky; top:0; z-index:10; background:white; border-bottom:2px solid #e2e8f0;">
+                    <div style="width:${labelW}px; min-width:${labelW}px; padding:10px 12px; font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:1px; border-right:2px solid #e2e8f0; background:#f8fafc;">
+                        Actividad
+                    </div>
+                    <div style="display:flex; overflow:hidden;">
+                        ${monthsHtml}
+                    </div>
+                </div>
+                <!-- Body -->
+                <div style="position:relative; width:${labelW + totalDays * dayW}px;">
+                    ${rowsHtml}
+                    <!-- Today line -->
+                    ${todayDay >= 0 && todayDay <= totalDays ? `<div style="position:absolute; top:0; bottom:0; left:${todayLeft}px; width:2px; background:#ef4444; z-index:5; pointer-events:none;">
+                        <div style="position:absolute; top:-2px; left:-12px; background:#ef4444; color:white; font-size:0.6rem; font-weight:700; padding:2px 5px; border-radius:4px; white-space:nowrap;">HOY</div>
+                    </div>` : ''}
+                </div>
+                <!-- Legend -->
+                <div style="display:flex; gap:16px; padding:14px 16px; border-top:1px solid #f1f5f9; flex-wrap:wrap; background:#fafafa; border-radius:0 0 12px 12px;">
+                    ${activities.map((a,i)=>`<div style="display:flex;align-items:center;gap:5px;font-size:0.72rem;color:#475569;"><div style="width:10px;height:10px;border-radius:3px;background:${colors[i%colors.length]};flex-shrink:0;"></div>${escHtml(a.name.substring(0,35))}${a.name.length>35?'…':''}</div>`).join('')}
+                </div>
+            </div>`;
+
+            document.getElementById('ganttContainer').innerHTML = ganttHtml;
         }
 
         // ─── IA Sugerencias ──────────────────────────────────────────
