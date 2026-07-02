@@ -5197,7 +5197,22 @@
                 });
             } catch (err) {
                 console.error("OpenAlex Error:", err);
-                resultsDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #ef4444;"><i class="fas fa-exclamation-triangle" style="font-size:2rem; margin-bottom:10px;"></i><br>Error al buscar recursos. ' + err.message + '</div>';
+                const query = document.getElementById('openLibrarySearchQuery').value.trim();
+                const googlePdfUrl = `https://www.google.com/search?q=filetype:pdf+"${encodeURIComponent(query)}"`;
+                const googleScholarUrl = `https://scholar.google.com/scholar?q="${encodeURIComponent(query)}"`;
+                
+                resultsDiv.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fef2f2; border-radius: 12px; border: 1px solid #fee2e2;">
+                        <i class="fas fa-exclamation-triangle" style="font-size:2.5rem; margin-bottom:15px; color: #ef4444;"></i>
+                        <h3 style="margin-bottom: 10px; color: #991b1b;">Repositorio Limitado por Alta Demanda</h3>
+                        <p style="color: #b91c1c; margin-bottom: 20px;">${err.message}</p>
+                        <p style="color: #7f1d1d; margin-bottom: 20px; font-weight: 500;">¡Pero no te detengas! Hemos generado enlaces directos para buscar tus documentos externamente de forma gratuita:</p>
+                        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                            <a href="${googlePdfUrl}" target="_blank" class="btn-primary" style="background: #10b981; color: white; text-decoration: none; padding: 10px 20px; display: inline-block; border-radius: 6px; border: none; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2);"><i class="fab fa-google"></i> Buscar PDFs en Google</a>
+                            <a href="${googleScholarUrl}" target="_blank" class="btn-primary" style="background: #4f46e5; color: white; text-decoration: none; padding: 10px 20px; display: inline-block; border-radius: 6px; border: none; box-shadow: 0 4px 6px -1px rgba(79,70,229,0.2);"><i class="fas fa-graduation-cap"></i> Google Académico</a>
+                        </div>
+                    </div>
+                `;
             }
         }
 
