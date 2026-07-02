@@ -3873,6 +3873,34 @@ def add_planning_node():
         print(f"Error in add planning node: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+@app.route('/api/planning/node', methods=['DELETE'])
+def delete_planning_node():
+    try:
+        data = request.json
+        node_type = data.get('type')
+        node_id = data.get('id')
+        
+        if not node_type or not node_id:
+            return jsonify({'status': 'error', 'message': 'Faltan parámetros'})
+
+        table_map = {
+            'strategy': 'planning_strategies',
+            'gen_obj': 'planning_general_objectives',
+            'spec_obj': 'planning_specific_objectives',
+            'activity': 'planning_activities'
+        }
+        
+        table_name = table_map.get(node_type)
+        if not table_name:
+            return jsonify({'status': 'error', 'message': 'Tipo inválido'})
+            
+        supabase.table(table_name).delete().eq('id', node_id).execute()
+        
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        print(f"Error deleting planning node: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @app.route('/api/planning/suggest', methods=['POST'])
 def suggest_planning_node():
     try:

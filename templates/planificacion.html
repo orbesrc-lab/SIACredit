@@ -265,6 +265,7 @@
                                 <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                                     <span class="badge badge-weight">Peso: ${st.weight_percentage}%</span>
                                     ${wBadge}
+                                    <button class="action-btn" onclick="deleteNode('strategy', ${st.id}, event)" title="Eliminar Estrategia"><i class="fas fa-trash" style="color:#ef4444;"></i></button>
                                     <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
                                 </div>
                             </div>
@@ -308,6 +309,7 @@
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                                     ${wBadge}
+                                    <button class="action-btn" onclick="deleteNode('gen_obj', ${g.id}, event)" title="Eliminar Objetivo General"><i class="fas fa-trash" style="color:#ef4444;"></i></button>
                                     <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
                                 </div>
                             </div>
@@ -353,6 +355,7 @@
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                                     <span class="badge badge-weight">Peso: ${s.weight_percentage}%</span>
+                                    <button class="action-btn" onclick="deleteNode('spec_obj', ${s.id}, event)" title="Eliminar Objetivo Específico"><i class="fas fa-trash" style="color:#ef4444;"></i></button>
                                     <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
                                 </div>
                             </div>
@@ -403,6 +406,7 @@
                                 </div>
                                 <div style="flex-shrink:0; margin-left:15px;">
                                     <span class="badge ${badgeClass}">${a.status || 'Pendiente'}</span>
+                                    <button class="action-btn" onclick="deleteNode('activity', ${a.id}, event)" title="Eliminar Actividad" style="margin-left:10px;"><i class="fas fa-trash" style="color:#ef4444;"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -520,6 +524,27 @@
             
             btn.textContent = 'Guardar';
             btn.disabled = false;
+        }
+
+        async function deleteNode(type, id, event) {
+            if(event) event.stopPropagation(); // Evitar que se abra el acordeón
+            if(!confirm('¿Estás seguro de que deseas eliminar este elemento? Todos los elementos hijos también se eliminarán de forma irreversible.')) return;
+
+            try {
+                const res = await fetch('/api/planning/node', {
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type: type, id: id })
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    loadPlanningData();
+                } else {
+                    alert('Error al eliminar: ' + data.message);
+                }
+            } catch(e) {
+                alert('Error de conexión al intentar eliminar');
+            }
         }
 
         async function suggestGenObjAI(strategyId) {
