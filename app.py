@@ -2194,7 +2194,7 @@ def library_search():
     except urllib.error.HTTPError as e:
         print(f"OpenAlex HTTP Error: {e.code} - {e.reason}")
         if e.code in [429, 503]:
-            return jsonify({'error': 'El buscador global (OpenAlex) está experimentando alta demanda en este momento. Por favor, intenta de nuevo en unos minutos.'}), 503
+            return jsonify({'error': 'El metabuscador global está experimentando alta demanda en este momento. Por favor, intenta de nuevo en unos minutos.'}), 503
         return jsonify({'error': str(e)}), e.code
     except Exception as e:
         print(f"Error fetching OpenAlex: {e}")

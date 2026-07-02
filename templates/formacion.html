@@ -5122,7 +5122,7 @@
             const resultsDiv = document.getElementById('openLibraryResults');
             resultsDiv.style.display = 'grid';
             document.getElementById('savedResourcesContainer').style.display = 'none';
-            resultsDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #6366f1; margin-bottom: 15px;"></i><br>Buscando en OpenAlex...</div>';
+            resultsDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #6366f1; margin-bottom: 15px;"></i><br>Buscando en la red académica global...</div>';
             
             try {
                 const url = `/api/library/search?q=${encodeURIComponent(query)}&limit=${limit}`;
