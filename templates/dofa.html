@@ -561,6 +561,17 @@
             });
             renderMatriz();
 
+            const currentMatrixStr = JSON.stringify(currentMatrix);
+            const cachedData = JSON.parse(sessionStorage.getItem('dofa_ai_cache') || 'null');
+            
+            if (cachedData && cachedData.matrixStr === currentMatrixStr) {
+                // Usar caché si la DOFA no ha cambiado
+                suggestedAxesData = cachedData.axes;
+                renderAxesModal();
+                document.getElementById('axesModal').style.display = 'flex';
+                return;
+            }
+
             const btn = document.querySelector('button[onclick="saveMatriz()"]');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando Ejes IA...';
@@ -577,6 +588,7 @@
                 
                 if(data.status === 'success' && data.axes) {
                     suggestedAxesData = data.axes;
+                    sessionStorage.setItem('dofa_ai_cache', JSON.stringify({ matrixStr: currentMatrixStr, axes: data.axes }));
                     renderAxesModal();
                     document.getElementById('axesModal').style.display = 'flex';
                 } else {
