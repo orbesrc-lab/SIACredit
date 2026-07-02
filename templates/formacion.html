@@ -5331,12 +5331,12 @@
     
         let currentPdfUrl = '';
         let currentIsPdf = false;
-        let useGoogleViewer = true;
+        let useGoogleViewer = false;
         
         function openPdfViewer(url, title = 'Documento de Consulta', isPdf = false) {
             currentPdfUrl = url;
             currentIsPdf = isPdf;
-            useGoogleViewer = true; // Por defecto intentamos Google Viewer para forzar la visualización en lugar de descarga
+            useGoogleViewer = false; // Por defecto intentamos motor Nativo (Proxy) porque Google Docs bloquea el copiado de texto y rompe el traductor
             
             const definitelyPdf = isPdf || url.toLowerCase().includes('.pdf');
             const isProtected = url.includes('doi.org') || (!definitelyPdf && (url.includes('scielo.org') || url.includes('redalyc.org') || url.includes('dialnet') || url.includes('europepmc') || url.includes('doaj')));
@@ -5571,6 +5571,13 @@
             }
         }
 
+        function pasteAlternative() {
+            const text = prompt("Pega aquí tu texto (Ctrl+V o Clic Derecho > Pegar) y presiona Aceptar:");
+            if (text && text.trim() !== '') {
+                document.getElementById('miniTranslatorSource').value = text;
+            }
+        }
+
         async function translateMiniText() {
             const text = document.getElementById('miniTranslatorSource').value.trim();
             if (!text) return;
@@ -5635,8 +5642,9 @@
                 2. Haz clic dentro de la caja blanca abajo y presiona <b>Ctrl+V</b> (o clic derecho > Pegar).
             </div>
 
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-                <button onclick="pasteToTranslator()" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.9rem; font-weight:bold; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(59,130,246,0.3);"><i class="fas fa-paste"></i> Pegar Texto Copiado</button>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 10px; gap: 10px;">
+                <button onclick="pasteToTranslator()" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.9rem; font-weight:bold; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(59,130,246,0.3);"><i class="fas fa-paste"></i> Pegar Copiado</button>
+                <button onclick="pasteAlternative()" style="background: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.9rem; font-weight:bold; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(100,116,139,0.3);"><i class="fas fa-keyboard"></i> Fallo al Pegar?</button>
             </div>
             
             <textarea id="miniTranslatorSource" rows="6" style="width: 100%; border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; font-family: var(--font-main); font-size: 0.95rem; outline: none; margin-bottom: 15px; resize: vertical; user-select: text !important; -webkit-user-select: text !important; pointer-events: auto !important; background: white; color: black; z-index:9999999; position:relative; cursor: text;" placeholder="👉 Haz clic aquí y presiona Ctrl + V para pegar tu texto..."></textarea>
