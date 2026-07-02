@@ -3714,6 +3714,60 @@ def send_email_route():
         print(f"Error sending email: {e}")
         return jsonify({'status': 'error', 'message': f"Failed to send email: {str(e)}"}), 500
 
+# --- MÓDULO PLANIFICACIÓN Y CONTROL ---
+
+@app.route('/planificacion.html')
+def planificacion_page():
+    return render_template('planificacion.html')
+
+@app.route('/api/planning/migrate_dofa', methods=['POST'])
+def migrate_dofa():
+    try:
+        data = request.json
+        inst_id = data.get('inst_id')
+        program_id = data.get('program_id', 0)
+        dofa_data = data.get('dofa_data')
+        
+        if not dofa_data or not inst_id:
+            return jsonify({'status': 'error', 'message': 'Faltan datos requeridos'})
+
+        # Verificar o crear el Eje Estratégico por defecto
+        axis_res = supabase.table('planning_axes').select('*').eq('inst_id', inst_id).eq('name', 'General DOFA').execute()
+        if not axis_res.data:
+            axis_insert = supabase.table('planning_axes').insert({
+                'inst_id': inst_id,
+                'name': 'General DOFA',
+                'description': 'Eje creado automáticamente desde el Cruce DOFA'
+            }).execute()
+            axis_id = axis_insert.data[0]['id']
+        else:
+            axis_id = axis_res.data[0]['id']
+
+        # Recopilar todas las estrategias y prepararlas para inserción
+        migrated_count = 0
+        for quadKey in ['FO', 'DO', 'FA', 'DA']:
+            if quadKey in dofa_data:
+                for strategy in dofa_data[quadKey]:
+                    if strategy.strip():
+                        # Verificar si ya existe (usando descripción y cuadrante) para no duplicar en múltiples guardados
+                        check_res = supabase.table('planning_strategies').select('id').eq('inst_id', inst_id).eq('quadrant', quadKey).eq('description', strategy.strip()).execute()
+                        if not check_res.data:
+                            supabase.table('planning_strategies').insert({
+                                'inst_id': inst_id,
+                                'program_id': program_id,
+                                'axis_id': axis_id,
+                                'quadrant': quadKey,
+                                'description': strategy.strip()
+                            }).execute()
+                            migrated_count += 1
+                            
+        return jsonify({'status': 'success', 'migrated_count': migrated_count})
+    except Exception as e:
+        print(f"Error en migrate_dofa: {e}")
+        # Retornamos error 500 pero envuelto de manera segura (el front capturará esto si falla por la tabla que no existe aún)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)

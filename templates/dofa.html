@@ -468,20 +468,45 @@
             if(!currentMatrix) return;
             document.getElementById('matrizResult').style.display = 'block';
             
-            const drawQuad = (quadId, arr) => {
+            const drawQuad = (quadId, quadKey) => {
                 const el = document.getElementById(quadId);
                 el.innerHTML = '';
+                const arr = currentMatrix[quadKey];
                 if(arr) {
-                    arr.forEach(s => {
-                        el.innerHTML += `<div class="strategy-item">${s}</div>`;
+                    arr.forEach((s, idx) => {
+                        el.innerHTML += `
+                            <div style="display:flex; gap:5px; margin-bottom:10px; align-items:flex-start;">
+                                <textarea style="flex:1; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.85rem; resize:vertical; min-height:60px;" 
+                                    onchange="updateStrategy('${quadKey}', ${idx}, this.value)">${s}</textarea>
+                                <button onclick="deleteStrategy('${quadKey}', ${idx})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.1rem; padding:5px;" title="Eliminar Estrategia"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `;
                     });
                 }
+                el.innerHTML += `<button onclick="addStrategy('${quadKey}')" style="background:#e0e7ff; color:#4338ca; border:none; padding:8px 10px; border-radius:6px; font-size:0.85rem; cursor:pointer; width:100%; margin-top:5px; font-weight:bold;"><i class="fas fa-plus"></i> Añadir Estrategia Manual</button>`;
             };
             
-            drawQuad('resFO', currentMatrix.FO);
-            drawQuad('resDO', currentMatrix.DO);
-            drawQuad('resFA', currentMatrix.FA);
-            drawQuad('resDA', currentMatrix.DA);
+            drawQuad('resFO', 'FO');
+            drawQuad('resDO', 'DO');
+            drawQuad('resFA', 'FA');
+            drawQuad('resDA', 'DA');
+        }
+
+        function updateStrategy(quadKey, idx, value) {
+            currentMatrix[quadKey][idx] = value;
+        }
+
+        function deleteStrategy(quadKey, idx) {
+            if(confirm('¿Seguro que deseas eliminar esta estrategia?')) {
+                currentMatrix[quadKey].splice(idx, 1);
+                renderMatriz();
+            }
+        }
+
+        function addStrategy(quadKey) {
+            if(!currentMatrix[quadKey]) currentMatrix[quadKey] = [];
+            currentMatrix[quadKey].push("");
+            renderMatriz();
         }
 
         async function generateCruceIA() {
@@ -525,6 +550,15 @@
         async function saveMatriz() {
             if(!currentMatrix) return;
             try {
+                // Limpiar estrategias vacías antes de guardar
+                ['FO', 'DO', 'FA', 'DA'].forEach(k => {
+                    if(currentMatrix[k]) {
+                        currentMatrix[k] = currentMatrix[k].filter(s => s.trim() !== '');
+                    }
+                });
+                renderMatriz(); // Re-renderizar para quitar cajas vacías
+
+                // 1. Guardar Snapshot histórico
                 await fetch('/api/estadisticas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -535,7 +569,25 @@
                         data: currentMatrix
                     })
                 });
-                alert("✅ Matriz guardada correctamente.");
+
+                // 2. Disparar migración a Planificación
+                const migRes = await fetch('/api/planning/migrate_dofa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        inst_id: getInstId(),
+                        program_id: getProgramId(),
+                        dofa_data: currentMatrix
+                    })
+                });
+                const migData = await migRes.json();
+
+                if(migData.status === 'success') {
+                    alert("✅ Matriz guardada correctamente e " + (migData.migrated_count || 0) + " estrategias migradas al Módulo de Planificación.");
+                } else {
+                    alert("✅ Matriz guardada, pero hubo un problema al migrar a Planificación: " + migData.error);
+                }
+
             } catch(e) { alert("Error al guardar: " + e); }
         }
 
