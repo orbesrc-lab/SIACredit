@@ -128,8 +128,15 @@
 
         <div class="content-area">
             <div class="header-title">
-                <h1>Planificación Estratégica y Control</h1>
-                <p>Gestiona los ejes, estrategias (derivadas del DOFA), objetivos y actividades de tu institución.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h1>Planificación Estratégica y Control</h1>
+                        <p>Gestiona los ejes, estrategias (derivadas del DOFA), objetivos y actividades de tu institución.</p>
+                    </div>
+                    <button class="btn-add" style="background:#10b981; color:white; border:none; padding:12px 24px; font-size:1rem; box-shadow: 0 4px 6px rgba(16,185,129,0.3);" onclick="openGantt()">
+                        <i class="fas fa-chart-bar" style="margin-right:8px;"></i> Ver Cronograma (Gantt)
+                    </button>
+                </div>
             </div>
 
             <div class="tree-container" id="planningTree">
