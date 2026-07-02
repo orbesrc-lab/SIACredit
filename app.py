@@ -2181,10 +2181,21 @@ def library_search():
         # Prepare the OpenAlex API URL with has_pdf_url:true and user limit
         url = f"https://api.openalex.org/works?search={urllib.parse.quote(q)}&filter=is_oa:true,has_pdf_url:true&per-page={limit}"
         
-        req = urllib.request.Request(url, headers={'User-Agent': 'SIACredit/1.0 (mailto:orbesrc@gmail.com)'})
+        mailto = os.environ.get('OPENALEX_MAILTO', 'orbesrc@gmail.com')
+        api_key = os.environ.get('OPENALEX_API_KEY')
+        url += f"&mailto={urllib.parse.quote(mailto)}"
+        if api_key:
+            url += f"&api_key={api_key}"
+            
+        req = urllib.request.Request(url, headers={'User-Agent': f'SIACredit/1.0 (mailto:{mailto})'})
         with urllib.request.urlopen(req) as response:
             data = json.loads(response.read().decode('utf-8'))
             return jsonify(data)
+    except urllib.error.HTTPError as e:
+        print(f"OpenAlex HTTP Error: {e.code} - {e.reason}")
+        if e.code in [429, 503]:
+            return jsonify({'error': 'El buscador global (OpenAlex) está experimentando alta demanda en este momento. Por favor, intenta de nuevo en unos minutos.'}), 503
+        return jsonify({'error': str(e)}), e.code
     except Exception as e:
         print(f"Error fetching OpenAlex: {e}")
         return jsonify({'error': str(e)}), 500
