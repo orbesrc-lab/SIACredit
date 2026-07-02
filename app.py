@@ -3921,6 +3921,13 @@ def suggest_planning_node():
             context_text = strat[0]['description']
             prompt = f"Actúa como un experto en planificación estratégica institucional. Basado en la siguiente ESTRATEGIA: '{context_text}', redacta UN solo OBJETIVO GENERAL claro, medible y ambicioso que permita cumplir esta estrategia. No incluyas explicaciones, responde ÚNICAMENTE con el texto del objetivo."
             
+        elif req_type == 'spec_obj':
+            gen = supabase.table('planning_general_objectives').select('*').eq('id', target_id).execute().data
+            if not gen:
+                return jsonify({'status': 'error', 'message': 'Objetivo General no encontrado'})
+            context_text = gen[0]['description']
+            prompt = f"Actúa como un experto en planificación estratégica institucional. Basado en el siguiente OBJETIVO GENERAL: '{context_text}', redacta UN solo OBJETIVO ESPECÍFICO que divida o concrete el objetivo general. Debe ser preciso y orientarse a un resultado medible. No incluyas explicaciones, responde ÚNICAMENTE con el texto del objetivo."
+            
         elif req_type == 'activity':
             spec = supabase.table('planning_specific_objectives').select('*').eq('id', target_id).execute().data
             if not spec:

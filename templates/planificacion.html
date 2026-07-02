@@ -373,8 +373,9 @@
                 html += `<p style="font-size:0.85rem; color:#94a3b8; padding-left:45px;">Sin objetivos específicos.</p>`;
             }
             html += `
-                <div style="padding-left:45px; margin-top:10px;">
-                    <button class="btn-add" onclick="addNode('spec_obj', ${genId})"><i class="fas fa-plus"></i> Obj. Específico</button>
+                <div style="padding-left:45px; margin-top:10px; display:flex; gap:10px;">
+                    <button class="btn-add" onclick="addNode('spec_obj', ${genId})"><i class="fas fa-plus"></i> Obj. Específico Manual</button>
+                    <button class="btn-add btn-ai" onclick="suggestSpecObjAI(${genId})"><i class="fas fa-robot"></i> Sugerir IA</button>
                 </div>
             </div>`;
             return html;
@@ -594,6 +595,32 @@
                 if(data.status === 'success') {
                     descField.value = data.suggestion;
                     // Optional: parse if AI returns dates, but text is fine for description
+                } else {
+                    descField.value = 'Error al sugerir: ' + data.message;
+                }
+            } catch(e) {
+                document.getElementById('f_desc').disabled = false;
+                document.getElementById('f_desc').value = 'Error de red al conectar con IA.';
+            }
+        }
+
+        async function suggestSpecObjAI(genId) {
+            try {
+                addNode('spec_obj', genId);
+                const descField = document.getElementById('f_desc');
+                descField.value = 'Generando sugerencia con Inteligencia Artificial...';
+                descField.disabled = true;
+                
+                const res = await fetch('/api/planning/suggest', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type: 'spec_obj', target_id: genId, inst_id: getInstId() })
+                });
+                const data = await res.json();
+                
+                descField.disabled = false;
+                if(data.status === 'success') {
+                    descField.value = data.suggestion;
                 } else {
                     descField.value = 'Error al sugerir: ' + data.message;
                 }
