@@ -3974,7 +3974,7 @@ def add_planning_node():
         print(f"Error in add planning node: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-@app.route('/api/planning/node', methods=['PUT'])
+@app.route('/api/planning/node/edit', methods=['POST'])
 def edit_planning_node():
     try:
         data = request.json
@@ -4015,7 +4015,7 @@ def edit_planning_node():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-@app.route('/api/planning/node', methods=['DELETE'])
+@app.route('/api/planning/node/delete', methods=['POST'])
 def delete_planning_node():
     try:
         data = request.json
