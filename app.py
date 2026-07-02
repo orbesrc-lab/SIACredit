@@ -2194,7 +2194,52 @@ def library_search():
     except urllib.error.HTTPError as e:
         print(f"OpenAlex HTTP Error: {e.code} - {e.reason}")
         if e.code in [429, 503]:
-            return jsonify({'error': 'El metabuscador global está experimentando alta demanda en este momento. Por favor, intenta de nuevo en unos minutos.'}), 503
+            try:
+                print("Falling back to Crossref API...")
+                cr_url = f"https://api.crossref.org/works?query={urllib.parse.quote(q)}&select=title,author,URL,published-print,published-online,DOI,container-title,type,link&rows={limit}"
+                cr_req = urllib.request.Request(cr_url, headers={'User-Agent': f'SIACredit/1.0 (mailto:{mailto})'})
+                with urllib.request.urlopen(cr_req) as cr_res:
+                    cr_data = json.loads(cr_res.read().decode('utf-8'))
+                    
+                results = []
+                for item in cr_data.get('message', {}).get('items', []):
+                    title = item.get('title', ['Sin título'])[0]
+                    year = None
+                    for date_field in ['published-print', 'published-online']:
+                        if date_field in item and 'date-parts' in item[date_field] and item[date_field]['date-parts']:
+                            year = item[date_field]['date-parts'][0][0]
+                            break
+                    
+                    authorships = []
+                    for a in item.get('author', []):
+                        display_name = f"{a.get('given', '')} {a.get('family', '')}".strip()
+                        if display_name:
+                            authorships.append({'author': {'display_name': display_name}})
+                            
+                    source_name = item.get('container-title', [''])[0]
+                    if not source_name:
+                        source_name = item.get('publisher', 'Publicación Independiente')
+                        
+                    doi = item.get('URL', '')
+                    pdf_url = ""
+                    for link in item.get('link', []):
+                        if link.get('content-type') == 'application/pdf':
+                            pdf_url = link.get('URL')
+                            break
+                            
+                    results.append({
+                        'title': title,
+                        'publication_year': year,
+                        'authorships': authorships,
+                        'primary_location': {'source': {'display_name': source_name}},
+                        'doi': doi,
+                        'open_access': {'oa_url': pdf_url} if pdf_url else {},
+                        'type': item.get('type', 'article')
+                    })
+                return jsonify({'results': results, 'fallback': 'crossref'})
+            except Exception as cr_err:
+                print(f"Crossref fallback failed: {cr_err}")
+                return jsonify({'error': 'La red académica global está experimentando alta demanda en este momento. Por favor, intenta de nuevo en unos minutos.'}), 503
         return jsonify({'error': str(e)}), e.code
     except Exception as e:
         print(f"Error fetching OpenAlex: {e}")
