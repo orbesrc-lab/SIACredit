@@ -129,7 +129,7 @@ def get_partners():
         res = supabase.table('partners').select("*").order("created_at", desc=False).execute()
         return jsonify({"status": "success", "data": res.data})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/partners', methods=['POST'])
 def add_partner():
@@ -142,7 +142,7 @@ def add_partner():
         }).execute()
         return jsonify({"status": "success", "data": res.data})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/partners/<int:partner_id>', methods=['DELETE'])
 def delete_partner(partner_id):
@@ -150,7 +150,7 @@ def delete_partner(partner_id):
         res = supabase.table('partners').delete().eq("id", partner_id).execute()
         return jsonify({"status": "success"})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 
 # Ruta de depuración para arreglar la base de datos
@@ -174,7 +174,7 @@ def fix_db():
             "inst_id_que_estamos_usando": insts[0]['id'] if insts else "Ninguna"
         })
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/debug/force-update-gemini')
 def route_force_update_gemini():
@@ -204,7 +204,7 @@ def route_force_update_gemini():
             }).execute()
             return jsonify({"status": "success", "action": "insert", "data": res.data})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 # --- Rutas para SEO (Indexación) ---
 @app.route('/robots.txt')
@@ -307,7 +307,7 @@ def setup_admin():
         
         return jsonify({"status": "success", "message": "Admin creado. Email: orbesrc@gmail.com / Password: Admin2025!"})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 # --- API Endpoints con Supabase (Multi-tenant) ---
 
@@ -322,7 +322,7 @@ def handle_model():
 
         # --- TRAZABILIDAD: No se puede guardar el modelo sin un programa activo ---
         if not program_id or program_id == 0:
-            return jsonify({"status": "error", "message": "Debes seleccionar un Programa Académico activo antes de guardar el Modelo de Evaluación."}), 400
+            return jsonify({"status": "error", "message": "Debes seleccionar un Programa Académico activo antes de guardar el Modelo de Evaluación."})
         
         try:
             curr_factors = supabase.table('factors').select("id").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
@@ -391,7 +391,7 @@ def handle_model():
             return jsonify({"status": "success", "message": "Modelo sincronizado para programa " + str(program_id)})
         except Exception as e:
             print(f"Error during sync: {e}")
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
 
     try:
         try:
@@ -448,7 +448,7 @@ def handle_evaluations():
             return jsonify({"status": "success"})
         except Exception as e:
             print(f"Error saving eval: {e}")
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
 
     try:
         # Intentar carga con filtros
@@ -474,7 +474,7 @@ def delete_evaluation(char_id):
         return jsonify({"status": "success"})
     except Exception as e:
         print(f"Error deleting eval: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 # Helper to create notification and log email simulation
 def create_notification(inst_id, program_id, email, tipo, titulo, mensaje):
@@ -574,7 +574,7 @@ def handle_planes_mejora():
             responsable_rol = data.get('responsable_rol', 'lider')
             
             if not char_id or not accion or not responsable or not fecha_limite:
-                return jsonify({"status": "error", "message": "Datos incompletos"}), 400
+                return jsonify({"status": "error", "message": "Datos incompletos"})
             
             avance = calculate_plan_avance({
                 "indicador_tipo": indicador_tipo,
@@ -621,7 +621,7 @@ def handle_planes_mejora():
             return jsonify({"status": "success", "data": res.data})
         except Exception as e:
             print(f"Error creating plan de mejora: {e}")
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
             
     char_id = request.args.get('char_id')
     try:
@@ -680,7 +680,7 @@ def update_delete_plan_mejora(plan_id):
             return jsonify({"status": "success"})
         except Exception as e:
             print(f"Error deleting plan de mejora: {e}")
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
             
     data = request.json
     try:
@@ -690,7 +690,7 @@ def update_delete_plan_mejora(plan_id):
             data['indicador_meta_den'] = 100
         existing = supabase.table('planes_mejora').select("*").eq("id", plan_id).execute()
         if not existing.data:
-            return jsonify({"status": "error", "message": "Plan no encontrado"}), 404
+            return jsonify({"status": "error", "message": "Plan no encontrado"})
         plan_data = existing.data[0]
         
         merged_data = {}
@@ -738,15 +738,15 @@ def update_delete_plan_mejora(plan_id):
         return jsonify({"status": "success", "data": res.data})
     except Exception as e:
         print(f"Error updating plan de mejora: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/planes_mejora/upload_soporte', methods=['POST'])
 def upload_soporte_plan():
     if 'file' not in request.files:
-        return jsonify({"error": "No file part"}), 400
+        return jsonify({"error": "No file part"})
     file = request.files['file']
     if file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
+        return jsonify({"error": "No selected file"})
     
     plan_id = request.form.get('plan_id', 'unknown')
     
@@ -772,7 +772,7 @@ def upload_soporte_plan():
         return jsonify({"status": "success", "url": file_url, "name": file.filename})
     except Exception as e:
         print(f"Error uploading soporte plan: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 @app.route('/api/notificaciones', methods=['GET'])
 def get_notificaciones():
@@ -798,7 +798,7 @@ def read_notificacion(notif_id):
         return jsonify({"status": "success", "data": res.data})
     except Exception as e:
         print(f"Error marking notification as read: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/notificaciones/read-all', methods=['POST'])
 def read_all_notificaciones():
@@ -808,14 +808,14 @@ def read_all_notificaciones():
     program_id = request.args.get('program_id', 0, type=int)
     
     if not email:
-        return jsonify({"status": "error", "message": "Email es requerido"}), 400
+        return jsonify({"status": "error", "message": "Email es requerido"})
         
     try:
         res = supabase.table('notificaciones').update({"leido": True}).eq("inst_id", inst_id).eq("program_id", program_id).eq("usuario_email", email).execute()
         return jsonify({"status": "success"})
     except Exception as e:
         print(f"Error marking all notifications as read: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/estadisticas', methods=['GET', 'POST'])
 def handle_stats():
@@ -841,7 +841,7 @@ def handle_stats():
                 return jsonify({"status": "success"})
             except Exception as e:
                 print(f"Error saving stats: {e}")
-                return jsonify({"status": "error", "message": str(e)}), 500
+                return jsonify({"status": "error", "message": str(e)})
         else:
             # Formato viejo
             inst_id = request.args.get('inst_id', 1, type=int)
@@ -901,10 +901,10 @@ def handle_programs():
                     .order("id", desc=True).limit(1).execute()
                 if fallback.data:
                     return jsonify({"status": "success", "data": fallback.data[0]})
-                return jsonify({"status": "error", "message": "Supabase no retornó datos del programa."}), 500
+                return jsonify({"status": "error", "message": "Supabase no retornó datos del programa."})
         except Exception as e:
             print(f"Error creating program: {e}")
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
 
     try:
         res = supabase.table('programs').select("*").eq("inst_id", inst_id).execute()
@@ -943,7 +943,7 @@ def handle_program_specific(prog_id):
             supabase.table('programs').delete().eq("id", prog_id).execute()
             return jsonify({"status": "success"})
         except Exception as e:
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
     elif request.method == 'PUT':
         data = request.json
         try:
@@ -953,7 +953,7 @@ def handle_program_specific(prog_id):
             }).eq("id", prog_id).execute()
             return jsonify({"status": "success"})
         except Exception as e:
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/programs/metadata', methods=['GET', 'POST'])
 def handle_program_metadata():
@@ -979,7 +979,7 @@ def handle_program_metadata():
             return jsonify({"status": "success"})
         except Exception as e:
             print("Error saving program metadata:", e)
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
     
     try:
         res = supabase.table('statistics').select("data_json").eq("inst_id", inst_id).eq("program_id", program_id).eq("table_id", table_id).execute()
@@ -1009,14 +1009,14 @@ def handle_all_institutions():
             }).execute()
             return jsonify({"status": "success", "data": res.data[0]})
         except Exception as e:
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
 
     try:
         res = supabase.table('institution').select("*").execute()
         return jsonify(res.data)
     except Exception as e:
         print(f"Error en GET /api/institutions: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/institutions/<int:inst_id>', methods=['DELETE'])
 def delete_institution(inst_id):
@@ -1029,7 +1029,7 @@ def delete_institution(inst_id):
         supabase.table('institution').delete().eq("id", inst_id).execute()
         return jsonify({"status": "success"})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/institutions/<int:inst_id>/suspend', methods=['POST'])
 def suspend_institution(inst_id):
@@ -1042,7 +1042,7 @@ def suspend_institution(inst_id):
                 supabase.table('institution').update({"code": new_code}).eq("id", inst_id).execute()
         return jsonify({"status": "success"})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/institution', methods=['GET', 'POST'])
 def handle_institution():
@@ -1063,7 +1063,7 @@ def handle_institution():
             supabase.table('institution').update(update_data).eq("id", inst_id).execute()
             return jsonify({"status": "success"})
         except Exception as e:
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
 
     try:
         inst = supabase.table('institution').select("*").eq("id", inst_id).execute()
@@ -1105,7 +1105,7 @@ def handle_login():
             except Exception as e:
                 print(f"Error buscando estudiante para login: {e}")
                 
-            return jsonify({"status": "error", "message": "Usuario no encontrado"}), 404
+            return jsonify({"status": "error", "message": "Usuario no encontrado"})
         user = res.data[0]
         
         # Bloquear usuarios pendientes verificando el prefijo en su nombre
@@ -1133,7 +1133,7 @@ def handle_login():
             })
         return jsonify({"status": "error", "message": "Contraseña incorrecta"}), 401
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/change-password', methods=['POST'])
 def change_password():
@@ -1144,7 +1144,7 @@ def change_password():
     try:
         res = supabase.table('users').select("*").eq("email", email).execute()
         if not res.data:
-            return jsonify({"status": "error", "message": "Usuario no encontrado"}), 404
+            return jsonify({"status": "error", "message": "Usuario no encontrado"})
         user = res.data[0]
         if check_password_hash(user['password_hash'], old_password):
             new_hash = generate_password_hash(new_password)
@@ -1152,14 +1152,14 @@ def change_password():
             return jsonify({"status": "success", "message": "Contraseña actualizada"})
         return jsonify({"status": "error", "message": "Contraseña actual incorrecta"}), 401
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/forgot-password', methods=['POST'])
 def forgot_password():
     data = request.json
     email = data.get('email')
     if not email:
-        return jsonify({"status": "error", "message": "Email requerido"}), 400
+        return jsonify({"status": "error", "message": "Email requerido"})
     try:
         res = supabase.table('users').select("*").eq("email", email).execute()
         if not res.data:
@@ -1195,11 +1195,11 @@ def forgot_password():
         if success:
             return jsonify({"status": "success", "message": "Si el correo existe, recibirás las instrucciones."})
         else:
-            return jsonify({"status": "error", "message": "Error al enviar el correo. Por favor contacta al administrador."}), 500
+            return jsonify({"status": "error", "message": "Error al enviar el correo. Por favor contacta al administrador."})
             
     except Exception as e:
         print(f"Error in forgot-password: {e}")
-        return jsonify({"status": "error", "message": "Error interno del servidor"}), 500
+        return jsonify({"status": "error", "message": "Error interno del servidor"})
 
 @app.route('/api/init-admin', methods=['GET'])
 def init_admin():
@@ -1216,7 +1216,7 @@ def init_admin():
             return jsonify({"status": "success", "message": "Admin inicializado"})
         return jsonify({"status": "info", "message": "Admin ya existe"})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 # --- Gestión de Usuarios por Institución ---
 
@@ -1229,7 +1229,7 @@ def handle_users():
         data = request.json
         email = data.get('email')
         if not email:
-            return jsonify({"status": "error", "message": "Email requerido"}), 400
+            return jsonify({"status": "error", "message": "Email requerido"})
         # Check if user exists
         existing = supabase.table('users').select("id").eq("email", email).execute()
         if existing.data:
@@ -1285,7 +1285,7 @@ def handle_users():
             
             return jsonify({"status": "success", "data": res.data[0], "temp_password": temp_password})
         except Exception as e:
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
 
     try:
         print(f"DEBUG GET: inst_id={inst_id} (type={type(inst_id)})")
@@ -1318,7 +1318,7 @@ def reset_user_password(user_id):
         supabase.table('users').update({"password_hash": new_hash}).eq("id", user_id).execute()
         return jsonify({"status": "success", "temp_password": new_password})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/users/<user_id>/activate', methods=['POST'])
 def activate_user(user_id):
@@ -1368,7 +1368,7 @@ def activate_user(user_id):
                 
         return jsonify({"status": "success"})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/users/<user_id>/role', methods=['POST'])
 def change_user_role(user_id):
@@ -1380,18 +1380,18 @@ def change_user_role(user_id):
     new_inst_id = data.get('inst_id')  # Opcional: reasignar institución
 
     if not new_role:
-        return jsonify({"status": "error", "message": "El campo 'role' es requerido."}), 400
+        return jsonify({"status": "error", "message": "El campo 'role' es requerido."})
 
     # Roles válidos que se pueden asignar (no se puede asignar 'admin' desde aquí)
     allowed_roles = {'lider', 'operativo', 'inst_admin', 'estudiante', 'profesor'}
     if new_role not in allowed_roles:
-        return jsonify({"status": "error", "message": f"Rol inválido. Roles permitidos: {', '.join(allowed_roles)}"}), 400
+        return jsonify({"status": "error", "message": f"Rol inválido. Roles permitidos: {', '.join(allowed_roles)}"})
 
     try:
         # Verificar que el usuario target no sea el superadmin
         target_res = supabase.table('users').select("role, name").eq("id", user_id).execute()
         if not target_res.data:
-            return jsonify({"status": "error", "message": "Usuario no encontrado."}), 404
+            return jsonify({"status": "error", "message": "Usuario no encontrado."})
 
         target_role = target_res.data[0].get('role')
         if target_role == 'admin':
@@ -1443,7 +1443,7 @@ def change_user_role(user_id):
         return jsonify({"status": "success", "message": f"Rol actualizado a '{new_role}' correctamente."})
     except Exception as e:
         print(f"Error al cambiar rol del usuario {user_id}: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/users/<user_id>', methods=['DELETE'])
 def delete_user(user_id):
@@ -1459,7 +1459,7 @@ def delete_user(user_id):
         return jsonify({"status": "success"})
     except Exception as e:
         print(f"Error al eliminar usuario {user_id}: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 
 # --- Dashboard Stats ---
@@ -1726,7 +1726,7 @@ def get_informe_dinamico():
         return jsonify(report_data)
     except Exception as e:
         print(f"Error informe dinamico: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 
 def call_ai(messages, max_tokens=1500, temperature=0.7):
@@ -1874,7 +1874,7 @@ def library_upload_url():
         })
     except Exception as e:
         print(f"Error generating upload url: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 @app.route('/api/library/confirm_upload', methods=['POST'])
 def library_confirm_upload():
@@ -1923,7 +1923,7 @@ def library_confirm_upload():
         return jsonify({"status": "success"})
     except Exception as e:
         print(f"Error confirm upload: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 @app.route('/api/evidences/confirm_upload', methods=['POST'])
 def evidences_confirm_upload():
@@ -1967,15 +1967,15 @@ def evidences_confirm_upload():
         return jsonify({"status": "success"})
     except Exception as e:
         print(f"Error confirm evidences upload: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 @app.route('/api/surveys/upload', methods=['POST'])
 def survey_upload_file():
     if 'file' not in request.files:
-        return jsonify({"error": "No file part"}), 400
+        return jsonify({"error": "No file part"})
     file = request.files['file']
     if file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
+        return jsonify({"error": "No selected file"})
     
     survey_id = request.form.get('survey_id', 'unknown')
     
@@ -2001,7 +2001,7 @@ def survey_upload_file():
         return jsonify({"status": "success", "url": file_url, "name": file.filename})
     except Exception as e:
         print(f"Error uploading survey file: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
@@ -2027,7 +2027,7 @@ def upload_file():
             program_id = 1
 
     if 'file' not in request.files:
-        return jsonify({"error": "No file part"}), 400
+        return jsonify({"error": "No file part"})
     
     file = request.files['file']
     aspect_id = request.form.get('aspect_id')
@@ -2041,7 +2041,7 @@ def upload_file():
         return name
 
     if file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
+        return jsonify({"error": "No selected file"})
 
     clean_filename = sanitize_filename(file.filename)
     # Nueva ruta incluyendo el periodo para evitar colisiones
@@ -2107,7 +2107,7 @@ def upload_file():
         return jsonify({"status": "success", "url": file_url})
     except Exception as e:
         print(f"Error uploading: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 @app.route('/api/evidences', methods=['GET'])
 def get_evidences():
@@ -2154,10 +2154,10 @@ def delete_library_doc(aspect_id, doc_id):
             new_data = [d for d in current_data if d.get('id') != doc_id]
             supabase.table('statistics').update({"data_json": json.dumps(new_data)}).eq("id", check.data[0]["id"]).execute()
             return jsonify({"status": "success"})
-        return jsonify({"status": "error", "message": "No encontrado"}), 404
+        return jsonify({"status": "error", "message": "No encontrado"})
     except Exception as e:
         print(f"Error deleting library doc: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 
 import urllib.request
@@ -2207,7 +2207,7 @@ def library_search():
                 return jsonify({'results': results, 'meta': {'source': 'europepmc'}})
         except Exception as e:
             print(f"Europe PMC scrape error: {e}")
-            return jsonify({'error': 'Error al buscar PDFs en Europe PMC.'}), 500
+            return jsonify({'error': 'Error al buscar PDFs en Europe PMC.'})
 
     try:
         q = request.args.get('q', '')
@@ -2285,7 +2285,7 @@ def library_search():
         return jsonify({'error': str(e)}), e.code
     except Exception as e:
         print(f"Error fetching OpenAlex: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e)})
 
 @app.route('/api/library/translate', methods=['POST'])
 def library_translate():
@@ -2295,7 +2295,7 @@ def library_translate():
         target_lang = data.get('target_lang', 'es') # 'es' o 'en'
         
         if not text:
-            return jsonify({"status": "error", "message": "Texto vacío"}), 400
+            return jsonify({"status": "error", "message": "Texto vacío"})
             
         url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl={target_lang}&dt=t&q={urllib.parse.quote(text)}"
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -2306,7 +2306,7 @@ def library_translate():
         return jsonify({"status": "success", "translated": translated_text.strip()})
     except Exception as e:
         print(f"Error Translate: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 
 @app.route('/api/library/ovas', methods=['GET'])
@@ -2339,7 +2339,7 @@ def get_ovas():
             return jsonify({'status': 'success', 'ovas': sims})
     except Exception as e:
         print(f"Error fetching OVAs: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/api/library/saved', methods=['GET', 'POST'])
 
@@ -2349,7 +2349,7 @@ def handle_saved_resources():
         data = request.json
         user_email = data.get('email')
         if not user_email:
-            return jsonify({"status": "error", "message": "Email requerido"}), 400
+            return jsonify({"status": "error", "message": "Email requerido"})
             
         try:
             supabase.table('saved_resources').insert({
@@ -2364,7 +2364,7 @@ def handle_saved_resources():
             return jsonify({"status": "success"})
         except Exception as e:
             print(f"Error saving resource: {e}")
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
             
     # GET
     user_email = request.args.get('email')
@@ -2384,7 +2384,7 @@ def delete_saved_resource(id):
         return jsonify({"status": "success"})
     except Exception as e:
         print(f"Error deleting saved resource: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/global-settings', methods=['GET', 'POST'])
 def global_settings():
@@ -2434,7 +2434,7 @@ def global_settings():
             
         return jsonify({"status": "success"})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/evidences/<int:evidence_id>', methods=['DELETE'])
 def delete_evidence(evidence_id):
@@ -2443,7 +2443,7 @@ def delete_evidence(evidence_id):
         return jsonify({"status": "success"})
     except Exception as e:
         print(f"Error deleting evidence: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/evidences/status', methods=['POST'])
 def update_evidence_status():
@@ -2455,13 +2455,13 @@ def update_evidence_status():
         return jsonify({"status": "success"})
     except Exception as e:
         print(f"Error updating status: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/proxy/external_pdf', methods=['GET'])
 def proxy_external_pdf():
     file_url = request.args.get('url', '')
     if not file_url:
-        return jsonify({'error': 'URL requerida'}), 400
+        return jsonify({'error': 'URL requerida'})
     try:
         import urllib.request
         import urllib.parse
@@ -2492,7 +2492,7 @@ def proxy_download():
     file_url = request.args.get('url', '')
     file_name = request.args.get('name', 'archivo')
     if not file_url:
-        return jsonify({'error': 'URL requerida'}), 400
+        return jsonify({'error': 'URL requerida'})
     try:
         import urllib.parse
         import mimetypes
@@ -2545,7 +2545,7 @@ def proxy_download():
         )
     except Exception as e:
         print(f'Error proxying download: {e}')
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e)})
 
 # --- Rutas de Inteligencia Artificial ---
 
@@ -2616,7 +2616,7 @@ def ai_chat():
         return jsonify({"status": "success", "answer": answer})
     except Exception as e:
         print(f"Error AI Chat: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 @app.route('/api/ai/generate_report', methods=['POST'])
 def ai_generate_report():
@@ -2667,7 +2667,7 @@ def ai_generate_report():
         return jsonify({"status": "success", "report": report_text})
     except Exception as e:
         print(f"Error AI Generate Report: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 @app.route('/api/ai/generate_dofa', methods=['POST'])
 def ai_generate_dofa():
@@ -2723,7 +2723,7 @@ def ai_generate_dofa():
         return jsonify({"status": "success", "dofa": dofa_json})
     except Exception as e:
         print(f"Error AI Generate DOFA: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 
 @app.route('/api/ai/generate_pesta', methods=['POST'])
@@ -2788,7 +2788,7 @@ def ai_generate_pesta():
         return jsonify({"status": "success", "pesta": pesta_json})
     except Exception as e:
         print(f"Error AI Generate PESTA: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 
 @app.route('/api/ai/cruce_dofa', methods=['POST'])
@@ -2850,7 +2850,7 @@ def ai_cruce_dofa():
         return jsonify({"status": "success", "matriz": cruce_json})
     except Exception as e:
         print(f"Error AI Cruce DOFA: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 @app.route('/api/ai/generar_rrc', methods=['POST'])
 def ai_generar_rrc():
@@ -2935,7 +2935,7 @@ Sé riguroso, formal y propositivo. Cita las normas cuando sea pertinente.
 
     except Exception as e:
         print(f"Error AI Generar RRC: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 
 @app.route('/api/rrc/report', methods=['GET', 'POST'])
@@ -2962,7 +2962,7 @@ def handle_rrc_report():
             return jsonify({"status": "success"})
         except Exception as e:
             print("Error saving RRC report:", e)
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
     
     try:
         res = supabase.table('statistics').select("data_json").eq("inst_id", inst_id).eq("program_id", program_id).eq("table_id", table_id).execute()
@@ -3000,12 +3000,12 @@ def handle_surveys():
                 survey_storage.sync_surveys_only(inst_id, program_id, supabase)
                 return jsonify({"status": "success", "message": "Encuestas guardadas localmente y sincronizadas en la nube"})
             except Exception as e:
-                return jsonify({"status": "error", "message": f"Error al sincronizar en la nube: {str(e)}"}), 500
+                return jsonify({"status": "error", "message": f"Error al sincronizar en la nube: {str(e)}"})
         else:
             success = survey_storage.save_local_surveys(inst_id, program_id, data)
             if success:
                 return jsonify({"status": "success", "message": "Encuestas guardadas localmente"})
-            return jsonify({"status": "error", "message": "Error al guardar encuestas localmente"}), 500
+            return jsonify({"status": "error", "message": "Error al guardar encuestas localmente"})
 
     # GET
     if use_cloud:
@@ -3039,7 +3039,7 @@ def handle_survey_specific(survey_id):
             try:
                 survey_storage.sync_surveys_only(inst_id, program_id, supabase)
             except Exception as e:
-                return jsonify({"status": "error", "message": f"Error al sincronizar eliminación: {str(e)}"}), 500
+                return jsonify({"status": "error", "message": f"Error al sincronizar eliminación: {str(e)}"})
                 
         return jsonify({"status": "success"})
         
@@ -3056,7 +3056,7 @@ def handle_survey_specific(survey_id):
                         return jsonify(s)
         except Exception as e:
             print(f"Error searching survey in cloud: {e}")
-        return jsonify({"error": "Encuesta no encontrada"}), 404
+        return jsonify({"error": "Encuesta no encontrada"})
         
     return jsonify(survey)
 
@@ -3081,7 +3081,7 @@ def respond_survey(survey_id):
             print(f"Error fetching survey on response: {e}")
             
     if not survey:
-        return jsonify({"error": "Encuesta no encontrada"}), 404
+        return jsonify({"error": "Encuesta no encontrada"})
         
     inst_id = survey.get('inst_id', 1)
     program_id = survey.get('program_id', 0)
@@ -3106,7 +3106,7 @@ def respond_survey(survey_id):
     }
     
     if survey.get('status', 'activo') != 'activo':
-        return jsonify({"error": "La encuesta ya no está activa o ha sido finalizada"}), 400
+        return jsonify({"error": "La encuesta ya no está activa o ha sido finalizada"})
         
     success = survey_storage.save_local_response(inst_id, program_id, response_record)
     
@@ -3118,7 +3118,7 @@ def respond_survey(survey_id):
             
     if success:
         return jsonify({"status": "success", "message": "Respuesta guardada con éxito"})
-    return jsonify({"status": "error", "message": "Error al registrar la respuesta"}), 500
+    return jsonify({"status": "error", "message": "Error al registrar la respuesta"})
 
 @app.route('/api/surveys/<survey_id>/responses', methods=['GET'])
 def get_survey_responses(survey_id):
@@ -3172,7 +3172,7 @@ def sync_surveys():
             survey_storage.pull_from_supabase(inst_id, program_id, supabase)
             return jsonify({"status": "success", "message": "Datos descargados desde la web (Supabase)"})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 
 # === API ENDPOINTS FOR LMS (FORMACION) ===
@@ -3185,7 +3185,7 @@ def handle_api_teachers():
         saved = formacion_storage.save_teacher(inst_id, data)
         if saved:
             return jsonify({"status": "success", "data": saved})
-        return jsonify({"status": "error", "message": "No se pudo guardar el docente."}), 500
+        return jsonify({"status": "error", "message": "No se pudo guardar el docente."})
     try:
         teachers = formacion_storage.load_teachers(inst_id)
         return jsonify(teachers)
@@ -3199,7 +3199,7 @@ def delete_api_teacher(teacher_id):
     success = formacion_storage.delete_teacher(inst_id, teacher_id)
     if success:
         return jsonify({"status": "success"})
-    return jsonify({"status": "error", "message": "No se pudo eliminar el docente."}), 500
+    return jsonify({"status": "error", "message": "No se pudo eliminar el docente."})
 
 @app.route('/api/courses', methods=['GET', 'POST'])
 def handle_api_courses():
@@ -3210,7 +3210,7 @@ def handle_api_courses():
         saved = formacion_storage.save_course(inst_id, program_id, data)
         if saved:
             return jsonify({"status": "success", "data": saved})
-        return jsonify({"status": "error", "message": "No se pudo guardar el curso."}), 500
+        return jsonify({"status": "error", "message": "No se pudo guardar el curso."})
     try:
         courses = formacion_storage.load_courses(inst_id, program_id)
         return jsonify(courses)
@@ -3244,7 +3244,7 @@ def handle_course_forum(course_id):
     if request.method == 'POST':
         data = request.json
         if not data or not data.get('content'):
-            return jsonify({"status": "error", "message": "Content required"}), 400
+            return jsonify({"status": "error", "message": "Content required"})
         import datetime
         msg_id = "msg_" + formacion_storage.generate_id()
         timestamp = datetime.datetime.now().isoformat()
@@ -3261,7 +3261,7 @@ def handle_course_forum(course_id):
             return jsonify({"status": "success", "data": saved})
         except Exception as e:
             print(f"Error saving forum msg: {e}")
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/courses/<course_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_api_course_specific(course_id):
@@ -3277,19 +3277,19 @@ def handle_api_course_specific(course_id):
                 elif not val:
                     course[arr_field] = []
             return jsonify(course)
-        return jsonify({"status": "error", "message": "Curso no encontrado."}), 404
+        return jsonify({"status": "error", "message": "Curso no encontrado."})
     elif request.method == 'PUT':
         data = request.json
         data['id'] = course_id
         saved = formacion_storage.save_course(inst_id, program_id, data)
         if saved:
             return jsonify({"status": "success", "data": saved})
-        return jsonify({"status": "error", "message": "No se pudo actualizar el curso."}), 500
+        return jsonify({"status": "error", "message": "No se pudo actualizar el curso."})
     elif request.method == 'DELETE':
         success = formacion_storage.delete_course(inst_id, program_id, course_id)
         if success:
             return jsonify({"status": "success"})
-        return jsonify({"status": "error", "message": "No se pudo eliminar el curso."}), 500
+        return jsonify({"status": "error", "message": "No se pudo eliminar el curso."})
 
 @app.route('/api/public/courses', methods=['GET'])
 def get_public_courses_catalog():
@@ -3310,7 +3310,7 @@ def get_course_analytics(course_id):
     program_id = request.args.get('program_id', 0, type=int)
     course = formacion_storage.load_course(course_id)
     if not course:
-        return jsonify({"status": "error", "message": "Course not found"}), 404
+        return jsonify({"status": "error", "message": "Course not found"})
     total_activities = sum(len(unit.get('activities', [])) + len(unit.get('evaluations', [])) for unit in course.get('units', []))
     submissions = formacion_storage.load_submissions(inst_id, program_id)
     course_submissions = [s for s in submissions if s.get('course_id') == course_id]
@@ -3363,10 +3363,10 @@ def get_course_analytics(course_id):
 @app.route('/api/lms_upload', methods=['POST'])
 def api_upload_lms_file():
     if 'file' not in request.files:
-        return jsonify({"status": "error", "message": "No file part"}), 400
+        return jsonify({"status": "error", "message": "No file part"})
     file = request.files['file']
     if file.filename == '':
-        return jsonify({"status": "error", "message": "No selected file"}), 400
+        return jsonify({"status": "error", "message": "No selected file"})
     try:
         import uuid as _uuid
         ext = ""
@@ -3390,7 +3390,7 @@ def api_upload_lms_file():
         return jsonify({"status": "success", "url": public_url, "filename": file.filename})
     except Exception as e:
         print(f"Error uploading file: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/public/courses/<course_id>/report', methods=['GET'])
 def get_course_report(course_id):
@@ -3407,7 +3407,7 @@ def handle_api_students():
         saved = formacion_storage.save_student(inst_id, data)
         if saved:
             return jsonify({"status": "success", "data": saved})
-        return jsonify({"status": "error", "message": "No se pudo guardar el estudiante."}), 500
+        return jsonify({"status": "error", "message": "No se pudo guardar el estudiante."})
     try:
         students = formacion_storage.load_students(inst_id)
         return jsonify(students)
@@ -3424,7 +3424,7 @@ def handle_api_submissions():
         saved = formacion_storage.save_submission(inst_id, program_id, data)
         if saved:
             return jsonify({"status": "success", "data": saved})
-        return jsonify({"status": "error", "message": "No se pudo guardar la entrega."}), 500
+        return jsonify({"status": "error", "message": "No se pudo guardar la entrega."})
     subs = formacion_storage.load_submissions(inst_id, program_id)
     course_id = request.args.get('course_id')
     student_email = request.args.get('student_email')
@@ -3445,7 +3445,7 @@ def handle_api_grade_submission(submission_id):
     graded = formacion_storage.grade_submission(inst_id, program_id, submission_id, data)
     if graded:
         return jsonify({"status": "success", "data": graded})
-    return jsonify({"status": "error", "message": "No se pudo registrar la calificación."}), 500
+    return jsonify({"status": "error", "message": "No se pudo registrar la calificación."})
 
 @app.route('/api/students/<student_id>', methods=['DELETE'])
 def delete_api_student(student_id):
@@ -3453,29 +3453,29 @@ def delete_api_student(student_id):
     success = formacion_storage.delete_student(inst_id, student_id)
     if success:
         return jsonify({"status": "success"})
-    return jsonify({"status": "error", "message": "No se pudo eliminar el estudiante."}), 500
+    return jsonify({"status": "error", "message": "No se pudo eliminar el estudiante."})
 
 @app.route('/api/students/<student_id>/enroll', methods=['POST'])
 def enroll_student_api(student_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     course_id = request.json.get('course_id')
     if not course_id:
-        return jsonify({"status": "error", "message": "course_id es requerido."}), 400
+        return jsonify({"status": "error", "message": "course_id es requerido."})
     success = formacion_storage.enroll_student_in_course(inst_id, student_id, course_id)
     if success:
         return jsonify({"status": "success"})
-    return jsonify({"status": "error", "message": "No se pudo matricular al estudiante."}), 500
+    return jsonify({"status": "error", "message": "No se pudo matricular al estudiante."})
 
 @app.route('/api/students/<student_id>/unenroll', methods=['POST'])
 def unenroll_student_api(student_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     course_id = request.json.get('course_id')
     if not course_id:
-        return jsonify({"status": "error", "message": "course_id es requerido."}), 400
+        return jsonify({"status": "error", "message": "course_id es requerido."})
     success = formacion_storage.unenroll_student_from_course(inst_id, student_id, course_id)
     if success:
         return jsonify({"status": "success"})
-    return jsonify({"status": "error", "message": "No se pudo cancelar la matrícula."}), 500
+    return jsonify({"status": "error", "message": "No se pudo cancelar la matrícula."})
 
 @app.route('/api/courses/<course_id>/students', methods=['GET'])
 def get_course_enrolled_students(course_id):
@@ -3494,12 +3494,12 @@ def public_enroll_course():
     inst_id = data.get('inst_id', 1)
     
     if not name or not email or not password or not course_id:
-        return jsonify({"status": "error", "message": "Datos incompletos"}), 400
+        return jsonify({"status": "error", "message": "Datos incompletos"})
 
     try:
         sb = formacion_storage._get_supabase()
         if not sb:
-            return jsonify({"status": "error", "message": "No database connection"}), 500
+            return jsonify({"status": "error", "message": "No database connection"})
 
         # 1. Check if user already exists
         user_res = sb.table('users').select("*").eq('email', email).execute()
@@ -3542,7 +3542,7 @@ def public_enroll_course():
 
     except Exception as e:
         print(f"Error en enroll_course: {e}")
-        return jsonify({"status": "error", "message": "Error interno"}), 500
+        return jsonify({"status": "error", "message": "Error interno"})
 
 # --- CRM / PROSPECTOS RUTAS ---
 
@@ -3557,13 +3557,13 @@ def handle_prospects():
             res = supabase.table('prospects').select('*').order('created_at', desc=True).execute()
             return jsonify({"status": "success", "data": res.data})
         except Exception as e:
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
             
     elif request.method == 'POST':
         try:
             data = request.json
             if not data or 'institution' not in data:
-                return jsonify({"status": "error", "message": "Institution is required"}), 400
+                return jsonify({"status": "error", "message": "Institution is required"})
                 
             prospect_data = {
                 "name": data.get('name', 'Por Definir'),
@@ -3578,7 +3578,7 @@ def handle_prospects():
             res = supabase.table('prospects').insert(prospect_data).execute()
             return jsonify({"status": "success", "data": res.data})
         except Exception as e:
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/crm/prospects/<int:pid>', methods=['PUT', 'DELETE'])
 def update_delete_prospect(pid):
@@ -3587,14 +3587,14 @@ def update_delete_prospect(pid):
             supabase.table('prospects').delete().eq('id', pid).execute()
             return jsonify({"status": "success"})
         except Exception as e:
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
     if request.method == 'PUT':
         data = request.json
         try:
             res = supabase.table('prospects').update(data).eq('id', pid).execute()
             return jsonify({"status": "success", "data": res.data})
         except Exception as e:
-            return jsonify({"status": "error", "message": str(e)}), 500
+            return jsonify({"status": "error", "message": str(e)})
 
 import csv
 import io
@@ -3602,10 +3602,10 @@ import io
 @app.route('/api/crm/upload_prospects', methods=['POST'])
 def upload_prospects():
     if 'file' not in request.files:
-        return jsonify({"status": "error", "message": "No file part"}), 400
+        return jsonify({"status": "error", "message": "No file part"})
     file = request.files['file']
     if file.filename == '':
-        return jsonify({"status": "error", "message": "No selected file"}), 400
+        return jsonify({"status": "error", "message": "No selected file"})
     
     try:
         # Detect encoding safely
@@ -3652,18 +3652,18 @@ def upload_prospects():
         return jsonify({"status": "success", "message": f"{inserted_count} prospectos subidos correctamente"})
     except Exception as e:
         print(f"Error uploading prospects: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)})
 
 
 @app.route('/api/crm/prospects/bulk_delete', methods=['POST'])
 def bulk_delete_prospects():
     data = request.json
     if not data or 'ids' not in data:
-        return jsonify({'status': 'error', 'message': 'No ids provided'}), 400
+        return jsonify({'status': 'error', 'message': 'No ids provided'})
     
     ids = data['ids']
     if not isinstance(ids, list) or len(ids) == 0:
-        return jsonify({'status': 'error', 'message': 'Invalid ids array'}), 400
+        return jsonify({'status': 'error', 'message': 'Invalid ids array'})
         
     try:
         deleted_count = 0
@@ -3672,13 +3672,13 @@ def bulk_delete_prospects():
             deleted_count += 1
         return jsonify({'status': 'success', 'deleted_count': deleted_count})
     except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/api/crm/send_email', methods=['POST'])
 def send_email_route():
     data = request.json
     if not data or 'email' not in data or 'subject' not in data or 'body' not in data:
-        return jsonify({'status': 'error', 'message': 'Missing email, subject, or body'}), 400
+        return jsonify({'status': 'error', 'message': 'Missing email, subject, or body'})
     
     to_email = data['email']
     subject = data['subject']
@@ -3690,7 +3690,7 @@ def send_email_route():
     smtp_password = os.getenv('SMTP_PASSWORD', 'xplguaejibtfyqdn')
     
     if not smtp_server or not smtp_username or not smtp_password:
-        return jsonify({'status': 'error', 'message': 'SMTP configuration is missing on the server. Please check your .env file.'}), 500
+        return jsonify({'status': 'error', 'message': 'SMTP configuration is missing on the server. Please check your .env file.'})
         
     try:
         msg = MIMEMultipart()
@@ -3712,7 +3712,7 @@ def send_email_route():
         return jsonify({'status': 'success', 'message': 'Email sent successfully'})
     except Exception as e:
         print(f"Error sending email: {e}")
-        return jsonify({'status': 'error', 'message': f"Failed to send email: {str(e)}"}), 500
+        return jsonify({'status': 'error', 'message': f"Failed to send email: {str(e)}"})
 
 # --- MÓDULO PLANIFICACIÓN Y CONTROL ---
 
@@ -3777,7 +3777,7 @@ def suggest_dofa_axes():
         return jsonify({'status': 'success', 'axes': axes_suggestion})
     except Exception as e:
         print(f"Error en suggest_dofa_axes: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': str(e)})
 
 
 @app.route('/api/planning/migrate_dofa', methods=['POST'])
@@ -3866,7 +3866,7 @@ def migrate_dofa():
         return jsonify({'status': 'success', 'migrated_count': migrated_count})
     except Exception as e:
         print(f"Error en migrate_dofa: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/api/planning/tree', methods=['GET'])
 def get_planning_tree():
@@ -3920,7 +3920,7 @@ def get_planning_tree():
         return jsonify({'status': 'success', 'tree': tree})
     except Exception as e:
         print(f"Error in planning tree: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/api/planning/node', methods=['POST'])
 def add_planning_node():
@@ -3972,7 +3972,7 @@ def add_planning_node():
         return jsonify({'status': 'success'})
     except Exception as e:
         print(f"Error in add planning node: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/api/planning/node/edit', methods=['POST'])
 def edit_planning_node():
@@ -4013,7 +4013,7 @@ def edit_planning_node():
             supabase.table(table_name).update(update_data).eq('id', node_id).execute()
         return jsonify({'status': 'success'})
     except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/api/planning/node/delete', methods=['POST'])
 def delete_planning_node():
@@ -4041,7 +4041,7 @@ def delete_planning_node():
         return jsonify({'status': 'success'})
     except Exception as e:
         print(f"Error deleting planning node: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/api/planning/suggest', methods=['POST'])
 def suggest_planning_node():
@@ -4096,7 +4096,7 @@ def suggest_planning_node():
         return jsonify({'status': 'success', 'suggestion': suggestion})
     except Exception as e:
         print(f"Error in suggest_planning_node: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'error', 'message': str(e)})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
