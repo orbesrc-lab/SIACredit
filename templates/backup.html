@@ -441,11 +441,13 @@
 </main>
 
 <script>
+    function logout() { localStorage.removeItem('siac_user'); window.location.href = 'index.html'; }
+
 
     let pendingBackupAction = null;
     let pendingBackupArgs = null;
 
-    function requireSecurity(actionFunc, args) {
+    function requireSecurity(actionFunc, args) { console.log("requireSecurity called with", actionFunc, args);
         pendingBackupAction = actionFunc;
         pendingBackupArgs = args;
         document.getElementById('securityModal').style.display = 'flex';
@@ -453,7 +455,7 @@
         document.getElementById('securityPassword').focus();
     }
 
-    async function confirmSecurity() {
+    async function confirmSecurity() { console.log("confirmSecurity clicked");
         const pwd = document.getElementById('securityPassword').value;
         if(!pwd) return alert('Ingresa tu contraseña.');
         document.getElementById('securityModal').style.display = 'none';
@@ -691,7 +693,7 @@
 
     async function exportarModulo(authData, tipo) {
         try {
-            await downloadBlob('/api/backup/csv/' + tipo, {inst_id: currentInstId, ...authData}, tipo + '_' + new Date().toISOString().substring(0,10) + '.csv', false);
+            await downloadBlob('/api/backup/csv/' + tipo, {inst_id: currentInstId, ...authData}, tipo + '_' + new Date().toISOString().substring(0,10) + '.csv');
             addHistory('CSV', tipo, 'ok');
         } catch(e) { alert('Error: ' + e.message); }
     }
