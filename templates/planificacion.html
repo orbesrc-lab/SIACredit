@@ -248,6 +248,7 @@
                             <h5 style="margin:0 0 10px 0; color:#0369a1;">Objetivos Generales</h5>
                             ${renderGenObjs(st.general_objectives, st.id)}
                             <button class="btn-add" onclick="addNode('gen_obj', ${st.id})" style="margin-top:10px;">+ Obj. General</button>
+                            <button class="btn-add" onclick="suggestGenObjAI(${st.id})" style="margin-top:10px; background:#8b5cf6; margin-left:5px;"><i class="fas fa-robot"></i> Sugerir IA</button>
                         </div>
                     </div>
                 </div>`;
@@ -427,8 +428,60 @@
             btn.disabled = false;
         }
 
-        function suggestActivitiesAI(specId) {
-            alert("LLamando a Gemini AI para sugerir actividades para: " + specId);
+        async function suggestGenObjAI(strategyId) {
+            try {
+                // Pre-open the modal so the user sees it loading
+                addNode('gen_obj', strategyId);
+                const descField = document.getElementById('f_desc');
+                descField.value = 'Generando sugerencia con Inteligencia Artificial...';
+                descField.disabled = true;
+                
+                const res = await fetch('/api/planning/suggest', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type: 'gen_obj', target_id: strategyId, inst_id: getInstId() })
+                });
+                const data = await res.json();
+                
+                descField.disabled = false;
+                if(data.status === 'success') {
+                    descField.value = data.suggestion;
+                } else {
+                    descField.value = 'Error al sugerir: ' + data.message;
+                }
+            } catch(e) {
+                document.getElementById('f_desc').disabled = false;
+                document.getElementById('f_desc').value = 'Error de red al conectar con IA.';
+            }
+        }
+
+        async function suggestActivitiesAI(specId) {
+            try {
+                // We pre-open the modal but wait... suggestActivitiesAI might suggest multiple activities!
+                // For now, let's suggest ONE activity to fit in the modal, or a block of text
+                addNode('activity', specId);
+                const descField = document.getElementById('f_desc');
+                descField.value = 'Generando actividad con Inteligencia Artificial...';
+                descField.disabled = true;
+
+                const res = await fetch('/api/planning/suggest', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type: 'activity', target_id: specId, inst_id: getInstId() })
+                });
+                const data = await res.json();
+                
+                descField.disabled = false;
+                if(data.status === 'success') {
+                    descField.value = data.suggestion;
+                    // Optional: parse if AI returns dates, but text is fine for description
+                } else {
+                    descField.value = 'Error al sugerir: ' + data.message;
+                }
+            } catch(e) {
+                document.getElementById('f_desc').disabled = false;
+                document.getElementById('f_desc').value = 'Error de red al conectar con IA.';
+            }
         }
     </script>
 </body>

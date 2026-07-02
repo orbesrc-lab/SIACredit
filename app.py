@@ -3873,6 +3873,50 @@ def add_planning_node():
         print(f"Error in add planning node: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+@app.route('/api/planning/suggest', methods=['POST'])
+def suggest_planning_node():
+    try:
+        data = request.json
+        req_type = data.get('type')
+        target_id = data.get('target_id')
+        inst_id = data.get('inst_id')
+        
+        if not req_type or not target_id:
+            return jsonify({'status': 'error', 'message': 'Faltan parámetros'})
+
+        prompt = ""
+        
+        if req_type == 'gen_obj':
+            strat = supabase.table('planning_strategies').select('*').eq('id', target_id).execute().data
+            if not strat:
+                return jsonify({'status': 'error', 'message': 'Estrategia no encontrada'})
+            context_text = strat[0]['description']
+            prompt = f"Actúa como un experto en planificación estratégica institucional. Basado en la siguiente ESTRATEGIA: '{context_text}', redacta UN solo OBJETIVO GENERAL claro, medible y ambicioso que permita cumplir esta estrategia. No incluyas explicaciones, responde ÚNICAMENTE con el texto del objetivo."
+            
+        elif req_type == 'activity':
+            spec = supabase.table('planning_specific_objectives').select('*').eq('id', target_id).execute().data
+            if not spec:
+                return jsonify({'status': 'error', 'message': 'Objetivo Específico no encontrado'})
+            context_text = spec[0]['description']
+            prompt = f"Actúa como un experto en planificación estratégica institucional. Basado en el siguiente OBJETIVO ESPECÍFICO: '{context_text}', redacta UNA ACTIVIDAD concreta, ejecutable y clara que contribuya a lograr ese objetivo. No incluyas explicaciones, responde ÚNICAMENTE con el texto de la actividad."
+        
+        if not prompt:
+            return jsonify({'status': 'error', 'message': 'Tipo inválido'})
+
+        import google.generativeai as genai
+        # app.py configures gemini globally
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = model.generate_content(prompt)
+        
+        suggestion = response.text.strip()
+        if suggestion.startswith('"') and suggestion.endswith('"'):
+            suggestion = suggestion[1:-1]
+        
+        return jsonify({'status': 'success', 'suggestion': suggestion})
+    except Exception as e:
+        print(f"Error in suggest_planning_node: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
