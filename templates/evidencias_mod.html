@@ -981,7 +981,7 @@ function updateFactor10Charts() {
             <a href="encuestas.html" class="sidebar-item">📋 Encuestas</a>
             <a href="formacion.html" class="sidebar-item">🎓 Formación</a>
             <a href="crm.html" class="sidebar-item" id="menuCrm" style="display:none; color: #10b981;">🚀 CRM B2B</a>
-            <a href="/backup" class="sidebar-item" id="menuBackup" style="display:none;">💾 Backup</a>
+            <a href="/backup" class="sidebar-item" id="menuBackup" style="display:none;">🛡️ Backup y Seguridad</a>
             <a href="configuracion.html"  class="sidebar-item">⚙️ Configuración</a>
         </div>
         <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
@@ -4487,7 +4487,7 @@ function resetUploadBtn(td, tableId) {
 (function(){
     const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
     const role = user.role || localStorage.getItem('user_role') || '';
-    if(['admin','inst_admin','lider'].includes(role)){
+    if(['admin', 'super_admin', 'inst_admin', 'lider'].includes(role)){
         const b = document.getElementById('menuBackup');
         if(b) b.style.display = 'block';
     }

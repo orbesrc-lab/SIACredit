@@ -3872,6 +3872,10 @@ def migrate_dofa():
 def get_planning_tree():
     try:
         inst_id = request.args.get('inst_id')
+        try:
+            inst_id = int(inst_id)
+        except (ValueError, TypeError):
+            inst_id = 1
         if not inst_id:
             return jsonify({'status': 'error', 'message': 'inst_id is required'})
 
@@ -3928,6 +3932,10 @@ def add_planning_node():
         data = request.json
         node_type = data.get('type')
         inst_id = data.get('inst_id')
+        try:
+            inst_id = int(inst_id)
+        except (ValueError, TypeError):
+            inst_id = 1
         parent_id = data.get('parent_id')
         
         if not node_type or not inst_id or not parent_id:
@@ -4050,6 +4058,10 @@ def suggest_planning_node():
         req_type = data.get('type')
         target_id = data.get('target_id')
         inst_id = data.get('inst_id')
+        try:
+            inst_id = int(inst_id)
+        except (ValueError, TypeError):
+            inst_id = 1
         
         if not req_type or not target_id:
             return jsonify({'status': 'error', 'message': 'Faltan parámetros'})
@@ -4103,6 +4115,10 @@ def get_planning_users():
     """Returns list of users in the institution for assignment dropdowns."""
     try:
         inst_id = request.args.get('inst_id')
+        try:
+            inst_id = int(inst_id)
+        except (ValueError, TypeError):
+            inst_id = 1
         if not inst_id:
             return jsonify({'status': 'error', 'message': 'inst_id required'})
         res = supabase.table('users').select('id, name, email, role').eq('inst_id', inst_id).execute()
@@ -4119,6 +4135,54 @@ def get_planning_users():
 
 # ══════════════════════════════════════════════════════════════════
 # BACKUP MODULE
+
+try:
+    import pyzipper
+except ImportError:
+    pyzipper = None
+import contextlib
+
+@contextlib.contextmanager
+def create_zip_context(buf, password=None):
+    if pyzipper and password:
+        zf = pyzipper.AESZipFile(buf, 'w', compression=pyzipper.ZIP_DEFLATED, encryption=pyzipper.WZ_AES)
+        zf.setpassword(password.encode('utf-8'))
+    else:
+        zf = create_zip_context(buf, password)
+    try:
+        yield zf
+    finally:
+        zf.close()
+
+def verify_backup_security(user_id, password, inst_id, action_type):
+    from werkzeug.security import check_password_hash
+    if not user_id or not password:
+        return False, "Se requiere contrasea de administrador."
+        
+    res = supabase.table('users').select('email, password_hash').eq('id', user_id).execute()
+    if not res.data:
+        return False, "Usuario no encontrado."
+        
+    user = res.data[0]
+    email = user.get('email')
+    phash = user.get('password_hash')
+    
+    is_valid = check_password_hash(phash, password) if phash else False
+    status = 'SUCCESS' if is_valid else 'DENIED'
+    
+    try:
+        supabase.table('security_backup_logs').insert({
+            'user_id': user_id,
+            'user_email': email,
+            'inst_id': int(inst_id) if inst_id else None,
+            'action_type': action_type,
+            'status': status
+        }).execute()
+    except Exception as e:
+        print("Error logging security:", e)
+        
+    return is_valid, ("Acceso denegado. Contrasea incorrecta." if not is_valid else "")
+
 # ══════════════════════════════════════════════════════════════════
 import zipfile, csv, io, urllib.request as _ureq, traceback
 
@@ -4188,10 +4252,10 @@ def _fetch_file_bytes(url):
         return None
 
 
-def _build_full_zip(inst_id, scope, modules, year, program_id):
+def _build_full_zip(inst_id, scope, modules, year, program_id, password=None):
     """Build the complete backup ZIP in memory and return bytes."""
     buf = io.BytesIO()
-    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+    with create_zip_context(buf, password) as zf:
         year_label = str(year) if year else 'todos_los_anos'
 
         # ── README ───────────────────────────────────────────────
@@ -4331,6 +4395,11 @@ def backup_generate():
     try:
         data = request.json or {}
         inst_id = data.get('inst_id', 1)
+        user_id = data.get('user_id')
+        password = data.get('password')
+        is_valid, msg = verify_backup_security(user_id, password, inst_id, 'FULL_BACKUP')
+        if not is_valid:
+            return jsonify({'status': 'error', 'message': msg}), 403
         scope = data.get('scope', 'inst')
         modules = data.get('modules', [])
         year = data.get('year')
@@ -4339,7 +4408,7 @@ def backup_generate():
         if scope == 'super':
             inst_id = None  # All institutions
 
-        zip_bytes = _build_full_zip(inst_id, scope, modules, year, program_id)
+        zip_bytes = _build_full_zip(inst_id, scope, modules, year, program_id, password)
         ts = __import__('datetime').datetime.now().strftime('%Y%m%d_%H%M%S')
         fname = f"backup_SIAC_{ts}.zip"
         return Response(
@@ -4358,12 +4427,17 @@ def backup_factor():
     try:
         data = request.json or {}
         inst_id = data.get('inst_id', 1)
+        user_id = data.get('user_id')
+        password = data.get('password')
+        is_valid, msg = verify_backup_security(user_id, password, inst_id, 'FACTOR_BACKUP')
+        if not is_valid:
+            return jsonify({'status': 'error', 'message': msg}), 403
         factor_id = data.get('factor_id')
         caracteristica_id = data.get('caracteristica_id')
         year = data.get('year')
 
         buf = io.BytesIO()
-        with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        with create_zip_context(buf, password) as zf:
             # Load factor details
             fq = supabase.table('factors').select('id,name,characteristics(id,name,aspects(id,name))').eq('id', factor_id)
             factors = fq.execute().data or []
@@ -4419,6 +4493,11 @@ def backup_evidencias():
     try:
         data = request.json or {}
         inst_id = data.get('inst_id', 1)
+        user_id = data.get('user_id')
+        password = data.get('password')
+        is_valid, msg = verify_backup_security(user_id, password, inst_id, 'EVIDENCIAS_BACKUP')
+        if not is_valid:
+            return jsonify({'status': 'error', 'message': msg}), 403
         year = data.get('year')
         status_filter = data.get('status')
         factor_id = data.get('factor_id')
@@ -4450,7 +4529,7 @@ def backup_evidencias():
         evs = eq.execute().data or []
 
         buf = io.BytesIO()
-        with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        with create_zip_context(buf, password) as zf:
             zf.writestr("evidencias/README.txt",
                 f"Backup de Evidencias SIAC\nFiltros: año={year}, estado={status_filter}\n"
                 f"Total: {len(evs)} evidencias\n")
@@ -4484,11 +4563,17 @@ def backup_evidencias():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
-@app.route('/api/backup/csv/<tipo>', methods=['GET'])
+@app.route('/api/backup/csv/<tipo>', methods=['POST'])
 def backup_csv_single(tipo):
     """Export a single module as CSV."""
     try:
-        inst_id = request.args.get('inst_id', 1, type=int)
+        data = request.json or {}
+        inst_id = data.get('inst_id', 1)
+        user_id = data.get('user_id')
+        password = data.get('password')
+        is_valid, msg = verify_backup_security(user_id, password, inst_id, 'CSV_MODULE_BACKUP')
+        if not is_valid:
+            return jsonify({'status': 'error', 'message': msg}), 403
         csv_map = {
             'evaluaciones_csv': ('evaluations', None),
             'evidencias_csv': ('evidences', None),
@@ -4525,6 +4610,11 @@ def backup_csv_all():
     try:
         data = request.json or {}
         inst_id = data.get('inst_id', 1)
+        user_id = data.get('user_id')
+        password = data.get('password')
+        is_valid, msg = verify_backup_security(user_id, password, inst_id, 'CSV_ALL_BACKUP')
+        if not is_valid:
+            return jsonify({'status': 'error', 'message': msg}), 403
 
         tables_inst = ['evaluations', 'evidences', 'factors', 'users', 'planes_mejora',
                        'statistics', 'notificaciones']
@@ -4532,7 +4622,7 @@ def backup_csv_all():
                          'planning_specific_objectives', 'planning_activities']
 
         buf = io.BytesIO()
-        with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        with create_zip_context(buf, password) as zf:
             for table in tables_inst:
                 try:
                     q = supabase.table(table).select('*')
@@ -4568,3 +4658,20 @@ def backup_csv_all():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
+
+@app.route('/api/backup/logs', methods=['POST'])
+def get_backup_logs():
+    data = request.json or {}
+    user_id = data.get('user_id')
+    
+    # Optional: Check if user is admin
+    res_user = supabase.table('users').select('role').eq('id', user_id).execute()
+    if not res_user.data or res_user.data[0].get('role') not in ('admin', 'inst_admin', 'super_admin'):
+         return jsonify({'status': 'error', 'message': 'No autorizado'}), 403
+         
+    inst_id = data.get('inst_id')
+    q = supabase.table('security_backup_logs').select('*').order('timestamp', desc=True).limit(50)
+    if inst_id:
+        q = q.eq('inst_id', inst_id)
+    res = q.execute()
+    return jsonify({'status': 'success', 'logs': res.data or []})
