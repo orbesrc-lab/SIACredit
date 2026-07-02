@@ -176,6 +176,16 @@
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script>
+        // ============================================================
+        // SIAC - Planificación Estratégica - JavaScript principal
+        // ============================================================
+        
+        let currentNodeType = '';
+        let currentParentId = 0;
+        let currentNodeId = null;
+        let ganttChart = null;
+        let expandedNodes = new Set();
+
         document.addEventListener("DOMContentLoaded", () => {
             const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
             document.getElementById('userInfo').textContent = user.email || 'Usuario';
@@ -183,12 +193,15 @@
                 const crmLink = document.getElementById('menuCrm');
                 if(crmLink) crmLink.style.display = 'block';
             }
-            
-            // Iniciar carga
             loadPlanningData();
         });
 
-        // Toggle acordeones
+        function getInstId() {
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            return user.inst_id || user.id || '';
+        }
+
+        // ─── Toggle acordeón ────────────────────────────────────────
         function toggleBody(btn) {
             const container = btn.closest('.node-content');
             if(!container) return;
@@ -196,7 +209,6 @@
             const icon = btn.querySelector('.toggle-icon');
             const key = btn.getAttribute('data-node-key');
             if(!body) return;
-            
             if(body.style.display === 'block') {
                 body.style.display = 'none';
                 if(icon) icon.className = 'fas fa-chevron-down toggle-icon';
@@ -208,89 +220,37 @@
             }
         }
 
+        // ─── Peso badge ─────────────────────────────────────────────
         function getWeightBadge(items, max = 100) {
             if(!items) return '';
             const total = items.reduce((sum, item) => sum + parseFloat(item.weight_percentage || 0), 0);
-            const isError = total !== max;
+            const isError = Math.round(total) !== max;
             return `<span class="badge badge-weight ${isError ? 'error' : ''}" title="Suma de pesos de los hijos">
                 <i class="${isError ? 'fas fa-exclamation-circle' : 'fas fa-check-circle'}"></i> 
                 Pesos Hijos: ${total}%
             </span>`;
         }
 
-        let ganttChart = null;
+        // ─── Editar elemento usando data-attributes ──────────────────
+        // Hacemos que todos los botones de editar llamen editNodeById(id)
+        // y que los datos estén en un objeto global nodeDataMap
+        let nodeDataMap = {};
 
-        function openGantt() {
-            const activities = [];
-            // Recorrer todo el árbol para extraer actividades
-            planningData.forEach(axis => {
-                (axis.strategies || []).forEach(st => {
-                    (st.general_objectives || []).forEach(go => {
-                        (go.specific_objectives || []).forEach(so => {
-                            (so.activities || []).forEach(act => {
-                                // Default dates if none
-                                let start = act.start_date ? act.start_date.substring(0, 10) : new Date().toISOString().substring(0, 10);
-                                let end = act.end_date ? act.end_date.substring(0, 10) : new Date(Date.now() + 86400000).toISOString().substring(0, 10);
-                                
-                                // Frappe Gantt requires specific format
-                                activities.push({
-                                    id: 'act_' + act.id,
-                                    name: act.description,
-                                    start: start,
-                                    end: end,
-                                    progress: act.status === 'Completada' ? 100 : (act.status === 'En Proceso' ? 50 : 0),
-                                    custom_class: act.status === 'Completada' ? 'gantt-green' : 'gantt-blue'
-                                });
-                            });
-                        });
-                    });
-                });
-            });
-
-            if(activities.length === 0) {
-                alert('No hay actividades para mostrar en el cronograma.');
-                return;
-            }
-
-            document.getElementById('ganttModal').style.display = 'flex';
-            
-            // Clear previous
-            document.getElementById('gantt').innerHTML = '';
-            
-            setTimeout(() => {
-                ganttChart = new Gantt("#gantt", activities, {
-                on_date_change: async function(task, start, end) {
-                    const dbId = task.id.replace('act_', '');
-                    const s = start.toISOString().substring(0,10);
-                    const e = end.toISOString().substring(0,10);
-                    
-                    try {
-                        await fetch('/api/planning/node/edit', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                type: 'activity',
-                                id: parseInt(dbId),
-                                start_date: s,
-                                end_date: e
-                            })
-                        });
-                        // Recargar datos en background
-                        loadPlanningData();
-                    } catch(err) {
-                        console.error('Error updating gantt date', err);
-                    }
-                },
-                language: 'es'
-            });
-            ganttChart.change_view_mode('Week');
+        function editNodeById(nodeKey) {
+            const entry = nodeDataMap[nodeKey];
+            if(!entry) return;
+            editNode(entry.type, entry.id, entry.data, null);
         }
 
+        // ─── Carga de datos ─────────────────────────────────────────
         async function loadPlanningData() {
             try {
                 const res = await fetch(`/api/planning/tree?inst_id=${getInstId()}`);
                 const data = await res.json();
                 if(data.status === 'success') {
+                    if(expandedNodes.size === 0 && data.tree) {
+                        data.tree.forEach(axis => expandedNodes.add('axis-' + axis.id));
+                    }
                     renderTree(data.tree);
                 } else {
                     document.getElementById('planningTree').innerHTML = `<p style="color:red">Error: ${data.message}</p>`;
@@ -300,7 +260,9 @@
             }
         }
 
+        // ─── Render árbol ────────────────────────────────────────────
         function renderTree(tree) {
+            nodeDataMap = {};
             const container = document.getElementById('planningTree');
             if(!tree || tree.length === 0) {
                 container.innerHTML = `<div style="text-align: center; padding: 40px; color: #64748b;">
@@ -309,28 +271,28 @@
                 </div>`;
                 return;
             }
-
             let html = '';
             tree.forEach(axis => {
+                const axisKey = 'axis-' + axis.id;
+                nodeDataMap[axisKey] = { type: 'axis', id: axis.id, data: { name: axis.name, description: axis.description || '' }};
+                const isOpen = expandedNodes.has(axisKey);
                 html += `
                 <div class="node-wrapper lvl-axis">
-                    
                     <div class="node-content">
-                        <div class="node-header" onclick="toggleBody(this)" data-node-key="axis-${axis.id}">
+                        <div class="node-header" onclick="toggleBody(this)" data-node-key="${axisKey}">
                             <div>
                                 <span style="color:#64748b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Eje Estratégico</span>
-                                ${axis.name}
+                                ${escHtml(axis.name)}
                             </div>
-                            <i class="fas fa-${expandedNodes.has('axis-'+axis.id) ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#94a3b8;"></i>
+                            <i class="fas fa-${isOpen ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#94a3b8;"></i>
                         </div>
-                        <div class="node-body" style="display:${expandedNodes.has('axis-'+axis.id) ? 'block' : 'none'};">
+                        <div class="node-body" style="display:${isOpen ? 'block' : 'none'};">
                               <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                                  <button class="btn-toolbar" onclick="editNode('axis', ${axis.id}, {'name': \`${axis.name.replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'description': \`${(axis.description||'').replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Eje</button>
+                                  <button class="btn-toolbar" onclick="editNodeById('${axisKey}')"><i class="fas fa-pencil-alt"></i> Editar Eje</button>
                                   <button class="btn-toolbar delete" onclick="deleteNode('axis', ${axis.id}, event)"><i class="fas fa-trash"></i> Eliminar Eje</button>
                                   <button class="btn-toolbar" onclick="addNode('strategy', ${axis.id})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
                               </div>
-
-                            <p style="font-size:0.9rem; color:#64748b; margin-top:0; margin-bottom:20px;">${axis.description || 'Sin descripción'}</p>
+                            <p style="font-size:0.9rem; color:#64748b; margin-top:0; margin-bottom:20px;">${escHtml(axis.description || 'Sin descripción')}</p>
                             ${renderStrategies(axis.strategies, axis.id)}
                         </div>
                     </div>
@@ -339,29 +301,36 @@
             container.innerHTML = html;
         }
 
+        function escHtml(str) {
+            if(!str) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
         function renderStrategies(strats, axisId) {
             let html = '<div class="children-list">';
             if(strats && strats.length > 0) {
                 strats.forEach(st => {
+                    const stKey = 'strategy-' + st.id;
+                    nodeDataMap[stKey] = { type: 'strategy', id: st.id, data: { description: st.description, weight_percentage: st.weight_percentage || 0 }};
                     const wBadge = getWeightBadge(st.general_objectives, 100);
+                    const isOpen = expandedNodes.has(stKey);
                     html += `
                     <div class="node-wrapper lvl-strat">
-                        
                         <div class="node-content">
-                            <div class="node-header" onclick="toggleBody(this)" data-node-key="strategy-${st.id}">
+                            <div class="node-header" onclick="toggleBody(this)" data-node-key="${stKey}">
                                 <div style="flex-grow:1; padding-right:15px;">
-                                    <span class="badge" style="background:#e0f2fe; color:#0284c7; margin-bottom:5px;">${st.quadrant || 'MANUAL'}</span>
-                                    <div style="font-weight:600; line-height:1.4;">${st.description}</div>
+                                    <span class="badge" style="background:#e0f2fe; color:#0284c7; margin-bottom:5px;">${escHtml(st.quadrant || 'MANUAL')}</span>
+                                    <div style="font-weight:600; line-height:1.4;">${escHtml(st.description)}</div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                                     <span class="badge badge-weight">Peso: ${st.weight_percentage}%</span>
                                     ${wBadge}
-                                    <i class="fas fa-${expandedNodes.has('strategy-'+st.id) ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                                    <i class="fas fa-${isOpen ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
                                 </div>
                             </div>
-                            <div class="node-body" style="display:${expandedNodes.has('strategy-'+st.id) ? 'block' : 'none'};">
+                            <div class="node-body" style="display:${isOpen ? 'block' : 'none'};">
                                 <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                                    <button class="btn-toolbar" onclick="editNode('strategy', ${st.id}, {'description': \`${st.description.replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'weight_percentage': ${st.weight_percentage||0}}, event)"><i class="fas fa-pencil-alt"></i> Editar Estrategia</button>
+                                    <button class="btn-toolbar" onclick="editNodeById('${stKey}')"><i class="fas fa-pencil-alt"></i> Editar Estrategia</button>
                                     <button class="btn-toolbar delete" onclick="deleteNode('strategy', ${st.id}, event)"><i class="fas fa-trash"></i> Eliminar Estrategia</button>
                                     <button class="btn-toolbar" onclick="addNode('gen_obj', ${st.id})"><i class="fas fa-plus"></i> Añadir Obj. General</button>
                                 </div>
@@ -371,10 +340,10 @@
                     </div>`;
                 });
             } else {
-                html += `<p style="font-size:0.85rem; color:#94a3b8; ">No hay estrategias definidas.</p>`;
+                html += `<p style="font-size:0.85rem; color:#94a3b8;">Sin estrategias definidas.</p>`;
             }
             html += `
-                <div style=" margin-top:10px;">
+                <div style="margin-top:10px; display:flex; gap:10px;">
                     <button class="btn-add" onclick="addNode('strategy', ${axisId})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
                 </div>
             </div>`;
@@ -385,28 +354,28 @@
             let html = '<div class="children-list">';
             if(gens && gens.length > 0) {
                 gens.forEach(g => {
+                    const gKey = 'gen_obj-' + g.id;
+                    nodeDataMap[gKey] = { type: 'gen_obj', id: g.id, data: { description: g.description, alignment_pdi: g.alignment_pdi || '' }};
                     const wBadge = getWeightBadge(g.specific_objectives, 100);
-                    // Validar cantidad (2 a 4)
                     let countErr = (g.specific_objectives && (g.specific_objectives.length < 2 || g.specific_objectives.length > 4));
                     let countWarning = countErr ? `<span class="badge badge-weight error" style="margin-left:5px;"><i class="fas fa-exclamation-triangle"></i> Requisito: 2 a 4 Obj. Específicos</span>` : '';
-                    
+                    const isOpen = expandedNodes.has(gKey);
                     html += `
                     <div class="node-wrapper lvl-gen">
-                        
                         <div class="node-content">
-                            <div class="node-header" onclick="toggleBody(this)" data-node-key="gen_obj-${g.id}">
+                            <div class="node-header" onclick="toggleBody(this)" data-node-key="${gKey}">
                                 <div style="flex-grow:1; padding-right:15px;">
                                     <span style="color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Objetivo General</span>
-                                    <div style="font-weight:600; line-height:1.4;">${g.description}</div>
+                                    <div style="font-weight:600; line-height:1.4;">${escHtml(g.description)}</div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                                     ${wBadge}
-                                    <i class="fas fa-${expandedNodes.has('gen_obj-'+g.id) ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                                    <i class="fas fa-${isOpen ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
                                 </div>
                             </div>
-                            <div class="node-body" style="display:${expandedNodes.has('gen_obj-'+g.id) ? 'block' : 'none'};">
+                            <div class="node-body" style="display:${isOpen ? 'block' : 'none'};">
                                 <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                                    <button class="btn-toolbar" onclick=\"editNode('gen_obj', ${g.id}, {'description': \`${g.description.replace(/`/g, '').replace(/\"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'alignment_pdi': \`${(g.alignment_pdi||'').replace(/`/g, '').replace(/\"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)\"><i class="fas fa-pencil-alt"></i> Editar Objetivo</button>
+                                    <button class="btn-toolbar" onclick="editNodeById('${gKey}')"><i class="fas fa-pencil-alt"></i> Editar Objetivo</button>
                                     <button class="btn-toolbar delete" onclick="deleteNode('gen_obj', ${g.id}, event)"><i class="fas fa-trash"></i> Eliminar Objetivo</button>
                                     <button class="btn-toolbar" onclick="addNode('spec_obj', ${g.id})"><i class="fas fa-plus"></i> Añadir Obj. Específico</button>
                                 </div>
@@ -417,10 +386,10 @@
                     </div>`;
                 });
             } else {
-                html += `<p style="font-size:0.85rem; color:#94a3b8; ">Sin objetivos generales.</p>`;
+                html += `<p style="font-size:0.85rem; color:#94a3b8;">Sin objetivos generales.</p>`;
             }
             html += `
-                <div style=" margin-top:10px; display:flex; gap:10px;">
+                <div style="margin-top:10px; display:flex; gap:10px;">
                     <button class="btn-add" onclick="addNode('gen_obj', ${stratId})"><i class="fas fa-plus"></i> Obj. General Manual</button>
                     <button class="btn-add btn-ai" onclick="suggestGenObjAI(${stratId})"><i class="fas fa-robot"></i> Sugerir IA</button>
                 </div>
@@ -432,32 +401,32 @@
             let html = '<div class="children-list">';
             if(specs && specs.length > 0) {
                 specs.forEach(s => {
-                    // Validar cantidad (2 a 5)
+                    const sKey = 'spec_obj-' + s.id;
+                    nodeDataMap[sKey] = { type: 'spec_obj', id: s.id, data: { description: s.description, weight_percentage: s.weight_percentage || 0, indicator_type: s.indicator_type || '', indicator_description: s.indicator_description || '' }};
                     let acts = s.activities || [];
                     let countErr = (acts.length < 2 || acts.length > 5);
                     let countWarning = countErr ? `<span class="badge badge-weight error" style="margin-left:5px;"><i class="fas fa-exclamation-triangle"></i> Requisito: 2 a 5 Actividades</span>` : '';
-
+                    const isOpen = expandedNodes.has(sKey);
                     html += `
                     <div class="node-wrapper lvl-spec">
-                        
                         <div class="node-content">
-                            <div class="node-header" onclick="toggleBody(this)" data-node-key="spec_obj-${s.id}">
+                            <div class="node-header" onclick="toggleBody(this)" data-node-key="${sKey}">
                                 <div style="flex-grow:1; padding-right:15px;">
                                     <span style="color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Objetivo Específico</span>
-                                    <div style="font-weight:600; line-height:1.4;">${s.description}</div>
+                                    <div style="font-weight:600; line-height:1.4;">${escHtml(s.description)}</div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                                     <span class="badge badge-weight">Peso: ${s.weight_percentage}%</span>
-                                    <i class="fas fa-${expandedNodes.has('spec_obj-'+s.id) ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                                    <i class="fas fa-${isOpen ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
                                 </div>
                             </div>
-                            <div class="node-body" style="display:${expandedNodes.has('spec_obj-'+s.id) ? 'block' : 'none'};">
+                            <div class="node-body" style="display:${isOpen ? 'block' : 'none'};">
                                 <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
-                                    <button class="btn-toolbar" onclick="editNode('spec_obj', ${s.id}, {'description': \`${s.description.replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'weight_percentage': ${s.weight_percentage||0}, 'indicator_type': \`${(s.indicator_type||'').replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'indicator_description': \`${(s.indicator_description||'').replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Específico</button>
+                                    <button class="btn-toolbar" onclick="editNodeById('${sKey}')"><i class="fas fa-pencil-alt"></i> Editar Específico</button>
                                     <button class="btn-toolbar delete" onclick="deleteNode('spec_obj', ${s.id}, event)"><i class="fas fa-trash"></i> Eliminar Específico</button>
                                 </div>
                                 <div style="background:#f8fafc; padding:10px 15px; border-radius:6px; margin-bottom:15px; font-size:0.85rem; color:#475569;">
-                                    <i class="fas fa-chart-line" style="margin-right:5px; color:#f59e0b;"></i> <strong>Indicador:</strong> ${s.indicator_type || 'N/A'} - ${s.indicator_description || ''}
+                                    <i class="fas fa-chart-line" style="margin-right:5px; color:#f59e0b;"></i> <strong>Indicador:</strong> ${escHtml(s.indicator_type || 'N/A')} - ${escHtml(s.indicator_description || '')}
                                 </div>
                                 ${countWarning ? `<div style="margin-bottom:15px;">${countWarning}</div>` : ''}
                                 ${renderActivities(s.activities, s.id)}
@@ -466,10 +435,10 @@
                     </div>`;
                 });
             } else {
-                html += `<p style="font-size:0.85rem; color:#94a3b8; ">Sin objetivos específicos.</p>`;
+                html += `<p style="font-size:0.85rem; color:#94a3b8;">Sin objetivos específicos.</p>`;
             }
             html += `
-                <div style=" margin-top:10px; display:flex; gap:10px;">
+                <div style="margin-top:10px; display:flex; gap:10px;">
                     <button class="btn-add" onclick="addNode('spec_obj', ${genId})"><i class="fas fa-plus"></i> Obj. Específico Manual</button>
                     <button class="btn-add btn-ai" onclick="suggestSpecObjAI(${genId})"><i class="fas fa-robot"></i> Sugerir IA</button>
                 </div>
@@ -481,41 +450,37 @@
             let html = '<div class="children-list">';
             if(acts && acts.length > 0) {
                 acts.forEach(a => {
+                    const aKey = 'activity-' + a.id;
+                    nodeDataMap[aKey] = { type: 'activity', id: a.id, data: { description: a.description, start_date: (a.start_date||'').substring(0,10), end_date: (a.end_date||'').substring(0,10), goal: a.goal || '', financial_budget: a.financial_budget || 0, responsible: a.responsible || '' }};
                     let badgeClass = 'badge-pending';
                     if(a.status === 'En Progreso') badgeClass = 'badge-progress';
                     if(a.status === 'Completado') badgeClass = 'badge-done';
-                    
                     html += `
                     <div class="node-wrapper lvl-act">
-                        
                         <div class="node-content">
                             <div class="node-header" style="cursor:default;">
                                 <div style="flex-grow:1;">
-                                    <div style="font-weight:600; line-height:1.4; color:#334155;">${a.description}</div>
+                                    <div style="font-weight:600; line-height:1.4; color:#334155;">${escHtml(a.description)}</div>
                                     <div class="activity-meta" style="margin-top:10px;">
-                                        <span title="Responsable"><i class="fas fa-user"></i> ${a.responsible || 'Sin responsable'}</span>
+                                        <span title="Responsable"><i class="fas fa-user"></i> ${escHtml(a.responsible || 'Sin responsable')}</span>
                                         <span title="Fechas"><i class="far fa-calendar"></i> ${a.start_date || 'N/A'} a ${a.end_date || 'N/A'}</span>
-                                        <span title="Presupuesto Financiero (Incluye carga prestacional)"><i class="fas fa-money-bill-wave"></i> $${(a.financial_budget || 0).toLocaleString('es-CO')}</span>
+                                        <span title="Presupuesto"><i class="fas fa-money-bill-wave"></i> $${(a.financial_budget || 0).toLocaleString('es-CO')}</span>
                                     </div>
                                 </div>
-                                <div style="flex-shrink:0; margin-left:15px;">
-                                    
-                                      <span class="badge ${badgeClass}">${a.status || 'Pendiente'}</span>
-                                  </div>
-                                  <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
-                                      <button class="btn-toolbar" onclick=\"editNode('activity', ${a.id}, {'description': \`${a.description.replace(/`/g, '').replace(/\"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'start_date': \`${(a.start_date||'').substring(0,10)}\`, 'end_date': \`${(a.end_date||'').substring(0,10)}\`, 'goal': \`${(a.goal||'').replace(/`/g, '').replace(/\"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'financial_budget': ${a.financial_budget||0}, 'responsible': \`${(a.responsible||'').replace(/`/g, '').replace(/\"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)\"><i class="fas fa-pencil-alt"></i> Editar Actividad</button>
-                                      <button class="btn-toolbar delete" onclick="deleteNode('activity', ${a.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
-                                  </div>
-
+                                <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0; align-items:flex-end;">
+                                    <span class="badge ${badgeClass}">${a.status || 'Pendiente'}</span>
+                                    <button class="btn-toolbar" onclick="editNodeById('${aKey}')"><i class="fas fa-pencil-alt"></i> Editar Actividad</button>
+                                    <button class="btn-toolbar delete" onclick="deleteNode('activity', ${a.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
+                                </div>
                             </div>
                         </div>
                     </div>`;
                 });
             } else {
-                html += `<p style="font-size:0.85rem; color:#94a3b8; ">Sin actividades.</p>`;
+                html += `<p style="font-size:0.85rem; color:#94a3b8;">Sin actividades.</p>`;
             }
             html += `
-                <div style=" margin-top:10px; display:flex; gap:10px;">
+                <div style="margin-top:10px; display:flex; gap:10px;">
                     <button class="btn-add" onclick="addNode('activity', ${specId})"><i class="fas fa-plus"></i> Actividad Manual</button>
                     <button class="btn-add btn-ai" onclick="suggestActivitiesAI(${specId})"><i class="fas fa-robot"></i> Sugerir IA</button>
                 </div>
@@ -523,49 +488,46 @@
             return html;
         }
 
-        let currentNodeType = '';
-        let currentParentId = 0;
-        let currentNodeId = null;
-
-        
+        // ─── Modales ─────────────────────────────────────────────────
         function editNode(type, id, data, event) {
             if(event) event.stopPropagation();
             currentNodeType = type;
             currentNodeId = id;
+            currentParentId = null;
             document.getElementById('modalTitle').textContent = 'Editar Elemento';
             const body = document.getElementById('modalBody');
             if(type === 'axis') {
                 body.innerHTML = `
-                    <div class="form-group"><label>Nombre del Eje</label><input type="text" id="f_name" value="${data.name || ''}"></div>
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                    <div class="form-group"><label>Nombre del Eje</label><input type="text" id="f_name" value="${escHtml(data.name || '')}"></div>
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
                 `;
             } else if(type === 'strategy') {
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
                     <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="${data.weight_percentage || 0}" min="0" max="100"></div>
                 `;
             } else if(type === 'gen_obj') {
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
-                    <div class="form-group"><label>Alineación (PDI)</label><input type="text" id="f_align" value="${data.alignment_pdi || ''}"></div>
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
+                    <div class="form-group"><label>Alineación (PDI)</label><input type="text" id="f_align" value="${escHtml(data.alignment_pdi || '')}"></div>
                 `;
             } else if(type === 'spec_obj') {
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
                     <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="${data.weight_percentage || 0}" min="0" max="100"></div>
-                    <div class="form-group"><label>Tipo de Indicador</label><input type="text" id="f_ind_type" value="${data.indicator_type || ''}"></div>
-                    <div class="form-group"><label>Descripción del Indicador</label><input type="text" id="f_ind_desc" value="${data.indicator_description || ''}"></div>
+                    <div class="form-group"><label>Tipo de Indicador</label><input type="text" id="f_ind_type" value="${escHtml(data.indicator_type || '')}"></div>
+                    <div class="form-group"><label>Descripción del Indicador</label><input type="text" id="f_ind_desc" value="${escHtml(data.indicator_description || '')}"></div>
                 `;
             } else if(type === 'activity') {
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${data.description || ''}</textarea></div>
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
                     <div style="display:flex; gap:10px;">
                         <div class="form-group" style="flex:1;"><label>Fecha Inicio</label><input type="date" id="f_start" value="${data.start_date || ''}"></div>
                         <div class="form-group" style="flex:1;"><label>Fecha Fin</label><input type="date" id="f_end" value="${data.end_date || ''}"></div>
                     </div>
-                    <div class="form-group"><label>Meta Numérica / Entregable</label><input type="text" id="f_goal" value="${data.goal || ''}"></div>
+                    <div class="form-group"><label>Meta Numérica / Entregable</label><input type="text" id="f_goal" value="${escHtml(data.goal || '')}"></div>
                     <div class="form-group"><label>Presupuesto Financiero ($)</label><input type="number" id="f_budget" value="${data.financial_budget || 0}"></div>
-                    <div class="form-group"><label>Responsable</label><input type="text" id="f_resp" value="${data.responsible || ''}"></div>
+                    <div class="form-group"><label>Responsable</label><input type="text" id="f_resp" value="${escHtml(data.responsible || '')}"></div>
                 `;
             }
             document.getElementById('nodeModal').style.display = 'flex';
@@ -573,14 +535,18 @@
 
         function addNode(type, parentId) {
             currentNodeId = null;
-
             currentNodeType = type;
             currentParentId = parentId;
             const modal = document.getElementById('nodeModal');
             const title = document.getElementById('modalTitle');
             const body = document.getElementById('modalBody');
-            
-            if(type === 'strategy') {
+            if(type === 'axis') {
+                title.textContent = 'Nuevo Eje Estratégico';
+                body.innerHTML = `
+                    <div class="form-group"><label>Nombre del Eje</label><input type="text" id="f_name" placeholder="Nombre del eje"></div>
+                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
+                `;
+            } else if(type === 'strategy') {
                 title.textContent = 'Nueva Estrategia';
                 body.innerHTML = `
                     <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
@@ -610,10 +576,9 @@
                     </div>
                     <div class="form-group"><label>Meta Numérica / Entregable</label><input type="text" id="f_goal"></div>
                     <div class="form-group"><label>Responsable</label><input type="text" id="f_resp"></div>
-                    <div class="form-group"><label>Presupuesto (Valor Hora Base)</label><input type="number" id="f_budget" placeholder="Si aplica (el sistema calculará +1.54)"></div>
+                    <div class="form-group"><label>Presupuesto (Valor Hora Base)</label><input type="number" id="f_budget" placeholder="El sistema calculará +1.54x"></div>
                 `;
             }
-
             modal.style.display = 'flex';
         }
 
@@ -626,9 +591,6 @@
             btn.textContent = 'Guardando...';
             btn.disabled = true;
 
-            
-            
-
             const payload = {
                 inst_id: getInstId(),
                 type: currentNodeType,
@@ -637,27 +599,27 @@
             };
 
             if(currentNodeType === 'axis') {
-                payload.name = document.getElementById('f_name').value || '';
+                payload.name = document.getElementById('f_name') ? document.getElementById('f_name').value || '' : '';
             } else if(currentNodeType === 'strategy') {
-                payload.weight_percentage = document.getElementById('f_weight').value || 0;
+                payload.weight_percentage = document.getElementById('f_weight') ? document.getElementById('f_weight').value || 0 : 0;
                 payload.quadrant = 'MANUAL';
             } else if(currentNodeType === 'gen_obj') {
-                payload.alignment_pdi = document.getElementById('f_align').value || '';
+                payload.alignment_pdi = document.getElementById('f_align') ? document.getElementById('f_align').value || '' : '';
             } else if(currentNodeType === 'spec_obj') {
-                payload.weight_percentage = document.getElementById('f_weight').value || 0;
-                payload.indicator_type = document.getElementById('f_ind_type').value || '';
-                payload.indicator_description = document.getElementById('f_ind_desc').value || '';
+                payload.weight_percentage = document.getElementById('f_weight') ? document.getElementById('f_weight').value || 0 : 0;
+                payload.indicator_type = document.getElementById('f_ind_type') ? document.getElementById('f_ind_type').value || '' : '';
+                payload.indicator_description = document.getElementById('f_ind_desc') ? document.getElementById('f_ind_desc').value || '' : '';
             } else if(currentNodeType === 'activity') {
-                payload.start_date = document.getElementById('f_start').value || null;
-                payload.end_date = document.getElementById('f_end').value || null;
-                payload.goal = document.getElementById('f_goal').value || '';
-                payload.responsible = document.getElementById('f_resp').value || '';
-                let budget = parseFloat(document.getElementById('f_budget').value || 0);
+                payload.start_date = document.getElementById('f_start') ? document.getElementById('f_start').value || null : null;
+                payload.end_date = document.getElementById('f_end') ? document.getElementById('f_end').value || null : null;
+                payload.goal = document.getElementById('f_goal') ? document.getElementById('f_goal').value || '' : '';
+                payload.responsible = document.getElementById('f_resp') ? document.getElementById('f_resp').value || '' : '';
+                let budget = parseFloat(document.getElementById('f_budget') ? document.getElementById('f_budget').value || 0 : 0);
                 payload.financial_budget = budget * 1.54;
             }
 
             try {
-                if (currentNodeId) payload.id = currentNodeId;
+                if(currentNodeId) payload.id = currentNodeId;
                 const endpoint = currentNodeId ? '/api/planning/node/edit' : '/api/planning/node';
                 const res = await fetch(endpoint, {
                     method: 'POST',
@@ -672,7 +634,7 @@
                     alert('Error: ' + data.message);
                 }
             } catch(e) {
-                alert('Error de conexión');
+                alert('Error de conexión: ' + e);
             }
 
             btn.textContent = 'Guardar';
@@ -680,9 +642,8 @@
         }
 
         async function deleteNode(type, id, event) {
-            if(event) event.stopPropagation(); // Evitar que se abra el acordeón
+            if(event) event.stopPropagation();
             if(!confirm('¿Estás seguro de que deseas eliminar este elemento? Todos los elementos hijos también se eliminarán de forma irreversible.')) return;
-
             try {
                 const res = await fetch('/api/planning/node/delete', {
                     method: 'POST',
@@ -700,59 +661,82 @@
             }
         }
 
+        // ─── Gantt ───────────────────────────────────────────────────
+        function openGantt() {
+            const activities = [];
+            // Extraer datos del nodeDataMap en lugar de planningData
+            for(const key in nodeDataMap) {
+                if(key.startsWith('activity-')) {
+                    const entry = nodeDataMap[key];
+                    const d = entry.data;
+                    let start = d.start_date || new Date().toISOString().substring(0, 10);
+                    let end = d.end_date || new Date(Date.now() + 86400000).toISOString().substring(0, 10);
+                    if(start >= end) end = new Date(new Date(start).getTime() + 86400000).toISOString().substring(0, 10);
+                    activities.push({
+                        id: key,
+                        name: d.description || 'Actividad',
+                        start: start,
+                        end: end,
+                        progress: 0
+                    });
+                }
+            }
+
+            if(activities.length === 0) {
+                alert('No hay actividades con fechas para mostrar en el cronograma. Por favor agrega al menos una actividad con fechas de inicio y fin.');
+                return;
+            }
+
+            document.getElementById('ganttModal').style.display = 'flex';
+            document.getElementById('gantt').innerHTML = '';
+
+            setTimeout(() => {
+                try {
+                    ganttChart = new Gantt("#gantt", activities, {
+                        on_date_change: async function(task, start, end) {
+                            const dbId = task.id.replace('activity-', '');
+                            try {
+                                await fetch('/api/planning/node/edit', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        type: 'activity',
+                                        id: parseInt(dbId),
+                                        start_date: start.toISOString().substring(0,10),
+                                        end_date: end.toISOString().substring(0,10)
+                                    })
+                                });
+                            } catch(e) {
+                                console.error('Error actualizando fecha:', e);
+                            }
+                        },
+                        language: 'es'
+                    });
+                    ganttChart.change_view_mode('Week');
+                } catch(err) {
+                    document.getElementById('ganttContainer').innerHTML = '<p style="color:red;">Error al dibujar el cronograma: ' + err + '</p>';
+                }
+            }, 100);
+        }
+
+        // ─── IA Sugerencias ──────────────────────────────────────────
         async function suggestGenObjAI(strategyId) {
             try {
-                // Pre-open the modal so the user sees it loading
                 addNode('gen_obj', strategyId);
                 const descField = document.getElementById('f_desc');
                 descField.value = 'Generando sugerencia con Inteligencia Artificial...';
                 descField.disabled = true;
-                
                 const res = await fetch('/api/planning/suggest', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'gen_obj', target_id: strategyId, inst_id: getInstId() })
                 });
                 const data = await res.json();
-                
                 descField.disabled = false;
-                if(data.status === 'success') {
-                    descField.value = data.suggestion;
-                } else {
-                    descField.value = 'Error al sugerir: ' + data.message;
-                }
+                descField.value = data.status === 'success' ? data.suggestion : 'Error: ' + data.message;
             } catch(e) {
-                document.getElementById('f_desc').disabled = false;
-                document.getElementById('f_desc').value = 'Error de red al conectar con IA.';
-            }
-        }
-
-        async function suggestActivitiesAI(specId) {
-            try {
-                // We pre-open the modal but wait... suggestActivitiesAI might suggest multiple activities!
-                // For now, let's suggest ONE activity to fit in the modal, or a block of text
-                addNode('activity', specId);
-                const descField = document.getElementById('f_desc');
-                descField.value = 'Generando actividad con Inteligencia Artificial...';
-                descField.disabled = true;
-
-                const res = await fetch('/api/planning/suggest', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ type: 'activity', target_id: specId, inst_id: getInstId() })
-                });
-                const data = await res.json();
-                
-                descField.disabled = false;
-                if(data.status === 'success') {
-                    descField.value = data.suggestion;
-                    // Optional: parse if AI returns dates, but text is fine for description
-                } else {
-                    descField.value = 'Error al sugerir: ' + data.message;
-                }
-            } catch(e) {
-                document.getElementById('f_desc').disabled = false;
-                document.getElementById('f_desc').value = 'Error de red al conectar con IA.';
+                const f = document.getElementById('f_desc');
+                if(f) { f.disabled = false; f.value = 'Error de red al conectar con IA.'; }
             }
         }
 
@@ -762,23 +746,37 @@
                 const descField = document.getElementById('f_desc');
                 descField.value = 'Generando sugerencia con Inteligencia Artificial...';
                 descField.disabled = true;
-                
                 const res = await fetch('/api/planning/suggest', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'spec_obj', target_id: genId, inst_id: getInstId() })
                 });
                 const data = await res.json();
-                
                 descField.disabled = false;
-                if(data.status === 'success') {
-                    descField.value = data.suggestion;
-                } else {
-                    descField.value = 'Error al sugerir: ' + data.message;
-                }
+                descField.value = data.status === 'success' ? data.suggestion : 'Error: ' + data.message;
             } catch(e) {
-                document.getElementById('f_desc').disabled = false;
-                document.getElementById('f_desc').value = 'Error de red al conectar con IA.';
+                const f = document.getElementById('f_desc');
+                if(f) { f.disabled = false; f.value = 'Error de red al conectar con IA.'; }
+            }
+        }
+
+        async function suggestActivitiesAI(specId) {
+            try {
+                addNode('activity', specId);
+                const descField = document.getElementById('f_desc');
+                descField.value = 'Generando actividad con Inteligencia Artificial...';
+                descField.disabled = true;
+                const res = await fetch('/api/planning/suggest', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type: 'activity', target_id: specId, inst_id: getInstId() })
+                });
+                const data = await res.json();
+                descField.disabled = false;
+                descField.value = data.status === 'success' ? data.suggestion : 'Error: ' + data.message;
+            } catch(e) {
+                const f = document.getElementById('f_desc');
+                if(f) { f.disabled = false; f.value = 'Error de red al conectar con IA.'; }
             }
         }
     </script>
