@@ -83,7 +83,15 @@
         .form-group input, .form-group select, .form-group textarea {
             width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit;
         }
+    
+        .gantt-green .bar { fill: #10b981; }
+        .gantt-blue .bar { fill: #3b82f6; }
+        .gantt .bar-wrapper:hover .bar { fill: #6366f1; }
+
     </style>
+    <!-- Frappe Gantt -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
 </head>
 <body>
     <aside class="sidebar">
@@ -142,6 +150,20 @@
             </div>
         </div>
 
+    
+        <!-- Modal Gantt -->
+        <div class="modal" id="ganttModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+            <div class="modal-content" style="width:95%; height:90%; display:flex; flex-direction:column;">
+                <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span id="ganttTitle">Cronograma de Actividades (Gantt)</span>
+                    <button class="btn-add" style="background:#ef4444;" onclick="document.getElementById('ganttModal').style.display='none'">Cerrar</button>
+                </div>
+                <div id="ganttContainer" style="flex:1; overflow:auto; background:#fff; padding:20px; border-radius:8px; margin-top:10px;">
+                    <svg id="gantt"></svg>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <script src="{{ url_for('static', filename='data.js') }}"></script>
@@ -186,7 +208,75 @@
             </span>`;
         }
 
-        async function loadPlanningData() {
+        async 
+        let ganttChart = null;
+
+        function openGantt() {
+            const activities = [];
+            // Recorrer todo el árbol para extraer actividades
+            planningData.forEach(axis => {
+                (axis.strategies || []).forEach(st => {
+                    (st.general_objectives || []).forEach(go => {
+                        (go.specific_objectives || []).forEach(so => {
+                            (so.activities || []).forEach(act => {
+                                // Default dates if none
+                                let start = act.start_date ? act.start_date.substring(0, 10) : new Date().toISOString().substring(0, 10);
+                                let end = act.end_date ? act.end_date.substring(0, 10) : new Date(Date.now() + 86400000).toISOString().substring(0, 10);
+                                
+                                // Frappe Gantt requires specific format
+                                activities.push({
+                                    id: 'act_' + act.id,
+                                    name: act.description,
+                                    start: start,
+                                    end: end,
+                                    progress: act.status === 'Completada' ? 100 : (act.status === 'En Proceso' ? 50 : 0),
+                                    custom_class: act.status === 'Completada' ? 'gantt-green' : 'gantt-blue'
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+
+            if(activities.length === 0) {
+                alert('No hay actividades para mostrar en el cronograma.');
+                return;
+            }
+
+            document.getElementById('ganttModal').style.display = 'flex';
+            
+            // Clear previous
+            document.getElementById('gantt').innerHTML = '';
+            
+            ganttChart = new Gantt("#gantt", activities, {
+                on_date_change: async function(task, start, end) {
+                    const dbId = task.id.replace('act_', '');
+                    const s = start.toISOString().substring(0,10);
+                    const e = end.toISOString().substring(0,10);
+                    
+                    try {
+                        await fetch('/api/planning/node/edit', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: 'activity',
+                                id: parseInt(dbId),
+                                start_date: s,
+                                end_date: e
+                            })
+                        });
+                        // Recargar datos en background
+                        loadPlanningData();
+                    } catch(err) {
+                        console.error('Error updating gantt date', err);
+                    }
+                },
+                language: 'es'
+            });
+            ganttChart.change_view_mode('Week');
+        }
+
+        function loadPlanningData() {
             try {
                 const res = await fetch(`/api/planning/tree?inst_id=${getInstId()}`);
                 const data = await res.json();
