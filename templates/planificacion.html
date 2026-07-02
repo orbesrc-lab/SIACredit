@@ -194,14 +194,17 @@
             if(!container) return;
             const body = container.querySelector('.node-body');
             const icon = btn.querySelector('.toggle-icon');
+            const key = btn.getAttribute('data-node-key');
             if(!body) return;
             
             if(body.style.display === 'block') {
                 body.style.display = 'none';
                 if(icon) icon.className = 'fas fa-chevron-down toggle-icon';
+                if(key) expandedNodes.delete(key);
             } else {
                 body.style.display = 'block';
                 if(icon) icon.className = 'fas fa-chevron-up toggle-icon';
+                if(key) expandedNodes.add(key);
             }
         }
 
@@ -313,15 +316,14 @@
                 <div class="node-wrapper lvl-axis">
                     
                     <div class="node-content">
-                        <div class="node-header" onclick="toggleBody(this)">
+                        <div class="node-header" onclick="toggleBody(this)" data-node-key="axis-${axis.id}">
                             <div>
                                 <span style="color:#64748b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Eje Estratégico</span>
                                 ${axis.name}
                             </div>
-                            <i class="fas fa-chevron-down toggle-icon" style="color:#94a3b8;"></i>
+                            <i class="fas fa-${expandedNodes.has('axis-'+axis.id) ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#94a3b8;"></i>
                         </div>
-                        
-                          <div class="node-body" style="display:block;">
+                        <div class="node-body" style="display:${expandedNodes.has('axis-'+axis.id) ? 'block' : 'none'};">
                               <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
                                   <button class="btn-toolbar" onclick="editNode('axis', ${axis.id}, {'name': \`${axis.name.replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'description': \`${(axis.description||'').replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Eje</button>
                                   <button class="btn-toolbar delete" onclick="deleteNode('axis', ${axis.id}, event)"><i class="fas fa-trash"></i> Eliminar Eje</button>
@@ -346,7 +348,7 @@
                     <div class="node-wrapper lvl-strat">
                         
                         <div class="node-content">
-                            <div class="node-header" onclick="toggleBody(this)">
+                            <div class="node-header" onclick="toggleBody(this)" data-node-key="strategy-${st.id}">
                                 <div style="flex-grow:1; padding-right:15px;">
                                     <span class="badge" style="background:#e0f2fe; color:#0284c7; margin-bottom:5px;">${st.quadrant || 'MANUAL'}</span>
                                     <div style="font-weight:600; line-height:1.4;">${st.description}</div>
@@ -354,12 +356,10 @@
                                 <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                                     <span class="badge badge-weight">Peso: ${st.weight_percentage}%</span>
                                     ${wBadge}
-                                    
-                                    <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                                    <i class="fas fa-${expandedNodes.has('strategy-'+st.id) ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
                                 </div>
                             </div>
-                            
-                            <div class="node-body">
+                            <div class="node-body" style="display:${expandedNodes.has('strategy-'+st.id) ? 'block' : 'none'};">
                                 <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
                                     <button class="btn-toolbar" onclick="editNode('strategy', ${st.id}, {'description': \`${st.description.replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'weight_percentage': ${st.weight_percentage||0}}, event)"><i class="fas fa-pencil-alt"></i> Editar Estrategia</button>
                                     <button class="btn-toolbar delete" onclick="deleteNode('strategy', ${st.id}, event)"><i class="fas fa-trash"></i> Eliminar Estrategia</button>
@@ -394,19 +394,17 @@
                     <div class="node-wrapper lvl-gen">
                         
                         <div class="node-content">
-                            <div class="node-header" onclick="toggleBody(this)">
+                            <div class="node-header" onclick="toggleBody(this)" data-node-key="gen_obj-${g.id}">
                                 <div style="flex-grow:1; padding-right:15px;">
                                     <span style="color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Objetivo General</span>
                                     <div style="font-weight:600; line-height:1.4;">${g.description}</div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                                     ${wBadge}
-                                    
-                                    <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                                    <i class="fas fa-${expandedNodes.has('gen_obj-'+g.id) ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
                                 </div>
                             </div>
-                            
-                            <div class="node-body">
+                            <div class="node-body" style="display:${expandedNodes.has('gen_obj-'+g.id) ? 'block' : 'none'};">
                                 <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
                                     <button class="btn-toolbar" onclick=\"editNode('gen_obj', ${g.id}, {'description': \`${g.description.replace(/`/g, '').replace(/\"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'alignment_pdi': \`${(g.alignment_pdi||'').replace(/`/g, '').replace(/\"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)\"><i class="fas fa-pencil-alt"></i> Editar Objetivo</button>
                                     <button class="btn-toolbar delete" onclick="deleteNode('gen_obj', ${g.id}, event)"><i class="fas fa-trash"></i> Eliminar Objetivo</button>
@@ -443,18 +441,17 @@
                     <div class="node-wrapper lvl-spec">
                         
                         <div class="node-content">
-                            <div class="node-header" onclick="toggleBody(this)">
+                            <div class="node-header" onclick="toggleBody(this)" data-node-key="spec_obj-${s.id}">
                                 <div style="flex-grow:1; padding-right:15px;">
                                     <span style="color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Objetivo Específico</span>
                                     <div style="font-weight:600; line-height:1.4;">${s.description}</div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                                     <span class="badge badge-weight">Peso: ${s.weight_percentage}%</span>
-                                    
-                                    <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                                    <i class="fas fa-${expandedNodes.has('spec_obj-'+s.id) ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
                                 </div>
                             </div>
-                            <div class="node-body">
+                            <div class="node-body" style="display:${expandedNodes.has('spec_obj-'+s.id) ? 'block' : 'none'};">
                                 <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
                                     <button class="btn-toolbar" onclick="editNode('spec_obj', ${s.id}, {'description': \`${s.description.replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'weight_percentage': ${s.weight_percentage||0}, 'indicator_type': \`${(s.indicator_type||'').replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`, 'indicator_description': \`${(s.indicator_description||'').replace(/`/g, '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}\`}, event)"><i class="fas fa-pencil-alt"></i> Editar Específico</button>
                                     <button class="btn-toolbar delete" onclick="deleteNode('spec_obj', ${s.id}, event)"><i class="fas fa-trash"></i> Eliminar Específico</button>
