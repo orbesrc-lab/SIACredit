@@ -3829,6 +3829,12 @@ def migrate_dofa():
                                 'description': desc.strip()
                             }).execute()
                             migrated_count += 1
+                        else:
+                            strategy_id = check_res.data[0]['id']
+                            supabase.table('planning_strategies').update({
+                                'axis_id': axis_id
+                            }).eq('id', strategy_id).execute()
+                            migrated_count += 1
         elif dofa_data:
             # Flujo Antiguo/Fallback
             axis_res = supabase.table('planning_axes').select('*').eq('inst_id', inst_id).eq('name', 'General DOFA').execute()
