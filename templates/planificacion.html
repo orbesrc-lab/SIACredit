@@ -18,54 +18,52 @@
             margin-bottom: 20px;
         }
 
-        .axis-card {
-            border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 15px; overflow: hidden;
+        .node-wrapper { display: flex; gap: 15px; margin-bottom: 15px; }
+        .node-line-container { display: flex; flex-direction: column; align-items: center; width: 30px; }
+        .node-icon { 
+            width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            color: white; font-size: 0.85rem; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0;
         }
-        .axis-header {
-            background: #f1f5f9; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-            font-weight: bold; color: #1e293b;
-        }
-        .axis-header:hover { background: #e2e8f0; }
+        .node-line { flex-grow: 1; width: 2px; background: #e2e8f0; margin-top: 5px; margin-bottom: 5px; }
         
-        .axis-body { padding: 15px; display: none; }
+        .node-content { 
+            flex-grow: 1; background: white; border: 1px solid #e2e8f0; border-radius: 10px; 
+            overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;
+        }
+        .node-content:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         
-        .strategy-card {
-            border: 1px solid #bae6fd; border-radius: 6px; margin-bottom: 15px; background: #f0f9ff;
+        .node-header {
+            padding: 15px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            background: #f8fafc; font-weight: 600; color: #1e293b; user-select: none;
         }
-        .strategy-header {
-            padding: 12px; border-bottom: 1px solid #bae6fd; font-weight: 600; color: #0369a1;
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-        }
-        .strategy-body { padding: 15px; display: none; }
+        .node-header:hover { background: #f1f5f9; }
+        .node-body { padding: 20px; display: none; background: white; border-top: 1px solid #f1f5f9; }
 
-        .gen-obj-card {
-            border: 1px solid #bbf7d0; border-radius: 6px; margin-bottom: 15px; background: #f0fdf4;
-        }
-        .gen-obj-header {
-            padding: 10px; border-bottom: 1px solid #bbf7d0; font-weight: 600; color: #166534;
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-        }
-        .gen-obj-body { padding: 12px; display: none; }
+        /* Level Colors */
+        .lvl-axis .node-icon { background: #3b82f6; } /* Blue */
+        .lvl-axis .node-header { border-left: 4px solid #3b82f6; }
+        
+        .lvl-strat .node-icon { background: #8b5cf6; } /* Purple */
+        .lvl-strat .node-header { border-left: 4px solid #8b5cf6; font-size: 0.95rem; }
+        
+        .lvl-gen .node-icon { background: #10b981; } /* Emerald */
+        .lvl-gen .node-header { border-left: 4px solid #10b981; font-size: 0.95rem; }
+        
+        .lvl-spec .node-icon { background: #f59e0b; } /* Amber */
+        .lvl-spec .node-header { border-left: 4px solid #f59e0b; font-size: 0.95rem; }
+        
+        .lvl-act .node-icon { background: #f43f5e; } /* Rose */
+        .lvl-act .node-header { border-left: 4px solid #f43f5e; cursor: default; }
+        .lvl-act .node-header:hover { background: #f8fafc; }
 
-        .spec-obj-card {
-            border: 1px solid #fef08a; border-radius: 6px; margin-bottom: 15px; background: #fefce8;
-        }
-        .spec-obj-header {
-            padding: 10px; border-bottom: 1px solid #fef08a; font-weight: 600; color: #854d0e;
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-        }
-        .spec-obj-body { padding: 12px; display: none; }
-
-        .activity-card {
-            border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 10px; background: white;
-            padding: 12px; position: relative;
-        }
-        .activity-header { font-weight: 600; color: #374151; margin-bottom: 5px; }
         .activity-meta { font-size: 0.85rem; color: #6b7280; display: flex; gap: 15px; flex-wrap: wrap; }
-        
+
         .badge {
-            padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;
+            padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
         }
+        .badge-weight { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        .badge-weight.error { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        
         .badge-pending { background: #fee2e2; color: #991b1b; }
         .badge-progress { background: #fef3c7; color: #92400e; }
         .badge-done { background: #dcfce3; color: #166534; }
@@ -73,8 +71,11 @@
         .action-btn { background: none; border: none; cursor: pointer; color: #64748b; font-size: 1rem; padding: 5px;}
         .action-btn:hover { color: #2563eb; }
 
-        .btn-add { background: #2563eb; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; border: none; cursor: pointer; margin-top: 5px;}
-        .btn-add:hover { background: #1d4ed8; }
+        .btn-add { background: white; color: #3b82f6; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px dashed #3b82f6; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;}
+        .btn-add:hover { background: #eff6ff; border-color: #2563eb; }
+        
+        .btn-ai { color: #8b5cf6; border-color: #8b5cf6; }
+        .btn-ai:hover { background: #f5f3ff; border-color: #7c3aed; }
 
         /* MODAL */
         .modal {
@@ -168,18 +169,30 @@
         });
 
         // Toggle acordeones
-        function toggleBody(btn, bodyClass) {
-            const container = btn.closest('.' + bodyClass.replace('-body', '-card'));
-            const body = container.querySelector('.' + bodyClass);
-            const icon = btn.querySelector('i.fa-chevron-down') || btn.querySelector('i.fa-chevron-up');
+        function toggleBody(btn) {
+            const container = btn.closest('.node-content');
+            if(!container) return;
+            const body = container.querySelector('.node-body');
+            const icon = btn.querySelector('.toggle-icon');
+            if(!body) return;
             
             if(body.style.display === 'block') {
                 body.style.display = 'none';
-                if(icon) icon.className = 'fas fa-chevron-down';
+                if(icon) icon.className = 'fas fa-chevron-down toggle-icon';
             } else {
                 body.style.display = 'block';
-                if(icon) icon.className = 'fas fa-chevron-up';
+                if(icon) icon.className = 'fas fa-chevron-up toggle-icon';
             }
+        }
+
+        function getWeightBadge(items, max = 100) {
+            if(!items) return '';
+            const total = items.reduce((sum, item) => sum + parseFloat(item.weight_percentage || 0), 0);
+            const isError = total !== max;
+            return `<span class="badge badge-weight ${isError ? 'error' : ''}" title="Suma de pesos de los hijos">
+                <i class="${isError ? 'fas fa-exclamation-circle' : 'fas fa-check-circle'}"></i> 
+                Pesos Hijos: ${total}%
+            </span>`;
         }
 
         async function loadPlanningData() {
@@ -209,17 +222,23 @@
             let html = '';
             tree.forEach(axis => {
                 html += `
-                <div class="axis-card">
-                    <div class="axis-header" onclick="toggleBody(this, 'axis-body')">
-                        <div>
-                            <i class="fas fa-sitemap" style="margin-right:8px; color:#475569;"></i>
-                            Eje Estratégico: ${axis.name}
-                        </div>
-                        <i class="fas fa-chevron-down"></i>
+                <div class="node-wrapper lvl-axis">
+                    <div class="node-line-container">
+                        <div class="node-icon"><i class="fas fa-sitemap"></i></div>
+                        <div class="node-line"></div>
                     </div>
-                    <div class="axis-body" style="display:block;">
-                        <p style="font-size:0.9rem; color:#64748b; margin-top:0;">${axis.description || ''}</p>
-                        ${renderStrategies(axis.strategies, axis.id)}
+                    <div class="node-content">
+                        <div class="node-header" onclick="toggleBody(this)">
+                            <div>
+                                <span style="color:#64748b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Eje Estratégico</span>
+                                ${axis.name}
+                            </div>
+                            <i class="fas fa-chevron-down toggle-icon" style="color:#94a3b8;"></i>
+                        </div>
+                        <div class="node-body" style="display:block;">
+                            <p style="font-size:0.9rem; color:#64748b; margin-top:0; margin-bottom:20px;">${axis.description || 'Sin descripción'}</p>
+                            ${renderStrategies(axis.strategies, axis.id)}
+                        </div>
                     </div>
                 </div>`;
             });
@@ -227,102 +246,177 @@
         }
 
         function renderStrategies(strats, axisId) {
-            if(!strats || !strats.length) return `<p style="font-size:0.85rem; color:#94a3b8;">Sin estrategias. <button class="btn-add" onclick="addNode('strategy', ${axisId})">+ Estrategia</button></p>`;
-            let html = '';
-            strats.forEach(st => {
-                html += `
-                <div class="strategy-card">
-                    <div class="strategy-header" onclick="toggleBody(this, 'strategy-body')">
-                        <div>
-                            <span class="badge" style="background:#e0f2fe; color:#0284c7; margin-right:8px;">${st.quadrant || 'MANUAL'}</span>
-                            Estrategia: ${st.description.substring(0, 80)}...
+            let html = '<div class="children-list">';
+            if(strats && strats.length > 0) {
+                strats.forEach(st => {
+                    const wBadge = getWeightBadge(st.general_objectives, 100);
+                    html += `
+                    <div class="node-wrapper lvl-strat">
+                        <div class="node-line-container">
+                            <div class="node-icon"><i class="fas fa-bullseye"></i></div>
+                            <div class="node-line"></div>
                         </div>
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <span style="font-size:0.85rem; background:white; padding:2px 8px; border-radius:12px;">Peso: ${st.weight_percentage}%</span>
-                            <i class="fas fa-chevron-down"></i>
+                        <div class="node-content">
+                            <div class="node-header" onclick="toggleBody(this)">
+                                <div style="flex-grow:1; padding-right:15px;">
+                                    <span class="badge" style="background:#e0f2fe; color:#0284c7; margin-bottom:5px;">${st.quadrant || 'MANUAL'}</span>
+                                    <div style="font-weight:600; line-height:1.4;">${st.description}</div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                                    <span class="badge badge-weight">Peso: ${st.weight_percentage}%</span>
+                                    ${wBadge}
+                                    <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                                </div>
+                            </div>
+                            <div class="node-body">
+                                ${renderGenObjs(st.general_objectives, st.id)}
+                            </div>
                         </div>
-                    </div>
-                    <div class="strategy-body">
-                        <p style="font-size:0.9rem; margin-top:0;">${st.description}</p>
-                        <div style="margin-top:15px; border-left:2px solid #bae6fd; padding-left:15px;">
-                            <h5 style="margin:0 0 10px 0; color:#0369a1;">Objetivos Generales</h5>
-                            ${renderGenObjs(st.general_objectives, st.id)}
-                            <button class="btn-add" onclick="addNode('gen_obj', ${st.id})" style="margin-top:10px;">+ Obj. General</button>
-                            <button class="btn-add" onclick="suggestGenObjAI(${st.id})" style="margin-top:10px; background:#8b5cf6; margin-left:5px;"><i class="fas fa-robot"></i> Sugerir IA</button>
-                        </div>
-                    </div>
-                </div>`;
-            });
+                    </div>`;
+                });
+            } else {
+                html += `<p style="font-size:0.85rem; color:#94a3b8; padding-left:45px;">No hay estrategias definidas.</p>`;
+            }
+            html += `
+                <div style="padding-left:45px; margin-top:10px;">
+                    <button class="btn-add" onclick="addNode('strategy', ${axisId})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
+                </div>
+            </div>`;
             return html;
         }
 
         function renderGenObjs(gens, stratId) {
-            if(!gens || !gens.length) return `<p style="font-size:0.85rem; color:#94a3b8;">Sin objetivos generales.</p>`;
-            let html = '';
-            gens.forEach(g => {
-                html += `
-                <div class="gen-obj-card">
-                    <div class="gen-obj-header" onclick="toggleBody(this, 'gen-obj-body')">
-                        <div>Obj. General: ${g.description}</div>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="gen-obj-body">
-                        <div style="border-left:2px solid #bbf7d0; padding-left:15px;">
-                            <h5 style="margin:0 0 10px 0; color:#166534;">Objetivos Específicos</h5>
-                            ${renderSpecObjs(g.specific_objectives, g.id)}
-                            <button class="btn-add" onclick="addNode('spec_obj', ${g.id})" style="margin-top:10px; background:#16a34a;">+ Obj. Específico</button>
+            let html = '<div class="children-list">';
+            if(gens && gens.length > 0) {
+                gens.forEach(g => {
+                    const wBadge = getWeightBadge(g.specific_objectives, 100);
+                    // Validar cantidad (2 a 4)
+                    let countErr = (g.specific_objectives && (g.specific_objectives.length < 2 || g.specific_objectives.length > 4));
+                    let countWarning = countErr ? `<span class="badge badge-weight error" style="margin-left:5px;"><i class="fas fa-exclamation-triangle"></i> Requisito: 2 a 4 Obj. Específicos</span>` : '';
+                    
+                    html += `
+                    <div class="node-wrapper lvl-gen">
+                        <div class="node-line-container">
+                            <div class="node-icon"><i class="fas fa-flag"></i></div>
+                            <div class="node-line"></div>
                         </div>
-                    </div>
-                </div>`;
-            });
+                        <div class="node-content">
+                            <div class="node-header" onclick="toggleBody(this)">
+                                <div style="flex-grow:1; padding-right:15px;">
+                                    <span style="color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Objetivo General</span>
+                                    <div style="font-weight:600; line-height:1.4;">${g.description}</div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                                    ${wBadge}
+                                    <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                                </div>
+                            </div>
+                            <div class="node-body">
+                                ${countWarning ? `<div style="margin-bottom:15px;">${countWarning}</div>` : ''}
+                                ${renderSpecObjs(g.specific_objectives, g.id)}
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                html += `<p style="font-size:0.85rem; color:#94a3b8; padding-left:45px;">Sin objetivos generales.</p>`;
+            }
+            html += `
+                <div style="padding-left:45px; margin-top:10px; display:flex; gap:10px;">
+                    <button class="btn-add" onclick="addNode('gen_obj', ${stratId})"><i class="fas fa-plus"></i> Obj. General Manual</button>
+                    <button class="btn-add btn-ai" onclick="suggestGenObjAI(${stratId})"><i class="fas fa-robot"></i> Sugerir IA</button>
+                </div>
+            </div>`;
             return html;
         }
 
         function renderSpecObjs(specs, genId) {
-            if(!specs || !specs.length) return `<p style="font-size:0.85rem; color:#94a3b8;">Sin objetivos específicos.</p>`;
-            let html = '';
-            specs.forEach(s => {
-                html += `
-                <div class="spec-obj-card">
-                    <div class="spec-obj-header" onclick="toggleBody(this, 'spec-obj-body')">
-                        <div>Obj. Específico: ${s.description} <span class="badge" style="background:white; margin-left:10px;">Peso: ${s.weight_percentage}%</span></div>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="spec-obj-body">
-                        <p style="font-size:0.85rem; margin-top:0;"><strong>Indicador:</strong> ${s.indicator_type || 'N/A'} - ${s.indicator_description || ''}</p>
-                        <div style="border-left:2px solid #fef08a; padding-left:15px;">
-                            <h5 style="margin:10px 0; color:#854d0e;">Actividades</h5>
-                            ${renderActivities(s.activities, s.id)}
-                            <button class="btn-add" onclick="addNode('activity', ${s.id})" style="margin-top:10px; background:#ca8a04;">+ Actividad Manual</button>
-                            <button class="btn-add" onclick="suggestActivitiesAI(${s.id})" style="margin-top:10px; background:#8b5cf6; margin-left:5px;"><i class="fas fa-robot"></i> Sugerir IA</button>
+            let html = '<div class="children-list">';
+            if(specs && specs.length > 0) {
+                specs.forEach(s => {
+                    // Validar cantidad (2 a 5)
+                    let acts = s.activities || [];
+                    let countErr = (acts.length < 2 || acts.length > 5);
+                    let countWarning = countErr ? `<span class="badge badge-weight error" style="margin-left:5px;"><i class="fas fa-exclamation-triangle"></i> Requisito: 2 a 5 Actividades</span>` : '';
+
+                    html += `
+                    <div class="node-wrapper lvl-spec">
+                        <div class="node-line-container">
+                            <div class="node-icon"><i class="fas fa-list-ul"></i></div>
+                            <div class="node-line"></div>
                         </div>
-                    </div>
-                </div>`;
-            });
+                        <div class="node-content">
+                            <div class="node-header" onclick="toggleBody(this)">
+                                <div style="flex-grow:1; padding-right:15px;">
+                                    <span style="color:#64748b; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Objetivo Específico</span>
+                                    <div style="font-weight:600; line-height:1.4;">${s.description}</div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                                    <span class="badge badge-weight">Peso: ${s.weight_percentage}%</span>
+                                    <i class="fas fa-chevron-down toggle-icon" style="color:#cbd5e1; margin-left:10px;"></i>
+                                </div>
+                            </div>
+                            <div class="node-body">
+                                <div style="background:#f8fafc; padding:10px 15px; border-radius:6px; margin-bottom:15px; font-size:0.85rem; color:#475569;">
+                                    <i class="fas fa-chart-line" style="margin-right:5px; color:#f59e0b;"></i> <strong>Indicador:</strong> ${s.indicator_type || 'N/A'} - ${s.indicator_description || ''}
+                                </div>
+                                ${countWarning ? `<div style="margin-bottom:15px;">${countWarning}</div>` : ''}
+                                ${renderActivities(s.activities, s.id)}
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                html += `<p style="font-size:0.85rem; color:#94a3b8; padding-left:45px;">Sin objetivos específicos.</p>`;
+            }
+            html += `
+                <div style="padding-left:45px; margin-top:10px;">
+                    <button class="btn-add" onclick="addNode('spec_obj', ${genId})"><i class="fas fa-plus"></i> Obj. Específico</button>
+                </div>
+            </div>`;
             return html;
         }
 
         function renderActivities(acts, specId) {
-            if(!acts || !acts.length) return `<p style="font-size:0.85rem; color:#94a3b8;">Sin actividades.</p>`;
-            let html = '';
-            acts.forEach(a => {
-                let badgeClass = 'badge-pending';
-                if(a.status === 'En Progreso') badgeClass = 'badge-progress';
-                if(a.status === 'Completado') badgeClass = 'badge-done';
-                
-                html += `
-                <div class="activity-card">
-                    <div style="display:flex; justify-content:space-between;">
-                        <div class="activity-header">${a.description}</div>
-                        <span class="badge ${badgeClass}">${a.status || 'Pendiente'}</span>
-                    </div>
-                    <div class="activity-meta" style="margin-top:8px;">
-                        <span><i class="far fa-calendar"></i> ${a.start_date || 'N/A'} - ${a.end_date || 'N/A'}</span>
-                        <span><i class="fas fa-bullseye"></i> ${a.goal || 'Sin meta'}</span>
-                        <span><i class="fas fa-money-bill-wave"></i> $${(a.financial_budget || 0).toLocaleString()}</span>
-                    </div>
-                </div>`;
-            });
+            let html = '<div class="children-list">';
+            if(acts && acts.length > 0) {
+                acts.forEach(a => {
+                    let badgeClass = 'badge-pending';
+                    if(a.status === 'En Progreso') badgeClass = 'badge-progress';
+                    if(a.status === 'Completado') badgeClass = 'badge-done';
+                    
+                    html += `
+                    <div class="node-wrapper lvl-act">
+                        <div class="node-line-container">
+                            <div class="node-icon"><i class="fas fa-check"></i></div>
+                            <div class="node-line" style="background:transparent;"></div>
+                        </div>
+                        <div class="node-content">
+                            <div class="node-header" style="cursor:default;">
+                                <div style="flex-grow:1;">
+                                    <div style="font-weight:600; line-height:1.4; color:#334155;">${a.description}</div>
+                                    <div class="activity-meta" style="margin-top:10px;">
+                                        <span title="Responsable"><i class="fas fa-user"></i> ${a.responsible || 'Sin responsable'}</span>
+                                        <span title="Fechas"><i class="far fa-calendar"></i> ${a.start_date || 'N/A'} a ${a.end_date || 'N/A'}</span>
+                                        <span title="Presupuesto Financiero (Incluye carga prestacional)"><i class="fas fa-money-bill-wave"></i> $${(a.financial_budget || 0).toLocaleString('es-CO')}</span>
+                                    </div>
+                                </div>
+                                <div style="flex-shrink:0; margin-left:15px;">
+                                    <span class="badge ${badgeClass}">${a.status || 'Pendiente'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                html += `<p style="font-size:0.85rem; color:#94a3b8; padding-left:45px;">Sin actividades.</p>`;
+            }
+            html += `
+                <div style="padding-left:45px; margin-top:10px; display:flex; gap:10px;">
+                    <button class="btn-add" onclick="addNode('activity', ${specId})"><i class="fas fa-plus"></i> Actividad Manual</button>
+                    <button class="btn-add btn-ai" onclick="suggestActivitiesAI(${specId})"><i class="fas fa-robot"></i> Sugerir IA</button>
+                </div>
+            </div>`;
             return html;
         }
 
