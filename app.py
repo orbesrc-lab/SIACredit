@@ -3720,51 +3720,146 @@ def send_email_route():
 def planificacion_page():
     return render_template('planificacion.html')
 
+@app.route('/api/dofa/suggest_axes', methods=['POST'])
+def suggest_dofa_axes():
+    try:
+        data = request.json
+        dofa_data = data.get('dofa_data')
+        
+        if not dofa_data:
+            return jsonify({'status': 'error', 'message': 'No hay datos DOFA'})
+
+        strategies = []
+        for q in ['FO', 'DO', 'FA', 'DA']:
+            if q in dofa_data:
+                for s in dofa_data[q]:
+                    if s.strip():
+                        strategies.append(f"[{q}] {s.strip()}")
+
+        if not strategies:
+            return jsonify({'status': 'error', 'message': 'No hay estrategias para agrupar'})
+
+        prompt = (
+            "Eres un experto en planificación estratégica institucional. A continuación te presento una lista de "
+            "estrategias resultantes de una matriz DOFA. Tu tarea es analizar estas estrategias y agruparlas en 3 a 5 "
+            "'Ejes Estratégicos' coherentes.\n"
+            "Responde ÚNICAMENTE con un JSON estrictamente válido que siga esta estructura exacta (sin markdown ni explicaciones adicionales):\n"
+            "[\n"
+            "  {\n"
+            "    \"name\": \"Nombre del Eje (Ej: Calidad Académica)\",\n"
+            "    \"description\": \"Descripción breve del eje\",\n"
+            "    \"strategies\": [\"[FO] Estrategia exacta 1\", \"[DO] Estrategia exacta 2\"]\n"
+            "  }\n"
+            "]\n\n"
+            "Lista de estrategias a agrupar:\n" + "\n".join(f"- {s}" for s in strategies)
+        )
+
+        response = call_ai(
+            messages=[
+                {"role": "system", "content": "Eres un sistema de procesamiento de datos en JSON puro. No uses formato markdown de bloque (```json). Devuelve el texto JSON directamente."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=2500
+        )
+        
+        response = response.strip()
+        if response.startswith('```json'):
+            response = response[7:]
+        if response.startswith('```'):
+            response = response[3:]
+        if response.endswith('```'):
+            response = response[:-3]
+            
+        import json
+        axes_suggestion = json.loads(response.strip())
+        
+        return jsonify({'status': 'success', 'axes': axes_suggestion})
+    except Exception as e:
+        print(f"Error en suggest_dofa_axes: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @app.route('/api/planning/migrate_dofa', methods=['POST'])
 def migrate_dofa():
+    import re
     try:
         data = request.json
         inst_id = data.get('inst_id')
         program_id = data.get('program_id', 0)
+        structured_axes = data.get('structured_axes')
         dofa_data = data.get('dofa_data')
         
-        if not dofa_data or not inst_id:
+        if not inst_id:
             return jsonify({'status': 'error', 'message': 'Faltan datos requeridos'})
 
-        # Verificar o crear el Eje Estratégico por defecto
-        axis_res = supabase.table('planning_axes').select('*').eq('inst_id', inst_id).eq('name', 'General DOFA').execute()
-        if not axis_res.data:
-            axis_insert = supabase.table('planning_axes').insert({
-                'inst_id': inst_id,
-                'name': 'General DOFA',
-                'description': 'Eje creado automáticamente desde el Cruce DOFA'
-            }).execute()
-            axis_id = axis_insert.data[0]['id']
-        else:
-            axis_id = axis_res.data[0]['id']
-
-        # Recopilar todas las estrategias y prepararlas para inserción
         migrated_count = 0
-        for quadKey in ['FO', 'DO', 'FA', 'DA']:
-            if quadKey in dofa_data:
-                for strategy in dofa_data[quadKey]:
-                    if strategy.strip():
-                        # Verificar si ya existe (usando descripción y cuadrante) para no duplicar en múltiples guardados
-                        check_res = supabase.table('planning_strategies').select('id').eq('inst_id', inst_id).eq('quadrant', quadKey).eq('description', strategy.strip()).execute()
+        if structured_axes:
+            # Flujo Nuevo con Ejes Sugeridos por IA
+            for axis in structured_axes:
+                axis_name = axis.get('name', 'Nuevo Eje')
+                axis_res = supabase.table('planning_axes').select('*').eq('inst_id', inst_id).eq('name', axis_name).execute()
+                if not axis_res.data:
+                    axis_insert = supabase.table('planning_axes').insert({
+                        'inst_id': inst_id,
+                        'name': axis_name,
+                        'description': axis.get('description', '')
+                    }).execute()
+                    axis_id = axis_insert.data[0]['id']
+                else:
+                    axis_id = axis_res.data[0]['id']
+
+                for strategy in axis.get('strategies', []):
+                    quad_match = re.match(r'^\[(FO|DO|FA|DA)\]\s*(.*)', strategy)
+                    if quad_match:
+                        quadKey = quad_match.group(1)
+                        desc = quad_match.group(2)
+                    else:
+                        quadKey = 'FO' # fallback
+                        desc = strategy
+                    
+                    if desc.strip():
+                        check_res = supabase.table('planning_strategies').select('id').eq('inst_id', inst_id).eq('quadrant', quadKey).eq('description', desc.strip()).execute()
                         if not check_res.data:
                             supabase.table('planning_strategies').insert({
                                 'inst_id': inst_id,
                                 'program_id': program_id,
                                 'axis_id': axis_id,
                                 'quadrant': quadKey,
-                                'description': strategy.strip()
+                                'description': desc.strip()
                             }).execute()
                             migrated_count += 1
+        elif dofa_data:
+            # Flujo Antiguo/Fallback
+            axis_res = supabase.table('planning_axes').select('*').eq('inst_id', inst_id).eq('name', 'General DOFA').execute()
+            if not axis_res.data:
+                axis_insert = supabase.table('planning_axes').insert({
+                    'inst_id': inst_id,
+                    'name': 'General DOFA',
+                    'description': 'Eje creado automáticamente desde el Cruce DOFA'
+                }).execute()
+                axis_id = axis_insert.data[0]['id']
+            else:
+                axis_id = axis_res.data[0]['id']
+
+            for quadKey in ['FO', 'DO', 'FA', 'DA']:
+                if quadKey in dofa_data:
+                    for strategy in dofa_data[quadKey]:
+                        if strategy.strip():
+                            check_res = supabase.table('planning_strategies').select('id').eq('inst_id', inst_id).eq('quadrant', quadKey).eq('description', strategy.strip()).execute()
+                            if not check_res.data:
+                                supabase.table('planning_strategies').insert({
+                                    'inst_id': inst_id,
+                                    'program_id': program_id,
+                                    'axis_id': axis_id,
+                                    'quadrant': quadKey,
+                                    'description': strategy.strip()
+                                }).execute()
+                                migrated_count += 1
                             
         return jsonify({'status': 'success', 'migrated_count': migrated_count})
     except Exception as e:
         print(f"Error en migrate_dofa: {e}")
-        # Retornamos error 500 pero envuelto de manera segura (el front capturará esto si falla por la tabla que no existe aún)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/api/planning/tree', methods=['GET'])

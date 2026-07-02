@@ -18,42 +18,28 @@
             margin-bottom: 20px;
         }
 
-        .node-wrapper { display: flex; gap: 15px; margin-bottom: 15px; }
-        .node-line-container { display: flex; flex-direction: column; align-items: center; width: 30px; }
-        .node-icon { 
-            width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            color: white; font-size: 0.85rem; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0;
-        }
-        .node-line { flex-grow: 1; width: 2px; background: #e2e8f0; margin-top: 5px; margin-bottom: 5px; }
+        .node-wrapper { margin-bottom: 15px; }
         
         .node-content { 
-            flex-grow: 1; background: white; border: 1px solid #e2e8f0; border-radius: 10px; 
-            overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s ease;
+            background: white; border: 1px solid #e2e8f0; border-radius: 8px; 
+            overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;
         }
         .node-content:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         
         .node-header {
-            padding: 15px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-            background: #f8fafc; font-weight: 600; color: #1e293b; user-select: none;
+            padding: 12px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            background: #f8fafc; font-weight: 600; color: #1e293b; user-select: none; border-left: 5px solid transparent;
         }
         .node-header:hover { background: #f1f5f9; }
-        .node-body { padding: 20px; display: none; background: white; border-top: 1px solid #f1f5f9; }
+        .node-body { padding: 15px 15px 15px 25px; display: none; background: white; border-top: 1px solid #f1f5f9; }
+        .children-list { margin-top: 10px; padding-left: 30px; border-left: 2px dashed #e2e8f0; }
 
         /* Level Colors */
-        .lvl-axis .node-icon { background: #3b82f6; } /* Blue */
-        .lvl-axis .node-header { border-left: 4px solid #3b82f6; }
-        
-        .lvl-strat .node-icon { background: #8b5cf6; } /* Purple */
-        .lvl-strat .node-header { border-left: 4px solid #8b5cf6; font-size: 0.95rem; }
-        
-        .lvl-gen .node-icon { background: #10b981; } /* Emerald */
-        .lvl-gen .node-header { border-left: 4px solid #10b981; font-size: 0.95rem; }
-        
-        .lvl-spec .node-icon { background: #f59e0b; } /* Amber */
-        .lvl-spec .node-header { border-left: 4px solid #f59e0b; font-size: 0.95rem; }
-        
-        .lvl-act .node-icon { background: #f43f5e; } /* Rose */
-        .lvl-act .node-header { border-left: 4px solid #f43f5e; cursor: default; }
+        .lvl-axis .node-header { border-left-color: #3b82f6; }
+        .lvl-strat .node-header { border-left-color: #8b5cf6; font-size: 0.95rem; }
+        .lvl-gen .node-header { border-left-color: #10b981; font-size: 0.95rem; }
+        .lvl-spec .node-header { border-left-color: #f59e0b; font-size: 0.95rem; }
+        .lvl-act .node-header { border-left-color: #f43f5e; cursor: default; }
         .lvl-act .node-header:hover { background: #f8fafc; }
 
         .activity-meta { font-size: 0.85rem; color: #6b7280; display: flex; gap: 15px; flex-wrap: wrap; }
@@ -223,10 +209,7 @@
             tree.forEach(axis => {
                 html += `
                 <div class="node-wrapper lvl-axis">
-                    <div class="node-line-container">
-                        <div class="node-icon"><i class="fas fa-sitemap"></i></div>
-                        <div class="node-line"></div>
-                    </div>
+                    
                     <div class="node-content">
                         <div class="node-header" onclick="toggleBody(this)">
                             <div>
@@ -252,10 +235,7 @@
                     const wBadge = getWeightBadge(st.general_objectives, 100);
                     html += `
                     <div class="node-wrapper lvl-strat">
-                        <div class="node-line-container">
-                            <div class="node-icon"><i class="fas fa-bullseye"></i></div>
-                            <div class="node-line"></div>
-                        </div>
+                        
                         <div class="node-content">
                             <div class="node-header" onclick="toggleBody(this)">
                                 <div style="flex-grow:1; padding-right:15px;">
@@ -276,10 +256,10 @@
                     </div>`;
                 });
             } else {
-                html += `<p style="font-size:0.85rem; color:#94a3b8; padding-left:45px;">No hay estrategias definidas.</p>`;
+                html += `<p style="font-size:0.85rem; color:#94a3b8; ">No hay estrategias definidas.</p>`;
             }
             html += `
-                <div style="padding-left:45px; margin-top:10px;">
+                <div style=" margin-top:10px;">
                     <button class="btn-add" onclick="addNode('strategy', ${axisId})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
                 </div>
             </div>`;
@@ -297,10 +277,7 @@
                     
                     html += `
                     <div class="node-wrapper lvl-gen">
-                        <div class="node-line-container">
-                            <div class="node-icon"><i class="fas fa-flag"></i></div>
-                            <div class="node-line"></div>
-                        </div>
+                        
                         <div class="node-content">
                             <div class="node-header" onclick="toggleBody(this)">
                                 <div style="flex-grow:1; padding-right:15px;">
@@ -321,10 +298,10 @@
                     </div>`;
                 });
             } else {
-                html += `<p style="font-size:0.85rem; color:#94a3b8; padding-left:45px;">Sin objetivos generales.</p>`;
+                html += `<p style="font-size:0.85rem; color:#94a3b8; ">Sin objetivos generales.</p>`;
             }
             html += `
-                <div style="padding-left:45px; margin-top:10px; display:flex; gap:10px;">
+                <div style=" margin-top:10px; display:flex; gap:10px;">
                     <button class="btn-add" onclick="addNode('gen_obj', ${stratId})"><i class="fas fa-plus"></i> Obj. General Manual</button>
                     <button class="btn-add btn-ai" onclick="suggestGenObjAI(${stratId})"><i class="fas fa-robot"></i> Sugerir IA</button>
                 </div>
@@ -343,10 +320,7 @@
 
                     html += `
                     <div class="node-wrapper lvl-spec">
-                        <div class="node-line-container">
-                            <div class="node-icon"><i class="fas fa-list-ul"></i></div>
-                            <div class="node-line"></div>
-                        </div>
+                        
                         <div class="node-content">
                             <div class="node-header" onclick="toggleBody(this)">
                                 <div style="flex-grow:1; padding-right:15px;">
@@ -370,10 +344,10 @@
                     </div>`;
                 });
             } else {
-                html += `<p style="font-size:0.85rem; color:#94a3b8; padding-left:45px;">Sin objetivos específicos.</p>`;
+                html += `<p style="font-size:0.85rem; color:#94a3b8; ">Sin objetivos específicos.</p>`;
             }
             html += `
-                <div style="padding-left:45px; margin-top:10px; display:flex; gap:10px;">
+                <div style=" margin-top:10px; display:flex; gap:10px;">
                     <button class="btn-add" onclick="addNode('spec_obj', ${genId})"><i class="fas fa-plus"></i> Obj. Específico Manual</button>
                     <button class="btn-add btn-ai" onclick="suggestSpecObjAI(${genId})"><i class="fas fa-robot"></i> Sugerir IA</button>
                 </div>
@@ -391,10 +365,7 @@
                     
                     html += `
                     <div class="node-wrapper lvl-act">
-                        <div class="node-line-container">
-                            <div class="node-icon"><i class="fas fa-check"></i></div>
-                            <div class="node-line" style="background:transparent;"></div>
-                        </div>
+                        
                         <div class="node-content">
                             <div class="node-header" style="cursor:default;">
                                 <div style="flex-grow:1;">
@@ -414,10 +385,10 @@
                     </div>`;
                 });
             } else {
-                html += `<p style="font-size:0.85rem; color:#94a3b8; padding-left:45px;">Sin actividades.</p>`;
+                html += `<p style="font-size:0.85rem; color:#94a3b8; ">Sin actividades.</p>`;
             }
             html += `
-                <div style="padding-left:45px; margin-top:10px; display:flex; gap:10px;">
+                <div style=" margin-top:10px; display:flex; gap:10px;">
                     <button class="btn-add" onclick="addNode('activity', ${specId})"><i class="fas fa-plus"></i> Actividad Manual</button>
                     <button class="btn-add btn-ai" onclick="suggestActivitiesAI(${specId})"><i class="fas fa-robot"></i> Sugerir IA</button>
                 </div>
