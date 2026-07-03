@@ -604,3 +604,18 @@ def debug_load():
     filtered = [c for c in result if c.get('program_id') == program_id]
     res += ' filtered=' + str(len(filtered))
     return res
+
+
+@surveys_bp.route('/api/debug_courses_err')
+def debug_courses_err():
+    import formacion_storage, traceback
+    try:
+        courses = formacion_storage.load_courses(1, 47)
+        try:
+            import flask
+            flask.jsonify(courses)
+            return 'jsonify ok'
+        except Exception as e2:
+            return 'jsonify err: ' + traceback.format_exc()
+    except Exception as e:
+        return 'load err: ' + traceback.format_exc()
