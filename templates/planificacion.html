@@ -589,6 +589,7 @@
                     if(expandedNodes.size === 0 && data.tree) {
                         data.tree.forEach(axis => expandedNodes.add('axis-' + axis.id));
                     }
+                    window.treeData = data.tree;
                     renderTree(data.tree);
                 } else {
                     document.getElementById('planningTree').innerHTML = `<p style="color:red">Error: ${data.message}</p>`;
