@@ -577,3 +577,18 @@ def public_enroll_course():
         print(f"Error en enroll_course: {e}")
         return jsonify({"status": "error", "message": "Error interno"})
 
+
+
+@surveys_bp.route('/api/debug_lms')
+def debug_lms():
+    import os, formacion_storage
+    sb = formacion_storage._get_supabase()
+    res = 'sb=' + str(sb is not None)
+    res += ' url=' + str(bool(os.environ.get('SUPABASE_URL')))
+    res += ' key=' + str(bool(os.environ.get('SUPABASE_KEY')))
+    try:
+        q = sb.table('lms_courses').select('data').execute()
+        res += ' courses=' + str(len(q.data))
+    except Exception as e:
+        res += ' err=' + str(e)
+    return res
