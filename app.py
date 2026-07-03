@@ -20,6 +20,10 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "siacredit_secret_key")
 CORS(app)
 
+from routes.crm import crm_bp
+app.register_blueprint(crm_bp)
+
+
 @app.after_request
 def add_security_headers(response):
     response.headers['Content-Security-Policy'] = (
@@ -121,37 +125,6 @@ try:
     force_update_gemini_config()
 except Exception:
     pass
-
-# --- RUTAS DE PARTNERS ---
-@app.route('/api/partners', methods=['GET'])
-def get_partners():
-    try:
-        res = supabase.table('partners').select("*").order("created_at", desc=False).execute()
-        return jsonify({"status": "success", "data": res.data})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
-
-@app.route('/api/partners', methods=['POST'])
-def add_partner():
-    try:
-        data = request.json
-        res = supabase.table('partners').insert({
-            "name": data.get("name"),
-            "url": data.get("url"),
-            "logo_base64": data.get("logo_base64")
-        }).execute()
-        return jsonify({"status": "success", "data": res.data})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
-
-@app.route('/api/partners/<int:partner_id>', methods=['DELETE'])
-def delete_partner(partner_id):
-    try:
-        res = supabase.table('partners').delete().eq("id", partner_id).execute()
-        return jsonify({"status": "success"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
-
 
 # Ruta de depuración para arreglar la base de datos
 @app.route('/api/debug/fix-db')
