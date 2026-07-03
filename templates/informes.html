@@ -575,6 +575,7 @@
                         <div style="display:flex; align-items:center; gap:10px;">
                             <label for="justificationFileRRC" style="font-size:0.85rem; font-weight:600;">Soporte / Justificación (Opcional):</label>
                             <input type="file" id="justificationFileRRC" accept=".pdf,.docx,.xlsx" style="font-size:0.8rem;">
+                            <button class="btn-primary" style="font-size:0.75rem; padding: 4px 10px;" onclick="analizarSoporteCondicion()" id="btnAnalizarSoporte" title="Sube el archivo y analiza mediante IA solo la pestaña activa"><i class="fas fa-brain"></i> Analizar Pestaña Activa</button>
                         </div>
                     </div>
                     <div class="rrc-footer-actions">
@@ -2069,6 +2070,77 @@
         // Flujo principal
         // ---------------------------------------------------------------
         let _rrcManualEditObj = null;
+
+        
+
+        async function analizarSoporteCondicion() {
+            const justFile = document.getElementById('justificationFileRRC').files[0];
+            if (!justFile) {
+                alert('Por favor selecciona un archivo primero.');
+                return;
+            }
+            
+            // Buscar tab activo
+            let activeCond = '1';
+            document.querySelectorAll('.rrc-tab').forEach(t => {
+                if(t.classList.contains('active')) {
+                    activeCond = t.id.replace('rrc-tab-', '');
+                }
+            });
+
+            const btn = document.getElementById('btnAnalizarSoporte');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analizando...';
+            btn.disabled = true;
+
+            try {
+                // Subir archivo
+                const formData = new FormData();
+                formData.append('file', justFile);
+                formData.append('plan_id', 'RRC_JUSTIFICATION_COND_' + activeCond);
+                
+                const upRes = await fetch('/api/planes_mejora/upload_soporte', { method: 'POST', body: formData });
+                const upData = await upRes.json();
+                
+                if (!upData.url) throw new Error('Error al subir el archivo.');
+                
+                const instId = getInstId();
+                const programId = getProgramId();
+                
+                const condicion_data = _rrcCondData[activeCond] || {};
+
+                // Llamar IA para condición específica
+                const aiRes = await fetch('/api/ai/generar_rrc_condicion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        inst_id: instId,
+                        program_id: programId,
+                        condicion_num: activeCond,
+                        condicion_data: condicion_data,
+                        program_name: _rrcProgName,
+                        inst_name: _rrcInstName,
+                        justification_url: upData.url
+                    })
+                });
+                
+                const aiData = await aiRes.json();
+                if (aiData.status !== 'success') throw new Error(aiData.message || 'Error en análisis IA');
+                
+                // Actualizar panel activo
+                const contentDiv = document.getElementById(`rrc-edit-content-${activeCond}`);
+                if (contentDiv) {
+                    contentDiv.innerHTML = marked.parse(aiData.report);
+                    alert('Condición ' + activeCond + ' actualizada con el análisis del archivo.');
+                    guardarReporteRRC(); // Auto-guardar
+                }
+                
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+            btn.innerHTML = ogText;
+            btn.disabled = false;
+        }
 
         async function generarSoporteRRC(forceRegenerate = false) {
             try {
