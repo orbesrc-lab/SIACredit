@@ -542,10 +542,10 @@ def add_activity_evidence(act_id):
         storage_path = f"inst_{inst_id}/prog_{program_id}/planning/{act_id}/{unique_name}"
         
         file_bytes = file.read()
-        res = supabase.storage.from_('siac-bucket').upload(storage_path, file_bytes)
+        res = supabase.storage.from_('evidencias').upload(storage_path, file_bytes)
         
         # Get public url
-        url_res = supabase.storage.from_('siac-bucket').get_public_url(storage_path)
+        url_res = supabase.storage.from_('evidencias').get_public_url(storage_path)
         file_url = url_res if isinstance(url_res, str) else url_res.get('publicURL', '')
 
         table_id = f"PLANNING_ACT_EVID_{act_id}"
