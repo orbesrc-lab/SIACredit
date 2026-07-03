@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, send_from_directory, render_templ
 from utils.db import supabase, get_active_inst_id
 import json
 import os
-from survey_storage import survey_storage
+import survey_storage
 
 surveys_bp = Blueprint('surveys', __name__)
 
