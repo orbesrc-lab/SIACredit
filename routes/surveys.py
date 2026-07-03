@@ -592,3 +592,15 @@ def debug_lms():
     except Exception as e:
         res += ' err=' + str(e)
     return res
+
+
+@surveys_bp.route('/api/debug_load')
+def debug_load():
+    import formacion_storage
+    inst_id = 1
+    program_id = 47
+    result = formacion_storage._sb_load('lms_courses', {'inst_id': inst_id})
+    res = 'loaded=' + str(len(result) if result else 0)
+    filtered = [c for c in result if c.get('program_id') == program_id]
+    res += ' filtered=' + str(len(filtered))
+    return res
