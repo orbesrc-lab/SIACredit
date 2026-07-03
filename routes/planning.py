@@ -760,7 +760,7 @@ def report_finance():
 @planning_bp.route('/api/planning/activity/evidences/<int:act_id>', methods=['GET'])
 def get_activity_evidences(act_id):
     try:
-        table_id = f"PLANNING_ACT_EVIDENCES_{act_id}"
+        table_id = f"PLANNING_ACT_EVID_{act_id}"
         stats_res = supabase.table('statistics').select('*').eq('table_id', table_id).execute().data
         if not stats_res:
             return jsonify({'status': 'success', 'evidences': []})

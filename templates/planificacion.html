@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planificación y Control - SKEL SIAC</title>
+    <title>Planificaci├│n y Control - SKEL SIAC</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ================================================================
-           SIAC – Planificación Estratégica - Professional Theme
+           SIAC ÔÇô Planificaci├│n Estrat├®gica - Professional Theme
            ================================================================ */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -16,7 +16,7 @@
 
         .planning-wrapper { padding: 0 4px; }
 
-        /* ── Page Header ─────────────────────────────────────────────── */
+        /* ÔöÇÔöÇ Page Header ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .page-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 28px;
@@ -35,7 +35,7 @@
         }
         .btn-gantt:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(16,185,129,0.5); }
 
-        /* ── Level Cards ─────────────────────────────────────────────── */
+        /* ÔöÇÔöÇ Level Cards ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .tree-container { display: flex; flex-direction: column; gap: 16px; }
 
         .lvl-axis-card {
@@ -73,7 +73,7 @@
 
         .axis-actions { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
 
-        /* ── Strategy Cards ──────────────────────────────────────────── */
+        /* ÔöÇÔöÇ Strategy Cards ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .strategies-grid { display: flex; flex-direction: column; gap: 12px; }
 
         .lvl-strat-card {
@@ -94,7 +94,7 @@
         .strat-body { padding: 14px 16px 16px; border-top: 1px solid #e2e8f0; display: none; }
         .strat-body.open { display: block; }
 
-        /* ── General Objective Cards ─────────────────────────────────── */
+        /* ÔöÇÔöÇ General Objective Cards ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .gen-objs-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
 
         .lvl-gen-card {
@@ -111,7 +111,7 @@
         .gen-body { padding: 12px 14px 14px; border-top: 1px solid #d1fae5; display: none; }
         .gen-body.open { display: block; }
 
-        /* ── Specific Objective Cards ────────────────────────────────── */
+        /* ÔöÇÔöÇ Specific Objective Cards ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .spec-objs-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
 
         .lvl-spec-card {
@@ -129,7 +129,7 @@
         .spec-body { padding: 11px 13px 13px; border-top: 1px solid #fef3c7; display: none; }
         .spec-body.open { display: block; }
 
-        /* ── Activity Cards ──────────────────────────────────────────── */
+        /* ÔöÇÔöÇ Activity Cards ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .activities-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 
         .act-card {
@@ -147,7 +147,7 @@
         .act-meta-item i { color: #94a3b8; font-size: 0.7rem; }
         .act-card-right { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; flex-shrink: 0; }
 
-        /* ── Status Badges ───────────────────────────────────────────── */
+        /* ÔöÇÔöÇ Status Badges ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .badge-status {
             font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
             text-transform: uppercase; letter-spacing: 0.5px;
@@ -163,7 +163,7 @@
         .badge-weight.error { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
         .badge-weight.ok { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
 
-        /* ── Action Buttons ──────────────────────────────────────────── */
+        /* ÔöÇÔöÇ Action Buttons ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .btn-action {
             font-size: 0.72rem; font-weight: 600; padding: 5px 11px; border-radius: 7px;
             border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center;
@@ -190,20 +190,20 @@
 
         .actions-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
 
-        /* ── Warning alerts ──────────────────────────────────────────── */
+        /* ÔöÇÔöÇ Warning alerts ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .req-alert {
             font-size: 0.72rem; padding: 6px 10px; border-radius: 7px;
             margin-bottom: 8px; display: flex; align-items: center; gap: 5px;
             background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; font-weight: 600;
         }
 
-        /* ── Empty State ─────────────────────────────────────────────── */
+        /* ÔöÇÔöÇ Empty State ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .empty-state {
             text-align: center; padding: 28px; color: #94a3b8;
             font-size: 0.85rem; font-style: italic;
         }
 
-        /* ── Modals ──────────────────────────────────────────────────── */
+        /* ÔöÇÔöÇ Modals ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15,23,42,0.6); z-index: 9000; justify-content: center;
@@ -256,7 +256,7 @@
         }
         .btn-cancel:hover { background: #e2e8f0; }
 
-        /* ── Gantt Modal ─────────────────────────────────────────────── */
+        /* ÔöÇÔöÇ Gantt Modal ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .gantt-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15,23,42,0.75); z-index: 9999; justify-content: center;
@@ -278,7 +278,7 @@
         .gantt-blue .bar { fill: #3b82f6; }
         .gantt .bar-wrapper:hover .bar { fill: #6366f1; }
 
-        /* ── Role badge ──────────────────────────────────────────────── */
+        /* ÔöÇÔöÇ Role badge ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .role-badge {
             font-size: 0.63rem; font-weight: 600; padding: 2px 7px; border-radius: 8px;
             text-transform: uppercase; letter-spacing: 0.4px;
@@ -289,7 +289,7 @@
         .role-docente { background: #d1fae5; color: #065f46; }
         .role-estudiante { background: #f1f5f9; color: #475569; }
 
-        /* ── Loading State ───────────────────────────────────────────── */
+        /* ÔöÇÔöÇ Loading State ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ */
         .loading-state {
             text-align: center; padding: 60px 20px; color: #94a3b8;
         }
@@ -311,6 +311,21 @@
             body.print-focus-mode .strategies-grid > .lvl-strat-card.print-focus-parent { display: block !important; }
         }
 
+
+        /* ── Report Tabs ─────────────────────────────────────────────── */
+        .report-tab {
+            background: white; color: #64748b;
+            border: 1.5px solid #e2e8f0; padding: 8px 18px;
+            border-radius: 25px; font-size: 0.85rem; font-weight: 600;
+            cursor: pointer; transition: all 0.25s; white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .report-tab:hover { background: #f1f5f9; border-color: #94a3b8; }
+        .report-tab.active {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white; border-color: transparent;
+            box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+        }
     </style>
     <!-- Frappe Gantt via jsDelivr (reliable) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.css" />
@@ -323,22 +338,22 @@
             <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
         </div>
         <div class="sidebar-menu">
-            <a href="dashboard.html" class="sidebar-item">📊 Dashboard</a>
-            <a href="planificacion.html" class="sidebar-item active">📅 Planificación</a>
-            <a href="evidencias.html" class="sidebar-item">📁 Evidencias</a>
-            <a href="autoevaluacion.html" class="sidebar-item">📝 Autoevaluación</a>
-            <a href="informes.html" class="sidebar-item">📄 Informes</a>
-            <a href="dofa.html" class="sidebar-item">🎯 Diagnóstico DOFA</a>
-            <a href="estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
-            <a href="biblioteca.html" class="sidebar-item">📚 Biblioteca</a>
-            <a href="encuestas.html" class="sidebar-item">📋 Encuestas</a>
-            <a href="formacion.html" class="sidebar-item">🎓 Formación</a>
-            <a href="crm.html" class="sidebar-item" id="menuCrm" style="display:none; color: #10b981;">🚀 CRM B2B</a>
-            <a href="/backup" class="sidebar-item" id="menuBackup" style="display:none;">🛡️ Backup y Seguridad</a>
-            <a href="configuracion.html"  class="sidebar-item">⚙️ Configuración</a>
+            <a href="dashboard.html" class="sidebar-item">­ƒôè Dashboard</a>
+            <a href="planificacion.html" class="sidebar-item active">­ƒôà Planificaci├│n</a>
+            <a href="evidencias.html" class="sidebar-item">­ƒôü Evidencias</a>
+            <a href="autoevaluacion.html" class="sidebar-item">­ƒôØ Autoevaluaci├│n</a>
+            <a href="informes.html" class="sidebar-item">­ƒôä Informes</a>
+            <a href="dofa.html" class="sidebar-item">­ƒÄ» Diagn├│stico DOFA</a>
+            <a href="estadisticas.html" class="sidebar-item">­ƒôê Estad├¡sticas</a>
+            <a href="biblioteca.html" class="sidebar-item">­ƒôÜ Biblioteca</a>
+            <a href="encuestas.html" class="sidebar-item">­ƒôï Encuestas</a>
+            <a href="formacion.html" class="sidebar-item">­ƒÄô Formaci├│n</a>
+            <a href="crm.html" class="sidebar-item" id="menuCrm" style="display:none; color: #10b981;">­ƒÜÇ CRM B2B</a>
+            <a href="/backup" class="sidebar-item" id="menuBackup" style="display:none;">­ƒøí´©Å Backup y Seguridad</a>
+            <a href="configuracion.html"  class="sidebar-item">ÔÜÖ´©Å Configuraci├│n</a>
         </div>
         <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444;">🚪 Cerrar Sesión</a>
+            <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444;">­ƒÜ¬ Cerrar Sesi├│n</a>
         </div>
     </aside>
 
@@ -355,12 +370,12 @@
             <div class="planning-wrapper">
                 <div class="page-header">
                     <div class="page-header-text">
-                        <h1>Planificación Estratégica y Control</h1>
-                        <p>Gestiona ejes, estrategias DOFA, objetivos y actividades de tu institución de forma estructurada</p>
+                        <h1>Planificaci├│n Estrat├®gica y Control</h1>
+                        <p>Gestiona ejes, estrategias DOFA, objetivos y actividades de tu instituci├│n de forma estructurada</p>
                     </div>
                     <div style="display:flex; gap:10px;">
                     <button class="btn-gantt" style="background:#8b5cf6;" onclick="openReportsDashboard()">
-                        <i class="fas fa-chart-pie"></i> Centro de Reportes Avanzados
+                        <i class="fas fa-chart-pie"></i> Reportes Financieros
                     </button>
                     <button class="btn-gantt" onclick="openGantt()">
                         <i class="fas fa-stream"></i> Ver Cronograma (Gantt)
@@ -371,7 +386,7 @@
                 <div class="tree-container" id="planningTree">
                     <div class="loading-state">
                         <i class="fas fa-spinner fa-spin"></i>
-                        <p>Cargando estructura estratégica...</p>
+                        <p>Cargando estructura estrat├®gica...</p>
                     </div>
                 </div>
             </div>
@@ -396,11 +411,20 @@
         <!-- Modal Gantt -->
         <div id="ganttModal" class="gantt-modal">
             <div class="gantt-panel">
-                <div class="gantt-panel-header">
-                    <h2><i class="fas fa-stream" style="color:#3b82f6; margin-right:8px;"></i> Cronograma de Actividades (Gantt)</h2>
-                    <button class="btn-action btn-action-del" onclick="document.getElementById('ganttModal').classList.remove('open')">
-                        <i class="fas fa-times"></i> Cerrar
-                    </button>
+                <div class="gantt-panel-header" style="padding: 18px 24px 0; flex-direction: column; align-items: stretch; gap: 0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom: 14px;">
+                        <h2><i class="fas fa-chart-line" style="color:#6366f1; margin-right:8px;"></i> Centro de Reportes Avanzados</h2>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-action-primary" id="exportPdfBtn" onclick="downloadPdfReport()"><i class="fas fa-file-pdf"></i> Exportar a PDF</button>
+                            <button class="btn-action btn-action-del" onclick="document.getElementById('reportsModal').classList.remove('open')"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom: 0; border-top: 1px solid #e2e8f0; padding-top: 12px;" id="reportTabs">
+                        <button class="report-tab active" id="tab-finance" onclick="switchReport('finance', this)"><i class="fas fa-coins"></i> Hoja Financiera</button>
+                        <button class="report-tab" id="tab-staff" onclick="switchReport('staff', this)"><i class="fas fa-users"></i> Por Funcionario</button>
+                        <button class="report-tab" id="tab-pending" onclick="switchReport('pending', this)"><i class="fas fa-clock"></i> Actividades Pendientes</button>
+                        <button class="report-tab" id="tab-progress" onclick="switchReport('progress', this)"><i class="fas fa-chart-bar"></i> Avance Estratégico</button>
+                    </div>
                 </div>
                 <div class="gantt-panel-body" id="ganttContainer">
                     <svg id="gantt"></svg>
@@ -411,72 +435,51 @@
     
         <!-- Modal Alertas -->
         <div id="alertsModal" class="modal">
-            <div class="modal-content" style="max-width: 550px; padding: 32px;">
-                <div class="modal-header-row" style="margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
-                    <div class="modal-title" style="display: flex; align-items: center; gap: 10px; color: #0ea5e9;">
-                        <i class="fas fa-bell" style="font-size: 1.3rem; background: #e0f2fe; padding: 10px; border-radius: 12px; color: #0284c7;"></i>
-                        <span style="color:#0f172a;">Control y Alertas</span>
-                    </div>
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header-row">
+                    <div class="modal-title">Control y Alertas</div>
                     <button class="modal-close-btn" onclick="document.getElementById('alertsModal').classList.remove('open')"><i class="fas fa-times"></i></button>
                 </div>
-                <div id="alertsBody" style="max-height: 350px; overflow-y: auto; padding-right: 10px; margin-bottom: 20px;"></div>
-                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
-                    <div class="form-group" style="margin-bottom: 12px;">
-                        <label style="color: #475569; font-size: 0.85rem;"><i class="fas fa-paper-plane" style="margin-right:6px;"></i>Nueva Alerta Directa</label>
-                        <textarea id="alertMessage" rows="3" placeholder="Redactar mensaje de seguimiento..." style="resize: vertical; font-size: 0.9rem; line-height: 1.5;"></textarea>
-                    </div>
-                    <button class="btn-save" onclick="sendAlert()" style="width: 100%; background: linear-gradient(135deg, #0ea5e9, #0284c7); display: flex; justify-content: center; align-items: center; gap: 8px;">
-                        <i class="fas fa-paper-plane"></i> Enviar Alerta
-                    </button>
+                <div id="alertsBody" style="max-height: 400px; overflow-y: auto; padding: 10px;"></div>
+                <div style="border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 15px;">
+                    <textarea id="alertMessage" class="form-control" rows="2" placeholder="Escribir mensaje personalizado..."></textarea>
+                    <button class="btn-save" onclick="sendAlert()" style="margin-top: 10px; width: 100%;">Enviar Alerta</button>
                 </div>
             </div>
         </div>
 
         <!-- Modal Evidencias -->
         <div id="evidencesModal" class="modal">
-            <div class="modal-content" style="max-width: 600px; padding: 32px;">
-                <div class="modal-header-row" style="margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
-                    <div class="modal-title" style="display: flex; align-items: center; gap: 10px; color: #f59e0b;">
-                        <i class="fas fa-paperclip" style="font-size: 1.3rem; background: #fef3c7; padding: 10px; border-radius: 12px; color: #d97706;"></i>
-                        <span style="color:#0f172a;">Evidencias de la Actividad</span>
-                    </div>
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header-row">
+                    <div class="modal-title">Evidencias de la Actividad</div>
                     <button class="modal-close-btn" onclick="document.getElementById('evidencesModal').classList.remove('open')"><i class="fas fa-times"></i></button>
                 </div>
-                <div id="evidencesBody" style="max-height: 300px; overflow-y: auto; padding-right: 10px; margin-bottom: 20px;"></div>
-                <div style="background: #fdfbf7; padding: 20px; border-radius: 12px; border: 1px dashed #fcd34d;">
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label style="color: #92400e; font-size: 0.85rem;"><i class="fas fa-cloud-upload-alt" style="margin-right:6px;"></i>Adjuntar Nuevo Archivo</label>
-                        <input type="file" id="evidenceFile" style="padding: 12px; background: white; cursor: pointer;">
-                    </div>
-                    <button class="btn-save" onclick="uploadEvidence()" style="width: 100%; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; justify-content: center; align-items: center; gap: 8px;">
-                        <i class="fas fa-upload"></i> Subir Archivo a la Nube
-                    </button>
+                <div id="evidencesBody" style="max-height: 300px; overflow-y: auto; padding: 10px; margin-bottom:15px;"></div>
+                <div style="border-top: 1px solid #e2e8f0; padding-top: 15px;">
+                    <input type="file" id="evidenceFile" class="form-control" style="margin-bottom: 10px;">
+                    <button class="btn-save" onclick="uploadEvidence()" style="width: 100%;">Subir Evidencia</button>
                 </div>
             </div>
         </div>
 
         <!-- Modal Finance -->
         <div id="financeModal" class="modal">
-            <div class="modal-content" style="max-width: 420px; padding: 32px;">
-                <div class="modal-header-row" style="margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
-                    <div class="modal-title" style="display: flex; align-items: center; gap: 10px; color: #10b981;">
-                        <i class="fas fa-coins" style="font-size: 1.3rem; background: #d1fae5; padding: 10px; border-radius: 12px; color: #059669;"></i>
-                        <span style="color:#0f172a;">Ejecución Presupuestal</span>
-                    </div>
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header-row">
+                    <div class="modal-title">Presupuesto Ejecutado</div>
                     <button class="modal-close-btn" onclick="document.getElementById('financeModal').classList.remove('open')"><i class="fas fa-times"></i></button>
                 </div>
-                <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0;">
+                <div style="padding: 10px;">
                     <div class="form-group">
-                        <label style="color: #166534;"><i class="fas fa-money-bill-wave" style="margin-right:5px;"></i> Dinero Invertido (Real)</label>
-                        <input type="number" id="finance_budget" placeholder="$ 0">
+                        <label>Dinero Invertido (Real)</label>
+                        <input type="number" id="finance_budget" class="form-control">
                     </div>
                     <div class="form-group">
-                        <label style="color: #166534;"><i class="fas fa-clock" style="margin-right:5px;"></i> Horas Invertidas (Real)</label>
-                        <input type="number" id="finance_hours" placeholder="0 hr">
+                        <label>Horas Invertidas (Real)</label>
+                        <input type="number" id="finance_hours" class="form-control">
                     </div>
-                    <button class="btn-save" onclick="saveFinance()" style="width: 100%; margin-top: 10px; background: linear-gradient(135deg, #10b981, #059669); display: flex; justify-content: center; align-items: center; gap: 8px;">
-                        <i class="fas fa-save"></i> Guardar Registro Financiero
-                    </button>
+                    <button class="btn-save" onclick="saveFinance()" style="width: 100%; margin-top:10px;">Guardar Registro</button>
                 </div>
             </div>
         </div>
@@ -485,47 +488,11 @@
         <div id="reportsModal" class="gantt-modal" style="z-index: 10000;">
             <div class="gantt-panel" style="width: 90%; max-width:1200px; max-height: 90vh;">
                 <div class="gantt-panel-header">
-                    <h2><i class="fas fa-chart-pie" style="color:#3b82f6; margin-right:8px;"></i> Dashboard de Planificación y Finanzas</h2>
+                    <h2><i class="fas fa-chart-pie" style="color:#3b82f6; margin-right:8px;"></i> Dashboard de Planificaci├│n y Finanzas</h2>
                     <div>
                         <button class="btn-action-primary" onclick="downloadPdfReport()"><i class="fas fa-file-pdf"></i> Exportar a PDF</button>
                         <button class="btn-action btn-action-del" onclick="document.getElementById('reportsModal').classList.remove('open')"><i class="fas fa-times"></i></button>
                     </div>
-                    <div style="display:flex; gap:12px; width:100%; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-top: 20px; overflow-x:auto;" id="reportTabs">
-                        <button class="report-tab active" onclick="switchReport('finance', this)"><i class="fas fa-coins"></i> Financiero</button>
-                        <button class="report-tab" onclick="switchReport('staff', this)"><i class="fas fa-users"></i> Por Funcionario</button>
-                        <button class="report-tab" onclick="switchReport('pending', this)"><i class="fas fa-clock"></i> Actividades Pendientes</button>
-                        <button class="report-tab" onclick="switchReport('progress', this)"><i class="fas fa-chart-line"></i> Avance Estratégico</button>
-                    </div>
-                    
-                    <style>
-                        .report-tab {
-                            background: white;
-                            color: #64748b;
-                            border: 1px solid #cbd5e1;
-                            padding: 10px 20px;
-                            border-radius: 30px;
-                            font-size: 0.9rem;
-                            font-weight: 600;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                            display: flex;
-                            align-items: center;
-                            gap: 8px;
-                            white-space: nowrap;
-                            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-                        }
-                        .report-tab:hover {
-                            background: #f8fafc;
-                            border-color: #94a3b8;
-                            transform: translateY(-1px);
-                        }
-                        .report-tab.active {
-                            background: linear-gradient(135deg, #3b82f6, #2563eb);
-                            color: white;
-                            border: none;
-                            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
-                        }
-                    </style>
                 </div>
                 <div class="gantt-panel-body" id="reportsContainer" style="padding: 20px; overflow-y: auto;">
                     <div style="text-align: center; padding: 50px;">Cargando reportes...</div>
@@ -539,7 +506,7 @@
     <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script>
         // ============================================================
-        // SIAC - Planificación Estratégica - JavaScript principal
+        // SIAC - Planificaci├│n Estrat├®gica - JavaScript principal
         // ============================================================
         
         let currentNodeType = '';
@@ -564,7 +531,7 @@
             return user.inst_id || user.id || '';
         }
 
-        // ─── Toggle acordeón ────────────────────────────────────────
+        // ÔöÇÔöÇÔöÇ Toggle acorde├│n ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         function toggleBody(btn) {
             const key = btn.getAttribute('data-node-key');
             // Find body: could be axis-body, strat-body, gen-body, spec-body, node-body
@@ -589,7 +556,7 @@
             }
         }
 
-        // ─── Peso badge ─────────────────────────────────────────────
+        // ÔöÇÔöÇÔöÇ Peso badge ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         function getWeightBadge(items, max = 100) {
             if(!items) return '';
             const total = items.reduce((sum, item) => sum + parseFloat(item.weight_percentage || 0), 0);
@@ -600,9 +567,9 @@
             </span>`;
         }
 
-        // ─── Editar elemento usando data-attributes ──────────────────
+        // ÔöÇÔöÇÔöÇ Editar elemento usando data-attributes ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         // Hacemos que todos los botones de editar llamen editNodeById(id)
-        // y que los datos estén en un objeto global nodeDataMap
+        // y que los datos est├®n en un objeto global nodeDataMap
         let nodeDataMap = {};
 
         function editNodeById(nodeKey) {
@@ -611,7 +578,7 @@
             editNode(entry.type, entry.id, entry.data, null);
         }
 
-        // ─── Carga de datos ─────────────────────────────────────────
+        // ÔöÇÔöÇÔöÇ Carga de datos ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         async function loadPlanningData() {
             try {
                 const res = await fetch(`/api/planning/tree?inst_id=${getInstId()}`);
@@ -630,14 +597,14 @@
             }
         }
 
-        // ─── Render árbol ────────────────────────────────────────────
+        // ÔöÇÔöÇÔöÇ Render ├írbol ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         function renderTree(tree) {
             nodeDataMap = {};
             const container = document.getElementById('planningTree');
             if(!tree || tree.length === 0) {
                 container.innerHTML = `<div style="text-align: center; padding: 40px; color: #64748b;">
                     <i class="fas fa-seedling fa-3x" style="color: #cbd5e1; margin-bottom:15px;"></i>
-                    <p>No hay Ejes Estratégicos. Por favor ve al módulo DOFA y guarda la matriz para generar las estrategias base.</p>
+                    <p>No hay Ejes Estrat├®gicos. Por favor ve al m├│dulo DOFA y guarda la matriz para generar las estrategias base.</p>
                 </div>`;
                 return;
             }
@@ -651,7 +618,7 @@
                     <div class="node-content">
                         <div class="node-header" onclick="toggleBody(this)" data-node-key="${axisKey}">
                             <div>
-                                <span style="color:#64748b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Eje Estratégico</span>
+                                <span style="color:#64748b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px;">Eje Estrat├®gico</span>
                                 ${escHtml(axis.name)}
                             </div>
                             <i class="fas fa-${isOpen ? 'chevron-up' : 'chevron-down'} toggle-icon" style="color:#94a3b8;"></i>
@@ -660,9 +627,9 @@
                               <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
                                   <button class="btn-toolbar" onclick="editNodeById('${axisKey}')"><i class="fas fa-pencil-alt"></i> Editar Eje</button>
                                   <button class="btn-toolbar delete" onclick="deleteNode('axis', ${axis.id}, event)"><i class="fas fa-trash"></i> Eliminar Eje</button>
-                                  <button class="btn-toolbar" onclick="addNode('strategy', ${axis.id})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
+                                  <button class="btn-toolbar" onclick="addNode('strategy', ${axis.id})"><i class="fas fa-plus"></i> A├▒adir Estrategia</button>
                               </div>
-                            <p style="font-size:0.9rem; color:#64748b; margin-top:0; margin-bottom:20px;">${escHtml(axis.description || 'Sin descripción')}</p>
+                            <p style="font-size:0.9rem; color:#64748b; margin-top:0; margin-bottom:20px;">${escHtml(axis.description || 'Sin descripci├│n')}</p>
                             ${renderStrategies(axis.strategies, axis.id)}
                         </div>
                     </div>
@@ -676,7 +643,7 @@
             return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
         }
 
-        // ─── Load users for assignment dropdowns ──────────────────────
+        // ÔöÇÔöÇÔöÇ Load users for assignment dropdowns ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         let institutionUsers = [];
         async function loadInstitutionUsers() {
             try {
@@ -688,7 +655,7 @@
 
         function buildUserSelect(selectedValue = '') {
             const roleLabels = {
-                'admin': 'Administrador', 'lider': 'Líder de Factor',
+                'admin': 'Administrador', 'lider': 'L├¡der de Factor',
                 'operador': 'Operador', 'docente': 'Docente', 'estudiante': 'Estudiante'
             };
             let opts = `<option value="">-- Seleccionar responsable --</option>`;
@@ -704,14 +671,14 @@
             return `<select id="f_resp">${opts}</select>`;
         }
 
-        // ─── Render Tree (professional) ───────────────────────────────
+        // ÔöÇÔöÇÔöÇ Render Tree (professional) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         function renderTree(tree) {
             nodeDataMap = {};
             const container = document.getElementById('planningTree');
             if(!tree || tree.length === 0) {
                 container.innerHTML = `<div class="empty-state">
                     <i class="fas fa-seedling fa-3x" style="font-size:3rem; margin-bottom:15px;"></i>
-                    <p>No hay Ejes Estratégicos. Ve al módulo DOFA y guarda la matriz para generarlos.</p>
+                    <p>No hay Ejes Estrat├®gicos. Ve al m├│dulo DOFA y guarda la matriz para generarlos.</p>
                 </div>`;
                 return;
             }
@@ -726,7 +693,7 @@
                         <div class="axis-header-left">
                             <div class="axis-icon"><i class="fas fa-layer-group"></i></div>
                             <div>
-                                <div class="axis-label">Eje Estratégico</div>
+                                <div class="axis-label">Eje Estrat├®gico</div>
                                 <div class="axis-name">${escHtml(axis.name)}</div>
                             </div>
                         </div>
@@ -737,7 +704,7 @@
                         <div class="axis-actions">
                             <button class="btn-action btn-action-edit" onclick="editNodeById('${axisKey}')"><i class="fas fa-pencil-alt"></i> Editar Eje</button>
                             <button class="btn-action btn-action-del" onclick="deleteNode('axis', ${axis.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
-                            <button class="btn-action btn-action-add" onclick="addNode('strategy', ${axis.id})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
+                            <button class="btn-action btn-action-add" onclick="addNode('strategy', ${axis.id})"><i class="fas fa-plus"></i> A├▒adir Estrategia</button>
                               <button class="btn-action btn-action-edit" onclick="imprimirElemento('${axisKey}')"><i class="fas fa-print"></i> Imprimir Eje</button>
                         </div>
                         ${renderStrategies(axis.strategies, axis.id)}
@@ -784,10 +751,10 @@
                     </div>`;
                 });
             } else {
-                html += `<div class="empty-state">Sin estrategias definidas aún.</div>`;
+                html += `<div class="empty-state">Sin estrategias definidas a├║n.</div>`;
             }
             html += `</div><div class="actions-row" style="margin-top:10px;">
-                <button class="btn-action-primary" onclick="addNode('strategy', ${axisId})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
+                <button class="btn-action-primary" onclick="addNode('strategy', ${axisId})"><i class="fas fa-plus"></i> A├▒adir Estrategia</button>
             </div>`;
             return html;
         }
@@ -800,7 +767,7 @@
                     nodeDataMap[gKey] = { type: 'gen_obj', id: g.id, data: { description: g.description, alignment_pdi: g.alignment_pdi || '' }};
                     const wBadge = getWeightBadge(g.specific_objectives, 100);
                     let countErr = (g.specific_objectives && (g.specific_objectives.length < 2 || g.specific_objectives.length > 4));
-                    let countWarning = countErr ? `<div class="req-alert"><i class="fas fa-exclamation-triangle"></i> Requisito: 2 a 4 Objetivos Específicos</div>` : '';
+                    let countWarning = countErr ? `<div class="req-alert"><i class="fas fa-exclamation-triangle"></i> Requisito: 2 a 4 Objetivos Espec├¡ficos</div>` : '';
                     const isOpen = expandedNodes.has(gKey);
                     html += `
                     <div class="lvl-gen-card">
@@ -822,14 +789,14 @@
                             <div class="actions-row">
                                 <button class="btn-action btn-action-edit" onclick="editNodeById('${gKey}')"><i class="fas fa-pencil-alt"></i> Editar</button>
                                 <button class="btn-action btn-action-del" onclick="deleteNode('gen_obj', ${g.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
-                                <button class="btn-action btn-action-add" onclick="addNode('spec_obj', ${g.id})"><i class="fas fa-plus"></i> Obj. Específico</button>
+                                <button class="btn-action btn-action-add" onclick="addNode('spec_obj', ${g.id})"><i class="fas fa-plus"></i> Obj. Espec├¡fico</button>
                             </div>
                             ${renderSpecObjs(g.specific_objectives, g.id)}
                         </div>
                     </div>`;
                 });
             } else {
-                html += `<div class="empty-state">Sin objetivos generales aún.</div>`;
+                html += `<div class="empty-state">Sin objetivos generales a├║n.</div>`;
             }
             html += `</div><div class="actions-row" style="margin-top:8px;">
                 <button class="btn-action-primary" onclick="addNode('gen_obj', ${stratId})"><i class="fas fa-plus"></i> Obj. General</button>
@@ -874,10 +841,10 @@
                     </div>`;
                 });
             } else {
-                html += `<div class="empty-state">Sin objetivos específicos aún.</div>`;
+                html += `<div class="empty-state">Sin objetivos espec├¡ficos a├║n.</div>`;
             }
             html += `</div><div class="actions-row" style="margin-top:8px;">
-                <button class="btn-action-primary" onclick="addNode('spec_obj', ${genId})"><i class="fas fa-plus"></i> Obj. Específico</button>
+                <button class="btn-action-primary" onclick="addNode('spec_obj', ${genId})"><i class="fas fa-plus"></i> Obj. Espec├¡fico</button>
                 <button class="btn-action btn-action-ai" onclick="suggestSpecObjAI(${genId})"><i class="fas fa-robot"></i> Sugerir con IA</button>
             </div>`;
             return html;
@@ -898,7 +865,7 @@
                             <div class="act-title">${escHtml(a.description)}</div>
                             <div class="act-meta">
                                 <span class="act-meta-item"><i class="fas fa-user"></i> ${escHtml(a.responsible || 'Sin asignar')}</span>
-                                <span class="act-meta-item"><i class="far fa-calendar-alt"></i> ${a.start_date ? a.start_date.substring(0,10) : 'N/A'} → ${a.end_date ? a.end_date.substring(0,10) : 'N/A'}</span>
+                                <span class="act-meta-item"><i class="far fa-calendar-alt"></i> ${a.start_date ? a.start_date.substring(0,10) : 'N/A'} ÔåÆ ${a.end_date ? a.end_date.substring(0,10) : 'N/A'}</span>
                                 ${a.financial_budget ? `<span class="act-meta-item"><i class="fas fa-coins"></i> $${Number(a.financial_budget).toLocaleString('es-CO')}</span>` : ''}
                                 ${a.goal ? `<span class="act-meta-item"><i class="fas fa-bullseye"></i> ${escHtml(a.goal)}</span>` : ''}
                             </div>
@@ -906,15 +873,15 @@
                         <div class="act-card-right">
                             <span class="badge-status ${statusClass}">${a.status || 'Pendiente'}</span>
                             <button class="btn-action btn-action-edit" onclick="editNodeById('${aKey}')" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-                            <button class="btn-action" style="color:#0ea5e9; border-color:#bae6fd;" onclick="openAlertsModal(${a.id})" title="Control y Alertas">🔔</button>
-                            <button class="btn-action" style="color:#f59e0b; border-color:#fef3c7;" onclick="openEvidencesModal(${a.id})" title="Evidencias">📎</button>
-                            <button class="btn-action" style="color:#10b981; border-color:#a7f3d0;" onclick="openFinanceModal(${a.id})" title="Hoja Financiera">💰</button>
+                            <button class="btn-action" style="color:#0ea5e9; border-color:#bae6fd;" onclick="openAlertsModal(${a.id})" title="Control y Alertas">­ƒöö</button>
+                            <button class="btn-action" style="color:#f59e0b; border-color:#fef3c7;" onclick="openEvidencesModal(${a.id})" title="Evidencias">­ƒôÄ</button>
+                            <button class="btn-action" style="color:#10b981; border-color:#a7f3d0;" onclick="openFinanceModal(${a.id})" title="Hoja Financiera">­ƒÆ░</button>
                             <button class="btn-action btn-action-del" onclick="deleteNode('activity', ${a.id}, event)" title="Eliminar"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>`;
                 });
             } else {
-                html += `<div class="empty-state" style="padding:12px;">Sin actividades registradas aún.</div>`;
+                html += `<div class="empty-state" style="padding:12px;">Sin actividades registradas a├║n.</div>`;
             }
             html += `</div><div class="actions-row" style="margin-top:8px;">
                 <button class="btn-action-primary" onclick="addNode('activity', ${specId})"><i class="fas fa-plus"></i> Actividad</button>
@@ -923,7 +890,7 @@
             return html;
         }
 
-        // ─── Modales ─────────────────────────────────────────────────
+        // ÔöÇÔöÇÔöÇ Modales ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         function editNode(type, id, data, event) {
             if(event) event.stopPropagation();
             currentNodeType = type;
@@ -934,28 +901,28 @@
             if(type === 'axis') {
                 body.innerHTML = `
                     <div class="form-group"><label>Nombre del Eje</label><input type="text" id="f_name" value="${escHtml(data.name || '')}"></div>
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
+                    <div class="form-group"><label>Descripci├│n</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
                 `;
             } else if(type === 'strategy') {
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
+                    <div class="form-group"><label>Descripci├│n</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
                     <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="${data.weight_percentage || 0}" min="0" max="100"></div>
                 `;
             } else if(type === 'gen_obj') {
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
-                    <div class="form-group"><label>Alineación (PDI)</label><input type="text" id="f_align" value="${escHtml(data.alignment_pdi || '')}"></div>
+                    <div class="form-group"><label>Descripci├│n</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
+                    <div class="form-group"><label>Alineaci├│n (PDI)</label><input type="text" id="f_align" value="${escHtml(data.alignment_pdi || '')}"></div>
                 `;
             } else if(type === 'spec_obj') {
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
+                    <div class="form-group"><label>Descripci├│n</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
                     <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="${data.weight_percentage || 0}" min="0" max="100"></div>
                     <div class="form-group"><label>Tipo de Indicador</label><input type="text" id="f_ind_type" value="${escHtml(data.indicator_type || '')}"></div>
-                    <div class="form-group"><label>Descripción del Indicador</label><input type="text" id="f_ind_desc" value="${escHtml(data.indicator_description || '')}"></div>
+                    <div class="form-group"><label>Descripci├│n del Indicador</label><input type="text" id="f_ind_desc" value="${escHtml(data.indicator_description || '')}"></div>
                 `;
             } else if(type === 'activity') {
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción de la Actividad</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
+                    <div class="form-group"><label>Descripci├│n de la Actividad</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
                     <div class="form-row">
                         <div class="form-group"><label><i class="far fa-calendar" style="margin-right:4px;"></i>Fecha Inicio</label><input type="date" id="f_start" value="${data.start_date || ''}"></div>
                         <div class="form-group"><label><i class="far fa-calendar-check" style="margin-right:4px;"></i>Fecha Fin</label><input type="date" id="f_end" value="${data.end_date || ''}"></div>
@@ -976,42 +943,42 @@
             const title = document.getElementById('modalTitle');
             const body = document.getElementById('modalBody');
             if(type === 'axis') {
-                title.textContent = 'Nuevo Eje Estratégico';
+                title.textContent = 'Nuevo Eje Estrat├®gico';
                 body.innerHTML = `
                     <div class="form-group"><label>Nombre del Eje</label><input type="text" id="f_name" placeholder="Nombre del eje"></div>
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
+                    <div class="form-group"><label>Descripci├│n</label><textarea id="f_desc" rows="3"></textarea></div>
                 `;
             } else if(type === 'strategy') {
                 title.textContent = 'Nueva Estrategia';
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
+                    <div class="form-group"><label>Descripci├│n</label><textarea id="f_desc" rows="3"></textarea></div>
                     <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="0" min="0" max="100"></div>
                 `;
             } else if(type === 'gen_obj') {
                 title.textContent = 'Nuevo Objetivo General';
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
-                    <div class="form-group"><label>Alineación (PDI)</label><input type="text" id="f_align" placeholder="Opcional"></div>
+                    <div class="form-group"><label>Descripci├│n</label><textarea id="f_desc" rows="3"></textarea></div>
+                    <div class="form-group"><label>Alineaci├│n (PDI)</label><input type="text" id="f_align" placeholder="Opcional"></div>
                 `;
             } else if(type === 'spec_obj') {
-                title.textContent = 'Nuevo Objetivo Específico';
+                title.textContent = 'Nuevo Objetivo Espec├¡fico';
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
+                    <div class="form-group"><label>Descripci├│n</label><textarea id="f_desc" rows="3"></textarea></div>
                     <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="0" min="0" max="100"></div>
-                    <div class="form-group"><label>Tipo de Indicador</label><input type="text" id="f_ind_type" placeholder="Ej: Porcentaje, Número..."></div>
-                    <div class="form-group"><label>Descripción del Indicador</label><input type="text" id="f_ind_desc"></div>
+                    <div class="form-group"><label>Tipo de Indicador</label><input type="text" id="f_ind_type" placeholder="Ej: Porcentaje, N├║mero..."></div>
+                    <div class="form-group"><label>Descripci├│n del Indicador</label><input type="text" id="f_ind_desc"></div>
                 `;
             } else if(type === 'activity') {
                 title.textContent = 'Nueva Actividad';
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción de la Actividad</label><textarea id="f_desc" rows="3" placeholder="Describe claramente la actividad a realizar..."></textarea></div>
+                    <div class="form-group"><label>Descripci├│n de la Actividad</label><textarea id="f_desc" rows="3" placeholder="Describe claramente la actividad a realizar..."></textarea></div>
                     <div class="form-row">
                         <div class="form-group"><label><i class="far fa-calendar" style="margin-right:4px;"></i>Fecha Inicio</label><input type="date" id="f_start"></div>
                         <div class="form-group"><label><i class="far fa-calendar-check" style="margin-right:4px;"></i>Fecha Fin</label><input type="date" id="f_end"></div>
                     </div>
                     <div class="form-group"><label><i class="fas fa-bullseye" style="margin-right:4px;"></i>Meta / Entregable</label><input type="text" id="f_goal" placeholder="Ej: 3 talleres realizados, 1 informe entregado..."></div>
                     <div class="form-group"><label><i class="fas fa-user-tie" style="margin-right:4px;"></i>Responsable</label>${buildUserSelect()}</div>
-                    <div class="form-group"><label><i class="fas fa-coins" style="margin-right:4px;"></i>Presupuesto (Valor Hora Base)</label><input type="number" id="f_budget" placeholder="El sistema aplicará factor prestacional ×1.54"></div>
+                    <div class="form-group"><label><i class="fas fa-coins" style="margin-right:4px;"></i>Presupuesto (Valor Hora Base)</label><input type="number" id="f_budget" placeholder="El sistema aplicar├í factor prestacional ├ù1.54"></div>
                 `;
             }
             document.getElementById('nodeModal').classList.add('open');
@@ -1070,7 +1037,7 @@
                     alert('Error: ' + data.message);
                 }
             } catch(e) {
-                alert('Error de conexión: ' + e);
+                alert('Error de conexi├│n: ' + e);
             }
 
             btn.textContent = 'Guardar';
@@ -1079,7 +1046,7 @@
 
         async function deleteNode(type, id, event) {
             if(event) event.stopPropagation();
-            if(!confirm('¿Estás seguro de que deseas eliminar este elemento? Todos los elementos hijos también se eliminarán de forma irreversible.')) return;
+            if(!confirm('┬┐Est├ís seguro de que deseas eliminar este elemento? Todos los elementos hijos tambi├®n se eliminar├ín de forma irreversible.')) return;
             try {
                 const res = await fetch('/api/planning/node/delete', {
                     method: 'POST',
@@ -1094,11 +1061,11 @@
                     alert('Error al eliminar: ' + data.message);
                 }
             } catch(e) {
-                alert('Error de conexión al intentar eliminar');
+                alert('Error de conexi├│n al intentar eliminar');
             }
         }
 
-        // ─── Gantt (Custom HTML/CSS - no external lib) ───────────────
+        // ÔöÇÔöÇÔöÇ Gantt (Custom HTML/CSS - no external lib) ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         function openGantt() {
             const activities = [];
             for(const key in nodeDataMap) {
@@ -1200,13 +1167,13 @@
                         <div style="display:flex; height:100%; position:absolute; top:0; left:0; width:${totalDays * dayW}px;">
                             ${dayCols}
                         </div>
-                        <div title="${escHtml(a.name)} | ${a.start} → ${a.end} | ${duration}d | ${escHtml(a.responsible)}" 
+                        <div title="${escHtml(a.name)} | ${a.start} ÔåÆ ${a.end} | ${duration}d | ${escHtml(a.responsible)}" 
                              style="position:absolute; left:${barStart}px; top:8px; width:${barWidth}px; height:${rowH - 18}px;
                                     background:${color}; border-radius:6px; z-index:1; cursor:pointer;
                                     display:flex; align-items:center; padding:0 8px; box-sizing:border-box;
                                     box-shadow:0 2px 6px ${color}44;">
                             <span style="font-size:0.65rem; color:white; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                ${duration}d ${a.goal ? '· ' + escHtml(a.goal.substring(0,20)) : ''}
+                                ${duration}d ${a.goal ? '┬À ' + escHtml(a.goal.substring(0,20)) : ''}
                             </span>
                         </div>
                     </div>
@@ -1238,14 +1205,14 @@
                 </div>
                 <!-- Legend -->
                 <div style="display:flex; gap:16px; padding:14px 16px; border-top:1px solid #f1f5f9; flex-wrap:wrap; background:#fafafa; border-radius:0 0 12px 12px;">
-                    ${activities.map((a,i)=>`<div style="display:flex;align-items:center;gap:5px;font-size:0.72rem;color:#475569;"><div style="width:10px;height:10px;border-radius:3px;background:${colors[i%colors.length]};flex-shrink:0;"></div>${escHtml(a.name.substring(0,35))}${a.name.length>35?'…':''}</div>`).join('')}
+                    ${activities.map((a,i)=>`<div style="display:flex;align-items:center;gap:5px;font-size:0.72rem;color:#475569;"><div style="width:10px;height:10px;border-radius:3px;background:${colors[i%colors.length]};flex-shrink:0;"></div>${escHtml(a.name.substring(0,35))}${a.name.length>35?'ÔÇª':''}</div>`).join('')}
                 </div>
             </div>`;
 
             document.getElementById('ganttContainer').innerHTML = ganttHtml;
         }
 
-        // ─── IA Sugerencias ──────────────────────────────────────────
+        // ÔöÇÔöÇÔöÇ IA Sugerencias ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         async function suggestGenObjAI(strategyId) {
             try {
                 addNode('gen_obj', strategyId);
@@ -1351,7 +1318,7 @@
                     alert('Error: ' + data.message);
                 }
             } catch(e) {
-                alert('Error de conexión');
+                alert('Error de conexi├│n');
             }
         }
 
@@ -1396,14 +1363,14 @@
                 });
                 const data = await res.json();
                 if(data.status === 'success') {
-                    alert('Evidencia subida correctamente');
-                    document.getElementById('evidencesModal').classList.remove('open');
-                    loadPlanningData();
+                    document.getElementById('evidenceFile').value = '';
+                    // Reload evidences list in-place (do NOT close modal)
+                    openEvidencesModal(currentActivityId);
                 } else {
                     alert('Error: ' + data.message);
                 }
             } catch(e) {
-                alert('Error de conexión');
+                alert('Error de conexi├│n');
             }
         }
 
@@ -1435,7 +1402,7 @@
                     alert('Error: ' + data.message);
                 }
             } catch(e) {
-                alert('Error de conexión');
+                alert('Error de conexi├│n');
             }
         }
 
@@ -1447,11 +1414,7 @@
             switchReport('finance');
         }
 
-        async function switchReport(type, btnObj) {
-              if(btnObj) {
-                  document.querySelectorAll(".report-tab").forEach(b => b.classList.remove("active"));
-                  btnObj.classList.add("active");
-              }
+        async function switchReport(type) {
             const container = document.getElementById('reportsContainer');
             container.innerHTML = '<div style="text-align:center; padding:50px;"><i class="fas fa-spinner fa-spin"></i> Generando reporte...</div>';
             
@@ -1613,7 +1576,7 @@
                     document.getElementById('reportsContainer').innerHTML = 'Error: ' + data.message;
                 }
             } catch(e) {
-                document.getElementById('reportsContainer').innerHTML = 'Error de conexión';
+                document.getElementById('reportsContainer').innerHTML = 'Error de conexi├│n';
             }
         }
 
@@ -1698,7 +1661,7 @@
         function downloadPdfReport() {
             const el = document.getElementById('reportsContainer');
             if (typeof html2pdf === 'undefined') {
-                alert('La librería PDF aún se está cargando o fue bloqueada por el navegador. Intente nuevamente en un segundo.');
+                alert('La librer├¡a PDF a├║n se est├í cargando o fue bloqueada por el navegador. Intente nuevamente en un segundo.');
                 return;
             }
             const btn = event.currentTarget || document.querySelector('button[onclick="downloadPdfReport()"]');
@@ -1735,6 +1698,257 @@
         if(b) b.style.display = 'block';
     }
 })();
-</script>
+
+        let currentReportData = null;
+
+        function openReportsDashboard() {
+            currentReportData = null;
+            document.getElementById('reportsModal').classList.add('open');
+            switchReport('finance', document.getElementById('tab-finance'));
+        }
+
+        async function switchReport(type, btnObj) {
+            if(btnObj) {
+                document.querySelectorAll('.report-tab').forEach(b => b.classList.remove('active'));
+                btnObj.classList.add('active');
+            }
+            const container = document.getElementById('reportsContainer');
+            container.innerHTML = '<div style="text-align:center; padding:60px; color:#64748b;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Generando reporte...</div>';
+
+            if(type === 'finance') {
+                if(!currentReportData) {
+                    try {
+                        const res = await fetch('/api/planning/reports/finance?inst_id=' + getInstId());
+                        const data = await res.json();
+                        if(data.status === 'success') {
+                            currentReportData = data;
+                            renderFinancialReport(data);
+                        } else {
+                            container.innerHTML = '<p style="color:red; padding:20px;">Error: ' + (data.message||'desconocido') + '</p>';
+                        }
+                    } catch(e) { container.innerHTML = '<p style="color:red; padding:20px;">Error de conexión: ' + e + '</p>'; }
+                } else {
+                    renderFinancialReport(currentReportData);
+                }
+            } else if(type === 'staff') {
+                renderStaffReport();
+            } else if(type === 'pending') {
+                renderPendingReport();
+            } else if(type === 'progress') {
+                renderProgressReport();
+            }
+        }
+
+        function extractAllActivities() {
+            let acts = [];
+            if(!window.treeData) return acts;
+            window.treeData.forEach(strat => {
+                (strat.children||[]).forEach(gen => {
+                    (gen.children||[]).forEach(spec => {
+                        (spec.children||[]).forEach(act => {
+                            acts.push({...act, specDesc: spec.description, genDesc: gen.description, stratDesc: strat.description});
+                        });
+                    });
+                });
+            });
+            return acts;
+        }
+
+        function renderStaffReport() {
+            let acts = extractAllActivities();
+            if(!acts.length) { document.getElementById('reportsContainer').innerHTML = '<p style="padding:30px;color:#64748b;">No hay actividades registradas.</p>'; return; }
+            let byStaff = {};
+            acts.forEach(a => {
+                let r = a.responsible || 'Sin asignar';
+                if(!byStaff[r]) byStaff[r] = {total:0, done:0, items:[]};
+                byStaff[r].total++;
+                if(a.status === 'Cumplido' || a.status === 'Completado') byStaff[r].done++;
+                byStaff[r].items.push(a);
+            });
+            let html = `<h2 style="color:#1e293b; margin-bottom:20px; font-size:1.2rem;"><i class="fas fa-users" style="color:#3b82f6; margin-right:8px;"></i> Actividades por Funcionario Responsable</h2>`;
+            for(let r in byStaff) {
+                const d = byStaff[r];
+                const pct = Math.round((d.done/d.total)*100);
+                const color = pct===100?'#10b981':(pct>50?'#f59e0b':'#ef4444');
+                html += `<div style="margin-bottom:25px; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden;">
+                    <div style="background:#f8fafc; padding:14px 18px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-weight:700; color:#0f172a;"><i class="fas fa-user" style="color:#6366f1; margin-right:8px;"></i>${escHtml(r)}</div>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="background:#e2e8f0; border-radius:10px; width:120px; height:8px; overflow:hidden;">
+                                <div style="background:${color}; width:${pct}%; height:100%;"></div>
+                            </div>
+                            <span style="font-weight:700; color:${color}; font-size:0.9rem;">${d.done}/${d.total} (${pct}%)</span>
+                        </div>
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                        <thead><tr style="border-bottom:2px solid #e2e8f0;">
+                            <th style="padding:8px 18px; text-align:left; color:#475569;">Actividad</th>
+                            <th style="padding:8px; text-align:center; color:#475569;">Estado</th>
+                            <th style="padding:8px; text-align:right; color:#475569;">Vence</th>
+                        </tr></thead><tbody>`;
+                d.items.forEach(a => {
+                    const sc = a.status==='Cumplido'||a.status==='Completado'?'#10b981':(a.status==='En Progreso'?'#f59e0b':'#ef4444');
+                    html += `<tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:8px 18px;">${escHtml(a.description)}<br><small style="color:#94a3b8;">${escHtml(a.stratDesc||'')}</small></td>
+                        <td style="padding:8px; text-align:center; color:${sc}; font-weight:600;">${a.status||'Pendiente'}</td>
+                        <td style="padding:8px; text-align:right; color:#64748b;">${a.end_date||'N/A'}</td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
+            }
+            document.getElementById('reportsContainer').innerHTML = html;
+        }
+
+        function renderPendingReport() {
+            let acts = extractAllActivities().filter(a => a.status !== 'Cumplido' && a.status !== 'Completado');
+            acts.sort((a,b) => new Date(a.end_date||'2099') - new Date(b.end_date||'2099'));
+            let html = `<h2 style="color:#1e293b; margin-bottom:20px; font-size:1.2rem;"><i class="fas fa-clock" style="color:#f59e0b; margin-right:8px;"></i> Actividades Pendientes – Orden Cronológico</h2>`;
+            if(!acts.length) { html += '<p style="color:#64748b; padding:20px;">¡Felicitaciones! No hay actividades pendientes.</p>'; document.getElementById('reportsContainer').innerHTML = html; return; }
+            const today = new Date();
+            html += `<table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                <thead><tr style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
+                    <th style="padding:12px; text-align:left;">Vencimiento</th>
+                    <th style="padding:12px; text-align:left;">Actividad</th>
+                    <th style="padding:12px; text-align:left;">Responsable</th>
+                    <th style="padding:12px; text-align:center;">Estado</th>
+                    <th style="padding:12px; text-align:center;">Días</th>
+                </tr></thead><tbody>`;
+            acts.forEach(a => {
+                const end = a.end_date ? new Date(a.end_date) : null;
+                const diff = end ? Math.ceil((end - today)/(1000*60*60*24)) : null;
+                const urgColor = diff === null ? '#94a3b8' : (diff < 0 ? '#ef4444' : (diff < 7 ? '#f59e0b' : '#10b981'));
+                const sc = a.status==='En Progreso'?'#f59e0b':'#ef4444';
+                html += `<tr style="border-bottom:1px solid #f1f5f9;">
+                    <td style="padding:10px; font-weight:600; color:${urgColor};">${a.end_date||'Sin fecha'}</td>
+                    <td style="padding:10px;">${escHtml(a.description)}<br><small style="color:#94a3b8;">${escHtml(a.stratDesc||'')}</small></td>
+                    <td style="padding:10px; color:#475569;">${escHtml(a.responsible||'N/A')}</td>
+                    <td style="padding:10px; text-align:center; color:${sc}; font-weight:600;">${a.status||'Pendiente'}</td>
+                    <td style="padding:10px; text-align:center; font-weight:700; color:${urgColor};">${diff!==null ? (diff<0?'Vencido '+Math.abs(diff)+'d':diff+'d'):'—'}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('reportsContainer').innerHTML = html;
+        }
+
+        function renderProgressReport() {
+            if(!window.treeData || !window.treeData.length) {
+                document.getElementById('reportsContainer').innerHTML = '<p style="color:#64748b; padding:30px;">No hay datos. Por favor recarga la página.</p>';
+                return;
+            }
+            let html = `<h2 style="color:#1e293b; margin-bottom:20px; font-size:1.2rem;"><i class="fas fa-chart-bar" style="color:#8b5cf6; margin-right:8px;"></i> Avance por Estrategias y Objetivos</h2>`;
+            window.treeData.forEach(strat => {
+                let sTotal=0, sComp=0;
+                (strat.children||[]).forEach(gen => { (gen.children||[]).forEach(spec => { (spec.children||[]).forEach(act => { sTotal++; if(act.status==='Cumplido'||act.status==='Completado') sComp++; }); }); });
+                const sPct = sTotal===0?0:Math.round((sComp/sTotal)*100);
+                const sColor = sPct===100?'#10b981':(sPct>60?'#3b82f6':'#f59e0b');
+                html += `<div style="margin-bottom:20px; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden;">
+                    <div style="background:linear-gradient(135deg,#f8fafc,#f1f5f9); padding:14px 18px;">
+                        <div style="font-weight:700; color:#0f172a; margin-bottom:8px;">${escHtml(strat.description||strat.name||'Estrategia')}</div>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="flex:1; background:#e2e8f0; border-radius:10px; height:10px; overflow:hidden;">
+                                <div style="background:${sColor}; width:${sPct}%; height:100%; transition:width 0.5s;"></div>
+                            </div>
+                            <span style="font-weight:800; color:${sColor}; min-width:45px;">${sPct}%</span>
+                            <span style="color:#94a3b8; font-size:0.8rem;">${sComp}/${sTotal} actividades</span>
+                        </div>
+                    </div>`;
+                (strat.children||[]).forEach(gen => {
+                    let gTotal=0, gComp=0;
+                    (gen.children||[]).forEach(spec => { (spec.children||[]).forEach(act => { gTotal++; if(act.status==='Cumplido'||act.status==='Completado') gComp++; }); });
+                    const gPct = gTotal===0?0:Math.round((gComp/gTotal)*100);
+                    const gColor = gPct===100?'#10b981':(gPct>60?'#3b82f6':'#f59e0b');
+                    html += `<div style="padding:10px 18px 10px 30px; border-top:1px solid #f1f5f9;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="font-size:0.8rem; color:#334155; flex:1;">[OBJ] ${escHtml(gen.description||'')}</div>
+                            <div style="background:#e2e8f0; border-radius:10px; width:80px; height:6px; overflow:hidden;">
+                                <div style="background:${gColor}; width:${gPct}%; height:100%;"></div>
+                            </div>
+                            <span style="font-size:0.8rem; font-weight:700; color:${gColor}; min-width:35px;">${gPct}%</span>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+            });
+            document.getElementById('reportsContainer').innerHTML = html;
+        }
+
+        function renderFinancialReport(data) {
+            const fmtCOP = v => '$' + (v||0).toLocaleString('es-CO');
+            let html = `<div style="display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:200px; background:#f0f9ff; padding:18px; border-radius:12px; border:1px solid #bae6fd;">
+                    <div style="font-size:0.78rem; color:#0369a1; font-weight:700; text-transform:uppercase; margin-bottom:6px;">Total Presupuesto Proyectado</div>
+                    <div style="font-size:1.8rem; color:#0c4a6e; font-weight:800;">${fmtCOP(data.total_projected)}</div>
+                </div>
+                <div style="flex:1; min-width:200px; background:#f0fdf4; padding:18px; border-radius:12px; border:1px solid #bbf7d0;">
+                    <div style="font-size:0.78rem; color:#15803d; font-weight:700; text-transform:uppercase; margin-bottom:6px;">Total Ejecutado (Real)</div>
+                    <div style="font-size:1.8rem; color:#14532d; font-weight:800;">${fmtCOP(data.total_executed)}</div>
+                </div>
+                <div style="flex:1; min-width:200px; background:${data.total_difference<0?'#fef2f2':'#fefce8'}; padding:18px; border-radius:12px; border:1px solid ${data.total_difference<0?'#fecaca':'#fef08a'};">
+                    <div style="font-size:0.78rem; color:${data.total_difference<0?'#b91c1c':'#a16207'}; font-weight:700; text-transform:uppercase; margin-bottom:6px;">Diferencia (Saldo)</div>
+                    <div style="font-size:1.8rem; color:${data.total_difference<0?'#7f1d1d':'#713f12'}; font-weight:800;">${fmtCOP(data.total_difference)}</div>
+                </div>
+            </div>
+            <h3 style="margin-bottom:12px; color:#1e293b; font-size:1rem;">Desglose por Estrategias y Objetivos</h3>
+            <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                <thead><tr style="background:#f1f5f9;">
+                    <th style="padding:10px; border-bottom:2px solid #cbd5e1; text-align:left;">Concepto</th>
+                    <th style="padding:10px; border-bottom:2px solid #cbd5e1; text-align:center;">Estado</th>
+                    <th style="padding:10px; border-bottom:2px solid #cbd5e1; text-align:right;">Proyectado</th>
+                    <th style="padding:10px; border-bottom:2px solid #cbd5e1; text-align:right;">Ejecutado</th>
+                    <th style="padding:10px; border-bottom:2px solid #cbd5e1; text-align:right;">Dif.</th>
+                </tr></thead><tbody>`;
+            (data.report||[]).forEach(strat => {
+                html += `<tr style="background:#f8fafc; font-weight:700;">
+                    <td style="padding:10px; border-bottom:1px solid #e2e8f0;">[Estrategia] ${escHtml(strat.description)}</td>
+                    <td style="padding:10px; border-bottom:1px solid #e2e8f0;"></td>
+                    <td style="padding:10px; border-bottom:1px solid #e2e8f0; text-align:right;">${fmtCOP(strat.projected)}</td>
+                    <td style="padding:10px; border-bottom:1px solid #e2e8f0; text-align:right;">${fmtCOP(strat.executed)}</td>
+                    <td style="padding:10px; border-bottom:1px solid #e2e8f0; text-align:right; color:${strat.difference<0?'#ef4444':'#10b981'};">${fmtCOP(strat.difference)}</td>
+                </tr>`;
+                (strat.objectives||[]).forEach(gen => {
+                    html += `<tr>
+                        <td style="padding:8px 10px 8px 25px; border-bottom:1px solid #f1f5f9;">[OBJ] ${escHtml(gen.description)}</td>
+                        <td style="padding:8px 10px; border-bottom:1px solid #f1f5f9;"></td>
+                        <td style="padding:8px 10px; border-bottom:1px solid #f1f5f9; text-align:right;">${fmtCOP(gen.projected)}</td>
+                        <td style="padding:8px 10px; border-bottom:1px solid #f1f5f9; text-align:right;">${fmtCOP(gen.executed)}</td>
+                        <td style="padding:8px 10px; border-bottom:1px solid #f1f5f9; text-align:right;">${fmtCOP(gen.difference)}</td>
+                    </tr>`;
+                    (gen.activities||[]).forEach(act => {
+                        const statCol = act.status==='Cumplido'?'#10b981':(act.status==='En Progreso'?'#f59e0b':'#94a3b8');
+                        html += `<tr>
+                            <td style="padding:6px 10px 6px 45px; border-bottom:1px solid #f8fafc; color:#475569;">↳ ${escHtml(act.description)}</td>
+                            <td style="padding:6px 10px; border-bottom:1px solid #f8fafc; text-align:center; color:${statCol}; font-weight:600; font-size:0.75rem;">${act.status||'Pendiente'}</td>
+                            <td style="padding:6px 10px; border-bottom:1px solid #f8fafc; text-align:right;">${fmtCOP(act.projected)}</td>
+                            <td style="padding:6px 10px; border-bottom:1px solid #f8fafc; text-align:right;">${fmtCOP(act.executed)}</td>
+                            <td style="padding:6px 10px; border-bottom:1px solid #f8fafc; text-align:right; color:${act.difference<0?'#ef4444':'#64748b'};">${fmtCOP(act.difference)}</td>
+                        </tr>`;
+                    });
+                });
+            });
+            html += '</tbody></table>';
+            document.getElementById('reportsContainer').innerHTML = html;
+        }
+
+        function downloadPdfReport() {
+            if (typeof html2pdf === 'undefined') {
+                alert('La librería PDF aún se está cargando. Intenta en 2 segundos.');
+                return;
+            }
+            const el = document.getElementById('reportsContainer');
+            const btn = document.getElementById('exportPdfBtn');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+            btn.disabled = true;
+            html2pdf().set({
+                margin: 10, filename: 'Reporte_SIAC.pdf',
+                image: { type: 'jpeg', quality: 0.95 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            }).from(el).save().then(() => {
+                btn.innerHTML = orig; btn.disabled = false;
+            }).catch(e => { btn.innerHTML = orig; btn.disabled = false; console.error(e); });
+        }
+
+    </script>
 </body>
 </html>
