@@ -1,11 +1,10 @@
-from flask import Blueprint
+from flask import Blueprint, jsonify, request, render_template
 
 def safe_int(val, default=1):
     try:
         return int(val)
     except (TypeError, ValueError):
         return default
-, jsonify, request, render_template
 from utils.db import supabase, get_active_inst_id
 import traceback
 
