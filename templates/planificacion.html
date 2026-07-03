@@ -1473,19 +1473,31 @@
         // Include html2pdf dynamically for PDF export
         function downloadPdfReport() {
             const el = document.getElementById('reportsContainer');
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-            script.onload = () => {
-                const opt = {
-                    margin:       10,
-                    filename:     'Reporte_Planificacion_Financiera.pdf',
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { scale: 2 },
-                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
-                };
-                html2pdf().set(opt).from(el).save();
+            if (typeof html2pdf === 'undefined') {
+                alert('La librería PDF aún se está cargando o fue bloqueada por el navegador. Intente nuevamente en un segundo.');
+                return;
+            }
+            const btn = event.currentTarget || document.querySelector('button[onclick="downloadPdfReport()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando PDF...';
+            btn.disabled = true;
+
+            const opt = {
+                margin:       10,
+                filename:     'Reporte_Planificacion_Financiera.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
             };
-            document.head.appendChild(script);
+            html2pdf().set(opt).from(el).save().then(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }).catch(err => {
+                console.error(err);
+                alert('Hubo un error generando el PDF');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
         }
 
 </script>
