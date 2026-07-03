@@ -755,3 +755,22 @@ def report_finance():
         traceback.print_exc()
         return jsonify({'status': 'error', 'message': str(e)})
 
+
+
+@planning_bp.route('/api/planning/activity/evidences/<int:act_id>', methods=['GET'])
+def get_activity_evidences(act_id):
+    try:
+        table_id = f"PLANNING_ACT_EVIDENCES_{act_id}"
+        stats_res = supabase.table('statistics').select('*').eq('table_id', table_id).execute().data
+        if not stats_res:
+            return jsonify({'status': 'success', 'evidences': []})
+        
+        import json
+        evs = stats_res[0]['data_json']
+        if isinstance(evs, str):
+            evs = json.loads(evs)
+        return jsonify({'status': 'success', 'evidences': evs})
+    except Exception as e:
+        print(f"Error in get_activity_evidences: {e}")
+        return jsonify({'status': 'error', 'message': str(e)})
+
