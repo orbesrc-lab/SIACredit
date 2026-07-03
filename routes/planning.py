@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, render_template
 from utils.db import supabase, get_active_inst_id
 import traceback
 
