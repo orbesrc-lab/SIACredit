@@ -242,6 +242,7 @@ def _build_full_zip(inst_id, scope, modules, year, program_id, password=None):
         # ── PLANIFICACION ────────────────────────────────────────
         if 'planificacion' in modules:
             try:
+                import json
                 plan_tables = {
                     'ejes': 'planning_axes',
                     'estrategias': 'planning_strategies',
@@ -256,6 +257,30 @@ def _build_full_zip(inst_id, scope, modules, year, program_id, password=None):
                         writer = csv.DictWriter(csv_buf, fieldnames=list(rows[0].keys()), extrasaction='ignore')
                         writer.writeheader(); writer.writerows(rows)
                         zf.writestr(f"backup_SIAC/datos/planificacion_{name}.csv", csv_buf.getvalue())
+                        
+                # Also download evidences for activities
+                stats_res = supabase.table('statistics').select('*').like('table_id', 'PLANNING_ACT_EVID_%').execute().data or []
+                for s in stats_res:
+                    act_id = s['table_id'].replace('PLANNING_ACT_EVID_', '')
+                    try:
+                        evs = json.loads(s['data_json']) if isinstance(s['data_json'], str) else s['data_json']
+                        if isinstance(evs, list):
+                            for i, ev in enumerate(evs):
+                                url = ev.get('public_url') or ev.get('url') or ''
+                                if url:
+                                    fbytes = _fetch_file_bytes(url)
+                                    if fbytes:
+                                        ev_name = _safe_filename(ev.get('name') or f"evidencia_{i}")
+                                        ext = url.split('?')[0].rsplit('.', 1)[-1] if '.' in url else 'bin'
+                                        if ext == 'bin' and ev_name:
+                                            ext = ev_name.split('.')[-1] if '.' in ev_name else 'bin'
+                                        base = f"backup_SIAC/Planificacion_Evidencias/Actividad_{act_id}/"
+                                        zf.writestr(base + ev_name + '.' + ext, fbytes)
+                                        # Write metadata text
+                                        meta = f"Actividad ID: {act_id}\nSubido por: {ev.get('uploader')}\nFecha: {ev.get('date')}\nArchivo original: {ev.get('name')}"
+                                        zf.writestr(base + ev_name + "_info.txt", meta)
+                    except Exception as ev_err:
+                        zf.writestr(f"backup_SIAC/Planificacion_Evidencias/Actividad_{act_id}/error.txt", str(ev_err))
             except Exception as ex:
                 zf.writestr("backup_SIAC/datos/planificacion_error.txt", str(ex))
 

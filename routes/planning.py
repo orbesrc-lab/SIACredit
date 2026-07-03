@@ -424,3 +424,325 @@ def get_planning_users():
 
 
 # ══════════════════════════════════════════════════════════════════
+
+
+import json
+from datetime import datetime
+
+@planning_bp.route('/api/planning/activity/alert/<int:act_id>', methods=['POST'])
+def add_activity_alert(act_id):
+    try:
+        data = request.json
+        inst_id = data.get('inst_id', 1)
+        program_id = data.get('program_id', 0)
+        message = data.get('message', 'Alerta de Planificación')
+        sender = data.get('sender', 'Sistema')
+        responsible_email = data.get('responsible_email')
+
+        if not responsible_email:
+            return jsonify({'status': 'error', 'message': 'No hay responsable asignado'})
+
+        # 1. Guardar en notificaciones
+        supabase.table('notificaciones').insert({
+            'inst_id': inst_id,
+            'program_id': program_id,
+            'usuario_email': responsible_email,
+            'tipo': 'alerta_planificacion',
+            'titulo': 'Alerta de Actividad',
+            'mensaje': message,
+            'leido': False
+        }).execute()
+
+        # 2. Guardar en statistics (logs de la actividad)
+        table_id = f"PLANNING_ACT_LOGS_{act_id}"
+        stats_res = supabase.table('statistics').select('*').eq('table_id', table_id).execute().data
+        
+        new_log = {
+            'date': datetime.now().isoformat(),
+            'message': message,
+            'sender': sender
+        }
+        
+        if stats_res:
+            logs = json.loads(stats_res[0]['data_json']) if isinstance(stats_res[0]['data_json'], str) else stats_res[0]['data_json']
+            if not isinstance(logs, list): logs = []
+            logs.append(new_log)
+            supabase.table('statistics').update({'data_json': logs}).eq('id', stats_res[0]['id']).execute()
+        else:
+            supabase.table('statistics').insert({
+                'inst_id': inst_id,
+                'program_id': program_id,
+                'table_id': table_id,
+                'data_json': [new_log]
+            }).execute()
+
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        print(f"Error in add_activity_alert: {e}")
+        return jsonify({'status': 'error', 'message': str(e)})
+
+
+@planning_bp.route('/api/planning/activity/finance/<int:act_id>', methods=['POST'])
+def update_activity_finance(act_id):
+    try:
+        data = request.json
+        inst_id = data.get('inst_id', 1)
+        program_id = data.get('program_id', 0)
+        executed_budget = float(data.get('executed_budget', 0))
+        executed_hours = float(data.get('executed_hours', 0))
+
+        table_id = f"PLANNING_ACT_FINANCE_{act_id}"
+        stats_res = supabase.table('statistics').select('*').eq('table_id', table_id).execute().data
+        
+        finance_data = {
+            'executed_budget': executed_budget,
+            'executed_hours': executed_hours,
+            'updated_at': datetime.now().isoformat()
+        }
+        
+        if stats_res:
+            supabase.table('statistics').update({'data_json': finance_data}).eq('id', stats_res[0]['id']).execute()
+        else:
+            supabase.table('statistics').insert({
+                'inst_id': inst_id,
+                'program_id': program_id,
+                'table_id': table_id,
+                'data_json': finance_data
+            }).execute()
+
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        print(f"Error in update_activity_finance: {e}")
+        return jsonify({'status': 'error', 'message': str(e)})
+
+
+@planning_bp.route('/api/planning/activity/evidence/<int:act_id>', methods=['POST'])
+def add_activity_evidence(act_id):
+    try:
+        inst_id = request.form.get('inst_id', 1, type=int)
+        program_id = request.form.get('program_id', 0, type=int)
+        uploader = request.form.get('uploader', 'Usuario')
+        
+        if 'file' not in request.files:
+            return jsonify({'status': 'error', 'message': 'No file uploaded'})
+            
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'status': 'error', 'message': 'No file selected'})
+
+        import uuid
+        file_ext = os.path.splitext(file.filename)[1]
+        unique_name = f"{uuid.uuid4()}{file_ext}"
+        storage_path = f"inst_{inst_id}/prog_{program_id}/planning/{act_id}/{unique_name}"
+        
+        file_bytes = file.read()
+        res = supabase.storage.from_('siac-bucket').upload(storage_path, file_bytes)
+        
+        # Get public url
+        url_res = supabase.storage.from_('siac-bucket').get_public_url(storage_path)
+        file_url = url_res if isinstance(url_res, str) else url_res.get('publicURL', '')
+
+        table_id = f"PLANNING_ACT_EVID_{act_id}"
+        stats_res = supabase.table('statistics').select('*').eq('table_id', table_id).execute().data
+        
+        new_ev = {
+            'name': file.filename,
+            'url': storage_path,
+            'public_url': file_url,
+            'date': datetime.now().isoformat(),
+            'uploader': uploader
+        }
+        
+        if stats_res:
+            evs = json.loads(stats_res[0]['data_json']) if isinstance(stats_res[0]['data_json'], str) else stats_res[0]['data_json']
+            if not isinstance(evs, list): evs = []
+            evs.append(new_ev)
+            supabase.table('statistics').update({'data_json': evs}).eq('id', stats_res[0]['id']).execute()
+        else:
+            supabase.table('statistics').insert({
+                'inst_id': inst_id,
+                'program_id': program_id,
+                'table_id': table_id,
+                'data_json': [new_ev]
+            }).execute()
+
+        return jsonify({'status': 'success', 'evidence': new_ev})
+    except Exception as e:
+        print(f"Error in add_activity_evidence: {e}")
+        return jsonify({'status': 'error', 'message': str(e)})
+
+
+@planning_bp.route('/api/cron/planning_alerts', methods=['GET', 'POST'])
+def cron_planning_alerts():
+    try:
+        activities = supabase.table('planning_activities').select('*').neq('status', 'Cumplido').execute().data
+        if not activities:
+            return jsonify({'status': 'success', 'message': 'No pending activities'})
+            
+        alerts_sent = 0
+        now = datetime.now()
+        
+        for act in activities:
+            if not act.get('end_date'): continue
+            if not act.get('responsible'): continue
+            
+            try:
+                end_date = datetime.strptime(act['end_date'], "%Y-%m-%d")
+            except:
+                continue
+                
+            delta = end_date - now
+            if delta.days <= 1:
+                act_id = act['id']
+                table_id = f"PLANNING_ACT_LOGS_{act_id}"
+                stats_res = supabase.table('statistics').select('data_json, id').eq('table_id', table_id).execute().data
+                
+                already_sent_today = False
+                if stats_res:
+                    logs = json.loads(stats_res[0]['data_json']) if isinstance(stats_res[0]['data_json'], str) else stats_res[0]['data_json']
+                    if isinstance(logs, list):
+                        for log in logs:
+                            if log.get('sender') == 'CronBot' and log.get('date', '').startswith(now.strftime("%Y-%m-%d")):
+                                already_sent_today = True
+                                break
+                                
+                if not already_sent_today:
+                    message = f"ALERTA AUTOMÁTICA: La actividad '{act['description']}' vence el {act['end_date']}."
+                    
+                    supabase.table('notificaciones').insert({
+                        'inst_id': 1,
+                        'program_id': 0,
+                        'usuario_email': act['responsible'],
+                        'tipo': 'alerta_planificacion_cron',
+                        'titulo': 'Vencimiento Próximo/Cumplido',
+                        'mensaje': message,
+                        'leido': False
+                    }).execute()
+                    
+                    new_log = {
+                        'date': now.isoformat(),
+                        'message': message,
+                        'sender': 'CronBot'
+                    }
+                    if stats_res:
+                        logs = json.loads(stats_res[0]['data_json']) if isinstance(stats_res[0]['data_json'], str) else stats_res[0]['data_json']
+                        if not isinstance(logs, list): logs = []
+                        logs.append(new_log)
+                        supabase.table('statistics').update({'data_json': logs}).eq('id', stats_res[0]['id']).execute()
+                    else:
+                        supabase.table('statistics').insert({
+                            'inst_id': 1,
+                            'program_id': 0,
+                            'table_id': table_id,
+                            'data_json': [new_log]
+                        }).execute()
+                    alerts_sent += 1
+
+        return jsonify({'status': 'success', 'alerts_sent': alerts_sent})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'status': 'error', 'message': str(e)})
+
+@planning_bp.route('/api/planning/reports/finance', methods=['GET'])
+def report_finance():
+    try:
+        inst_id = request.args.get('inst_id', 1, type=int)
+        
+        # We need strategies, general_objectives, specific_objectives, activities, and their finance data
+        axes = supabase.table('planning_axes').select('*').eq('inst_id', inst_id).execute().data
+        strategies = supabase.table('planning_strategies').select('*').eq('inst_id', inst_id).execute().data
+        gen_objs = supabase.table('planning_general_objectives').select('*').execute().data
+        spec_objs = supabase.table('planning_specific_objectives').select('*').execute().data
+        activities = supabase.table('planning_activities').select('*').execute().data
+        
+        stats_res = supabase.table('statistics').select('*').like('table_id', 'PLANNING_ACT_FINANCE_%').execute().data
+        finance_map = {}
+        for s in stats_res:
+            try:
+                act_id = int(s['table_id'].replace('PLANNING_ACT_FINANCE_', ''))
+                finance_map[act_id] = json.loads(s['data_json']) if isinstance(s['data_json'], str) else s['data_json']
+            except:
+                pass
+                
+        # Aggregate logic
+        act_by_spec = {}
+        for a in activities:
+            f = finance_map.get(a['id'], {})
+            a['executed_budget'] = f.get('executed_budget', 0)
+            a['financial_budget'] = float(a.get('financial_budget') or 0)
+            act_by_spec.setdefault(a['specific_objective_id'], []).append(a)
+            
+        spec_by_gen = {}
+        for s in spec_objs:
+            acts = act_by_spec.get(s['id'], [])
+            s['activities'] = acts
+            s['projected_budget'] = sum(a['financial_budget'] for a in acts)
+            s['executed_budget'] = sum(a['executed_budget'] for a in acts)
+            spec_by_gen.setdefault(s['general_objective_id'], []).append(s)
+            
+        gen_by_strat = {}
+        for g in gen_objs:
+            specs = spec_by_gen.get(g['id'], [])
+            g['specific_objectives'] = specs
+            g['projected_budget'] = sum(s['projected_budget'] for s in specs)
+            g['executed_budget'] = sum(s['executed_budget'] for s in specs)
+            gen_by_strat.setdefault(g['strategy_id'], []).append(g)
+            
+        report = []
+        total_projected = 0
+        total_executed = 0
+        
+        for st in strategies:
+            gens = gen_by_strat.get(st['id'], [])
+            st['general_objectives'] = gens
+            proj = sum(g['projected_budget'] for g in gens)
+            exec_b = sum(g['executed_budget'] for g in gens)
+            
+            st['projected_budget'] = proj
+            st['executed_budget'] = exec_b
+            total_projected += proj
+            total_executed += exec_b
+            
+            report.append({
+                'id': st['id'],
+                'description': st['description'],
+                'projected': proj,
+                'executed': exec_b,
+                'difference': proj - exec_b,
+                'children': [{
+                    'id': g['id'],
+                    'description': g['description'],
+                    'projected': g['projected_budget'],
+                    'executed': g['executed_budget'],
+                    'difference': g['projected_budget'] - g['executed_budget'],
+                    'children': [{
+                        'id': s['id'],
+                        'description': s['description'],
+                        'projected': s['projected_budget'],
+                        'executed': s['executed_budget'],
+                        'difference': s['projected_budget'] - s['executed_budget'],
+                        'children': [{
+                            'id': a['id'],
+                            'description': a['description'],
+                            'projected': a['financial_budget'],
+                            'executed': a['executed_budget'],
+                            'difference': a['financial_budget'] - a['executed_budget'],
+                            'status': a['status']
+                        } for a in s['activities']]
+                    } for s in g['specific_objectives']]
+                } for g in gens]
+            })
+            
+        return jsonify({
+            'status': 'success',
+            'report': report,
+            'total_projected': total_projected,
+            'total_executed': total_executed,
+            'total_difference': total_projected - total_executed
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'status': 'error', 'message': str(e)})
+
