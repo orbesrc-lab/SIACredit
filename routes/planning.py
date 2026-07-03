@@ -530,7 +530,7 @@ def add_activity_evidence(act_id):
         if file.filename == '':
             return jsonify({'status': 'error', 'message': 'No file selected'})
 
-        import uuid
+        import uuid, os
         file_ext = os.path.splitext(file.filename)[1]
         unique_name = f"{uuid.uuid4()}{file_ext}"
         storage_path = f"inst_{inst_id}/prog_{program_id}/planning/{act_id}/{unique_name}"
