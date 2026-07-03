@@ -619,3 +619,18 @@ def debug_courses_err():
             return 'jsonify err: ' + traceback.format_exc()
     except Exception as e:
         return 'load err: ' + traceback.format_exc()
+
+
+@surveys_bp.route('/api/debug_courses_actual')
+def debug_courses_actual():
+    from flask import request
+    import formacion_storage
+    try:
+        inst_id = request.args.get('inst_id', 1, type=int)
+        program_id = request.args.get('program_id', 0, type=int)
+        courses = formacion_storage.load_courses(inst_id, program_id)
+        import json
+        return json.dumps(courses)
+    except Exception as e:
+        import traceback
+        return traceback.format_exc()
