@@ -1,4 +1,11 @@
-from flask import Blueprint, jsonify, request, render_template
+from flask import Blueprint
+
+def safe_int(val, default=1):
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        return default
+, jsonify, request, render_template
 from utils.db import supabase, get_active_inst_id
 import traceback
 
@@ -433,8 +440,8 @@ from datetime import datetime
 def add_activity_alert(act_id):
     try:
         data = request.json
-        inst_id = data.get('inst_id', 1)
-        program_id = data.get('program_id', 0)
+        inst_id = safe_int(data.get('inst_id'), 1)
+        program_id = safe_int(data.get('program_id'), 0)
         message = data.get('message', 'Alerta de Planificación')
         sender = data.get('sender', 'Sistema')
         responsible_email = data.get('responsible_email')
@@ -486,8 +493,8 @@ def add_activity_alert(act_id):
 def update_activity_finance(act_id):
     try:
         data = request.json
-        inst_id = data.get('inst_id', 1)
-        program_id = data.get('program_id', 0)
+        inst_id = safe_int(data.get('inst_id'), 1)
+        program_id = safe_int(data.get('program_id'), 0)
         executed_budget = float(data.get('executed_budget', 0))
         executed_hours = float(data.get('executed_hours', 0))
 
@@ -519,8 +526,8 @@ def update_activity_finance(act_id):
 @planning_bp.route('/api/planning/activity/evidence/<int:act_id>', methods=['POST'])
 def add_activity_evidence(act_id):
     try:
-        inst_id = request.form.get('inst_id', 1, type=int)
-        program_id = request.form.get('program_id', 0, type=int)
+        inst_id = safe_int(request.form.get('inst_id'), 1)
+        program_id = safe_int(request.form.get('program_id'), 0)
         uploader = request.form.get('uploader', 'Usuario')
         
         if 'file' not in request.files:
