@@ -555,9 +555,9 @@
 
     async function loadFactors() {
         try {
-            const r = await fetch('/api/programs/metadata?inst_id=' + currentInstId + '&program_id=0');
+            const r = await fetch('/api/model?inst_id=' + currentInstId + '&program_id=' + (localStorage.getItem('current_program_id') || 47));
             const d = await r.json();
-            factoresData = d.factors || d || [];
+            factoresData = d || [];
             ['factorFilter','evidFactorFilter'].forEach(id => {
                 const sel = document.getElementById(id);
                 if(!sel) return;
