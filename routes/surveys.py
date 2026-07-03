@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, send_from_directory, render_template
+from flask import Blueprint, jsonify, request, send_from_directory, render_template, Response
 from utils.db import supabase, get_active_inst_id
 import json
 import os
@@ -221,10 +221,10 @@ def handle_api_teachers():
         return jsonify({"status": "error", "message": "No se pudo guardar el docente."})
     try:
         teachers = formacion_storage.load_teachers(inst_id)
-        return jsonify(teachers)
+        return Response(json.dumps(teachers), mimetype='application/json')
     except Exception as e:
         print(f"Error loading teachers: {e}")
-        return jsonify([]), 200
+        return Response(json.dumps([]), mimetype='application/json')
 
 @surveys_bp.route('/api/teachers/<teacher_id>', methods=['DELETE'])
 def delete_api_teacher(teacher_id):
@@ -246,19 +246,27 @@ def handle_api_courses():
         return jsonify({"status": "error", "message": "No se pudo guardar el curso."})
     try:
         courses = formacion_storage.load_courses(inst_id, program_id)
-        return jsonify(courses)
+        resp = Response(json.dumps(courses), mimetype='application/json')
+        resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return resp
     except Exception as e:
         print(f"Error loading courses: {e}")
-        return jsonify([]), 200
+        resp = Response(json.dumps([]), mimetype='application/json')
+        resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return resp
 
 @surveys_bp.route('/api/public/courses', methods=['GET'])
 def handle_api_public_courses():
     try:
         courses = formacion_storage.load_courses(1, 0)
-        return jsonify(courses)
+        resp = Response(json.dumps(courses), mimetype='application/json')
+        resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return resp
     except Exception as e:
         print(f"Error loading public courses: {e}")
-        return jsonify([]), 200
+        resp = Response(json.dumps([]), mimetype='application/json')
+        resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return resp
 
 
 @surveys_bp.route('/api/courses/<course_id>/forum', methods=['GET', 'POST'])
@@ -443,10 +451,10 @@ def handle_api_students():
         return jsonify({"status": "error", "message": "No se pudo guardar el estudiante."})
     try:
         students = formacion_storage.load_students(inst_id)
-        return jsonify(students)
+        return Response(json.dumps(students), mimetype='application/json')
     except Exception as e:
         print(f"Error loading students: {e}")
-        return jsonify([]), 200
+        return Response(json.dumps([]), mimetype='application/json')
 
 @surveys_bp.route('/api/submissions', methods=['GET', 'POST'])
 def handle_api_submissions():
