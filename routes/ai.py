@@ -404,10 +404,20 @@ def get_library():
     inst_id = request.args.get('inst_id', 1, type=int)
     try:
         global_res = supabase.table('statistics').select("data_json").eq("table_id", "BIBLIOTECA_GLOBAL").execute()
-        global_docs = json.loads(global_res.data[0]['data_json']) if global_res.data else []
+        
+        def parse_data(data_row):
+            if not data_row: return []
+            dj = data_row[0].get('data_json', [])
+            if isinstance(dj, str):
+                import json
+                try: return json.loads(dj)
+                except: return []
+            return dj
+            
+        global_docs = parse_data(global_res.data)
         
         inst_res = supabase.table('statistics').select("data_json").eq("table_id", "BIBLIOTECA_INST").eq("inst_id", inst_id).execute()
-        inst_docs = json.loads(inst_res.data[0]['data_json']) if inst_res.data else []
+        inst_docs = parse_data(inst_res.data)
         
         return jsonify({
             "global": global_docs,

@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, render_template
 from utils.db import supabase, get_active_inst_id
 import traceback
+import json
 
 prospects_bp = Blueprint('prospects', __name__)
 
