@@ -441,6 +441,7 @@ def add_activity_alert(act_id):
         data = request.json
         inst_id = safe_int(data.get('inst_id'), 1)
         program_id = safe_int(data.get('program_id'), 0)
+        if program_id == 0: program_id = None
         message = data.get('message', 'Alerta de Planificación')
         sender = data.get('sender', 'Sistema')
         responsible_email = data.get('responsible_email')
@@ -494,6 +495,7 @@ def update_activity_finance(act_id):
         data = request.json
         inst_id = safe_int(data.get('inst_id'), 1)
         program_id = safe_int(data.get('program_id'), 0)
+        if program_id == 0: program_id = None
         executed_budget = float(data.get('executed_budget', 0))
         executed_hours = float(data.get('executed_hours', 0))
 
@@ -527,6 +529,7 @@ def add_activity_evidence(act_id):
     try:
         inst_id = safe_int(request.form.get('inst_id'), 1)
         program_id = safe_int(request.form.get('program_id'), 0)
+        if program_id == 0: program_id = None
         uploader = request.form.get('uploader', 'Usuario')
         
         if 'file' not in request.files:
