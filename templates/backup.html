@@ -661,6 +661,7 @@
         try {
             await downloadBlob('/api/backup/factor', {
                 inst_id: currentInstId,
+                ...authData,
                 factor_id: fid,
                 caracteristica_id: document.getElementById('caracFilter').value || null,
                 year: document.getElementById('yearFilter2').value || null
@@ -681,6 +682,7 @@
         try {
             await downloadBlob('/api/backup/evidencias', {
                 inst_id: currentInstId,
+                ...authData,
                 year: document.getElementById('evidYearFilter').value || null,
                 status: document.getElementById('evidStatusFilter').value || null,
                 factor_id: document.getElementById('evidFactorFilter').value || null
