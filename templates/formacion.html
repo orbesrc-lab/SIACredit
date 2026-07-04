@@ -2052,9 +2052,10 @@
                 const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, { method: 'DELETE' });
                 if (resp.ok) {
                     loadCoursesList();
-                    if (document.getElementById('editCourseId').value === courseId) closeEditor();
+                    const editEl = document.getElementById('editCourseId');
+                    if (editEl && editEl.value === courseId) closeEditor();
                 }
-            } catch(e) { alert("Error de red."); }
+            } catch(e) { console.error(e); alert("Error de red al eliminar."); }
         }
 
         // ========== EDITOR DETALLADO DEL CURSO SELECCIONADO (Admin) ==========
