@@ -580,6 +580,33 @@ def add_activity_evidence(act_id):
         print(f"Error in add_activity_evidence: {e}")
         return jsonify({'status': 'error', 'message': str(e)})
 
+@planning_bp.route('/api/planning/activity/evidence/<int:act_id>', methods=['DELETE'])
+def delete_activity_evidence(act_id):
+    try:
+        data = request.json
+        url_to_delete = data.get('url')
+        if not url_to_delete:
+            return jsonify({'status': 'error', 'message': 'Missing url'})
+            
+        table_id = f"PLANNING_ACT_EVID_{act_id}"
+        stats_res = supabase.table('statistics').select('*').eq('table_id', table_id).execute().data
+        if not stats_res:
+            return jsonify({'status': 'error', 'message': 'No evidences found'})
+            
+        evs = json.loads(stats_res[0]['data_json']) if isinstance(stats_res[0]['data_json'], str) else stats_res[0]['data_json']
+        new_evs = [ev for ev in evs if ev.get('url') != url_to_delete]
+        
+        try:
+            supabase.storage.from_('evidencias').remove([url_to_delete])
+        except Exception as e_storage:
+            print(f"Storage remove error: {e_storage}")
+            
+        supabase.table('statistics').update({'data_json': new_evs}).eq('id', stats_res[0]['id']).execute()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        print(f"Error deleting evidence: {e}")
+        return jsonify({'status': 'error', 'message': str(e)})
+
 
 @planning_bp.route('/api/cron/planning_alerts', methods=['GET', 'POST'])
 def cron_planning_alerts():
