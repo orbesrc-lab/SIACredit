@@ -3,7 +3,7 @@ from utils.db import supabase, get_active_inst_id
 import json
 import os
 import survey_storage
-
+import formacion_storage
 surveys_bp = Blueprint('surveys', __name__)
 
 # --- Rutas del Módulo de Encuestas de Autoevaluación ---
