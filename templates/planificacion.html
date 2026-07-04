@@ -1692,12 +1692,6 @@
                 if(ps) ps.remove();
             }, 1000);
         }
-            const el = document.getElementById('reportsContainer');
-            const btn = document.getElementById('exportPdfBtn');
-            const orig = btn ? btn.innerHTML : '';
-            if(btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...'; btn.disabled = true; }
-            html2pdf().set({ margin: 10, filename: 'Reporte_SIAC.pdf', image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } }).from(el).save().then(() => { if(btn) { btn.innerHTML = orig; btn.disabled = false; } }).catch(e => { if(btn) { btn.innerHTML = orig; btn.disabled = false; } console.error(e); });
-        }
 </script>
 
 <script>
