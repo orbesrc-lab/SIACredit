@@ -85,7 +85,7 @@ def _sb_upsert(table, row):
     sb = _get_supabase()
     if not sb: return False
     try:
-        db_row = {"id": row.get('id'), "inst_id": row.get('inst_id', 1), "data": row}
+        db_row = {"id": row.get('id'), "inst_id": row.get('inst_id', 1), "data": row.get('data', row)}
         if 'program_id' in row: db_row['program_id'] = row['program_id']
         if 'course_id' in row: db_row['course_id'] = row['course_id']
         if 'student_email' in row: db_row['student_email'] = row['student_email']
