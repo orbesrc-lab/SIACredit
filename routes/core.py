@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, session, render_template
 from utils.db import supabase
-from utils.mail import send_email, get_active_inst_id
+from utils.mail import send_email
+from utils.db import get_active_inst_id
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 import json
