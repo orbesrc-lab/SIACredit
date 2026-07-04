@@ -226,6 +226,36 @@
                 <h3 style="margin-bottom: 15px; font-size: 1.2rem;">Actividad Reciente</h3>
                 <div id="activityList"></div>
             </div>
+
+            <!-- NUEVA SECCIÓN ESTADÍSTICA -->
+            <div class="dashboard-viz-card" style="margin-top: 30px;">
+                <h2 style="font-size: 1.5rem; margin-top: 0; color: var(--primary-color);"><i class="fas fa-chart-area"></i> Análisis Estadístico CNA</h2>
+                <p style="color: var(--text-muted); margin-bottom: 20px;">Indicadores basados en los cuadros maestros del módulo de Estadísticas.</p>
+                <div class="stats-charts-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px;">
+                    
+                    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
+                        <h4 style="text-align:center; color: var(--text-main); margin-top:0; margin-bottom:15px;">Población Estudiantil</h4>
+                        <div style="position:relative; height: 280px;"><canvas id="chartEstudiantes"></canvas></div>
+                    </div>
+                    
+                    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
+                        <h4 style="text-align:center; color: var(--text-main); margin-top:0; margin-bottom:15px;">Nivel de Formación Docente</h4>
+                        <div style="position:relative; height: 280px;"><canvas id="chartDocentes"></canvas></div>
+                    </div>
+                    
+                    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
+                        <h4 style="text-align:center; color: var(--text-main); margin-top:0; margin-bottom:15px;">Deserción vs Retención</h4>
+                        <div style="position:relative; height: 280px;"><canvas id="chartDesercion"></canvas></div>
+                    </div>
+                    
+                    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
+                        <h4 style="text-align:center; color: var(--text-main); margin-top:0; margin-bottom:15px;">Productividad Académica</h4>
+                        <div style="position:relative; height: 280px;"><canvas id="chartProductividad"></canvas></div>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -738,6 +768,136 @@
         }
 
         initDashboard();
+        loadStatisticsCharts();
+    
+        // ==========================================
+        // LÓGICA DE GRÁFICAS ESTADÍSTICAS (CNA)
+        // ==========================================
+        
+        let chartEstudiantesInstance = null;
+        let chartDocentesInstance = null;
+        let chartDesercionInstance = null;
+        let chartProductividadInstance = null;
+
+        async function loadStatisticsCharts() {
+            try {
+                const res = await fetch(`/api/estadisticas?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                if(!res.ok) return;
+                const data = await res.json();
+                
+                renderChartEstudiantes(data.table_estudiantes || []);
+                renderChartDocentes(data.table_docentes || []);
+                renderChartDesercion(data.table_desercion || []);
+                renderChartProductividad(data.table_productividad || []);
+                
+            } catch(e) {
+                console.error("Error loading statistics charts:", e);
+            }
+        }
+
+        function renderChartEstudiantes(rows) {
+            const ctx = document.getElementById('chartEstudiantes').getContext('2d');
+            if(chartEstudiantesInstance) chartEstudiantesInstance.destroy();
+            
+            const labels = rows.map(r => r[0] || 'N/A');
+            const inscritos = rows.map(r => parseInt(r[1]) || 0);
+            const admitidos = rows.map(r => parseInt(r[2]) || 0);
+            const matriculados = rows.map(r => parseInt(r[4]) || 0);
+            
+            chartEstudiantesInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Inscritos', data: inscritos, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3 },
+                        { label: 'Admitidos', data: admitidos, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 },
+                        { label: 'Matriculados', data: matriculados, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.1)', fill: true, tension: 0.3 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderChartDocentes(rows) {
+            const ctx = document.getElementById('chartDocentes').getContext('2d');
+            if(chartDocentesInstance) chartDocentesInstance.destroy();
+            
+            let doc = 0, mae = 0, esp = 0, pre = 0;
+            rows.forEach(r => {
+                doc += parseInt(r[1]) || 0;
+                mae += parseInt(r[2]) || 0;
+                esp += parseInt(r[3]) || 0;
+                pre += parseInt(r[4]) || 0;
+            });
+            
+            chartDocentesInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Doctorado', 'Maestría', 'Especialización', 'Pregrado'],
+                    datasets: [{
+                        data: [doc, mae, esp, pre],
+                        backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderChartDesercion(rows) {
+            const ctx = document.getElementById('chartDesercion').getContext('2d');
+            if(chartDesercionInstance) chartDesercionInstance.destroy();
+            
+            const labels = rows.map(r => r[0] || 'N/A');
+            const desercion = rows.map(r => parseFloat(r[2]) || 0);
+            const retencion = rows.map(r => parseFloat(r[3]) || 0);
+            
+            chartDesercionInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Deserción (%)', data: desercion, backgroundColor: '#ef4444' },
+                        { label: 'Retención (%)', data: retencion, backgroundColor: '#10b981' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderChartProductividad(rows) {
+            const ctx = document.getElementById('chartProductividad').getContext('2d');
+            if(chartProductividadInstance) chartProductividadInstance.destroy();
+            
+            let art = 0, lib = 0, cap = 0, pat = 0, sw = 0, otr = 0;
+            rows.forEach(r => {
+                art += parseInt(r[1]) || 0;
+                lib += parseInt(r[2]) || 0;
+                cap += parseInt(r[3]) || 0;
+                pat += parseInt(r[4]) || 0;
+                sw += parseInt(r[5]) || 0;
+                otr += parseInt(r[6]) || 0;
+            });
+            
+            chartProductividadInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Artículos', 'Libros', 'Capítulos', 'Patentes', 'Software', 'Otros'],
+                    datasets: [{
+                        label: 'Producción Total',
+                        data: [art, lib, cap, pat, sw, otr],
+                        backgroundColor: 'rgba(139,92,246,0.2)',
+                        borderColor: '#8b5cf6',
+                        pointBackgroundColor: '#8b5cf6'
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    scales: { r: { suggestedMin: 0 } }
+                }
+            });
+        }
+
     </script>
     <script src="{{ url_for('static', filename='app.js') }}?v=3.3"></script>
 <script>
