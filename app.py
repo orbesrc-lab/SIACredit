@@ -1,3 +1,4 @@
+from utils.mail import send_email
 from flask import Flask, render_template, request, jsonify, session, Response, send_from_directory, redirect
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -80,32 +81,6 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-def send_email(to_email, subject, html_content):
-    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", "465"))
-    smtp_user = os.getenv("SMTP_EMAIL", "orbesrc@gmail.com")
-    smtp_pass = os.getenv("SMTP_PASSWORD", "")
-    
-    if not smtp_pass:
-        print("Advertencia: SMTP_PASSWORD no configurado. Correo no enviado.")
-        return False
-        
-    msg = MIMEMultipart()
-    msg['From'] = f"SKEL 360 <{smtp_user}>"
-    msg['To'] = to_email
-    msg['Subject'] = subject
-    
-    msg.attach(MIMEText(html_content, 'html'))
-    
-    try:
-        # Usamos SMTP_SSL para el puerto 465 que es el estándar de Hostinger
-        with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
-            server.login(smtp_user, smtp_pass)
-            server.send_message(msg)
-        return True
-    except Exception as e:
-        print(f"Error enviando correo a {to_email}: {e}")
-        return False
 
 def get_active_inst_id(requested_id):
     try:
