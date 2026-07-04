@@ -233,24 +233,86 @@
                 <p style="color: var(--text-muted); margin-bottom: 20px;">Indicadores basados en los cuadros maestros del módulo de Estadísticas.</p>
                 <div class="stats-charts-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px;">
                     
-                    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
-                        <h4 style="text-align:center; color: var(--text-main); margin-top:0; margin-bottom:15px;">Población Estudiantil</h4>
-                        <div style="position:relative; height: 280px;"><canvas id="chartEstudiantes"></canvas></div>
+                    <!-- Chart 1: Estudiantes -->
+                    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); position: relative;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h4 style="color: var(--text-main); margin:0;">Población Estudiantil</h4>
+                            <div style="display:flex; gap:10px;">
+                                <select onchange="updateChartType('chartEstudiantes', this.value)" style="padding: 4px; border-radius: 4px; font-size: 0.8rem;">
+                                    <option value="line">Líneas</option>
+                                    <option value="bar">Barras</option>
+                                    <option value="radar">Radar</option>
+                                </select>
+                                <button onclick="downloadChart('chartEstudiantes')" class="btn-ghost" title="Descargar Imagen" style="padding:4px 8px;"><i class="fas fa-download"></i></button>
+                            </div>
+                        </div>
+                        <div style="position:relative; height: 280px; background: white;"><canvas id="chartEstudiantes"></canvas></div>
                     </div>
                     
-                    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
-                        <h4 style="text-align:center; color: var(--text-main); margin-top:0; margin-bottom:15px;">Nivel de Formación Docente</h4>
-                        <div style="position:relative; height: 280px;"><canvas id="chartDocentes"></canvas></div>
+                    <!-- Chart 2: Docentes -->
+                    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); position: relative;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h4 style="color: var(--text-main); margin:0;">Formación Docente</h4>
+                            <div style="display:flex; gap:10px;">
+                                <select onchange="updateChartType('chartDocentes', this.value)" style="padding: 4px; border-radius: 4px; font-size: 0.8rem;">
+                                    <option value="doughnut">Doughnut</option>
+                                    <option value="pie">Pie</option>
+                                    <option value="bar">Barras</option>
+                                    <option value="polarArea">Área Polar</option>
+                                </select>
+                                <button onclick="downloadChart('chartDocentes')" class="btn-ghost" title="Descargar Imagen" style="padding:4px 8px;"><i class="fas fa-download"></i></button>
+                            </div>
+                        </div>
+                        <div style="position:relative; height: 280px; background: white;"><canvas id="chartDocentes"></canvas></div>
                     </div>
                     
-                    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
-                        <h4 style="text-align:center; color: var(--text-main); margin-top:0; margin-bottom:15px;">Deserción vs Retención</h4>
-                        <div style="position:relative; height: 280px;"><canvas id="chartDesercion"></canvas></div>
+                    <!-- Chart 3: Deserción -->
+                    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); position: relative;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h4 style="color: var(--text-main); margin:0;">Deserción vs Retención</h4>
+                            <div style="display:flex; gap:10px;">
+                                <select onchange="updateChartType('chartDesercion', this.value)" style="padding: 4px; border-radius: 4px; font-size: 0.8rem;">
+                                    <option value="bar">Barras</option>
+                                    <option value="line">Líneas</option>
+                                    <option value="radar">Radar</option>
+                                </select>
+                                <button onclick="downloadChart('chartDesercion')" class="btn-ghost" title="Descargar Imagen" style="padding:4px 8px;"><i class="fas fa-download"></i></button>
+                            </div>
+                        </div>
+                        <div style="position:relative; height: 280px; background: white;"><canvas id="chartDesercion"></canvas></div>
                     </div>
                     
-                    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
-                        <h4 style="text-align:center; color: var(--text-main); margin-top:0; margin-bottom:15px;">Productividad Académica</h4>
-                        <div style="position:relative; height: 280px;"><canvas id="chartProductividad"></canvas></div>
+                    <!-- Chart 4: Productividad -->
+                    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); position: relative;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h4 style="color: var(--text-main); margin:0;">Productividad Académica</h4>
+                            <div style="display:flex; gap:10px;">
+                                <select onchange="updateChartType('chartProductividad', this.value)" style="padding: 4px; border-radius: 4px; font-size: 0.8rem;">
+                                    <option value="radar">Radar</option>
+                                    <option value="polarArea">Área Polar</option>
+                                    <option value="bar">Barras</option>
+                                    <option value="pie">Pie</option>
+                                </select>
+                                <button onclick="downloadChart('chartProductividad')" class="btn-ghost" title="Descargar Imagen" style="padding:4px 8px;"><i class="fas fa-download"></i></button>
+                            </div>
+                        </div>
+                        <div style="position:relative; height: 280px; background: white;"><canvas id="chartProductividad"></canvas></div>
+                    </div>
+
+                    <!-- Chart 5: Investigación -->
+                    <div style="background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); position: relative;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h4 style="color: var(--text-main); margin:0;">Grupos de Investigación</h4>
+                            <div style="display:flex; gap:10px;">
+                                <select onchange="updateChartType('chartInvestigacion', this.value)" style="padding: 4px; border-radius: 4px; font-size: 0.8rem;">
+                                    <option value="pie">Pie</option>
+                                    <option value="doughnut">Doughnut</option>
+                                    <option value="bar">Barras</option>
+                                </select>
+                                <button onclick="downloadChart('chartInvestigacion')" class="btn-ghost" title="Descargar Imagen" style="padding:4px 8px;"><i class="fas fa-download"></i></button>
+                            </div>
+                        </div>
+                        <div style="position:relative; height: 280px; background: white;"><canvas id="chartInvestigacion"></canvas></div>
                     </div>
 
                 </div>
@@ -774,10 +836,21 @@
         // LÓGICA DE GRÁFICAS ESTADÍSTICAS (CNA)
         // ==========================================
         
-        let chartEstudiantesInstance = null;
-        let chartDocentesInstance = null;
-        let chartDesercionInstance = null;
-        let chartProductividadInstance = null;
+        let chartInstances = {
+            chartEstudiantes: null,
+            chartDocentes: null,
+            chartDesercion: null,
+            chartProductividad: null,
+            chartInvestigacion: null
+        };
+        
+        let chartDataStore = {
+            chartEstudiantes: null,
+            chartDocentes: null,
+            chartDesercion: null,
+            chartProductividad: null,
+            chartInvestigacion: null
+        };
 
         async function loadStatisticsCharts() {
             try {
@@ -789,113 +862,150 @@
                 renderChartDocentes(data.table_docentes || []);
                 renderChartDesercion(data.table_desercion || []);
                 renderChartProductividad(data.table_productividad || []);
+                renderChartInvestigacion(data.table_investigacion || []);
                 
             } catch(e) {
                 console.error("Error loading statistics charts:", e);
             }
         }
 
-        function renderChartEstudiantes(rows) {
-            const ctx = document.getElementById('chartEstudiantes').getContext('2d');
-            if(chartEstudiantesInstance) chartEstudiantesInstance.destroy();
+        function createOrUpdateChart(id, type, dataConfig, optionsConfig) {
+            const ctx = document.getElementById(id).getContext('2d');
+            if(chartInstances[id]) {
+                chartInstances[id].destroy();
+            }
             
-            const labels = rows.map(r => r[0] || 'N/A');
-            const inscritos = rows.map(r => parseInt(r[1]) || 0);
-            const admitidos = rows.map(r => parseInt(r[2]) || 0);
-            const matriculados = rows.map(r => parseInt(r[4]) || 0);
+            // For polarArea/pie/doughnut/radar we might need to adjust datasets based on type
+            let currentData = JSON.parse(JSON.stringify(dataConfig));
             
-            chartEstudiantesInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Inscritos', data: inscritos, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3 },
-                        { label: 'Admitidos', data: admitidos, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 },
-                        { label: 'Matriculados', data: matriculados, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.1)', fill: true, tension: 0.3 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
+            if (['pie', 'doughnut', 'polarArea'].includes(type) && currentData.datasets.length > 1) {
+                // Flatten to a single dataset if moving from bar/line to circular
+                // This is a simplified approach. Usually you map the first dataset.
+            }
+            
+            chartInstances[id] = new Chart(ctx, {
+                type: type,
+                data: currentData,
+                options: optionsConfig || { responsive: true, maintainAspectRatio: false }
             });
+            
+            // Save data to store so we can redraw it later
+            chartDataStore[id] = { type, dataConfig, optionsConfig };
+        }
+
+        function updateChartType(id, newType) {
+            const store = chartDataStore[id];
+            if(store) {
+                createOrUpdateChart(id, newType, store.dataConfig, store.optionsConfig);
+            }
+        }
+
+        function downloadChart(id) {
+            const chart = chartInstances[id];
+            if(!chart) return;
+            const a = document.createElement('a');
+            a.href = chart.toBase64Image();
+            a.download = id + '.png';
+            a.click();
+        }
+
+        function renderChartEstudiantes(rows) {
+            const labels = rows.map(r => r.periodo || 'N/A');
+            const inscritos = rows.map(r => parseInt(r.inscritos) || 0);
+            const admitidos = rows.map(r => parseInt(r.admitidos) || 0);
+            const matriculados = rows.map(r => parseInt(r.matriculados1 || r.total_matriculados) || 0);
+            
+            const dataConfig = {
+                labels: labels,
+                datasets: [
+                    { label: 'Inscritos', data: inscritos, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3 },
+                    { label: 'Admitidos', data: admitidos, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 },
+                    { label: 'Matriculados', data: matriculados, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.1)', fill: true, tension: 0.3 }
+                ]
+            };
+            createOrUpdateChart('chartEstudiantes', 'line', dataConfig, { responsive: true, maintainAspectRatio: false });
         }
 
         function renderChartDocentes(rows) {
-            const ctx = document.getElementById('chartDocentes').getContext('2d');
-            if(chartDocentesInstance) chartDocentesInstance.destroy();
-            
             let doc = 0, mae = 0, esp = 0, pre = 0;
             rows.forEach(r => {
-                doc += parseInt(r[1]) || 0;
-                mae += parseInt(r[2]) || 0;
-                esp += parseInt(r[3]) || 0;
-                pre += parseInt(r[4]) || 0;
+                doc += parseInt(r.doctorado) || 0;
+                mae += parseInt(r.maestria) || 0;
+                esp += parseInt(r.especializacion) || 0;
+                pre += parseInt(r.pregrado) || 0;
             });
             
-            chartDocentesInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Doctorado', 'Maestría', 'Especialización', 'Pregrado'],
-                    datasets: [{
-                        data: [doc, mae, esp, pre],
-                        backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981']
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+            const dataConfig = {
+                labels: ['Doctorado', 'Maestría', 'Especialización', 'Pregrado'],
+                datasets: [{
+                    label: 'Nivel Docente',
+                    data: [doc, mae, esp, pre],
+                    backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981']
+                }]
+            };
+            createOrUpdateChart('chartDocentes', 'doughnut', dataConfig, { responsive: true, maintainAspectRatio: false });
         }
 
         function renderChartDesercion(rows) {
-            const ctx = document.getElementById('chartDesercion').getContext('2d');
-            if(chartDesercionInstance) chartDesercionInstance.destroy();
+            const labels = rows.map(r => r.cohorte || 'N/A');
+            const desercion = rows.map(r => parseFloat(r.desercion) || 0);
+            const retencion = rows.map(r => parseFloat(r.retencion) || 0);
             
-            const labels = rows.map(r => r[0] || 'N/A');
-            const desercion = rows.map(r => parseFloat(r[2]) || 0);
-            const retencion = rows.map(r => parseFloat(r[3]) || 0);
-            
-            chartDesercionInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Deserción (%)', data: desercion, backgroundColor: '#ef4444' },
-                        { label: 'Retención (%)', data: retencion, backgroundColor: '#10b981' }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+            const dataConfig = {
+                labels: labels,
+                datasets: [
+                    { label: 'Deserción (%)', data: desercion, backgroundColor: '#ef4444' },
+                    { label: 'Retención (%)', data: retencion, backgroundColor: '#10b981' }
+                ]
+            };
+            createOrUpdateChart('chartDesercion', 'bar', dataConfig, { responsive: true, maintainAspectRatio: false });
         }
 
         function renderChartProductividad(rows) {
-            const ctx = document.getElementById('chartProductividad').getContext('2d');
-            if(chartProductividadInstance) chartProductividadInstance.destroy();
-            
             let art = 0, lib = 0, cap = 0, pat = 0, sw = 0, otr = 0;
             rows.forEach(r => {
-                art += parseInt(r[1]) || 0;
-                lib += parseInt(r[2]) || 0;
-                cap += parseInt(r[3]) || 0;
-                pat += parseInt(r[4]) || 0;
-                sw += parseInt(r[5]) || 0;
-                otr += parseInt(r[6]) || 0;
+                art += parseInt(r.articulos) || 0;
+                lib += parseInt(r.libros) || 0;
+                cap += parseInt(r.capitulos) || 0;
+                pat += parseInt(r.patentes) || 0;
+                sw += parseInt(r.software) || 0;
+                otr += parseInt(r.otros) || 0;
             });
             
-            chartProductividadInstance = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['Artículos', 'Libros', 'Capítulos', 'Patentes', 'Software', 'Otros'],
-                    datasets: [{
-                        label: 'Producción Total',
-                        data: [art, lib, cap, pat, sw, otr],
-                        backgroundColor: 'rgba(139,92,246,0.2)',
-                        borderColor: '#8b5cf6',
-                        pointBackgroundColor: '#8b5cf6'
-                    }]
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    scales: { r: { suggestedMin: 0 } }
-                }
+            const dataConfig = {
+                labels: ['Artículos', 'Libros', 'Capítulos', 'Patentes', 'Software', 'Otros'],
+                datasets: [{
+                    label: 'Producción Total',
+                    data: [art, lib, cap, pat, sw, otr],
+                    backgroundColor: 'rgba(139,92,246,0.2)',
+                    borderColor: '#8b5cf6',
+                    pointBackgroundColor: '#8b5cf6'
+                }]
+            };
+            createOrUpdateChart('chartProductividad', 'radar', dataConfig, { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: { r: { suggestedMin: 0 } }
             });
+        }
+
+        function renderChartInvestigacion(rows) {
+            // Count classifications (A1, A, B, C, etc.)
+            const counts = {};
+            rows.forEach(r => {
+                const cls = r.clasificacion ? r.clasificacion.toUpperCase() : 'Sin Clasificar';
+                counts[cls] = (counts[cls] || 0) + 1;
+            });
+            
+            const dataConfig = {
+                labels: Object.keys(counts),
+                datasets: [{
+                    label: 'Grupos por Clasificación',
+                    data: Object.values(counts),
+                    backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#6366f1', '#8b5cf6']
+                }]
+            };
+            createOrUpdateChart('chartInvestigacion', 'pie', dataConfig, { responsive: true, maintainAspectRatio: false });
         }
 
     </script>
