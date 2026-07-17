@@ -116,7 +116,11 @@ def handle_model():
         except Exception:
             res = supabase.table('factors').select("*, characteristics(*, aspects(*))").eq("inst_id", inst_id).eq("program_id", program_id).execute()
             
-        sorted_data = sorted(res.data, key=lambda x: float(x['number']))
+        def safe_float(val):
+            try: return float(val)
+            except: return 9999.0
+            
+        sorted_data = sorted(res.data, key=lambda x: safe_float(x.get('number', 9999)))
         return jsonify(sorted_data)
     except Exception as e:
         print(f"Error fetching model: {e}")
