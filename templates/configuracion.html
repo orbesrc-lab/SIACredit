@@ -976,7 +976,7 @@
             document.body.removeChild(link);
         }
 
-        function parseCSVLine(line) {
+        function parseCSVLine(line, delimiter) {
             const cols = [];
             let cur = '';
             let inQuotes = false;
@@ -988,7 +988,7 @@
                     else { cur += ch; }
                 } else {
                     if (ch === '"') { inQuotes = true; }
-                    else if (ch === ';') { cols.push(cur.trim()); cur = ''; }
+                    else if (ch === delimiter) { cols.push(cur.trim()); cur = ''; }
                     else { cur += ch; }
                 }
             }
@@ -998,29 +998,35 @@
         
         function parseCSV(text) {
             const lines = text.split('\n').filter(line => line.trim() !== '');
+            if (lines.length < 2) return [];
+            
+            // Auto-detect delimiter from header: prefer ';', fall back to ','
+            const headerClean = lines[0].replace(/\r$/, '');
+            const delimiter = headerClean.includes(';') ? ';' : ',';
+            
             const factorsMap = {};
             
             // Skip header
             for (let i = 1; i < lines.length; i++) {
                 // Remove \r if present (Windows line endings)
                 const cleanLine = lines[i].replace(/\r$/, '');
-                const cols = parseCSVLine(cleanLine);
-                if (cols.length < 4) continue;
+                const cols = parseCSVLine(cleanLine, delimiter);
+                if (cols.length < 2) continue;
                 
-                const fNum = cols[0].trim();
-                const fName = cols[1].trim();
-                const cNum = cols[2].trim();
-                const cName = cols[3].trim();
+                const fNum = (cols[0] || '').trim();
+                const fName = (cols[1] || '').trim();
+                const cNum = (cols[2] || '').trim();
+                const cName = (cols[3] || '').trim();
                 const aText = cols[4] ? cols[4].trim() : "";
 
                 if (!fNum || !fName) continue;
 
                 if (!factorsMap[fNum]) {
-                    factorsMap[fNum] = { id: 'f' + generateId(), number: fNum, name: fName, characteristics: {} };
+                    factorsMap[fNum] = { id: 'f' + generateId(), number: fNum, name: fName, weight: 0, characteristics: {} };
                 }
                 
                 if (cNum && cName && !factorsMap[fNum].characteristics[cNum]) {
-                    factorsMap[fNum].characteristics[cNum] = { id: 'c' + generateId(), factor_id: factorsMap[fNum].id, number: cNum, name: cName, aspects: [] };
+                    factorsMap[fNum].characteristics[cNum] = { id: 'c' + generateId(), factor_id: factorsMap[fNum].id, number: cNum, name: cName, weight: 0, aspects: [] };
                 }
                 
                 if (aText && cNum && factorsMap[fNum].characteristics[cNum]) {
