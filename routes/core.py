@@ -38,33 +38,45 @@ def handle_model():
             incoming_c_ids = set()
             incoming_a_ids = set()
             
+            factors_list = []
+            chars_list = []
+            aspects_list = []
+            
             for f in data:
                 incoming_f_ids.add(f['id'])
-                # Upsert Factor
-                try:
-                    supabase.table('factors').upsert({
-                        "id": f['id'], "number": f['number'], "name": f['name'], 
-                        "weight": f.get('weight', 0), "inst_id": inst_id, "program_id": program_id,
-                        "leader_id": f.get('leader_id') or None
-                    }).execute()
-                except Exception:
-                    supabase.table('factors').upsert({
-                        "id": f['id'], "number": f['number'], "name": f['name'], 
-                        "weight": f.get('weight', 0), "inst_id": inst_id, "program_id": program_id
-                    }).execute()
+                leader_id = f.get('leader_id')
+                if not leader_id or str(leader_id).strip() == '':
+                    leader_id = None
+                
+                factors_list.append({
+                    "id": f['id'], "number": str(f['number']), "name": str(f['name']), 
+                    "weight": f.get('weight', 0), "inst_id": inst_id, "program_id": program_id,
+                    "leader_id": leader_id
+                })
                 
                 for c in f.get('characteristics', []):
                     incoming_c_ids.add(c['id'])
-                    supabase.table('characteristics').upsert({
-                        "id": c['id'], "factor_id": f['id'], "number": c['number'], 
-                        "name": c['name'], "weight": c.get('weight', 0)
-                    }).execute()
+                    chars_list.append({
+                        "id": c['id'], "factor_id": f['id'], "number": str(c['number']), 
+                        "name": str(c['name']), "weight": c.get('weight', 0)
+                    })
                     
                     for a in c.get('aspects', []):
                         incoming_a_ids.add(a['id'])
-                        supabase.table('aspects').upsert({
-                            "id": a['id'], "char_id": c['id'], "text": a['text']
-                        }).execute()
+                        aspects_list.append({
+                            "id": a['id'], "char_id": c['id'], "text": str(a['text'])
+                        })
+            
+            # Bulk upserts in chunks of 100 to avoid request size limits
+            if factors_list:
+                for chunk in [factors_list[i:i+100] for i in range(0, len(factors_list), 100)]:
+                    supabase.table('factors').upsert(chunk).execute()
+            if chars_list:
+                for chunk in [chars_list[i:i+100] for i in range(0, len(chars_list), 100)]:
+                    supabase.table('characteristics').upsert(chunk).execute()
+            if aspects_list:
+                for chunk in [aspects_list[i:i+100] for i in range(0, len(aspects_list), 100)]:
+                    supabase.table('aspects').upsert(chunk).execute()
             
             # Delete aspects not in incoming (and their evidences)
             diff_a = curr_a_ids - incoming_a_ids
