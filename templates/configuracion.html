@@ -976,13 +976,35 @@
             document.body.removeChild(link);
         }
 
+        function parseCSVLine(line) {
+            const cols = [];
+            let cur = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const ch = line[i];
+                if (inQuotes) {
+                    if (ch === '"' && line[i+1] === '"') { cur += '"'; i++; }
+                    else if (ch === '"') { inQuotes = false; }
+                    else { cur += ch; }
+                } else {
+                    if (ch === '"') { inQuotes = true; }
+                    else if (ch === ';') { cols.push(cur.trim()); cur = ''; }
+                    else { cur += ch; }
+                }
+            }
+            cols.push(cur.trim());
+            return cols;
+        }
+        
         function parseCSV(text) {
             const lines = text.split('\n').filter(line => line.trim() !== '');
             const factorsMap = {};
             
             // Skip header
             for (let i = 1; i < lines.length; i++) {
-                const cols = lines[i].split(';');
+                // Remove \r if present (Windows line endings)
+                const cleanLine = lines[i].replace(/\r$/, '');
+                const cols = parseCSVLine(cleanLine);
                 if (cols.length < 4) continue;
                 
                 const fNum = cols[0].trim();
@@ -991,15 +1013,17 @@
                 const cName = cols[3].trim();
                 const aText = cols[4] ? cols[4].trim() : "";
 
+                if (!fNum || !fName) continue;
+
                 if (!factorsMap[fNum]) {
                     factorsMap[fNum] = { id: 'f' + generateId(), number: fNum, name: fName, characteristics: {} };
                 }
                 
-                if (!factorsMap[fNum].characteristics[cNum]) {
+                if (cNum && cName && !factorsMap[fNum].characteristics[cNum]) {
                     factorsMap[fNum].characteristics[cNum] = { id: 'c' + generateId(), factor_id: factorsMap[fNum].id, number: cNum, name: cName, aspects: [] };
                 }
                 
-                if (aText) {
+                if (aText && cNum && factorsMap[fNum].characteristics[cNum]) {
                     factorsMap[fNum].characteristics[cNum].aspects.push({ id: 'a' + generateId(), char_id: factorsMap[fNum].characteristics[cNum].id, text: aText });
                 }
             }
