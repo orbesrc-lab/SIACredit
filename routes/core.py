@@ -100,7 +100,10 @@ def handle_model():
                 for chunk in [list(diff_f)[i:i+100] for i in range(0, len(diff_f), 100)]:
                     supabase.table('factors').delete().in_("id", chunk).eq("inst_id", inst_id).eq("program_id", program_id).execute()
 
-            return jsonify({"status": "success", "message": "Modelo sincronizado para programa " + str(program_id)})
+            return jsonify({
+                "status": "success", 
+                "message": f"Modelo sincronizado ({len(factors_list)} factores, {len(chars_list)} chars, {len(aspects_list)} aspectos)"
+            })
         except Exception as e:
             import traceback
             error_trace = traceback.format_exc()

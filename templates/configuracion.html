@@ -952,8 +952,8 @@
                 });
                 const res = await resp.json();
                 if (res.status === 'success') {
-                    statusDiv.innerHTML = '<span style="color: #10b981;">✅ Modelo sincronizado correctamente.</span>';
-                    setTimeout(() => statusDiv.innerHTML = '', 3000);
+                    statusDiv.innerHTML = `<span style="color: #10b981;">✅ ${res.message}</span>`;
+                    // setTimeout(() => statusDiv.innerHTML = '', 3000); // disable timeout to keep it visible for debugging
                 } else {
                     statusDiv.innerHTML = `<span style="color: #ef4444;">❌ Error: ${res.message}</span>`;
                 }
