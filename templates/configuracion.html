@@ -943,7 +943,7 @@
 
             const model = getDataModel();
             try {
-                const resp = await fetch(`/api/model?inst_id=${getInstId()}`, {
+                const resp = await fetch(`/api/model?inst_id=${getInstId()}&program_id=${progId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(model)
