@@ -980,10 +980,17 @@
             // Normalize line endings
             const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
             
-            // Auto-detect delimiter from first line
-            const firstNewline = normalized.indexOf('\n');
-            const firstLine = firstNewline >= 0 ? normalized.substring(0, firstNewline) : normalized;
-            const delimiter = firstLine.includes(';') ? ';' : ',';
+            // Auto-detect delimiter by counting ';' vs ',' outside of quoted sections
+            // (scanning first 2000 chars is enough)
+            let semiCount = 0, commaCount = 0, inQ = false;
+            const scanLen = Math.min(normalized.length, 2000);
+            for (let i = 0; i < scanLen; i++) {
+                const c = normalized[i];
+                if (c === '"') inQ = !inQ;
+                else if (!inQ && c === ';') semiCount++;
+                else if (!inQ && c === ',') commaCount++;
+            }
+            const delimiter = semiCount >= commaCount ? ';' : ',';
             
             // Parse character by character — correctly handles multiline quoted fields
             const rows = [];
