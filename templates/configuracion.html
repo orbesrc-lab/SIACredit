@@ -976,48 +976,69 @@
             document.body.removeChild(link);
         }
 
-        function parseCSVLine(line, delimiter) {
-            const cols = [];
-            let cur = '';
+        function parseCSV(text) {
+            // Normalize line endings
+            const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            
+            // Auto-detect delimiter from first line
+            const firstNewline = normalized.indexOf('\n');
+            const firstLine = firstNewline >= 0 ? normalized.substring(0, firstNewline) : normalized;
+            const delimiter = firstLine.includes(';') ? ';' : ',';
+            
+            // Parse character by character — correctly handles multiline quoted fields
+            const rows = [];
+            let currentRow = [];
+            let currentField = '';
             let inQuotes = false;
-            for (let i = 0; i < line.length; i++) {
-                const ch = line[i];
+            
+            for (let i = 0; i <= normalized.length; i++) {
+                const ch = i < normalized.length ? normalized[i] : '\n'; // force final row
+                
                 if (inQuotes) {
-                    if (ch === '"' && line[i+1] === '"') { cur += '"'; i++; }
-                    else if (ch === '"') { inQuotes = false; }
-                    else { cur += ch; }
+                    if (ch === '"') {
+                        if (normalized[i+1] === '"') { currentField += '"'; i++; } // escaped quote
+                        else { inQuotes = false; } // end of quoted field
+                    } else {
+                        currentField += ch; // include newlines within quoted fields
+                    }
                 } else {
-                    if (ch === '"') { inQuotes = true; }
-                    else if (ch === delimiter) { cols.push(cur.trim()); cur = ''; }
-                    else { cur += ch; }
+                    if (ch === '"') {
+                        inQuotes = true;
+                    } else if (ch === delimiter) {
+                        currentRow.push(currentField.trim());
+                        currentField = '';
+                    } else if (ch === '\n') {
+                        currentRow.push(currentField.trim());
+                        currentField = '';
+                        if (currentRow.some(c => c !== '')) rows.push(currentRow);
+                        currentRow = [];
+                    } else {
+                        currentField += ch;
+                    }
                 }
             }
-            cols.push(cur.trim());
-            return cols;
-        }
-        
-        function parseCSV(text) {
-            const lines = text.split('\n').filter(line => line.trim() !== '');
-            if (lines.length < 2) return [];
             
-            // Auto-detect delimiter from header: prefer ';', fall back to ','
-            const headerClean = lines[0].replace(/\r$/, '');
-            const delimiter = headerClean.includes(';') ? ';' : ',';
+            if (rows.length < 2) return [];
+            
+            // Detect column layout from header row
+            const header = rows[0].map(h => h.toLowerCase().replace(/[^a-záéíóúñ0-9]/gi, ''));
+            // 6-col format: N°Factor, FactorName, N°Char, CharName, N°Lineam, LineamText
+            const is6col = rows[0].length >= 6;
             
             const factorsMap = {};
             
-            // Skip header
-            for (let i = 1; i < lines.length; i++) {
-                // Remove \r if present (Windows line endings)
-                const cleanLine = lines[i].replace(/\r$/, '');
-                const cols = parseCSVLine(cleanLine, delimiter);
+            for (let i = 1; i < rows.length; i++) {
+                const cols = rows[i];
                 if (cols.length < 2) continue;
                 
                 const fNum = (cols[0] || '').trim();
                 const fName = (cols[1] || '').trim();
                 const cNum = (cols[2] || '').trim();
                 const cName = (cols[3] || '').trim();
-                const aText = cols[4] ? cols[4].trim() : "";
+                // 6-col: aspect in col[5], 5-col: aspect in col[4]
+                const aText = is6col
+                    ? (cols[5] || '').trim()
+                    : (cols[4] || '').trim();
 
                 if (!fNum || !fName) continue;
 
@@ -1026,11 +1047,18 @@
                 }
                 
                 if (cNum && cName && !factorsMap[fNum].characteristics[cNum]) {
-                    factorsMap[fNum].characteristics[cNum] = { id: 'c' + generateId(), factor_id: factorsMap[fNum].id, number: cNum, name: cName, weight: 0, aspects: [] };
+                    factorsMap[fNum].characteristics[cNum] = {
+                        id: 'c' + generateId(), factor_id: factorsMap[fNum].id,
+                        number: cNum, name: cName, weight: 0, aspects: []
+                    };
                 }
                 
                 if (aText && cNum && factorsMap[fNum].characteristics[cNum]) {
-                    factorsMap[fNum].characteristics[cNum].aspects.push({ id: 'a' + generateId(), char_id: factorsMap[fNum].characteristics[cNum].id, text: aText });
+                    factorsMap[fNum].characteristics[cNum].aspects.push({
+                        id: 'a' + generateId(),
+                        char_id: factorsMap[fNum].characteristics[cNum].id,
+                        text: aText
+                    });
                 }
             }
             
