@@ -90,8 +90,10 @@ def handle_model():
 
             return jsonify({"status": "success", "message": "Modelo sincronizado para programa " + str(program_id)})
         except Exception as e:
-            print(f"Error during sync: {e}")
-            return jsonify({"status": "error", "message": str(e)})
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"Error during sync: {error_trace}")
+            return jsonify({"status": "error", "message": f"Error del servidor: {str(e)}"})
 
     try:
         try:

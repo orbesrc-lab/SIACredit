@@ -1271,12 +1271,13 @@
             if (factor) {
                 factor.leader_id = userId;
                 saveDataModel(model);
+                syncModelWithBackend(); // Auto-guardar en backend
                 
                 // Visual Feedback
                 const statusDiv = document.getElementById('syncStatus');
                 if (statusDiv) {
-                    statusDiv.innerHTML = '<span style="color: #10b981;">✅ Líder asignado al factor.</span>';
-                    setTimeout(() => statusDiv.innerHTML = '', 2000);
+                    statusDiv.innerHTML = '<span style="color: #10b981;">✅ Líder asignado. Guardando en servidor...</span>';
+                    // syncModelWithBackend() overwritten status when done
                 }
             }
         }
