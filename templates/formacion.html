@@ -5940,7 +5940,7 @@
     let aiDraftCourse = null;
     let createdAiCourseId = null;
     function exportCourseToMoodle() {
-        if (!currentCourseId) {
+        if (!activeCourse || !activeCourse.id) {
             showNotification('Seleccione un curso primero', 'error');
             return;
         }
@@ -5950,7 +5950,7 @@
         btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Preparando Moodle...';
         btn.disabled = true;
 
-        fetch(`/api/courses/${currentCourseId}/export/moodle`)
+        fetch(`/api/courses/${activeCourse.id}/export/moodle`)
             .then(res => {
                 if (!res.ok) throw new Error('Error en la exportación');
                 return res.blob();
