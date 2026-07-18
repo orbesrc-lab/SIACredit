@@ -6431,6 +6431,21 @@
             } catch(e) { alert('Error de red'); }
         }
 </script>
+    <!-- MODAL: ACTIVAR ASPIRANTE -->
+    <div id="activateAspiranteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1001; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:16px; padding:30px; width:500px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="margin-bottom:10px; font-size:1.2rem;">Activar Aspirante</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">Selecciona a qué cursos tendrá acceso el estudiante al ser activado.</p>
+            <input type="hidden" id="act_aspirante_email">
+            <div id="actAspiranteCoursesList" style="max-height: 250px; overflow-y: auto; margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;">
+                <!-- checkboxes dynamic -->
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px;">
+                <button class="btn-ghost" onclick="document.getElementById('activateAspiranteModal').style.display='none'" style="padding: 10px 20px; border-radius: 8px; border: 1px solid transparent; background: transparent; cursor: pointer;">Cancelar</button>
+                <button class="btn-primary" onclick="submitActivateAspirante()" style="padding: 10px 20px; border-radius: 8px; background: var(--primary-gradient); color: white; border: none; cursor: pointer;">Confirmar Activación</button>
+            </div>
+        </div>
+    </div>
 
 </body>
 
