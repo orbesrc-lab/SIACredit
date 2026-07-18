@@ -6101,7 +6101,6 @@
             
             document.getElementById('aiProgressBar').style.width = '25%';
             
-            // Loop a través de las unidades para generar su contenido
             for(let i=0; i<units.length; i++) {
                 const u = units[i];
                 const pctBase = 25 + ((i / units.length) * 65);
@@ -6116,7 +6115,13 @@
                     body: JSON.stringify({ course_name: courseData.name, unit_info: u })
                 });
                 const contRes = await contResp.json();
-                u.description = contRes.data.html_content;
+                
+                u.topics = [{
+                    id: 't_' + Math.random().toString(36).substr(2, 9),
+                    title: 'Desarrollo Temático Principal',
+                    type: 'lecture',
+                    content: contRes.data?.html_content || '<p>Error al generar contenido</p>'
+                }];
                 logAiProgress(`✔ Contenido académico generado.`);
                 
                 // Actividades
@@ -6127,7 +6132,13 @@
                     body: JSON.stringify({ course_name: courseData.name, unit_info: u })
                 });
                 const actRes = await actResp.json();
-                u.activities = actRes.data.activities || [];
+                u.activities = (actRes.data?.activities || []).map(a => ({
+                    id: 'act_' + Math.random().toString(36).substr(2, 9),
+                    title: a.name || 'Actividad IA',
+                    description: a.description || '',
+                    weight: parseFloat(a.points) || 10,
+                    due_date: a.due_date || ''
+                }));
                 
                 // Evaluaciones
                 document.getElementById('aiProgressBar').style.width = (pctBase + 10) + '%';
@@ -6137,7 +6148,13 @@
                     body: JSON.stringify({ course_name: courseData.name, unit_info: u })
                 });
                 const evalRes = await evalResp.json();
-                u.evaluations = evalRes.data.evaluations || [];
+                u.evaluations = (evalRes.data?.evaluations || []).map(e => ({
+                    id: 'eval_' + Math.random().toString(36).substr(2, 9),
+                    title: e.name || 'Evaluación IA',
+                    weight: parseFloat(e.points) || 10,
+                    min_grade: 0,
+                    max_grade: 100
+                }));
                 
                 // Recursos
                 logAiProgress(`🤖 Buscando recursos recomendados para: ${u.name}...`);
@@ -6146,13 +6163,14 @@
                     body: JSON.stringify({ course_name: courseData.name, unit_info: u })
                 });
                 const recRes = await recResp.json();
-                u.resources = recRes.data.resources || [];
+                u.resources = (recRes.data?.resources || []).map(r => ({
+                    id: 'r_' + Math.random().toString(36).substr(2, 9),
+                    name: r.name || r.title || 'Recurso Sugerido IA',
+                    url: r.url || r.link || '#',
+                    type: 'link'
+                }));
                 
-                // Format topics and IDs
                 u.id = 'u_' + Math.random().toString(36).substr(2, 9);
-                if(u.activities) u.activities.forEach(a => a.id = 'act_' + Math.random().toString(36).substr(2, 9));
-                if(u.evaluations) u.evaluations.forEach(e => e.id = 'eval_' + Math.random().toString(36).substr(2, 9));
-                
                 logAiProgress(`✔ Unidad ${i+1} completada.`);
             }
             
@@ -6196,6 +6214,8 @@
             document.getElementById('aiProgressSubtitle').innerText = "Ocurrió un error en la generación.";
             document.getElementById('aiProgressBar').style.background = '#ef4444';
         }
+    }
+    
     async function improveWithAi(action) {
         const editorBox = document.getElementById('richTextEditorBox');
         let content = editorBox.innerHTML;
