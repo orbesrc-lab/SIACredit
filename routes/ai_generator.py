@@ -33,7 +33,7 @@ Descripción general: {data.get('description')}
 Competencia General: {data.get('general_competence')}
 Competencias Específicas: {', '.join(data.get('specific_competencies', []))}
 
-Genera la estructura de UNIDADES TEMÁTICAS. Debes determinar el número adecuado de unidades, su nombre, y la distribución de horas.
+Genera la estructura de UNIDADES TEMÁTICAS y sus respectivos TEMAS. Debes determinar el número adecuado de unidades, su nombre, distribución de horas, y los temas principales (3 a 5 temas por unidad).
 La suma de horas debe ser igual a {data.get('duration')}.
 
 Responde ÚNICAMENTE con un JSON válido con este formato:
@@ -42,7 +42,11 @@ Responde ÚNICAMENTE con un JSON válido con este formato:
     {{
       "name": "Nombre de la unidad",
       "hours": 10,
-      "description": "Breve descripción de lo que se abordará"
+      "topics": [
+        "Título del Tema 1",
+        "Título del Tema 2",
+        "Título del Tema 3"
+      ]
     }}
   ]
 }}
@@ -58,26 +62,33 @@ Responde ÚNICAMENTE con un JSON válido con este formato:
 def generate_unit_content():
     data = request.json
     unit_info = data.get('unit_info', {})
+    topics_list = unit_info.get('topics', ['Desarrollo Temático Principal'])
+    
     prompt = f"""Eres un Experto Disciplinar y Doctor en Educación. 
-Estás escribiendo el contenido académico para la unidad "{unit_info.get('name')}" del curso "{data.get('course_name')}".
-Esta unidad dura {unit_info.get('hours')} horas.
+Estás escribiendo el contenido académico detallado para la unidad "{unit_info.get('name')}" del curso "{data.get('course_name')}".
 
-Instrucciones de redacción:
-- No escribas simples listas. Desarrolla el contenido académico de forma completa y profunda.
-- Explica cada concepto detalladamente.
-- Agrega al menos 2 ejemplos prácticos y 1 caso de estudio o aplicación real.
-- Incluye: Introducción, Objetivo de aprendizaje, Resultados de aprendizaje esperados, y el Desarrollo Temático Completo.
-- Utiliza formato HTML para estructurar el contenido (usa <h3>, <h4>, <p>, <ul>, <strong>, <em>, etc.). No uses <html>, <head> o <body>, solo el contenido.
-- Agrega "Buenas prácticas" o "Recomendaciones" al final.
+La unidad contiene los siguientes temas que debes desarrollar extensamente:
+{', '.join(topics_list)}
 
-Genera el contenido académico en HTML.
+Instrucciones de redacción para CADA TEMA:
+- No escribas simples listas. Desarrolla el contenido académico de forma completa, profunda y pedagógica.
+- Explica cada concepto detalladamente. Agrega ejemplos prácticos, casos de estudio o aplicaciones reales.
+- Utiliza formato HTML para estructurar el contenido (usa <h3>, <h4>, <p>, <ul>, <strong>, <em>, etc.). No uses <html>, <head> o <body>.
+
+Responde ÚNICAMENTE con un JSON válido con este formato:
+{{
+  "topics": [
+    {{
+      "title": "Nombre exacto del tema",
+      "html_content": "<p>Contenido extenso en HTML...</p>"
+    }}
+  ]
+}}
 """
     try:
-        response_text = call_ai([{"role": "system", "content": "You are a specialized academic writer."}, {"role": "user", "content": prompt}], max_tokens=3000)
-        # Limpiar backticks html si los hay
-        if response_text.startswith("```html"): response_text = response_text[7:]
-        if response_text.endswith("```"): response_text = response_text[:-3]
-        return jsonify({"status": "success", "data": {"html_content": response_text.strip()}})
+        response_text = call_ai([{"role": "system", "content": "You are a helpful JSON generator AI."}, {"role": "user", "content": prompt}], max_tokens=6000)
+        json_str = extract_json_from_response(response_text)
+        return jsonify({"status": "success", "data": json.loads(json_str)})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 

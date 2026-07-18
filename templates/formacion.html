@@ -6116,13 +6116,13 @@
                 });
                 const contRes = await contResp.json();
                 
-                u.topics = [{
+                u.topics = (contRes.data?.topics || []).map(t => ({
                     id: 't_' + Math.random().toString(36).substr(2, 9),
-                    title: 'Desarrollo Temático Principal',
+                    title: t.title || 'Desarrollo Temático Principal',
                     type: 'lecture',
-                    content: contRes.data?.html_content || '<p>Error al generar contenido</p>'
-                }];
-                logAiProgress(`✔ Contenido académico generado.`);
+                    content: t.html_content || '<p>Error al generar contenido</p>'
+                }));
+                logAiProgress(`✔ Contenido académico generado (${u.topics.length} temas).`);
                 
                 // Actividades
                 document.getElementById('aiProgressBar').style.width = (pctBase + 5) + '%';
