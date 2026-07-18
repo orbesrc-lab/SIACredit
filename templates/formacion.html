@@ -545,6 +545,17 @@
 </head>
 
 <body>
+<!-- Modal confirmación de borrado de curso -->
+<div id="deleteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:var(--card-bg,#1e293b); border:1px solid var(--border-color,#334155); border-radius:16px; padding:32px 28px; max-width:420px; width:90%; box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+    <h3 style="margin:0 0 12px; font-size:1.2rem; color:#f1f5f9;">⚠️ Eliminar curso</h3>
+    <p id="deleteModalText" style="margin:0 0 24px; color:#94a3b8; font-size:0.95rem;">¿Estás seguro de que deseas eliminar este curso? Esta acción no se puede deshacer.</p>
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <button id="deleteModalCancel" onclick="closeDeleteModal()" style="padding:10px 20px; border-radius:8px; border:1px solid #475569; background:transparent; color:#94a3b8; cursor:pointer; font-size:0.9rem;">Cancelar</button>
+      <button id="deleteModalConfirm" style="padding:10px 20px; border-radius:8px; border:none; background:#ef4444; color:#fff; cursor:pointer; font-size:0.9rem; font-weight:600;">🗑️ Sí, eliminar</button>
+    </div>
+  </div>
+</div>
     <aside class="sidebar">
         <div class="sidebar-header" style="justify-content: center; padding: 20px 15px;">
             <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
@@ -2041,23 +2052,44 @@
             } catch(e) { grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444; padding: 30px;">❌ Error de red al cargar cursos.</div>'; }
         }
 
-        async function deleteCourse(courseId) {
+        let _pendingDeleteId = null;
+
+        function closeDeleteModal() {
+            const m = document.getElementById('deleteModal');
+            if (m) m.style.display = 'none';
+            _pendingDeleteId = null;
+        }
+
+        function deleteCourse(courseId) {
             const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
             if (user.role === 'profesor') {
                 alert("No tienes permisos para eliminar cursos.");
                 return;
             }
-            if (!confirm("⚠️ ¿Estás seguro de eliminar este curso? Esta acción no se puede deshacer.")) return;
+            _pendingDeleteId = courseId;
+            const modal = document.getElementById('deleteModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.getElementById('deleteModalConfirm').onclick = confirmDeleteCourse;
+            } else {
+                // Fallback si el modal no existe
+                if (confirm("¿Eliminar este curso?")) confirmDeleteCourse();
+            }
+        }
+
+        async function confirmDeleteCourse() {
+            const courseId = _pendingDeleteId;
+            closeDeleteModal();
+            if (!courseId) return;
+            const btn = document.querySelector(`button.btn-danger[onclick*="${courseId}"]`);
+            if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
             try {
                 const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, { method: 'DELETE' });
                 let result = {};
                 try { result = await resp.json(); } catch(je) {}
                 if (resp.ok && result.status === 'success') {
                     const editEl = document.getElementById('editCourseId');
-                    if (editEl && editEl.value === courseId) {
-                        const editor = document.getElementById('courseEditor');
-                        if (editor) editor.style.display = 'none';
-                    }
+                    if (editEl && editEl.value === courseId) closeEditor();
                     await loadCoursesList();
                 } else {
                     alert('❌ Error al eliminar: ' + (result.message || `HTTP ${resp.status}`));
