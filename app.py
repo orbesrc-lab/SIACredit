@@ -36,6 +36,9 @@ app.register_blueprint(ai_bp)
 from routes.surveys import surveys_bp
 app.register_blueprint(surveys_bp)
 
+from routes.ai_generator import ai_generator_bp
+app.register_blueprint(ai_generator_bp)
+
 from routes.planning import planning_bp
 app.register_blueprint(planning_bp)
 

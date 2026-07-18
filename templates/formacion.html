@@ -603,7 +603,10 @@
             <div id="coursesTab" class="tab-content" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;">
                     <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">Administra el temario, videoconferencias, resultados de aprendizaje y recursos de tus cursos.</p>
-                    <button class="btn-primary" onclick="openCreateCourseModal()">+ Crear Nuevo Curso</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-primary" onclick="openAICourseWizard()" style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); border: none; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);">✨ Crear Curso con IA</button>
+                        <button class="btn-primary" onclick="openCreateCourseModal()">+ Crear Nuevo Curso</button>
+                    </div>
                 </div>
 
                 <div class="grid-catalog" id="coursesGrid">
@@ -1362,6 +1365,13 @@
                 <button class="btn-editor-tool" onclick="promptInsertVideo()" title="Embeber Video">🎥 Video</button>
                 <button class="btn-editor-tool" onclick="promptInsertPodcast()" title="Embeber Podcast">📻 Podcast</button>
                 <button class="btn-editor-tool" onclick="promptInsertLink()" title="Insertar Enlace">🔗 Enlace</button>
+                <div style="width:1px; height:20px; background:#cbd5e1; margin:0 4px;"></div>
+                <div class="ai-editor-tools" style="display:inline-flex; gap:4px; align-items:center;">
+                    <button class="btn-editor-tool" onclick="improveWithAi('improve')" title="Mejorar redacción con IA" style="color:#8b5cf6;"><i class="fas fa-magic"></i> Mejorar</button>
+                    <button class="btn-editor-tool" onclick="improveWithAi('expand')" title="Expandir contenido con IA" style="color:#8b5cf6;"><i class="fas fa-expand-alt"></i> Expandir</button>
+                    <button class="btn-editor-tool" onclick="improveWithAi('simplify')" title="Simplificar contenido con IA" style="color:#8b5cf6;"><i class="fas fa-compress-alt"></i> Simplificar</button>
+                    <button class="btn-editor-tool" onclick="improveWithAi('examples')" title="Agregar ejemplos con IA" style="color:#8b5cf6;"><i class="fas fa-lightbulb"></i> Ejemplos</button>
+                </div>
                 <div style="width:1px; height:20px; background:#cbd5e1; margin:0 4px;"></div>
                 <button class="btn-editor-tool" onclick="toggleHtmlView()" title="Ver HTML / Código Fuente">📝 HTML</button>
             </div>
@@ -5719,6 +5729,521 @@
     }
 })();
 </script>
+    <!-- MODAL: GENERADOR DE CURSOS CON IA (WIZARD) -->
+    <div id="aiWizardModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.7); z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
+        <div style="background: white; border-radius: 24px; padding: 0; width: 800px; max-width: 95vw; max-height: 90vh; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; overflow: hidden;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #1e293b, #0f172a); padding: 25px; color: white; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                            <span style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✨ Generador Inteligente</span> con IA
+                        </h2>
+                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #94a3b8;">Crea cursos estructurados, académicos y completos en segundos.</p>
+                    </div>
+                    <button onclick="closeAICourseWizard()" style="background: rgba(255,255,255,0.1); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">✖</button>
+                </div>
+                
+                <!-- Stepper UI -->
+                <div style="display: flex; justify-content: space-between; margin-top: 25px; position: relative;">
+                    <div style="position: absolute; top: 12px; left: 0; right: 0; height: 2px; background: rgba(255,255,255,0.1); z-index: 1;"></div>
+                    
+                    <div class="wizard-step active" id="wizStep1" style="position: relative; z-index: 2; text-align: center; width: 60px;">
+                        <div class="wizard-step-circle" style="width: 26px; height: 26px; border-radius: 50%; background: #3b82f6; color: white; font-weight: bold; font-size: 0.75rem; line-height: 26px; margin: 0 auto; box-shadow: 0 0 0 4px #0f172a;">1</div>
+                        <div style="font-size: 0.65rem; margin-top: 6px; color: #cbd5e1; font-weight: 600;">Info</div>
+                    </div>
+                    <div class="wizard-step" id="wizStep2" style="position: relative; z-index: 2; text-align: center; width: 60px;">
+                        <div class="wizard-step-circle" style="width: 26px; height: 26px; border-radius: 50%; background: #334155; color: white; font-weight: bold; font-size: 0.75rem; line-height: 26px; margin: 0 auto; box-shadow: 0 0 0 4px #0f172a;">2</div>
+                        <div style="font-size: 0.65rem; margin-top: 6px; color: #94a3b8; font-weight: 600;">Comps</div>
+                    </div>
+                    <div class="wizard-step" id="wizStep3" style="position: relative; z-index: 2; text-align: center; width: 60px;">
+                        <div class="wizard-step-circle" style="width: 26px; height: 26px; border-radius: 50%; background: #334155; color: white; font-weight: bold; font-size: 0.75rem; line-height: 26px; margin: 0 auto; box-shadow: 0 0 0 4px #0f172a;">3</div>
+                        <div style="font-size: 0.65rem; margin-top: 6px; color: #94a3b8; font-weight: 600;">Unidades</div>
+                    </div>
+                    <div class="wizard-step" id="wizStep4" style="position: relative; z-index: 2; text-align: center; width: 60px;">
+                        <div class="wizard-step-circle" style="width: 26px; height: 26px; border-radius: 50%; background: #334155; color: white; font-weight: bold; font-size: 0.75rem; line-height: 26px; margin: 0 auto; box-shadow: 0 0 0 4px #0f172a;">4</div>
+                        <div style="font-size: 0.65rem; margin-top: 6px; color: #94a3b8; font-weight: 600;">Generar</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Body -->
+            <div style="padding: 30px; overflow-y: auto; flex-grow: 1; background: #f8fafc;" id="wizardBody">
+                
+                <!-- STEP 1: Info -->
+                <div id="wizardContent1" class="wizard-content-panel">
+                    <h3 style="margin-top:0; color:#0f172a;">Información General del Curso</h3>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display:block; font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:5px;">Nombre del Curso *</label>
+                        <input type="text" id="aiCourseName" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;" placeholder="Ej: Marketing Estratégico en Era Digital">
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display:block; font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:5px;">Descripción *</label>
+                        <textarea id="aiCourseDesc" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; height: 80px; resize: vertical;" placeholder="Breve resumen de lo que tratará el curso..."></textarea>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display:block; font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:5px;">Número Total de Horas *</label>
+                            <input type="number" id="aiCourseHours" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;" placeholder="Ej: 40" value="40">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:5px;">Nivel</label>
+                            <select id="aiCourseLevel" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+                                <option value="Básico">Básico</option>
+                                <option value="Intermedio" selected>Intermedio</option>
+                                <option value="Avanzado">Avanzado</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label style="display:block; font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:5px;">Modalidad</label>
+                            <select id="aiCourseModality" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+                                <option value="Virtual">Virtual</option>
+                                <option value="Presencial">Presencial</option>
+                                <option value="Híbrida">Híbrida</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:5px;">Tipo de Formación</label>
+                            <select id="aiCourseType" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+                                <option value="Curso">Curso</option>
+                                <option value="Diplomado">Diplomado</option>
+                                <option value="Seminario">Seminario</option>
+                                <option value="Taller">Taller</option>
+                                <option value="Programa">Programa</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- STEP 2: Competencias -->
+                <div id="wizardContent2" class="wizard-content-panel" style="display:none;">
+                    <h3 style="margin-top:0; color:#0f172a;">Competencias a Desarrollar</h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display:block; font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:5px;">Competencia General *</label>
+                        <textarea id="aiGeneralComp" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; height: 80px; resize: vertical;" placeholder="Ej: Analizar e implementar estrategias de marketing para incrementar la rentabilidad..."></textarea>
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <label style="display:block; font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:5px;">Competencias Específicas</label>
+                        <div id="aiSpecificCompsList" style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display:flex; gap:10px;">
+                                <input type="text" class="ai-specific-comp-input" style="flex:1; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;" placeholder="Ej: Diseñar embudos de conversión efectivos.">
+                                <button class="btn-ghost" onclick="this.parentElement.remove()" style="color: #ef4444; border: 1px solid #fca5a5; padding: 0 12px; border-radius: 8px;"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <button class="btn-secondary" onclick="addAiSpecificComp()" style="margin-top: 15px; font-size: 0.85rem;"><i class="fas fa-plus"></i> Agregar Competencia</button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Estructura de Unidades -->
+                <div id="wizardContent3" class="wizard-content-panel" style="display:none;">
+                    <h3 style="margin-top:0; color:#0f172a;">Estructura Temática (Unidades)</h3>
+                    
+                    <div style="background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                        <p style="margin:0 0 15px 0; font-size:0.9rem; color:#0369a1; font-weight:600;">¿Ya tiene definidas las unidades o temas del curso?</p>
+                        <div style="display: flex; gap: 20px;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                <input type="radio" name="aiUnitsDecision" value="auto" checked onchange="toggleAiUnitsView()">
+                                <span>No, que la IA genere la estructura</span>
+                            </label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                <input type="radio" name="aiUnitsDecision" value="manual" onchange="toggleAiUnitsView()">
+                                <span>Sí, ingresarlas manualmente</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Modo Automático -->
+                    <div id="aiUnitsAutoView">
+                        <div style="text-align: center; padding: 30px; background: white; border: 1px dashed #cbd5e1; border-radius: 12px;">
+                            <i class="fas fa-magic" style="font-size: 2rem; color: #8b5cf6; margin-bottom: 15px;"></i>
+                            <h4 style="margin:0 0 10px 0; color:#1e293b;">Generación Automática</h4>
+                            <p style="margin:0; font-size:0.85rem; color:#64748b;">La IA analizará el curso y diseñará el número adecuado de unidades, con sus títulos y distribución de horas para cumplir con la intensidad horaria establecida.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Modo Manual -->
+                    <div id="aiUnitsManualView" style="display:none;">
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.9rem;">
+                            <thead>
+                                <tr style="background: #f1f5f9; text-align: left;">
+                                    <th style="padding: 10px; border-bottom: 1px solid #cbd5e1; border-radius: 8px 0 0 8px;">Unidad</th>
+                                    <th style="padding: 10px; border-bottom: 1px solid #cbd5e1; width: 100px;">Horas</th>
+                                    <th style="padding: 10px; border-bottom: 1px solid #cbd5e1; border-radius: 0 8px 8px 0; width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="aiManualUnitsTable">
+                                <tr>
+                                    <td style="padding: 8px 0;"><input type="text" class="ai-unit-name" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" placeholder="Ej: Fundamentos"></td>
+                                    <td style="padding: 8px 5px;"><input type="number" class="ai-unit-hours" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" placeholder="10"></td>
+                                    <td style="padding: 8px 0; text-align:center;"><button class="btn-ghost" onclick="this.parentElement.parentElement.remove()" style="color:#ef4444;"><i class="fas fa-times"></i></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button class="btn-secondary" onclick="addAiManualUnit()" style="font-size: 0.85rem;"><i class="fas fa-plus"></i> Agregar Unidad</button>
+                    </div>
+                </div>
+                
+                <!-- STEP 4: Generación -->
+                <div id="wizardContent4" class="wizard-content-panel" style="display:none;">
+                    <div id="aiProgressState" style="text-align: center; padding: 20px 0;">
+                        <i class="fas fa-robot" style="font-size: 3rem; color: #8b5cf6; margin-bottom: 20px; animation: pulse 2s infinite;"></i>
+                        <h3 id="aiProgressTitle" style="margin-top:0; color:#0f172a;">Generando Curso Inteligente</h3>
+                        <p id="aiProgressSubtitle" style="color: #64748b; font-size: 0.9rem; margin-bottom: 30px;">Preparando el entorno de IA...</p>
+                        
+                        <div style="background: #e2e8f0; border-radius: 20px; height: 12px; width: 100%; overflow: hidden; margin-bottom: 30px;">
+                            <div id="aiProgressBar" style="background: linear-gradient(90deg, #3b82f6, #8b5cf6); width: 0%; height: 100%; border-radius: 20px; transition: width 0.5s ease;"></div>
+                        </div>
+                        
+                        <div id="aiProgressLog" style="text-align: left; background: #1e293b; color: #cbd5e1; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 0.8rem; height: 150px; overflow-y: auto;">
+                            <!-- Logs injected here -->
+                        </div>
+                    </div>
+                    
+                    <div id="aiCompleteState" style="display:none; text-align: center; padding: 20px 0;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 20px auto; box-shadow: 0 10px 25px rgba(16,185,129,0.3);">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <h3 style="margin-top:0; color:#0f172a; font-size: 1.5rem;">¡Curso Creado Exitosamente!</h3>
+                        <p style="color: #64748b; margin-bottom: 30px;">Todo el material académico, evaluaciones, actividades y recursos han sido generados y guardados en tu repositorio institucional.</p>
+                        
+                        <div style="display: flex; gap: 15px; justify-content: center;">
+                            <button class="btn-secondary" onclick="closeAICourseWizard(true)">Cerrar Asistente</button>
+                            <button class="btn-primary" onclick="closeAICourseWizard(true); window.location.reload();">Recargar y Administrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer Controls -->
+            <div id="wizardFooter" style="background: white; padding: 20px 30px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <button id="wizBtnPrev" class="btn-ghost" onclick="wizPrevStep()" style="color: #64748b; display:none;">Volver</button>
+                <div style="flex-grow: 1;"></div>
+                <button id="wizBtnNext" class="btn-primary" onclick="wizNextStep()" style="padding: 10px 25px; box-shadow: 0 4px 10px rgba(59,130,246,0.3);">Continuar <i class="fas fa-arrow-right" style="margin-left: 8px;"></i></button>
+                <button id="wizBtnGenerate" class="btn-primary" onclick="startAiGeneration()" style="display:none; background: linear-gradient(135deg, #8b5cf6, #3b82f6); border: none; padding: 10px 25px; box-shadow: 0 4px 15px rgba(139,92,246,0.4);">🚀 Iniciar Generación IA</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    let currentWizStep = 1;
+    let aiDraftCourse = null;
+    let createdAiCourseId = null;
+
+    function openAICourseWizard() {
+        document.getElementById('aiWizardModal').style.display = 'flex';
+        currentWizStep = 1;
+        updateWizUI();
+        document.getElementById('aiProgressState').style.display = 'block';
+        document.getElementById('aiCompleteState').style.display = 'none';
+        document.getElementById('aiProgressBar').style.width = '0%';
+        document.getElementById('aiProgressLog').innerHTML = '';
+        
+        // Reset form
+        document.getElementById('aiCourseName').value = '';
+        document.getElementById('aiCourseDesc').value = '';
+        document.getElementById('aiGeneralComp').value = '';
+        document.getElementById('aiSpecificCompsList').innerHTML = `
+            <div style="display:flex; gap:10px;">
+                <input type="text" class="ai-specific-comp-input" style="flex:1; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;" placeholder="Ej: Diseñar embudos de conversión efectivos.">
+                <button class="btn-ghost" onclick="this.parentElement.remove()" style="color: #ef4444; border: 1px solid #fca5a5; padding: 0 12px; border-radius: 8px;"><i class="fas fa-trash"></i></button>
+            </div>
+        `;
+    }
+
+    function closeAICourseWizard(refresh = false) {
+        document.getElementById('aiWizardModal').style.display = 'none';
+    }
+
+    function updateWizUI() {
+        for(let i=1; i<=4; i++){
+            document.getElementById(`wizardContent${i}`).style.display = (i === currentWizStep) ? 'block' : 'none';
+            const stepDiv = document.getElementById(`wizStep${i}`);
+            const circle = stepDiv.querySelector('.wizard-step-circle');
+            if(i < currentWizStep) {
+                circle.style.background = '#10b981';
+                circle.innerHTML = '<i class="fas fa-check"></i>';
+            } else if (i === currentWizStep) {
+                circle.style.background = '#3b82f6';
+                circle.innerHTML = i;
+            } else {
+                circle.style.background = '#334155';
+                circle.innerHTML = i;
+            }
+        }
+        
+        document.getElementById('wizBtnPrev').style.display = (currentWizStep > 1 && currentWizStep < 4) ? 'block' : 'none';
+        document.getElementById('wizBtnNext').style.display = (currentWizStep < 3) ? 'block' : 'none';
+        document.getElementById('wizBtnGenerate').style.display = (currentWizStep === 3) ? 'block' : 'none';
+        
+        if(currentWizStep === 4) {
+            document.getElementById('wizardFooter').style.display = 'none';
+        } else {
+            document.getElementById('wizardFooter').style.display = 'flex';
+        }
+    }
+
+    function wizNextStep() {
+        if(currentWizStep === 1) {
+            if(!document.getElementById('aiCourseName').value || !document.getElementById('aiCourseDesc').value) {
+                alert("Por favor completa los campos obligatorios."); return;
+            }
+        }
+        if(currentWizStep === 2) {
+            if(!document.getElementById('aiGeneralComp').value) {
+                alert("Por favor ingresa la competencia general."); return;
+            }
+        }
+        if(currentWizStep < 3) {
+            currentWizStep++;
+            updateWizUI();
+        }
+    }
+
+    function wizPrevStep() {
+        if(currentWizStep > 1) {
+            currentWizStep--;
+            updateWizUI();
+        }
+    }
+
+    function toggleAiUnitsView() {
+        const val = document.querySelector('input[name="aiUnitsDecision"]:checked').value;
+        document.getElementById('aiUnitsAutoView').style.display = val === 'auto' ? 'block' : 'none';
+        document.getElementById('aiUnitsManualView').style.display = val === 'manual' ? 'block' : 'none';
+    }
+
+    function addAiSpecificComp() {
+        const div = document.createElement('div');
+        div.style = "display:flex; gap:10px;";
+        div.innerHTML = `
+            <input type="text" class="ai-specific-comp-input" style="flex:1; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;" placeholder="Siguiente competencia...">
+            <button class="btn-ghost" onclick="this.parentElement.remove()" style="color: #ef4444; border: 1px solid #fca5a5; padding: 0 12px; border-radius: 8px;"><i class="fas fa-trash"></i></button>
+        `;
+        document.getElementById('aiSpecificCompsList').appendChild(div);
+    }
+
+    function addAiManualUnit() {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="padding: 8px 0;"><input type="text" class="ai-unit-name" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" placeholder="Ej: Siguiente Unidad"></td>
+            <td style="padding: 8px 5px;"><input type="number" class="ai-unit-hours" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" placeholder="10"></td>
+            <td style="padding: 8px 0; text-align:center;"><button class="btn-ghost" onclick="this.parentElement.parentElement.remove()" style="color:#ef4444;"><i class="fas fa-times"></i></button></td>
+        `;
+        document.getElementById('aiManualUnitsTable').appendChild(tr);
+    }
+    
+    function logAiProgress(msg) {
+        const logContainer = document.getElementById('aiProgressLog');
+        const div = document.createElement('div');
+        div.style.marginBottom = '5px';
+        div.innerHTML = `<span style="color:#8b5cf6;">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+        logContainer.appendChild(div);
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    async function startAiGeneration() {
+        currentWizStep = 4;
+        updateWizUI();
+        
+        const courseData = {
+            name: document.getElementById('aiCourseName').value,
+            description: document.getElementById('aiCourseDesc').value,
+            duration: document.getElementById('aiCourseHours').value + " horas",
+            level: document.getElementById('aiCourseLevel').value,
+            modality: document.getElementById('aiCourseModality').value,
+            type: document.getElementById('aiCourseType').value,
+            general_competence: document.getElementById('aiGeneralComp').value,
+            specific_competencies: Array.from(document.querySelectorAll('.ai-specific-comp-input')).map(i => i.value).filter(v => v)
+        };
+        
+        const isAutoUnits = document.querySelector('input[name="aiUnitsDecision"]:checked').value === 'auto';
+        let units = [];
+        
+        try {
+            document.getElementById('aiProgressBar').style.width = '10%';
+            logAiProgress("Iniciando creación de borrador...");
+            
+            // Si es auto, llamar a la IA para estructura
+            if(isAutoUnits) {
+                logAiProgress("🤖 Solicitando a la IA la estructura de unidades...");
+                document.getElementById('aiProgressSubtitle').innerText = "Generando estructura temática...";
+                
+                const structResp = await fetch('/api/ai/course/structure', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(courseData)
+                });
+                const structRes = await structResp.json();
+                if(structRes.status === 'error') throw new Error(structRes.message);
+                
+                units = structRes.data.units;
+                logAiProgress(`✔ Estructura recibida: ${units.length} unidades generadas.`);
+            } else {
+                const names = document.querySelectorAll('.ai-unit-name');
+                const hours = document.querySelectorAll('.ai-unit-hours');
+                for(let i=0; i<names.length; i++){
+                    if(names[i].value) {
+                        units.push({
+                            name: names[i].value,
+                            hours: hours[i].value || 10
+                        });
+                    }
+                }
+                logAiProgress(`✔ Estructura manual cargada: ${units.length} unidades.`);
+            }
+            
+            document.getElementById('aiProgressBar').style.width = '25%';
+            
+            // Loop a través de las unidades para generar su contenido
+            for(let i=0; i<units.length; i++) {
+                const u = units[i];
+                const pctBase = 25 + ((i / units.length) * 65);
+                document.getElementById('aiProgressBar').style.width = pctBase + '%';
+                
+                document.getElementById('aiProgressSubtitle').innerText = `Generando Contenidos: ${u.name}`;
+                logAiProgress(`🤖 Generando contenido académico para: ${u.name}...`);
+                
+                // Contenido
+                const contResp = await fetch('/api/ai/course/unit_content', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ course_name: courseData.name, unit_info: u })
+                });
+                const contRes = await contResp.json();
+                u.description = contRes.data.html_content;
+                logAiProgress(`✔ Contenido académico generado.`);
+                
+                // Actividades
+                document.getElementById('aiProgressBar').style.width = (pctBase + 5) + '%';
+                logAiProgress(`🤖 Diseñando actividades para: ${u.name}...`);
+                const actResp = await fetch('/api/ai/course/unit_activities', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ course_name: courseData.name, unit_info: u })
+                });
+                const actRes = await actResp.json();
+                u.activities = actRes.data.activities || [];
+                
+                // Evaluaciones
+                document.getElementById('aiProgressBar').style.width = (pctBase + 10) + '%';
+                logAiProgress(`🤖 Diseñando evaluaciones para: ${u.name}...`);
+                const evalResp = await fetch('/api/ai/course/unit_evaluations', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ course_name: courseData.name, unit_info: u })
+                });
+                const evalRes = await evalResp.json();
+                u.evaluations = evalRes.data.evaluations || [];
+                
+                // Recursos
+                logAiProgress(`🤖 Buscando recursos recomendados para: ${u.name}...`);
+                const recResp = await fetch('/api/ai/course/unit_resources', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ course_name: courseData.name, unit_info: u })
+                });
+                const recRes = await recResp.json();
+                u.resources = recRes.data.resources || [];
+                
+                // Format topics and IDs
+                u.id = 'u_' + Math.random().toString(36).substr(2, 9);
+                if(u.activities) u.activities.forEach(a => a.id = 'act_' + Math.random().toString(36).substr(2, 9));
+                if(u.evaluations) u.evaluations.forEach(e => e.id = 'eval_' + Math.random().toString(36).substr(2, 9));
+                
+                logAiProgress(`✔ Unidad ${i+1} completada.`);
+            }
+            
+            document.getElementById('aiProgressBar').style.width = '95%';
+            document.getElementById('aiProgressSubtitle').innerText = "Guardando curso en repositorio...";
+            logAiProgress("Guardando datos en la base de datos...");
+            
+            // Guardar en la base de datos local
+            const finalCourse = {
+                title: courseData.name,
+                description: courseData.description,
+                duration: courseData.duration,
+                category: courseData.type,
+                level: courseData.level,
+                competencies: [courseData.general_competence, ...courseData.specific_competencies],
+                outcomes: [],
+                meetings: [],
+                units: units,
+                teacher_name: "Generado por IA"
+            };
+            
+            const saveResp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=0`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(finalCourse)
+            });
+            const saveRes = await saveResp.json();
+            
+            document.getElementById('aiProgressBar').style.width = '100%';
+            logAiProgress("✨ ¡Proceso Finalizado!");
+            
+            setTimeout(() => {
+                document.getElementById('aiProgressState').style.display = 'none';
+                document.getElementById('aiCompleteState').style.display = 'block';
+                createdAiCourseId = saveRes.data.id;
+            }, 1000);
+            
+        } catch (error) {
+            console.error(error);
+            logAiProgress(`❌ ERROR: ${error.message}`);
+            document.getElementById('aiProgressSubtitle').innerText = "Ocurrió un error en la generación.";
+            document.getElementById('aiProgressBar').style.background = '#ef4444';
+        }
+    async function improveWithAi(action) {
+        const editorBox = document.getElementById('richTextEditorBox');
+        let content = editorBox.innerHTML;
+        
+        // If there's a selection, we could theoretically just improve the selection, 
+        // but for simplicity let's improve the whole content
+        const sel = window.getSelection();
+        const selectedText = sel.toString();
+        let targetContent = selectedText && selectedText.length > 10 ? selectedText : content;
+        let isSelection = selectedText && selectedText.length > 10;
+        
+        if(!targetContent || targetContent.trim() === '') {
+            alert("No hay contenido para mejorar.");
+            return;
+        }
+        
+        // Show loading state
+        const originalBg = editorBox.style.background;
+        editorBox.style.background = '#f1f5f9';
+        editorBox.style.opacity = '0.7';
+        
+        try {
+            const resp = await fetch('/api/ai/course/improve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: action, content: targetContent })
+            });
+            const res = await resp.json();
+            
+            if(res.status === 'error') {
+                alert("Error de IA: " + res.message);
+            } else {
+                if(isSelection) {
+                    // Replace only selection
+                    document.execCommand('insertHTML', false, res.data);
+                } else {
+                    editorBox.innerHTML = res.data;
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error al comunicarse con la IA.");
+        } finally {
+            editorBox.style.background = originalBg;
+            editorBox.style.opacity = '1';
+        }
+    }
+    </script>
 </body>
 
 </html>
