@@ -231,6 +231,18 @@ def load_students(inst_id):
     return _local_query("SELECT data FROM lms_students WHERE inst_id=?", (inst_id,))
 
 def save_student(inst_id, student_data):
+    email = student_data.get('email', '').strip()
+    if not student_data.get('id') and email:
+        existing_students = load_students(inst_id)
+        match = next((s for s in existing_students if s.get('email', '').strip().lower() == email.lower()), None)
+        if match:
+            student_data['id'] = match['id']
+            if 'enrolled_courses' not in student_data:
+                student_data['enrolled_courses'] = match.get('enrolled_courses', [])
+            for k, v in match.items():
+                if k not in student_data:
+                    student_data[k] = v
+
     if not student_data.get('id'):
         student_data['id'] = "s_" + generate_id()
     student_data['inst_id'] = inst_id
