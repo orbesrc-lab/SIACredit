@@ -6166,6 +6166,30 @@
         logContainer.scrollTop = logContainer.scrollHeight;
     }
 
+    async function fetchWithRetry(url, options, maxRetries = 4) {
+        for(let attempt = 0; attempt < maxRetries; attempt++) {
+            const resp = await fetch(url, options);
+            const data = await resp.json();
+            
+            // Detectar error por límite de peticiones (429) o cuota en el mensaje del backend
+            if (data.status === 'error' && data.message && (data.message.includes('429') || data.message.includes('Too Many Requests') || data.message.includes('quota') || data.message.includes('exhausted'))) {
+                if (attempt < maxRetries - 1) {
+                    const waitTime = (attempt + 1) * 30000; // 30s, 60s, 90s
+                    logAiProgress(`⏳ Límite de peticiones de IA (Capa Gratuita). Pausando ${waitTime/1000}s para reintentar... (${attempt+1}/${maxRetries})`);
+                    await new Promise(r => setTimeout(r, waitTime));
+                    continue;
+                }
+            }
+            
+            // Si es otro error o se agotaron los intentos, lanzar excepción para abortar o que el llamador lo maneje
+            if (data.status === 'error') {
+                throw new Error(data.message);
+            }
+            
+            return data;
+        }
+    }
+
     async function startAiGeneration() {
         currentWizStep = 4;
         updateWizUI();
@@ -6193,12 +6217,10 @@
                 logAiProgress("🤖 Solicitando a la IA la estructura de unidades...");
                 document.getElementById('aiProgressSubtitle').innerText = "Generando estructura temática...";
                 
-                const structResp = await fetch('/api/ai/course/structure', {
+                const structRes = await fetchWithRetry('/api/ai/course/structure', {
                     method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(courseData)
                 });
-                const structRes = await structResp.json();
-                if(structRes.status === 'error') throw new Error(structRes.message);
                 
                 units = structRes.data.units;
                 logAiProgress(`✔ Estructura recibida: ${units.length} unidades generadas.`);
@@ -6227,11 +6249,10 @@
                 logAiProgress(`🤖 Generando contenido académico para: ${u.name}...`);
                 
                 // Contenido
-                const contResp = await fetch('/api/ai/course/unit_content', {
+                const contRes = await fetchWithRetry('/api/ai/course/unit_content', {
                     method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ course_name: courseData.name, unit_info: u })
                 });
-                const contRes = await contResp.json();
                 
                 u.topics = (contRes.data?.topics || []).map(t => ({
                     id: 't_' + Math.random().toString(36).substr(2, 9),
@@ -6244,11 +6265,10 @@
                 // Actividades
                 document.getElementById('aiProgressBar').style.width = (pctBase + 5) + '%';
                 logAiProgress(`🤖 Diseñando actividades para: ${u.name}...`);
-                const actResp = await fetch('/api/ai/course/unit_activities', {
+                const actRes = await fetchWithRetry('/api/ai/course/unit_activities', {
                     method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ course_name: courseData.name, unit_info: u })
                 });
-                const actRes = await actResp.json();
                 u.activities = (actRes.data?.activities || []).map(a => ({
                     id: 'act_' + Math.random().toString(36).substr(2, 9),
                     title: a.name || 'Actividad IA',
@@ -6260,11 +6280,10 @@
                 // Evaluaciones
                 document.getElementById('aiProgressBar').style.width = (pctBase + 10) + '%';
                 logAiProgress(`🤖 Diseñando evaluaciones para: ${u.name}...`);
-                const evalResp = await fetch('/api/ai/course/unit_evaluations', {
+                const evalRes = await fetchWithRetry('/api/ai/course/unit_evaluations', {
                     method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ course_name: courseData.name, unit_info: u })
                 });
-                const evalRes = await evalResp.json();
                 u.evaluations = (evalRes.data?.evaluations || []).map(e => ({
                     id: 'eval_' + Math.random().toString(36).substr(2, 9),
                     title: e.name || 'Evaluación IA',
@@ -6275,11 +6294,10 @@
                 
                 // Recursos
                 logAiProgress(`🤖 Buscando recursos recomendados para: ${u.name}...`);
-                const recResp = await fetch('/api/ai/course/unit_resources', {
+                const recRes = await fetchWithRetry('/api/ai/course/unit_resources', {
                     method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ course_name: courseData.name, unit_info: u })
                 });
-                const recRes = await recResp.json();
                 u.resources = (recRes.data?.resources || []).map(r => ({
                     id: 'r_' + Math.random().toString(36).substr(2, 9),
                     name: r.name || r.title || 'Recurso Sugerido IA',
