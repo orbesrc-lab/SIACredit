@@ -3537,10 +3537,67 @@
         }
 
         function promptInsertImage() {
-            const url = prompt("Introduce la URL de la imagen (debe comenzar con http/https):");
-            if (url) {
-                const imgHtml = `<img src="${url}" alt="Imagen del Tema" style="max-width:100%; height:auto; border-radius:10px; margin: 15px 0; box-shadow: var(--shadow-md);">`;
-                insertHtmlAtCursor(imgHtml);
+            if(confirm("¿Deseas subir una imagen desde tu computadora?\n(Pulsa Cancelar si prefieres ingresar una URL manualmente)")) {
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = 'image/*';
+                fileInput.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const tempId = 'img_loading_' + Math.random().toString(36).substr(2, 9);
+                    insertHtmlAtCursor(`<div id="${tempId}" style="color:var(--primary-color);font-weight:bold;font-size:0.9rem;padding:15px;text-align:center;border:2px dashed var(--primary-color);border-radius:8px;margin:10px 0;">⏳ Subiendo imagen al servidor...</div><br>`);
+                    
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    try {
+                        const uploadResp = await fetch('/api/lms_upload', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const uploadResult = await uploadResp.json();
+                        
+                        const loadingDiv = document.getElementById(tempId);
+                        
+                        if (uploadResult.status === 'success') {
+                            const imgHtml = `
+                                <div style="position: relative; display: inline-block; margin: 15px 0; cursor: zoom-in;" onclick="openImageLightbox(this.querySelector('img').src)">
+                                    <img src="${uploadResult.url}" alt="Imagen del Tema" style="max-width:100%; height:auto; border-radius:10px; box-shadow: var(--shadow-md);">
+                                    <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; pointer-events: none; backdrop-filter: blur(4px);">
+                                        <i class="fas fa-search-plus"></i> Ampliar
+                                    </div>
+                                </div>
+                            `;
+                            if(loadingDiv) {
+                                loadingDiv.outerHTML = imgHtml;
+                            } else {
+                                insertHtmlAtCursor(imgHtml);
+                            }
+                        } else {
+                            alert("Error al subir la imagen: " + uploadResult.message);
+                            if(loadingDiv) loadingDiv.remove();
+                        }
+                    } catch (error) {
+                        alert("Error en la conexión al subir imagen: " + error.message);
+                        const loadingDiv = document.getElementById(tempId);
+                        if(loadingDiv) loadingDiv.remove();
+                    }
+                };
+                fileInput.click();
+            } else {
+                const url = prompt("Introduce la URL de la imagen (debe comenzar con http/https):");
+                if (url) {
+                    const imgHtml = `
+                        <div style="position: relative; display: inline-block; margin: 15px 0; cursor: zoom-in;" onclick="openImageLightbox(this.querySelector('img').src)">
+                            <img src="${url}" alt="Imagen del Tema" style="max-width:100%; height:auto; border-radius:10px; box-shadow: var(--shadow-md);">
+                            <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; pointer-events: none; backdrop-filter: blur(4px);">
+                                <i class="fas fa-search-plus"></i> Ampliar
+                            </div>
+                        </div>
+                    `;
+                    insertHtmlAtCursor(imgHtml);
+                }
             }
         }
 
@@ -6465,6 +6522,17 @@
         </div>
     </div>
 
+    <!-- MODAL: IMAGE LIGHTBOX -->
+    <div id="imageLightboxModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:99999; align-items:center; justify-content:center; flex-direction:column;" onclick="this.style.display='none'">
+        <button style="position:absolute; top:20px; right:30px; background:transparent; border:none; color:white; font-size:2rem; cursor:pointer;" onclick="document.getElementById('imageLightboxModal').style.display='none'">&times;</button>
+        <img id="lightboxImg" src="" style="max-width:90vw; max-height:90vh; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,0.5); object-fit:contain;">
+    </div>
+    <script>
+        function openImageLightbox(src) {
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('imageLightboxModal').style.display = 'flex';
+        }
+    </script>
 </body>
 
 </html>
