@@ -1884,10 +1884,38 @@
             document.body.removeChild(link);
         }
 
-        async function activateAspirante(email, role = 'estudiante') {
-            if (!confirm(`¿Activar a esta cuenta como ${role}? Se le quitará el bloqueo de cuenta y podrá ingresar al sistema inmediatamente.`)) return;
+        function activateAspirante(email, role = 'estudiante') {
+            openActivateAspiranteModal(email);
+        }
+
+        function openActivateAspiranteModal(email) {
+            document.getElementById('act_aspirante_email').value = email;
+            const student = allStudents.find(s => s.email === email || s.student_email === email);
+            const preEnrolled = student && student.enrolled_courses ? student.enrolled_courses : [];
+            const listDiv = document.getElementById('actAspiranteCoursesList');
+            listDiv.innerHTML = '';
+            if (courses.length === 0) {
+                listDiv.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted);">No hay cursos creados.</p>';
+            } else {
+                courses.forEach(c => {
+                    const isChecked = preEnrolled.includes(c.id) ? 'checked' : '';
+                    listDiv.innerHTML += `
+                        <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 0.9rem; cursor: pointer;">
+                            <input type="checkbox" class="act-course-checkbox" value="${c.id}" ${isChecked}>
+                            ${escapeHtml(c.title || c.name)}
+                        </label>
+                    `;
+                });
+            }
+            document.getElementById('activateAspiranteModal').style.display = 'flex';
+        }
+
+        async function submitActivateAspirante() {
+            const email = document.getElementById('act_aspirante_email').value;
+            const role = 'estudiante';
+            const checkboxes = document.querySelectorAll('.act-course-checkbox:checked');
+            const selectedCourses = Array.from(checkboxes).map(cb => cb.value);
             try {
-                // Find user by email
                 const uResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=0`);
                 const users = await uResp.json();
                 const userObj = users.find(u => u.email === email);
@@ -1899,7 +1927,18 @@
                     });
                     const actRes = await actResp.json();
                     if (actRes.status === 'success') {
-                        alert('¡Aspirante activado con éxito!');
+                        const student = allStudents.find(s => s.email === email || s.student_email === email);
+                        if (student) {
+                            student.enrolled_courses = selectedCourses;
+                            if (student.name) student.name = student.name.replace(/\[ASPIRANTE\]\s*/g, '').replace(/\[PENDING[^\]]*\]\s*/g, '').trim();
+                            await fetch(`/api/students?inst_id=${getInstId()}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(student)
+                            });
+                        }
+                        alert('¡Aspirante activado y matriculado en los cursos seleccionados!');
+                        document.getElementById('activateAspiranteModal').style.display = 'none';
                         loadStudentsList();
                     } else {
                         alert('Error al activar: ' + actRes.message);
@@ -6350,6 +6389,37 @@
             </div>
         </div>
     </div>
+
+<script>
+        async function submitStudentPasswordChange() {
+            const oldPwd = document.getElementById('stud_old_pwd').value;
+            const newPwd = document.getElementById('stud_new_pwd').value;
+            if(!oldPwd || !newPwd) { alert('Comleta ambos campos'); return; }
+            
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            
+            try {
+                const res = await fetch('/api/change-password', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        email: user.email,
+                        old_password: oldPwd,
+                        new_password: newPwd
+                    })
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    alert('Contraseña actualizada con éxito');
+                    document.getElementById('studentPasswordModal').style.display = 'none';
+                    document.getElementById('stud_old_pwd').value = '';
+                    document.getElementById('stud_new_pwd').value = '';
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch(e) { alert('Error de red'); }
+        }
+</script>
 
 </body>
 
