@@ -1996,7 +1996,7 @@
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando cursos...</div>';
             
             try {
-                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}&_t=${Date.now()}`);
                 let courses = await resp.json();
                 
                 const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
@@ -2062,7 +2062,7 @@
 
         async function openEditor(courseId) {
             try {
-                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}&_t=${Date.now()}`);
                 const course = await resp.json();
                 if (course.status === 'error') { alert("No se pudo abrir el curso."); return; }
                 
@@ -2770,7 +2770,7 @@
                 }
                 
                 // Obtener todos los cursos
-                const courseResp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const courseResp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}&_t=${Date.now()}`);
                 const courses = await courseResp.json();
                 
                 const enrolledIds = student.enrolled_courses || [];
@@ -2822,7 +2822,7 @@
                 const selectorBox = document.getElementById('studentCourseSelectorBox');
                 if (selectorBox) selectorBox.style.display = 'none';
 
-                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}&_t=${Date.now()}`);
                 const course = await resp.json();
                 
                 // Assign global variable for use in quizzes
