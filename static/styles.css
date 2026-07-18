@@ -656,3 +656,16 @@ th {
         justify-content: center;
     }
 }
+
+/* Styling for inputs, selects and textareas under both themes to prevent invisible text */
+input, select, textarea {
+    background-color: var(--secondary-bg) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+input::placeholder, textarea::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.8 !important;
+}
+

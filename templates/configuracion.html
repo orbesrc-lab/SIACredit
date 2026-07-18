@@ -61,6 +61,8 @@
             width: 100%;
             padding: 10px 15px;
             border: 1px solid var(--border-color);
+            background-color: var(--secondary-bg) !important;
+            color: var(--text-main) !important;
             border-radius: 8px;
             font-family: var(--font-main);
             font-size: 0.95rem;
@@ -172,6 +174,30 @@
     <div style="display:flex; gap:12px; justify-content:flex-end;">
       <button onclick="closeConfigConfirmModal()" style="padding:10px 20px; border-radius:8px; border:1px solid #475569; background:transparent; color:#94a3b8; cursor:pointer; font-size:0.9rem; font-weight:500;">Cancelar</button>
       <button id="confirmModalBtn" style="padding:10px 20px; border-radius:8px; border:none; background:#ef4444; color:#fff; cursor:pointer; font-size:0.9rem; font-weight:600; box-shadow:0 4px 12px rgba(239, 68, 68, 0.2);">Confirmar</button>
+    </div>
+</div>
+<!-- Modal para Crear/Añadir Elementos del Modelo (Factor, Característica, Aspecto) -->
+<div id="addElementModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.75); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; animation: fadeIn 0.3s ease-out;">
+  <div style="background:var(--card-bg,#1e293b); border:1px solid var(--border-color,#334155); border-radius:16px; padding:32px 28px; max-width:480px; width:90%; box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+    <h3 id="addElementTitle" style="margin:0 0 12px; font-size:1.3rem; color:#f1f5f9; font-weight:600; display:flex; align-items:center; gap:8px;">Añadir Elemento</h3>
+    <p id="addElementDesc" style="margin:0 0 20px; color:#94a3b8; font-size:0.9rem; line-height:1.4;">Complete la información requerida a continuación.</p>
+    
+    <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:24px;">
+      <div id="field1Group" style="display:flex; flex-direction:column; gap:6px;">
+        <label id="field1Label" style="font-size:0.8rem; font-weight:600; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.05em;">Campo 1</label>
+        <input type="text" id="field1Input" style="padding:12px; border-radius:8px; border:1px solid var(--border-color,#334155); background:#0f172a; color:#f8fafc; font-size:0.95rem; width:100%; box-sizing:border-box;">
+        <p id="field1Helper" style="font-size:0.75rem; color:#94a3b8; margin:4px 0 0; line-height:1.3; display:none;"></p>
+      </div>
+      <div id="field2Group" style="display:flex; flex-direction:column; gap:6px;">
+        <label id="field2Label" style="font-size:0.8rem; font-weight:600; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.05em;">Campo 2</label>
+        <input type="text" id="field2Input" style="padding:12px; border-radius:8px; border:1px solid var(--border-color,#334155); background:#0f172a; color:#f8fafc; font-size:0.95rem; width:100%; box-sizing:border-box;">
+      </div>
+      <div id="addElementErrorMsg" style="display:none; color:#ef4444; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:8px; padding:10px 14px; font-size:0.85rem; line-height:1.4;"></div>
+    </div>
+    
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <button onclick="closeAddElementModal()" style="padding:11px 22px; border-radius:8px; border:1px solid #475569; background:transparent; color:#94a3b8; cursor:pointer; font-size:0.9rem; font-weight:500;">Cancelar</button>
+      <button id="addElementConfirmBtn" style="padding:11px 22px; border-radius:8px; border:none; background:var(--primary-color,#10b981); color:#fff; cursor:pointer; font-size:0.9rem; font-weight:600; box-shadow:0 4px 12px rgba(16, 185, 129, 0.2);">Agregar</button>
     </div>
   </div>
 </div>
@@ -800,116 +826,168 @@
                 alert("Por favor, seleccione un programa académico activo antes de añadir factores.");
                 return;
             }
-            let promptText = "Opciones para añadir Factor:\n\n";
-            promptText += "Ingrese un número del 1 al 12 para importar la plantilla oficial del CNA (ej. '2' para Estudiantes).\n";
-            promptText += "Deje el campo en blanco y presione 'Aceptar' para crear un factor personalizado.";
-
-            const selection = prompt(promptText);
-            const model = getDataModel();
-
-            if (selection === null) return; // Canceló
-
-            const numSel = parseInt(selection);
-            if (!isNaN(numSel) && numSel >= 1 && numSel <= 12) {
-                // Importar de plantilla
-                const tmpl = cnaTemplate[numSel - 1];
-
-                const newFactor = {
-                    id: 'f' + generateId(),
-                    number: tmpl.number,
-                    name: tmpl.name,
-                    weight: 0,
-                    characteristics: tmpl.characteristics.map(c => ({
-                        id: 'c' + generateId(),
-                        number: c.number,
-                        name: c.name,
-                        weight: 0,
-                        aspects: c.aspects.map(a => ({
-                            id: 'a' + generateId(),
-                            text: a.text
-                        }))
-                    }))
-                };
-
-                model.push(newFactor);
-                saveDataModel(model);
-                renderModelEditor();
-            } else {
-                // Factor personalizado
-                const num = prompt("Número del Factor (ej. 13):");
-                if (!num) return;
-                const name = prompt("Nombre del Factor:");
-                if (!name) return;
-
-                model.push({ id: 'f' + generateId(), number: num, name: name, weight: 0, characteristics: [] });
-                saveDataModel(model);
-                renderModelEditor();
-            }
+            
+            showAddElementModal({
+                title: '➕ Añadir Factor',
+                desc: 'Ingrese un número de plantilla del 1 al 12 para importar de los lineamientos oficiales del CNA, o ingrese un número/nombre libre para un factor personalizado.',
+                label1: 'Número (o plantilla 1-12)',
+                label2: 'Nombre del Factor (vacío si importa plantilla)',
+                helperText: '💡 <strong>Plantillas CNA:</strong> 1: Proyecto, 2: Estudiantes, 3: Profesores, 4: Egresados, 5: Académico, 6: Permanencia, 7: Interacción, 8: Investigación, 9: Bienestar, 10: Medios, 11: Admin, 12: Recursos.',
+                onConfirm: (val1, val2) => {
+                    if (!val1) {
+                        alert("Debe ingresar un número.");
+                        return;
+                    }
+                    const model = getDataModel();
+                    const numSel = parseInt(val1);
+                    if (!isNaN(numSel) && numSel >= 1 && numSel <= 12 && !val2) {
+                        // Importar de plantilla
+                        const tmpl = cnaTemplate[numSel - 1];
+                        const newFactor = {
+                            id: 'f' + generateId(),
+                            number: tmpl.number,
+                            name: tmpl.name,
+                            weight: 0,
+                            characteristics: tmpl.characteristics.map(c => ({
+                                id: 'c' + generateId(),
+                                number: c.number,
+                                name: c.name,
+                                weight: 0,
+                                aspects: c.aspects.map(a => ({
+                                    id: 'a' + generateId(),
+                                    text: a.text
+                                }))
+                            }))
+                        };
+                        model.push(newFactor);
+                    } else {
+                        // Factor personalizado
+                        if (!val2) {
+                            alert("Por favor ingrese el nombre del factor para el modo personalizado.");
+                            return;
+                        }
+                        model.push({ id: 'f' + generateId(), number: val1, name: val2, weight: 0, characteristics: [] });
+                    }
+                    saveDataModel(model);
+                    renderModelEditor();
+                    closeAddElementModal();
+                }
+            });
         }
 
-
         function deleteFactor(factorId) {
-            if (!confirm("¿Seguro que desea eliminar este factor y todo su contenido?")) return;
-            let model = getDataModel();
-            model = model.filter(f => f.id !== factorId);
-            saveDataModel(model);
-            renderModelEditor();
+            const model = getDataModel();
+            const factor = model.find(f => f.id === factorId);
+            const name = factor ? factor.name : '';
+            showConfigConfirm({
+                title: '🗑️ Eliminar Factor',
+                text: `¿Estás seguro de eliminar el factor "${name}" y todas sus características y aspectos asociados? Esta acción no se puede deshacer.`,
+                confirmText: 'Sí, eliminar',
+                isDanger: true,
+                onConfirm: async () => {
+                    let m = getDataModel();
+                    m = m.filter(f => f.id !== factorId);
+                    saveDataModel(m);
+                    renderModelEditor();
+                }
+            });
         }
 
         function addCharacteristic(factorId) {
-            const num = prompt("Número de la característica (ej. 2.1):");
-            if (!num) return;
-            const name = prompt("Nombre de la característica:");
-            if (!name) return;
-
-            const model = getDataModel();
-            const factor = model.find(f => f.id === factorId);
-            if (factor) {
-                factor.characteristics.push({ id: 'c' + generateId(), number: num, name: name, weight: 0, aspects: [] });
-                saveDataModel(model);
-                renderModelEditor();
-            }
+            showAddElementModal({
+                title: '➕ Añadir Característica',
+                desc: 'Ingrese el número identificador y el nombre descriptivo para la nueva característica.',
+                label1: 'Número (ej: 2.1)',
+                label2: 'Nombre de la Característica',
+                onConfirm: (val1, val2) => {
+                    if (!val1 || !val2) {
+                        alert("Por favor rellene ambos campos.");
+                        return;
+                    }
+                    const model = getDataModel();
+                    const factor = model.find(f => f.id === factorId);
+                    if (factor) {
+                        factor.characteristics.push({ id: 'c' + generateId(), number: val1, name: val2, weight: 0, aspects: [] });
+                        saveDataModel(model);
+                        renderModelEditor();
+                        closeAddElementModal();
+                    }
+                }
+            });
         }
 
         function deleteCharacteristic(factorId, charId) {
-            if (!confirm("¿Eliminar característica?")) return;
             const model = getDataModel();
             const factor = model.find(f => f.id === factorId);
-            if (factor) {
-                factor.characteristics = factor.characteristics.filter(c => c.id !== charId);
-                saveDataModel(model);
-                renderModelEditor();
-            }
+            const char = factor ? factor.characteristics.find(c => c.id === charId) : null;
+            const charName = char ? char.name : '';
+            showConfigConfirm({
+                title: '🗑️ Eliminar Característica',
+                text: `¿Estás seguro de eliminar la característica "${charName}"? Se borrarán también todos sus aspectos asociados.`,
+                confirmText: 'Sí, eliminar',
+                isDanger: true,
+                onConfirm: async () => {
+                    const m = getDataModel();
+                    const f = m.find(x => x.id === factorId);
+                    if (f) {
+                        f.characteristics = f.characteristics.filter(c => c.id !== charId);
+                        saveDataModel(m);
+                        renderModelEditor();
+                    }
+                }
+            });
         }
 
         function addAspect(factorId, charId) {
-            const text = prompt("Ingrese el texto a evaluar del aspecto:");
-            if (!text) return;
-
-            const model = getDataModel();
-            const factor = model.find(f => f.id === factorId);
-            if (factor) {
-                const char = factor.characteristics.find(c => c.id === charId);
-                if (char) {
-                    char.aspects.push({ id: 'a' + generateId(), text: text });
-                    saveDataModel(model);
-                    renderModelEditor();
+            showAddElementModal({
+                title: '➕ Añadir Aspecto a Evaluar',
+                desc: 'Ingrese el texto de la declaración o aspecto a evaluar en las encuestas/autoevaluación.',
+                label1: 'Texto del Aspecto',
+                onConfirm: (val1) => {
+                    if (!val1) {
+                        alert("Por favor ingrese el texto.");
+                        return;
+                    }
+                    const model = getDataModel();
+                    const factor = model.find(f => f.id === factorId);
+                    if (factor) {
+                        const char = factor.characteristics.find(c => c.id === charId);
+                        if (char) {
+                            char.aspects.push({ id: 'a' + generateId(), text: val1 });
+                            saveDataModel(model);
+                            renderModelEditor();
+                            closeAddElementModal();
+                        }
+                    }
                 }
-            }
+            });
         }
 
         function deleteAspect(factorId, charId, aspectId) {
-            if (!confirm("¿Eliminar aspecto?")) return;
             const model = getDataModel();
             const factor = model.find(f => f.id === factorId);
-            if (factor) {
-                const char = factor.characteristics.find(c => c.id === charId);
-                if (char) {
-                    char.aspects = char.aspects.filter(a => a.id !== aspectId);
-                    saveDataModel(model);
-                    renderModelEditor();
+            const char = factor ? factor.characteristics.find(c => c.id === charId) : null;
+            const aspect = char ? char.aspects.find(a => a.id === aspectId) : null;
+            const aspectText = aspect ? aspect.text : '';
+            
+            showConfigConfirm({
+                title: '🗑️ Eliminar Aspecto',
+                text: `¿Estás seguro de eliminar el aspecto: "${aspectText.substring(0, 50)}..."?`,
+                confirmText: 'Sí, eliminar',
+                isDanger: true,
+                onConfirm: async () => {
+                    const m = getDataModel();
+                    const f = m.find(x => x.id === factorId);
+                    if (f) {
+                        const c = f.characteristics.find(y => y.id === charId);
+                        if (c) {
+                            c.aspects = c.aspects.filter(a => a.id !== aspectId);
+                            saveDataModel(m);
+                            renderModelEditor();
+                        }
+                    }
                 }
-            }
+            });
         }
 
         // Acciones de Edición
@@ -917,15 +995,26 @@
             const model = getDataModel();
             const factor = model.find(f => f.id === factorId);
             if (factor) {
-                const num = prompt("Número del Factor:", factor.number);
-                if (num === null) return; // Cancelado
-                const name = prompt("Nombre del Factor:", factor.name);
-                if (name === null) return; // Cancelado
-
-                factor.number = num || factor.number;
-                factor.name = name || factor.name;
-                saveDataModel(model);
-                renderModelEditor();
+                showAddElementModal({
+                    title: '✏️ Editar Factor',
+                    desc: 'Modifique el número identificador y el nombre del factor.',
+                    label1: 'Número del Factor',
+                    label2: 'Nombre del Factor',
+                    onConfirm: (val1, val2) => {
+                        if (!val1 || !val2) {
+                            alert("Por favor rellene ambos campos.");
+                            return;
+                        }
+                        factor.number = val1;
+                        factor.name = val2;
+                        saveDataModel(model);
+                        renderModelEditor();
+                        closeAddElementModal();
+                    }
+                });
+                // Pre-populate fields
+                document.getElementById('field1Input').value = factor.number;
+                document.getElementById('field2Input').value = factor.name;
             }
         }
 
@@ -935,15 +1024,26 @@
             if (factor) {
                 const char = factor.characteristics.find(c => c.id === charId);
                 if (char) {
-                    const num = prompt("Número de la característica:", char.number);
-                    if (num === null) return;
-                    const name = prompt("Nombre de la característica:", char.name);
-                    if (name === null) return;
-
-                    char.number = num || char.number;
-                    char.name = name || char.name;
-                    saveDataModel(model);
-                    renderModelEditor();
+                    showAddElementModal({
+                        title: '✏️ Editar Característica',
+                        desc: 'Modifique el número identificador y el nombre de la característica.',
+                        label1: 'Número de la Característica',
+                        label2: 'Nombre de la Característica',
+                        onConfirm: (val1, val2) => {
+                            if (!val1 || !val2) {
+                                alert("Por favor rellene ambos campos.");
+                                return;
+                            }
+                            char.number = val1;
+                            char.name = val2;
+                            saveDataModel(model);
+                            renderModelEditor();
+                            closeAddElementModal();
+                        }
+                    });
+                    // Pre-populate fields
+                    document.getElementById('field1Input').value = char.number;
+                    document.getElementById('field2Input').value = char.name;
                 }
             }
         }
@@ -956,12 +1056,23 @@
                 if (char) {
                     const aspect = char.aspects.find(a => a.id === aspectId);
                     if (aspect) {
-                        const text = prompt("Texto del aspecto:", aspect.text);
-                        if (text === null) return;
-
-                        aspect.text = text || aspect.text;
-                        saveDataModel(model);
-                        renderModelEditor();
+                        showAddElementModal({
+                            title: '✏️ Editar Aspecto',
+                            desc: 'Modifique el texto descriptivo del aspecto a evaluar.',
+                            label1: 'Texto del Aspecto',
+                            onConfirm: (val1) => {
+                                if (!val1) {
+                                    alert("Por favor ingrese el texto.");
+                                    return;
+                                }
+                                aspect.text = val1;
+                                saveDataModel(model);
+                                renderModelEditor();
+                                closeAddElementModal();
+                            }
+                        });
+                        // Pre-populate fields
+                        document.getElementById('field1Input').value = aspect.text;
                     }
                 }
             }
@@ -1415,9 +1526,15 @@
         }
 
         function resetPass(email) {
-            if (confirm(`¿Está seguro de resetear la contraseña del usuario ${email}? Se enviará una clave temporal a su email personal.`)) {
-                alert("Acción completada. Clave reseteada.");
-            }
+            showConfigConfirm({
+                title: '🔑 Resetear Contraseña',
+                text: `¿Está seguro de resetear la contraseña del usuario ${email}? Se enviará una clave temporal a su email personal.`,
+                confirmText: 'Sí, resetear',
+                isDanger: false,
+                onConfirm: async () => {
+                    alert("Acción completada. Clave reseteada.");
+                }
+            });
         }
 
         // ========== Gestión de Usuarios ==========
@@ -1787,6 +1904,45 @@
             };
             
             document.getElementById('configConfirmModal').style.display = 'flex';
+        }
+
+        function closeAddElementModal() {
+            document.getElementById('addElementModal').style.display = 'none';
+            document.getElementById('field1Input').value = '';
+            document.getElementById('field2Input').value = '';
+            document.getElementById('addElementErrorMsg').style.display = 'none';
+        }
+
+        function showAddElementModal({ title, desc, label1, label2, helperText, onConfirm }) {
+            document.getElementById('addElementTitle').textContent = title;
+            document.getElementById('addElementDesc').textContent = desc;
+            document.getElementById('field1Label').textContent = label1;
+            
+            const field2Group = document.getElementById('field2Group');
+            if (label2) {
+                document.getElementById('field2Label').textContent = label2;
+                field2Group.style.display = 'flex';
+            } else {
+                field2Group.style.display = 'none';
+            }
+            
+            const helper = document.getElementById('field1Helper');
+            if (helperText) {
+                helper.innerHTML = helperText;
+                helper.style.display = 'block';
+            } else {
+                helper.style.display = 'none';
+            }
+
+            const btn = document.getElementById('addElementConfirmBtn');
+            btn.onclick = () => {
+                const val1 = document.getElementById('field1Input').value.trim();
+                const val2 = document.getElementById('field2Input').value.trim();
+                onConfirm(val1, val2);
+            };
+
+            document.getElementById('addElementModal').style.display = 'flex';
+            document.getElementById('field1Input').focus();
         }
 
         function closeNewInstModal() {
@@ -2300,14 +2456,25 @@
         }
 
         async function deletePartner(id) {
-            if(!confirm("¿Eliminar este aliado?")) return;
-            try {
-                const res = await fetch('/api/partners/' + id, { method: 'DELETE' });
-                const data = await res.json();
-                if(data.status === 'success') loadPartners();
-            } catch(e) {
-                alert("Error eliminando aliado");
-            }
+            showConfigConfirm({
+                title: '🗑️ Eliminar Aliado',
+                text: '¿Estás seguro de que deseas eliminar este aliado comercial?',
+                confirmText: 'Sí, eliminar',
+                isDanger: true,
+                onConfirm: async () => {
+                    try {
+                        const res = await fetch('/api/partners/' + id, { method: 'DELETE' });
+                        const data = await res.json();
+                        if(data.status === 'success') {
+                            loadPartners();
+                        } else {
+                            alert("Error al eliminar el aliado.");
+                        }
+                    } catch(e) {
+                        alert("Error de conexión al eliminar.");
+                    }
+                }
+            });
         }
 
         document.addEventListener("DOMContentLoaded", () => {
