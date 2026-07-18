@@ -99,52 +99,22 @@ def _sb_upsert(table, row):
         return False
 
 def _sb_delete(table, filters):
-    """Delete directly from real table. Returns True on success."""
+    """Delete from both the real table and the statistics table mapping. Returns True on success."""
     sb = _get_supabase()
     if not sb: return False
+    
+    real_success = False
     try:
         q = sb.table(table).delete()
         if filters:
             for k, v in filters.items():
                 q = q.eq(k, v)
         q.execute()
-        return True
+        real_success = True
     except Exception as e:
-        print(f"[supabase] Error deleting {table}: {e}")
-        return False
-    try:
-        inst_id = row.get('inst_id', 1)
-        table_key = f"{table.upper()}_{inst_id}"
-        
-        res = sb.table('statistics').select('id, data_json').eq('table_id', table_key).execute()
-        if res.data:
-            row_id = res.data[0]['id']
-            all_records = json.loads(res.data[0]['data_json'])
-            
-            found = False
-            for i, r in enumerate(all_records):
-                if r.get('id') == row.get('id'):
-                    all_records[i] = row
-                    found = True
-                    break
-            if not found:
-                all_records.append(row)
-                
-            sb.table('statistics').update({"data_json": json.dumps(all_records)}).eq("id", row_id).execute()
-        else:
-            sb.table('statistics').insert({
-                "table_id": table_key,
-                "data_json": json.dumps([row])
-            }).execute()
-        return True
-    except Exception as e:
-        print(f"[supabase] Error upserting {table} via statistics: {e}")
-        return False
+        print(f"[supabase] Error deleting from real table {table}: {e}")
 
-def _sb_delete(table, filters):
-    """Delete from Supabase mapping to 'statistics'. Returns True on success."""
-    sb = _get_supabase()
-    if not sb: return False
+    stats_success = False
     try:
         if filters and 'inst_id' in filters:
             inst_id = filters.get('inst_id')
@@ -174,10 +144,12 @@ def _sb_delete(table, filters):
                         
                 if changed:
                     sb.table('statistics').update({"data_json": json.dumps(new_records)}).eq("id", row_id).execute()
-        return True
+        stats_success = True
     except Exception as e:
         print(f"[supabase] Error deleting {table} via statistics: {e}")
-        return False
+
+    return real_success or stats_success
+
 
 def _local_query(sql, params=()):
     """Run a SELECT on local SQLite, returns list of dicts."""
