@@ -2684,6 +2684,14 @@
             const urlInput = document.getElementById('res_url');
             
             statusDiv.style.display = 'block';
+            
+            if (file.size > 4.5 * 1024 * 1024) {
+                statusDiv.style.color = '#ef4444';
+                statusDiv.innerHTML = '❌ El archivo supera el límite de 4.5 MB. Para archivos grandes, súbelo a Google Drive y pega el enlace aquí.';
+                input.value = '';
+                return;
+            }
+            
             statusDiv.style.color = 'var(--primary-color)';
             statusDiv.innerHTML = '⏳ Subiendo archivo al servidor...';
             
@@ -2695,6 +2703,12 @@
                     method: 'POST',
                     body: formData
                 });
+                
+                if (!uploadResp.ok) {
+                    if (uploadResp.status === 413) throw new Error("El archivo excede el límite de tamaño de 4.5 MB del servidor.");
+                    throw new Error(`Error en el servidor (${uploadResp.status})`);
+                }
+                
                 const uploadResult = await uploadResp.json();
                 
                 if (uploadResult.status === 'success') {
@@ -3594,6 +3608,11 @@
                     const file = e.target.files[0];
                     if (!file) return;
                     
+                    if (file.size > 4.5 * 1024 * 1024) {
+                        alert("❌ La imagen es demasiado pesada. El límite es de 4.5 MB. Por favor, comprímela o usa la opción de pegar URL.");
+                        return;
+                    }
+                    
                     const tempId = 'img_loading_' + Math.random().toString(36).substr(2, 9);
                     insertHtmlAtCursor(`<div id="${tempId}" style="color:var(--primary-color);font-weight:bold;font-size:0.9rem;padding:15px;text-align:center;border:2px dashed var(--primary-color);border-radius:8px;margin:10px 0;">⏳ Subiendo imagen al servidor...</div><br>`);
                     
@@ -3605,6 +3624,12 @@
                             method: 'POST',
                             body: formData
                         });
+                        
+                        if (!uploadResp.ok) {
+                            if (uploadResp.status === 413) throw new Error("La imagen excede el límite de tamaño de 4.5 MB.");
+                            throw new Error(`Error en el servidor (${uploadResp.status})`);
+                        }
+                        
                         const uploadResult = await uploadResp.json();
                         
                         const loadingDiv = document.getElementById(tempId);
