@@ -1888,26 +1888,37 @@
             openActivateAspiranteModal(email);
         }
 
-        function openActivateAspiranteModal(email) {
+        async function openActivateAspiranteModal(email) {
             document.getElementById('act_aspirante_email').value = email;
-            const student = allStudents.find(s => s.email === email || s.student_email === email);
+            
+            const student = (window.allStudentsCache || []).find(s => s.email === email || s.student_email === email);
             const preEnrolled = student && student.enrolled_courses ? student.enrolled_courses : [];
+            
             const listDiv = document.getElementById('actAspiranteCoursesList');
-            listDiv.innerHTML = '';
-            if (courses.length === 0) {
-                listDiv.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted);">No hay cursos creados.</p>';
-            } else {
-                courses.forEach(c => {
-                    const isChecked = preEnrolled.includes(c.id) ? 'checked' : '';
-                    listDiv.innerHTML += `
-                        <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 0.9rem; cursor: pointer;">
-                            <input type="checkbox" class="act-course-checkbox" value="${c.id}" ${isChecked}>
-                            ${escapeHtml(c.title || c.name)}
-                        </label>
-                    `;
-                });
-            }
+            listDiv.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem;">Cargando cursos...</p>';
             document.getElementById('activateAspiranteModal').style.display = 'flex';
+            
+            try {
+                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=0`);
+                const courses = await resp.json();
+                
+                listDiv.innerHTML = '';
+                if (!courses || courses.length === 0) {
+                    listDiv.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted);">No hay cursos creados.</p>';
+                } else {
+                    courses.forEach(c => {
+                        const isChecked = preEnrolled.includes(c.id) ? 'checked' : '';
+                        listDiv.innerHTML += `
+                            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 0.9rem; cursor: pointer;">
+                                <input type="checkbox" class="act-course-checkbox" value="${c.id}" ${isChecked}>
+                                ${escapeHtml(c.title || c.name)}
+                            </label>
+                        `;
+                    });
+                }
+            } catch(e) {
+                listDiv.innerHTML = '<p style="font-size:0.85rem; color:#ef4444;">Error al cargar cursos.</p>';
+            }
         }
 
         async function submitActivateAspirante() {
@@ -1927,7 +1938,7 @@
                     });
                     const actRes = await actResp.json();
                     if (actRes.status === 'success') {
-                        const student = allStudents.find(s => s.email === email || s.student_email === email);
+                        const student = (window.allStudentsCache || []).find(s => s.email === email || s.student_email === email);
                         if (student) {
                             student.enrolled_courses = selectedCourses;
                             if (student.name) student.name = student.name.replace(/\[ASPIRANTE\]\s*/g, '').replace(/\[PENDING[^\]]*\]\s*/g, '').trim();
