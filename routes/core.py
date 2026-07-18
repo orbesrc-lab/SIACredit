@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 import json
 import traceback
+import formacion_storage
 
 core_bp = Blueprint('core', __name__)
 
