@@ -1224,7 +1224,14 @@
             </div>
             <div class="form-group" style="margin-top: 15px;">
                 <label>URL / Enlace del Archivo</label>
-                <input type="url" id="res_url" placeholder="https://drive.google.com/file/... o Youtube">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="url" id="res_url" placeholder="https://drive.google.com/file/... o Youtube" style="flex:1;">
+                    <button class="btn-ghost" onclick="document.getElementById('res_upload_input').click()" style="padding: 8px 12px; border: 1px solid var(--primary-color); color: var(--primary-color); border-radius: 6px; cursor: pointer;" title="Subir archivo desde mi PC">
+                        <i class="fas fa-upload"></i> Subir
+                    </button>
+                    <input type="file" id="res_upload_input" style="display:none;" onchange="handleResUpload(this)">
+                </div>
+                <div id="res_upload_status" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px; display: none;"></div>
             </div>
             <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:25px;">
                 <button class="btn-ghost" onclick="closeUnitResourceModal()">Cancelar</button>
@@ -2668,6 +2675,48 @@
             document.getElementById('unitResourceModal').style.display = 'flex';
         }
         function closeUnitResourceModal() { document.getElementById('unitResourceModal').style.display = 'none'; }
+        
+        async function handleResUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const statusDiv = document.getElementById('res_upload_status');
+            const urlInput = document.getElementById('res_url');
+            
+            statusDiv.style.display = 'block';
+            statusDiv.style.color = 'var(--primary-color)';
+            statusDiv.innerHTML = '⏳ Subiendo archivo al servidor...';
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const uploadResp = await fetch('/api/lms_upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const uploadResult = await uploadResp.json();
+                
+                if (uploadResult.status === 'success') {
+                    urlInput.value = uploadResult.url;
+                    statusDiv.style.color = '#10b981'; // green
+                    statusDiv.innerHTML = '✔ Archivo subido con éxito.';
+                    
+                    const nameInput = document.getElementById('res_name');
+                    if(!nameInput.value) {
+                        nameInput.value = file.name.split('.')[0];
+                    }
+                } else {
+                    statusDiv.style.color = '#ef4444'; // red
+                    statusDiv.innerHTML = '❌ Error al subir: ' + uploadResult.message;
+                }
+            } catch (error) {
+                statusDiv.style.color = '#ef4444';
+                statusDiv.innerHTML = '❌ Error de conexión: ' + error.message;
+            }
+            input.value = '';
+        }
+
         async function submitAddUnitResource() {
             const unitIdx = parseInt(document.getElementById('resourceUnitIdx').value);
             let name = document.getElementById('res_name').value.trim();
