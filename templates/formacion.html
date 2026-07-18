@@ -752,7 +752,7 @@
                                 <p style="font-size:0.8rem; color:var(--text-muted); margin:3px 0 0 0;">Carga los recursos, tareas y exámenes CNA directamente en la unidad correspondiente.</p>
                             </div>
                             <div class="flex" style="gap: 10px;">
-                                <button class="btn-secondary" onclick="exportCourseToMoodle()" style="padding: 6px 12px; font-size: 0.85rem; background: linear-gradient(45deg, #f39c12, #e67e22); color: white; border: none;"><i class="fa fa-download" style="margin-right: 5px;"></i> Exportar a Moodle</button>
+                                <button class="btn-secondary" onclick="exportCourseToMoodle(this)" style="padding: 6px 12px; font-size: 0.85rem; background: linear-gradient(45deg, #f39c12, #e67e22); color: white; border: none;"><i class="fa fa-download" style="margin-right: 5px;"></i> Exportar a Moodle</button>
                                 <button class="btn-secondary" onclick="addUnitPrompt()" style="padding: 6px 12px; font-size: 0.85rem;">+ Añadir Unidad</button>
                             </div>
                         </div>
@@ -5939,13 +5939,12 @@
     let currentWizStep = 1;
     let aiDraftCourse = null;
     let createdAiCourseId = null;
-    function exportCourseToMoodle() {
+    function exportCourseToMoodle(btn) {
         if (!activeCourse || !activeCourse.id) {
             showNotification('Seleccione un curso primero', 'error');
             return;
         }
         
-        const btn = event.currentTarget;
         const originalHtml = btn.innerHTML;
         btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Preparando Moodle...';
         btn.disabled = true;
