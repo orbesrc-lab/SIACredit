@@ -149,15 +149,22 @@ Responde ÚNICAMENTE en JSON con el formato:
 def generate_unit_resources():
     data = request.json
     unit_info = data.get('unit_info', {})
-    prompt = f"""Eres un Especialista en Educación Virtual.
-Sugiéreme 3 recursos didácticos actualizados (Artículos científicos, libros, videos, simuladores, o webs) para la unidad "{unit_info.get('name')}" del curso "{data.get('course_name')}".
+    prompt = f"""Eres un Bibliotecario y Especialista en Educación Virtual.
+Sugiéreme 3 recursos didácticos (artículos, videos, libros) para la unidad "{unit_info.get('name')}" del curso "{data.get('course_name')}".
+
+REGLA CRÍTICA DE ORO: NUNCA inventes URLs directas a PDFs o sitios que no conoces, ya que suelen estar rotos o bloqueados por paywalls (cobro). 
+DEBES proveer únicamente URLs reales, abiertas y gratuitas (Open Access). 
+Para asegurar esto, genera enlaces de BÚSQUEDA automatizada que siempre funcionarán, por ejemplo:
+- Para videos: usa https://www.youtube.com/results?search_query=PALABRAS+CLAVE
+- Para artículos: usa https://scholar.google.com/scholar?q=PALABRAS+CLAVE
+- O enlaces a enciclopedias públicas como Wikipedia.
 
 Responde ÚNICAMENTE en JSON con el formato:
 {{
   "resources": [
     {{
-      "name": "Título y autor del recurso",
-      "url": "URL sugerida o '#' si no aplica",
+      "name": "Título descriptivo del recurso (ej. Video: Introducción a...)",
+      "url": "https://www.youtube.com/results?search_query=...",
       "type": "video" 
     }}
   ]
