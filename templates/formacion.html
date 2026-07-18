@@ -1698,12 +1698,25 @@
 
         // ========== SECCIÓN ESTUDIANTES / PARTICIPANTES (Admin) ==========
 
-        function openCreateStudentModal() {
+        async function openCreateStudentModal() {
             document.getElementById('student_id').value = '';
             document.getElementById('student_name').value = '';
             document.getElementById('student_email').value = '';
+            document.getElementById('student_course_id').value = '';
+            document.getElementById('studentCourseGroup').style.display = 'block';
             document.getElementById('studentModalTitle').textContent = 'Registrar Estudiante / Participante';
             document.getElementById('btnSubmitStudent').textContent = 'Registrar Estudiante';
+
+            try {
+                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=0`);
+                const courses = await resp.json();
+                const sel = document.getElementById('student_course_id');
+                sel.innerHTML = '<option value="">-- No matricular aún --</option>';
+                courses.forEach(c => {
+                    sel.innerHTML += `<option value="${c.id}">${escapeHtml(c.title || c.name)}</option>`;
+                });
+            } catch(e) {}
+
             document.getElementById('studentModal').style.display = 'flex';
         }
 
@@ -1722,6 +1735,9 @@
             
             const payload = { name, email };
             if (id) payload.id = id;
+            
+            const courseId = document.getElementById('student_course_id') ? document.getElementById('student_course_id').value : '';
+            if (courseId) payload.course_id = courseId;
             
             try {
                 const resp = await fetch(`/api/students?inst_id=${getInstId()}`, {
@@ -1888,6 +1904,7 @@
             document.getElementById('student_id').value = id;
             document.getElementById('student_name').value = name;
             document.getElementById('student_email').value = email;
+            if (document.getElementById('studentCourseGroup')) document.getElementById('studentCourseGroup').style.display = 'none';
             document.getElementById('studentModalTitle').textContent = 'Editar Estudiante';
             document.getElementById('btnSubmitStudent').textContent = 'Guardar Cambios';
             document.getElementById('studentModal').style.display = 'flex';

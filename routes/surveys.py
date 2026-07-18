@@ -445,8 +445,11 @@ def handle_api_students():
     inst_id = request.args.get('inst_id', 1, type=int)
     if request.method == 'POST':
         data = request.json
+        course_id = data.pop('course_id', None)
         saved = formacion_storage.save_student(inst_id, data)
         if saved:
+            if course_id:
+                formacion_storage.enroll_student_in_course(inst_id, saved['id'], course_id)
             return jsonify({"status": "success", "data": saved})
         return jsonify({"status": "error", "message": "No se pudo guardar el estudiante."})
     try:
