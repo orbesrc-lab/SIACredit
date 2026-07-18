@@ -162,6 +162,17 @@
       <button onclick="closeNewInstModal()" style="padding:11px 22px; border-radius:8px; border:1px solid #475569; background:transparent; color:#94a3b8; cursor:pointer; font-size:0.9rem; font-weight:500; transition:all 0.2s;">Cancelar</button>
       <button id="newInstConfirmBtn" onclick="submitNewInstitution()" style="padding:11px 22px; border-radius:8px; border:none; background:var(--primary-color,#10b981); color:#fff; cursor:pointer; font-size:0.9rem; font-weight:600; box-shadow:0 4px 12px rgba(16, 185, 129, 0.2); transition:all 0.2s;">Crear Institución</button>
     </div>
+</div>
+</div>
+<!-- Modal Reutilizable de Confirmación de Acción -->
+<div id="configConfirmModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.75); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; animation: fadeIn 0.3s ease-out;">
+  <div style="background:var(--card-bg,#1e293b); border:1px solid var(--border-color,#334155); border-radius:16px; padding:32px 28px; max-width:440px; width:90%; box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+    <h3 id="confirmModalTitle" style="margin:0 0 12px; font-size:1.25rem; color:#ef4444; font-weight:600; display:flex; align-items:center; gap:8px;">⚠️ Confirmar Acción</h3>
+    <p id="confirmModalText" style="margin:0 0 24px; color:#cbd5e1; font-size:0.95rem; line-height:1.5;">¿Estás seguro de que deseas realizar esta acción?</p>
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <button onclick="closeConfigConfirmModal()" style="padding:10px 20px; border-radius:8px; border:1px solid #475569; background:transparent; color:#94a3b8; cursor:pointer; font-size:0.9rem; font-weight:500;">Cancelar</button>
+      <button id="confirmModalBtn" style="padding:10px 20px; border-radius:8px; border:none; background:#ef4444; color:#fff; cursor:pointer; font-size:0.9rem; font-weight:600; box-shadow:0 4px 12px rgba(239, 68, 68, 0.2);">Confirmar</button>
+    </div>
   </div>
 </div>
     <aside class="sidebar">
@@ -1743,6 +1754,41 @@
             location.reload();
         }
 
+        let _confirmActionCallback = null;
+
+        function closeConfigConfirmModal() {
+            document.getElementById('configConfirmModal').style.display = 'none';
+            _confirmActionCallback = null;
+        }
+
+        function showConfigConfirm({ title, text, confirmText, isDanger, onConfirm }) {
+            document.getElementById('confirmModalTitle').textContent = title || '⚠️ Confirmar Acción';
+            document.getElementById('confirmModalTitle').style.color = isDanger ? '#ef4444' : '#f59e0b';
+            document.getElementById('confirmModalText').textContent = text || '';
+            const btn = document.getElementById('confirmModalBtn');
+            btn.textContent = confirmText || 'Confirmar';
+            btn.style.background = isDanger ? '#ef4444' : '#f59e0b';
+            btn.style.boxShadow = isDanger ? '0 4px 12px rgba(239, 68, 68, 0.2)' : '0 4px 12px rgba(245, 158, 11, 0.2)';
+            
+            _confirmActionCallback = onConfirm;
+            btn.onclick = async () => {
+                btn.disabled = true;
+                const oldText = btn.textContent;
+                btn.textContent = '⏳ Procesando...';
+                try {
+                    await _confirmActionCallback();
+                } catch(e) {
+                    console.error(e);
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = oldText;
+                    closeConfigConfirmModal();
+                }
+            };
+            
+            document.getElementById('configConfirmModal').style.display = 'flex';
+        }
+
         function closeNewInstModal() {
             document.getElementById('newInstModal').style.display = 'none';
             document.getElementById('newInstNameInput').value = '';
@@ -1870,7 +1916,8 @@
                 alert("Debes llenar el Nombre del Programa y el Periodo."); return;
             }
 
-            const currentProgId = getProgramId();
+            const sel = document.getElementById('progSelect');
+            const selectedProgId = sel ? sel.value : '0';
             
             const saveMetadata = async (prog_id) => {
                 await fetch(`/api/programs/metadata?inst_id=${getInstId()}&program_id=${prog_id}`, {
@@ -1880,7 +1927,7 @@
                 });
             };
             
-            if(!currentProgId || currentProgId == 0) {
+            if(!selectedProgId || selectedProgId == '0') {
                 // Crear nuevo programa
                 try {
                     const resp = await fetch(`/api/programs?inst_id=${getInstId()}`, {
@@ -1905,18 +1952,26 @@
             } else {
                 // Actualizar programa existente
                 try {
-                    const resp = await fetch(`/api/programs/${currentProgId}`, {
+                    const resp = await fetch(`/api/programs/${selectedProgId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ name: name, period: period })
                     });
+                    let result = {};
+                    try { result = await resp.json(); } catch(je) {}
 
-                    if (resp.ok) {
-                        await saveMetadata(currentProgId);
+                    if (resp.ok && (result.status === 'success' || !result.status)) {
+                        await saveMetadata(selectedProgId);
                         alert('Programa guardado correctamente.');
-                        loadAllPrograms();
+                        
+                        // Si era el programa actualmente cargado, recargar para actualizar la interfaz
+                        if (getProgramId() == selectedProgId) {
+                            location.reload();
+                        } else {
+                            loadAllPrograms();
+                        }
                     } else {
-                        alert('Error al guardar el programa.');
+                        alert('Error al guardar el programa: ' + (result.message || 'Error del servidor'));
                     }
                 } catch(e) {
                     alert("Error de conexión");
@@ -1925,28 +1980,50 @@
         }
 
         async function deleteProgram() {
-            const progId = getProgramId();
-            if (!progId || progId == 0) { alert("Selecciona un programa válido."); return; }
-            if (!confirm(`⚠️ ¿Estás seguro de eliminar este programa académico? Se borrarán sus factores, evidencias y evaluaciones correspondientes. ESTA ACCIÓN ES IRREVERSIBLE.`)) return;
+            const sel = document.getElementById('progSelect');
+            const progId = sel ? sel.value : '0';
+            if (!progId || progId == '0') { alert("Selecciona un programa válido."); return; }
             
-            try {
-                const resp = await fetch(`/api/programs/${progId}`, { method: 'DELETE' });
-                if (resp.ok) {
-                    alert("Programa eliminado.");
-                    const userData = JSON.parse(localStorage.getItem('siac_user'));
-                    userData.program_id = 0;
-                    localStorage.setItem('siac_user', JSON.stringify(userData));
-                    location.reload();
-                } else {
-                    alert("Error al eliminar.");
+            const progName = sel.options[sel.selectedIndex].text;
+            
+            // PROTECCIÓN EXTRA: No permitir borrar programas importantes de UNICUCES (inst_id 1)
+            const currentInst = getInstId();
+            if (currentInst == 1) {
+                if (progName.includes("Contaduría Pública") || progName.includes("Condiciones Institucionales")) {
+                    alert("❌ PROTECCIÓN: Los programas principales de UNICUCES no pueden ser eliminados desde la interfaz para garantizar la integridad de la base de datos.");
+                    return;
                 }
-            } catch (e) {
-                alert("Error de conexión.");
             }
+
+            showConfigConfirm({
+                title: '🗑️ Eliminar Programa',
+                text: `¿Estás seguro de eliminar el programa académico "${progName}"? Se borrarán todos sus factores, evidencias y evaluaciones correspondientes. ESTA ACCIÓN ES IRREVERSIBLE.`,
+                confirmText: 'Sí, eliminar',
+                isDanger: true,
+                onConfirm: async () => {
+                    try {
+                        const resp = await fetch(`/api/programs/${progId}`, { method: 'DELETE' });
+                        let result = {};
+                        try { result = await resp.json(); } catch(je) {}
+                        if (resp.ok && result.status === 'success') {
+                            alert("Programa eliminado.");
+                            const userData = JSON.parse(localStorage.getItem('siac_user'));
+                            if (userData.program_id == progId) {
+                                userData.program_id = 0;
+                                localStorage.setItem('siac_user', JSON.stringify(userData));
+                            }
+                            location.reload();
+                        } else {
+                            alert("Error al eliminar: " + (result.message || `HTTP ${resp.status}`));
+                        }
+                    } catch (e) {
+                        alert("Error de conexión al servidor.");
+                    }
+                }
+            });
         }
 
         async function updatePassword() {
-
             const old_password = document.getElementById('old_password').value;
             const new_password = document.getElementById('new_password').value;
             if (!old_password || !new_password) {
@@ -1979,7 +2056,7 @@
 
         async function deleteInstitution() {
             const sel = document.getElementById('instSelect');
-            const instId = sel.value;
+            const instId = sel ? sel.value : '0';
             if (!instId || instId == '0') { alert('Selecciona una institución válida.'); return; }
             
             // PROTECCIÓN: No permitir borrar la institución principal (ID 1)
@@ -1989,50 +2066,65 @@
             }
             
             const instName = sel.options[sel.selectedIndex].text;
-            if (!confirm(`¿Estás seguro de ELIMINAR la institución "${instName}"?\n\nSe borrarán TODOS sus programas, factores, evidencias, evaluaciones y usuarios.\n\nESTA ACCIÓN ES IRREVERSIBLE.`)) return;
-
-            try {
-                const resp = await fetch(`/api/institutions/${instId}`, { method: 'DELETE' });
-                if (resp.ok) {
-                    alert('Institución eliminada correctamente.');
-                    // Buscar la siguiente institución disponible
-                    const remaining = await fetch('/api/institutions').then(r => r.json());
-                    const userData = JSON.parse(localStorage.getItem('siac_user'));
-                    if (remaining.length > 0) {
-                        userData.inst_id = remaining[0].id;
-                    } else {
-                        userData.inst_id = 0;
+            showConfigConfirm({
+                title: '🗑️ Eliminar Institución',
+                text: `¿Estás seguro de ELIMINAR la institución "${instName}"? Se borrarán TODOS sus programas, factores, evidencias, evaluaciones y usuarios. ESTA ACCIÓN ES IRREVERSIBLE.`,
+                confirmText: 'Sí, eliminar todo',
+                isDanger: true,
+                onConfirm: async () => {
+                    try {
+                        const resp = await fetch(`/api/institutions/${instId}`, { method: 'DELETE' });
+                        let result = {};
+                        try { result = await resp.json(); } catch(je) {}
+                        if (resp.ok && result.status === 'success') {
+                            alert('Institución eliminada correctamente.');
+                            const remaining = await fetch('/api/institutions').then(r => r.json());
+                            const userData = JSON.parse(localStorage.getItem('siac_user'));
+                            if (Array.isArray(remaining) && remaining.length > 0) {
+                                userData.inst_id = remaining[0].id;
+                            } else {
+                                userData.inst_id = 0;
+                            }
+                            userData.program_id = 0;
+                            localStorage.setItem('siac_user', JSON.stringify(userData));
+                            location.reload();
+                        } else {
+                            alert('Error: ' + (result.message || 'No se pudo eliminar.'));
+                        }
+                    } catch (e) {
+                        alert('Error de conexión al eliminar la institución.');
                     }
-                    userData.program_id = 0;
-                    localStorage.setItem('siac_user', JSON.stringify(userData));
-                    location.reload();
-                } else {
-                    const data = await resp.json();
-                    alert('Error: ' + (data.message || 'No se pudo eliminar.'));
                 }
-            } catch (e) {
-                alert('Error de conexión al eliminar la institución.');
-            }
+            });
         }
 
         async function suspendInstitution() {
             const sel = document.getElementById('instSelect');
-            const instId = sel.value;
+            const instId = sel ? sel.value : '0';
             if (!instId || instId == '0') { alert('Selecciona una institución.'); return; }
             const instName = sel.options[sel.selectedIndex].text;
-            if (!confirm(`¿Suspender la institución "${instName}"? Los usuarios no podrán acceder.`)) return;
-
-            try {
-                const resp = await fetch(`/api/institutions/${instId}/suspend`, { method: 'POST' });
-                if (resp.ok) {
-                    alert('Institución suspendida.');
-                    location.reload();
-                } else {
-                    alert('Error al suspender.');
+            
+            showConfigConfirm({
+                title: '⏸️ Suspender Institución',
+                text: `¿Estás seguro de suspender la institución "${instName}"? Los usuarios de esta organización no podrán acceder al sistema hasta que sea reactivada.`,
+                confirmText: 'Sí, suspender',
+                isDanger: false,
+                onConfirm: async () => {
+                    try {
+                        const resp = await fetch(`/api/institutions/${instId}/suspend`, { method: 'POST' });
+                        let result = {};
+                        try { result = await resp.json(); } catch(je) {}
+                        if (resp.ok && result.status === 'success') {
+                            alert('Institución suspendida.');
+                            location.reload();
+                        } else {
+                            alert('Error al suspender: ' + (result.message || `HTTP ${resp.status}`));
+                        }
+                    } catch(e) {
+                        alert('Error de conexión al suspender.');
+                    }
                 }
-            } catch(e) {
-                alert('Error de conexión.');
-            }
+            });
         }
 
         init();

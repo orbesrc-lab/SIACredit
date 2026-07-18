@@ -37,16 +37,26 @@
     --radius-xl: 24px;
 }
 [data-theme="dark"] {
-    --primary-color: #60a5fa; /* Sky Blue */
-    --primary-hover: #3b82f6; /* Bright Blue */
-    --secondary-color: #06b6d4; /* Cyan */
-    --secondary-bg: #0f172a;
+    --primary-color: #3b82f6; /* Slate blue accent */
+    --primary-hover: #2563eb;
+    --secondary-color: #60a5fa;
+    --secondary-bg: #0f172a; /* Deep background dark blue */
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
     --border-color: #334155;
-    --white: #1e293b;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+    --white: #1e293b; /* Card background */
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    
+    /* Premium Slate Blue Gradients for body/workspace */
+    --premium-gradient-1: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    --premium-gradient-2: radial-gradient(circle at top right, #1e293b, transparent 50%),
+                          radial-gradient(circle at bottom left, #0f172a, transparent 50%);
+    --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    --glass-bg: rgba(30, 41, 59, 0.7);
+    --glass-bg-hover: rgba(30, 41, 59, 0.9);
+    --glass-border: rgba(255, 255, 255, 0.05);
 }
+
 
 * {
     margin: 0;
