@@ -64,23 +64,26 @@ def generate_unit_content():
     unit_info = data.get('unit_info', {})
     topics_list = unit_info.get('topics', ['Desarrollo Temático Principal'])
     
-    prompt = f"""Eres un Experto Disciplinar y Doctor en Educación. 
+    prompt = f"""Eres un Experto Disciplinar, Doctor en Educación y Diseñador Instruccional de alto nivel.
 Estás escribiendo el contenido académico detallado para la unidad "{unit_info.get('name')}" del curso "{data.get('course_name')}".
 
-La unidad contiene los siguientes temas que debes desarrollar extensamente:
+La unidad contiene los siguientes temas que debes desarrollar MUY EXTENSAMENTE:
 {', '.join(topics_list)}
 
-Instrucciones de redacción para CADA TEMA:
-- No escribas simples listas. Desarrolla el contenido académico de forma completa, profunda y pedagógica.
-- Explica cada concepto detalladamente. Agrega ejemplos prácticos, casos de estudio o aplicaciones reales.
-- Utiliza formato HTML para estructurar el contenido (usa <h3>, <h4>, <p>, <ul>, <strong>, <em>, etc.). No uses <html>, <head> o <body>.
+Instrucciones CRÍTICAS de redacción para CADA TEMA:
+1. Lenguaje y Tono: Escribe con un lenguaje docente, argumentativo, explicativo, claro y motivador. El texto debe guiar al estudiante como si fuera una clase magistral de alta calidad.
+2. Extensión y Profundidad: PROHIBIDO reducirse a unas solas líneas o listas superficiales. Debes desarrollar cada tema de manera medianamente extensa, profunda y rigurosa, aportando contexto, fundamentos teóricos y análisis.
+3. Ejemplos Prácticos: Es OBLIGATORIO incluir ejemplos claros, casos de estudio, analogías o aplicaciones reales para cada concepto abstracto que expliques.
+4. Coherencia Evaluativa: Asegúrate de resaltar los conceptos clave que serán objeto de evaluación posteriormente.
+5. Imágenes: NO INTENTES GENERAR IMÁGENES NI PONER ENLACES A IMÁGENES. En su lugar, cuando consideres que una imagen sería útil, escribe un "PROMPT DE IMAGEN" dentro del contenido (ej. [PROMPT SUGERIDO PARA IMAGEN: "Un diagrama mostrando la relación entre X y Y"]). Esto permitirá al profesor generarla externamente después.
+6. Formato: Utiliza formato HTML semántico para estructurar el contenido (usa <h3>, <h4>, <p>, <ul>, <strong>, <em>, <blockquote>, etc.). No uses <html>, <head> o <body>.
 
 Responde ÚNICAMENTE con un JSON válido con este formato:
 {{
   "topics": [
     {{
       "title": "Nombre exacto del tema",
-      "html_content": "<p>Contenido extenso en HTML...</p>"
+      "html_content": "<h3>Título del Tema</h3><p>Contenido explicativo, argumentativo y muy extenso en HTML, con al menos 3 a 5 párrafos bien desarrollados, seguidos de ejemplos claros y conclusiones. [PROMPT SUGERIDO PARA IMAGEN: '...']...</p>"
     }}
   ]
 }}
@@ -123,15 +126,18 @@ Responde ÚNICAMENTE en JSON con el formato:
 def generate_unit_evaluations():
     data = request.json
     unit_info = data.get('unit_info', {})
-    prompt = f"""Eres un Experto en Resultados de Aprendizaje y Taxonomía de Bloom.
-Diseña 1 evaluación (Cuestionario o Examen o Rúbrica) para la unidad "{unit_info.get('name')}" del curso "{data.get('course_name')}".
+    prompt = f"""Eres un Experto en Resultados de Aprendizaje, Taxonomía de Bloom y Evaluación Educativa.
+Diseña 1 evaluación (Cuestionario, Examen o Rúbrica) para la unidad "{unit_info.get('name')}" del curso "{data.get('course_name')}".
+
+CRÍTICO: La evaluación debe estar en ESTRICTA COHERENCIA con el contenido y los temas de la unidad. 
+Describe detalladamente los criterios de evaluación, especificando qué habilidades, conceptos prácticos y teóricos se van a evaluar.
 
 Responde ÚNICAMENTE en JSON con el formato:
 {{
   "evaluations": [
     {{
       "name": "Nombre de la evaluación",
-      "description": "Descripción de la evaluación (qué evalúa, criterios).",
+      "description": "Descripción extensa y argumentada de la evaluación. Detalla explícitamente cómo se conecta de forma coherente con el contenido de la unidad, qué tipo de preguntas o casos prácticos contendrá y cuáles son los criterios exactos que el estudiante debe cumplir.",
       "points": 20,
       "due_date": "2026-10-20"
     }}
