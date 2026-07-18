@@ -1277,12 +1277,18 @@
 
                     if (!Array.isArray(importedModel) || importedModel.length === 0) throw new Error("Formato inválido o archivo vacío.");
 
-                    if (confirm(`Se han detectado ${importedModel.length} factores. ¿Deseas reemplazar el modelo actual?`)) {
-                        saveDataModel(importedModel);
-                        renderModelEditor();
-                        syncModelWithBackend();
-                        alert("Modelo inyectado correctamente.");
-                    }
+                    showConfigConfirm({
+                        title: '📥 Inyectar Modelo',
+                        text: `Se han detectado ${importedModel.length} factores en el archivo. ¿Deseas reemplazar el modelo actual de acreditación por este nuevo modelo? Se sobrescribirá la estructura actual.`,
+                        confirmText: 'Sí, reemplazar',
+                        isDanger: true,
+                        onConfirm: async () => {
+                            saveDataModel(importedModel);
+                            renderModelEditor();
+                            await syncModelWithBackend();
+                            alert("Modelo inyectado correctamente.");
+                        }
+                    });
                 } catch (err) {
                     alert("Error al procesar el archivo: " + err.message);
                 }
@@ -1362,26 +1368,35 @@
         // algunos automáticos en cambios importantes.
 
         function assignFactors(email) {
-            const factors = prompt("Ingrese los números de los factores asignados separados por coma (ej: 1,2,5):");
-            if (factors !== null) {
-                const factorsArray = factors.split(',').map(f => parseInt(f.trim())).filter(f => !isNaN(f));
+            showAddElementModal({
+                title: '📋 Asignar Factores',
+                desc: `Asigne los números de los factores correspondientes al usuario ${email}.`,
+                label1: 'Números de Factores (separados por coma, ej: 1,2,5)',
+                onConfirm: (val1) => {
+                    if (!val1) {
+                        alert("Por favor ingrese al menos un número.");
+                        return;
+                    }
+                    const factorsArray = val1.split(',').map(f => parseInt(f.trim())).filter(f => !isNaN(f));
+                    
+                    // Si es el usuario logueado, actualizar su localStorage
+                    if (user.email === email) {
+                        user.assigned_factors = factorsArray;
+                        localStorage.setItem('siac_user', JSON.stringify(user));
+                    }
 
-                // Si es el usuario logueado, actualizar su localStorage
-                if (user.email === email) {
-                    user.assigned_factors = factorsArray;
-                    localStorage.setItem('siac_user', JSON.stringify(user));
+                    // Actualizar en el registro de usuarios simulado
+                    const regUser = JSON.parse(localStorage.getItem('siac_registered_user'));
+                    if (regUser && regUser.email === email) {
+                        regUser.assigned_factors = factorsArray;
+                        localStorage.setItem('siac_registered_user', JSON.stringify(regUser));
+                    }
+
+                    alert(`Factores [${factorsArray.join(', ')}] asignados a ${email}`);
+                    closeAddElementModal();
+                    location.reload(); // Recargar para ver cambios
                 }
-
-                // Actualizar en el registro de usuarios simulado
-                const regUser = JSON.parse(localStorage.getItem('siac_registered_user'));
-                if (regUser && regUser.email === email) {
-                    regUser.assigned_factors = factorsArray;
-                    localStorage.setItem('siac_registered_user', JSON.stringify(regUser));
-                }
-
-                alert(`Factores [${factorsArray.join(', ')}] asignados a ${email}`);
-                location.reload(); // Recargar para ver cambios
-            }
+            });
         }
 
         async function init() {
