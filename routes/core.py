@@ -729,7 +729,29 @@ def handle_all_institutions():
                 "description": data.get('program', ''),
                 "code": data.get('period', '')
             }).execute()
-            return jsonify({"status": "success", "data": res.data[0]})
+
+            inserted_data = None
+            if res.data and len(res.data) > 0:
+                inserted_data = res.data[0]
+            else:
+                fallback = supabase.table('institution').select("*").eq("id", next_id).execute()
+                if fallback.data:
+                    inserted_data = fallback.data[0]
+
+            if not inserted_data:
+                return jsonify({"status": "error", "message": "Supabase no retornó datos de la institución."})
+
+            # Create default program for the new institution to prevent empty-state issues
+            try:
+                supabase.table('programs').insert({
+                    "name": "General",
+                    "period": data.get('period', '2026-1'),
+                    "inst_id": next_id
+                }).execute()
+            except Exception as pe:
+                print(f"Warning: Could not create default program: {pe}")
+
+            return jsonify({"status": "success", "data": inserted_data})
         except Exception as e:
             return jsonify({"status": "error", "message": str(e)})
 

@@ -140,6 +140,30 @@
 </head>
 
 <body>
+<!-- Modal para Crear Nueva Institución -->
+<div id="newInstModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.75); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; animation: fadeIn 0.3s ease-out;">
+  <div style="background:var(--card-bg,#1e293b); border:1px solid var(--border-color,#334155); border-radius:16px; padding:32px 28px; max-width:480px; width:90%; box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+    <h3 style="margin:0 0 12px; font-size:1.3rem; color:#f1f5f9; font-weight:600; display:flex; align-items:center; gap:8px;">🏛️ Crear Nueva Institución</h3>
+    <p style="margin:0 0 20px; color:#94a3b8; font-size:0.9rem; line-height:1.4;">Registre una nueva institución en la plataforma. Se configurará un programa general automáticamente.</p>
+    
+    <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:24px;">
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:0.8rem; font-weight:600; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.05em;">Nombre de la Institución</label>
+        <input type="text" id="newInstNameInput" placeholder="Ej: Corporación Universitaria del Litoral" style="padding:12px; border-radius:8px; border:1px solid var(--border-color,#334155); background:#0f172a; color:#f8fafc; font-size:0.95rem; width:100%; box-sizing:border-box;">
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:0.8rem; font-weight:600; color:#cbd5e1; text-transform:uppercase; letter-spacing:0.05em;">Programa Inicial (Opcional)</label>
+        <input type="text" id="newInstProgInput" value="General" placeholder="Ej: General o Contaduría" style="padding:12px; border-radius:8px; border:1px solid var(--border-color,#334155); background:#0f172a; color:#f8fafc; font-size:0.95rem; width:100%; box-sizing:border-box;">
+      </div>
+      <div id="newInstErrorMsg" style="display:none; color:#ef4444; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:8px; padding:10px 14px; font-size:0.85rem; line-height:1.4;"></div>
+    </div>
+    
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <button onclick="closeNewInstModal()" style="padding:11px 22px; border-radius:8px; border:1px solid #475569; background:transparent; color:#94a3b8; cursor:pointer; font-size:0.9rem; font-weight:500; transition:all 0.2s;">Cancelar</button>
+      <button id="newInstConfirmBtn" onclick="submitNewInstitution()" style="padding:11px 22px; border-radius:8px; border:none; background:var(--primary-color,#10b981); color:#fff; cursor:pointer; font-size:0.9rem; font-weight:600; box-shadow:0 4px 12px rgba(16, 185, 129, 0.2); transition:all 0.2s;">Crear Institución</button>
+    </div>
+  </div>
+</div>
     <aside class="sidebar">
         <div class="sidebar-header" style="justify-content: center; padding: 20px 15px;">
             <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
@@ -1719,24 +1743,56 @@
             location.reload();
         }
 
-        async function addNewInstitution() {
-            const name = prompt("Nombre de la nueva Institución:");
-            if (!name) return;
+        function closeNewInstModal() {
+            document.getElementById('newInstModal').style.display = 'none';
+            document.getElementById('newInstNameInput').value = '';
+            document.getElementById('newInstErrorMsg').style.display = 'none';
+        }
+
+        function addNewInstitution() {
+            document.getElementById('newInstModal').style.display = 'flex';
+            document.getElementById('newInstNameInput').focus();
+        }
+
+        async function submitNewInstitution() {
+            const name = document.getElementById('newInstNameInput').value.trim();
+            const program = document.getElementById('newInstProgInput').value.trim() || 'General';
+            if (!name) {
+                const err = document.getElementById('newInstErrorMsg');
+                err.textContent = "⚠️ Por favor ingrese el nombre de la institución.";
+                err.style.display = 'block';
+                return;
+            }
+
+            const btn = document.getElementById('newInstConfirmBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Creando...';
+            document.getElementById('newInstErrorMsg').style.display = 'none';
 
             try {
                 const uniqueCode = 'ORG-' + Date.now().toString(36);
                 const resp = await fetch('/api/institutions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: name, program: 'General', period: uniqueCode })
+                    body: JSON.stringify({ name: name, program: program, period: uniqueCode })
                 });
                 const result = await resp.json();
                 if (result.status === 'success') {
                     alert("Institución creada exitosamente.");
-                    loadAllInstitutions();
+                    closeNewInstModal();
+                    await loadAllInstitutions();
+                } else {
+                    const err = document.getElementById('newInstErrorMsg');
+                    err.textContent = "❌ Error: " + (result.message || "Respuesta inválida del servidor");
+                    err.style.display = 'block';
                 }
             } catch (err) {
-                alert("Error al crear institución");
+                const errDiv = document.getElementById('newInstErrorMsg');
+                errDiv.textContent = "❌ Error de conexión al servidor.";
+                errDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Crear Institución';
             }
         }
 
