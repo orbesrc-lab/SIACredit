@@ -2047,15 +2047,22 @@
                 alert("No tienes permisos para eliminar cursos.");
                 return;
             }
-            if (!confirm("⚠️ ¿Estás seguro de eliminar este curso?")) return;
+            if (!confirm("⚠️ ¿Estás seguro de eliminar este curso? Esta acción no se puede deshacer.")) return;
             try {
                 const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, { method: 'DELETE' });
-                if (resp.ok) {
-                    loadCoursesList();
+                let result = {};
+                try { result = await resp.json(); } catch(je) {}
+                if (resp.ok && result.status === 'success') {
                     const editEl = document.getElementById('editCourseId');
-                    if (editEl && editEl.value === courseId) closeEditor();
+                    if (editEl && editEl.value === courseId) {
+                        const editor = document.getElementById('courseEditor');
+                        if (editor) editor.style.display = 'none';
+                    }
+                    await loadCoursesList();
+                } else {
+                    alert('❌ Error al eliminar: ' + (result.message || `HTTP ${resp.status}`));
                 }
-            } catch(e) { console.error(e); alert("Error de red al eliminar."); }
+            } catch(e) { console.error(e); alert("Error de red al eliminar el curso."); }
         }
 
         // ========== EDITOR DETALLADO DEL CURSO SELECCIONADO (Admin) ==========
