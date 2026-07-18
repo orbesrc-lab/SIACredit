@@ -746,12 +746,15 @@
 
                     <!-- SUB-TAB: PLAN DE ESTUDIOS -->
                     <div id="subTabSyllabus" class="sub-tab-content" style="display: none;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div class="flex" style="justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
                             <div>
                                 <h3 style="font-size:1.05rem; margin:0;">Temario del Curso y Repositorio por Unidad</h3>
                                 <p style="font-size:0.8rem; color:var(--text-muted); margin:3px 0 0 0;">Carga los recursos, tareas y exámenes CNA directamente en la unidad correspondiente.</p>
                             </div>
-                            <button class="btn-secondary" onclick="addUnitPrompt()" style="padding: 6px 12px; font-size: 0.85rem;">+ Añadir Unidad</button>
+                            <div class="flex" style="gap: 10px;">
+                                <button class="btn-secondary" onclick="exportCourseToMoodle()" style="padding: 6px 12px; font-size: 0.85rem; background: linear-gradient(45deg, #f39c12, #e67e22); color: white; border: none;"><i class="fa fa-download" style="margin-right: 5px;"></i> Exportar a Moodle</button>
+                                <button class="btn-secondary" onclick="addUnitPrompt()" style="padding: 6px 12px; font-size: 0.85rem;">+ Añadir Unidad</button>
+                            </div>
                         </div>
 
                         <div id="unitsContainer">
@@ -5936,6 +5939,42 @@
     let currentWizStep = 1;
     let aiDraftCourse = null;
     let createdAiCourseId = null;
+    function exportCourseToMoodle() {
+        if (!currentCourseId) {
+            showNotification('Seleccione un curso primero', 'error');
+            return;
+        }
+        
+        const btn = event.currentTarget;
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Preparando Moodle...';
+        btn.disabled = true;
+
+        fetch(`/api/courses/${currentCourseId}/export/moodle`)
+            .then(res => {
+                if (!res.ok) throw new Error('Error en la exportación');
+                return res.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                // Try to get filename from header or fallback
+                a.download = "moodle_export.imscc";
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                showNotification('Exportación a Moodle completada', 'success');
+            })
+            .catch(err => {
+                showNotification(err.message, 'error');
+            })
+            .finally(() => {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            });
+    }
 
     function openAICourseWizard() {
         document.getElementById('aiWizardModal').style.display = 'flex';
@@ -6180,7 +6219,7 @@
             
             // Guardar en la base de datos local
             const finalCourse = {
-                title: courseData.name,
+                name: courseData.name,
                 description: courseData.description,
                 duration: courseData.duration,
                 category: courseData.type,

@@ -42,6 +42,9 @@ app.register_blueprint(ai_generator_bp)
 from routes.planning import planning_bp
 app.register_blueprint(planning_bp)
 
+from routes.export import export_bp
+app.register_blueprint(export_bp)
+
 from routes.core import core_bp
 from routes.reports import reports_bp
 from routes.prospects import prospects_bp
