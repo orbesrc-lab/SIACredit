@@ -27,14 +27,15 @@ def extract_json_from_response(text):
 def generate_course_structure():
     data = request.json
     prompt = f"""Eres un Diseñador Instruccional Experto y Especialista en Currículo. 
-Tu tarea es estructurar un {data.get('type', 'curso')} titulado "{data.get('name')}".
-Modalidad: {data.get('modality', 'Virtual')} | Nivel: {data.get('level', 'Intermedio')} | Horas: {data.get('duration')}
+Tu tarea es estructurar un evento de formación tipo "{data.get('type', 'curso')}" titulado "{data.get('name')}".
+Modalidad: {data.get('modality', 'Virtual')} | Nivel: {data.get('level', 'Intermedio')} | Horas totales de duración: {data.get('duration')}
 Descripción general: {data.get('description')}
 Competencia General: {data.get('general_competence')}
 Competencias Específicas: {', '.join(data.get('specific_competencies', []))}
 
-Genera la estructura de UNIDADES TEMÁTICAS y sus respectivos TEMAS. Debes determinar el número adecuado de unidades, su nombre, distribución de horas, y los temas principales (3 a 5 temas por unidad).
-La suma de horas debe ser igual a {data.get('duration')}.
+INSTRUCCIÓN CRÍTICA:
+Genera la estructura de UNIDADES TEMÁTICAS y sus respectivos TEMAS. El número de unidades, la cantidad de temas y el nivel de profundidad DEBEN SER ESTRICTAMENTE COHERENTES con las horas totales de duración y el tipo de evento (un taller corto de 4 horas no puede tener 10 unidades, mientras que un diplomado de 120 horas debe ser extenso y profundo). 
+Distribuye las horas de forma lógica entre las unidades. La suma EXACTA de las horas de las unidades debe ser igual a {data.get('duration')}.
 
 Responde ÚNICAMENTE con un JSON válido con este formato:
 {{
