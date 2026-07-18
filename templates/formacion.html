@@ -6532,6 +6532,56 @@
             document.getElementById('lightboxImg').src = src;
             document.getElementById('imageLightboxModal').style.display = 'flex';
         }
+
+        // Script dinámico para añadir la lupa a imágenes antiguas o generadas por IA
+        function autoEnhanceImages() {
+            // Buscar imágenes en los contenedores de lecciones o en el editor
+            const images = document.querySelectorAll('div[id^="acc_"] img, #richTextEditorBox img');
+            images.forEach(img => {
+                // Ignorar imágenes que ya están envueltas o que son iconos pequeños
+                if (!img.dataset.hasLupa && !img.closest('div[style*="cursor: zoom-in"]') && img.width > 50) {
+                    img.dataset.hasLupa = "true";
+                    
+                    // Crear el envoltorio
+                    const wrapper = document.createElement('div');
+                    wrapper.style.position = 'relative';
+                    wrapper.style.display = 'inline-block';
+                    wrapper.style.margin = '15px 0';
+                    wrapper.style.cursor = 'zoom-in';
+                    
+                    // Al hacer click, abrir el lightbox
+                    wrapper.onclick = function() {
+                        if (typeof openImageLightbox === 'function') {
+                            openImageLightbox(img.src);
+                        }
+                    };
+
+                    // Crear la píldora "Ampliar"
+                    const pill = document.createElement('div');
+                    pill.innerHTML = '<i class="fas fa-search-plus"></i> Ampliar';
+                    pill.style.position = 'absolute';
+                    pill.style.bottom = '10px';
+                    pill.style.right = '10px';
+                    pill.style.background = 'rgba(0,0,0,0.7)';
+                    pill.style.color = 'white';
+                    pill.style.padding = '6px 14px';
+                    pill.style.borderRadius = '20px';
+                    pill.style.fontSize = '0.85rem';
+                    pill.style.pointerEvents = 'none';
+                    pill.style.backdropFilter = 'blur(4px)';
+
+                    // Mover la imagen dentro del envoltorio
+                    img.parentNode.insertBefore(wrapper, img);
+                    img.style.borderRadius = '10px';
+                    img.style.boxShadow = 'var(--shadow-md)';
+                    wrapper.appendChild(img);
+                    wrapper.appendChild(pill);
+                }
+            });
+        }
+        
+        // Ejecutar periódicamente para atrapar contenido inyectado dinámicamente
+        setInterval(autoEnhanceImages, 1000);
     </script>
 </body>
 
