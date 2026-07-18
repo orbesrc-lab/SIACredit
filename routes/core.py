@@ -853,7 +853,7 @@ def handle_login():
         user = res.data[0]
         
         # Bloquear usuarios pendientes verificando el prefijo en su nombre
-        if user.get('name') and str(user.get('name')).startswith('[PENDING]'):
+        if user.get('name') and (str(user.get('name')).startswith('[PENDING]') or str(user.get('name')).startswith('[ASPIRANTE]')):
             return jsonify({"status": "error", "message": "Tu cuenta está pendiente de activación por un Administrador."}), 403
             
         if check_password_hash(user['password_hash'], password):
