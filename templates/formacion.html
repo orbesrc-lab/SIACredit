@@ -1565,7 +1565,7 @@
                 // Si es un docente nuevo (sin id previo definido por nosotros), creamos la cuenta en el sistema
                 if (!id) {
                     const userPayload = { name: name, email: email, role: 'profesor', password: 'SIACProfesor2025!' };
-                    const userResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                    const userResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=0`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(userPayload)
@@ -1732,7 +1732,7 @@
             const grid = document.getElementById('studentsGrid');
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando estudiantes...</div>';
             try {
-                const resp = await fetch(`/api/students?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const resp = await fetch(`/api/students?inst_id=${getInstId()}&program_id=0`);
                 const res = await resp.json();
                 
                 let students = Array.isArray(res) ? res : (res.data || []);
@@ -1988,7 +1988,7 @@
             };
             
             try {
-                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=0`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -2007,7 +2007,7 @@
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando cursos...</div>';
             
             try {
-                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}&_t=${Date.now()}`);
+                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=0&_t=${Date.now()}`);
                 let courses = await resp.json();
                 
                 const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
@@ -2084,7 +2084,7 @@
             const btn = document.querySelector(`button.btn-danger[onclick*="${courseId}"]`);
             if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
             try {
-                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, { method: 'DELETE' });
+                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=0`, { method: 'DELETE' });
                 let result = {};
                 try { result = await resp.json(); } catch(je) {}
                 if (resp.ok && result.status === 'success') {
@@ -2101,7 +2101,7 @@
 
         async function openEditor(courseId) {
             try {
-                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}&_t=${Date.now()}`);
+                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=0&_t=${Date.now()}`);
                 const course = await resp.json();
                 if (course.status === 'error') { alert("No se pudo abrir el curso."); return; }
                 
@@ -2109,7 +2109,7 @@
                 
                 // Cargar todas las entregas para este curso
                 try {
-                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=0`);
                     activeCourseSubmissions = await subResp.json();
                 } catch (e) {
                     console.error("Error al cargar entregas del curso:", e);
@@ -2169,7 +2169,7 @@
         async function updateCourseOnServer() {
             if (!activeCourse) return;
             try {
-                await fetch(`/api/courses/${activeCourse.id}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                await fetch(`/api/courses/${activeCourse.id}?inst_id=${getInstId()}&program_id=0`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(activeCourse)
@@ -2809,7 +2809,7 @@
                 }
                 
                 // Obtener todos los cursos
-                const courseResp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=${getProgramId()}&_t=${Date.now()}`);
+                const courseResp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=0&_t=${Date.now()}`);
                 const courses = await courseResp.json();
                 
                 const enrolledIds = student.enrolled_courses || [];
@@ -2861,7 +2861,7 @@
                 const selectorBox = document.getElementById('studentCourseSelectorBox');
                 if (selectorBox) selectorBox.style.display = 'none';
 
-                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=${getProgramId()}&_t=${Date.now()}`);
+                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=0&_t=${Date.now()}`);
                 const course = await resp.json();
                 
                 // Assign global variable for use in quizzes
@@ -2870,7 +2870,7 @@
                 // Cargar entregas de este estudiante para este curso
                 let studentSubmissions = [];
                 try {
-                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&inst_id=${getInstId()}&program_id=0`);
                     studentSubmissions = await subResp.json();
                 } catch (e) {
                     console.error("Error al cargar entregas:", e);
@@ -3284,7 +3284,7 @@
             
             // Check if there is an existing submission
             try {
-                const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${actId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${actId}&inst_id=${getInstId()}&program_id=0`);
                 const existingSubs = await checkResp.json();
                 if (existingSubs && existingSubs.length > 0) {
                     document.getElementById('subContent').value = existingSubs[0].content || '';
@@ -3339,7 +3339,7 @@
                 document.getElementById('submissionModal').style.display = 'none';
                 if (submitBtn) { submitBtn.textContent = originalBtnText; submitBtn.disabled = false; }
 
-                const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${actId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${actId}&inst_id=${getInstId()}&program_id=0`);
                 const existingSubs = await checkResp.json();
                 
                 const subData = {
@@ -3357,7 +3357,7 @@
                     subData.id = existingSubs[0].id;
                 }
                 
-                const response = await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                const response = await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=0`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(subData)
@@ -3887,7 +3887,7 @@
             }
             
             try {
-                const response = await fetch(`/api/submissions/${subId}/grade?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                const response = await fetch(`/api/submissions/${subId}/grade?inst_id=${getInstId()}&program_id=0`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -3907,7 +3907,7 @@
                     const actId = document.getElementById('gradeActivityId').value;
                     const courseId = document.getElementById('editCourseId').value;
                     
-                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=0`);
                     activeCourseSubmissions = await subResp.json();
                     
                     renderActivitySubmissionsList(actId);
@@ -3945,7 +3945,7 @@
 
         async function loadForumMessages(courseId, isTeacher = false) {
             try {
-                const resp = await fetch(`/api/courses/${courseId}/forum?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const resp = await fetch(`/api/courses/${courseId}/forum?inst_id=${getInstId()}&program_id=0`);
                 const messages = await resp.json();
                 
                 const containerId = isTeacher ? 'teacherForumMessages' : 'studentForumMessages';
@@ -3991,7 +3991,7 @@
         async function sendForumMessage(courseId, content, isTeacher = false) {
             if (!content || !content.trim()) return;
             try {
-                const resp = await fetch(`/api/courses/${courseId}/forum?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                const resp = await fetch(`/api/courses/${courseId}/forum?inst_id=${getInstId()}&program_id=0`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -4174,7 +4174,7 @@
         async function loadCourseAnalytics(courseId) {
             if(!courseId) return;
             try {
-                const res = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const res = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=0`);
                 const data = await res.json();
                 const tbody = document.getElementById('analyticsTableBody');
                 tbody.innerHTML = '';
@@ -4220,12 +4220,12 @@
             tbody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 20px; color: var(--text-muted);">Cargando libro de calificaciones...</td></tr>';
             try {
                 // Fetch all submissions for course
-                const subsRes = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const subsRes = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=0`);
                 if (!subsRes.ok) throw new Error('Error fetching submissions');
                 const courseSubs = await subsRes.json() || [];
                 
                 // Fetch enrolled students via analytics endpoint
-                const analyticsRes = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const analyticsRes = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=0`);
                 let enrolled = [];
                 if (analyticsRes.ok) {
                     const analyticsData = await analyticsRes.json();
@@ -4342,7 +4342,7 @@
 
         async function loadStudentGamification(courseId) {
             try {
-                const res = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const res = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=0`);
                 const data = await res.json();
                 
                 const userEmail = user.email; // from global var
@@ -4377,7 +4377,7 @@
             const tbody = document.getElementById('submissionsTableBody');
             tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Cargando entregas...</td></tr>';
             try {
-                const resp = await fetch('/api/submissions?course_id=' + courseId + '&inst_id=' + getInstId() + '&program_id=' + getProgramId());
+                const resp = await fetch('/api/submissions?course_id=' + courseId + '&inst_id=' + getInstId() + '&program_id=0');
                 const subs = await resp.json();
                 if (!subs || subs.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color:var(--text-muted);">No hay entregas registradas para este curso.</td></tr>';
@@ -4432,7 +4432,7 @@
             
             try {
                 const courseId = document.getElementById('editCourseId').value;
-                const checkResp = await fetch('/api/submissions?course_id=' + courseId + '&inst_id=' + getInstId() + '&program_id=' + getProgramId());
+                const checkResp = await fetch('/api/submissions?course_id=' + courseId + '&inst_id=' + getInstId() + '&program_id=0');
                 const subs = await checkResp.json();
                 const targetSub = subs.find(s => s.id === subId);
                 
@@ -4441,7 +4441,7 @@
                     targetSub.feedback = feedback.trim();
                     targetSub.status = 'graded';
                     
-                    const response = await fetch('/api/submissions?inst_id=' + getInstId() + '&program_id=' + getProgramId(), {
+                    const response = await fetch('/api/submissions?inst_id=' + getInstId() + '&program_id=0', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(targetSub)
@@ -4779,14 +4779,14 @@
                 status: status
             };
             try {
-                const res = await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                const res = await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=0`, {
                     method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
                 });
                 
                 if (res.ok) {
                     const savedData = await res.json();
                     if (status === 'graded' && savedData.data && savedData.data.id) {
-                        await fetch(`/api/submissions/${savedData.data.id}/grade?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                        await fetch(`/api/submissions/${savedData.data.id}/grade?inst_id=${getInstId()}&program_id=0`, {
                             method: 'PUT', headers: {'Content-Type':'application/json'},
                             body: JSON.stringify({ grade: finalGrade, feedback: 'Calificado automáticamente por el sistema.' })
                         });
