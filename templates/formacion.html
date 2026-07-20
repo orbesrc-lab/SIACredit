@@ -445,13 +445,17 @@
             border: 0;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 950px) {
             .student-classroom-grid {
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
-            .user-grid, .grid-catalog {
+            .user-grid {
                 grid-template-columns: 1fr !important;
+            }
+            .grid-catalog {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+                gap: 15px !important;
             }
             .content-area {
                 height: auto !important;
@@ -533,12 +537,14 @@
             min-height: 70px;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 950px) {
             .topic-content-body iframe,
             .topic-content-body video,
             div[id^="acc_"] iframe,
             div[id^="acc_"] video {
-                max-width: calc(100vw - 60px) !important;
+                max-width: calc(100vw - 40px) !important;
+                height: auto !important;
+                aspect-ratio: 16 / 9;
             }
             
             /* Cuadrículas y Contenedores */
@@ -606,6 +612,13 @@
             .form-grid {
                 grid-template-columns: 1fr !important;
             }
+            .topic-content-body {
+                font-size: 0.9rem !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                line-height: 1.4 !important;
+                padding: 0 5px;
+            }
             
             /* Ajuste de filas de temas y unidades para móviles */
             .unit-header, .topic-item, .activity-item, .evaluation-item, .resource-card, .meeting-card {
@@ -630,7 +643,7 @@
         }
         /* Aviso Rotar Pantalla */
         .mobile-rotate-warning { display: none; }
-        @media (max-width: 768px) and (orientation: portrait) {
+        @media (max-width: 950px) and (orientation: portrait) {
             .mobile-rotate-warning {
                 display: flex;
                 align-items: center;

@@ -446,11 +446,25 @@ th {
 /* ==================================================== */
 /* SMART MOBILE RESPONSIVENESS (NO JS REQUIRED)         */
 /* ==================================================== */
-@media (max-width: 768px) {
+@media (max-width: 950px) {
     body, .dashboard-container {
         flex-direction: column !important;
         height: 100dvh !important;
         overflow: hidden !important;
+    }
+    
+    /* General Mobile Size Reductions */
+    h1 { font-size: 1.5rem !important; }
+    h2 { font-size: 1.25rem !important; line-height: 1.3 !important; }
+    h3 { font-size: 1.1rem !important; }
+    
+    button, .btn-primary, .btn-secondary, .btn-outline, .btn-danger, .btn-danger-solid, .btn-success {
+        padding: 8px 14px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    p, li, div {
+        word-break: break-word; /* Prevent long text from overflowing */
     }
     
     /* Convert Sidebar to Bottom Navigation */
@@ -582,7 +596,7 @@ th {
 
     /* Fix Content Area Padding */
     .content-area {
-        padding: 15px !important;
+        padding: 8px !important; /* Reduced from 15px to save space horizontally */
     }
     
     /* Layout split (Evidencias page) */
