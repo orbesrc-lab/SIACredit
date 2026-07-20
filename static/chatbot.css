@@ -1,0 +1,215 @@
+/* Chatbot Botón Flotante */
+.skel-bot-fab {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 5px 20px rgba(37, 99, 235, 0.4);
+    cursor: pointer;
+    z-index: 9999;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: none;
+    color: white;
+}
+
+.skel-bot-fab:hover {
+    transform: scale(1.1);
+}
+
+.skel-bot-fab svg {
+    width: 32px;
+    height: 32px;
+    fill: currentColor;
+}
+
+/* Ventana de Chat */
+.skel-chat-window {
+    position: fixed;
+    bottom: 100px;
+    right: 25px;
+    width: 350px;
+    height: 500px;
+    max-height: calc(100vh - 120px);
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    z-index: 9998;
+    overflow: hidden;
+    transform: translateY(20px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.skel-chat-window.active {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Cabecera del Chat */
+.skel-chat-header {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: white;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.skel-chat-header .title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.skel-chat-header .status-dot {
+    width: 10px;
+    height: 10px;
+    background: #10b981;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+}
+
+.skel-chat-close {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    font-size: 1.5rem;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.skel-chat-close:hover {
+    color: white;
+}
+
+/* Área de Mensajes */
+.skel-chat-messages {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Burbujas */
+.skel-message {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    animation: fadeInMsg 0.3s ease-out;
+}
+
+@keyframes fadeInMsg {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.skel-message.bot {
+    background: #ffffff;
+    color: #334155;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.skel-message.user {
+    background: #2563eb;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 2px 5px rgba(37, 99, 235, 0.2);
+}
+
+/* Enlaces dentro del bot (como whatsapp) */
+.skel-message.bot a {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+}
+.skel-message.bot a:hover {
+    text-decoration: underline;
+}
+
+/* Input Area */
+.skel-chat-input-area {
+    padding: 12px 16px;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 10px;
+}
+
+.skel-chat-input-area input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 24px;
+    outline: none;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+.skel-chat-input-area input:focus {
+    border-color: #2563eb;
+}
+
+.skel-chat-input-area button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.skel-chat-input-area button:hover {
+    background: #1d4ed8;
+}
+
+.skel-chat-input-area button svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    margin-left: -2px; /* optical alignment */
+}
+
+/* Móviles */
+@media (max-width: 480px) {
+    .skel-chat-window {
+        bottom: 0;
+        right: 0;
+        width: 100%;
+        height: 100dvh;
+        max-height: 100dvh;
+        border-radius: 0;
+    }
+    
+    .skel-chat-window.active {
+        transform: translateY(0);
+    }
+}

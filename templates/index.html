@@ -25,6 +25,7 @@
     <meta property="og:image" content="https://siacmen.vercel.app/static/logo_skel.webp">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}?v=2.1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='chatbot.css') }}?v=1.0">
 </head>
 <body class="{{ theme + '-theme' if theme and theme != 'dark' else '' }}">
 
@@ -792,5 +793,7 @@
         btn.disabled = false;
         btn.textContent = 'Enviar Solicitud de Inscripción';
     });
-</script>\n</body>
+</script>
+<script src="{{ url_for('static', filename='chatbot.js') }}?v=1.0"></script>
+</body>
 </html>
