@@ -226,7 +226,8 @@ def get_planning_tree():
         tree = []
         for ax in axes:
             ax['strategies'] = strat_by_axis.get(ax['id'], [])
-            tree.append(ax)
+            if program_id == 0 or len(ax['strategies']) > 0:
+                tree.append(ax)
 
         return jsonify({'status': 'success', 'tree': tree})
     except Exception as e:
