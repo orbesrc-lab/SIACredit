@@ -483,8 +483,9 @@ th {
         white-space: nowrap !important;
         width: 100% !important;
         justify-content: flex-start !important;
-        align-items: center !important;
-        gap: 8px !important;
+        overflow-x: auto !important;
+        padding: 5px 10px !important;
+        gap: 10px !important;
         -webkit-overflow-scrolling: touch !important;
     }
     
@@ -494,29 +495,29 @@ th {
     }
     
     .sidebar-item {
-        flex-direction: column !important;
+        flex-direction: row !important;
         padding: 8px 12px !important;
-        font-size: 0.75rem !important;
-        gap: 5px !important;
+        font-size: 0.85rem !important;
+        gap: 8px !important;
         border-left: none !important;
         border-bottom: 3px solid transparent !important;
         justify-content: center !important;
         flex: 0 0 auto !important;
         text-align: center !important;
-        min-width: 70px !important;
         white-space: nowrap !important;
-        border-radius: 0 !important;
+        border-radius: 12px !important;
+        background: rgba(255, 255, 255, 0.03) !important;
     }
     
     .sidebar-item svg {
-        width: 20px !important;
-        height: 20px !important;
-        margin-bottom: 2px !important;
+        width: 18px !important;
+        height: 18px !important;
+        margin-bottom: 0 !important;
     }
     
     .sidebar-item:hover {
-        transform: none !important;
-        background: rgba(255, 255, 255, 0.05) !important;
+        transform: translateY(-2px) !important;
+        background: rgba(255, 255, 255, 0.08) !important;
     }
     
     /* Specific fix for logout in bottom nav */

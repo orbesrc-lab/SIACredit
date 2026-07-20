@@ -607,6 +607,19 @@
                 grid-template-columns: 1fr !important;
             }
             
+            /* Ajuste de filas de temas y unidades para móviles */
+            .unit-header, .topic-item, .activity-item, .evaluation-item, .resource-card, .meeting-card {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 12px !important;
+            }
+            .unit-header button, .topic-item button, .activity-item button, .evaluation-item button, .resource-card a, .meeting-card a {
+                width: 100% !important;
+                justify-content: center !important;
+                text-align: center !important;
+                padding: 10px !important;
+            }
+            
             /* Ajuste especial para filas dinámicas de IA (usualmente grid) */
             div[style*="display: grid"][style*="2fr 1fr"] {
                 grid-template-columns: 1fr !important;
