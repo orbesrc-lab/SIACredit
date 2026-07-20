@@ -30,8 +30,12 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
         if check.data:
             global_config = json.loads(check.data[0]['data_json'])
 
-        # Institution config overrides global config
-        data = {**global_config, **(inst_config or {})}
+        # Institution config overrides global config.
+        # If the institution has blocked_global=True, they CANNOT use the global key.
+        if inst_config and inst_config.get('blocked_global'):
+            data = inst_config  # Only institution's own config, no global fallback
+        else:
+            data = {**global_config, **(inst_config or {})}
 
         if data.get('ai_provider'): provider = data.get('ai_provider')
         if data.get('ai_api_key'): api_key = data.get('ai_api_key')
@@ -49,6 +53,10 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
         # Prevent using deprecated Gemini models saved previously in DB
         if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
             model = 'gemini-2.5-flash'
+
+        # If institution is blocked from global and has no own key → raise clear error
+        if inst_config and inst_config.get('blocked_global') and not inst_config.get('ai_api_key'):
+            raise Exception("Esta institucion no tiene acceso a la IA del sistema. Configura tu propia llave de IA en el panel de Configuracion.")
     except Exception as e:
         db_error = str(e)
         print(f"Error fetching AI config: {e}")
@@ -814,6 +822,61 @@ def inst_ai_settings():
             supabase.table('statistics').insert({"inst_id": inst_id, "program_id": valid_prog_id, "table_id": "INST_AI_CONFIG", "data_json": config_str}).execute()
 
         return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+@ai_bp.route('/api/inst-ai-block', methods=['POST'])
+def inst_ai_block():
+    """Superadmin: block or unblock an institution from using the global AI key."""
+    data = request.json or {}
+    inst_id = data.get('inst_id')
+    blocked = bool(data.get('blocked', False))
+    if not inst_id:
+        return jsonify({"status": "error", "message": "inst_id required"})
+    try:
+        check = supabase.table('statistics').select("id, data_json").eq("table_id", "INST_AI_CONFIG").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
+        current_data = {}
+        row_id = None
+        if check.data:
+            row_id = check.data[0]['id']
+            try: current_data = json.loads(check.data[0]['data_json'])
+            except: pass
+        current_data['blocked_global'] = blocked
+        config_str = json.dumps(current_data)
+        if row_id:
+            supabase.table('statistics').update({"data_json": config_str}).eq("id", row_id).execute()
+        else:
+            prog_res = supabase.table('programs').select("id").eq("inst_id", inst_id).limit(1).execute()
+            valid_prog_id = prog_res.data[0]['id'] if prog_res.data else None
+            if not valid_prog_id:
+                any_prog = supabase.table('programs').select("id").limit(1).execute()
+                valid_prog_id = any_prog.data[0]['id'] if any_prog.data else 1
+            supabase.table('statistics').insert({"inst_id": inst_id, "program_id": valid_prog_id, "table_id": "INST_AI_CONFIG", "data_json": config_str}).execute()
+        return jsonify({"status": "success", "inst_id": inst_id, "blocked": blocked})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+@ai_bp.route('/api/inst-ai-status', methods=['GET'])
+def inst_ai_status_all():
+    """Superadmin: get AI config status for all institutions."""
+    try:
+        insts = supabase.table('institution').select("id, name").execute()
+        configs = supabase.table('statistics').select("inst_id, data_json").eq("table_id", "INST_AI_CONFIG").execute()
+        config_map = {}
+        for c in configs.data:
+            try: config_map[c['inst_id']] = json.loads(c['data_json'])
+            except: pass
+        result = []
+        for inst in (insts.data or []):
+            cfg = config_map.get(inst['id'], {})
+            result.append({
+                "inst_id": inst['id'],
+                "name": inst.get('name', f"Institucion {inst['id']}"),
+                "blocked_global": cfg.get('blocked_global', False),
+                "has_own_key": bool(cfg.get('ai_api_key', '').strip()),
+                "own_provider": cfg.get('ai_provider', ''),
+            })
+        return jsonify({"status": "success", "data": result})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
