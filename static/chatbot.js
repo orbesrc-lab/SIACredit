@@ -498,6 +498,43 @@ const FALLBACK_RESPONSE = `No estoy seguro de entender tu pregunta, pero te aseg
 
 // Estado del Chat
 let isChatOpen = false;
+let voiceEnabled = false;
+
+window.toggleSkelVoice = function() {
+    voiceEnabled = !voiceEnabled;
+    const btn = document.getElementById('skelVoiceBtn');
+    if(voiceEnabled) {
+        btn.style.color = '#10b981'; // Green
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
+    } else {
+        btn.style.color = 'white';
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>';
+        window.speechSynthesis.cancel();
+    }
+}
+
+function speakSkelText(htmlText) {
+    if (!voiceEnabled) return;
+    
+    // Convert HTML to plain text
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = htmlText;
+    const plainText = tempDiv.textContent || tempDiv.innerText || "";
+    
+    // Stop any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(plainText);
+    utterance.lang = 'es-ES'; // Spanish
+    utterance.rate = 1.0;     // Normal speed
+    
+    // Optionally look for a nice voice
+    const voices = window.speechSynthesis.getVoices();
+    const esVoice = voices.find(v => v.lang.startsWith('es') && (v.name.includes('Google') || v.name.includes('Microsoft') || v.name.includes('Siri')));
+    if (esVoice) utterance.voice = esVoice;
+    
+    window.speechSynthesis.speak(utterance);
+}
 
 // Inicialización de la UI
 function initSkelBot() {
@@ -508,14 +545,18 @@ function initSkelBot() {
             <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 5.806 2 10.5c0 2.68 1.458 5.074 3.738 6.643l-1.077 3.23a1 1 0 001.26 1.26l3.23-1.077C10.074 20.806 11.02 21 12 21c5.523 0 10-3.806 10-8.5S17.523 2 12 2zm0 17c-.822 0-1.616-.118-2.368-.334a1 1 0 00-.632.052l-2.073.69-.69-2.072a1 1 0 00-.472-.519C4.167 15.534 3 13.11 3 10.5 3 6.916 7.037 4 12 4s9 2.916 9 6.5-4.037 6.5-9 6.5z"/></svg>
         </button>
 
-        <!-- Ventana del Chat -->
         <div id="skelChatWindow" class="skel-chat-window">
             <div class="skel-chat-header">
                 <div class="title">
                     <span class="status-dot"></span>
                     SKEL Bot
                 </div>
-                <button class="skel-chat-close" onclick="toggleSkelChat()">×</button>
+                <div style="display:flex; gap:10px;">
+                    <button id="skelVoiceBtn" onclick="toggleSkelVoice()" style="background:none; border:none; color:white; cursor:pointer;" title="Activar Voz">
+                        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                    </button>
+                    <button class="skel-chat-close" onclick="toggleSkelChat()">×</button>
+                </div>
             </div>
             <div id="skelChatMessages" class="skel-chat-messages">
                 <div class="skel-message bot">
@@ -622,6 +663,7 @@ window.sendSkelMessage = function() {
         
         const botBubble = document.createElement('div');
         botBubble.className = 'skel-message bot';
+        speakSkelText(reply);
         botBubble.innerHTML = reply;
         messagesContainer.appendChild(botBubble);
         
