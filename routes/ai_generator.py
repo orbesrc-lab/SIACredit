@@ -27,8 +27,8 @@ def extract_json_from_response(text):
     text = text[start_idx:]
     
     try:
-        # raw_decode extracts exactly one JSON object/array and ignores trailing garbage
-        obj, end = json.JSONDecoder().raw_decode(text)
+        # raw_decode(strict=False) allows unescaped control characters like literal newlines inside strings
+        obj, end = json.JSONDecoder(strict=False).raw_decode(text)
         return json.dumps(obj)
     except Exception:
         # Fallback if raw_decode fails
@@ -73,7 +73,7 @@ Responde ÚNICAMENTE con un JSON válido con este formato:
     try:
         response_text = call_ai([{"role": "system", "content": "You are a helpful JSON generator AI."}, {"role": "user", "content": prompt}], max_tokens=1500)
         json_str = extract_json_from_response(response_text)
-        return jsonify({"status": "success", "data": json.loads(json_str)})
+        return jsonify({"status": "success", "data": json.loads(json_str, strict=False)})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
@@ -110,7 +110,7 @@ Responde ÚNICAMENTE con un JSON válido con este formato:
     try:
         response_text = call_ai([{"role": "system", "content": "You are a helpful JSON generator AI."}, {"role": "user", "content": prompt}], max_tokens=6000)
         json_str = extract_json_from_response(response_text)
-        return jsonify({"status": "success", "data": json.loads(json_str)})
+        return jsonify({"status": "success", "data": json.loads(json_str, strict=False)})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
@@ -138,7 +138,7 @@ Responde ÚNICAMENTE en JSON con el formato:
     try:
         response_text = call_ai([{"role": "system", "content": "You are a JSON generator API."}, {"role": "user", "content": prompt}], max_tokens=1500)
         json_str = extract_json_from_response(response_text)
-        return jsonify({"status": "success", "data": json.loads(json_str)})
+        return jsonify({"status": "success", "data": json.loads(json_str, strict=False)})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
@@ -167,7 +167,7 @@ Responde ÚNICAMENTE en JSON con el formato:
     try:
         response_text = call_ai([{"role": "system", "content": "You are a JSON generator API."}, {"role": "user", "content": prompt}], max_tokens=1500)
         json_str = extract_json_from_response(response_text)
-        return jsonify({"status": "success", "data": json.loads(json_str)})
+        return jsonify({"status": "success", "data": json.loads(json_str, strict=False)})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
@@ -200,7 +200,7 @@ Los tipos permitidos son: video, audio, document, link.
     try:
         response_text = call_ai([{"role": "system", "content": "You are a JSON generator API."}, {"role": "user", "content": prompt}], max_tokens=1500)
         json_str = extract_json_from_response(response_text)
-        return jsonify({"status": "success", "data": json.loads(json_str)})
+        return jsonify({"status": "success", "data": json.loads(json_str, strict=False)})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
@@ -221,7 +221,7 @@ Responde ÚNICAMENTE en JSON con el formato:
     try:
         response_text = call_ai([{"role": "system", "content": "You are a JSON generator API."}, {"role": "user", "content": prompt}], max_tokens=1500)
         json_str = extract_json_from_response(response_text)
-        return jsonify({"status": "success", "data": json.loads(json_str)})
+        return jsonify({"status": "success", "data": json.loads(json_str, strict=False)})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
