@@ -5,23 +5,39 @@ import json
 ai_generator_bp = Blueprint('ai_generator', __name__)
 
 def extract_json_from_response(text):
+    import re
+    import json
     text = text.strip()
-    if text.startswith("```json"):
-        text = text[7:]
-    if text.startswith("```"):
-        text = text[3:]
-    if text.endswith("```"):
-        text = text[:-3]
-    text = text.strip()
-    start = text.find("{")
-    if start == -1:
-        start = text.find("[")
-    end = text.rfind("}")
-    if end == -1:
-        end = text.rfind("]")
-    if start != -1 and end != -1:
-        return text[start:end+1]
-    return text
+    
+    # Extract markdown block if present
+    match = re.search(r'```(?:json)?\s*(.*?)\s*```', text, re.DOTALL | re.IGNORECASE)
+    if match:
+        text = match.group(1).strip()
+        
+    # Find start of JSON
+    start_idx = -1
+    for i, char in enumerate(text):
+        if char in ('{', '['):
+            start_idx = i
+            break
+            
+    if start_idx == -1:
+        return text
+        
+    text = text[start_idx:]
+    
+    try:
+        # raw_decode extracts exactly one JSON object/array and ignores trailing garbage
+        obj, end = json.JSONDecoder().raw_decode(text)
+        return json.dumps(obj)
+    except Exception:
+        # Fallback if raw_decode fails
+        end_obj = text.rfind("}")
+        end_arr = text.rfind("]")
+        end_idx = max(end_obj, end_arr)
+        if end_idx != -1:
+            return text[:end_idx+1]
+        return text
 
 @ai_generator_bp.route('/api/ai/course/structure', methods=['POST'])
 def generate_course_structure():
