@@ -28,13 +28,13 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
             else:
                 # Fallback per provider if model is empty in DB
                 if provider == 'openai': model = 'gpt-4o-mini'
-                elif provider == 'gemini': model = 'gemini-3.5-flash'
+                elif provider == 'gemini': model = 'gemini-2.5-flash'
                 elif provider == 'anthropic': model = 'claude-3-5-sonnet-20240620'
                 else: model = 'glm-4'
                 
             # Prevent using deprecated Gemini models saved previously in DB
-            if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-flash-latest']:
-                model = 'gemini-3.5-flash'
+            if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
+                model = 'gemini-2.5-flash'
     except Exception as e:
         db_error = str(e)
         print(f"Error fetching AI config: {e}")
@@ -723,8 +723,8 @@ def global_settings():
         if 'ai_provider' in data: current_data['ai_provider'] = data.get('ai_provider')
         if 'ai_model' in data: 
             model_val = data.get('ai_model')
-            if current_data.get('ai_provider') == 'gemini' and model_val in ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-flash-latest']:
-                model_val = 'gemini-3.5-flash'
+            if current_data.get('ai_provider') == 'gemini' and model_val in ['gemini-1.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
+                model_val = 'gemini-2.5-flash'
             current_data['ai_model'] = model_val
         if 'ai_api_key' in data: current_data['ai_api_key'] = data.get('ai_api_key')
         if 'ai_voice_colombia' in data: current_data['ai_voice_colombia'] = data.get('ai_voice_colombia')
