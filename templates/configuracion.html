@@ -286,6 +286,40 @@
                 <button class="btn-primary" onclick="saveGlobalSettings()" style="margin-top: 15px;">Guardar Configuración Global</button>
             </div>
 
+            <!-- IA propia por institución (visible para admin, no superadmin) -->
+            <div id="instAiCard" class="settings-card" style="display:none; border-left: 5px solid #06b6d4;">
+                <h3>🔑 Mi Llave de IA (Configuración Propia)</h3>
+                <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:15px;">
+                    Configura tu propio proveedor y llave de Inteligencia Artificial. Si lo haces, tu institución usará
+                    exclusivamente esta configuración. Si no defines nada, el sistema usará la llave global del administrador principal.
+                </p>
+                <div id="instAiStatus" style="margin-bottom:15px; padding:10px 14px; border-radius:8px; font-size:0.88rem; background: var(--bg-hover);"></div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Proveedor de IA</label>
+                        <select id="instAiProvider" onchange="updateInstAiModel()">
+                            <option value="zhipu">Z.AI (ZhipuAI / glm-4)</option>
+                            <option value="openai">OpenAI (ChatGPT)</option>
+                            <option value="gemini">Google Gemini</option>
+                            <option value="anthropic">Anthropic Claude</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Modelo</label>
+                        <input type="text" id="instAiModel" placeholder="Ej: gemini-2.5-flash">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>API Key</label>
+                        <input type="password" id="instAiKey" placeholder="Ingresa tu API Key personal">
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;">Deja en blanco si no quieres cambiarla.</p>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:15px; flex-wrap:wrap;">
+                    <button class="btn-primary" onclick="saveInstAiSettings()">💾 Guardar Mi Configuración</button>
+                    <button class="btn-secondary" onclick="clearInstAiSettings()" style="background:var(--bg-hover); color:var(--text-muted); border:1px solid var(--border-color);">🔗 Usar Llave Global del Sistema</button>
+                </div>
+            </div>
+
             <!-- Gestión de Aliados/Partners (Solo para Superadmins) -->
             <div id="partnersCard" class="settings-card" style="display: none; border-left: 5px solid #8b5cf6;">
                 <h3>Gestión de Instituciones Aliadas (Partners)</h3>
@@ -2505,9 +2539,69 @@
                     alert("❌ Error: " + data.message);
                 }
             } catch (e) {
-                alert("❌ Error de conexión al guardar configuración global.");
+                alert("Error de conexion al guardar configuracion global.");
             }
         }
+
+        // Per-institution AI config
+        function updateInstAiModel() {
+            const provider = document.getElementById('instAiProvider').value;
+            const modelInput = document.getElementById('instAiModel');
+            const defaults = { zhipu: 'glm-4', openai: 'gpt-4o-mini', gemini: 'gemini-2.5-flash', anthropic: 'claude-3-5-sonnet-20240620' };
+            modelInput.value = defaults[provider] || '';
+        }
+
+        async function loadInstAiSettings() {
+            const instId = getInstId();
+            if (!instId) return;
+            try {
+                const res = await fetch(`/api/inst-ai-settings?inst_id=${instId}&t=` + Date.now());
+                const data = await res.json();
+                const statusEl = document.getElementById('instAiStatus');
+                if (data.has_api_key) {
+                    statusEl.innerHTML = '<strong>Configuracion propia activa</strong> &mdash; Tu institucion esta usando su propia llave de IA.';
+                    statusEl.style.background = 'rgba(16,185,129,0.1)';
+                    statusEl.style.color = '#065f46';
+                    if (data.ai_provider) document.getElementById('instAiProvider').value = data.ai_provider;
+                    if (data.ai_model) document.getElementById('instAiModel').value = data.ai_model;
+                } else {
+                    statusEl.innerHTML = '<strong>Usando llave global del sistema</strong> &mdash; No has configurado una llave propia aun.';
+                    statusEl.style.background = 'rgba(99,102,241,0.08)';
+                    statusEl.style.color = '#3730a3';
+                }
+            } catch (e) { console.log('Error loading inst AI settings'); }
+        }
+
+        async function saveInstAiSettings() {
+            const instId = getInstId();
+            const payload = {
+                inst_id: instId,
+                ai_provider: document.getElementById('instAiProvider').value,
+                ai_model: document.getElementById('instAiModel').value,
+                ai_api_key: document.getElementById('instAiKey').value
+            };
+            try {
+                const res = await fetch('/api/inst-ai-settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    alert('Configuracion guardada exitosamente.');
+                    document.getElementById('instAiKey').value = '';
+                    loadInstAiSettings();
+                } else { alert('Error: ' + data.message); }
+            } catch(e) { alert('Error de conexion.'); }
+        }
+
+        async function clearInstAiSettings() {
+            if (!confirm('Esto eliminara tu configuracion propia y tu institucion usara la llave global del sistema. Continuar?')) return;
+            const instId = getInstId();
+            try {
+                const res = await fetch('/api/inst-ai-settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ inst_id: instId, clear_key: true }) });
+                const data = await res.json();
+                if (data.status === 'success') { alert('Configuracion propia eliminada. Ahora usas la llave global.'); loadInstAiSettings(); }
+            } catch(e) { alert('Error de conexion.'); }
+        }
+        // End per-institution AI config
+
         async function loadPartners() {
             try {
                 const res = await fetch('/api/partners?t=' + Date.now());
@@ -2604,6 +2698,9 @@
                 if(userDataStr) {
                     const userData = JSON.parse(userDataStr);
                     if(userData.role === 'admin') {
+                        // Show institution-level AI config for non-superadmin admins
+                        const instAiCard = document.getElementById('instAiCard');
+                        if(instAiCard) { instAiCard.style.display = 'block'; loadInstAiSettings(); }
                         const pcard = document.getElementById('partnersCard');
                         if(pcard) pcard.style.display = 'block';
                         loadPartners();

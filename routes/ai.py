@@ -8,33 +8,47 @@ import re
 
 ai_bp = Blueprint('ai', __name__)
 
-def call_ai(messages, max_tokens=1500, temperature=0.7):
+def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
     import json
     provider = "zhipu"
     api_key = os.getenv("OPENAI_API_KEY", "f199cc37c8734a51bb52d58269b8ba21.qBpBccpnRN3vBsjN")
     model = "glm-4"
     
     db_error = None
+    check = None
     try:
+        # 1) Try institution-specific config first (if inst_id provided)
+        inst_config = None
+        if inst_id:
+            inst_check = supabase.table('statistics').select("data_json").eq("table_id", "INST_AI_CONFIG").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
+            if inst_check.data:
+                inst_config = json.loads(inst_check.data[0]['data_json'])
+
+        # 2) Fall back to global config
         check = supabase.table('statistics').select("data_json").eq("table_id", "GLOBAL_CONFIG").order("id", desc=True).limit(1).execute()
+        global_config = {}
         if check.data:
-            data = json.loads(check.data[0]['data_json'])
-            if data.get('ai_provider'): provider = data.get('ai_provider')
-            if data.get('ai_api_key'): api_key = data.get('ai_api_key')
+            global_config = json.loads(check.data[0]['data_json'])
+
+        # Institution config overrides global config
+        data = {**global_config, **(inst_config or {})}
+
+        if data.get('ai_provider'): provider = data.get('ai_provider')
+        if data.get('ai_api_key'): api_key = data.get('ai_api_key')
+        
+        _db_model = (data.get('ai_model') or "").strip()
+        if _db_model:
+            model = _db_model
+        else:
+            # Fallback per provider if model is empty in DB
+            if provider == 'openai': model = 'gpt-4o-mini'
+            elif provider == 'gemini': model = 'gemini-2.5-flash'
+            elif provider == 'anthropic': model = 'claude-3-5-sonnet-20240620'
+            else: model = 'glm-4'
             
-            _db_model = (data.get('ai_model') or "").strip()
-            if _db_model:
-                model = _db_model
-            else:
-                # Fallback per provider if model is empty in DB
-                if provider == 'openai': model = 'gpt-4o-mini'
-                elif provider == 'gemini': model = 'gemini-2.5-flash'
-                elif provider == 'anthropic': model = 'claude-3-5-sonnet-20240620'
-                else: model = 'glm-4'
-                
-            # Prevent using deprecated Gemini models saved previously in DB
-            if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
-                model = 'gemini-2.5-flash'
+        # Prevent using deprecated Gemini models saved previously in DB
+        if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
+            model = 'gemini-2.5-flash'
     except Exception as e:
         db_error = str(e)
         print(f"Error fetching AI config: {e}")
@@ -98,7 +112,7 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
             )
             return response.choices[0].message.content
         except Exception as e:
-            raise Exception(f"{str(e)} [DEBUG: provider={provider}, base_url={base_url}, rows={len(check.data) if 'check' in locals() else 'unknown'}, db_error={db_error}]")
+            raise Exception(f"{str(e)} [DEBUG: provider={provider}, base_url={base_url}, rows={len(check.data) if check else 'unknown'}, db_error={db_error}]")
 
 
 
@@ -751,6 +765,51 @@ def global_settings():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
+@ai_bp.route('/api/inst-ai-settings', methods=['GET', 'POST'])
+def inst_ai_settings():
+    """Per-institution AI config. Admins set their own provider/key here.
+    Falls back to global config if not set."""
+    inst_id = request.args.get('inst_id', 1, type=int) if request.method == 'GET' else (request.json or {}).get('inst_id', 1)
+    try:
+        check = supabase.table('statistics').select("id, data_json").eq("table_id", "INST_AI_CONFIG").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
+        current_data = {}
+        row_id = None
+        if check.data:
+            row_id = check.data[0]['id']
+            try:
+                current_data = json.loads(check.data[0]['data_json'])
+            except:
+                pass
+
+        if request.method == 'GET':
+            resp = dict(current_data)
+            resp['has_api_key'] = bool(resp.get('ai_api_key', '').strip())
+            if 'ai_api_key' in resp:
+                del resp['ai_api_key']
+            return jsonify(resp)
+
+        # POST: save institution config
+        data = request.json or {}
+        if 'ai_provider' in data: current_data['ai_provider'] = data['ai_provider']
+        if 'ai_model'    in data: current_data['ai_model']    = data['ai_model']
+        if 'clear_key' in data and data['clear_key']:
+            # Admin wants to remove their custom key and fall back to global
+            current_data.pop('ai_api_key', None)
+            current_data.pop('ai_provider', None)
+            current_data.pop('ai_model', None)
+        elif 'ai_api_key' in data and data['ai_api_key'].strip():
+            current_data['ai_api_key'] = data['ai_api_key'].strip()
+
+        config_str = json.dumps(current_data)
+        if row_id:
+            supabase.table('statistics').update({"data_json": config_str}).eq("id", row_id).execute()
+        else:
+            supabase.table('statistics').insert({"inst_id": inst_id, "program_id": 0, "table_id": "INST_AI_CONFIG", "data_json": config_str}).execute()
+
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
 @ai_bp.route('/api/evidences/<int:evidence_id>', methods=['DELETE'])
 def delete_evidence(evidence_id):
     try:
@@ -925,7 +984,8 @@ def ai_chat():
                 {"role": "user", "content": final_prompt}
             ],
             temperature=0.7,
-            max_tokens=1500
+            max_tokens=1500,
+            inst_id=data.get('inst_id')
         )
         
         return jsonify({"status": "success", "answer": answer})
