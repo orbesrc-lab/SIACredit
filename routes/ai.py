@@ -727,6 +727,7 @@ def global_settings():
                 model_val = 'gemini-flash-latest'
             current_data['ai_model'] = model_val
         if 'ai_api_key' in data: current_data['ai_api_key'] = data.get('ai_api_key')
+        if 'ai_voice_colombia' in data: current_data['ai_voice_colombia'] = data.get('ai_voice_colombia')
         
         config_data = json.dumps(current_data)
         

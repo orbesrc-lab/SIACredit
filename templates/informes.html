@@ -1877,6 +1877,16 @@
                 aiMsg.innerHTML = finalAnswer;
                 messagesContainer.appendChild(aiMsg);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+                // Fetch global settings to check if voice is enabled
+                fetch('/api/global-settings?t=' + Date.now())
+                    .then(res => res.json())
+                    .then(config => {
+                        if (config.ai_voice_colombia) {
+                            speakColombianVoice(data.answer || data.error || 'Error procesando respuesta.');
+                        }
+                    }).catch(err => console.log('No se pudo verificar config de voz', err));
+                
             } catch (err) {
                 if (messagesContainer.contains(loadingMsg)) {
                     messagesContainer.removeChild(loadingMsg);
@@ -3177,6 +3187,34 @@
             } else {
                 dList.innerHTML = '<p style="color:#64748b; font-size:0.9rem;">No se identificaron debilidades claras.</p>';
             }
+        }
+        
+        function speakColombianVoice(text) {
+            if (!('speechSynthesis' in window)) return;
+            
+            // Remove markdown formatting for speech
+            let cleanText = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/#/g, '');
+            
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'es-CO';
+            
+            const voices = window.speechSynthesis.getVoices();
+            // Try to find a specific Colombian or Latin voice
+            let selectedVoice = voices.find(v => v.lang === 'es-CO' && (v.name.includes('Google') || v.name.includes('Microsoft')));
+            if (!selectedVoice) selectedVoice = voices.find(v => v.lang === 'es-CO');
+            if (!selectedVoice) selectedVoice = voices.find(v => v.lang.startsWith('es-') && v.lang !== 'es-ES');
+            
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Initialize voices on load to prevent delay when first needed
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
         }
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>

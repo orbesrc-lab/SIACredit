@@ -274,6 +274,13 @@
                         <input type="password" id="aiApiKeyInput" placeholder="Ingresa la API Key (dejar en blanco para mantener actual)">
                         <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Si no configuras nada, se usará la API Key definida por variables de entorno en el servidor.</p>
                     </div>
+                    <div class="form-group full-width">
+                        <label style="display:flex; align-items:center; gap:8px;">
+                            <input type="checkbox" id="aiVoiceColombia" style="width:auto; margin:0;">
+                            Activar respuesta con Voz Colombiana (Margy IA)
+                        </label>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Si está activo, la IA leerá sus respuestas usando la voz de síntesis (es-CO) si está disponible en tu navegador.</p>
+                    </div>
                 </div>
 
                 <button class="btn-primary" onclick="saveGlobalSettings()" style="margin-top: 15px;">Guardar Configuración Global</button>
@@ -2438,6 +2445,9 @@
                     }
                     if (data.ai_model) document.getElementById('aiModelInput').value = data.ai_model;
                     
+                    const voiceCheck = document.getElementById('aiVoiceColombia');
+                    if (voiceCheck) voiceCheck.checked = !!data.ai_voice_colombia;
+                    
                     const keyInput = document.getElementById('aiApiKeyInput');
                     if (keyInput) {
                         if (data.has_api_key) {
@@ -2465,11 +2475,13 @@
             const aiProvider = document.getElementById('aiProviderSelect').value;
             const aiModel = document.getElementById('aiModelInput').value;
             const aiApiKey = document.getElementById('aiApiKeyInput').value;
+            const aiVoiceColombia = document.getElementById('aiVoiceColombia') ? document.getElementById('aiVoiceColombia').checked : false;
 
             const payload = {
                 theme: theme,
                 ai_provider: aiProvider,
-                ai_model: aiModel
+                ai_model: aiModel,
+                ai_voice_colombia: aiVoiceColombia
             };
             
             // Only send API Key if the user typed something new
