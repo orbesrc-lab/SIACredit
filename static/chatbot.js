@@ -499,6 +499,8 @@ const FALLBACK_RESPONSE = `No estoy seguro de entender tu pregunta, pero te aseg
 // Estado del Chat
 let isChatOpen = false;
 let voiceEnabled = false;
+let useColombianVoice = false;
+
 
 window.toggleSkelVoice = function() {
     voiceEnabled = !voiceEnabled;
@@ -525,20 +527,60 @@ function speakSkelText(htmlText) {
     window.speechSynthesis.cancel();
     
     const utterance = new SpeechSynthesisUtterance(plainText);
-    utterance.lang = 'es-ES'; // Spanish
+    utterance.lang = useColombianVoice ? 'es-CO' : 'es-ES'; // Spanish
     utterance.rate = 1.0;     // Normal speed
     
-    // Optionally look for a nice voice
+    // Look for a nice voice
     const voices = window.speechSynthesis.getVoices();
-    const esVoice = voices.find(v => v.lang.startsWith('es') && (v.name.includes('Google') || v.name.includes('Microsoft') || v.name.includes('Siri')));
-    if (esVoice) utterance.voice = esVoice;
+    let selectedVoice = null;
+    
+    if (useColombianVoice) {
+        selectedVoice = voices.find(v => v.lang === 'es-CO' && (v.name.includes('Google') || v.name.includes('Microsoft')));
+        if (!selectedVoice) selectedVoice = voices.find(v => v.lang === 'es-CO');
+    }
+    
+    if (!selectedVoice) {
+        selectedVoice = voices.find(v => v.lang.startsWith('es') && (v.name.includes('Google') || v.name.includes('Microsoft') || v.name.includes('Siri')));
+    }
+    
+    if (selectedVoice) utterance.voice = selectedVoice;
+
     
     window.speechSynthesis.speak(utterance);
 }
 
 // Inicialización de la UI
 async function initSkelBot() {
-    // 1. Fetch dynamic dataset if available
+    // Intentar cargar config para ver si debe usar voz colombiana
+    try {
+        const res = await fetch('/api/global-settings?t=' + Date.now());
+        if (res.ok) {
+            const data = await res.json();
+            if (data.ai_voice_colombia) {
+                useColombianVoice = true;
+                voiceEnabled = true;
+                
+                // Actualizar UI del botón de voz
+                setTimeout(() => {
+                    const btn = document.getElementById('skelVoiceBtn');
+                    if(btn) {
+                        btn.style.color = '#10b981';
+                        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
+                    }
+                }, 500);
+
+                // Pre-cargar voces para evitar bloqueos
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+                    window.speechSynthesis.getVoices();
+                }
+            }
+        }
+    } catch (e) {
+        console.log("No se pudo cargar config de voz para chatbot");
+    }
+    
+    if (document.getElementById('skelChatWidget')) return; // Ya existe
     try {
         const res = await fetch('/api/bot/dataset');
         if (res.ok) {
@@ -647,6 +689,11 @@ window.sendSkelMessage = function() {
     const input = document.getElementById('skelChatInput');
     const msg = input.value.trim();
     if (!msg) return;
+
+    if (voiceEnabled && ('speechSynthesis' in window)) {
+        // Unlock browser speech synthesis
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+    }
 
     input.value = '';
     
