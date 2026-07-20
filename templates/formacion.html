@@ -540,6 +540,80 @@
             div[id^="acc_"] video {
                 max-width: calc(100vw - 60px) !important;
             }
+            
+            /* Cuadrículas y Contenedores */
+            .grid-catalog {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+            }
+            .editor-container {
+                padding: 15px !important;
+            }
+            .settings-card, .content-area {
+                padding: 15px !important;
+                border-radius: 15px !important;
+            }
+            
+            /* Navegación y Menús de Pestañas */
+            .tab-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 5px;
+                padding: 10px;
+                border-radius: 15px;
+            }
+            .tab-btn {
+                padding: 8px 15px;
+                font-size: 0.85rem;
+                flex: 1 1 100%;
+                text-align: center;
+            }
+            .sub-tab-nav {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding-bottom: 8px;
+                justify-content: flex-start;
+                -webkit-overflow-scrolling: touch;
+            }
+            .sub-tab-btn {
+                white-space: nowrap;
+                padding: 8px 16px;
+                font-size: 0.85rem;
+            }
+
+            /* Botones, Textos y Formularios */
+            .course-card-actions button {
+                height: 38px;
+                font-size: 0.85rem;
+            }
+            .course-card-actions .btn-danger {
+                flex: 0 0 38px;
+                width: 38px;
+                height: 38px;
+            }
+            #mainTitle {
+                font-size: 1.4rem !important;
+                margin-bottom: 15px !important;
+                line-height: 1.3;
+            }
+            .course-card-title {
+                font-size: 1.2rem !important;
+                line-height: 1.3 !important;
+            }
+            .course-card-header::after {
+                display: none; /* Eliminar decoración circular para ahorrar espacio visual */
+            }
+            .form-grid {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* Ajuste especial para filas dinámicas de IA (usualmente grid) */
+            div[style*="display: grid"][style*="2fr 1fr"] {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+                padding: 10px !important;
+                margin-bottom: 10px !important;
+            }
         }
 </style>
 </head>
