@@ -463,10 +463,6 @@ th {
         font-size: 0.9rem !important;
     }
     
-    p, li, div {
-        word-break: break-word; /* Prevent long text from overflowing */
-    }
-    
     /* Convert Sidebar to Bottom Navigation */
     .sidebar {
         width: 100% !important;
