@@ -628,10 +628,56 @@
                 margin-bottom: 10px !important;
             }
         }
+        /* Aviso Rotar Pantalla */
+        .mobile-rotate-warning { display: none; }
+        @media (max-width: 768px) and (orientation: portrait) {
+            .mobile-rotate-warning {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                position: fixed;
+                bottom: 80px;
+                left: 15px;
+                right: 15px;
+                background: var(--primary-gradient);
+                color: white;
+                padding: 12px 16px;
+                border-radius: 12px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                z-index: 9999;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+                animation: slideUpFade 0.5s ease-out;
+            }
+            .mobile-rotate-warning span { flex: 1; }
+            .mobile-rotate-warning button {
+                background: rgba(255,255,255,0.2);
+                border: none;
+                color: white;
+                border-radius: 50%;
+                width: 28px;
+                height: 28px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-left: 10px;
+            }
+            @keyframes slideUpFade {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        }
 </style>
 </head>
 
 <body>
+<!-- Aviso Rotar Pantalla Móvil -->
+<div class="mobile-rotate-warning" id="rotateWarning">
+    <span>📱 Para una mejor experiencia visual, te sugerimos girar tu celular de forma horizontal.</span>
+    <button onclick="document.getElementById('rotateWarning').style.display='none'">✕</button>
+</div>
+
 <!-- Modal confirmación de borrado de curso -->
 <div id="deleteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:var(--card-bg,#1e293b); border:1px solid var(--border-color,#334155); border-radius:16px; padding:32px 28px; max-width:420px; width:90%; box-shadow:0 25px 50px rgba(0,0,0,0.5);">
