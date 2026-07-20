@@ -1806,6 +1806,15 @@
             }
         }
 
+        let aiVoiceColombiaEnabled = false;
+        
+        // Fetch global settings early to avoid async TTS blocking
+        fetch('/api/global-settings?t=' + Date.now())
+            .then(res => res.json())
+            .then(config => {
+                aiVoiceColombiaEnabled = !!config.ai_voice_colombia;
+            }).catch(err => console.log('Error loading config', err));
+
         async function sendChatMessage() {
             const input = document.getElementById('aiChatInput');
             const fileInput = document.getElementById('aiChatFile');
@@ -1878,14 +1887,10 @@
                 messagesContainer.appendChild(aiMsg);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 
-                // Fetch global settings to check if voice is enabled
-                fetch('/api/global-settings?t=' + Date.now())
-                    .then(res => res.json())
-                    .then(config => {
-                        if (config.ai_voice_colombia) {
-                            speakColombianVoice(data.answer || data.error || 'Error procesando respuesta.');
-                        }
-                    }).catch(err => console.log('No se pudo verificar config de voz', err));
+                if (aiVoiceColombiaEnabled) {
+                    // Try to speak immediately to avoid browser blocking
+                    setTimeout(() => speakColombianVoice(data.answer || data.error || 'Error procesando respuesta.'), 50);
+                }
                 
             } catch (err) {
                 if (messagesContainer.contains(loadingMsg)) {
