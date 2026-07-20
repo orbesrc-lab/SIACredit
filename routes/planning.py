@@ -172,11 +172,22 @@ def get_planning_tree():
             inst_id = int(inst_id)
         except (ValueError, TypeError):
             inst_id = 1
+            
+        program_id = request.args.get('program_id')
+        try:
+            program_id = int(program_id) if program_id else 0
+        except (ValueError, TypeError):
+            program_id = 0
+            
         if not inst_id:
             return jsonify({'status': 'error', 'message': 'inst_id is required'})
 
         axes = supabase.table('planning_axes').select('*').eq('inst_id', inst_id).execute().data
-        strategies = supabase.table('planning_strategies').select('*').eq('inst_id', inst_id).execute().data
+        
+        strategies_query = supabase.table('planning_strategies').select('*').eq('inst_id', inst_id)
+        if program_id != 0:
+            strategies_query = strategies_query.eq('program_id', program_id)
+        strategies = strategies_query.execute().data
         
         strat_ids = [s['id'] for s in strategies] if strategies else []
         gen_objs = []
@@ -238,8 +249,10 @@ def add_planning_node():
             return jsonify({'status': 'error', 'message': 'Faltan parámetros'})
 
         if node_type == 'strategy':
+            program_id = data.get('program_id', 0)
             supabase.table('planning_strategies').insert({
                 'inst_id': inst_id,
+                'program_id': program_id,
                 'axis_id': parent_id,
                 'description': data.get('description', ''),
                 'weight_percentage': data.get('weight_percentage', 0),
@@ -684,10 +697,15 @@ def cron_planning_alerts():
 def report_finance():
     try:
         inst_id = request.args.get('inst_id', 1, type=int)
+        program_id = request.args.get('program_id', 0, type=int)
         
         # We need strategies, general_objectives, specific_objectives, activities, and their finance data
         axes = supabase.table('planning_axes').select('*').eq('inst_id', inst_id).execute().data
-        strategies = supabase.table('planning_strategies').select('*').eq('inst_id', inst_id).execute().data
+        
+        strategies_query = supabase.table('planning_strategies').select('*').eq('inst_id', inst_id)
+        if program_id != 0:
+            strategies_query = strategies_query.eq('program_id', program_id)
+        strategies = strategies_query.execute().data
         gen_objs = supabase.table('planning_general_objectives').select('*').execute().data
         spec_objs = supabase.table('planning_specific_objectives').select('*').execute().data
         activities = supabase.table('planning_activities').select('*').execute().data

@@ -626,7 +626,7 @@
         // ─── Carga de datos ─────────────────────────────────────────
         async function loadPlanningData() {
             try {
-                const res = await fetch(`/api/planning/tree?inst_id=${getInstId()}`);
+                const res = await fetch(`/api/planning/tree?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const data = await res.json();
                 if(data.status === 'success') {
                     if(expandedNodes.size === 0 && data.tree) {
@@ -1001,6 +1001,7 @@
 
             const payload = {
                 inst_id: getInstId(),
+                program_id: getProgramId(),
                 type: currentNodeType,
                 parent_id: currentParentId,
                 description: document.getElementById('f_desc') ? document.getElementById('f_desc').value : ''
@@ -1460,7 +1461,7 @@
             if(type === 'finance') {
                 if(!currentReportData) {
                     try {
-                        const res = await fetch('/api/planning/reports/finance?inst_id=' + getInstId());
+                        const res = await fetch(`/api/planning/reports/finance?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                         const data = await res.json();
                         if(data.status === 'success') { currentReportData = data; renderFinancialReport(data); }
                         else { container.innerHTML = '<p style="color:red;padding:20px;">Error: ' + (data.message||'desconocido') + '</p>'; }
