@@ -634,37 +634,64 @@
             .mobile-rotate-warning {
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
+                gap: 15px;
                 position: fixed;
-                bottom: 80px;
+                bottom: 85px;
                 left: 15px;
                 right: 15px;
-                background: var(--primary-gradient);
+                background: rgba(15, 23, 42, 0.95);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(99, 102, 241, 0.4);
                 color: white;
-                padding: 12px 16px;
-                border-radius: 12px;
-                font-size: 0.85rem;
-                font-weight: 600;
+                padding: 16px;
+                border-radius: 20px;
                 z-index: 9999;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+                box-shadow: 0 15px 35px rgba(0,0,0,0.4);
                 animation: slideUpFade 0.5s ease-out;
             }
-            .mobile-rotate-warning span { flex: 1; }
+            .rotate-text {
+                flex: 1;
+                font-size: 0.85rem;
+                line-height: 1.4;
+            }
+            .rotate-text strong {
+                font-size: 1rem;
+                color: #a855f7;
+                display: block;
+                margin-bottom: 4px;
+            }
+            .phone-rotate-icon {
+                width: 36px;
+                height: 36px;
+                color: #818cf8;
+                animation: tiltPhone 2.5s ease-in-out infinite;
+                transform-origin: center;
+                flex-shrink: 0;
+            }
+            @keyframes tiltPhone {
+                0%, 100% { transform: rotate(0deg); }
+                20%, 60% { transform: rotate(-90deg); }
+            }
             .mobile-rotate-warning button {
-                background: rgba(255,255,255,0.2);
+                background: rgba(255,255,255,0.1);
                 border: none;
-                color: white;
+                color: #94a3b8;
                 border-radius: 50%;
-                width: 28px;
-                height: 28px;
+                width: 30px;
+                height: 30px;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                margin-left: 10px;
+                flex-shrink: 0;
+                transition: all 0.2s;
+            }
+            .mobile-rotate-warning button:hover {
+                background: rgba(255,255,255,0.2);
+                color: white;
             }
             @keyframes slideUpFade {
-                from { opacity: 0; transform: translateY(20px); }
+                from { opacity: 0; transform: translateY(30px); }
                 to { opacity: 1; transform: translateY(0); }
             }
         }
@@ -674,7 +701,14 @@
 <body>
 <!-- Aviso Rotar Pantalla Móvil -->
 <div class="mobile-rotate-warning" id="rotateWarning">
-    <span>📱 Para una mejor experiencia visual, te sugerimos girar tu celular de forma horizontal.</span>
+    <svg class="phone-rotate-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+    </svg>
+    <div class="rotate-text">
+        <strong>¡Dale un giro a tu aprendizaje!</strong>
+        Gira tu celular de forma horizontal para disfrutar de una vista espectacular y sin apretones. ✨
+    </div>
     <button onclick="document.getElementById('rotateWarning').style.display='none'">✕</button>
 </div>
 
