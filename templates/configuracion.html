@@ -332,6 +332,28 @@
                 <button class="btn-primary" onclick="saveInstitution()" style="margin-top: 10px;">Guardar Institución</button>
             </div>
 
+            <!-- Bandeja de Entrada del Bot (Solo Superadmins/Admins) -->
+            <div id="botInboxCard" class="settings-card" style="display: none; border-left: 5px solid #2563eb;">
+                <h3>🤖 Bandeja del Bot (Preguntas No Respondidas)</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
+                    Aquí se registran las preguntas o mensajes de usuarios que el bot de SKEL no pudo entender. Úsalas para mejorar el sistema en el futuro.
+                </p>
+                
+                <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-color);">
+                            <th style="padding: 12px; color: var(--text-muted);">Fecha</th>
+                            <th style="padding: 12px; color: var(--text-muted);">Pregunta / Mensaje</th>
+                            <th style="padding: 12px; color: var(--text-muted);">Estado</th>
+                            <th style="padding: 12px; color: var(--text-muted);">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="botInboxTableBody">
+                        <tr><td colspan="4" style="text-align: center; padding: 20px;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
             <!-- Gestión de Programa (Admins e Inst_Admins) -->
             <div id="progSelectorCard" class="settings-card" style="display: none;">
                 <h3>Gestión de Programas Académicos</h3>
@@ -1553,6 +1575,53 @@
             });
         }
 
+        // Lógica para la Bandeja del Bot
+        async function loadBotInbox() {
+            try {
+                const res = await fetch('/api/bot/unanswered');
+                if(res.ok) {
+                    const data = await res.json();
+                    const tbody = document.getElementById('botInboxTableBody');
+                    if(data.status === 'success' && data.data) {
+                        const pendingMsgs = data.data.filter(m => m.status === 'pending');
+                        if (pendingMsgs.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No hay mensajes pendientes.</td></tr>';
+                            return;
+                        }
+                        
+                        let html = '';
+                        // Sort descending by date
+                        pendingMsgs.sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).forEach(msg => {
+                            html += `
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 12px; font-size: 0.85rem; color: var(--text-muted);">${msg.created_at}</td>
+                                    <td style="padding: 12px; font-weight: 500;">${msg.question}</td>
+                                    <td style="padding: 12px;"><span style="background: #fef3c7; color: #d97706; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Pendiente</span></td>
+                                    <td style="padding: 12px;">
+                                        <button onclick="resolveBotMessage('${msg.id}')" class="btn-primary" style="padding: 6px 12px; font-size: 0.85rem;">Marcar Leído</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        tbody.innerHTML = html;
+                    }
+                }
+            } catch(e) {
+                console.log('Error loading bot inbox', e);
+            }
+        }
+        
+        window.resolveBotMessage = async function(id) {
+            try {
+                const res = await fetch(`/api/bot/unanswered/${id}/resolve`, { method: 'POST' });
+                if(res.ok) {
+                    loadBotInbox();
+                }
+            } catch(e) {
+                console.log('Error resolving msg', e);
+            }
+        };
+
         // ========== Gestión de Usuarios ==========
         function openInviteModal() { document.getElementById('inviteModal').style.display = 'flex'; }
         function closeInviteModal() { document.getElementById('inviteModal').style.display = 'none'; }
@@ -1785,6 +1854,10 @@
                     closeInviteModal();
                     loadUsersFromAPI();
                     renderFactorLeaders();
+                    // Admin y Superadmin pueden ver opciones de institucion y programa
+                    if (role === 'admin' || role === 'superadmin') {
+                        document.getElementById('instSelectorCard').style.display = 'block';
+                    }
                 } else { alert('Error: ' + result.message); }
             } catch(e) { alert('Error de conexión.'); }
         }
@@ -2502,6 +2575,13 @@
                         const pcard = document.getElementById('partnersCard');
                         if(pcard) pcard.style.display = 'block';
                         loadPartners();
+                    }
+                    if(['admin', 'super_admin', 'superadmin'].includes(userData.role)) {
+                        const bcard = document.getElementById('botInboxCard');
+                        if(bcard) {
+                            bcard.style.display = 'block';
+                            loadBotInbox();
+                        }
                     }
                 }
             }, 800);

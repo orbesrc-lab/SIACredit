@@ -611,6 +611,15 @@ window.sendSkelMessage = function() {
     setTimeout(() => {
         const reply = getBotResponse(msg);
         
+        // Si no se encontró respuesta, enviar al servidor para registro
+        if (reply === FALLBACK_RESPONSE) {
+            fetch('/api/bot/unanswered', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: msg })
+            }).catch(e => console.log("Error registrando log:", e));
+        }
+        
         const botBubble = document.createElement('div');
         botBubble.className = 'skel-message bot';
         botBubble.innerHTML = reply;
