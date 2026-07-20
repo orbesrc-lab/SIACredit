@@ -721,7 +721,11 @@ def global_settings():
         data = request.json
         if 'theme' in data: current_data['theme'] = data.get('theme')
         if 'ai_provider' in data: current_data['ai_provider'] = data.get('ai_provider')
-        if 'ai_model' in data: current_data['ai_model'] = data.get('ai_model')
+        if 'ai_model' in data: 
+            model_val = data.get('ai_model')
+            if current_data.get('ai_provider') == 'gemini' and model_val in ['gemini-1.5-flash', 'gemini-2.5-flash']:
+                model_val = 'gemini-flash-latest'
+            current_data['ai_model'] = model_val
         if 'ai_api_key' in data: current_data['ai_api_key'] = data.get('ai_api_key')
         
         config_data = json.dumps(current_data)
