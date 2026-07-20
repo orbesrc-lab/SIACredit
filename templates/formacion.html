@@ -3293,7 +3293,7 @@
                                                 <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(act.description)}</span><br>
                                                 <span style="font-size:0.72rem; font-weight:700; color:var(--accent-color); display:block; margin-top:4px;">Fecha límite: ${act.due_date || 'Sin límite'}</span>
                                             </div>
-                                            <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--success-gradient); border:none; color:white; font-weight:600; border-radius:10px;" onclick="submitActivityDelivery(decodeURIComponent('${encodeURIComponent(courseId)}'), decodeURIComponent('${encodeURIComponent(unit.id)}'), decodeURIComponent('${encodeURIComponent(act.id)}'), decodeURIComponent('${encodeURIComponent(act.title)}'))">${buttonText}</button>
+                                            <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--success-gradient); border:none; color:white; font-weight:600; border-radius:10px;" data-cid="${escapeHtml(courseId)}" data-uid="${escapeHtml(unit.id)}" data-aid="${escapeHtml(act.id)}" data-title="${escapeHtml(act.title)}" onclick="submitActivityDelivery(this.getAttribute('data-cid'), this.getAttribute('data-uid'), this.getAttribute('data-aid'), this.getAttribute('data-title'))">${buttonText}</button>
                                         </div>
                                         ${feedbackHtml}
                                     </div>`;
@@ -3326,7 +3326,7 @@
                                             <strong>${escapeHtml(ev.title)} <span style="font-size:0.75rem; color:white; background:var(--primary-color); padding:2px 6px; border-radius:10px;">${ev.weight || 0}%</span></strong>${statusHtml}<br>
                                             <span style="font-size:0.72rem; color:var(--text-muted);">Calificación CNA (Aprobación: ${ev.min_grade})</span>
                                         </div>
-                                        <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--primary-gradient); border:none; color:white; border-radius:10px;" onclick="takeQuiz(${uIdx}, '${ev.id}')">${buttonText}</button>
+                                        <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--primary-gradient); border:none; color:white; border-radius:10px;" data-evid="${escapeHtml(ev.id)}" onclick="takeQuiz(${uIdx}, this.getAttribute('data-evid'))">${buttonText}</button>
                                     </div>`;
                             });
                         }
@@ -6355,6 +6355,9 @@
                 });
                 
                 units = structRes.data.units;
+                if(structRes.data.forum_topic) {
+                    courseData.forum_topic = structRes.data.forum_topic;
+                }
                 logAiProgress(`✔ Estructura recibida: ${units.length} unidades generadas.`);
             } else {
                 const names = document.querySelectorAll('.ai-unit-name');
@@ -6469,10 +6472,25 @@
             document.getElementById('aiProgressBar').style.width = '100%';
             logAiProgress("✨ ¡Proceso Finalizado!");
             
-            setTimeout(() => {
+            setTimeout(async () => {
                 document.getElementById('aiProgressState').style.display = 'none';
                 document.getElementById('aiCompleteState').style.display = 'block';
                 createdAiCourseId = saveRes.data.id;
+                
+                // Publicar foro detonador si fue generado
+                if (courseData.forum_topic && createdAiCourseId) {
+                    try {
+                        await fetch(`/api/courses/${createdAiCourseId}/forum?inst_id=${getInstId()}&program_id=0`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                content: courseData.forum_topic,
+                                is_teacher: true,
+                                sender: 'IA Tutor'
+                            })
+                        });
+                    } catch(e) { console.error('Error publicando foro IA:', e); }
+                }
             }, 1000);
             
         } catch (error) {

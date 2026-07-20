@@ -36,6 +36,7 @@ Competencias Específicas: {', '.join(data.get('specific_competencies', []))}
 INSTRUCCIÓN CRÍTICA:
 Genera la estructura de UNIDADES TEMÁTICAS y sus respectivos TEMAS. El número de unidades, la cantidad de temas y el nivel de profundidad DEBEN SER ESTRICTAMENTE COHERENTES con las horas totales de duración y el tipo de evento (un taller corto de 4 horas no puede tener 10 unidades, mientras que un diplomado de 120 horas debe ser extenso y profundo). 
 Distribuye las horas de forma lógica entre las unidades. La suma EXACTA de las horas de las unidades debe ser igual a {data.get('duration')}.
+Además, genera un "forum_topic" (un mensaje o pregunta detonadora que servirá para abrir el Foro Principal de debate del curso).
 
 Responde ÚNICAMENTE con un JSON válido con este formato:
 {{
@@ -49,7 +50,8 @@ Responde ÚNICAMENTE con un JSON válido con este formato:
         "Título del Tema 3"
       ]
     }}
-  ]
+  ],
+  "forum_topic": "Pregunta o mensaje detonador para abrir el debate en el foro del curso."
 }}
 """
     try:
@@ -102,7 +104,8 @@ def generate_unit_activities():
     unit_info = data.get('unit_info', {})
     prompt = f"""Eres un Especialista en Aprendizaje por Competencias.
 Diseña actividades de aprendizaje para la unidad "{unit_info.get('name')}" del curso "{data.get('course_name')}".
-Crea exactamente 2 actividades variadas (ej. Actividad individual, Foro, Caso, Taller, Proyecto).
+Crea exactamente 2 actividades prácticas (ej. Caso de estudio, Taller, Proyecto, Ejercicio práctico). 
+CRÍTICO: NO crees Foros de debate como actividades (el foro tiene su propia sección separada).
 
 Responde ÚNICAMENTE en JSON con el formato:
 {{
