@@ -804,7 +804,14 @@ def inst_ai_settings():
         if row_id:
             supabase.table('statistics').update({"data_json": config_str}).eq("id", row_id).execute()
         else:
-            supabase.table('statistics').insert({"inst_id": inst_id, "program_id": 0, "table_id": "INST_AI_CONFIG", "data_json": config_str}).execute()
+            # Get a valid program_id for this institution (FK constraint requires valid program_id)
+            prog_res = supabase.table('programs').select("id").eq("inst_id", inst_id).limit(1).execute()
+            valid_prog_id = prog_res.data[0]['id'] if prog_res.data else None
+            if valid_prog_id is None:
+                # Fallback: any program
+                any_prog = supabase.table('programs').select("id").limit(1).execute()
+                valid_prog_id = any_prog.data[0]['id'] if any_prog.data else 1
+            supabase.table('statistics').insert({"inst_id": inst_id, "program_id": valid_prog_id, "table_id": "INST_AI_CONFIG", "data_json": config_str}).execute()
 
         return jsonify({"status": "success"})
     except Exception as e:
