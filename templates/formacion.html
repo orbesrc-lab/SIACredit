@@ -3293,7 +3293,7 @@
                                                 <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(act.description)}</span><br>
                                                 <span style="font-size:0.72rem; font-weight:700; color:var(--accent-color); display:block; margin-top:4px;">Fecha límite: ${act.due_date || 'Sin límite'}</span>
                                             </div>
-                                            <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--success-gradient); border:none; color:white; font-weight:600; border-radius:10px;" onclick="submitActivityDelivery('${courseId}', '${unit.id}', '${act.id}', '${escapeHtml(act.title).replace(/'/g, "\\'")}')">${buttonText}</button>
+                                            <button class="btn-primary" style="padding:8px 16px; font-size:0.8rem; background: var(--success-gradient); border:none; color:white; font-weight:600; border-radius:10px;" onclick="submitActivityDelivery(decodeURIComponent('${encodeURIComponent(courseId)}'), decodeURIComponent('${encodeURIComponent(unit.id)}'), decodeURIComponent('${encodeURIComponent(act.id)}'), decodeURIComponent('${encodeURIComponent(act.title)}'))">${buttonText}</button>
                                         </div>
                                         ${feedbackHtml}
                                     </div>`;
@@ -3439,7 +3439,7 @@
             
             // Check if there is an existing submission
             try {
-                const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${actId}&inst_id=${getInstId()}&program_id=0`);
+                const checkResp = await fetch(`/api/submissions?course_id=${encodeURIComponent(courseId)}&student_email=${encodeURIComponent(user.email)}&activity_id=${encodeURIComponent(actId)}&inst_id=${getInstId()}&program_id=0`);
                 const existingSubs = await checkResp.json();
                 if (existingSubs && existingSubs.length > 0) {
                     document.getElementById('subContent').value = existingSubs[0].content || '';
@@ -3494,7 +3494,7 @@
                 document.getElementById('submissionModal').style.display = 'none';
                 if (submitBtn) { submitBtn.textContent = originalBtnText; submitBtn.disabled = false; }
 
-                const checkResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&activity_id=${actId}&inst_id=${getInstId()}&program_id=0`);
+                const checkResp = await fetch(`/api/submissions?course_id=${encodeURIComponent(courseId)}&student_email=${encodeURIComponent(user.email)}&activity_id=${encodeURIComponent(actId)}&inst_id=${getInstId()}&program_id=0`);
                 const existingSubs = await checkResp.json();
                 
                 const subData = {
@@ -3546,6 +3546,7 @@
                 } catch (e) {
                     console.error("Error al enviar actividad:", e);
                     alert("❌ Error de red al registrar tu entrega.");
+                    if (submitBtn) { submitBtn.textContent = originalBtnText; submitBtn.disabled = false; }
                 }
         }
 
