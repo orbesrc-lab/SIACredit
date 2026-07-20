@@ -26,6 +26,14 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
         db_error = str(e)
         print(f"Error fetching AI config: {e}")
 
+    if api_key:
+        # Sanitize api_key to prevent httpx ascii encode errors in headers
+        api_key = str(api_key).encode('ascii', 'ignore').decode('ascii').strip()
+    if provider:
+        provider = str(provider).strip().lower()
+    if model:
+        model = str(model).encode('ascii', 'ignore').decode('ascii').strip()
+
     if not api_key:
         raise Exception("La API Key de Inteligencia Artificial no está configurada.")
 
