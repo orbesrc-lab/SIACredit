@@ -28,7 +28,7 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
             else:
                 # Fallback per provider if model is empty in DB
                 if provider == 'openai': model = 'gpt-4o-mini'
-                elif provider == 'gemini': model = 'gemini-1.5-flash'
+                elif provider == 'gemini': model = 'gemini-flash-latest'
                 elif provider == 'anthropic': model = 'claude-3-5-sonnet-20240620'
                 else: model = 'glm-4'
     except Exception as e:
