@@ -20,7 +20,7 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
         # 1) Try institution-specific config first (if inst_id provided)
         inst_config = None
         if inst_id:
-            inst_check = supabase.table('statistics').select("data_json").eq("table_id", "INST_AI_CONFIG").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
+            inst_check = supabase.table('statistics').select("data_json").eq("table_id", f"INST_AI_CONFIG_{inst_id}").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
             if inst_check.data:
                 inst_config = json.loads(inst_check.data[0]['data_json'])
 
@@ -779,7 +779,7 @@ def inst_ai_settings():
     Falls back to global config if not set."""
     inst_id = request.args.get('inst_id', 1, type=int) if request.method == 'GET' else (request.json or {}).get('inst_id', 1)
     try:
-        check = supabase.table('statistics').select("id, data_json").eq("table_id", "INST_AI_CONFIG").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
+        check = supabase.table('statistics').select("id, data_json").eq("table_id", f"INST_AI_CONFIG_{inst_id}").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
         current_data = {}
         row_id = None
         if check.data:
@@ -819,7 +819,7 @@ def inst_ai_settings():
                 # Fallback: any program
                 any_prog = supabase.table('programs').select("id").limit(1).execute()
                 valid_prog_id = any_prog.data[0]['id'] if any_prog.data else 1
-            supabase.table('statistics').insert({"inst_id": inst_id, "program_id": valid_prog_id, "table_id": "INST_AI_CONFIG", "data_json": config_str}).execute()
+            supabase.table('statistics').insert({"inst_id": inst_id, "program_id": valid_prog_id, "table_id": f"INST_AI_CONFIG_{inst_id}", "data_json": config_str}).execute()
 
         return jsonify({"status": "success"})
     except Exception as e:
@@ -834,7 +834,7 @@ def inst_ai_block():
     if not inst_id:
         return jsonify({"status": "error", "message": "inst_id required"})
     try:
-        check = supabase.table('statistics').select("id, data_json").eq("table_id", "INST_AI_CONFIG").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
+        check = supabase.table('statistics').select("id, data_json").eq("table_id", f"INST_AI_CONFIG_{inst_id}").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
         current_data = {}
         row_id = None
         if check.data:
@@ -851,7 +851,7 @@ def inst_ai_block():
             if not valid_prog_id:
                 any_prog = supabase.table('programs').select("id").limit(1).execute()
                 valid_prog_id = any_prog.data[0]['id'] if any_prog.data else 1
-            supabase.table('statistics').insert({"inst_id": inst_id, "program_id": valid_prog_id, "table_id": "INST_AI_CONFIG", "data_json": config_str}).execute()
+            supabase.table('statistics').insert({"inst_id": inst_id, "program_id": valid_prog_id, "table_id": f"INST_AI_CONFIG_{inst_id}", "data_json": config_str}).execute()
         return jsonify({"status": "success", "inst_id": inst_id, "blocked": blocked})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
@@ -861,7 +861,7 @@ def inst_ai_status_all():
     """Superadmin: get AI config status for all institutions."""
     try:
         insts = supabase.table('institution').select("id, name").execute()
-        configs = supabase.table('statistics').select("inst_id, data_json").eq("table_id", "INST_AI_CONFIG").execute()
+        configs = supabase.table('statistics').select("inst_id, data_json").eq("table_id", f"INST_AI_CONFIG_{inst_id}").execute()
         config_map = {}
         for c in configs.data:
             try: config_map[c['inst_id']] = json.loads(c['data_json'])
