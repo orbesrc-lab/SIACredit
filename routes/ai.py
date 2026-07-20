@@ -21,7 +21,16 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
             data = json.loads(check.data[0]['data_json'])
             if data.get('ai_provider'): provider = data.get('ai_provider')
             if data.get('ai_api_key'): api_key = data.get('ai_api_key')
-            if data.get('ai_model'): model = data.get('ai_model')
+            
+            _db_model = (data.get('ai_model') or "").strip()
+            if _db_model:
+                model = _db_model
+            else:
+                # Fallback per provider if model is empty in DB
+                if provider == 'openai': model = 'gpt-4o-mini'
+                elif provider == 'gemini': model = 'gemini-2.5-flash'
+                elif provider == 'anthropic': model = 'claude-3-5-sonnet-20240620'
+                else: model = 'glm-4'
     except Exception as e:
         db_error = str(e)
         print(f"Error fetching AI config: {e}")
