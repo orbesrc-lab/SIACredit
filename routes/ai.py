@@ -31,6 +31,10 @@ def call_ai(messages, max_tokens=1500, temperature=0.7):
                 elif provider == 'gemini': model = 'gemini-flash-latest'
                 elif provider == 'anthropic': model = 'claude-3-5-sonnet-20240620'
                 else: model = 'glm-4'
+                
+            # Prevent using deprecated Gemini models saved previously in DB
+            if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-2.5-flash']:
+                model = 'gemini-flash-latest'
     except Exception as e:
         db_error = str(e)
         print(f"Error fetching AI config: {e}")
