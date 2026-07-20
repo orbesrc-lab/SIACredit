@@ -6340,9 +6340,31 @@
         const isAutoUnits = document.querySelector('input[name="aiUnitsDecision"]:checked').value === 'auto';
         let units = [];
         
+        const draftKey = 'ai_course_draft_v1';
+        let savedDraft = null;
+        try {
+            const rawDraft = localStorage.getItem(draftKey);
+            if (rawDraft) savedDraft = JSON.parse(rawDraft);
+        } catch(e) {}
+        
         try {
             document.getElementById('aiProgressBar').style.width = '10%';
-            logAiProgress("Iniciando creación de borrador...");
+            
+            if (savedDraft && savedDraft.courseData && savedDraft.courseData.name === courseData.name) {
+                if (confirm("Se encontró un progreso incompleto para este curso. ¿Deseas reanudar desde donde se quedó para ahorrar cuota de la IA?")) {
+                    units = savedDraft.units || [];
+                    if (savedDraft.courseData.forum_topic) {
+                        courseData.forum_topic = savedDraft.courseData.forum_topic;
+                    }
+                    logAiProgress("🔄 Reanudando curso desde el progreso guardado...");
+                } else {
+                    localStorage.removeItem(draftKey);
+                    savedDraft = null;
+                }
+            }
+            
+            if (!savedDraft || !units.length) {
+                logAiProgress("Iniciando creación de borrador...");
             
             // Si es auto, llamar a la IA para estructura
             if(isAutoUnits) {
@@ -6373,12 +6395,22 @@
                 logAiProgress(`✔ Estructura manual cargada: ${units.length} unidades.`);
             }
             
-            document.getElementById('aiProgressBar').style.width = '25%';
+            // Guardar borrador de estructura inicial
+            localStorage.setItem(draftKey, JSON.stringify({ courseData, units }));
+        }
+        
+        document.getElementById('aiProgressBar').style.width = '25%';
             
             for(let i=0; i<units.length; i++) {
                 const u = units[i];
                 const pctBase = 25 + ((i / units.length) * 65);
                 document.getElementById('aiProgressBar').style.width = pctBase + '%';
+                
+                // Si la unidad ya fue generada previamente (tiene id y topics), la saltamos
+                if (u.id && u.topics && u.topics.length > 0) {
+                    logAiProgress(`⏭ Unidad ${i+1} (${u.name}) ya estaba completada. Omitiendo...`);
+                    continue;
+                }
                 
                 document.getElementById('aiProgressSubtitle').innerText = `Generando Contenidos: ${u.name}`;
                 logAiProgress(`🤖 Generando contenido académico para: ${u.name}...`);
@@ -6442,6 +6474,9 @@
                 
                 u.id = 'u_' + Math.random().toString(36).substr(2, 9);
                 logAiProgress(`✔ Unidad ${i+1} completada.`);
+                
+                // Guardar borrador después de completar cada unidad
+                localStorage.setItem(draftKey, JSON.stringify({ courseData, units }));
             }
             
             document.getElementById('aiProgressBar').style.width = '95%';
@@ -6471,6 +6506,9 @@
             
             document.getElementById('aiProgressBar').style.width = '100%';
             logAiProgress("✨ ¡Proceso Finalizado!");
+            
+            // Borrar el borrador de localStorage porque se guardó con éxito
+            localStorage.removeItem(draftKey);
             
             setTimeout(async () => {
                 document.getElementById('aiProgressState').style.display = 'none';
