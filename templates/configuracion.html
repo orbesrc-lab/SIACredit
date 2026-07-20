@@ -1598,7 +1598,8 @@
                                     <td style="padding: 12px; font-weight: 500;">${msg.question}</td>
                                     <td style="padding: 12px;"><span style="background: #fef3c7; color: #d97706; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Pendiente</span></td>
                                     <td style="padding: 12px;">
-                                        <button onclick="resolveBotMessage('${msg.id}')" class="btn-primary" style="padding: 6px 12px; font-size: 0.85rem;">Marcar Leído</button>
+                                        <button onclick="resolveBotMessage('${msg.id}')" class="btn-primary" style="padding: 6px 12px; font-size: 0.85rem; background-color: #10b981;">Responder y Entrenar</button>
+                                        <button onclick="dismissBotMessage('${msg.id}')" class="btn-secondary" style="padding: 6px 12px; font-size: 0.85rem; margin-left: 5px;">Descartar</button>
                                     </td>
                                 </tr>
                             `;
@@ -1612,13 +1613,32 @@
         }
         
         window.resolveBotMessage = async function(id) {
+            const reply = prompt("Escribe la respuesta oficial para esta pregunta. El bot la aprenderá para el futuro:");
+            if(reply === null) return; // cancelled
             try {
-                const res = await fetch(`/api/bot/unanswered/${id}/resolve`, { method: 'POST' });
+                const reqBody = reply.trim() !== "" ? { response: reply.trim() } : {};
+                const res = await fetch(`/api/bot/unanswered/${id}/resolve`, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(reqBody)
+                });
                 if(res.ok) {
+                    if (reply.trim() !== "") alert("¡Pregunta guardada y bot entrenado!");
                     loadBotInbox();
                 }
             } catch(e) {
                 console.log('Error resolving msg', e);
+            }
+        };
+
+        window.dismissBotMessage = async function(id) {
+            try {
+                const res = await fetch(`/api/bot/unanswered/${id}/resolve`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({}) });
+                if(res.ok) {
+                    loadBotInbox();
+                }
+            } catch(e) {
+                console.log('Error dismissing msg', e);
             }
         };
 

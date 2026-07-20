@@ -5,7 +5,7 @@ const SKEL_WHATSAPP = "https://wa.me/573165167661?text=Hola,%20me%20gustar%C3%AD
 
 // Dataset de intenciones y respuestas
 // Cada bloque contiene 'keywords' (palabras clave) y la 'response' (respuesta en HTML)
-const botDataset = [
+let botDataset = [
     {
         // Saludos
         keywords: ["hola", "buenos dias", "buenas tardes", "buenas noches", "saludos", "que tal", "buenas", "hey", "hello", "holis"],
@@ -537,8 +537,21 @@ function speakSkelText(htmlText) {
 }
 
 // Inicialización de la UI
-function initSkelBot() {
-    // 1. Crear el HTML y agregarlo al body
+async function initSkelBot() {
+    // 1. Fetch dynamic dataset if available
+    try {
+        const res = await fetch('/api/bot/dataset');
+        if (res.ok) {
+            const data = await res.json();
+            if (data.status === 'success' && data.data) {
+                botDataset.push(...data.data);
+            }
+        }
+    } catch(e) {
+        console.log('Error fetching dynamic bot dataset', e);
+    }
+
+    // 2. Crear el HTML y agregarlo al body
     const botHTML = `
         <!-- Botón flotante -->
         <button id="skelBotFab" class="skel-bot-fab" onclick="toggleSkelChat()">

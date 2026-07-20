@@ -1258,6 +1258,9 @@ def manage_unanswered_bot():
 def resolve_bot_unanswered(msg_id):
     import json
     try:
+        req_data = request.get_json(silent=True) or {}
+        reply_text = req_data.get('response', None)
+        
         res = supabase.table('statistics').select("data_json").eq("table_id", "BOT_UNANSWERED").execute()
         if not res.data:
             return jsonify({"status": "error", "message": "No data found"})
@@ -1265,10 +1268,32 @@ def resolve_bot_unanswered(msg_id):
         unanswered_data = json.loads(res.data[0]['data_json'])
         for msg in unanswered_data.get("messages", []):
             if msg["id"] == msg_id:
-                msg["status"] = "resolved"
+                if reply_text:
+                    msg["status"] = "answered"
+                    msg["response"] = reply_text
+                else:
+                    msg["status"] = "resolved"
                 break
                 
         supabase.table('statistics').update({"data_json": json.dumps(unanswered_data)}).eq("table_id", "BOT_UNANSWERED").execute()
         return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+@core_bp.route('/api/bot/dataset', methods=['GET'])
+def get_bot_dataset():
+    import json
+    try:
+        res = supabase.table('statistics').select("data_json").eq("table_id", "BOT_UNANSWERED").execute()
+        custom_dataset = []
+        if res.data:
+            unanswered_data = json.loads(res.data[0]['data_json'])
+            for msg in unanswered_data.get("messages", []):
+                if msg.get("status") == "answered" and msg.get("response"):
+                    custom_dataset.append({
+                        "keywords": [msg.get("question", "").lower()],
+                        "response": msg.get("response", "")
+                    })
+        return jsonify({"status": "success", "data": custom_dataset})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
