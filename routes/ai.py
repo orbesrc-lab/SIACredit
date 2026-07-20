@@ -861,7 +861,7 @@ def inst_ai_status_all():
     """Superadmin: get AI config status for all institutions."""
     try:
         insts = supabase.table('institution').select("id, name").execute()
-        configs = supabase.table('statistics').select("inst_id, data_json").eq("table_id", f"INST_AI_CONFIG_{inst_id}").execute()
+        configs = supabase.table('statistics').select("inst_id, data_json").like("table_id", "INST_AI_CONFIG_%").execute()
         config_map = {}
         for c in configs.data:
             try: config_map[c['inst_id']] = json.loads(c['data_json'])
