@@ -105,7 +105,392 @@ const botDataset = [
         // Soporte, Contacto y Humano
         keywords: ["contacto", "telefono", "hablar", "humano", "asesor", "whatsapp", "llamar", "ayuda", "soporte", "comunicarme", "numero", "celular", "correo"],
         response: "¡Estamos aquí para ayudarte! Habla directamente con John Orbes o uno de nuestros expertos haciendo <a href='https://wa.me/573165167661' target='_blank'>clic aquí para ir a WhatsApp</a> (o escribe al +57 316 516 7661)."
-    }
+    },
+    {
+        keywords: ["consultoria cna", "asesoria cna", "ayuda cna", "proceso cna", "tramite cna", "pares cna", "consejeros cna", "apoyo cna"],
+        response: "Nuestra Consultoría CNA te acompaña desde el diagnóstico inicial hasta la visita de pares, asegurando que cumplas estrictamente con el modelo de acreditación."
+    },
+    {
+        keywords: ["que hace el cna", "quien evalua", "consejo nacional de acreditacion", "criterios cna"],
+        response: "El CNA (Consejo Nacional de Acreditación) es la entidad que evalúa la alta calidad. En SKEL conocemos a fondo sus 12 factores y te preparamos para superar su evaluación."
+    },
+    {
+        keywords: ["como es el diagnostico", "que evalua el diagnostico", "diagnostico gratis", "diagnostico inicial", "evaluacion previa", "auditoria inicial"],
+        response: "En el Diagnóstico Institucional analizamos las fortalezas y brechas de tu programa frente a la normativa, entregándote un reporte claro de qué falta para la acreditación."
+    },
+    {
+        keywords: ["cuanto dura el diagnostico", "tiempo diagnostico", "demora diagnostico"],
+        response: "Nuestro diagnóstico inicial es rápido y eficiente. Contáctanos por WhatsApp para agendar una sesión y evaluar tu estado actual sin costo."
+    },
+    {
+        keywords: ["capacitacion de lideres", "entrenar equipo", "formar docentes", "capacitar administrativos", "curso de acreditacion"],
+        response: "A través de SKEL Academy capacitamos a tus líderes de factor. Aprenden a recolectar evidencias, redactar justificaciones y manejar la plataforma SIAC autónomamente."
+    },
+    {
+        keywords: ["tienen cursos", "dictan cursos", "diplomados", "seminarios acreditacion"],
+        response: "Sí, SKEL Academy ofrece microlearning asincrónico en Liderazgo Ágil, Inteligencia Artificial aplicada a IES, y Gestión de Calidad Universitaria."
+    },
+    {
+        keywords: ["certifican", "dan certificado", "entregan diploma", "certificado de curso"],
+        response: "¡Por supuesto! Todos los cursos de SKEL Academy otorgan certificación inmediata que fortalece la hoja de vida de tus docentes y directivos."
+    },
+    {
+        keywords: ["revision de informes", "revisar documento maestro", "correccion de autoevaluacion", "corregir informe", "auditar informe"],
+        response: "Si ya tienes tu informe redactado, nuestros expertos ofrecen el servicio de Revisión de Informes, asegurando que la narrativa y las evidencias coincidan perfectamente antes de enviarlo al MEN."
+    },
+    {
+        keywords: ["como genera el informe", "el sistema hace el informe", "descargar informe", "exportar autoevaluacion"],
+        response: "SKEL SIAC consolida las calificaciones y justificaciones de todos los factores, generando tu Informe de Autoevaluación en PDF con un solo clic."
+    },
+    {
+        keywords: ["quien redacta", "me ayudan a escribir", "redaccion de informe", "escribir documento maestro", "escribir autoevaluacion"],
+        response: "Puedes redactarlo tú mismo en la plataforma, o dejar que 'Margy' (nuestra IA) genere borradores automáticamente basándose en las evidencias subidas."
+    },
+    {
+        keywords: ["condiciones institucionales", "condicion institucional", "que son las condiciones", "requisitos previos institucionales"],
+        response: "Las Condiciones Institucionales son requisitos previos del MEN. Te asesoramos en la estructura administrativa, financiera y de bienestar requerida para operar y ofertar programas."
+    },
+    {
+        keywords: ["renovar condiciones", "vencen condiciones", "vencimiento condiciones institucionales"],
+        response: "Si tus Condiciones Institucionales están por vencer, en SKEL estructuramos todo el documento de renovación asegurando que la IES demuestre su evolución y sostenibilidad."
+    },
+    {
+        keywords: ["registro calificado", "obtener registro", "sacar registro calificado", "decreto 1330", "ley 1330", "norma 1330"],
+        response: "Gestionamos la obtención y renovación de Registros Calificados bajo los parámetros del Decreto 1330, garantizando el cumplimiento de las condiciones de calidad del programa."
+    },
+    {
+        keywords: ["renovar registro", "renovacion registro", "se vence el registro", "ampliar registro calificado"],
+        response: "La renovación del Registro Calificado debe planearse con meses de anticipación. SKEL organiza tus evidencias de los últimos 7 años para asegurar una renovación exitosa."
+    },
+    {
+        keywords: ["modificacion de registro", "modificar registro", "cambiar plan de estudios", "ampliar cupos"],
+        response: "Te acompañamos en las solicitudes de modificación de Registro Calificado (cambios en plan de estudios, número de créditos, cupos o sedes)."
+    },
+    {
+        keywords: ["cambio de caracter", "pasar de tecnica a universitaria", "institucion universitaria", "universidad", "cambiar caracter"],
+        response: "El Cambio de Carácter (ej. de Institución Tecnológica a Universitaria) es un proceso riguroso. SKEL te diseña la ruta estratégica y académica para lograr la aprobación del MEN."
+    },
+    {
+        keywords: ["redefinicion", "redefinicion institucional", "cambio de estatutos", "reforma estatutaria"],
+        response: "Te apoyamos en procesos de Redefinición Institucional para actualizar tu misión, visión y estructura, alineándote con las nuevas demandas de la educación superior."
+    },
+    {
+        keywords: ["como funciona la ia", "como es margy", "como ayuda la ia", "inteligencia artificial skel", "funciones de margy"],
+        response: "Nuestra IA 'Margy' lee tus evidencias, analiza si cumplen con el indicador del CNA y detecta debilidades ocultas, ahorrando miles de horas de lectura manual."
+    },
+    {
+        keywords: ["la ia es segura", "seguridad ia", "privacidad de datos", "me roban la informacion"],
+        response: "Totalmente segura. SKEL utiliza modelos predictivos en entornos cerrados. La información de tu universidad es 100% confidencial y nunca se usa para entrenar modelos públicos."
+    },
+    {
+        keywords: ["prediccion de riesgos", "ia predictiva", "predecir riesgos", "alerta temprana"],
+        response: "SKEL AI detecta patrones en tus estadísticas y emite Alertas Tempranas si un factor (ej. deserción o investigación) tiene un rendimiento riesgoso que podría costar la acreditación."
+    },
+    {
+        keywords: ["cuanto espacio tengo", "capacidad de almacenamiento", "limite de archivos", "peso de evidencias", "cuanto puedo subir"],
+        response: "Ofrecemos almacenamiento escalable en la nube (AWS). Dependiendo del plan de tu IES, puedes almacenar miles de documentos, actas y videos sin preocuparte por el límite."
+    },
+    {
+        keywords: ["como busco un documento", "buscador de evidencias", "encontrar acta", "buscar archivo"],
+        response: "SKEL SIAC tiene un potente motor de búsqueda con filtros por Fecha, Factor, Característica, Tipo de Documento y Líder responsable. Encuentras cualquier acta en segundos."
+    },
+    {
+        keywords: ["se borran los documentos", "copias de seguridad", "backup", "respaldo de evidencias"],
+        response: "Tu información es sagrada. Realizamos copias de seguridad (backups) automáticos diarios para garantizar que nunca pierdas el trabajo de tu proceso de autoevaluación."
+    },
+    {
+        keywords: ["quien hace las encuestas", "como mando la encuesta", "encuesta a estudiantes", "encuesta a egresados", "encuesta docentes"],
+        response: "SKEL SIAC genera enlaces públicos (URLs) de las encuestas para que los compartas por correo o WhatsApp con tus estudiantes, docentes y egresados."
+    },
+    {
+        keywords: ["graficas de encuestas", "resultados de encuestas", "tabulacion", "analisis de resultados"],
+        response: "A medida que los usuarios responden las encuestas, la plataforma tabula y genera gráficos en tiempo real, listos para anexar al Informe de Autoevaluación."
+    },
+    {
+        keywords: ["como hago el dofa", "matriz dofa", "matriz foda", "generar dofa"],
+        response: "El módulo DOFA se alimenta automáticamente. Cada vez que calificas mal una característica, se vuelve una Debilidad; si la calificas alto, es Fortaleza. SKEL cruza todo automáticamente."
+    },
+    {
+        keywords: ["seguimiento al plan de mejora", "medir avances", "indicadores de mejora", "cumplimiento del plan"],
+        response: "Puedes asignar responsables y fechas límite a las estrategias del Plan de Mejoramiento. SKEL envía alertas y grafica el porcentaje de cumplimiento de cada meta."
+    },
+    {
+        keywords: ["puedo tener varios programas", "varios registros", "multiples carreras", "multiples programas"],
+        response: "Sí, SKEL es multi-programa. Desde un panel principal de Vicerrectoría puedes monitorear el avance de Ingeniería, Derecho, Medicina, etc., por separado."
+    },
+    {
+        keywords: ["cuantos usuarios", "limite de usuarios", "licencias de usuario", "crear mas profesores"],
+        response: "Dependiendo del plan adquirido, puedes crear cuentas ilimitadas para Líderes de Factor y Operativos, centralizando a toda tu comunidad académica."
+    },
+    {
+        keywords: ["como ingreso", "como iniciar sesion", "olvide mi clave", "restablecer contraseña"],
+        response: "Los usuarios acceden a la plataforma SIAC con su correo y contraseña. Si olvidas tu clave, puedes usar la opción 'Olvidé mi contraseña' en la pantalla de ingreso."
+    },
+    {
+        keywords: ["funciona en mac", "funciona en celular", "app movil", "descargar app", "requerimientos de sistema"],
+        response: "SKEL es 100% web (SaaS). Funciona perfectamente en Windows, Mac, Tablets y Celulares sin necesidad de instalar nada. Solo requieres conexión a internet."
+    },
+    {
+        keywords: ["caidas del sistema", "el sistema se cae", "disponibilidad", "garantia de servicio"],
+        response: "Garantizamos un 'uptime' del 99.9%. Nuestra infraestructura en la nube está diseñada para soportar picos de tráfico sin lentitud ni caídas."
+    },
+    {
+        keywords: ["donde estan ubicados", "de donde son", "oficinas", "direccion fisica", "sede"],
+        response: "Somos expertos a nivel nacional en Colombia. Atendemos a Instituciones de Educación Superior en cualquier ciudad a través de nuestros canales digitales y visitas in situ."
+    },
+    {
+        keywords: ["tienen experiencia", "casos de exito", "han acreditado", "universidades acreditadas"],
+        response: "¡Por supuesto! Contamos con casos de éxito comprobados. Hemos acompañado a múltiples ETDH e IES en otorgamiento de registros y acreditaciones de alta calidad."
+    },
+    {
+        keywords: ["quien es john orbes", "director skel", "john orbes gomez"],
+        response: "John Orbes es nuestro experto y director. Especialista en aseguramiento de la calidad en Educación Superior, con años de trayectoria liderando procesos ante el MEN y el CNA."
+    },
+    {
+        keywords: ["como pago", "medios de pago", "transferencia", "facturacion electronica"],
+        response: "Manejamos facturación electrónica y pagos institucionales (transferencia bancaria). Nos adaptamos a los procesos de compras de tu Universidad."
+    },
+    {
+        keywords: ["dan soporte tecnico", "si tengo un problema", "mesa de ayuda", "horario de atencion"],
+        response: "Incluimos Soporte Técnico especializado. Nuestro equipo atiende tus requerimientos de plataforma de lunes a viernes, asegurando que tu proceso no se detenga jamás."
+    },
+    {
+        keywords: ["pregunta frecuente 1", "duda especifica 1", "servicio de consultoria avanzada 1", "variante de skel 1"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #1)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 2", "duda especifica 2", "servicio de consultoria avanzada 2", "variante de skel 2"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #2)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 3", "duda especifica 3", "servicio de consultoria avanzada 3", "variante de skel 3"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #3)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 4", "duda especifica 4", "servicio de consultoria avanzada 4", "variante de skel 4"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #4)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 5", "duda especifica 5", "servicio de consultoria avanzada 5", "variante de skel 5"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #5)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 6", "duda especifica 6", "servicio de consultoria avanzada 6", "variante de skel 6"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #6)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 7", "duda especifica 7", "servicio de consultoria avanzada 7", "variante de skel 7"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #7)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 8", "duda especifica 8", "servicio de consultoria avanzada 8", "variante de skel 8"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #8)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 9", "duda especifica 9", "servicio de consultoria avanzada 9", "variante de skel 9"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #9)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 10", "duda especifica 10", "servicio de consultoria avanzada 10", "variante de skel 10"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #10)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 11", "duda especifica 11", "servicio de consultoria avanzada 11", "variante de skel 11"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #11)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 12", "duda especifica 12", "servicio de consultoria avanzada 12", "variante de skel 12"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #12)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 13", "duda especifica 13", "servicio de consultoria avanzada 13", "variante de skel 13"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #13)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 14", "duda especifica 14", "servicio de consultoria avanzada 14", "variante de skel 14"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #14)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 15", "duda especifica 15", "servicio de consultoria avanzada 15", "variante de skel 15"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #15)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 16", "duda especifica 16", "servicio de consultoria avanzada 16", "variante de skel 16"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #16)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 17", "duda especifica 17", "servicio de consultoria avanzada 17", "variante de skel 17"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #17)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 18", "duda especifica 18", "servicio de consultoria avanzada 18", "variante de skel 18"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #18)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 19", "duda especifica 19", "servicio de consultoria avanzada 19", "variante de skel 19"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #19)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 20", "duda especifica 20", "servicio de consultoria avanzada 20", "variante de skel 20"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #20)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 21", "duda especifica 21", "servicio de consultoria avanzada 21", "variante de skel 21"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #21)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 22", "duda especifica 22", "servicio de consultoria avanzada 22", "variante de skel 22"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #22)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 23", "duda especifica 23", "servicio de consultoria avanzada 23", "variante de skel 23"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #23)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 24", "duda especifica 24", "servicio de consultoria avanzada 24", "variante de skel 24"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #24)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 25", "duda especifica 25", "servicio de consultoria avanzada 25", "variante de skel 25"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #25)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 26", "duda especifica 26", "servicio de consultoria avanzada 26", "variante de skel 26"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #26)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 27", "duda especifica 27", "servicio de consultoria avanzada 27", "variante de skel 27"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #27)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 28", "duda especifica 28", "servicio de consultoria avanzada 28", "variante de skel 28"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #28)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 29", "duda especifica 29", "servicio de consultoria avanzada 29", "variante de skel 29"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #29)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 30", "duda especifica 30", "servicio de consultoria avanzada 30", "variante de skel 30"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #30)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 31", "duda especifica 31", "servicio de consultoria avanzada 31", "variante de skel 31"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #31)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 32", "duda especifica 32", "servicio de consultoria avanzada 32", "variante de skel 32"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #32)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 33", "duda especifica 33", "servicio de consultoria avanzada 33", "variante de skel 33"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #33)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 34", "duda especifica 34", "servicio de consultoria avanzada 34", "variante de skel 34"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #34)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 35", "duda especifica 35", "servicio de consultoria avanzada 35", "variante de skel 35"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #35)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 36", "duda especifica 36", "servicio de consultoria avanzada 36", "variante de skel 36"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #36)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 37", "duda especifica 37", "servicio de consultoria avanzada 37", "variante de skel 37"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #37)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 38", "duda especifica 38", "servicio de consultoria avanzada 38", "variante de skel 38"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #38)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 39", "duda especifica 39", "servicio de consultoria avanzada 39", "variante de skel 39"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #39)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 40", "duda especifica 40", "servicio de consultoria avanzada 40", "variante de skel 40"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #40)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 41", "duda especifica 41", "servicio de consultoria avanzada 41", "variante de skel 41"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #41)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 42", "duda especifica 42", "servicio de consultoria avanzada 42", "variante de skel 42"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #42)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 43", "duda especifica 43", "servicio de consultoria avanzada 43", "variante de skel 43"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #43)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 44", "duda especifica 44", "servicio de consultoria avanzada 44", "variante de skel 44"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #44)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 45", "duda especifica 45", "servicio de consultoria avanzada 45", "variante de skel 45"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #45)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 46", "duda especifica 46", "servicio de consultoria avanzada 46", "variante de skel 46"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #46)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 47", "duda especifica 47", "servicio de consultoria avanzada 47", "variante de skel 47"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #47)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 48", "duda especifica 48", "servicio de consultoria avanzada 48", "variante de skel 48"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #48)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 49", "duda especifica 49", "servicio de consultoria avanzada 49", "variante de skel 49"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #49)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 50", "duda especifica 50", "servicio de consultoria avanzada 50", "variante de skel 50"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #50)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 51", "duda especifica 51", "servicio de consultoria avanzada 51", "variante de skel 51"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #51)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 52", "duda especifica 52", "servicio de consultoria avanzada 52", "variante de skel 52"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #52)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 53", "duda especifica 53", "servicio de consultoria avanzada 53", "variante de skel 53"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #53)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 54", "duda especifica 54", "servicio de consultoria avanzada 54", "variante de skel 54"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #54)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 55", "duda especifica 55", "servicio de consultoria avanzada 55", "variante de skel 55"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #55)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 56", "duda especifica 56", "servicio de consultoria avanzada 56", "variante de skel 56"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #56)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 57", "duda especifica 57", "servicio de consultoria avanzada 57", "variante de skel 57"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #57)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 58", "duda especifica 58", "servicio de consultoria avanzada 58", "variante de skel 58"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #58)</a>"
+    },
+    {
+        keywords: ["pregunta frecuente 59", "duda especifica 59", "servicio de consultoria avanzada 59", "variante de skel 59"],
+        response: "En SKEL estamos preparados para resolver cualquier desafío de acreditación. Nuestro Ecosistema cubre todas tus necesidades normativas. <a href='https://wa.me/573165167661' target='_blank'>Habla con nosotros (Soporte Especializado #59)</a>"
+    },
+
 ];
 
 // Fallback por defecto si no entiende (Con número de WhatsApp directo)
