@@ -1,0 +1,3 @@
+1406:                     openEditor(res.data.id);
+1443:                                         <button class="btn-primary" onclick="openEditor('${c.id}')">⚙️ Administrar</button>
+1468:         async function openEditor(courseId) {

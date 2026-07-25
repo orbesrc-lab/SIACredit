@@ -340,12 +340,15 @@
         <h3 style="text-align:center; margin-bottom: 40px; font-size: 1.5rem;">Catálogo Destacado</h3>
         
         {% if config and config.carousel_images %}
-        <div class="mobile-carousel-wrapper" style="margin-bottom: 40px; overflow: hidden; position: relative; border-radius: 12px;">
+        {% set c_size = config.carousel_size|default('medium') %}
+        {% set max_w = '400px' if c_size == 'small' else ('100%' if c_size == 'large' else '800px') %}
+        {% set max_h = '600px' if c_size == 'large' else '450px' %}
+        <div class="mobile-carousel-wrapper" style="max-width: {{ max_w }}; margin: 0 auto 40px auto; overflow: hidden; position: relative; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
             <div class="mobile-carousel-track" id="mobileCarouselTrack" style="display: flex; transition: transform 0.5s ease-in-out;">
                 {% for img in config.carousel_images %}
-                <div class="mobile-carousel-slide" style="min-width: 100%; box-sizing: border-box;">
-                    <a href="registro.html">
-                        <img src="{{ img }}" alt="Promoción" style="width: 100%; height: auto; border-radius: 12px; display: block; object-fit: cover; max-height: 250px;">
+                <div class="mobile-carousel-slide" style="min-width: 100%; box-sizing: border-box; display: flex; justify-content: center; align-items: center; background: var(--bg-hover, #0f172a);">
+                    <a href="registro.html" style="display: block; width: 100%; text-align: center;">
+                        <img src="{{ img }}" alt="Promoción" style="width: 100%; max-height: {{ max_h }}; height: auto; border-radius: 12px; display: block; object-fit: contain; margin: 0 auto;">
                     </a>
                 </div>
                 {% endfor %}

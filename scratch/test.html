@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            fetch('/log?msg=' + encodeURIComponent(msg) + '&line=' + line);
+        };
+    </script>
+    <script src="test.js"></script>
+</head>
+<body>
+    <h1>Testing JS</h1>
+    <script>
+        setTimeout(function() {
+            fetch('/log?msg=NO_ERROR&line=0');
+        }, 1000);
+    </script>
+</body>
+</html>

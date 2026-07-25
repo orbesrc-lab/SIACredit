@@ -1,0 +1,36 @@
+491: <div class="tab-nav" id="adminTabNav">
+492: <button class="tab-btn active" id="tabCourses" onclick="switchMainTab('courses')">📚 Cursos y Conteni
+493: <button class="tab-btn" id="tabTeachers" onclick="switchMainTab('teachers')">👨‍🏫 Profesores / Docent
+494: <button class="tab-btn" id="tabStudents" onclick="switchMainTab('students')">👥 Estudiantes / Partici
+498: <div id="coursesTab" class="tab-content">
+517: <button class="sub-tab-btn active" id="subTabBtnGeneral" onclick="switchSubTab('general')">⚙️ Datos 
+518: <button class="sub-tab-btn" id="subTabBtnSyllabus" onclick="switchSubTab('syllabus')">📖 Plan de Estu
+519: <button class="sub-tab-btn" id="subTabBtnSync" onclick="switchSubTab('sync')">🎥 Clases Sincrónicas</
+525: <div id="subTabGeneral" class="sub-tab-content">
+602: <div id="subTabSyllabus" class="sub-tab-content" style="display: none;">
+618: <div id="subTabSync" class="sub-tab-content" style="display: none;">
+640: <div id="teachersTab" class="tab-content" style="display: none;">
+652: <div id="studentsTab" class="tab-content" style="display: none;">
+675: <div id="studentCourseViewer" class="editor-container" style="display: none; border-top: 4px solid #
+742: <div id="courseModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-in
+744: <h3 style="margin-bottom:20px; font-size:1.2rem;" id="courseModalTitle">Crear Nuevo Curso</h3>
+761: <div id="teacherModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-i
+763: <h3 style="margin-bottom:20px; font-size:1.2rem;" id="teacherModalTitle">Registrar Nuevo Profesor</h
+789: <div id="studentModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-i
+791: <h3 style="margin-bottom:20px; font-size:1.2rem;" id="studentModalTitle">Registrar Estudiante / Part
+809: <div id="unitResourceModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5)
+838: <div id="unitActivityModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5)
+862: <div id="unitEvaluationModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.
+888: <div id="quizModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-inde
+889: <div id="quizModalContent" style="background:white; border-radius:16px; padding:30px; width:500px; m
+890: <h3 style="margin-bottom:10px; font-size:1.25rem; color: #0f172a;" id="quizModalTitle">Evaluación</h
+891: <p id="quizModalSub" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:20px;"></p>
+905: <div id="jitsiModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-in
+913: <div id="topicEditorModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5);
+916: <h3 style="font-size:1.25rem; color: #0f172a;" id="topicEditorModalTitle">Editor de Tema: Nombre</h3
+942: <div id="richTextEditorBox" contenteditable="true" style="flex:1; border:1px solid #cbd5e1; border-r
+956: <div id="activitySubmissionsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0
+959: <h3 style="font-size:1.25rem; color: #0f172a;" id="activitySubmissionsModalTitle">Entregas de Activi
+977: <tbody id="activitySubmissionsTableBody">
+2615: <h3 style="margin-bottom:10px; font-size:1.25rem; color: #0f172a;" id="quizModalTitle">Evaluación</h
+2616: <p id="quizModalSub" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:20px;"></p>

@@ -756,6 +756,7 @@ def global_settings():
         if 'ai_global_enabled' in data: current_data['ai_global_enabled'] = data.get('ai_global_enabled')
         if 'carousel_images' in data: current_data['carousel_images'] = data.get('carousel_images')
         if 'carousel_speed' in data: current_data['carousel_speed'] = data.get('carousel_speed')
+        if 'carousel_size' in data: current_data['carousel_size'] = data.get('carousel_size')
         
         config_data = json.dumps(current_data)
         

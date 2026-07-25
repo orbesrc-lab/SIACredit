@@ -291,7 +291,7 @@
 
                 <h4 style="margin-top: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">📱 Carrusel Móvil (Catálogo Destacado)</h4>
                 <div class="form-grid">
-                    <div class="form-group full-width">
+                    <div class="form-group">
                         <label>Velocidad de transición (Segundos)</label>
                         <select id="carouselSpeedSelect">
                             <option value="3">3 Segundos</option>
@@ -300,6 +300,16 @@
                         </select>
                         <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Tiempo que tarda en cambiar automáticamente a la siguiente imagen.</p>
                     </div>
+                    <div class="form-group">
+                        <label>Tamaño del Carrusel en Pantallas Grandes</label>
+                        <select id="carouselSizeSelect">
+                            <option value="small">Pequeño (Max 400px)</option>
+                            <option value="medium" selected>Mediano (Max 800px)</option>
+                            <option value="large">Grande (100% Ancho)</option>
+                        </select>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Ajusta el ancho máximo del carrusel en PCs.</p>
+                    </div>
+
                     <div class="form-group full-width">
                         <label>Imágenes del Carrusel (Máx 6)</label>
                         <input type="file" id="carouselImageInput" accept="image/*" onchange="uploadCarouselImage(this)">
@@ -2523,6 +2533,7 @@
                     if (data.ai_model) document.getElementById('aiModelInput').value = data.ai_model;
                     
                     if (data.carousel_speed) document.getElementById('carouselSpeedSelect').value = data.carousel_speed;
+                    if (data.carousel_size) document.getElementById('carouselSizeSelect').value = data.carousel_size;
                     if (data.carousel_images) {
                         carouselImages = data.carousel_images;
                         renderCarouselPreview();
@@ -2651,6 +2662,7 @@
             const aiVoiceColombia = document.getElementById('aiVoiceColombia') ? document.getElementById('aiVoiceColombia').checked : false;
             const aiGlobalEnabled = document.getElementById('aiGlobalEnabled') ? document.getElementById('aiGlobalEnabled').checked : true;
             const carouselSpeed = document.getElementById('carouselSpeedSelect').value;
+            const carouselSize = document.getElementById('carouselSizeSelect').value;
 
             const payload = {
                 theme: theme,
@@ -2659,7 +2671,8 @@
                 ai_voice_colombia: aiVoiceColombia,
                 ai_global_enabled: aiGlobalEnabled,
                 carousel_images: carouselImages,
-                carousel_speed: carouselSpeed
+                carousel_speed: carouselSpeed,
+                carousel_size: carouselSize
             };
             
             // Only send API Key if the user typed something new
