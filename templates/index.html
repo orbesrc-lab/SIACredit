@@ -347,7 +347,7 @@
             <div class="mobile-carousel-track" id="mobileCarouselTrack" style="display: flex; flex-direction: row; flex-wrap: nowrap; width: 100%; transition: transform 0.5s ease-in-out;">
                 {% for img in config.carousel_images %}
                 <div class="mobile-carousel-slide" style="min-width: 100%; box-sizing: border-box; display: flex; justify-content: center; align-items: center; background: var(--bg-hover, #0f172a);">
-                    <img src="{{ img }}" alt="Promoción" style="width: 100%; max-height: {{ max_h }}; height: auto; border-radius: 12px; display: block; object-fit: contain; margin: 0 auto;">
+                    <img src="{{ img }}" alt="Promoción" onclick="openImageModal('{{ img }}')" style="width: 100%; max-height: {{ max_h }}; height: auto; border-radius: 12px; display: block; object-fit: contain; margin: 0 auto; cursor: pointer;">
                 </div>
                 {% endfor %}
             </div>
@@ -396,7 +396,34 @@
                     }
                 }
             });
+
+            // Lógica del Modal de Imagen
+            let imageModalTimer = null;
+            function openImageModal(src) {
+                const modal = document.getElementById('carouselImageModal');
+                const img = document.getElementById('carouselModalImg');
+                img.src = src;
+                modal.style.display = 'flex';
+                
+                // Cerrar automáticamente a los 10 segundos
+                if (imageModalTimer) clearTimeout(imageModalTimer);
+                imageModalTimer = setTimeout(() => {
+                    closeImageModal();
+                }, 10000);
+            }
+            
+            function closeImageModal() {
+                const modal = document.getElementById('carouselImageModal');
+                modal.style.display = 'none';
+                if (imageModalTimer) clearTimeout(imageModalTimer);
+            }
         </script>
+
+        <!-- Modal para ver imagen grande -->
+        <div id="carouselImageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;">
+            <button onclick="closeImageModal()" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white; border: none; font-size: 2rem; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; display: flex; justify-content: center; align-items: center;">&times;</button>
+            <img id="carouselModalImg" src="" style="max-width: 90%; max-height: 90%; border-radius: 12px; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+        </div>
         {% endif %}
         
         <div class="courses-grid" id="coursesGrid">
