@@ -125,3 +125,18 @@ class Institution(db.Model):
             'logo_url': self.logo_url,
             'description': self.description
         }
+
+class BotUnanswered(db.Model):
+    __tablename__ = 'bot_unanswered'
+    id = db.Column(db.Integer, primary_key=True)
+    question = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), default='pending') # pending, resolved
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'question': self.question,
+            'status': self.status,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None
+        }

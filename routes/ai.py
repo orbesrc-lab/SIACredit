@@ -754,6 +754,8 @@ def global_settings():
         if 'ai_api_key' in data: current_data['ai_api_key'] = data.get('ai_api_key')
         if 'ai_voice_colombia' in data: current_data['ai_voice_colombia'] = data.get('ai_voice_colombia')
         if 'ai_global_enabled' in data: current_data['ai_global_enabled'] = data.get('ai_global_enabled')
+        if 'carousel_images' in data: current_data['carousel_images'] = data.get('carousel_images')
+        if 'carousel_speed' in data: current_data['carousel_speed'] = data.get('carousel_speed')
         
         config_data = json.dumps(current_data)
         
@@ -774,6 +776,41 @@ def global_settings():
             }).execute()
             
         return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+@ai_bp.route('/api/global-settings/carousel-upload', methods=['POST'])
+def global_settings_carousel_upload():
+    import uuid
+    import os
+    try:
+        if 'image' not in request.files:
+            return jsonify({"status": "error", "message": "No image provided"}), 400
+        
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({"status": "error", "message": "No selected file"}), 400
+
+        # Read file bytes
+        file_bytes = file.read()
+        
+        # Generate unique filename
+        ext = os.path.splitext(file.filename)[1]
+        if not ext:
+            ext = '.jpg'
+        filename = f"{uuid.uuid4()}{ext}"
+        storage_path = f"carousel/{filename}"
+        
+        # Upload to Supabase
+        supabase.storage.from_('evidencias').upload(
+            storage_path,
+            file_bytes,
+            {"content-type": file.content_type or "image/jpeg"}
+        )
+        
+        file_url = supabase.storage.from_('evidencias').get_public_url(storage_path)
+        
+        return jsonify({"status": "success", "url": file_url})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 

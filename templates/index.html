@@ -339,6 +339,36 @@
 
         <h3 style="text-align:center; margin-bottom: 40px; font-size: 1.5rem;">Catálogo Destacado</h3>
         
+        {% if config and config.carousel_images %}
+        <div class="mobile-carousel-wrapper" style="margin-bottom: 40px; overflow: hidden; position: relative; border-radius: 12px;">
+            <div class="mobile-carousel-track" id="mobileCarouselTrack" style="display: flex; transition: transform 0.5s ease-in-out;">
+                {% for img in config.carousel_images %}
+                <div class="mobile-carousel-slide" style="min-width: 100%; box-sizing: border-box;">
+                    <a href="registro.html">
+                        <img src="{{ img }}" alt="Promoción" style="width: 100%; height: auto; border-radius: 12px; display: block; object-fit: cover; max-height: 250px;">
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const track = document.getElementById('mobileCarouselTrack');
+                if (track) {
+                    const slides = track.querySelectorAll('.mobile-carousel-slide');
+                    if (slides.length > 1) {
+                        const speed = parseInt('{{ config.carousel_speed|default(3) }}', 10) * 1000;
+                        let currentIndex = 0;
+                        setInterval(() => {
+                            currentIndex = (currentIndex + 1) % slides.length;
+                            track.style.transform = `translateX(-${currentIndex * 100}%)`;
+                        }, speed);
+                    }
+                }
+            });
+        </script>
+        {% endif %}
+        
         <div class="courses-grid" id="coursesGrid">
             <!-- Curso 1 -->
             <div class="course-card">

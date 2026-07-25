@@ -1822,6 +1822,12 @@
             
             if (!text && (!fileInput.files || !fileInput.files[0])) return;
             
+            if (aiVoiceColombiaEnabled && ('speechSynthesis' in window)) {
+                // Unlock speech synthesis during user gesture (required for Chrome/Safari)
+                const unlock = new SpeechSynthesisUtterance('');
+                window.speechSynthesis.speak(unlock);
+            }
+            
             const messagesContainer = document.getElementById('aiChatMessages');
             
             const userMsg = document.createElement('div');
@@ -3201,8 +3207,8 @@
             let cleanText = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/#/g, '');
             
             window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = 'es-CO';
+            window.margyUtterance = new SpeechSynthesisUtterance(cleanText);
+            window.margyUtterance.lang = 'es-CO';
             
             const voices = window.speechSynthesis.getVoices();
             // Try to find a specific Colombian or Latin voice
@@ -3211,10 +3217,10 @@
             if (!selectedVoice) selectedVoice = voices.find(v => v.lang.startsWith('es-') && v.lang !== 'es-ES');
             
             if (selectedVoice) {
-                utterance.voice = selectedVoice;
+                window.margyUtterance.voice = selectedVoice;
             }
             
-            window.speechSynthesis.speak(utterance);
+            window.speechSynthesis.speak(window.margyUtterance);
         }
 
         // Initialize voices on load to prevent delay when first needed

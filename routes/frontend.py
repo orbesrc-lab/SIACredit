@@ -29,7 +29,7 @@ def index():
         config = json.loads(res.data[0]['data_json']) if res.data else {"theme": "dark"}
     except Exception:
         config = {"theme": "dark"}
-    return render_template('index.html', theme=config.get('theme', 'dark'))
+    return render_template('index.html', theme=config.get('theme', 'dark'), config=config)
 
 @frontend_bp.route('/login.html')
 @frontend_bp.route('/login')
