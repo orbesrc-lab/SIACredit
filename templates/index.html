@@ -343,13 +343,11 @@
         {% set c_size = config.carousel_size|default('medium') %}
         {% set max_w = '400px' if c_size == 'small' else ('100%' if c_size == 'large' else '800px') %}
         {% set max_h = '600px' if c_size == 'large' else '450px' %}
-        <div class="mobile-carousel-wrapper" style="max-width: {{ max_w }}; margin: 0 auto 40px auto; overflow: hidden; position: relative; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-            <div class="mobile-carousel-track" id="mobileCarouselTrack" style="display: flex; transition: transform 0.5s ease-in-out;">
+        <div class="mobile-carousel-wrapper" style="max-width: {{ max_w }}; width: 100%; margin: 0 auto 40px auto; overflow: hidden; position: relative; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+            <div class="mobile-carousel-track" id="mobileCarouselTrack" style="display: flex; flex-direction: row; flex-wrap: nowrap; width: 100%; transition: transform 0.5s ease-in-out;">
                 {% for img in config.carousel_images %}
                 <div class="mobile-carousel-slide" style="min-width: 100%; box-sizing: border-box; display: flex; justify-content: center; align-items: center; background: var(--bg-hover, #0f172a);">
-                    <a href="registro.html" style="display: block; width: 100%; text-align: center;">
-                        <img src="{{ img }}" alt="Promoción" style="width: 100%; max-height: {{ max_h }}; height: auto; border-radius: 12px; display: block; object-fit: contain; margin: 0 auto;">
-                    </a>
+                    <img src="{{ img }}" alt="Promoción" style="width: 100%; max-height: {{ max_h }}; height: auto; border-radius: 12px; display: block; object-fit: contain; margin: 0 auto;">
                 </div>
                 {% endfor %}
             </div>
@@ -362,10 +360,39 @@
                     if (slides.length > 1) {
                         const speed = parseInt('{{ config.carousel_speed|default(3) }}', 10) * 1000;
                         let currentIndex = 0;
-                        setInterval(() => {
+                        
+                        function moveToNext() {
                             currentIndex = (currentIndex + 1) % slides.length;
                             track.style.transform = `translateX(-${currentIndex * 100}%)`;
-                        }, speed);
+                        }
+                        
+                        let interval = setInterval(moveToNext, speed);
+                        
+                        // Soporte táctil básico (swipe horizontal)
+                        let startX = 0;
+                        let isDragging = false;
+                        
+                        track.addEventListener('touchstart', (e) => {
+                            startX = e.touches[0].clientX;
+                            isDragging = true;
+                            clearInterval(interval);
+                        }, {passive: true});
+                        
+                        track.addEventListener('touchend', (e) => {
+                            if (!isDragging) return;
+                            let endX = e.changedTouches[0].clientX;
+                            let diff = startX - endX;
+                            
+                            if (diff > 50) { // Swipe left
+                                currentIndex = (currentIndex + 1) % slides.length;
+                            } else if (diff < -50) { // Swipe right
+                                currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+                            }
+                            
+                            track.style.transform = `translateX(-${currentIndex * 100}%)`;
+                            interval = setInterval(moveToNext, speed);
+                            isDragging = false;
+                        });
                     }
                 }
             });
