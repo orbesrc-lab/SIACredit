@@ -56,7 +56,7 @@ Genera la estructura de UNIDADES TEMÁTICAS y sus respectivos TEMAS. El número 
 Distribuye las horas de forma lógica entre las unidades. La suma EXACTA de las horas de las unidades debe ser igual a {data.get('duration')}.
 Además, genera un "forum_topic" (un mensaje o pregunta detonadora que servirá para abrir el Foro Principal de debate del curso).
 
-CRÍTICO PARA EL JSON: NO uses comillas dobles (") dentro de los valores de texto. Usa ÚNICAMENTE comillas simples (') para citas o palabras destacadas. Las comillas dobles romperán la estructura JSON. Asegúrate de NO dejar comas al final de las listas (trailing commas).
+CRÍTICO PARA EL JSON: Asegúrate de que el resultado sea un JSON ESTRÍCTAMENTE VÁLIDO. Todas las propiedades deben estar entre comillas dobles ("). Si necesitas usar comillas dentro del contenido de texto, usa comillas simples ('). No dejes comas al final de las listas.
 
 Responde ÚNICAMENTE con un JSON válido con este formato:
 {{
@@ -100,8 +100,7 @@ Instrucciones CRÍTICAS de redacción para CADA TEMA:
 4. Coherencia Evaluativa: Asegúrate de resaltar los conceptos clave que serán objeto de evaluación posteriormente.
 5. Imágenes: NO INTENTES GENERAR IMÁGENES NI PONER ENLACES A IMÁGENES. En su lugar, cuando consideres que una imagen sería útil, escribe un "PROMPT DE IMAGEN" dentro del contenido (ej. [PROMPT SUGERIDO PARA IMAGEN: 'Un diagrama mostrando la relación entre X y Y']). Esto permitirá al profesor generarla externamente después.
 6. Formato: Utiliza formato HTML semántico para estructurar el contenido (usa <h3>, <h4>, <p>, <ul>, <strong>, <em>, <blockquote>, etc.). No uses <html>, <head> o <body>.
-7. CRÍTICO PARA EL JSON: NUNCA uses comillas dobles (") dentro del contenido HTML ni en los textos. Usa comillas simples (') para atributos HTML (ej. <h3 class='title'>) y para cualquier cita en el texto. Las comillas dobles no escapadas ROMPEN EL JSON. Asegúrate de no dejar comas al final de las listas (trailing commas).
-
+7. CRÍTICO PARA EL JSON: Asegúrate de que el resultado sea un JSON ESTRÍCTAMENTE VÁLIDO. Todas las propiedades (llaves) deben estar entre comillas dobles ("). NUNCA uses comillas dobles (") dentro del contenido HTML ni en los textos, ya que esto ROMPE EL JSON. Usa comillas simples (') para atributos HTML (ej. <h3 class='title'>) y para cualquier cita en el texto. Asegúrate de no dejar comas al final de las listas.
 Responde ÚNICAMENTE con un JSON válido con este formato:
 {{
   "topics": [
@@ -128,7 +127,7 @@ Diseña actividades de aprendizaje para la unidad "{unit_info.get('name')}" del 
 Crea exactamente 2 actividades prácticas (ej. Caso de estudio, Taller, Proyecto, Ejercicio práctico). 
 CRÍTICO: NO crees Foros de debate como actividades (el foro tiene su propia sección separada).
 
-CRÍTICO PARA EL JSON: NO uses comillas dobles (") dentro de los valores de texto. Usa ÚNICAMENTE comillas simples (') para citas. Asegúrate de NO dejar comas al final de las listas.
+CRÍTICO PARA EL JSON: Asegúrate de que el resultado sea un JSON ESTRÍCTAMENTE VÁLIDO. Todas las propiedades deben estar entre comillas dobles ("). Si necesitas usar comillas dentro del contenido de texto, usa comillas simples ('). No dejes comas al final de las listas.
 
 Responde ÚNICAMENTE en JSON con el formato:
 {{
@@ -159,7 +158,7 @@ Diseña 1 evaluación (Cuestionario, Examen o Rúbrica) para la unidad "{unit_in
 CRÍTICO: La evaluación debe estar en ESTRICTA COHERENCIA con el contenido y los temas de la unidad. 
 Describe detalladamente los criterios de evaluación, especificando qué habilidades, conceptos prácticos y teóricos se van a evaluar.
 
-CRÍTICO PARA EL JSON: NO uses comillas dobles (") dentro de los valores de texto. Usa ÚNICAMENTE comillas simples (') para citas. Asegúrate de NO dejar comas al final de las listas.
+CRÍTICO PARA EL JSON: Asegúrate de que el resultado sea un JSON ESTRÍCTAMENTE VÁLIDO. Todas las propiedades deben estar entre comillas dobles ("). Si necesitas usar comillas dentro del contenido de texto, usa comillas simples ('). No dejes comas al final de las listas.
 
 Responde ÚNICAMENTE en JSON con el formato:
 {{

@@ -6386,10 +6386,16 @@
         document.getElementById('aiProgressBar').style.width = '0%';
         document.getElementById('aiProgressLog').innerHTML = '';
         
-        // Reset form
-        document.getElementById('aiCourseName').value = '';
-        document.getElementById('aiCourseDesc').value = '';
-        document.getElementById('aiGeneralComp').value = '';
+        // Intentar recuperar de localStorage por si hubo un fallo anterior
+        const savedName = localStorage.getItem('aiDraftName') || '';
+        const savedDesc = localStorage.getItem('aiDraftDesc') || '';
+        const savedGenComp = localStorage.getItem('aiDraftGenComp') || '';
+        
+        document.getElementById('aiCourseName').value = savedName;
+        document.getElementById('aiCourseDesc').value = savedDesc;
+        document.getElementById('aiGeneralComp').value = savedGenComp;
+        
+        // Mantener la lista de competencias específicas limpia por defecto, pero se podrían guardar también en el futuro
         document.getElementById('aiSpecificCompsList').innerHTML = `
             <div style="display:flex; gap:10px;">
                 <input type="text" class="ai-specific-comp-input" style="flex:1; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;" placeholder="Ej: Diseñar embudos de conversión efectivos.">
@@ -6435,11 +6441,14 @@
             if(!document.getElementById('aiCourseName').value || !document.getElementById('aiCourseDesc').value) {
                 alert("Por favor completa los campos obligatorios."); return;
             }
+            localStorage.setItem('aiDraftName', document.getElementById('aiCourseName').value);
+            localStorage.setItem('aiDraftDesc', document.getElementById('aiCourseDesc').value);
         }
         if(currentWizStep === 2) {
             if(!document.getElementById('aiGeneralComp').value) {
                 alert("Por favor ingresa la competencia general."); return;
             }
+            localStorage.setItem('aiDraftGenComp', document.getElementById('aiGeneralComp').value);
         }
         if(currentWizStep < 3) {
             currentWizStep++;
@@ -6700,6 +6709,9 @@
             
             // Borrar el borrador de localStorage porque se guardó con éxito
             localStorage.removeItem(draftKey);
+            localStorage.removeItem('aiDraftName');
+            localStorage.removeItem('aiDraftDesc');
+            localStorage.removeItem('aiDraftGenComp');
             
             setTimeout(async () => {
                 document.getElementById('aiProgressState').style.display = 'none';
