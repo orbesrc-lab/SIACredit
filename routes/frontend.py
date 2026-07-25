@@ -25,7 +25,7 @@ def static_from_root_google_verification():
 def index():
     try:
         # Fetch sin eq("inst_id", 0) porque ya no usamos 0
-        res = supabase.table('statistics').select("data_json").eq("table_id", "GLOBAL_CONFIG").execute()
+        res = supabase.table('statistics').select("data_json").eq("table_id", "GLOBAL_CONFIG").order("id", desc=True).limit(1).execute()
         config = json.loads(res.data[0]['data_json']) if res.data else {"theme": "dark"}
     except Exception:
         config = {"theme": "dark"}
