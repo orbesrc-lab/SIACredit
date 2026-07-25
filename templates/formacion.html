@@ -2690,11 +2690,13 @@
                                 embedHtml = `<div class="responsive-media-container" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px; margin:10px 0; box-shadow:var(--shadow-md);">
                                     <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"></iframe>
                                 </div>`;
-                            } else { embedHtml = `<iframe src="${r.url}" style="width:100%; height:400px; border:none; border-radius:8px;"></iframe>`; }
-                        } else if (r.type === 'infographic') {
+                            } else { embedHtml = `<iframe data-src="${r.url}" src="about:blank" style="width:100%; height:400px; border:none; border-radius:8px;"></iframe>`; }
+                        } else if (r.type === 'infographic' || (r.url && r.url.match(/\.(jpg|jpeg|png|gif|webp)$/i))) {
                             embedHtml = `<img src="${r.url}" style="max-width:100%; border-radius:8px; box-shadow:var(--shadow-sm);" onerror="this.style.display='none';">`;
                         } else {
-                            embedHtml = `<iframe src="${r.url}" style="width:100%; height:500px; border:none; border-radius:8px;"></iframe>`;
+                            let isDoc = r.url && r.url.match(/\.(pdf|doc|docx|ppt|pptx|xls|xlsx)$/i);
+                            let finalSrc = isDoc ? `https://docs.google.com/viewer?url=${encodeURIComponent(r.url)}&embedded=true` : r.url;
+                            embedHtml = `<iframe data-src="${finalSrc}" src="about:blank" style="width:100%; height:500px; border:none; border-radius:8px;"></iframe>`;
                         }
                         
                         resourcesHtml += `
@@ -3406,13 +3408,15 @@
                                     }
                                     if (videoId) {
                                         embedHtml = `<div class="responsive-media-container" style="position:relative; aspect-ratio:16/9; width:100%; height:auto; overflow:hidden; border-radius:10px; margin:10px 0; box-shadow:var(--shadow-md);">
-                                            <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"></iframe>
+                                            <iframe data-src="https://www.youtube.com/embed/${videoId}" src="about:blank" frameborder="0" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"></iframe>
                                         </div>`;
-                                    } else { embedHtml = `<iframe src="${r.url}" style="width:100%; height:400px; border:none; border-radius:8px;"></iframe>`; }
-                                } else if (r.type === 'infographic') {
+                                    } else { embedHtml = `<iframe data-src="${r.url}" src="about:blank" style="width:100%; height:400px; border:none; border-radius:8px;"></iframe>`; }
+                                } else if (r.type === 'infographic' || (r.url && r.url.match(/\.(jpg|jpeg|png|gif|webp)$/i))) {
                                     embedHtml = `<img src="${r.url}" style="max-width:100%; border-radius:8px; box-shadow:var(--shadow-sm);" onerror="this.style.display='none';">`;
                                 } else {
-                                    embedHtml = `<iframe src="${r.url}" style="width:100%; height:500px; border:none; border-radius:8px;"></iframe>`;
+                                    let isDoc = r.url && r.url.match(/\.(pdf|doc|docx|ppt|pptx|xls|xlsx)$/i);
+                                    let finalSrc = isDoc ? `https://docs.google.com/viewer?url=${encodeURIComponent(r.url)}&embedded=true` : r.url;
+                                    embedHtml = `<iframe data-src="${finalSrc}" src="about:blank" style="width:100%; height:500px; border:none; border-radius:8px;"></iframe>`;
                                 }
                                 
                                 resHtml += `
@@ -3603,6 +3607,13 @@
             if (el) {
                 if (el.style.display === 'none' || el.style.display === '') {
                     el.style.display = 'block';
+                    // Lazy load iframes para prevenir descargas automáticas o lentitud al iniciar
+                    const iframes = el.querySelectorAll('iframe[data-src]');
+                    iframes.forEach(ifr => {
+                        if (ifr.getAttribute('src') === 'about:blank' || !ifr.getAttribute('src')) {
+                            ifr.setAttribute('src', ifr.getAttribute('data-src'));
+                        }
+                    });
                 } else {
                     el.style.display = 'none';
                 }

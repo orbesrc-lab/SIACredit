@@ -27,6 +27,8 @@ def extract_json_from_response(text):
     text = text[start_idx:]
     
     try:
+        # Fix common JSON errors like trailing commas
+        text = re.sub(r',\s*([\]}])', r'\1', text)
         # raw_decode(strict=False) allows unescaped control characters like literal newlines inside strings
         obj, end = json.JSONDecoder(strict=False).raw_decode(text)
         return json.dumps(obj)
@@ -53,6 +55,8 @@ INSTRUCCIÓN CRÍTICA:
 Genera la estructura de UNIDADES TEMÁTICAS y sus respectivos TEMAS. El número de unidades, la cantidad de temas y el nivel de profundidad DEBEN SER ESTRICTAMENTE COHERENTES con las horas totales de duración y el tipo de evento (un taller corto de 4 horas no puede tener 10 unidades, mientras que un diplomado de 120 horas debe ser extenso y profundo). 
 Distribuye las horas de forma lógica entre las unidades. La suma EXACTA de las horas de las unidades debe ser igual a {data.get('duration')}.
 Además, genera un "forum_topic" (un mensaje o pregunta detonadora que servirá para abrir el Foro Principal de debate del curso).
+
+CRÍTICO PARA EL JSON: NO uses comillas dobles (") dentro de los valores de texto. Usa ÚNICAMENTE comillas simples (') para citas o palabras destacadas. Las comillas dobles romperán la estructura JSON. Asegúrate de NO dejar comas al final de las listas (trailing commas).
 
 Responde ÚNICAMENTE con un JSON válido con este formato:
 {{
@@ -94,8 +98,9 @@ Instrucciones CRÍTICAS de redacción para CADA TEMA:
 2. Extensión y Profundidad: PROHIBIDO reducirse a unas solas líneas o listas superficiales. Debes desarrollar cada tema de manera medianamente extensa, profunda y rigurosa, aportando contexto, fundamentos teóricos y análisis.
 3. Ejemplos Prácticos: Es OBLIGATORIO incluir ejemplos claros, casos de estudio, analogías o aplicaciones reales para cada concepto abstracto que expliques.
 4. Coherencia Evaluativa: Asegúrate de resaltar los conceptos clave que serán objeto de evaluación posteriormente.
-5. Imágenes: NO INTENTES GENERAR IMÁGENES NI PONER ENLACES A IMÁGENES. En su lugar, cuando consideres que una imagen sería útil, escribe un "PROMPT DE IMAGEN" dentro del contenido (ej. [PROMPT SUGERIDO PARA IMAGEN: "Un diagrama mostrando la relación entre X y Y"]). Esto permitirá al profesor generarla externamente después.
+5. Imágenes: NO INTENTES GENERAR IMÁGENES NI PONER ENLACES A IMÁGENES. En su lugar, cuando consideres que una imagen sería útil, escribe un "PROMPT DE IMAGEN" dentro del contenido (ej. [PROMPT SUGERIDO PARA IMAGEN: 'Un diagrama mostrando la relación entre X y Y']). Esto permitirá al profesor generarla externamente después.
 6. Formato: Utiliza formato HTML semántico para estructurar el contenido (usa <h3>, <h4>, <p>, <ul>, <strong>, <em>, <blockquote>, etc.). No uses <html>, <head> o <body>.
+7. CRÍTICO PARA EL JSON: NUNCA uses comillas dobles (") dentro del contenido HTML ni en los textos. Usa comillas simples (') para atributos HTML (ej. <h3 class='title'>) y para cualquier cita en el texto. Las comillas dobles no escapadas ROMPEN EL JSON. Asegúrate de no dejar comas al final de las listas (trailing commas).
 
 Responde ÚNICAMENTE con un JSON válido con este formato:
 {{
@@ -122,6 +127,8 @@ def generate_unit_activities():
 Diseña actividades de aprendizaje para la unidad "{unit_info.get('name')}" del curso "{data.get('course_name')}".
 Crea exactamente 2 actividades prácticas (ej. Caso de estudio, Taller, Proyecto, Ejercicio práctico). 
 CRÍTICO: NO crees Foros de debate como actividades (el foro tiene su propia sección separada).
+
+CRÍTICO PARA EL JSON: NO uses comillas dobles (") dentro de los valores de texto. Usa ÚNICAMENTE comillas simples (') para citas. Asegúrate de NO dejar comas al final de las listas.
 
 Responde ÚNICAMENTE en JSON con el formato:
 {{
@@ -151,6 +158,8 @@ Diseña 1 evaluación (Cuestionario, Examen o Rúbrica) para la unidad "{unit_in
 
 CRÍTICO: La evaluación debe estar en ESTRICTA COHERENCIA con el contenido y los temas de la unidad. 
 Describe detalladamente los criterios de evaluación, especificando qué habilidades, conceptos prácticos y teóricos se van a evaluar.
+
+CRÍTICO PARA EL JSON: NO uses comillas dobles (") dentro de los valores de texto. Usa ÚNICAMENTE comillas simples (') para citas. Asegúrate de NO dejar comas al final de las listas.
 
 Responde ÚNICAMENTE en JSON con el formato:
 {{

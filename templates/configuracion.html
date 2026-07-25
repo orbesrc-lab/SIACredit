@@ -269,9 +269,19 @@
                         <label>Modelo (Opcional, por defecto preconfigurado)</label>
                         <input type="text" id="aiModelInput" placeholder="Ej: gpt-4o-mini">
                     </div>
-                    <div class="form-group full-width">
-                        <label>API Key</label>
-                        <input type="password" id="aiApiKeyInput" placeholder="Ingresa la API Key (dejar en blanco para mantener actual)">
+                    <div class="row align-items-end mt-3">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-light fw-bold mb-1">Habilitar IA Global (Super Administrador)</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="aiGlobalEnabled" checked>
+                                <label class="form-check-label text-light" for="aiGlobalEnabled">Activar Inteligencia Artificial en el Sistema</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-light fw-bold mb-1">API Key (Llave Secreta)</label>
+                            <input type="password" id="aiApiKeyInput" class="form-control bg-dark text-light border-secondary" placeholder="Ingresa la API Key (dejar en blanco para mantener actual)">
+                        </div>
+                    </div>
                         <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Si no configuras nada, se usará la API Key definida por variables de entorno en el servidor.</p>
                     </div>
                     <div class="form-group full-width">
@@ -2496,21 +2506,26 @@
                     
                     const keyInput = document.getElementById('aiApiKeyInput');
                     if (keyInput) {
-                        if (data.has_api_key) {
-                            keyInput.value = "••••••••••••••••••••••••";
-                            keyInput.dataset.saved = "true";
-                            keyInput.onfocus = function() {
-                                if (this.dataset.saved === "true") {
-                                    this.value = "";
-                                    this.dataset.saved = "false";
-                                }
-                            };
-                        } else {
-                            keyInput.value = "";
-                            keyInput.placeholder = "Ingresa la API Key (dejar en blanco para mantener actual)";
-                        }
+                    if (data.has_api_key) {
+                        keyInput.value = "••••••••••••••••••••••••";
+                        keyInput.dataset.saved = "true";
+                        keyInput.onfocus = function() {
+                            if (this.dataset.saved === "true") {
+                                this.value = "";
+                                this.dataset.saved = "false";
+                            }
+                        };
+                    } else {
+                        keyInput.value = "";
+                        keyInput.placeholder = "Ingresa la API Key (dejar en blanco para mantener actual)";
                     }
                 }
+                
+                const globalEnabledCheck = document.getElementById('aiGlobalEnabled');
+                if (globalEnabledCheck && data.ai_global_enabled !== undefined) {
+                    globalEnabledCheck.checked = data.ai_global_enabled;
+                }
+            }
             } catch (e) {
                 console.log("Error cargando configuración global");
             }
@@ -2522,12 +2537,14 @@
             const aiModel = document.getElementById('aiModelInput').value;
             const aiApiKey = document.getElementById('aiApiKeyInput').value;
             const aiVoiceColombia = document.getElementById('aiVoiceColombia') ? document.getElementById('aiVoiceColombia').checked : false;
+            const aiGlobalEnabled = document.getElementById('aiGlobalEnabled') ? document.getElementById('aiGlobalEnabled').checked : true;
 
             const payload = {
                 theme: theme,
                 ai_provider: aiProvider,
                 ai_model: aiModel,
-                ai_voice_colombia: aiVoiceColombia
+                ai_voice_colombia: aiVoiceColombia,
+                ai_global_enabled: aiGlobalEnabled
             };
             
             // Only send API Key if the user typed something new
@@ -2544,7 +2561,8 @@
                 const data = await res.json();
                 if (data.status === 'success') {
                     alert("✅ Configuración global guardada correctamente.");
-                    document.getElementById('aiApiKeyInput').value = ''; // clear password field
+                    // Reload global settings to visually restore the password dots without making the user think they lost it
+                    await loadGlobalSettings();
                     // Recargar lista de instituciones para asegurar que el selector no se pierda
                     await loadAllInstitutions();
                 } else {

@@ -57,6 +57,9 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
         # If institution is blocked from global and has no own key → raise clear error
         if inst_config and inst_config.get('blocked_global') and not inst_config.get('ai_api_key'):
             raise Exception("Esta institucion no tiene acceso a la IA del sistema. Configura tu propia llave de IA en el panel de Configuracion.")
+            
+        if data.get('ai_global_enabled') is False:
+            raise Exception("La Inteligencia Artificial está desactivada temporalmente por el Super Administrador.")
     except Exception as e:
         db_error = str(e)
         print(f"Error fetching AI config: {e}")
@@ -750,6 +753,7 @@ def global_settings():
             current_data['ai_model'] = model_val
         if 'ai_api_key' in data: current_data['ai_api_key'] = data.get('ai_api_key')
         if 'ai_voice_colombia' in data: current_data['ai_voice_colombia'] = data.get('ai_voice_colombia')
+        if 'ai_global_enabled' in data: current_data['ai_global_enabled'] = data.get('ai_global_enabled')
         
         config_data = json.dumps(current_data)
         
