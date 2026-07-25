@@ -314,31 +314,6 @@
             <p class="section-sub">Desarrolla el máximo potencial de tu equipo con nuestra metodología Smart. Capacitaciones corporativas 100% online, asincrónicas y orientadas a resultados rápidos en cualquier industria.</p>
         </div>
 
-        <div class="smart-features-grid">
-            <div class="smart-feature">
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                <h4>100% Online</h4>
-                <p>Estudia a tu propio ritmo, desde cualquier lugar y dispositivo.</p>
-            </div>
-            <div class="smart-feature">
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                <h4>Asincrónico</h4>
-                <p>Acceso 24/7 a todo el material. Adapta el estudio a tu agenda.</p>
-            </div>
-            <div class="smart-feature">
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-                <h4>Microlearning</h4>
-                <p>Módulos cortos y precisos diseñados para el aprendizaje ágil.</p>
-            </div>
-            <div class="smart-feature">
-                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                <h4>Certificación</h4>
-                <p>Obtén tu certificado inmediatamente al finalizar el curso.</p>
-            </div>
-        </div>
-
-        <h3 style="text-align:center; margin-bottom: 40px; font-size: 1.5rem;">Catálogo Destacado</h3>
-        
         {% if config and config.carousel_images %}
         {% set c_size = config.carousel_size|default('medium') %}
         {% set max_w = '400px' if c_size == 'small' else ('100%' if c_size == 'large' else '800px') %}
@@ -425,6 +400,32 @@
             <img id="carouselModalImg" src="" style="max-width: 90%; max-height: 90%; border-radius: 12px; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
         </div>
         {% endif %}
+
+        <div class="smart-features-grid">
+            <div class="smart-feature">
+                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                <h4>100% Online</h4>
+                <p>Estudia a tu propio ritmo, desde cualquier lugar y dispositivo.</p>
+            </div>
+            <div class="smart-feature">
+                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <h4>Asincrónico</h4>
+                <p>Acceso 24/7 a todo el material. Adapta el estudio a tu agenda.</p>
+            </div>
+            <div class="smart-feature">
+                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                <h4>Microlearning</h4>
+                <p>Módulos cortos y precisos diseñados para el aprendizaje ágil.</p>
+            </div>
+            <div class="smart-feature">
+                <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <h4>Certificación</h4>
+                <p>Obtén tu certificado inmediatamente al finalizar el curso.</p>
+            </div>
+        </div>
+
+        <h3 style="text-align:center; margin-bottom: 40px; font-size: 1.5rem;">Catálogo Destacado</h3>
+        
         
         <div class="courses-grid" id="coursesGrid">
             <!-- Curso 1 -->
