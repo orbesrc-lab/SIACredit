@@ -30,7 +30,9 @@ function getProgramId() {
 
             // 1. Evitar que estudiantes y profesores accedan a páginas administrativas
             if (user.role === 'estudiante' || user.role === 'profesor') {
-                if (!path.includes('dashboard.html') && !path.includes('login') && !path.includes('registro') && path !== '/' && !path.includes('index.html')) {
+                const allowed = ['dashboard.html', 'encuestas.html', 'biblioteca.html', 'login', 'registro', 'index.html'];
+                const isAllowed = allowed.some(a => path.includes(a)) || path === '/';
+                if (!isAllowed) {
                     window.top.location.href = 'dashboard.html';
                     return;
                 }
@@ -117,8 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     item.style.display = 'none';
                 }
             } else if (role === 'estudiante' || role === 'profesor') {
-                // El estudiante/profesor solo debe ver Dashboard y Cerrar Sesión en el menú
-                if (!text.includes('cerrar') && !text.includes('dashboard')) {
+                // El estudiante/profesor ve Dashboard, Encuestas, Biblioteca y Cerrar Sesión
+                if (!text.includes('cerrar') && !text.includes('dashboard') && !text.includes('encuestas') && !text.includes('biblioteca')) {
                     item.style.display = 'none';
                 }
             } else if (role === 'lider') {
