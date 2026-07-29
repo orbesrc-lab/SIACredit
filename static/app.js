@@ -5,7 +5,7 @@
     const isPublic = path.includes('index.html') || path.includes('login.html') || path.includes('registro.html') || path.endsWith('/');
     const user = JSON.parse(localStorage.getItem('siac_user'));
     if (!user && !isPublic) {
-        window.location.href = 'login.html';
+        window.top.location.href = 'login.html';
     }
 })();
 
@@ -31,7 +31,7 @@ function getProgramId() {
             // 1. Evitar que estudiantes y profesores accedan a páginas administrativas
             if (user.role === 'estudiante' || user.role === 'profesor') {
                 if (!path.includes('dashboard.html') && !path.includes('login') && !path.includes('registro') && path !== '/' && !path.includes('index.html')) {
-                    window.location.href = 'dashboard.html';
+                    window.top.location.href = 'dashboard.html';
                     return;
                 }
             }
@@ -40,7 +40,7 @@ function getProgramId() {
             if (path.includes('formacion.html') || path.includes('formacion')) {
                 if (user.role !== 'admin' && user.role !== 'superadmin' && user.role !== 'super-admin') {
                     alert('Acceso denegado. Este módulo es de uso exclusivo para el Super Administrador.');
-                    window.location.href = 'dashboard.html';
+                    window.top.location.href = 'dashboard.html';
                     return;
                 }
             }
@@ -49,7 +49,7 @@ function getProgramId() {
             if (path.includes('dofa.html') || path.includes('informes.html')) {
                 if (!isAdmin) {
                     alert('Acceso denegado. Este módulo es de uso exclusivo para Administradores de la plataforma.');
-                    window.location.href = 'dashboard.html';
+                    window.top.location.href = 'dashboard.html';
                     return;
                 }
             }
@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
             logoutBtn.innerHTML = '🚪 Cerrar Sesión';
             logoutBtn.onclick = function() {
                 localStorage.removeItem('siac_user');
-                window.location.href = 'index.html';
+                window.top.location.href = 'index.html';
             };
             userContainer.appendChild(logoutBtn);
         }

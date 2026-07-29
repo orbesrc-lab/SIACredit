@@ -330,7 +330,7 @@
 
         const user = JSON.parse(localStorage.getItem('siac_user')) ;
 
-        if (!user || user.role === 'guest') window.location.href = 'index.html';
+        if (!user || user.role === 'guest') window.top.location.href = 'index.html';
 
         
 
@@ -340,7 +340,7 @@
 
 
 
-        function logout() { localStorage.removeItem('siac_user'); window.location.href = 'index.html'; }
+        function logout() { localStorage.removeItem('siac_user'); window.top.location.href = 'index.html'; }
 
 
 

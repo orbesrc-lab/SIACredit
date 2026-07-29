@@ -288,7 +288,7 @@
         const user = JSON.parse(localStorage.getItem('siac_user')) ;
         document.getElementById('userInfo').textContent = user.email;
 
-        function logout() { localStorage.removeItem('siac_user'); window.location.href = 'login.html'; }
+        function logout() { localStorage.removeItem('siac_user'); window.top.location.href = 'login.html'; }
 
         let internalFactors = { fortalezas: [], debilidades: [] };
         let externalFactors = { oportunidades: [], amenazas: [] };

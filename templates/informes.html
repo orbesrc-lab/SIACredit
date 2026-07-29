@@ -751,7 +751,7 @@
         const roleLabel = user.role ? user.role.toUpperCase() : 'ADMIN';
         document.getElementById('userInfo').innerHTML = `<span>${user.email}</span> <span class="status ${user.role === 'admin' || user.role === 'inst_admin' ? 'aprobado' : 'revision'}" style="margin-left:10px; padding:2px 8px; border-radius:12px; font-size:0.7rem;">${roleLabel}</span>`;
         
-        function logout() { localStorage.removeItem('siac_user'); window.location.href = 'login.html'; }
+        function logout() { localStorage.removeItem('siac_user'); window.top.location.href = 'login.html'; }
 
         async function loadInstitution() {
             const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);

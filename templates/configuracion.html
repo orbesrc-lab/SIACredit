@@ -797,7 +797,7 @@
         } catch(e) {
             console.error("Error parsing siac_user:", e);
         }
-        if (!user) { window.location.href = 'login.html'; }
+        if (!user) { window.top.location.href = 'login.html'; }
                 if (user) {
             const rL = { admin: 'Super Admin', inst_admin: 'Admin Inst.', lider: 'Líder', operativo: 'Operativo', estudiante: 'Estudiante', profesor: 'Profesor' };
             const rName = rL[user.role] || (user.role ? user.role.toUpperCase() : 'USUARIO');
@@ -807,7 +807,7 @@
 
         function logout() {
             localStorage.removeItem('siac_user');
-            window.location.href = 'index.html';
+            window.top.location.href = 'index.html';
         }
 
         // --- Lógica del Gestor de Modelo ---

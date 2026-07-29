@@ -1716,11 +1716,11 @@
         } catch(e) {
             console.error("Error parsing siac_user:", e);
         }
-        if (!user) { window.location.href = 'login.html'; }
+        if (!user) { window.top.location.href = 'login.html'; }
         
         // Bloqueo de acceso directo para roles de la institución
         if (user && user.role !== 'admin' && user.role !== 'estudiante' && user.role !== 'profesor') {
-            window.location.href = 'dashboard.html';
+            window.top.location.href = 'dashboard.html';
         }
         
                 if (user) {
@@ -1744,7 +1744,7 @@
 
         function logout() {
             localStorage.removeItem('siac_user');
-            window.location.href = 'index.html';
+            window.top.location.href = 'index.html';
         }
 
         // --- NAVEGACIÓN DE PESTAÑAS PRINCIPALES ---

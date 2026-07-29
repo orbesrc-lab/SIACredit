@@ -276,7 +276,7 @@
         try {
             const loggedUser = JSON.parse(localStorage.getItem('siac_user'));
             if (loggedUser && loggedUser.role) {
-                window.location.href = 'dashboard.html';
+                window.top.location.href = 'dashboard.html';
             }
         } catch(e) {
             console.error("Error in login init check:", e);
@@ -284,7 +284,7 @@
 
         function guestLogin() {
             localStorage.setItem('siac_user', JSON.stringify({ email: 'invitado@siac.edu.co', role: 'operativo', inst_id: 0, program_id: 0 }));
-            window.location.href = 'dashboard.html';
+            window.top.location.href = 'dashboard.html';
         }
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -306,7 +306,7 @@
                         return;
                     }
                     localStorage.setItem('siac_user', JSON.stringify(result.user));
-                    window.location.href = 'dashboard.html';
+                    window.top.location.href = 'dashboard.html';
                 } else {
                     alert('Error: ' + result.message);
                 }

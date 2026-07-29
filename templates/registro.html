@@ -293,7 +293,7 @@
 
                 if (userResult.status === 'success') {
                     alert('¡Registro exitoso! Tu cuenta ha sido creada y está pendiente de activación por un Administrador del sistema.');
-                    window.location.href = 'login.html';
+                    window.top.location.href = 'login.html';
                 } else {
                     alert('Error creando usuario: ' + userResult.message);
                 }
