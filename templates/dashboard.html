@@ -1080,7 +1080,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
             const role = user.role || localStorage.getItem('user_role') || '';
-            if(role === 'admin') {
+            if(role === 'admin' || role === 'inst_admin') {
                 const crmLink = document.getElementById('menuCrm');
                 if(crmLink) crmLink.style.display = 'block';
             }

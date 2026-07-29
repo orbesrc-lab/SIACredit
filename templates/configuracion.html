@@ -798,7 +798,12 @@
             console.error("Error parsing siac_user:", e);
         }
         if (!user) { window.location.href = 'login.html'; }
-        document.getElementById('userInfo').textContent = user ? user.email : '';
+                if (user) {
+            const rL = { admin: 'Super Admin', inst_admin: 'Admin Inst.', lider: 'Líder', operativo: 'Operativo', estudiante: 'Estudiante', profesor: 'Profesor' };
+            const rName = rL[user.role] || (user.role ? user.role.toUpperCase() : 'USUARIO');
+            const bClass = (user.role === 'admin' || user.role === 'inst_admin') ? 'aprobado' : 'revision';
+            document.getElementById('userInfo').innerHTML = `<span>${user.email}</span> <span class="status ${bClass}" style="margin-left:10px; padding:2px 8px; border-radius:12px; font-size:0.7rem;">${rName}</span>`;
+        }
 
         function logout() {
             localStorage.removeItem('siac_user');
