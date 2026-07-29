@@ -5,7 +5,7 @@
     const isPublic = path.includes('index.html') || path.includes('login.html') || path.includes('registro.html') || path.endsWith('/');
     const user = JSON.parse(localStorage.getItem('siac_user'));
     if (!user && !isPublic) {
-        window.top.location.href = 'login.html';
+        window.location.href = 'login.html';
     }
 })();
 
@@ -30,19 +30,8 @@ function getProgramId() {
 
             // 1. Evitar que estudiantes y profesores accedan a páginas administrativas
             if (user.role === 'estudiante' || user.role === 'profesor') {
-                const allowed = ['dashboard.html', 'encuestas.html', 'biblioteca.html', 'login', 'registro', 'index.html'];
-                const isAllowed = allowed.some(a => path.includes(a)) || path === '/';
-                if (!isAllowed) {
-                    window.top.location.href = 'dashboard.html';
-                    return;
-                }
-            }
-
-            // 1.5. Proteger módulo de Capacitación exclusivamente para superadmin
-            if (path.includes('formacion.html') || path.includes('formacion')) {
-                if (user.role !== 'admin' && user.role !== 'superadmin' && user.role !== 'super-admin') {
-                    alert('Acceso denegado. Este módulo es de uso exclusivo para el Super Administrador.');
-                    window.top.location.href = 'dashboard.html';
+                if (!path.includes('formacion.html') && !path.includes('login') && !path.includes('registro') && path !== '/' && !path.includes('index.html')) {
+                    window.location.href = 'formacion.html';
                     return;
                 }
             }
@@ -51,7 +40,7 @@ function getProgramId() {
             if (path.includes('dofa.html') || path.includes('informes.html')) {
                 if (!isAdmin) {
                     alert('Acceso denegado. Este módulo es de uso exclusivo para Administradores de la plataforma.');
-                    window.top.location.href = 'dashboard.html';
+                    window.location.href = 'dashboard.html';
                     return;
                 }
             }
@@ -99,9 +88,9 @@ document.addEventListener('DOMContentLoaded', () => {
         menuItems.forEach(item => {
             const text = item.textContent.toLowerCase();
             
-            // Ocultar Formación para cualquier rol excepto super-admin
-            if (role !== 'admin' && role !== 'superadmin' && role !== 'super-admin') {
-                if (text.includes('formacion') || text.includes('formación') || text.includes('capacitación') || text.includes('capacitacion')) {
+            // Ocultar Formación para cualquier rol excepto super-admin, profesor y estudiante
+            if (role !== 'admin' && role !== 'profesor' && role !== 'estudiante' && role !== 'superadmin' && role !== 'super-admin') {
+                if (text.includes('formacion') || text.includes('formación')) {
                     item.style.display = 'none';
                 }
             }
@@ -119,8 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     item.style.display = 'none';
                 }
             } else if (role === 'estudiante' || role === 'profesor') {
-                // El estudiante/profesor ve Dashboard, Encuestas, Biblioteca y Cerrar Sesión
-                if (!text.includes('cerrar') && !text.includes('dashboard') && !text.includes('encuestas') && !text.includes('biblioteca')) {
+                // El estudiante/profesor solo debe ver Formación y Cerrar Sesión en el menú
+                if (!text.includes('cerrar') && !text.includes('formacion') && !text.includes('formación')) {
                     item.style.display = 'none';
                 }
             } else if (role === 'lider') {
@@ -215,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             logoutBtn.innerHTML = '🚪 Cerrar Sesión';
             logoutBtn.onclick = function() {
                 localStorage.removeItem('siac_user');
-                window.top.location.href = 'index.html';
+                window.location.href = 'index.html';
             };
             userContainer.appendChild(logoutBtn);
         }
