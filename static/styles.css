@@ -68,12 +68,14 @@ body {
     font-family: var(--font-main);
     color: var(--text-main);
     line-height: 1.6;
-    /* Mesh Premium Gradient */
-    background: var(--premium-gradient-1);
-    background-image: var(--premium-gradient-2);
+    /* Dark background for floating window mode */
+    background: #0f172a;
     overflow: hidden;
     transition: background-color 0.3s, color 0.3s;
     display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
     height: 100vh;
 }
 
@@ -89,8 +91,13 @@ body {
 
 /* Base Layout (Dashboard) */
 .dashboard-container {
+    width: 100%;
+    max-width: 1800px;
+    height: calc(100vh - 40px);
+    background: var(--secondary-bg);
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     display: flex;
-    height: 100vh;
     overflow: hidden;
 }
 
@@ -172,6 +179,67 @@ body {
 
 .sidebar-item.active svg {
     opacity: 1;
+}
+
+/* Accordion Sidebar Styles */
+.sidebar-group {
+    margin-bottom: 4px;
+}
+.sidebar-group-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+}
+.sidebar-group-title:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #f8fafc;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.sidebar-group-title .group-icon {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.sidebar-group-title .chevron {
+    transition: transform 0.3s;
+    width: 16px;
+    height: 16px;
+}
+.sidebar-group.active .sidebar-group-title {
+    color: #ffffff;
+}
+.sidebar-group.active .sidebar-group-title .chevron {
+    transform: rotate(90deg);
+}
+.sidebar-submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+.sidebar-group.active .sidebar-submenu {
+    max-height: 500px; /* Arbitrary large height */
+}
+.sidebar-submenu-inner {
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    margin: 4px 16px 8px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+.sidebar-submenu .sidebar-item {
+    padding: 10px 16px;
+    font-size: 0.9rem;
 }
 
 .sidebar-footer {
@@ -680,3 +748,84 @@ input::placeholder, textarea::placeholder {
     opacity: 0.8 !important;
 }
 
+
+/* Giant Module Modal Styles */
+#skel-module-modal {
+    display: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-color);
+    z-index: 10000;
+}
+
+#skel-module-modal.active {
+    display: block;
+}
+
+.skel-module-modal-content {
+    background: transparent;
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+@keyframes slideUp {
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.skel-module-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    background: var(--secondary-bg, #0f172a);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.skel-module-modal-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-main, #f8fafc);
+}
+
+.skel-module-modal-close {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: var(--text-muted, #94a3b8);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.skel-module-modal-close:hover {
+    background: #ef4444;
+    color: white;
+    transform: rotate(90deg);
+}
+
+.skel-module-modal-body {
+    flex: 1;
+    overflow: hidden;
+    background: var(--secondary-bg, #0f172a);
+}
+
+#skel-module-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
