@@ -30,8 +30,17 @@ function getProgramId() {
 
             // 1. Evitar que estudiantes y profesores accedan a páginas administrativas
             if (user.role === 'estudiante' || user.role === 'profesor') {
-                if (!path.includes('formacion.html') && !path.includes('login') && !path.includes('registro') && path !== '/' && !path.includes('index.html')) {
-                    window.location.href = 'formacion.html';
+                if (!path.includes('dashboard.html') && !path.includes('login') && !path.includes('registro') && path !== '/' && !path.includes('index.html')) {
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+            }
+
+            // 1.5. Proteger módulo de Capacitación exclusivamente para superadmin
+            if (path.includes('formacion.html') || path.includes('formacion')) {
+                if (user.role !== 'admin' && user.role !== 'superadmin' && user.role !== 'super-admin') {
+                    alert('Acceso denegado. Este módulo es de uso exclusivo para el Super Administrador.');
+                    window.location.href = 'dashboard.html';
                     return;
                 }
             }
@@ -88,9 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
         menuItems.forEach(item => {
             const text = item.textContent.toLowerCase();
             
-            // Ocultar Formación para cualquier rol excepto super-admin, profesor y estudiante
-            if (role !== 'admin' && role !== 'profesor' && role !== 'estudiante' && role !== 'superadmin' && role !== 'super-admin') {
-                if (text.includes('formacion') || text.includes('formación')) {
+            // Ocultar Formación para cualquier rol excepto super-admin
+            if (role !== 'admin' && role !== 'superadmin' && role !== 'super-admin') {
+                if (text.includes('formacion') || text.includes('formación') || text.includes('capacitación') || text.includes('capacitacion')) {
                     item.style.display = 'none';
                 }
             }
@@ -108,8 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     item.style.display = 'none';
                 }
             } else if (role === 'estudiante' || role === 'profesor') {
-                // El estudiante/profesor solo debe ver Formación y Cerrar Sesión en el menú
-                if (!text.includes('cerrar') && !text.includes('formacion') && !text.includes('formación')) {
+                // El estudiante/profesor solo debe ver Dashboard y Cerrar Sesión en el menú
+                if (!text.includes('cerrar') && !text.includes('dashboard')) {
                     item.style.display = 'none';
                 }
             } else if (role === 'lider') {
