@@ -445,18 +445,18 @@
                 </div>
                 <div class="sidebar-submenu">
                     <div class="sidebar-submenu-inner">
-                        <a href="dashboard.html" class="sidebar-item">📊 Dashboard Global</a>
+                        <a href="dashboard.html" class="sidebar-item"> Dashboard Global</a>
                         <a href="autoevaluacion.html" class="sidebar-item">📝 Autoevaluación</a>
                         <a href="evidencias.html" class="sidebar-item">📁 Evidencias</a>
                         <a href="encuestas.html" class="sidebar-item">📋 Encuestas</a>
-                        <a href="estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
+                        <a href="estadisticas.html" class="sidebar-item"> Estadísticas</a>
                     </div>
                 </div>
             </div>
             <div class="sidebar-group" active">
                 <div class="sidebar-group-title" onclick="toggleSidebarGroup(this)">
                     <div class="group-icon">
-                        <span>📊</span>
+                        <span></span>
                         <span>Análisis Institucional</span>
                     </div>
                     <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
@@ -495,9 +495,9 @@
                 </div>
                 <div class="sidebar-submenu">
                     <div class="sidebar-submenu-inner">
-                        <a href="empresa_dashboard.html" class="sidebar-item">📊 Hub Estratégico</a>
+                        <a href="empresa_dashboard.html" class="sidebar-item"> Hub Estratégico</a>
                         <a href="empresa_matrices.html" class="sidebar-item">🛠️ Matrices (MEFI/MEFE)</a>
-                        <a href="empresa_porter.html" class="sidebar-item">📈 Análisis Competitivo</a>
+                        <a href="empresa_porter.html" class="sidebar-item"> Análisis Competitivo</a>
                     </div>
                 </div>
             </div>
@@ -558,7 +558,7 @@
                 <div class="export-actions">
                     <button class="btn-secondary large" onclick="generarInforme('parcial')">📋 Generar Informe Parcial</button>
                     <button class="btn-primary large" onclick="generarInforme('final')">🏆 Generar Informe Final</button>
-                    <button class="btn-primary large" onclick="generarInformeIA()" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border:none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">✨ Generar con IA</button>
+                    <button class="btn-primary large" onclick="generarInformeIA()" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border:none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">* Generar con IA</button>
                     <button class="btn-primary large" onclick="generarDOFAInterno()" style="background: linear-gradient(135deg, #10b981, #059669); border:none; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">🛡️ Factores DOFA</button>
                     <button class="btn-primary large" onclick="generarDOFAExterno()" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); border:none; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);">🌍 Factores PESTA (Externos)</button>
                     <button class="btn-rrc" id="btnRRC" onclick="abrirModalRRC()">
@@ -748,7 +748,7 @@
     <!-- Widget Chatbot IA -->
     <div id="aiChatWidget" class="ai-chat-widget">
         <div class="ai-chat-header" onclick="toggleChat()">
-            <span>✨ Asistente IA (Margy) CNA</span>
+            <span>* Asistente IA (Margy) CNA</span>
             <span id="chatToggleIcon">▼</span>
         </div>
         <div class="ai-chat-body" id="aiChatBody" style="display:none;">
@@ -998,7 +998,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     breadcrumb.style.color = '#92400e';
                     document.getElementById('informeContainer').innerHTML = `
                         <div style="background:#fef9c3;border:2px dashed #ca8a04;border-radius:12px;padding:40px;text-align:center;margin-top:20px;">
-                            <div style="font-size:3rem;margin-bottom:15px;">📊</div>
+                            <div style="font-size:3rem;margin-bottom:15px;"></div>
                             <h3 style="color:#92400e;margin-bottom:10px;">Sin Programa Académico Activo</h3>
                             <p style="color:#78350f;max-width:500px;margin:0 auto;font-size:0.95rem;line-height:1.6;">
                                 No se puede generar ningún informe porque no tienes un Programa Académico activo.<br><br>
@@ -1165,7 +1165,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         const percClass = getCNAClass(c.percepcion_promedio);
                         percHtml = `
                             <div style="margin-top:8px; display:flex; align-items:center; gap:10px; font-size:0.8rem; color:#0369a1; background:#f0f9ff; padding:6px 12px; border-radius:6px; border:1px solid #bae6fd; flex-wrap:wrap;">
-                                <span>📊 <b>Percepción Comunidad:</b> ${c.percepcion_promedio.toFixed(2)} / 5.0 (${c.percepcion_cantidad} respuestas)</span>
+                                <span> <b>Percepción Comunidad:</b> ${c.percepcion_promedio.toFixed(2)} / 5.0 (${c.percepcion_cantidad} respuestas)</span>
                                 <span class="grade-badge ${percClass}" style="padding:2px 8px; font-size:0.72rem;">${c.percepcion_promedio >= 4.5 ? 'Plenamente' : c.percepcion_promedio >= 4.0 ? 'Alto Grado' : c.percepcion_promedio >= 3.0 ? 'Aceptable' : 'No se cumple'}</span>
                             </div>
                         `;
@@ -1250,7 +1250,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 let aiSectionHtml = `
                     <div class="factor-section" style="margin-top:40px; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
                         <div class="factor-title" style="background:linear-gradient(135deg,#4338ca,#312e81); color:white; border-bottom:none; border-radius:8px 8px 0 0;">
-                            <span>✨ Análisis de IA — Cuadros de Datos Estadísticos</span>
+                            <span>* Análisis de IA — Cuadros de Datos Estadísticos</span>
                         </div>
                         <div style="padding:25px; background:white; border:1px solid #e2e8f0; border-radius:0 0 8px 8px;">
                 `;
@@ -1377,7 +1377,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     const indText = p.indicador_tipo === 'porcentaje' ? `Porcentaje (${p.indicador_meta_num}/${p.indicador_meta_den})` :
                                     p.indicador_tipo === 'documento' ? (p.indicador_documento_url ? '📄 Soporte subido' : '⚠️ Sin soporte') :
-                                    '📊 Opinión (Encuestas)';
+                                    ' Opinión (Encuestas)';
                                     
                     planesHtml += `
                         <tr>
@@ -1675,7 +1675,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (txt && txt.trim()) {
                     return `
                     <div class="informe-ai-block">
-                        <h5>✨ Análisis de IA — Par Académico CNA</h5>
+                        <h5>* Análisis de IA — Par Académico CNA</h5>
                         <div class="ai-md-content">${(function(){ try { return marked ? marked.parse(txt) : txt.replace(/\n/g,'<br>'); } catch(e){ return txt.replace(/\n/g,'<br>'); } })()}</div>
                     </div>`;
                 }
@@ -1706,7 +1706,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (txt && txt.trim()) {
                     result += `
                     <div class="informe-ai-block" style="margin-bottom:10px;">
-                        <h5>✨ IA — ${labels[k] || k}</h5>
+                        <h5>* IA — ${labels[k] || k}</h5>
                         <div class="ai-md-content">${marked ? marked.parse(txt) : txt.replace(/\n/g,'<br>')}</div>
                     </div>`;
                 }
@@ -1721,7 +1721,7 @@ document.addEventListener("DOMContentLoaded", () => {
             let dt = cuadros['factor4_profesores'] || cuadros['factor3_profesores'];
             if (!dt) return '';
             const cid = `inf_chart_prof_${++_chartCounter}`;
-            let html = `<p class="cuadros-section-title">📊 Cuadros — Comunidad de Profesores</p>`;
+            let html = `<p class="cuadros-section-title"> Cuadros — Comunidad de Profesores</p>`;
 
             if (dt.profesores && dt.profesores.length > 0) {
                 html += `
@@ -1736,7 +1736,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const d = p.dedicacion || 'Sin dato';
                     dedicaciones[d] = (dedicaciones[d]||0) + 1;
                 });
-                html += `<div class="informe-chart-wrap"><h5>📈 Distribución por tipo de dedicación</h5>${_mkCanvas(cid)}</div>`;
+                html += `<div class="informe-chart-wrap"><h5> Distribución por tipo de dedicación</h5>${_mkCanvas(cid)}</div>`;
                 _buildChart(cid, {
                     type: 'bar',
                     data: {
@@ -1758,7 +1758,7 @@ document.addEventListener("DOMContentLoaded", () => {
             let dt = cuadros['factor5_curricular'];
             if (!dt) return '';
             const cid = `inf_chart_curr_${++_chartCounter}`;
-            let html = `<p class="cuadros-section-title">📊 Cuadros — Aspectos Académicos y Curriculares</p>`;
+            let html = `<p class="cuadros-section-title"> Cuadros — Aspectos Académicos y Curriculares</p>`;
 
             if (dt.asignaturas && dt.asignaturas.length > 0) {
                 html += `
@@ -1769,7 +1769,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const nucleos = {};
                 dt.asignaturas.forEach(a => { nucleos[a.nucleo||'Otro'] = (nucleos[a.nucleo||'Otro']||0) + parseFloat(a.creditos||0); });
-                html += `<div class="informe-chart-wrap"><h5>📈 Distribución de créditos por núcleo de formación</h5>${_mkCanvas(cid)}</div>`;
+                html += `<div class="informe-chart-wrap"><h5> Distribución de créditos por núcleo de formación</h5>${_mkCanvas(cid)}</div>`;
                 _buildChart(cid, {
                     type: 'doughnut',
                     data: {
@@ -1806,7 +1806,7 @@ document.addEventListener("DOMContentLoaded", () => {
             let dt = cuadros['factor7_extension'];
             if (!dt) return '';
             const cid = `inf_chart_ext_${++_chartCounter}`;
-            let html = `<p class="cuadros-section-title">📊 Cuadros — Sector Externo y Proyección</p>`;
+            let html = `<p class="cuadros-section-title"> Cuadros — Sector Externo y Proyección</p>`;
 
             if (dt.egresados && dt.egresados.length > 0) {
                 html += `
@@ -1819,7 +1819,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const periodos = dt.egresados.map(e=>e.periodo||'');
                 const totEgr   = dt.egresados.map(e=>parseInt(e.egresados||0));
                 const ubicados = dt.egresados.map(e=>parseInt(e.ubicados||0));
-                html += `<div class="informe-chart-wrap"><h5>📈 Egresados y ubicación laboral por período</h5>${_mkCanvas(cid)}</div>`;
+                html += `<div class="informe-chart-wrap"><h5> Egresados y ubicación laboral por período</h5>${_mkCanvas(cid)}</div>`;
                 _buildChart(cid, {
                     type: 'bar',
                     data: {
@@ -1859,7 +1859,7 @@ document.addEventListener("DOMContentLoaded", () => {
             let dt = cuadros['factor8_investigacion'];
             if (!dt) return '';
             const cid = `inf_chart_inv_${++_chartCounter}`;
-            let html = `<p class="cuadros-section-title">📊 Cuadros — Investigación, Innovación y Creación</p>`;
+            let html = `<p class="cuadros-section-title"> Cuadros — Investigación, Innovación y Creación</p>`;
 
             if (dt.proyectos && dt.proyectos.length > 0) {
                 html += `
@@ -1871,7 +1871,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const estados = {};
                 dt.proyectos.forEach(p=>{ estados[p.estado||'Otro']=(estados[p.estado||'Otro']||0)+1; });
-                html += `<div class="informe-chart-wrap"><h5>📈 Estado de proyectos de investigación</h5>${_mkCanvas(cid)}</div>`;
+                html += `<div class="informe-chart-wrap"><h5> Estado de proyectos de investigación</h5>${_mkCanvas(cid)}</div>`;
                 _buildChart(cid, {
                     type: 'bar',
                     data: {
@@ -1916,7 +1916,7 @@ document.addEventListener("DOMContentLoaded", () => {
             let dt = cuadros['factor10_recursos'];
             if (!dt) return '';
             const cid = `inf_chart_rec_${++_chartCounter}`;
-            let html = `<p class="cuadros-section-title">📊 Cuadros — Recursos, Ambientes e Infraestructura</p>`;
+            let html = `<p class="cuadros-section-title"> Cuadros — Recursos, Ambientes e Infraestructura</p>`;
 
             if (dt.aulas && dt.aulas.length > 0) {
                 html += `
@@ -1928,7 +1928,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const estados = {};
                 dt.aulas.forEach(a=>{ estados[a.estado||'Otro']=(estados[a.estado||'Otro']||0)+parseInt(a.cantidad||1); });
-                html += `<div class="informe-chart-wrap"><h5>📈 Estado físico de espacios académicos</h5>${_mkCanvas(cid)}</div>`;
+                html += `<div class="informe-chart-wrap"><h5> Estado físico de espacios académicos</h5>${_mkCanvas(cid)}</div>`;
                 _buildChart(cid, {
                     type: 'pie',
                     data: {
@@ -2830,7 +2830,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     .replace(/\n/g, '<br>');
                 const resumenPanel = document.createElement('div');
                 resumenPanel.style.cssText = 'margin-top:24px;padding:24px;background:linear-gradient(135deg,#f0f7ff,#e8f0fe);border-radius:14px;border:1px solid #bfdbfe;';
-                resumenPanel.innerHTML = `<h3 style="color:#1e293b;margin-bottom:12px;">📊 Resumen Ejecutivo RRC</h3><div style="font-size:0.9rem;line-height:1.7;color:#374151;">${resumenHtml}</div>`;
+                resumenPanel.innerHTML = `<h3 style="color:#1e293b;margin-bottom:12px;"> Resumen Ejecutivo RRC</h3><div style="font-size:0.9rem;line-height:1.7;color:#374151;">${resumenHtml}</div>`;
                 panelsEl.appendChild(resumenPanel);
             }
 
@@ -2990,7 +2990,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (panelEl) {
                     const iaEl = panelEl.querySelector('.ai-content');
                     if (iaEl && iaEl.innerHTML.trim() !== '') {
-                        iaHtml = `<div class="ia-box"><h4>✨ Soporte Normativo & Análisis de Calidad</h4><div>${iaEl.innerHTML}</div></div>`;
+                        iaHtml = `<div class="ia-box"><h4>* Soporte Normativo & Análisis de Calidad</h4><div>${iaEl.innerHTML}</div></div>`;
                     }
                 }
 
@@ -3198,7 +3198,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         async function generarDOFAInterno() {
             if (!window.currentAiReport) {
-                alert("⚠️ Primero debes generar un informe usando el botón '✨ Generar con IA'. El análisis DOFA requiere evaluar ese texto maestro para poder extraer las fortalezas y debilidades reales.");
+                alert("⚠️ Primero debes generar un informe usando el botón '* Generar con IA'. El análisis DOFA requiere evaluar ese texto maestro para poder extraer las fortalezas y debilidades reales.");
                 return;
             }
 
