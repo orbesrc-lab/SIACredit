@@ -48,9 +48,11 @@ app.register_blueprint(export_bp)
 from routes.core import core_bp
 from routes.reports import reports_bp
 from routes.prospects import prospects_bp
+from routes.business import business_bp
 app.register_blueprint(core_bp)
 app.register_blueprint(reports_bp)
 app.register_blueprint(prospects_bp)
+app.register_blueprint(business_bp)
 
 
 
