@@ -975,31 +975,42 @@ document.addEventListener("DOMContentLoaded", () => {
             breadcrumb.style.display = 'block';
             
             if (!progId || progId == 0) {
-                breadcrumb.innerHTML = `⚠️ <strong>Contexto:</strong> Sin programa activo &mdash; Selecciona un programa en <a href="crm.html" class="sidebar-item" id="menuCrm" style="display:none; color: #10b981;">🚀 CRM B2B</a>
-            <a href="configuracion.html"  style="color: #b45309; font-weight: bold; text-decoration: underline;">Configuración</a> para comenzar.`;
-                breadcrumb.style.background = '#fef9c3';
-                breadcrumb.style.borderColor = '#ca8a04';
-                breadcrumb.style.color = '#92400e';
-                
-                document.getElementById('informeContainer').innerHTML = `
-                    <div style="background: #fef9c3; border: 2px dashed #ca8a04; border-radius: 12px; padding: 40px; text-align: center; margin-top: 20px;">
-                        <div style="font-size: 3rem; margin-bottom: 15px;">📊</div>
-                        <h3 style="color: #92400e; margin-bottom: 10px; font-size: 1.3rem;">Sin Programa Académico Activo</h3>
-                        <p style="color: #78350f; max-width: 500px; margin: 0 auto; font-size: 0.95rem; line-height: 1.6;">
-                            No se puede generar ningún informe porque no tienes un Programa Académico activo.<br><br>
-                            Por favor, ve a <strong><a href="crm.html" class="sidebar-item" id="menuCrm" style="display:none; color: #10b981;">🚀 CRM B2B</a>
-            <a href="configuracion.html"  style="color: #92400e; text-decoration: underline;">Configuración</a></strong>, selecciona o crea una Institución y un Programa Académico, y haz clic en <strong>"Cambiar / Cargar"</strong>.
-                        </p>
-                    </div>`;
-                document.querySelectorAll('.export-actions button').forEach(btn => {
-                    if (btn.id !== 'btnRRC') {
-                        btn.disabled = true;
-                        btn.style.opacity = '0.5';
-                        btn.style.cursor = 'not-allowed';
-                    }
-                });
-                return;
+                // Check if user is inst_admin or admin - they can generate global institutional reports
+                const _cu = JSON.parse(localStorage.getItem('siac_user') || '{}');
+                const _cr = _cu.role || '';
+                const _canBypass = ['admin', 'super_admin', 'inst_admin'].includes(_cr);
+
+                if (!_canBypass) {
+                    breadcrumb.innerHTML = `⚠️ <strong>Contexto:</strong> Sin programa activo &mdash; Ve a <a href="configuracion.html" style="color:#b45309;font-weight:bold;text-decoration:underline;">Configuración</a> para seleccionar un programa.`;
+                    breadcrumb.style.background = '#fef9c3';
+                    breadcrumb.style.borderColor = '#ca8a04';
+                    breadcrumb.style.color = '#92400e';
+                    document.getElementById('informeContainer').innerHTML = `
+                        <div style="background:#fef9c3;border:2px dashed #ca8a04;border-radius:12px;padding:40px;text-align:center;margin-top:20px;">
+                            <div style="font-size:3rem;margin-bottom:15px;">📊</div>
+                            <h3 style="color:#92400e;margin-bottom:10px;">Sin Programa Académico Activo</h3>
+                            <p style="color:#78350f;max-width:500px;margin:0 auto;font-size:0.95rem;line-height:1.6;">
+                                No se puede generar ningún informe porque no tienes un Programa Académico activo.<br><br>
+                                Por favor, ve a <a href="configuracion.html" style="color:#92400e;text-decoration:underline;font-weight:bold;">Configuración</a>, selecciona o crea una Institución y un Programa Académico.
+                            </p>
+                        </div>`;
+                    document.querySelectorAll('.export-actions button').forEach(btn => {
+                        if (btn.id !== 'btnRRC') {
+                            btn.disabled = true;
+                            btn.style.opacity = '0.5';
+                            btn.style.cursor = 'not-allowed';
+                        }
+                    });
+                    return;
+                }
+                // Admin/inst_admin: show global institutional report notice
+                breadcrumb.innerHTML = `🏛️ <strong>Contexto:</strong> Vista Institucional Global &mdash; Informe consolidado de todos los programas de la institución.`;
+                breadcrumb.style.background = '#eff6ff';
+                breadcrumb.style.borderColor = '#bfdbfe';
+                breadcrumb.style.color = '#1e40af';
+                // Continue normally — do NOT return, let the report generate with program_id=0
             }
+
 
             try {
                 const [instResp, progResp] = await Promise.all([
@@ -1089,8 +1100,23 @@ document.addEventListener("DOMContentLoaded", () => {
             Object.keys(_informeCharts).forEach(k => { try { _informeCharts[k].destroy(); } catch(e){} delete _informeCharts[k]; });
             _chartCounter = 0;
 
+            // Guard: if no factores data, show friendly message
+            if (!data.factores || data.factores.length === 0) {
+                container.innerHTML = `<div style="background:#fff7ed;border:2px dashed #f97316;border-radius:12px;padding:40px;text-align:center;margin-top:20px;">
+                    <div style="font-size:3rem;margin-bottom:15px;">📋</div>
+                    <h3 style="color:#c2410c;margin-bottom:10px;">Sin Datos de Autoevaluación</h3>
+                    <p style="color:#7c2d12;max-width:500px;margin:0 auto;font-size:0.9rem;line-height:1.6;">
+                        No se encontraron evaluaciones guardadas para esta institución.<br><br>
+                        Por favor asegúrese de que los factores del modelo estén calificados en la sección de <strong>Autoevaluación</strong> antes de generar un informe.
+                    </p></div>`;
+                container.style.display = 'block';
+                document.getElementById('btnImprimir').style.display = 'none';
+                return;
+            }
+
             // Acumular TODO el HTML primero (para evitar que innerHTML+= destruya canvas)
             let todoElHtml = '';
+
 
             data.factores.forEach(f => {
                 // Resumen
