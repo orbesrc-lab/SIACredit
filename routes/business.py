@@ -130,8 +130,8 @@ def auto_populate_matrices():
             return jsonify({'error': 'inst_id is required'}), 400
             
         # 1. Fetch current Autoevaluacion data
-        factors = supabase.table('factors').select("*, characteristics(id, name, weight)").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
-        evals = supabase.table('evaluations').select("char_id, rating").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
+        factors = supabase.table('factors').select("*, characteristics(id, name, weight)").eq("inst_id", inst_id).execute().data if not program_id or int(program_id) == 0 else supabase.table('factors').select("*, characteristics(id, name, weight)").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
+        evals = supabase.table('evaluations').select("char_id, rating").eq("inst_id", inst_id).execute().data if not program_id or int(program_id) == 0 else supabase.table('evaluations').select("char_id, rating").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
         eval_map = {e['char_id']: e['rating'] for e in evals}
         
         if not factors:
