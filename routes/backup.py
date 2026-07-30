@@ -590,18 +590,24 @@ def get_backup_logs():
     
     # Debug: Try a dummy insert to see the error
     debug_error = None
+    debug_response = None
     try:
-        supabase.table('security_backup_logs').insert({
+        debug_response = supabase.table('security_backup_logs').insert({
             'user_id': user_id,
             'user_email': 'debug@test.com',
             'inst_id': int(inst_id) if inst_id else None,
             'action_type': 'DEBUG',
             'status': 'DEBUG'
         }).execute()
+        
+        # If it returns an object, maybe it has an error property?
+        if hasattr(debug_response, 'error') and debug_response.error:
+            debug_error = str(debug_response.error)
+            
     except Exception as e:
         debug_error = str(e)
 
     if debug_error:
         return jsonify({'status': 'error', 'message': f'Error DB: {debug_error}'})
         
-    return jsonify({'status': 'success', 'logs': res.data or []})
+    return jsonify({'status': 'error', 'message': f'Info: Insert ok. Data: {str(getattr(debug_response, "data", "None"))}'})
