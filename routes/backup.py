@@ -187,7 +187,7 @@ def _build_full_zip(inst_id, scope, modules, year, program_id, password=None):
         if 'evidencias' in modules:
             try:
                 # Load hierarchy: factors -> characteristics -> aspects -> evidences
-                fq = supabase.table('factors').select('id,name,characteristics(id,name,aspects(id,text))')
+                fq = supabase.table('factors').select('*,characteristics(*,aspects(*))')
                 if inst_id:
                     fq = fq.eq('inst_id', inst_id)
                 if program_id:
@@ -197,11 +197,11 @@ def _build_full_zip(inst_id, scope, modules, year, program_id, password=None):
                 # Build aspect_id -> path map
                 aspect_path = {}
                 for f in factors:
-                    fn = _safe_filename(f.get('name') or f.get('id'))
+                    fn = _safe_filename(f.get('name') or f.get('title') or f.get('text') or f.get('id'))
                     for c in (f.get('characteristics') or []):
-                        cn = _safe_filename(c.get('name') or c.get('id'))
+                        cn = _safe_filename(c.get('name') or c.get('title') or c.get('text') or c.get('id'))
                         for a in (c.get('aspects') or []):
-                            an = _safe_filename((a.get('text') or str(a.get('id')))[:50])
+                            an = _safe_filename((a.get('text') or a.get('name') or a.get('title') or str(a.get('id')))[:50])
                             aspect_path[str(a['id'])] = f"{year_label}/{fn}/{cn}/{an}"
 
                 # Fetch evidences
@@ -350,7 +350,7 @@ def backup_factor():
         buf = io.BytesIO()
         with create_zip_context(buf, password) as zf:
             # Load factor details
-            fq = supabase.table('factors').select('id,name,characteristics(id,name,aspects(id,text))').eq('id', factor_id)
+            fq = supabase.table('factors').select('*,characteristics(*,aspects(*))').eq('id', factor_id)
             factors = fq.execute().data or []
             if not factors:
                 return jsonify({'status': 'error', 'message': 'Factor no encontrado'}), 404
@@ -364,9 +364,9 @@ def backup_factor():
             for c in (factor.get('characteristics') or []):
                 if caracteristica_id and str(c['id']) != str(caracteristica_id):
                     continue
-                cname = _safe_filename(c.get('name') or c['id'])
+                cname = _safe_filename(c.get('name') or c.get('title') or c.get('text') or c['id'])
                 for a in (c.get('aspects') or []):
-                    aname = _safe_filename(a.get('name') or a['id'])
+                    aname = _safe_filename(a.get('text') or a.get('name') or a.get('title') or a['id'])
                     folder = f"{fname}/{cname}/{aname}/"
 
                     # Evidences for this aspect
@@ -414,7 +414,7 @@ def backup_evidencias():
         factor_id = data.get('factor_id')
 
         # Load hierarchy
-        fq = supabase.table('factors').select('id,name,characteristics(id,name,aspects(id,text))')
+        fq = supabase.table('factors').select('*,characteristics(*,aspects(*))')
         if inst_id:
             fq = fq.eq('inst_id', inst_id)
         if factor_id:
@@ -423,11 +423,11 @@ def backup_evidencias():
 
         aspect_path = {}
         for f in factors:
-            fn = _safe_filename(f.get('name') or f['id'])
+            fn = _safe_filename(f.get('name') or f.get('title') or f.get('text') or f['id'])
             for c in (f.get('characteristics') or []):
-                cn = _safe_filename(c.get('name') or c['id'])
+                cn = _safe_filename(c.get('name') or c.get('title') or c.get('text') or c['id'])
                 for a in (c.get('aspects') or []):
-                    an = _safe_filename((a.get('text') or str(a['id']))[:50])
+                    an = _safe_filename((a.get('text') or a.get('name') or a.get('title') or str(a['id']))[:50])
                     year_seg = str(year) if year else 'sin_año'
                     aspect_path[str(a['id'])] = f"{year_seg}/{fn}/{cn}/{an}"
 
