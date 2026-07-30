@@ -73,6 +73,22 @@ def empresa_matrices():
 def empresa_porter():
     return render_template('empresa_porter.html')
 
+@frontend_bp.route('/empresa_riesgos.html')
+def empresa_riesgos():
+    return render_template('empresa_riesgos.html')
+
+@frontend_bp.route('/empresa_stakeholders.html')
+def empresa_stakeholders():
+    return render_template('empresa_stakeholders.html')
+
+@frontend_bp.route('/empresa_comunicacion.html')
+def empresa_comunicacion():
+    return render_template('empresa_comunicacion.html')
+
+@frontend_bp.route('/empresa_iso.html')
+def empresa_iso():
+    return render_template('empresa_iso.html')
+
 @frontend_bp.route('/estadisticas.html')
 def estadisticas():
     return render_template('estadisticas.html')
