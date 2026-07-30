@@ -434,6 +434,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 </script>
+<script>
+async function fetchAutoPopulate() {
+    const btn = document.getElementById('btnAutoPopulate');
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = 'Obteniendo datos de autoevaluación...';
+    btn.disabled = true;
+    
+    try {
+        const resp = await fetch('/api/business/auto-populate-matrices', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ inst_id: getInstId(), program_id: getProgramId() })
+        });
+        
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'Error al obtener datos');
+        
+        document.getElementById('mefiBody').innerHTML = '';
+        document.getElementById('mefeBody').innerHTML = '';
+        
+        if (data.mefi) {
+            (data.mefi.fortalezas || []).forEach(item => addMatrixRow('mefi', { factor: item.name, type: 'fortaleza', weight: item.weight, rating: item.rating }));
+            (data.mefi.debilidades || []).forEach(item => addMatrixRow('mefi', { factor: item.name, type: 'debilidad', weight: item.weight, rating: item.rating }));
+        }
+        
+        if (data.mefe) {
+            (data.mefe.oportunidades || []).forEach(item => addMatrixRow('mefe', { factor: item.name, type: 'oportunidad', weight: item.weight, rating: item.rating }));
+            (data.mefe.amenazas || []).forEach(item => addMatrixRow('mefe', { factor: item.name, type: 'amenaza', weight: item.weight, rating: item.rating }));
+        }
+        
+        alert(? ¡Datos importados exitosamente desde la Autoevaluación!);
+        
+    } catch (e) {
+        alert('Error: ' + e.message);
+    } finally {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    }
+}
+</script>
 </body>
 
 </html>
+
