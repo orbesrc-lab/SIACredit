@@ -66,11 +66,6 @@ def verify_backup_security(user_id, password, inst_id, action_type):
         }).execute()
     except Exception as e:
         print("Error logging security:", e)
-        try:
-            with open('scratch/security_error.log', 'a') as f:
-                f.write(f"Error: {e}\\n")
-        except:
-            pass
         
     return is_valid, ("Acceso denegado. Contrasea incorrecta." if not is_valid else "")
 
@@ -587,27 +582,4 @@ def get_backup_logs():
     if inst_id:
         q = q.eq('inst_id', inst_id)
     res = q.execute()
-    
-    # Debug: Try a dummy insert to see the error
-    debug_error = None
-    debug_response = None
-    try:
-        debug_response = supabase.table('security_backup_logs').insert({
-            'user_id': user_id,
-            'user_email': 'debug@test.com',
-            'inst_id': int(inst_id) if inst_id else None,
-            'action_type': 'DEBUG',
-            'status': 'DEBUG'
-        }).execute()
-        
-        # If it returns an object, maybe it has an error property?
-        if hasattr(debug_response, 'error') and debug_response.error:
-            debug_error = str(debug_response.error)
-            
-    except Exception as e:
-        debug_error = str(e)
-
-    if debug_error:
-        return jsonify({'status': 'error', 'message': f'Error DB: {debug_error}'})
-        
-    return jsonify({'status': 'error', 'message': f'Info: Insert ok. Data: {str(getattr(debug_response, "data", "None"))}'})
+    return jsonify({'status': 'success', 'logs': res.data or []})
