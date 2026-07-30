@@ -923,7 +923,19 @@
                     \${tempTable.outerHTML}
                 
 
-    </body>
+    
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const usr = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const r = usr.role || localStorage.getItem('user_role') || '';
+    if(['admin', 'super_admin', 'empresa_admin'].includes(r)) {
+        const b2b = document.getElementById('menuConsultoriaB2B');
+        if(b2b) b2b.style.display = 'block';
+    }
+});
+</script>
+</body>
+
                 </html>
             `;
             
@@ -1504,7 +1516,19 @@
   </div>
 
     
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const usr = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const r = usr.role || localStorage.getItem('user_role') || '';
+    if(['admin', 'super_admin', 'empresa_admin'].includes(r)) {
+        const b2b = document.getElementById('menuConsultoriaB2B');
+        if(b2b) b2b.style.display = 'block';
+    }
+});
+</script>
 </body>
+
 </html>`;
 
             abrirVentanaImpresion(html, titulo);
@@ -2985,7 +3009,19 @@
 
 
     
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const usr = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const r = usr.role || localStorage.getItem('user_role') || '';
+    if(['admin', 'super_admin', 'empresa_admin'].includes(r)) {
+        const b2b = document.getElementById('menuConsultoriaB2B');
+        if(b2b) b2b.style.display = 'block';
+    }
+});
+</script>
 </body>
+
 </html>`;
 
             abrirVentanaImpresion(htmlDoc, `Soporte RRC — ${progName}`);
@@ -3242,7 +3278,19 @@
                 ${contenido}
                 <script>window.onload = function() { setTimeout(()=> { window.print(); }, 500); }<\/script>
                 
-    </body></html>
+    
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const usr = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const r = usr.role || localStorage.getItem('user_role') || '';
+    if(['admin', 'super_admin', 'empresa_admin'].includes(r)) {
+        const b2b = document.getElementById('menuConsultoriaB2B');
+        if(b2b) b2b.style.display = 'block';
+    }
+});
+</script>
+</body>
+</html>
             `);
             win.document.close();
         }
@@ -3340,5 +3388,17 @@ if(g !== group) g.classList.remove('active');
 group.classList.toggle('active');
 }
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const usr = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const r = usr.role || localStorage.getItem('user_role') || '';
+    if(['admin', 'super_admin', 'empresa_admin'].includes(r)) {
+        const b2b = document.getElementById('menuConsultoriaB2B');
+        if(b2b) b2b.style.display = 'block';
+    }
+});
+</script>
 </body>
+
 </html>

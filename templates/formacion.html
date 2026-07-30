@@ -7014,6 +7014,18 @@
     }
     </script>
 
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const usr = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const r = usr.role || localStorage.getItem('user_role') || '';
+    if(['admin', 'super_admin', 'empresa_admin'].includes(r)) {
+        const b2b = document.getElementById('menuConsultoriaB2B');
+        if(b2b) b2b.style.display = 'block';
+    }
+});
+</script>
 </body>
+
 
 </html>
