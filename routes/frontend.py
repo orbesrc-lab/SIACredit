@@ -61,6 +61,18 @@ def informes():
 def dofa():
     return render_template('dofa.html')
 
+@frontend_bp.route('/empresa_dashboard.html')
+def empresa_dashboard():
+    return render_template('empresa_dashboard.html')
+
+@frontend_bp.route('/empresa_matrices.html')
+def empresa_matrices():
+    return render_template('empresa_matrices.html')
+
+@frontend_bp.route('/empresa_porter.html')
+def empresa_porter():
+    return render_template('empresa_porter.html')
+
 @frontend_bp.route('/estadisticas.html')
 def estadisticas():
     return render_template('estadisticas.html')
