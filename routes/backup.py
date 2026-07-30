@@ -66,6 +66,11 @@ def verify_backup_security(user_id, password, inst_id, action_type):
         }).execute()
     except Exception as e:
         print("Error logging security:", e)
+        try:
+            with open('scratch/security_error.log', 'a') as f:
+                f.write(f"Error: {e}\\n")
+        except:
+            pass
         
     return is_valid, ("Acceso denegado. Contrasea incorrecta." if not is_valid else "")
 
@@ -582,4 +587,21 @@ def get_backup_logs():
     if inst_id:
         q = q.eq('inst_id', inst_id)
     res = q.execute()
+    
+    # Debug: Try a dummy insert to see the error
+    debug_error = None
+    try:
+        supabase.table('security_backup_logs').insert({
+            'user_id': user_id,
+            'user_email': 'debug@test.com',
+            'inst_id': int(inst_id) if inst_id else None,
+            'action_type': 'DEBUG',
+            'status': 'DEBUG'
+        }).execute()
+    except Exception as e:
+        debug_error = str(e)
+
+    if debug_error:
+        return jsonify({'status': 'error', 'message': f'Error DB: {debug_error}'})
+        
     return jsonify({'status': 'success', 'logs': res.data or []})
