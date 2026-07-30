@@ -1412,7 +1412,9 @@ document.addEventListener("DOMContentLoaded", () => {
             todoElHtml += planesHtml;
 
             // Inyectar TODO el HTML de una sola vez (preserva canvas para _buildChart)
+            _pendingCharts = []; // reset before rebuilding
             detalleDiv.innerHTML = todoElHtml;
+            _flushCharts(); // NOW draw charts — canvas elements exist in DOM
 
             // Dibujar Radar
             if (window.myRadar) window.myRadar.destroy();
@@ -1637,18 +1639,31 @@ document.addEventListener("DOMContentLoaded", () => {
         // Contador único para IDs de canvas en el informe
         let _chartCounter = 0;
         const _informeCharts = {};
+        // Queue for deferred chart builds (must run AFTER innerHTML is set)
+        let _pendingCharts = [];
 
         function _mkCanvas(id) {
             return `<div class="informe-chart-canvas-wrap"><canvas id="${id}"></canvas></div>`;
         }
 
         function _buildChart(canvasId, config) {
-            // Se invoca después de que el HTML se inyecte en el DOM
+            // Enqueue — charts will be drawn AFTER detalleDiv.innerHTML is set
+            _pendingCharts.push({ canvasId, config });
+        }
+
+        function _flushCharts() {
+            // Flush all pending chart builds after HTML is in the DOM
+            const pending = _pendingCharts.slice();
+            _pendingCharts = [];
             requestAnimationFrame(() => {
-                const el = document.getElementById(canvasId);
-                if (!el) return;
-                if (_informeCharts[canvasId]) _informeCharts[canvasId].destroy();
-                _informeCharts[canvasId] = new Chart(el.getContext('2d'), config);
+                pending.forEach(({ canvasId, config }) => {
+                    try {
+                        const el = document.getElementById(canvasId);
+                        if (!el) return;
+                        if (_informeCharts[canvasId]) { try { _informeCharts[canvasId].destroy(); } catch(e){} }
+                        _informeCharts[canvasId] = new Chart(el.getContext('2d'), config);
+                    } catch(e) { console.warn('Chart error for', canvasId, e); }
+                });
             });
         }
 
@@ -1661,7 +1676,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return `
                     <div class="informe-ai-block">
                         <h5>✨ Análisis de IA — Par Académico CNA</h5>
-                        <div class="ai-md-content">${marked ? marked.parse(txt) : txt.replace(/\n/g,'<br>')}</div>
+                        <div class="ai-md-content">${(function(){ try { return marked ? marked.parse(txt) : txt.replace(/\n/g,'<br>'); } catch(e){ return txt.replace(/\n/g,'<br>'); } })()}</div>
                     </div>`;
                 }
             }
