@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from core import supabase
+from utils.db import supabase
 import uuid
 
 business_bp = Blueprint('business', __name__)
