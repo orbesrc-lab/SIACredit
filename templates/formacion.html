@@ -6199,15 +6199,7 @@
             <textarea id="miniTranslatorResult" rows="6" style="width: 100%; border: 2px solid #10b981; background: #f0fdf4; border-radius: 8px; padding: 15px; font-family: var(--font-main); font-size: 0.95rem; outline: none; display: none; resize: vertical; user-select: text !important; -webkit-user-select: text !important; pointer-events: auto !important; color: #065f46; cursor: text;" readonly placeholder="Traducción..."></textarea>
         </div>
     </div>
-<script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
-            if(user.role === 'admin') {
-                const crmLink = document.getElementById('menuCrm');
-                if(crmLink) crmLink.style.display = 'block';
-            }
-        });
-        </script>
+
 
 <script>
 (function(){
@@ -7015,14 +7007,30 @@
     </script>
 
 
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const usr = JSON.parse(localStorage.getItem('siac_user') || '{}');
-    const r = usr.role || localStorage.getItem('user_role') || '';
-    if(['admin', 'super_admin', 'empresa_admin'].includes(r)) {
-        const b2b = document.getElementById('menuConsultoriaB2B');
-        if(b2b) b2b.style.display = 'block';
-    }
+    const _u = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const _r = _u.role || localStorage.getItem('user_role') || '';
+    
+    // Herramientas de super administrador
+    const _adminOnly = ['admin', 'super_admin'];
+    
+    // CRM B2B link (dentro de Herramientas Gerenciales)
+    const _crm = document.getElementById('menuCrm');
+    if(_crm) _crm.style.display = _adminOnly.includes(_r) ? 'block' : 'none';
+    
+    // Capacitacion / Formacion
+    const _cap = document.getElementById('menuCapacitacion');
+    if(_cap) _cap.style.display = _adminOnly.includes(_r) ? 'block' : 'none';
+    
+    // Backup y Seguridad
+    const _bk = document.getElementById('menuBackup');
+    if(_bk) _bk.style.display = ['admin', 'super_admin', 'inst_admin', 'lider', 'empresa_admin'].includes(_r) ? 'block' : 'none';
+    
+    // Consultoria B2B section
+    const _b2b = document.getElementById('menuConsultoriaB2B');
+    if(_b2b) _b2b.style.display = ['admin', 'super_admin', 'empresa_admin'].includes(_r) ? 'block' : 'none';
 });
 </script>
 </body>
