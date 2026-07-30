@@ -177,9 +177,15 @@
         .score-cell { font-weight: 600; text-align: center; }
         .total-row { font-weight: bold; background: #f1f5f9; }
     </style>
-    <div class="dofa-header">
-        <h1>🛠️ Matrices MEFI y MEFE</h1>
-        <p>Evaluación cuantitativa de Factores Internos (MEFI) y Externos (MEFE).</p>
+    <div class="dofa-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h1>🛠️ Matrices MEFI y MEFE</h1>
+            <p>Evaluación cuantitativa de Factores Internos (MEFI) y Externos (MEFE).</p>
+        </div>
+        <button id="btnAutoPopulate" class="btn-primary" onclick="fetchAutoPopulate()" style="background: linear-gradient(135deg, #8b5cf6, #6366f1); border: none; font-weight: bold; display: flex; align-items: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Autocompletar IA desde Evaluación
+        </button>
     </div>
 
     <div class="dofa-tabs">
