@@ -547,6 +547,8 @@
                     </tr>
                 `).join('');
                 if(data.logs.length === 0) tbody.innerHTML = '<tr><td colspan="4" style="padding:10px;">No hay registros.</td></tr>';
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" style="color:#ef4444; padding:10px;">${data.message || 'Error desconocido'}</td></tr>`;
             }
         } catch(e) {
             console.error('Error fetching logs', e);
