@@ -299,6 +299,9 @@ window.openModuleModal = function(url, titleGuess) {
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
         
+        const chatWidget = document.querySelector('.ai-chat-widget');
+        if (chatWidget) chatWidget.style.display = 'none';
+        
         // Push state for SPA feel
         const targetUrl = url.startsWith('/') ? url : '/' + url;
         if (window.location.pathname !== targetUrl) {
@@ -321,6 +324,9 @@ window.closeModuleModal = function() {
         modal.classList.remove('active');
         document.body.style.overflow = '';
         setTimeout(() => { if(iframe) iframe.src = ''; }, 300); // Clear memory after animation
+        
+        const chatWidget = document.querySelector('.ai-chat-widget');
+        if (chatWidget) chatWidget.style.display = 'flex';
     }
 };
 

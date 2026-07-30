@@ -752,12 +752,12 @@ input::placeholder, textarea::placeholder {
 /* Giant Module Modal Styles */
 #skel-module-modal {
     display: none;
-    position: fixed;
+    position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     background: var(--bg-color);
-    z-index: 999999;
+    z-index: 10000;
 }
 
 #skel-module-modal.active {
