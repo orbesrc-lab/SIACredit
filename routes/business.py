@@ -14,10 +14,10 @@ def get_matrix(matrix_type):
             return jsonify({'error': 'inst_id is required'}), 400
             
         # Modificado para usar la tabla statistics
-        res = supabase.table('statistics').select('data').eq('inst_id', inst_id).eq('table_id', matrix_type.upper()).order('id', desc=True).limit(1).execute()
+        res = supabase.table('statistics').select('data_json').eq('inst_id', inst_id).eq('table_id', matrix_type.upper()).order('id', desc=True).limit(1).execute()
         if res.data:
-            # We return data so it mimics the old behavior: {'data': res.data[0]['data']}
-            return jsonify({'data': res.data[0]['data']})
+            # We return data so it mimics the old behavior: {'data': res.data[0]['data_json']}
+            return jsonify({'data': res.data[0]['data_json']})
         else:
             return jsonify({'data': {}})
     except Exception as e:
@@ -41,7 +41,7 @@ def save_matrix(matrix_type):
             'inst_id': inst_id,
             'table_id': matrix_type.upper(),
             'program_id': 0,
-            'data': data
+            'data_json': data
         }).execute()
 
         return jsonify({'status': 'success', 'message': 'Matrix updated/inserted in statistics'})
@@ -59,8 +59,8 @@ def generate_ai_dofa():
             return jsonify({'error': 'inst_id is required'}), 400
             
         # Fetch MEFI and MEFE
-        mefi_res = supabase.table('business_matrices').select('data').eq('inst_id', inst_id).eq('matrix_type', 'MEFI').execute()
-        mefe_res = supabase.table('business_matrices').select('data').eq('inst_id', inst_id).eq('matrix_type', 'MEFE').execute()
+        mefi_res = supabase.table('business_matrices').select('data_json').eq('inst_id', inst_id).eq('matrix_type', 'MEFI').execute()
+        mefe_res = supabase.table('business_matrices').select('data_json').eq('inst_id', inst_id).eq('matrix_type', 'MEFE').execute()
         
         if not mefi_res.data or not mefe_res.data:
             return jsonify({'error': 'Las matrices MEFI y MEFE deben estar guardadas previamente.'}), 400
