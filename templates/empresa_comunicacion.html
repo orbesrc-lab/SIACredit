@@ -129,8 +129,7 @@
                 <div class="sidebar-submenu">
                     <div class="sidebar-submenu-inner">
                         <a href="empresa_dashboard.html" class="sidebar-item">📊 Hub Estratégico</a>
-                        <a href="empresa_matrices.html" class="sidebar-item">🛠️ Matrices (MEFI/MEFE)</a>
-                        <a href="empresa_porter.html" class="sidebar-item">📈 Análisis Competitivo</a>
+                        <a href="empresa_informe_gerencial.html" class="sidebar-item">📑 Informe Gerencial Integral</a>
                     </div>
                 </div>
             </div>
@@ -932,6 +931,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if(_b2b) _b2b.style.display = ['admin', 'super_admin', 'empresa_admin'].includes(_r) ? 'block' : 'none';
 });
 </script>
+    <script>
+        setTimeout(() => { if(typeof initPage === "function") initPage(); }, 200);
+    </script>
 </body>
 
 </html>

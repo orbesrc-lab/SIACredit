@@ -292,5 +292,8 @@
         document.addEventListener('DOMContentLoaded', init);
     </script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script>
+        setTimeout(() => { if(typeof initPage === "function") initPage(); }, 200);
+    </script>
 </body>
 </html>
