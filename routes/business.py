@@ -36,13 +36,21 @@ def save_matrix(matrix_type):
         if results:
             data['analysis_results'] = results
 
-        # Insert into statistics directly
-        insert_res = supabase.table('statistics').insert({
-            'inst_id': inst_id,
-            'table_id': matrix_type.upper(),
-            'program_id': None,
-            'data_json': data
-        }).execute()
+        # Upsert logic to avoid unique constraint errors
+        res = supabase.table('statistics').select("id").eq("table_id", matrix_type.upper()).eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
+        
+        if res.data:
+            db_id = res.data[0]['id']
+            supabase.table('statistics').update({
+                'data_json': data
+            }).eq("id", db_id).execute()
+        else:
+            supabase.table('statistics').insert({
+                'inst_id': inst_id,
+                'table_id': matrix_type.upper(),
+                'program_id': None,
+                'data_json': data
+            }).execute()
 
         return jsonify({'status': 'success', 'message': 'Matrix updated/inserted in statistics'})
     except Exception as e:
