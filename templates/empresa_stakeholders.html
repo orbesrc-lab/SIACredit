@@ -385,6 +385,17 @@
             renderStakeholders();
         }
 
+        
+        function editStakeholder(idx) {
+            const s = stakeholders[idx];
+            document.getElementById('sh_name').value = s.name;
+            document.getElementById('sh_power').value = s.power;
+            document.getElementById('sh_interest').value = s.interest;
+            document.getElementById('sh_strategy').value = s.strategy || '';
+            removeStakeholder(idx);
+            document.getElementById('sh_name').focus();
+        }
+
         function removeStakeholder(idx) {
             stakeholders.splice(idx, 1);
             renderStakeholders();

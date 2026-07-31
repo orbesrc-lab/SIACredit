@@ -380,6 +380,17 @@
             renderHeatmap();
         }
 
+        
+        function editRisk(idx) {
+            const r = risks[idx];
+            document.getElementById('r_desc').value = r.desc;
+            document.getElementById('r_prob').value = r.prob;
+            document.getElementById('r_impact').value = r.impact;
+            document.getElementById('r_plan').value = r.plan || '';
+            removeRisk(idx);
+            document.getElementById('r_desc').focus();
+        }
+
         function removeRisk(idx) {
             risks.splice(idx, 1);
             renderRisks();
@@ -407,7 +418,7 @@
                             <td><span class="badge ${level.class}">${r.score} - ${level.label}</span></td>
                             <td>${r.plan || '<span style="color:#cbd5e1;">-</span>'}</td>
                             <td>
-                                <button onclick="removeRisk(${r.originalIdx})" style="background:none; border:none; color:#ef4444; cursor:pointer;"><i class="fas fa-trash"></i></button>
+                                <button onclick="editRisk(${r.originalIdx})" style="background:none; border:none; color:#3b82f6; cursor:pointer; margin-right:15px; font-size:1.1rem;"><i class="fas fa-edit"></i></button><button onclick="removeRisk(${r.originalIdx})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.1rem;"><i class="fas fa-trash"></i></button>
                             </td>
                         </tr>
                     `;
