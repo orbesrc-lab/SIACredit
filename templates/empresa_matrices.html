@@ -196,6 +196,12 @@
                         <p>Gestión de Factores Internos y Externos basados en el Análisis Organizacional y PESTA.</p>
                     </div>
 
+            <div style="margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <label style="font-weight: bold; font-size: 0.9rem; color: #475569;">📅 Fecha de Levantamiento de Información:</label>
+                <input type="date" id="eval_date" style="margin-left: 10px; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;">
+            </div>
+
+
     <div style="margin-bottom: 20px;">
         <a href="empresa_dashboard.html" style="display: inline-block; padding: 10px 20px; background: #e2e8f0; color: #334155; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.95rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: background 0.2s;">
             ⬅️ Volver al Hub Estratégico
@@ -431,12 +437,12 @@
                     fetch(`/api/business/matrix/MEFI`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ inst_id: instId, data: { factors: mefiData }, user_id: (JSON.parse(localStorage.getItem('siac_user') || '{}')).id || 1 })
+                        body: JSON.stringify({ inst_id: instId, data: { factors: mefiData, eval_date: document.getElementById("eval_date") ? document.getElementById("eval_date").value : "" }, user_id: (JSON.parse(localStorage.getItem('siac_user') || '{}')).id || 1 })
                     }),
                     fetch(`/api/business/matrix/MEFE`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ inst_id: instId, data: { factors: mefeData }, user_id: (JSON.parse(localStorage.getItem('siac_user') || '{}')).id || 1 })
+                        body: JSON.stringify({ inst_id: instId, data: { factors: mefeData, eval_date: document.getElementById("eval_date") ? document.getElementById("eval_date").value : "" }, user_id: (JSON.parse(localStorage.getItem('siac_user') || '{}')).id || 1 })
                     })
                 ]);
                 

@@ -430,7 +430,7 @@
             const payload = {
                 inst_id: getInstId(),
                 user_id: (JSON.parse(localStorage.getItem('siac_user') || '{}')).id || 1,
-                data: { stakeholders: stakeholders },
+                data: { stakeholders: stakeholders, eval_date: document.getElementById("eval_date") ? document.getElementById("eval_date").value : "" },
                 results: {}
             };
             
