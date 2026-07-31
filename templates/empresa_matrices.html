@@ -1052,14 +1052,8 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
     <script>
         setTimeout(() => { if(typeof initPage === "function") initPage(); }, 200);
-    </script>
-</body>
-
-</html>
-
-
-
-        function exportPDF() {
+    
+function exportPDF() {
             const logoImg = document.getElementById('inst_logo_img');
             const logoSrc = (logoImg && logoImg.style.display !== 'none' && logoImg.src) ? logoImg.src : '';
             const instNameDisplay = document.getElementById('inst_name_display');
@@ -1186,15 +1180,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     };
                 <\/script>
             </body>
-            </html>
-            `;
+            
+</script>
+</body>
 
-            const win = window.open('', '_blank');
-            if (win) {
-                win.document.open();
-                win.document.write(printHTML);
-                win.document.close();
-            } else {
-                Swal.fire('Atención', 'Por favor permite las ventanas emergentes para generar el informe PDF.', 'warning');
-            }
-        }
+</html>
+
+
+
+        
