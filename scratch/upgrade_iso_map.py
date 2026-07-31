@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+import os
+
+file_content = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -558,7 +560,7 @@
 
                 if (resData.status === 'success' && resData.data) {
                     document.getElementById('sgc_policy').value = resData.data.politica || '';
-                    document.getElementById('sgc_objectives').value = (resData.data.objetivos || []).join('\n');
+                    document.getElementById('sgc_objectives').value = (resData.data.objetivos || []).join('\\n');
                     Swal.fire('¡Política Generada!', 'La Política y Objetivos de Calidad se redactaron con IA.', 'success');
                 }
             } catch(e) { Swal.close(); Swal.fire('Error', 'No se pudo generar la política con IA.', 'error'); }
@@ -656,3 +658,9 @@
     </script>
 </body>
 </html>
+"""
+
+with open(r'c:\SIAC\templates\empresa_iso.html', 'w', encoding='utf-8') as f:
+    f.write(file_content)
+
+print("empresa_iso.html upgraded with dynamic Add/Delete process functionality and high-level ISO 9001 Map aesthetics!")
