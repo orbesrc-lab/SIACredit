@@ -30,6 +30,16 @@ def save_matrix(matrix_type):
         results = payload.get('results')
         user_id = payload.get('user_id')
         
+        import uuid
+        
+        user_id = payload.get('user_id')
+        if user_id:
+            try:
+                # Validar que sea un UUID
+                uuid.UUID(str(user_id))
+            except ValueError:
+                user_id = None
+                
         if not inst_id:
             return jsonify({'error': 'inst_id is required'}), 400
             
@@ -194,6 +204,90 @@ def auto_populate_matrices():
             "mefe": {
                 "oportunidades": [],
                 "amenazas": []
+            }
+        }
+        
+        return jsonify(parsed_data)
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@business_bp.route('/api/business/populate-from-dofa-pesta', methods=['POST'])
+def populate_from_dofa_pesta():
+    try:
+        payload = request.json
+        inst_id = payload.get('inst_id')
+        program_id = payload.get('program_id', 0)
+        
+        if not inst_id:
+            return jsonify({'error': 'inst_id is required'}), 400
+            
+        # 1. Fetch DOFA_INTERNAL
+        dofa_int_res = supabase.table('statistics').select('data_json').eq('table_id', 'DOFA_INTERNAL').eq('inst_id', inst_id).order('id', desc=True).limit(1).execute()
+        
+        # 2. Fetch DOFA_EXTERNAL (PESTA)
+        dofa_ext_res = supabase.table('statistics').select('data_json').eq('table_id', 'DOFA_EXTERNAL').eq('inst_id', inst_id).order('id', desc=True).limit(1).execute()
+        
+        if not dofa_int_res.data and not dofa_ext_res.data:
+            return jsonify({'error': 'No se encontraron diagnósticos previos (DOFA o PESTA) para esta institución.'}), 404
+            
+        fortalezas = []
+        debilidades = []
+        oportunidades = []
+        amenazas = []
+        
+        # Parse DOFA INTERNAL (Fortalezas y Debilidades)
+        if dofa_int_res.data:
+            dofa_data = dofa_int_res.data[0].get('data_json', {})
+            if isinstance(dofa_data, str):
+                dofa_data = json.loads(dofa_data)
+                
+            forts = dofa_data.get('fortalezas', [])
+            debs = dofa_data.get('debilidades', [])
+            
+            # Asignar peso equitativo base
+            total_int = len(forts) + len(debs)
+            peso_int = round(1.0 / total_int, 2) if total_int > 0 else 0
+            
+            for item in forts:
+                # Si item es un string o dict
+                name = item if isinstance(item, str) else item.get('description', str(item))
+                fortalezas.append({"name": name, "weight": peso_int, "rating": 3}) # rating default 3 o 4 (fuerte)
+                
+            for item in debs:
+                name = item if isinstance(item, str) else item.get('description', str(item))
+                debilidades.append({"name": name, "weight": peso_int, "rating": 2}) # rating default 1 o 2 (débil)
+                
+        # Parse DOFA EXTERNAL / PESTA (Oportunidades y Amenazas)
+        if dofa_ext_res.data:
+            pesta_data = dofa_ext_res.data[0].get('data_json', {})
+            if isinstance(pesta_data, str):
+                pesta_data = json.loads(pesta_data)
+                
+            opts = pesta_data.get('oportunidades', [])
+            ams = pesta_data.get('amenazas', [])
+            
+            total_ext = len(opts) + len(ams)
+            peso_ext = round(1.0 / total_ext, 2) if total_ext > 0 else 0
+            
+            for item in opts:
+                name = item if isinstance(item, str) else item.get('description', item.get('factor', str(item)))
+                oportunidades.append({"name": name, "weight": peso_ext, "rating": 3})
+                
+            for item in ams:
+                name = item if isinstance(item, str) else item.get('description', item.get('factor', str(item)))
+                amenazas.append({"name": name, "weight": peso_ext, "rating": 2})
+
+        parsed_data = {
+            "mefi": {
+                "fortalezas": fortalezas,
+                "debilidades": debilidades
+            },
+            "mefe": {
+                "oportunidades": oportunidades,
+                "amenazas": amenazas
             }
         }
         

@@ -555,16 +555,16 @@
                     <h1>Informe Integral de Autoevaluación</h1>
                     <p>Articulación automática de Evaluaciones, Evidencias y Cuadros de Datos.</p>
                 </div>
-                <div class="export-actions">
-                    <button class="btn-secondary large" onclick="generarInforme('parcial')">📋 Generar Informe Parcial</button>
-                    <button class="btn-primary large" onclick="generarInforme('final')">🏆 Generar Informe Final</button>
-                    <button class="btn-primary large" onclick="generarInformeIA()" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border:none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);">* Generar con IA</button>
-                    <button class="btn-primary large" onclick="generarDOFAInterno()" style="background: linear-gradient(135deg, #10b981, #059669); border:none; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">🛡️ Factores DOFA</button>
-                    <button class="btn-primary large" onclick="generarDOFAExterno()" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); border:none; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);">🌍 Factores PESTA (Externos)</button>
-                    <button class="btn-rrc" id="btnRRC" onclick="abrirModalRRC()">
-                        🏛️ Soporte Renovación RC
+                <div class="export-actions" id="exportActionsContainer">
+                    <button class="btn-secondary large" onclick="generarInforme('parcial')" data-permission-node="btn_informe_parcial">📄 Generar Informe Parcial</button>
+                    <button class="btn-primary large" onclick="generarInforme('final')" data-permission-node="btn_informe_final">🏆 Generar Informe Final</button>
+                    <button class="btn-primary large" onclick="generarInformeIA()" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border:none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);" data-permission-node="btn_informe_ia">* Generar con IA</button>
+                    <button class="btn-primary large" onclick="generarDOFAInterno()" style="background: linear-gradient(135deg, #10b981, #059669); border:none; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);" data-permission-node="btn_dofa_interno">🛡️ Factores DOFA</button>
+                    <button class="btn-primary large" onclick="generarDOFAExterno()" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); border:none; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);" data-permission-node="btn_pesta_externo">🌍 Factores PESTA (Externos)</button>
+                    <button class="btn-rrc" id="btnRRC" onclick="abrirModalRRC()" data-permission-node="btn_soporte_rrc">
+                        💼 Soporte Renovación RC
                     </button>
-                    <button class="btn-secondary large" onclick="imprimirInformeCompleto()" id="btnImprimir" style="display:none;">🖨️ Imprimir / PDF</button>
+                    <button class="btn-secondary large" onclick="imprimirInformeCompleto()" id="btnImprimir" style="display:none;" data-permission-node="btn_imprimir_pdf">🖨️ Imprimir / PDF</button>
                 </div>
             </div>
 
@@ -3405,6 +3405,165 @@ document.addEventListener("DOMContentLoaded", () => {
     if(_b2b) _b2b.style.display = ['admin', 'super_admin', 'empresa_admin'].includes(_r) ? 'block' : 'none';
 });
 <\/script>
+<!-- MODAL PERMISOS -->
+<div class="modal-overlay" id="permisosOverlay">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3>Configurar Permisos de Rol</h3>
+            <button class="close-btn" onclick="cerrarModalPermisos()">×</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 15px; font-size: 0.9rem; color: #64748b;">Selecciona qué roles pueden ver y usar este elemento:</p>
+            <input type="hidden" id="currentPermNodeId">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <label><input type="checkbox" class="perm-role-cb" value="super_admin"> Super Admin</label>
+                <label><input type="checkbox" class="perm-role-cb" value="admin"> Administrador</label>
+                <label><input type="checkbox" class="perm-role-cb" value="lider"> Líder</label>
+                <label><input type="checkbox" class="perm-role-cb" value="operador"> Operador</label>
+                <label><input type="checkbox" class="perm-role-cb" value="docente"> Docente</label>
+                <label><input type="checkbox" class="perm-role-cb" value="estudiante"> Estudiante</label>
+                <label><input type="checkbox" class="perm-role-cb" value="empresa_admin"> Empresa Admin</label>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn-primary" onclick="guardarPermisosNodo()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let _globalPermissions = {};
+    let _permEditMode = false;
+    let _userRole = '';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+        _userRole = user.role || '';
+        
+        // Cargar permisos globales desde la DB
+        try {
+            const instId = getInstId();
+            const progId = getProgramId();
+            const res = await fetch(`/api/permissions/form?inst_id=${instId}&program_id=${progId}`);
+            const data = await res.json();
+            if(data.status === 'success') {
+                _globalPermissions = data.permissions || {};
+            }
+        } catch(e) {
+            console.error("Error al cargar permisos:", e);
+        }
+
+        // Aplicar permisos
+        aplicarPermisosEnUI();
+
+        // Agregar botón de "Modo Edición Permisos" si es super_admin
+        if(_userRole === 'super_admin' || _userRole === 'admin') {
+            const btnPerm = document.createElement('button');
+            btnPerm.className = 'btn-secondary';
+            btnPerm.innerText = '⚙️ Configurar Permisos';
+            btnPerm.style.position = 'fixed';
+            btnPerm.style.bottom = '20px';
+            btnPerm.style.right = '20px';
+            btnPerm.style.zIndex = '9999';
+            btnPerm.onclick = togglePermEditMode;
+            document.body.appendChild(btnPerm);
+        }
+    });
+
+    function aplicarPermisosEnUI() {
+        const nodes = document.querySelectorAll('[data-permission-node]');
+        nodes.forEach(node => {
+            const nodeId = node.getAttribute('data-permission-node');
+            const allowedRoles = _globalPermissions[nodeId];
+            
+            // Si no hay roles configurados, por defecto solo admin/super_admin/lider lo ven (o todos, según el diseño)
+            // Para SIAC, si no hay registro, asumiremos que todos lo ven, EXCEPTO que el código original lo haya bloqueado.
+            if(allowedRoles && allowedRoles.length > 0) {
+                if(!allowedRoles.includes(_userRole) && _userRole !== 'super_admin') {
+                    node.style.display = 'none';
+                } else {
+                    node.style.display = '';
+                }
+            }
+        });
+    }
+
+    function togglePermEditMode() {
+        _permEditMode = !_permEditMode;
+        const nodes = document.querySelectorAll('[data-permission-node]');
+        
+        if(_permEditMode) {
+            Swal.fire('Modo Permisos', 'Haz click sobre cualquier botón/elemento marcado con borde punteado para configurar sus permisos.', 'info');
+            nodes.forEach(node => {
+                node.dataset.originalBorder = node.style.border || '';
+                node.dataset.originalOnclick = node.getAttribute('onclick') || '';
+                node.style.border = '2px dashed #f59e0b';
+                
+                // Override click
+                node.removeAttribute('onclick');
+                node.addEventListener('click', onNodeClickForPerm);
+            });
+        } else {
+            nodes.forEach(node => {
+                node.style.border = node.dataset.originalBorder || '';
+                node.removeEventListener('click', onNodeClickForPerm);
+                if(node.dataset.originalOnclick) {
+                    node.setAttribute('onclick', node.dataset.originalOnclick);
+                }
+            });
+            aplicarPermisosEnUI();
+        }
+    }
+
+    function onNodeClickForPerm(e) {
+        if(!_permEditMode) return;
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const nodeId = e.currentTarget.getAttribute('data-permission-node');
+        abrirModalPermisos(nodeId);
+    }
+
+    function abrirModalPermisos(nodeId) {
+        document.getElementById('currentPermNodeId').value = nodeId;
+        const allowedRoles = _globalPermissions[nodeId] || [];
+        
+        document.querySelectorAll('.perm-role-cb').forEach(cb => {
+            cb.checked = allowedRoles.includes(cb.value);
+        });
+        
+        document.getElementById('permisosOverlay').classList.add('open');
+    }
+
+    function cerrarModalPermisos() {
+        document.getElementById('permisosOverlay').classList.remove('open');
+    }
+
+    async function guardarPermisosNodo() {
+        const nodeId = document.getElementById('currentPermNodeId').value;
+        const selected = [];
+        document.querySelectorAll('.perm-role-cb:checked').forEach(cb => {
+            selected.push(cb.value);
+        });
+        
+        _globalPermissions[nodeId] = selected;
+        
+        try {
+            const instId = getInstId();
+            const progId = getProgramId();
+            await fetch('/api/permissions/form', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ inst_id: instId, program_id: progId, permissions: _globalPermissions })
+            });
+            Swal.fire('Guardado', 'Permisos actualizados para este elemento.', 'success');
+            cerrarModalPermisos();
+        } catch(e) {
+            Swal.fire('Error', 'No se pudieron guardar los permisos', 'error');
+        }
+    }
+</script>
+
 </body>
 </html>
             `);

@@ -1297,3 +1297,49 @@ def get_bot_dataset():
         return jsonify({"status": "success", "data": custom_dataset})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
+
+# --- Permisos de Formularios (Roles Dinámicos) ---
+
+@core_bp.route('/api/permissions/form', methods=['GET'])
+def get_form_permissions():
+    try:
+        inst_id = request.args.get('inst_id', 1, type=int)
+        program_id = request.args.get('program_id', 0, type=int)
+        
+        # Guardaremos los permisos en la tabla statistics con el table_id 'FORM_PERMISSIONS'
+        res = supabase.table('statistics').select("data_json").eq("table_id", "FORM_PERMISSIONS").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
+        
+        if res.data:
+            permissions = json.loads(res.data[0]['data_json']) if isinstance(res.data[0]['data_json'], str) else res.data[0]['data_json']
+            return jsonify({"status": "success", "permissions": permissions})
+        else:
+            return jsonify({"status": "success", "permissions": {}})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+@core_bp.route('/api/permissions/form', methods=['POST'])
+def save_form_permissions():
+    try:
+        payload = request.json
+        inst_id = payload.get('inst_id', 1)
+        program_id = payload.get('program_id', 0)
+        permissions = payload.get('permissions', {})
+        
+        res = supabase.table('statistics').select("id").eq("table_id", "FORM_PERMISSIONS").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
+        
+        if res.data:
+            db_id = res.data[0]['id']
+            supabase.table('statistics').update({
+                "data_json": permissions
+            }).eq("id", db_id).execute()
+        else:
+            supabase.table('statistics').insert({
+                "table_id": "FORM_PERMISSIONS",
+                "data_json": permissions,
+                "inst_id": inst_id,
+                "program_id": program_id
+            }).execute()
+            
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
