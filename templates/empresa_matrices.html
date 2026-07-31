@@ -273,12 +273,12 @@
                     fetch(`/api/business/matrix/MEFI`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ inst_id: instId, data: { factors: mefiData }, user_id: user.id })
+                        body: JSON.stringify({ inst_id: instId, data: { factors: mefiData }, user_id: (JSON.parse(localStorage.getItem('siac_user') || '{}')).id || 1 })
                     }),
                     fetch(`/api/business/matrix/MEFE`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ inst_id: instId, data: { factors: mefeData }, user_id: user.id })
+                        body: JSON.stringify({ inst_id: instId, data: { factors: mefeData }, user_id: (JSON.parse(localStorage.getItem('siac_user') || '{}')).id || 1 })
                     })
                 ]);
                 

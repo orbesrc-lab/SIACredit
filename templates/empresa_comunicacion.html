@@ -203,6 +203,13 @@
         <p>Estructure y gestione los canales, mensajes y frecuencias de comunicación para asegurar el alineamiento estratégico con sus partes interesadas.</p>
     </div>
 
+    <div style="margin-bottom: 20px;">
+        <a href="empresa_dashboard.html" style="display: inline-block; padding: 10px 20px; background: #e2e8f0; color: #334155; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.95rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: background 0.2s;">
+            ⬅️ Volver al Hub Estratégico
+        </a>
+    </div>
+
+
     <div class="input-panel">
         <h3 style="margin-top:0; font-size:1.1rem; border-bottom:1px solid #e2e8f0; padding-bottom:10px; margin-bottom:20px;">Nuevo Protocolo de Comunicación</h3>
         
@@ -348,7 +355,7 @@
         async function saveMatrixData() {
             const payload = {
                 inst_id: getInstId(),
-                user_id: user.id,
+                user_id: (JSON.parse(localStorage.getItem('siac_user') || '{}')).id || 1,
                 data: { communications: communications },
                 results: {}
             };
@@ -365,7 +372,7 @@
                     alert("Error al guardar.");
                 }
             } catch(e) {
-                alert("Error de red.");
+                alert("Error de red: " + e.message);
             }
         }
         
