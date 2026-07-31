@@ -303,19 +303,57 @@
                     fetch(`/api/business/matrix/MEFE?inst_id=${instId}`).then(r => r.json())
                 ]);
 
-                if (mefiRes && mefiRes.data && mefiRes.data.factors) {
-                    mefiData = mefiRes.data.factors;
+                let mefiObj = mefiRes && mefiRes.data ? mefiRes.data : null;
+                if (typeof mefiObj === 'string') { try { mefiObj = JSON.parse(mefiObj); } catch(e){} }
+                
+                let mefeObj = mefeRes && mefeRes.data ? mefeRes.data : null;
+                if (typeof mefeObj === 'string') { try { mefeObj = JSON.parse(mefeObj); } catch(e){} }
+
+                if (mefiObj && mefiObj.factors) {
+                    mefiData = mefiObj.factors.map(f => ({
+                        ...f,
+                        factor: cleanFactorText(f.factor)
+                    }));
+                    if (mefiObj.eval_date && document.getElementById('eval_date')) {
+                        document.getElementById('eval_date').value = mefiObj.eval_date;
+                    }
                 }
-                if (mefeRes && mefeRes.data && mefeRes.data.factors) {
-                    mefeData = mefeRes.data.factors;
+                
+                if (mefeObj && mefeObj.factors) {
+                    mefeData = mefeObj.factors.map(f => ({
+                        ...f,
+                        factor: cleanFactorText(f.factor)
+                    }));
+                    if (mefeObj.eval_date && document.getElementById('eval_date')) {
+                        document.getElementById('eval_date').value = mefeObj.eval_date;
+                    }
                 }
 
                 renderMatrix('mefi', mefiData);
                 renderMatrix('mefe', mefeData);
             } catch (error) {
                 console.error("Error fetching matrices:", error);
-                Swal.fire('Error', 'No se pudieron cargar las matrices guardadas', 'error');
             }
+        }
+
+        function cleanFactorText(text) {
+            if (!text) return "";
+            if (typeof text === 'object') {
+                return text.descripcion || text.description || text.name || JSON.stringify(text);
+            }
+            if (typeof text === 'string' && text.trim().startsWith('{') && text.includes('descripcion')) {
+                try {
+                    // Fix single quotes to double quotes for JSON parsing if needed
+                    const jsonStr = text.replace(/'/g, '"');
+                    const obj = JSON.parse(jsonStr);
+                    return obj.descripcion || obj.description || text;
+                } catch(e) {
+                    // Manual regex match for 'descripcion': '...'
+                    const match = text.match(/'descripcion'\s*:\s*'([^']+)'/);
+                    if (match) return match[1];
+                }
+            }
+            return text;
         }
 
         async function loadFromDOFA() {

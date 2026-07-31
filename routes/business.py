@@ -1,3 +1,10 @@
+def extract_item_name(item):
+    if isinstance(item, str):
+        return item
+    if isinstance(item, dict):
+        return item.get('descripcion') or item.get('description') or item.get('factor') or item.get('name') or str(item)
+    return str(item)
+
 import os
 from flask import Blueprint, jsonify, request
 from utils.db import supabase
@@ -13,11 +20,15 @@ def get_matrix(matrix_type):
         if not inst_id:
             return jsonify({'error': 'inst_id is required'}), 400
             
-        # Modificado para usar la tabla statistics
         res = supabase.table('statistics').select('data_json').eq('inst_id', inst_id).eq('table_id', matrix_type.upper()).order('id', desc=True).limit(1).execute()
         if res.data:
-            # We return data so it mimics the old behavior: {'data': res.data[0]['data_json']}
-            return jsonify({'data': res.data[0]['data_json']})
+            val = res.data[0]['data_json']
+            if isinstance(val, str):
+                try:
+                    val = json.loads(val)
+                except Exception:
+                    pass
+            return jsonify({'data': val})
         else:
             return jsonify({'data': {}})
     except Exception as e:
@@ -244,11 +255,11 @@ def populate_from_dofa_pesta():
             
             for item in forts:
                 # Si item es un string o dict
-                name = item if isinstance(item, str) else item.get('description', str(item))
+                name = extract_item_name(item)
                 fortalezas.append({"name": name, "weight": peso_int, "rating": 3}) # rating default 3 o 4 (fuerte)
                 
             for item in debs:
-                name = item if isinstance(item, str) else item.get('description', str(item))
+                name = extract_item_name(item)
                 debilidades.append({"name": name, "weight": peso_int, "rating": 2}) # rating default 1 o 2 (débil)
                 
         # Parse DOFA EXTERNAL / PESTA (Oportunidades y Amenazas)
