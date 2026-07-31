@@ -28,6 +28,16 @@
         .btn-edit { color: #3b82f6; }
         .btn-delete { color: #ef4444; }
     </style>
+
+    <style id="printStyle">
+        @media print {
+            body * { visibility: hidden !important; }
+            #printSection, #printSection * { visibility: visible !important; }
+            #printSection { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; display: block !important; background: white !important; padding: 20px !important; color: #0f172a !important; font-family: 'Segoe UI', Arial, sans-serif !important; }
+            .no-print { display: none !important; }
+        }
+        #printSection { display: none; }
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
@@ -325,7 +335,17 @@
                     table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
                     th { background-color: #f1f5f9; color: #334155; font-weight: bold; padding: 9px; border: 1px solid #cbd5e1; text-align: left; }
                 </style>
-            </head>
+            
+    <style id="printStyle">
+        @media print {
+            body * { visibility: hidden !important; }
+            #printSection, #printSection * { visibility: visible !important; }
+            #printSection { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; display: block !important; background: white !important; padding: 20px !important; color: #0f172a !important; font-family: 'Segoe UI', Arial, sans-serif !important; }
+            .no-print { display: none !important; }
+        }
+        #printSection { display: none; }
+    </style>
+</head>
             <body>
                 <div class="header">
                     <div>${logoSrc ? `<img src="${logoSrc}" class="logo">` : 'SIAC STRATEGIC'}</div>
@@ -357,9 +377,10 @@
             <\/html>
             `;
 
-            const win = window.open('', '_blank');
-            if (win) { win.document.open(); win.document.write(printHTML); win.document.close(); }
+            // Native print
+            document.getElementById('printSection').innerHTML = printHTML; window.print();
         }
     </script>
+<div id="printSection"></div>
 </body>
 </html>
