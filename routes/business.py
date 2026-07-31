@@ -40,7 +40,7 @@ def save_matrix(matrix_type):
         insert_res = supabase.table('statistics').insert({
             'inst_id': inst_id,
             'table_id': matrix_type.upper(),
-            'program_id': 0,
+            'program_id': None,
             'data_json': data
         }).execute()
 
