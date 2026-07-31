@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
             link.addEventListener('click', (e) => {
                 const href = link.getAttribute('href');
                 // Don't intercept logout or hash links
-                if (href && href !== '#' && !href.startsWith('javascript:')) {
+                if (href && href !== '#' && !href.startsWith('javascript:') && !href.includes('empresa_')) {
                     e.preventDefault();
                     // Keep the emoji out of the title guess if possible, or just pass the text
                     openModuleModal(href, link.textContent.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9 ]/g, '').trim()); 

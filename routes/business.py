@@ -13,13 +13,16 @@ def get_matrix(matrix_type):
         if not inst_id:
             return jsonify({'error': 'inst_id is required'}), 400
             
-        res = supabase.table('business_matrices').select('*').eq('inst_id', inst_id).eq('matrix_type', matrix_type.upper()).execute()
+        # Modificado para usar la tabla statistics
+        res = supabase.table('statistics').select('data').eq('inst_id', inst_id).eq('table_id', matrix_type.upper()).order('id', desc=True).limit(1).execute()
         if res.data:
-            return jsonify(res.data[0])
+            # We return data so it mimics the old behavior: {'data': res.data[0]['data']}
+            return jsonify({'data': res.data[0]['data']})
         else:
             return jsonify({'data': {}})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @business_bp.route('/api/business/matrix/<matrix_type>', methods=['POST'])
 def save_matrix(matrix_type):
@@ -27,44 +30,24 @@ def save_matrix(matrix_type):
         payload = request.json
         inst_id = payload.get('inst_id')
         data = payload.get('data')
-        results = payload.get('results')
-        user_id = payload.get('user_id')
+        results = payload.get('results', {})
         
-        import uuid
-        
-        user_id = payload.get('user_id')
-        if user_id:
-            try:
-                # Validar que sea un UUID
-                uuid.UUID(str(user_id))
-            except ValueError:
-                user_id = None
-                
-        if not inst_id:
-            return jsonify({'error': 'inst_id is required'}), 400
-            
-        res = supabase.table('business_matrices').select('id').eq('inst_id', inst_id).eq('matrix_type', matrix_type.upper()).execute()
-        
-        if res.data:
-            db_id = res.data[0]['id']
-            update_res = supabase.table('business_matrices').update({
-                'data': data,
-                'results': results,
-                'updated_at': 'now()'
-            }).eq('id', db_id).execute()
-            return jsonify({'status': 'success', 'message': 'Matrix updated'})
-        else:
-            insert_res = supabase.table('business_matrices').insert({
-                'inst_id': inst_id,
-                'matrix_type': matrix_type.upper(),
-                'data': data,
-                'results': results,
-                'created_by': user_id
-            }).execute()
-            return jsonify({'status': 'success', 'message': 'Matrix created'})
-            
+        # Combinar results dentro de data si existen para que statistics los guarde todo
+        if results:
+            data['analysis_results'] = results
+
+        # Insert into statistics directly
+        insert_res = supabase.table('statistics').insert({
+            'inst_id': inst_id,
+            'table_id': matrix_type.upper(),
+            'program_id': 0,
+            'data': data
+        }).execute()
+
+        return jsonify({'status': 'success', 'message': 'Matrix updated/inserted in statistics'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @business_bp.route('/api/business/ai_dofa', methods=['POST'])
 def generate_ai_dofa():
