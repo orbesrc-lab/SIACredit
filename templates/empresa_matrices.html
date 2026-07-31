@@ -346,6 +346,7 @@
                             renderMatrix('mefi', mefiData);
                             renderMatrix('mefe', mefeData);
                             Swal.fire('¡Éxito!', 'Matrices pobladas desde DOFA/PESTA.', 'success');
+                            await saveAllMatrices();
                         } else {
                             Swal.fire('Aviso', data.error || 'Ocurrió un error', 'warning');
                         }
