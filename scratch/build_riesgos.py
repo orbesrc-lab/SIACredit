@@ -1,6 +1,6 @@
 import re
 
-base_file = r'c:\SIAC\templates\empresa_dashboard.html'
+base_file = r'c:\SIAC\templates\dofa.html'
 content = open(base_file, encoding='utf-8').read()
 
 parts = content.split('<div class="content-area">')

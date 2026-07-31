@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Gerencial - SKEL SIAC</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        .report-container { padding: 20px; }
+        .report-header { margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .report-header h1 { font-size: 1.8rem; margin-bottom: 8px; color: var(--primary-color); }
+        .report-header p { color: var(--text-muted); font-size: 0.95rem; }
+        
+        .section-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; margin-bottom: 20px; }
+        .section-card h2 { color: #0f172a; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; display: flex; align-items: center; gap: 10px;}
+        
+        textarea.manual-input { width: 100%; min-height: 120px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.95rem; margin-bottom: 10px; resize: vertical; }
+        
+        .ai-result-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 15px; max-height: 300px; overflow-y: auto; }
+        
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap;}
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Minimal Sidebar Integration -->
+        <aside class="sidebar">
+            <div class="sidebar-header" style="justify-content: center; padding: 20px 15px;">
+                <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
+            </div>
+            <div class="sidebar-menu">
+                <a href="dashboard.html" class="sidebar-item">🏠 Volver al Inicio</a>
+                <a href="empresa_dashboard.html" class="sidebar-item active">📊 Informe Gerencial</a>
+                <a href="empresa_matrices.html" class="sidebar-item">🛠️ Matrices (MEFI/MEFE)</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="report-container">
+                <div class="report-header">
+                    <div>
+                        <h1>📑 Informe Gerencial Integral</h1>
+                        <p>Consolidación de percepciones, evidencias, matrices e inteligencia artificial.</p>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn-primary" onclick="guardarInformeGerencial()">💾 Guardar Informe Completo</button>
+                        <button class="btn-secondary" onclick="imprimirInforme()">🖨️ Exportar PDF</button>
+                    </div>
+                </div>
+
+                <!-- Resumen Ejecutivo -->
+                <div class="section-card">
+                    <h2>📝 Resumen Ejecutivo / Percepciones</h2>
+                    <p style="font-size: 0.85rem; color:#64748b; margin-bottom:10px;">Ingrese manualmente el resumen o deje que la IA lo construya basado en la autoevaluación.</p>
+                    <textarea id="resumenEjecutivo" class="manual-input" placeholder="Escriba aquí el resumen ejecutivo..."></textarea>
+                </div>
+
+                <!-- Integración MEFI / DOFA Interno -->
+                <div class="section-card">
+                    <h2>🛡️ Análisis Interno (Fortalezas y Debilidades)</h2>
+                    <p style="font-size: 0.85rem; color:#64748b; margin-bottom:10px;">Datos alimentados desde las matrices MEFI.</p>
+                    <div id="mefiSummary" class="ai-result-box">Cargando datos MEFI...</div>
+                    <textarea id="mefiComentario" class="manual-input" placeholder="Comentarios o conclusiones manuales sobre el ámbito interno..."></textarea>
+                </div>
+
+                <!-- Integración MEFE / PESTA -->
+                <div class="section-card">
+                    <h2>🌍 Análisis Externo (Oportunidades y Amenazas)</h2>
+                    <p style="font-size: 0.85rem; color:#64748b; margin-bottom:10px;">Datos alimentados desde las matrices MEFE y PESTA.</p>
+                    <div id="mefeSummary" class="ai-result-box">Cargando datos MEFE...</div>
+                    <textarea id="mefeComentario" class="manual-input" placeholder="Comentarios o conclusiones manuales sobre el entorno externo..."></textarea>
+                </div>
+
+                
+                <!-- Integración Porter -->
+                <div class="section-card">
+                    <h2>📈 Análisis Competitivo (Porter)</h2>
+                    <p style="font-size: 0.85rem; color:#64748b; margin-bottom:10px;">Presión competitiva e industria.</p>
+                    <div id="porterSummary" class="ai-result-box">Cargando datos de Porter...</div>
+                </div>
+
+                <!-- Integración Riesgos -->
+                <div class="section-card">
+                    <h2>🛡️ Gestión de Riesgos</h2>
+                    <p style="font-size: 0.85rem; color:#64748b; margin-bottom:10px;">Principales riesgos identificados y su criticidad.</p>
+                    <div id="riesgosSummary" class="ai-result-box">Cargando datos de Riesgos...</div>
+                </div>
+                
+                <!-- Integración Stakeholders -->
+                <div class="section-card">
+                    <h2>🤝 Mapeo de Stakeholders</h2>
+                    <p style="font-size: 0.85rem; color:#64748b; margin-bottom:10px;">Grupos de interés clave.</p>
+                    <div id="stakeholdersSummary" class="ai-result-box">Cargando datos de Stakeholders...</div>
+                </div>
+
+                <!-- Conclusión IA -->
+                <div class="section-card">
+                    <h2>🤖 Estrategia Sugerida (IA DOFA Cruzada)</h2>
+                    <div class="btn-group" style="margin-bottom: 15px;">
+                        <button class="btn-primary" onclick="generarEstrategiaIA()" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border:none;">Generar Estrategia con IA</button>
+                    </div>
+                    <div id="aiStrategyContent" class="ai-result-box" style="display:none;"></div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function getInstId() {
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            return user.inst_id || 1;
+        }
+
+        async function init() {
+            await Promise.all([
+                cargarMEFI(),
+                cargarMEFE(),
+                cargarPorter(),
+                cargarRiesgos(),
+                cargarStakeholders(),
+                cargarInformeGuardado()
+            ]);
+        }
+
+        
+        async function cargarPorter() {
+            try {
+                const res = await fetch(`/api/business/matrix/PORTER?inst_id=${getInstId()}`);
+                const data = await res.json();
+                const container = document.getElementById('porterSummary');
+                if(data && data.data && data.data.analysis && data.data.analysis.scores) {
+                    let html = '<ul>';
+                    data.data.analysis.scores.forEach(s => {
+                        html += `<li><strong>${s.force}:</strong> Presión ${s.score}/10 - ${s.description}</li>`;
+                    });
+                    html += '</ul>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<i>No se encontró análisis de Porter configurado.</i>';
+                }
+            } catch(e) { document.getElementById('porterSummary').innerText = 'Error cargando Porter'; }
+        }
+
+        async function cargarRiesgos() {
+            try {
+                const res = await fetch(`/api/business/matrix/RIESGOS?inst_id=${getInstId()}`);
+                const data = await res.json();
+                const container = document.getElementById('riesgosSummary');
+                if(data && data.data && data.data.risks) {
+                    let html = '<ul>';
+                    data.data.risks.forEach(r => {
+                        html += `<li><strong>${r.categoria}:</strong> ${r.descripcion} (Impacto: ${r.impacto}, Probabilidad: ${r.probabilidad})</li>`;
+                    });
+                    html += '</ul>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<i>No se encontraron riesgos configurados.</i>';
+                }
+            } catch(e) { document.getElementById('riesgosSummary').innerText = 'Error cargando Riesgos'; }
+        }
+
+        async function cargarStakeholders() {
+            try {
+                const res = await fetch(`/api/business/matrix/STAKEHOLDERS?inst_id=${getInstId()}`);
+                const data = await res.json();
+                const container = document.getElementById('stakeholdersSummary');
+                if(data && data.data && data.data.stakeholders) {
+                    let html = '<ul>';
+                    data.data.stakeholders.forEach(s => {
+                        html += `<li><strong>${s.nombre}:</strong> Poder ${s.poder}, Interés ${s.interes} - ${s.estrategia}</li>`;
+                    });
+                    html += '</ul>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<i>No se encontraron stakeholders configurados.</i>';
+                }
+            } catch(e) { document.getElementById('stakeholdersSummary').innerText = 'Error cargando Stakeholders'; }
+        }
+
+        async function cargarMEFI() {
+            try {
+                const res = await fetch(`/api/business/matrix/MEFI?inst_id=${getInstId()}`);
+                const data = await res.json();
+                const container = document.getElementById('mefiSummary');
+                if(data && data.data && data.data.factors) {
+                    let html = '<ul>';
+                    data.data.factors.forEach(f => {
+                        html += `<li><strong>${f.type.toUpperCase()}:</strong> ${f.factor} (Peso: ${f.weight}, Rating: ${f.rating})</li>`;
+                    });
+                    html += '</ul>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<i>No se encontró matriz MEFI configurada.</i>';
+                }
+            } catch(e) {
+                document.getElementById('mefiSummary').innerText = 'Error cargando MEFI';
+            }
+        }
+
+        async function cargarMEFE() {
+            try {
+                const res = await fetch(`/api/business/matrix/MEFE?inst_id=${getInstId()}`);
+                const data = await res.json();
+                const container = document.getElementById('mefeSummary');
+                if(data && data.data && data.data.factors) {
+                    let html = '<ul>';
+                    data.data.factors.forEach(f => {
+                        html += `<li><strong>${f.type.toUpperCase()}:</strong> ${f.factor} (Peso: ${f.weight}, Rating: ${f.rating})</li>`;
+                    });
+                    html += '</ul>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<i>No se encontró matriz MEFE configurada.</i>';
+                }
+            } catch(e) {
+                document.getElementById('mefeSummary').innerText = 'Error cargando MEFE';
+            }
+        }
+
+        async function generarEstrategiaIA() {
+            Swal.fire({ title: 'Generando estrategia...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            try {
+                const res = await fetch('/api/business/ai_informe_gerencial', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ inst_id: getInstId() })
+                });
+                const data = await res.json();
+                if(res.ok && data.status === 'success') {
+                    document.getElementById('aiStrategyContent').style.display = 'block';
+                    document.getElementById('aiStrategyContent').innerHTML = marked.parse(data.analysis);
+                    Swal.close();
+                } else {
+                    Swal.fire('Error', data.error || 'No se pudo generar', 'error');
+                }
+            } catch(e) {
+                Swal.fire('Error', 'Fallo de conexión', 'error');
+            }
+        }
+
+        async function guardarInformeGerencial() {
+            const dataToSave = {
+                resumen: document.getElementById('resumenEjecutivo').value,
+                mefi_comentario: document.getElementById('mefiComentario').value,
+                mefe_comentario: document.getElementById('mefeComentario').value,
+                estrategia_ia: document.getElementById('aiStrategyContent').innerHTML
+            };
+
+            try {
+                // Usamos la tabla statistics para guardar este reporte
+                await fetch('/api/estadisticas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        inst_id: getInstId(),
+                        program_id: 0,
+                        table_id: 'INFORME_GERENCIAL',
+                        data: dataToSave
+                    })
+                });
+                Swal.fire('Guardado', 'Informe Gerencial guardado exitosamente', 'success');
+            } catch(e) {
+                Swal.fire('Error', 'No se pudo guardar', 'error');
+            }
+        }
+
+        async function cargarInformeGuardado() {
+            try {
+                const res = await fetch(`/api/estadisticas?table_id=INFORME_GERENCIAL&inst_id=${getInstId()}&program_id=0`);
+                const data = await res.json();
+                if(data && data.data) {
+                    document.getElementById('resumenEjecutivo').value = data.data.resumen || '';
+                    document.getElementById('mefiComentario').value = data.data.mefi_comentario || '';
+                    document.getElementById('mefeComentario').value = data.data.mefe_comentario || '';
+                    if(data.data.estrategia_ia) {
+                        document.getElementById('aiStrategyContent').style.display = 'block';
+                        document.getElementById('aiStrategyContent').innerHTML = data.data.estrategia_ia;
+                    }
+                }
+            } catch(e) {
+                console.warn("No hay informe anterior guardado.");
+            }
+        }
+
+        function imprimirInforme() {
+            window.print();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
