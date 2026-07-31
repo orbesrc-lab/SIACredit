@@ -1,9 +1,11 @@
-<!DOCTYPE html>
+import os
+
+file_content = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matriz de Comunicación - SKEL SIAC</title>
+    <title>Matriz de Stakeholders - SKEL SIAC</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -63,8 +65,8 @@
             <div class="content-area">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 15px;">
                     <div>
-                        <h1 style="margin:0; font-size:1.6rem; color:#0f172a;">📢 Plan y Matriz de Comunicación</h1>
-                        <p style="margin:5px 0 0; color:#64748b; font-size:0.9rem;">Definición de canales, públicos objetivo, frecuencias y responsables.</p>
+                        <h1 style="margin:0; font-size:1.6rem; color:#0f172a;">👥 Matriz de Stakeholders (Partes Interesadas)</h1>
+                        <p style="margin:5px 0 0; color:#64748b; font-size:0.9rem;">Mapeo de expectativas, poder e interés de actores clave.</p>
                     </div>
                     <a href="empresa_dashboard.html" class="btn-action btn-back"><i class="fas fa-arrow-left"></i> Volver al Hub Estratégico</a>
                 </div>
@@ -76,46 +78,50 @@
 
                 <!-- Form Card -->
                 <div class="form-card">
-                    <h3 id="formTitle" style="margin-top:0; color:#1e3a8a; font-size:1.1rem; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">Agregar Elemento de Comunicación</h3>
+                    <h3 id="formTitle" style="margin-top:0; color:#1e3a8a; font-size:1.1rem; border-bottom:2px solid #e2e8f0; padding-bottom:8px;">Agregar Parte Interesada</h3>
                     <input type="hidden" id="editIndex" value="-1">
                     <div class="form-grid">
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>¿Qué comunicar? (Tema / Información) *</label>
-                            <input type="text" id="c_que" placeholder="Ej. Avances del Plan Estratégico, Nuevos Servicios, Políticas...">
+                        <div class="form-group">
+                            <label>Grupo de Interés / Actor *</label>
+                            <input type="text" id="s_grupo" placeholder="Ej. Estudiantes, Estudiantes Egresados, Empleadores...">
                         </div>
                         <div class="form-group">
-                            <label>¿A quién? (Público Objetivo) *</label>
-                            <input type="text" id="c_a_quien" placeholder="Ej. Estudiantes, Docentes, Aliados...">
-                        </div>
-                        <div class="form-group">
-                            <label>Canal / Medio *</label>
-                            <input type="text" id="c_como" placeholder="Ej. Correo masivo, Intranet, Boletín mensual...">
-                        </div>
-                        <div class="form-group">
-                            <label>Frecuencia *</label>
-                            <select id="c_frecuencia">
-                                <option value="Semanal">Semanal</option>
-                                <option value="Quincenal">Quincenal</option>
-                                <option value="Mensual" selected>Mensual</option>
-                                <option value="Trimestral">Trimestral</option>
-                                <option value="Semestral">Semestral</option>
-                                <option value="Anual">Anual</option>
-                                <option value="Según necesidad">Según necesidad</option>
+                            <label>Poder (1 a 5)</label>
+                            <select id="s_poder">
+                                <option value="5">5 - Muy Alto</option>
+                                <option value="4">4 - Alto</option>
+                                <option value="3" selected>3 - Medio</option>
+                                <option value="2">2 - Bajo</option>
+                                <option value="1">1 - Muy Bajo</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Responsable *</label>
-                            <input type="text" id="c_responsable" placeholder="Ej. Oficina de Comunicaciones, Dirección...">
+                            <label>Interés (1 a 5)</label>
+                            <select id="s_interes">
+                                <option value="5">5 - Muy Alto</option>
+                                <option value="4">4 - Alto</option>
+                                <option value="3" selected>3 - Medio</option>
+                                <option value="2">2 - Bajo</option>
+                                <option value="1">1 - Muy Bajo</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Expectativas / Necesidades Clave *</label>
+                            <input type="text" id="s_expectativas" placeholder="Ej. Calidad académica, alta empleabilidad, comunicación clara...">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Estrategia de Gestión / Relacionamiento *</label>
+                            <input type="text" id="s_estrategia" placeholder="Ej. Mantener satisfecho, involucrar activamente en comités...">
                         </div>
                     </div>
                     <div style="display:flex; gap:10px;">
-                        <button class="btn-action btn-add" id="btnAdd" onclick="saveCommForm()"><i class="fas fa-plus"></i> Agregar a la Tabla</button>
+                        <button class="btn-action btn-add" id="btnAdd" onclick="saveStakeholderForm()"><i class="fas fa-plus"></i> Agregar a la Tabla</button>
                         <button class="btn-action btn-back" id="btnCancelEdit" onclick="resetForm()" style="display:none;">Cancelar Edición</button>
                     </div>
                 </div>
 
                 <div class="action-bar">
-                    <button class="btn-action btn-save" onclick="saveAllComms()"><i class="fas fa-save"></i> Guardar Todo en Base de Datos</button>
+                    <button class="btn-action btn-save" onclick="saveAllStakeholders()"><i class="fas fa-save"></i> Guardar Todo en Base de Datos</button>
                     <button class="btn-action btn-pdf" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> Descargar Informe PDF</button>
                 </div>
 
@@ -124,16 +130,16 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>¿Qué comunicar?</th>
-                                <th>Público Objetivo</th>
-                                <th>Canal / Medio</th>
-                                <th style="width: 110px; text-align:center;">Frecuencia</th>
-                                <th>Responsable</th>
+                                <th>Grupo de Interés</th>
+                                <th>Expectativas / Necesidades</th>
+                                <th style="width: 90px; text-align:center;">Poder</th>
+                                <th style="width: 90px; text-align:center;">Interés</th>
+                                <th>Estrategia de Relacionamiento</th>
                                 <th style="width: 90px; text-align:center;">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody id="commTableBody">
-                            <tr><td colspan="6" style="text-align:center; color:#64748b;">No hay elementos registrados. Ingrese uno arriba.</td></tr>
+                        <tbody id="stakeholderTableBody">
+                            <tr><td colspan="6" style="text-align:center; color:#64748b;">No hay partes interesadas registradas. Ingrese una arriba.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -143,13 +149,13 @@
 
     <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script>
-        let commsList = [];
+        let stakeholdersList = [];
 
         function logout() { localStorage.removeItem('siac_user'); window.top.location.href = 'login.html'; }
 
         document.addEventListener('DOMContentLoaded', async () => {
             await initHeader();
-            await loadComms();
+            await loadStakeholders();
         });
 
         async function initHeader() {
@@ -167,75 +173,75 @@
         }
 
         function renderTable() {
-            const tbody = document.getElementById('commTableBody');
-            if (commsList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">No hay elementos de comunicación registrados.</td></tr>';
+            const tbody = document.getElementById('stakeholderTableBody');
+            if (stakeholdersList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">No hay partes interesadas registradas.</td></tr>';
                 return;
             }
-            tbody.innerHTML = commsList.map((c, idx) => `
+            tbody.innerHTML = stakeholdersList.map((s, idx) => `
                 <tr>
-                    <td><strong>${c.que}</strong></td>
-                    <td>${c.a_quien}</td>
-                    <td>${c.como}</td>
-                    <td style="text-align:center;">${c.frecuencia}</td>
-                    <td>${c.responsable}</td>
+                    <td><strong>${s.grupo}</strong></td>
+                    <td>${s.expectativas}</td>
+                    <td style="text-align:center;">${s.poder} / 5</td>
+                    <td style="text-align:center;">${s.interes} / 5</td>
+                    <td>${s.estrategia}</td>
                     <td style="text-align:center;">
-                        <button class="btn-icon btn-edit" onclick="editComm(${idx})" title="Editar"><i class="fas fa-edit"></i></button>
-                        <button class="btn-icon btn-delete" onclick="deleteComm(${idx})" title="Eliminar"><i class="fas fa-trash"></i></button>
+                        <button class="btn-icon btn-edit" onclick="editStakeholder(${idx})" title="Editar"><i class="fas fa-edit"></i></button>
+                        <button class="btn-icon btn-delete" onclick="deleteStakeholder(${idx})" title="Eliminar"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        function saveCommForm() {
-            const que = document.getElementById('c_que').value.trim();
-            const a_quien = document.getElementById('c_a_quien').value.trim();
-            const como = document.getElementById('c_como').value.trim();
-            const frecuencia = document.getElementById('c_frecuencia').value;
-            const responsable = document.getElementById('c_responsable').value.trim();
+        function saveStakeholderForm() {
+            const grupo = document.getElementById('s_grupo').value.trim();
+            const expectativas = document.getElementById('s_expectativas').value.trim();
+            const poder = document.getElementById('s_poder').value;
+            const interes = document.getElementById('s_interes').value;
+            const estrategia = document.getElementById('s_estrategia').value.trim();
             const editIdx = parseInt(document.getElementById('editIndex').value);
 
-            if (!que || !a_quien || !como || !responsable) {
-                Swal.fire('Atención', 'Por favor complete todos los campos requeridos.', 'warning');
+            if (!grupo || !expectativas || !estrategia) {
+                Swal.fire('Atención', 'Por favor ingrese el grupo, las expectativas y la estrategia.', 'warning');
                 return;
             }
 
-            const item = { que, a_quien, como, frecuencia, responsable };
+            const item = { grupo, expectativas, poder, interes, estrategia };
 
             if (editIdx >= 0) {
-                commsList[editIdx] = item;
+                stakeholdersList[editIdx] = item;
             } else {
-                commsList.push(item);
+                stakeholdersList.push(item);
             }
 
             resetForm();
             renderTable();
         }
 
-        function editComm(idx) {
-            const c = commsList[idx];
+        function editStakeholder(idx) {
+            const s = stakeholdersList[idx];
             document.getElementById('editIndex').value = idx;
-            document.getElementById('c_que').value = c.que;
-            document.getElementById('c_a_quien').value = c.a_quien;
-            document.getElementById('c_como').value = c.como;
-            document.getElementById('c_frecuencia').value = c.frecuencia;
-            document.getElementById('c_responsable').value = c.responsable;
+            document.getElementById('s_grupo').value = s.grupo;
+            document.getElementById('s_expectativas').value = s.expectativas;
+            document.getElementById('s_poder').value = s.poder;
+            document.getElementById('s_interes').value = s.interes;
+            document.getElementById('s_estrategia').value = s.estrategia;
 
-            document.getElementById('formTitle').textContent = 'Editar Elemento #' + (idx + 1);
+            document.getElementById('formTitle').textContent = 'Editar Parte Interesada #' + (idx + 1);
             document.getElementById('btnAdd').innerHTML = '<i class="fas fa-check"></i> Actualizar Elemento';
             document.getElementById('btnCancelEdit').style.display = 'inline-flex';
         }
 
-        function deleteComm(idx) {
+        function deleteStakeholder(idx) {
             Swal.fire({
-                title: '¿Eliminar elemento?',
-                text: 'Esta acción eliminará el elemento de la matriz.',
+                title: '¿Eliminar parte interesada?',
+                text: 'Esta acción eliminará el elemento de la lista.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sí, eliminar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    commsList.splice(idx, 1);
+                    stakeholdersList.splice(idx, 1);
                     renderTable();
                 }
             });
@@ -243,25 +249,24 @@
 
         function resetForm() {
             document.getElementById('editIndex').value = -1;
-            document.getElementById('c_que').value = '';
-            document.getElementById('c_a_quien').value = '';
-            document.getElementById('c_como').value = '';
-            document.getElementById('c_responsable').value = '';
-            document.getElementById('formTitle').textContent = 'Agregar Elemento de Comunicación';
+            document.getElementById('s_grupo').value = '';
+            document.getElementById('s_expectativas').value = '';
+            document.getElementById('s_estrategia').value = '';
+            document.getElementById('formTitle').textContent = 'Agregar Parte Interesada';
             document.getElementById('btnAdd').innerHTML = '<i class="fas fa-plus"></i> Agregar a la Tabla';
             document.getElementById('btnCancelEdit').style.display = 'none';
         }
 
-        async function loadComms() {
+        async function loadStakeholders() {
             try {
-                const res = await fetch(`/api/business/matrix/COMUNICACION?inst_id=${getInstId()}`);
+                const res = await fetch(`/api/business/matrix/STAKEHOLDERS?inst_id=${getInstId()}`);
                 if (res.ok) {
                     const data = await res.json();
                     let dbData = data.data;
                     if (typeof dbData === 'string') { try { dbData = JSON.parse(dbData); } catch(e){} }
 
-                    if (dbData && dbData.communications) {
-                        commsList = dbData.communications;
+                    if (dbData && dbData.stakeholders) {
+                        stakeholdersList = dbData.stakeholders;
                         renderTable();
                     }
                     if (dbData && dbData.eval_date) {
@@ -271,22 +276,22 @@
             } catch(e) { console.error(e); }
         }
 
-        async function saveAllComms() {
+        async function saveAllStakeholders() {
             const evalDate = document.getElementById('eval_date').value;
             try {
-                const res = await fetch('/api/business/matrix/COMUNICACION', {
+                const res = await fetch('/api/business/matrix/STAKEHOLDERS', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         inst_id: getInstId(),
-                        data: { communications: commsList, eval_date: evalDate }
+                        data: { stakeholders: stakeholdersList, eval_date: evalDate }
                     })
                 });
                 if (res.ok) {
-                    Swal.fire('¡Éxito!', 'Matriz de Comunicación guardada correctamente.', 'success');
+                    Swal.fire('¡Éxito!', 'Matriz de Stakeholders guardada correctamente.', 'success');
                 }
             } catch(e) {
-                Swal.fire('Error', 'No se pudieron guardar las comunicaciones.', 'error');
+                Swal.fire('Error', 'No se pudo guardar la información.', 'error');
             }
         }
 
@@ -296,13 +301,13 @@
             const instName = document.getElementById('inst_name_display').textContent || 'INSTITUCIÓN EDUCATIVA';
             const evalDate = document.getElementById('eval_date').value || 'No especificada';
 
-            let rows = commsList.map(c => `
+            let rows = stakeholdersList.map(s => `
                 <tr>
-                    <td style="padding:8px; border:1px solid #cbd5e1;"><strong>${c.que}</strong></td>
-                    <td style="padding:8px; border:1px solid #cbd5e1;">${c.a_quien}</td>
-                    <td style="padding:8px; border:1px solid #cbd5e1;">${c.como}</td>
-                    <td style="padding:8px; border:1px solid #cbd5e1; text-align:center;">${c.frecuencia}</td>
-                    <td style="padding:8px; border:1px solid #cbd5e1;">${c.responsable}</td>
+                    <td style="padding:8px; border:1px solid #cbd5e1;"><strong>${s.grupo}</strong></td>
+                    <td style="padding:8px; border:1px solid #cbd5e1;">${s.expectativas}</td>
+                    <td style="padding:8px; border:1px solid #cbd5e1; text-align:center;">${s.poder} / 5</td>
+                    <td style="padding:8px; border:1px solid #cbd5e1; text-align:center;">${s.interes} / 5</td>
+                    <td style="padding:8px; border:1px solid #cbd5e1;">${s.estrategia}</td>
                 </tr>
             `).join('');
 
@@ -311,7 +316,7 @@
             <html>
             <head>
                 <meta charset="utf-8">
-                <title>Informe Matriz de Comunicación - ${instName}</title>
+                <title>Informe Matriz de Stakeholders - ${instName}</title>
                 <style>
                     body { font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; padding: 30px; }
                     .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #2563eb; padding-bottom: 15px; margin-bottom: 20px; }
@@ -329,29 +334,29 @@
                     <div class="inst-name">${instName}</div>
                 </div>
 
-                <div class="report-title">INFORME DE MATRIZ DE COMUNICACIÓN</div>
+                <div class="report-title">INFORME DE MATRIZ DE STAKEHOLDERS</div>
                 <div class="meta-info">📅 Fecha de Levantamiento de Información: <strong>${evalDate}</strong></div>
 
                 <table>
                     <thead>
                         <tr>
-                            <th>¿Qué comunicar?</th>
-                            <th>Público Objetivo</th>
-                            <th>Canal / Medio</th>
-                            <th style="width: 100px; text-align:center;">Frecuencia</th>
-                            <th>Responsable</th>
+                            <th>Grupo de Interés</th>
+                            <th>Expectativas / Necesidades</th>
+                            <th style="width: 80px; text-align:center;">Poder</th>
+                            <th style="width: 80px; text-align:center;">Interés</th>
+                            <th>Estrategia de Relacionamiento</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${rows || '<tr><td colspan="5" style="text-align:center;">Sin elementos de comunicación registrados</td></tr>'}
+                        ${rows || '<tr><td colspan="5" style="text-align:center;">Sin partes interesadas registradas</td></tr>'}
                     </tbody>
                 </table>
 
                 <script>
                     window.onload = function() { setTimeout(() => { window.print(); }, 500); };
-                <\/script>
-            <\/body>
-            <\/html>
+                <\\/script>
+            <\\/body>
+            <\\/html>
             `;
 
             const win = window.open('', '_blank');
@@ -360,3 +365,9 @@
     </script>
 </body>
 </html>
+"""
+
+with open(r'c:\SIAC\templates\empresa_stakeholders.html', 'w', encoding='utf-8') as f:
+    f.write(file_content)
+
+print("empresa_stakeholders.html rewritten successfully!")

@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+import os
+
+file_content = """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -349,9 +351,9 @@
 
                 <script>
                     window.onload = function() { setTimeout(() => { window.print(); }, 500); };
-                <\/script>
-            <\/body>
-            <\/html>
+                <\\/script>
+            <\\/body>
+            <\\/html>
             `;
 
             const win = window.open('', '_blank');
@@ -360,3 +362,9 @@
     </script>
 </body>
 </html>
+"""
+
+with open(r'c:\SIAC\templates\empresa_comunicacion.html', 'w', encoding='utf-8') as f:
+    f.write(file_content)
+
+print("empresa_comunicacion.html rewritten successfully!")
