@@ -987,9 +987,32 @@
                     <div class="form-group"><label>Peso (%)</label><input type="number" id="f_weight" value="${data.weight_percentage || 0}" min="0" max="100"></div>
                 `;
             } else if(type === 'gen_obj') {
+                let alignVal = data.alignment_pdi || '';
+                let isoProc = '';
+                if(alignVal.startsWith('[ISO: ')) {
+                    let endIdx = alignVal.indexOf(']');
+                    if(endIdx !== -1) {
+                        isoProc = alignVal.substring(6, endIdx);
+                        alignVal = alignVal.substring(endIdx + 1).trim();
+                    }
+                }
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
-                    <div class="form-group"><label>Alineación (PDI)</label><input type="text" id="f_align" value="${escHtml(data.alignment_pdi || '')}"></div>
+                    <div class="form-group"><label>Descripción del Objetivo General</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
+                    <div class="form-group">
+                        <label><i class="fas fa-sitemap" style="color:#2563eb;"></i> 📍 Articular a Proceso del Mapa ISO 9001</label>
+                        <select id="f_iso_process" class="form-control" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
+                            <option value="">-- Seleccionar Proceso ISO 9001 --</option>
+                            <option value="Gestión de la Dirección" ${isoProc === 'Gestión de la Dirección' ? 'selected' : ''}>Gestión de la Dirección (Estratégico)</option>
+                            <option value="Aseguramiento de Calidad y Riesgos" ${isoProc === 'Aseguramiento de Calidad y Riesgos' ? 'selected' : ''}>Aseguramiento de Calidad y Riesgos (Estratégico)</option>
+                            <option value="Gestión Académica y Docencia" ${isoProc === 'Gestión Académica y Docencia' ? 'selected' : ''}>Gestión Académica y Docencia (Misional)</option>
+                            <option value="Investigación e Innovación" ${isoProc === 'Investigación e Innovación' ? 'selected' : ''}>Investigación e Innovación (Misional)</option>
+                            <option value="Proyección Social y Extensión" ${isoProc === 'Proyección Social y Extensión' ? 'selected' : ''}>Proyección Social y Extensión (Misional)</option>
+                            <option value="Gestión del Talento Humano" ${isoProc === 'Gestión del Talento Humano' ? 'selected' : ''}>Gestión del Talento Humano (Apoyo)</option>
+                            <option value="Tecnología y Sistemas (TI)" ${isoProc === 'Tecnología y Sistemas (TI)' ? 'selected' : ''}>Tecnología y Sistemas (TI) (Apoyo)</option>
+                            <option value="Gestión Financiera" ${isoProc === 'Gestión Financiera' ? 'selected' : ''}>Gestión Financiera (Apoyo)</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Alineación (PDI / Plan)</label><input type="text" id="f_align" value="${escHtml(alignVal)}"></div>
                 `;
             } else if(type === 'spec_obj') {
                 body.innerHTML = `
@@ -1035,8 +1058,22 @@
             } else if(type === 'gen_obj') {
                 title.textContent = 'Nuevo Objetivo General';
                 body.innerHTML = `
-                    <div class="form-group"><label>Descripción</label><textarea id="f_desc" rows="3"></textarea></div>
-                    <div class="form-group"><label>Alineación (PDI)</label><input type="text" id="f_align" placeholder="Opcional"></div>
+                    <div class="form-group"><label>Descripción del Objetivo General</label><textarea id="f_desc" rows="3" placeholder="Ej: Fortalecer la calidad docente mediante..."></textarea></div>
+                    <div class="form-group">
+                        <label><i class="fas fa-sitemap" style="color:#2563eb;"></i> 📍 Articular a Proceso del Mapa ISO 9001</label>
+                        <select id="f_iso_process" class="form-control" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
+                            <option value="">-- Seleccionar Proceso ISO 9001 --</option>
+                            <option value="Gestión de la Dirección">Gestión de la Dirección (Estratégico)</option>
+                            <option value="Aseguramiento de Calidad y Riesgos">Aseguramiento de Calidad y Riesgos (Estratégico)</option>
+                            <option value="Gestión Académica y Docencia">Gestión Académica y Docencia (Misional)</option>
+                            <option value="Investigación e Innovación">Investigación e Innovación (Misional)</option>
+                            <option value="Proyección Social y Extensión">Proyección Social y Extensión (Misional)</option>
+                            <option value="Gestión del Talento Humano">Gestión del Talento Humano (Apoyo)</option>
+                            <option value="Tecnología y Sistemas (TI)">Tecnología y Sistemas (TI) (Apoyo)</option>
+                            <option value="Gestión Financiera">Gestión Financiera (Apoyo)</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Alineación (PDI / Plan)</label><input type="text" id="f_align" placeholder="Opcional"></div>
                 `;
             } else if(type === 'spec_obj') {
                 title.textContent = 'Nuevo Objetivo Específico';
@@ -1085,7 +1122,10 @@
                 payload.weight_percentage = document.getElementById('f_weight') ? document.getElementById('f_weight').value || 0 : 0;
                 payload.quadrant = 'MANUAL';
             } else if(currentNodeType === 'gen_obj') {
-                payload.alignment_pdi = document.getElementById('f_align') ? document.getElementById('f_align').value || '' : '';
+                let pdiVal = document.getElementById('f_align') ? document.getElementById('f_align').value || '' : '';
+                let isoProcSelect = document.getElementById('f_iso_process') ? document.getElementById('f_iso_process').value : '';
+                if(isoProcSelect) { pdiVal = `[ISO: ${isoProcSelect}] ` + pdiVal; }
+                payload.alignment_pdi = pdiVal;
             } else if(currentNodeType === 'spec_obj') {
                 payload.weight_percentage = document.getElementById('f_weight') ? document.getElementById('f_weight').value || 0 : 0;
                 payload.indicator_type = document.getElementById('f_ind_type') ? document.getElementById('f_ind_type').value || '' : '';
