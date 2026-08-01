@@ -769,6 +769,340 @@
 
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
+
+        // ===== CHART & FACTOR HELPERS =====
+        // Contador único para IDs de canvas en el informe
+        let _chartCounter = 0;
+        const _informeCharts = {};
+        // Queue for deferred chart builds (must run AFTER innerHTML is set)
+        let _pendingCharts = [];
+
+        function _mkCanvas(id) {
+            return `<div class="informe-chart-canvas-wrap"><canvas id="${id}"></canvas></div>`;
+        }
+
+        function _buildChart(canvasId, config) {
+            // Enqueue — charts will be drawn AFTER detalleDiv.innerHTML is set
+            _pendingCharts.push({ canvasId, config });
+        }
+
+        function _flushCharts() {
+            // Flush all pending chart builds after HTML is in the DOM
+            const pending = _pendingCharts.slice();
+            _pendingCharts = [];
+            requestAnimationFrame(() => {
+                pending.forEach(({ canvasId, config }) => {
+                    try {
+                        const el = document.getElementById(canvasId);
+                        if (!el) return;
+                        if (_informeCharts[canvasId]) { try { _informeCharts[canvasId].destroy(); } catch(e){} }
+                        _informeCharts[canvasId] = new Chart(el.getContext('2d'), config);
+                    } catch(e) { console.warn('Chart error for', canvasId, e); }
+                });
+            });
+        }
+
+        // ----- AI Analysis helper -----
+        function renderAIAnalysisPorFactor(cuadros, ...keys) {
+            // Busca la primera clave que tenga análisis de IA guardado
+            for (const key of keys) {
+                const txt = cuadros[`ai_analysis_${key}`];
+                if (txt && txt.trim()) {
+                    return `
+                    <div class="informe-ai-block">
+                        <h5>* Análisis de IA — Par Académico CNA</h5>
+                        <div class="ai-md-content">${(function(){ try { return marked ? marked.parse(txt) : txt.replace(/\n/g,'<br>'); } catch(e){ return txt.replace(/\n/g,'<br>'); } })()}</div>
+                    </div>`;
+                }
+            }
+            return '';
+        }
+
+        // ----- Análisis IA de cuadros de estadísticas (estadisticas.html) -----
+        function renderAIAnalisisEstadisticas(cuadros) {
+            const statsKeys = [
+                'table_estudiantes','table_docentes','table_desercion',
+                'table_vinculacion_docente','table_investigacion',
+                'table_productividad','table_extension','table_infraestructura'
+            ];
+            const labels = {
+                'table_estudiantes': 'Población Estudiantil',
+                'table_docentes': 'Formación Docente',
+                'table_desercion': 'Deserción y Retención',
+                'table_vinculacion_docente': 'Vinculación Docente',
+                'table_investigacion': 'Grupos de Investigación',
+                'table_productividad': 'Productividad Académica',
+                'table_extension': 'Extensión e Impacto Social',
+                'table_infraestructura': 'Infraestructura y Medios'
+            };
+            let result = '';
+            for (const k of statsKeys) {
+                const txt = cuadros[`ai_analysis_${k}`];
+                if (txt && txt.trim()) {
+                    result += `
+                    <div class="informe-ai-block" style="margin-bottom:10px;">
+                        <h5>* IA — ${labels[k] || k}</h5>
+                        <div class="ai-md-content">${marked ? marked.parse(txt) : txt.replace(/\n/g,'<br>')}</div>
+                    </div>`;
+                }
+            }
+            return result;
+        }
+
+        // ----------------------------------------------------------------
+        // PROFESORES — Factor 3/4
+        // ----------------------------------------------------------------
+        function renderCuadrosProfesores(cuadros) {
+            let dt = cuadros['factor4_profesores'] || cuadros['factor3_profesores'];
+            if (!dt) return '';
+            const cid = `inf_chart_prof_${++_chartCounter}`;
+            let html = `<p class="cuadros-section-title"> Cuadros — Comunidad de Profesores</p>`;
+
+            if (dt.profesores && dt.profesores.length > 0) {
+                html += `
+                <table class="data-grid-table">
+                  <thead><tr><th>Período</th><th>Nombre</th><th>Dedicación</th><th>Formación</th><th>Años Exp.</th></tr></thead>
+                  <tbody>${dt.profesores.map(p=>`<tr><td>${p.periodo||'-'}</td><td>${p.nombre||'-'}</td><td>${p.dedicacion||'-'}</td><td>${p.formacion||'-'}</td><td>${p.exp||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+
+                // Gráfica dedicación
+                const dedicaciones = {};
+                dt.profesores.forEach(p => {
+                    const d = p.dedicacion || 'Sin dato';
+                    dedicaciones[d] = (dedicaciones[d]||0) + 1;
+                });
+                html += `<div class="informe-chart-wrap"><h5> Distribución por tipo de dedicación</h5>${_mkCanvas(cid)}</div>`;
+                _buildChart(cid, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(dedicaciones),
+                        datasets: [{ label: 'Docentes', data: Object.values(dedicaciones), backgroundColor: ['#2563eb','#10b981','#f59e0b','#8b5cf6','#ef4444'] }]
+                    },
+                    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, title:{display:true, text:'Docentes por tipo de vinculación'} } }
+                });
+            }
+            // IA de estadísticas de docentes
+            html += renderAIAnalysisPorFactor(cuadros, 'factor4_profesores', 'factor3_profesores', 'table_docentes', 'table_vinculacion_docente');
+            return html;
+        }
+
+        // ----------------------------------------------------------------
+        // CURRICULAR — Factor 5
+        // ----------------------------------------------------------------
+        function renderCuadrosCurriculares(cuadros) {
+            let dt = cuadros['factor5_curricular'];
+            if (!dt) return '';
+            const cid = `inf_chart_curr_${++_chartCounter}`;
+            let html = `<p class="cuadros-section-title"> Cuadros — Aspectos Académicos y Curriculares</p>`;
+
+            if (dt.asignaturas && dt.asignaturas.length > 0) {
+                html += `
+                <table class="data-grid-table">
+                  <thead><tr><th>Código</th><th>Asignatura</th><th>Créditos</th><th>Semestre</th><th>Núcleo</th><th>Estado</th></tr></thead>
+                  <tbody>${dt.asignaturas.map(p=>`<tr><td>${p.codigo||'-'}</td><td>${p.nombre||'-'}</td><td>${p.creditos||'-'}</td><td>${p.semestre||'-'}</td><td>${p.nucleo||'-'}</td><td>${p.estado||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+
+                const nucleos = {};
+                dt.asignaturas.forEach(a => { nucleos[a.nucleo||'Otro'] = (nucleos[a.nucleo||'Otro']||0) + parseFloat(a.creditos||0); });
+                html += `<div class="informe-chart-wrap"><h5> Distribución de créditos por núcleo de formación</h5>${_mkCanvas(cid)}</div>`;
+                _buildChart(cid, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(nucleos),
+                        datasets: [{ data: Object.values(nucleos), backgroundColor: ['#2563eb','#10b981','#f59e0b','#8b5cf6'] }]
+                    },
+                    options: { responsive:true, maintainAspectRatio:false, plugins:{ title:{display:true, text:'Créditos por Núcleo de Formación'} } }
+                });
+            }
+            if (dt.competencias && dt.competencias.length > 0) {
+                html += `
+                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Perfil y Competencias</p>
+                <table class="data-grid-table">
+                  <thead><tr><th>Competencia</th><th>Tipo</th><th>Asignaturas Asociadas</th></tr></thead>
+                  <tbody>${dt.competencias.map(c=>`<tr><td>${c.competencia||'-'}</td><td>${c.tipo||'-'}</td><td>${c.asignaturas||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+            }
+            if (dt.revisiones && dt.revisiones.length > 0) {
+                html += `
+                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Histórico de Revisiones Curriculares</p>
+                <table class="data-grid-table">
+                  <thead><tr><th>Fecha</th><th>Tipo de Revisión</th><th>Aspectos Modificados</th><th>Aprobación</th></tr></thead>
+                  <tbody>${dt.revisiones.map(r=>`<tr><td>${r.fecha||'-'}</td><td>${r.tipo||'-'}</td><td>${r.modificaciones||'-'}</td><td>${r.aprobacion||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+            }
+            html += renderAIAnalysisPorFactor(cuadros, 'factor5_curricular');
+            return html;
+        }
+
+        // ----------------------------------------------------------------
+        // SECTOR EXTERNO — Factor 7
+        // ----------------------------------------------------------------
+        function renderCuadrosExtension(cuadros) {
+            let dt = cuadros['factor7_extension'];
+            if (!dt) return '';
+            const cid = `inf_chart_ext_${++_chartCounter}`;
+            let html = `<p class="cuadros-section-title"> Cuadros — Sector Externo y Proyección</p>`;
+
+            if (dt.egresados && dt.egresados.length > 0) {
+                html += `
+                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Impacto en Egresados</p>
+                <table class="data-grid-table">
+                  <thead><tr><th>Período</th><th>Total Egresados</th><th>Ubicados Laboralmente</th><th>Sector</th></tr></thead>
+                  <tbody>${dt.egresados.map(e=>`<tr><td>${e.periodo||'-'}</td><td>${e.egresados||'-'}</td><td>${e.ubicados||'-'}</td><td>${e.sector||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+
+                const periodos = dt.egresados.map(e=>e.periodo||'');
+                const totEgr   = dt.egresados.map(e=>parseInt(e.egresados||0));
+                const ubicados = dt.egresados.map(e=>parseInt(e.ubicados||0));
+                html += `<div class="informe-chart-wrap"><h5> Egresados y ubicación laboral por período</h5>${_mkCanvas(cid)}</div>`;
+                _buildChart(cid, {
+                    type: 'bar',
+                    data: {
+                        labels: periodos,
+                        datasets: [
+                            { label:'Total Egresados', data:totEgr, backgroundColor:'#cbd5e1' },
+                            { label:'Ubicados Laboralmente', data:ubicados, backgroundColor:'#10b981' }
+                        ]
+                    },
+                    options: { responsive:true, maintainAspectRatio:false, plugins:{ title:{display:true, text:'Empleabilidad de Egresados'} } }
+                });
+            }
+            if (dt.convenios && dt.convenios.length > 0) {
+                html += `
+                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Convenios Vigentes</p>
+                <table class="data-grid-table">
+                  <thead><tr><th>Entidad</th><th>Sector</th><th>Vigencia</th><th>Estado</th></tr></thead>
+                  <tbody>${dt.convenios.map(c=>`<tr><td>${c.entidad||'-'}</td><td>${c.sector||'-'}</td><td>${c.vigencia||'-'}</td><td>${c.estado||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+            }
+            if (dt.practicas && dt.practicas.length > 0) {
+                html += `
+                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Prácticas Empresariales</p>
+                <table class="data-grid-table">
+                  <thead><tr><th>Período</th><th>Empresa</th><th>Tipo</th><th>Estudiantes</th><th>Estado</th></tr></thead>
+                  <tbody>${dt.practicas.map(p=>`<tr><td>${p.periodo||'-'}</td><td>${p.empresa||'-'}</td><td>${p.tipo||'-'}</td><td>${p.estudiantes||'-'}</td><td>${p.estado||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+            }
+            html += renderAIAnalysisPorFactor(cuadros, 'factor7_extension', 'table_extension');
+            return html;
+        }
+
+        // ----------------------------------------------------------------
+        // INVESTIGACIÓN — Factor 8
+        // ----------------------------------------------------------------
+        function renderCuadrosInvestigacion(cuadros) {
+            let dt = cuadros['factor8_investigacion'];
+            if (!dt) return '';
+            const cid = `inf_chart_inv_${++_chartCounter}`;
+            let html = `<p class="cuadros-section-title"> Cuadros — Investigación, Innovación y Creación</p>`;
+
+            if (dt.proyectos && dt.proyectos.length > 0) {
+                html += `
+                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Proyectos de Investigación</p>
+                <table class="data-grid-table">
+                  <thead><tr><th>Proyecto</th><th>Investigador P.</th><th>Línea</th><th>Financiación</th><th>Estado</th></tr></thead>
+                  <tbody>${dt.proyectos.map(p=>`<tr><td>${p.proyecto||'-'}</td><td>${p.ip||'-'}</td><td>${p.linea||'-'}</td><td>${p.financiacion||'-'}</td><td>${p.estado||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+
+                const estados = {};
+                dt.proyectos.forEach(p=>{ estados[p.estado||'Otro']=(estados[p.estado||'Otro']||0)+1; });
+                html += `<div class="informe-chart-wrap"><h5> Estado de proyectos de investigación</h5>${_mkCanvas(cid)}</div>`;
+                _buildChart(cid, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(estados),
+                        datasets: [{ label:'Proyectos', data:Object.values(estados), backgroundColor:['#3b82f6','#10b981','#64748b'] }]
+                    },
+                    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, title:{display:true, text:'Proyectos por Estado'} } }
+                });
+            }
+            if (dt.grupos && dt.grupos.length > 0) {
+                html += `
+                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Grupos de Investigación</p>
+                <table class="data-grid-table">
+                  <thead><tr><th>Nombre</th><th>Categoría Minciencias</th><th>Integrantes</th><th>Estado</th></tr></thead>
+                  <tbody>${dt.grupos.map(g=>`<tr><td>${g.nombre||'-'}</td><td>${g.categoria||'-'}</td><td>${g.integrantes||'-'}</td><td>${g.estado||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+            }
+            if (dt.publicaciones && dt.publicaciones.length > 0) {
+                html += `
+                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Publicaciones y Productos</p>
+                <table class="data-grid-table">
+                  <thead><tr><th>Período</th><th>Título</th><th>Tipo</th><th>Autores</th><th>Indexación</th></tr></thead>
+                  <tbody>${dt.publicaciones.map(p=>`<tr><td>${p.periodo||'-'}</td><td>${p.titulo||'-'}</td><td>${p.tipo||'-'}</td><td>${p.autores||'-'}</td><td>${p.indexacion||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+            }
+            if (dt.semilleros && dt.semilleros.length > 0) {
+                html += `
+                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Semilleros de Investigación</p>
+                <table class="data-grid-table">
+                  <thead><tr><th>Nombre</th><th>Tutor</th><th>Estudiantes</th><th>Proyectos Activos</th></tr></thead>
+                  <tbody>${dt.semilleros.map(s=>`<tr><td>${s.nombre||'-'}</td><td>${s.tutor||'-'}</td><td>${s.estudiantes||'-'}</td><td>${s.proyectos||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+            }
+            html += renderAIAnalysisPorFactor(cuadros, 'factor8_investigacion', 'table_investigacion', 'table_productividad');
+            return html;
+        }
+
+        // ----------------------------------------------------------------
+        // RECURSOS Y AMBIENTES — Factor 10
+        // ----------------------------------------------------------------
+        function renderCuadrosRecursos(cuadros) {
+            let dt = cuadros['factor10_recursos'];
+            if (!dt) return '';
+            const cid = `inf_chart_rec_${++_chartCounter}`;
+            let html = `<p class="cuadros-section-title"> Cuadros — Recursos, Ambientes e Infraestructura</p>`;
+
+            if (dt.aulas && dt.aulas.length > 0) {
+                html += `
+                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Aulas y Laboratorios</p>
+                <table class="data-grid-table">
+                  <thead><tr><th>Espacio</th><th>Cantidad</th><th>Capacidad</th><th>Ocupación %</th><th>Estado</th></tr></thead>
+                  <tbody>${dt.aulas.map(a=>`<tr><td>${a.espacio||'-'}</td><td>${a.cantidad||'-'}</td><td>${a.capacidad||'-'}</td><td>${a.ocupacion||'-'}</td><td>${a.estado||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+
+                const estados = {};
+                dt.aulas.forEach(a=>{ estados[a.estado||'Otro']=(estados[a.estado||'Otro']||0)+parseInt(a.cantidad||1); });
+                html += `<div class="informe-chart-wrap"><h5> Estado físico de espacios académicos</h5>${_mkCanvas(cid)}</div>`;
+                _buildChart(cid, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(estados),
+                        datasets: [{ data:Object.values(estados), backgroundColor:['#10b981','#3b82f6','#f59e0b','#ef4444'] }]
+                    },
+                    options: { responsive:true, maintainAspectRatio:false, plugins:{ title:{display:true, text:'Estado de Espacios Físicos'} } }
+                });
+            }
+            if (dt.oficinas && dt.oficinas.length > 0) {
+                html += `
+                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Oficinas y Bienestar</p>
+                <table class="data-grid-table">
+                  <thead><tr><th>Área</th><th>Cantidad</th><th>Área m²</th><th>Dotación</th><th>Estado</th></tr></thead>
+                  <tbody>${dt.oficinas.map(o=>`<tr><td>${o.area||'-'}</td><td>${o.cantidad||'-'}</td><td>${o.m2||'-'}</td><td>${o.dotacion||'-'}</td><td>${o.estado||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+            }
+            if (dt.biblioteca && dt.biblioteca.length > 0) {
+                html += `
+                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Recursos Bibliográficos</p>
+                <table class="data-grid-table">
+                  <thead><tr><th>Período</th><th>Libros Físicos</th><th>E-Books</th><th>Bases de Datos</th><th>Usuarios Activos</th></tr></thead>
+                  <tbody>${dt.biblioteca.map(b=>`<tr><td>${b.periodo||'-'}</td><td>${b.fisicos||'-'}</td><td>${b.ebooks||'-'}</td><td>${b.bd||'-'}</td><td>${b.usuarios||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+            }
+            if (dt.tecnologico && dt.tecnologico.length > 0) {
+                html += `
+                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Recursos Tecnológicos</p>
+                <table class="data-grid-table">
+                  <thead><tr><th>Período</th><th>Labs Cómputo</th><th>Computadores</th><th>Software</th><th>Licencias</th></tr></thead>
+                  <tbody>${dt.tecnologico.map(t=>`<tr><td>${t.periodo||'-'}</td><td>${t.labs||'-'}</td><td>${t.pc||'-'}</td><td>${t.software||'-'}</td><td>${t.licencias||'-'}</td></tr>`).join('')}</tbody>
+                </table>`;
+            }
+            html += renderAIAnalysisPorFactor(cuadros, 'factor10_recursos', 'table_infraestructura');
+            return html;
+        }
+
+        // --- Lógica del Chatbot IA ---
+
         const user = JSON.parse(localStorage.getItem('siac_user') || 'null');
         if (!user) { window.top.location.href = 'login.html'; }
         const roleLabel = (user && user.role) ? user.role.toUpperCase() : 'ADMIN';
@@ -1670,36 +2004,7 @@
             setTimeout(() => win.print(), 500);
         }
 
-    </script>
-
-<!-- MODAL PERMISOS -->
-<div class="modal-overlay" id="permisosOverlay" style="display: none;">
-    <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">
-            <h3>Configurar Permisos de Rol</h3>
-            <button class="close-btn" onclick="cerrarModalPermisos()">×</button>
-        </div>
-        <div class="modal-body">
-            <p style="margin-bottom: 15px; font-size: 0.9rem; color: #64748b;">Selecciona qué roles pueden ver y usar este elemento:</p>
-            <input type="hidden" id="currentPermNodeId">
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <label><input type="checkbox" class="perm-role-cb" value="super_admin"> Super Admin</label>
-                <label><input type="checkbox" class="perm-role-cb" value="admin"> Administrador</label>
-                <label><input type="checkbox" class="perm-role-cb" value="lider"> Líder</label>
-                <label><input type="checkbox" class="perm-role-cb" value="operador"> Operador</label>
-                <label><input type="checkbox" class="perm-role-cb" value="docente"> Docente</label>
-                <label><input type="checkbox" class="perm-role-cb" value="estudiante"> Estudiante</label>
-                <label><input type="checkbox" class="perm-role-cb" value="empresa_admin"> Empresa Admin</label>
-            </div>
-            <div style="margin-top: 20px; text-align: right;">
-                <button class="btn-primary" onclick="guardarPermisosNodo()">Guardar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    let _globalPermissions = {};
+        let _globalPermissions = {};
     let _permEditMode = false;
     let _userRole = '';
 
