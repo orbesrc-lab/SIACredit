@@ -414,37 +414,46 @@
                 </div>
                 
                 <h4 style="margin-top: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">🤖 Configuración de Inteligencia Artificial</h4>
+                
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 16px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:1.3rem;">🟢</span>
+                        <div>
+                            <strong style="color: #166534; font-size: 0.95rem;">Clave API del Sistema (Google Gemini) Estática y Activa</strong>
+                            <p style="margin:2px 0 0 0; font-size: 0.82rem; color: #15803d;">La Inteligencia Artificial está lista para usarse. Utiliza el interruptor para Activar o Pausar el servicio.</p>
+                        </div>
+                    </div>
+                    <label style="display:flex; align-items:center; gap:8px; font-weight:600; margin:0; cursor:pointer; background:#fff; padding:6px 14px; border-radius:20px; border:1px solid #86efac; color:#166534;">
+                        <input type="checkbox" id="aiGlobalEnabled" style="width:auto; margin:0;" checked>
+                        Habilitar IA Global
+                    </label>
+                </div>
+
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Proveedor de IA</label>
                         <select id="aiProviderSelect" onchange="updateDefaultAIModel()">
-                            <option value="zhipu">Z.AI (ZhipuAI / glm-4)</option>
+                            <option value="gemini" selected>Google Gemini (Estático / Recomendado)</option>
                             <option value="openai">OpenAI (ChatGPT)</option>
-                            <option value="gemini">Google Gemini</option>
                             <option value="anthropic">Anthropic Claude</option>
+                            <option value="zhipu">Z.AI (ZhipuAI / glm-4)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Modelo (Opcional, por defecto preconfigurado)</label>
-                        <input type="text" id="aiModelInput" placeholder="Ej: gpt-4o-mini">
+                        <label>Modelo de IA</label>
+                        <input type="text" id="aiModelInput" placeholder="Ej: gemini-2.5-flash" value="gemini-2.5-flash">
                     </div>
                     <div class="form-group full-width">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
-                            <span style="font-weight: 500; font-size: 0.95rem; color: var(--text-main);">API Key (Llave Secreta)</span>
-                            <label style="display:flex; align-items:center; gap:8px; font-weight:normal; margin:0; cursor:pointer;">
-                                <input type="checkbox" id="aiGlobalEnabled" style="width:auto; margin:0;" checked>
-                                Habilitar IA Global en el Sistema
-                            </label>
-                        </div>
-                        <input type="password" id="aiApiKeyInput" placeholder="Ingresa la API Key (dejar en blanco para mantener actual)">
-                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Si no configuras nada, se usará la API Key definida por variables de entorno en el servidor.</p>
+                        <label>API Key Personalizada (Opcional - Dejar en blanco para mantener la del sistema)</label>
+                        <input type="password" id="aiApiKeyInput" placeholder="Clave personal (dejar en blanco para usar la del sistema)">
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Si se deja vacía, el sistema siempre usará automáticamente la API Key preconfigurada de Google Gemini.</p>
                     </div>
                     <div class="form-group full-width">
                         <label style="display:flex; align-items:center; gap:8px;">
                             <input type="checkbox" id="aiVoiceColombia" style="width:auto; margin:0;">
                             Activar respuesta con Voz Colombiana (Margy IA)
                         </label>
-                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Si está activo, la IA leerá sus respuestas usando la voz de síntesis (es-CO) si está disponible en tu navegador.</p>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Si está activo, Margy leerá sus respuestas usando la voz de síntesis en español (es-CO).</p>
                     </div>
                 </div>
 
