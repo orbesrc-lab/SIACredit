@@ -2889,14 +2889,19 @@
                 ai_model: aiModel,
                 ai_voice_colombia: aiVoiceColombia,
                 ai_global_enabled: aiGlobalEnabled,
-                carousel_images: carouselImages,
                 carousel_speed: carouselSpeed,
                 carousel_size: carouselSize
             };
-            
-            // Only send API Key if the user typed something new
-            if (aiApiKey.trim() !== '' && !aiApiKey.includes('••••')) {
-                payload.ai_api_key = aiApiKey.trim();
+
+            // Only include carousel_images if loaded (avoid wiping stored images)
+            if (carouselImages && carouselImages.length > 0) {
+                payload.carousel_images = carouselImages;
+            }
+
+            // Only send API Key if user typed a real new key (not the dots placeholder)
+            const _cleanKey = aiApiKey.trim();
+            if (_cleanKey !== '' && !/^[\u2022•*]+$/.test(_cleanKey)) {
+                payload.ai_api_key = _cleanKey;
             }
 
             try {
