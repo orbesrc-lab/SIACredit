@@ -563,7 +563,7 @@
                     <button class="btn-rrc" id="btnRRC" onclick="abrirModalRRC()" data-permission-node="btn_soporte_rrc">
                         💼 Soporte Renovación RC
                     </button>
-                    <button class="btn-secondary large" onclick="imprimirInformeCompleto()" id="btnImprimir" style="display:none;" data-permission-node="btn_imprimir_pdf">🖨️ Imprimir / PDF</button>
+                    <button class="btn-secondary large" onclick="imprimirInformeCompleto()" id="btnImprimir" style="display:inline-flex;" data-permission-node="btn_imprimir_pdf">🖨️ Imprimir / PDF</button>
                 </div>
             </div>
 
@@ -3475,14 +3475,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const nodeId = node.getAttribute('data-permission-node');
             const allowedRoles = _globalPermissions[nodeId];
             
-            // Si no hay roles configurados, por defecto solo admin/super_admin/lider lo ven (o todos, según el diseño)
-            // Para SIAC, si no hay registro, asumiremos que todos lo ven, EXCEPTO que el código original lo haya bloqueado.
-            if(allowedRoles && allowedRoles.length > 0) {
-                if(!allowedRoles.includes(_userRole) && _userRole !== 'super_admin') {
+            // Si no hay roles restrictivos configurados, todos los botones permanecen 100% visibles y funcionales
+            if(allowedRoles && Array.isArray(allowedRoles) && allowedRoles.length > 0) {
+                if(!allowedRoles.includes(_userRole) && _userRole !== 'super_admin' && _userRole !== 'admin') {
                     node.style.display = 'none';
                 } else {
-                    node.style.display = '';
+                    node.style.display = 'inline-flex';
                 }
+            } else {
+                // Habilitado por defecto para todos
+                if (node.id === 'btnImprimir') node.style.display = 'inline-flex';
+                else node.style.display = '';
             }
         });
     }

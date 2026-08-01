@@ -847,8 +847,10 @@ def inst_ai_settings():
             current_data.pop('ai_api_key', None)
             current_data.pop('ai_provider', None)
             current_data.pop('ai_model', None)
-        elif 'ai_api_key' in data and data['ai_api_key'].strip():
-            current_data['ai_api_key'] = data['ai_api_key'].strip()
+        elif 'ai_api_key' in data:
+            new_key = data['ai_api_key'].strip()
+            if new_key and '••••' not in new_key:
+                current_data['ai_api_key'] = new_key
 
         config_str = json.dumps(current_data)
         if row_id:

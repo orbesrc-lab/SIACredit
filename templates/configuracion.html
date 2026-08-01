@@ -326,6 +326,91 @@
                         </select>
                         <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">Este cambio se aplica instantáneamente a la página principal.</p>
                     </div>
+
+            <!-- Matriz de Control de Acceso y Permisos por Rol -->
+            <div id="rolePermissionsCard" class="settings-card" style="border-left: 5px solid #6366f1; background: white; padding: 22px; border-radius: 12px; margin-top: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.04);">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 15px;">
+                    <div>
+                        <h3 style="margin:0; color:#1e3a8a; font-size:1.25rem;"><i class="fas fa-user-shield" style="color:#6366f1; margin-right:8px;"></i> Matriz de Control de Acceso y Permisos por Rol</h3>
+                        <p style="font-size:0.88rem; color:#64748b; margin:4px 0 0;">Active o desactive qué módulos y herramientas puede ver y manipular cada rol en la plataforma.</p>
+                    </div>
+                    <button class="btn-primary" onclick="saveRolePermissions()" style="background:linear-gradient(135deg, #4f46e5, #6366f1); border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer;"><i class="fas fa-save"></i> Guardar Permisos por Rol</button>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: center;">
+                        <thead>
+                            <tr style="background-color: #f8fafc; color: #334155; border-bottom: 2px solid #cbd5e1;">
+                                <th style="padding: 12px; text-align: left; width: 30%;">Módulo / Funcionalidad</th>
+                                <th style="padding: 12px; width: 14%;">👑 Super Admin</th>
+                                <th style="padding: 12px; width: 14%;">🏢 Administrador</th>
+                                <th style="padding: 12px; width: 14%;">💼 Consultor B2B</th>
+                                <th style="padding: 12px; width: 14%;">🔍 Auditor Calidad</th>
+                                <th style="padding: 12px; width: 14%;">👤 Docente / Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rolePermsTableBody">
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-chart-line" style="color:#2563eb;"></i> Autoevaluación & Estadísticas Globales</td>
+                                <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="super_admin" checked disabled></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="admin" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="consultor" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="auditor" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="user" checked></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-file-alt" style="color:#0284c7;"></i> Informes Institucionales & PDF</td>
+                                <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="super_admin" checked disabled></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="admin" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="consultor" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="auditor" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="user"></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-calendar-alt" style="color:#10b981;"></i> Planificación Estratégica & PDI</td>
+                                <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="super_admin" checked disabled></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="admin" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="consultor" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="auditor"></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="user" checked></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-briefcase" style="color:#6366f1;"></i> Hub Estratégico B2B (MEFI/MEFE, Porter, Riesgos)</td>
+                                <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="super_admin" checked disabled></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="admin" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="consultor" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="auditor" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="user"></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-award" style="color:#8b5cf6;"></i> Sistema ISO 9001 (Mapa, SIPOC, PHVA)</td>
+                                <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="super_admin" checked disabled></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="admin" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="consultor" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="auditor" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="user"></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-graduation-cap" style="color:#f59e0b;"></i> Módulo de Capacitación & Cursos</td>
+                                <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="super_admin" checked disabled></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="admin" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="consultor" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="auditor"></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="user" checked></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-tools" style="color:#ec4899;"></i> Herramientas Gerenciales (CRM B2B, Biblioteca, Backup)</td>
+                                <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="super_admin" checked disabled></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="admin" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="consultor" checked></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="auditor"></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="user"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
                 </div>
                 
                 <h4 style="margin-top: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">🤖 Configuración de Inteligencia Artificial</h4>
@@ -2569,6 +2654,7 @@
         }
 
         init();
+            loadRolePermissions();
 
 
         async function forceRefreshAll() {
