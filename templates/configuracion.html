@@ -339,14 +339,14 @@
 
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: center;">
-                                                        <th style="padding: 12px;">👑 Super Admin</th>
-                                <th style="padding: 12px;">🏢 Administrador</th>
-                                <th style="padding: 12px;">⭐ Líder</th>
-                                <th style="padding: 12px;">⚙️ Operativo</th>
-                                <th style="padding: 12px;">💼 Consultor</th>
-                                <th style="padding: 12px;">🔍 Auditor</th>
-                                <th style="padding: 12px;">👨‍🏫 Docente</th>
-                                <th style="padding: 12px;">🎓 Estudiante</th>
+                        <thead>
+                            <tr style="background-color: #f8fafc; color: #334155; border-bottom: 2px solid #cbd5e1;">
+                                <th style="padding: 12px; text-align: left; width: 30%;">Módulo / Funcionalidad</th>
+                                <th style="padding: 12px; width: 14%;">👑 Super Admin</th>
+                                <th style="padding: 12px; width: 14%;">🏢 Administrador</th>
+                                <th style="padding: 12px; width: 14%;">💼 Consultor B2B</th>
+                                <th style="padding: 12px; width: 14%;">🔍 Auditor Calidad</th>
+                                <th style="padding: 12px; width: 14%;">👤 Docente / Usuario</th>
                             </tr>
                         </thead>
                         <tbody id="rolePermsTableBody">
@@ -354,78 +354,57 @@
                                 <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-chart-line" style="color:#2563eb;"></i> Autoevaluación & Estadísticas Globales</td>
                                 <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="super_admin" checked disabled></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="admin" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="lider" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="operativo" ></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="consultor" checked></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="auditor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="profesor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="estudiante" ></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="autoevaluacion" data-role="user" checked></td>
                             </tr>
                             <tr style="border-bottom: 1px solid #e2e8f0;">
                                 <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-file-alt" style="color:#0284c7;"></i> Informes Institucionales & PDF</td>
                                 <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="super_admin" checked disabled></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="admin" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="lider" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="operativo" ></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="consultor" checked></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="auditor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="profesor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="estudiante" ></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="informes" data-role="user"></td>
                             </tr>
                             <tr style="border-bottom: 1px solid #e2e8f0;">
-                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-project-diagram" style="color:#8b5cf6;"></i> Planificación Estratégica & PDI</td>
+                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-calendar-alt" style="color:#10b981;"></i> Planificación Estratégica & PDI</td>
                                 <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="super_admin" checked disabled></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="admin" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="lider" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="operativo" ></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="consultor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="auditor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="profesor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="estudiante" ></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="auditor"></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="planificacion" data-role="user" checked></td>
                             </tr>
                             <tr style="border-bottom: 1px solid #e2e8f0;">
-                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-bullseye" style="color:#f59e0b;"></i> Hub Estratégico B2B<br><span style="font-size:0.75rem; font-weight:normal;">(MEFI/MEFE, Porter, Riesgos)</span></td>
+                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-briefcase" style="color:#6366f1;"></i> Hub Estratégico B2B (MEFI/MEFE, Porter, Riesgos)</td>
                                 <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="super_admin" checked disabled></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="admin" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="lider" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="operativo" ></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="consultor" checked></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="auditor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="profesor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="estudiante" ></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="hub_estrategico" data-role="user"></td>
                             </tr>
                             <tr style="border-bottom: 1px solid #e2e8f0;">
-                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-certificate" style="color:#10b981;"></i> Sistema ISO 9001<br><span style="font-size:0.75rem; font-weight:normal;">(Mapa, SIPOC, PHVA)</span></td>
+                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-award" style="color:#8b5cf6;"></i> Sistema ISO 9001 (Mapa, SIPOC, PHVA)</td>
                                 <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="super_admin" checked disabled></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="admin" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="lider" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="operativo" ></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="consultor" checked></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="auditor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="profesor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="estudiante" ></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="iso9001" data-role="user"></td>
                             </tr>
                             <tr style="border-bottom: 1px solid #e2e8f0;">
-                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-chalkboard-teacher" style="color:#ec4899;"></i> Módulo de Capacitación & Cursos</td>
+                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-graduation-cap" style="color:#f59e0b;"></i> Módulo de Capacitación & Cursos</td>
                                 <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="super_admin" checked disabled></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="admin" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="lider" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="operativo" ></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="consultor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="auditor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="profesor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="estudiante" ></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="auditor"></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="capacitacion" data-role="user" checked></td>
                             </tr>
                             <tr style="border-bottom: 1px solid #e2e8f0;">
-                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-tools" style="color:#64748b;"></i> Herramientas Gerenciales<br><span style="font-size:0.75rem; font-weight:normal;">(CRM B2B, Biblioteca, Backup)</span></td>
+                                <td style="padding: 10px; text-align: left; font-weight: 600;"><i class="fas fa-tools" style="color:#ec4899;"></i> Herramientas Gerenciales (CRM B2B, Biblioteca, Backup)</td>
                                 <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="super_admin" checked disabled></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="admin" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="lider" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="operativo" ></td>
                                 <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="consultor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="auditor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="profesor" checked></td>
-                                <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="estudiante" ></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="auditor"></td>
+                                <td><input type="checkbox" class="perm-cb" data-module="herramientas" data-role="user"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -621,15 +600,464 @@
                 </p>
                 
                 <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
-                                                    <th style="padding: 12px;">👑 Super Admin</th>
-                                <th style="padding: 12px;">🏢 Administrador</th>
-                                <th style="padding: 12px;">⭐ Líder</th>
-                                <th style="padding: 12px;">⚙️ Operativo</th>
-                                <th style="padding: 12px;">💼 Consultor</th>
-                                <th style="padding: 12px;">🔍 Auditor</th>
-                                <th style="padding: 12px;">👨‍🏫 Docente</th>
-                                <th style="padding: 12px;">🎓 Estudiante</th>
-                            </tr>
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-color);">
+                            <th style="padding: 12px; color: var(--text-muted);">Fecha</th>
+                            <th style="padding: 12px; color: var(--text-muted);">Pregunta / Mensaje</th>
+                            <th style="padding: 12px; color: var(--text-muted);">Estado</th>
+                            <th style="padding: 12px; color: var(--text-muted);">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="botInboxTableBody">
+                        <tr><td colspan="4" style="text-align: center; padding: 20px;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Gestión de Programa (Admins e Inst_Admins) -->
+            <div id="progSelectorCard" class="settings-card" style="display: none;">
+                <h3>Gestión de Programas Académicos</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Administra los programas de autoevaluación dentro de esta institución.</p>
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+                    <select id="progSelect" style="flex: 1; min-width: 200px;"></select>
+                    <button class="btn-primary" onclick="changeCurrentProg()">Cambiar / Cargar</button>
+                    <button class="btn-secondary" onclick="prepareNewProgram()">+ Nuevo Programa</button>
+                    <button class="btn-danger-solid" onclick="deleteProgram()">🗑️ Eliminar</button>
+                </div>
+
+                <div class="form-grid" style="padding-top: 15px; border-top: 1px solid var(--border-color);">
+                    <div class="form-group">
+                        <label>Nombre del Programa</label>
+                        <input type="text" id="prog_name" placeholder="Ej: Ingeniería de Sistemas">
+                    </div>
+                    <div class="form-group">
+                        <label>Periodo del Proceso</label>
+                        <input type="text" id="prog_period" placeholder="Ej: 2026 - 2032">
+                    </div>
+                    <div class="form-group">
+                        <label>Nivel de Formación</label>
+                        <select id="prog_nivel" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                            <option value="INSTITUCIONAL">INSTITUCIONAL</option>
+                            <option value="Técnico">Técnico</option>
+                            <option value="Tecnológico">Tecnológico</option>
+                            <option value="Pregrado" selected>Pregrado</option>
+                            <option value="Especialización">Especialización</option>
+                            <option value="Maestría">Maestría</option>
+                            <option value="Doctorado">Doctorado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Metodología</label>
+                        <select id="prog_metodologia" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                            <option value="INSTITUCIONAL">INSTITUCIONAL</option>
+                            <option value="Presencial" selected>Presencial</option>
+                            <option value="Virtual">Virtual</option>
+                            <option value="Distancia">Distancia</option>
+                            <option value="Dual/Híbrida">Dual/Híbrida</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Área de Conocimiento</label>
+                        <input type="text" id="prog_area" placeholder="Ej: Ingeniería, Ciencias de la Salud, etc.">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="saveProgram()" style="margin-top: 10px;">Guardar Programa</button>
+            </div>
+
+            <!-- Seguridad y Contraseña -->
+            <div class="settings-card">
+                <h3>Seguridad y Contraseña</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">Actualiza tu contraseña de
+                    acceso al sistema.</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Contraseña Actual</label>
+                        <input type="password" id="old_password" placeholder="••••••••">
+                    </div>
+                    <div class="form-group">
+                        <label>Nueva Contraseña</label>
+                        <input type="password" id="new_password" placeholder="••••••••">
+                    </div>
+                </div>
+                </div>
+                <button class="btn btn-primary" onclick="updatePassword()" style="margin-top: 15px;">💾 Guardar Contraseña</button>
+
+            <!-- Inyección de Modelo y Articulación -->
+            <div class="settings-card" style="border-left: 5px solid var(--primary-color);">
+                <h3>Inyección de Modelo y Articulación de Líderes</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
+                    Sube la estructura de acreditación. Puedes descargar nuestra plantilla CSV, llenarla con tus datos y subirla para configurar todo el sistema.
+                </p>
+
+                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <button class="btn-ghost" onclick="downloadCSVTemplate()" style="color: var(--primary-color); border: 1px dashed var(--primary-color);">
+                            Descargar Plantilla CSV
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>1. Seleccionar Archivo del Modelo (CSV o JSON)</label>
+                        <input type="file" id="modelFile" accept=".csv, .json" style="padding: 10px; background: white; border-radius: 8px; width: 100%;">
+                    </div>
+                    
+                    <div id="articulationArea" style="margin-top: 20px; display: none;">
+                        <label>2. Articular Líderes por Factor</label>
+                        <div id="factorLeadersGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 10px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+                    <button class="btn-secondary" onclick="exportModel()">Exportar JSON</button>
+                    <button class="btn-primary" onclick="injectModel()">Inyectar y Articular Modelo</button>
+                </div>
+                <div id="syncStatus" style="margin-top: 10px; font-size: 0.85rem; text-align: right;"></div>
+            </div>
+
+            <!-- Apariencia y Temas -->
+            <div class="settings-card">
+                <h3>Apariencia de la Interfaz</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">Personaliza el aspecto
+                    visual de tu plataforma de acreditación.</p>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                    <div onclick="setTheme('default')"
+                        style="cursor:pointer; border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; text-align: center; background: #fff;">
+                        <div
+                            style="width: 100%; height: 50px; background: #5b45ff; border-radius: 4px; margin-bottom: 10px;">
+                        </div>
+                        <span style="font-weight: 600; font-size: 0.85rem; color: #111827;">Original SIAC</span>
+                    </div>
+                    <div onclick="setTheme('dark')"
+                        style="cursor:pointer; border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; text-align: center; background: #0f172a;">
+                        <div
+                            style="width: 100%; height: 50px; background: #6366f1; border-radius: 4px; margin-bottom: 10px;">
+                        </div>
+                        <span style="font-weight: 600; font-size: 0.85rem; color: #f8fafc;">Noche Profunda</span>
+                    </div>
+                    <div onclick="setTheme('emerald')"
+                        style="cursor:pointer; border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; text-align: center; background: #f0fdf4;">
+                        <div
+                            style="width: 100%; height: 50px; background: #059669; border-radius: 4px; margin-bottom: 10px;">
+                        </div>
+                        <span style="font-weight: 600; font-size: 0.85rem; color: #064e3b;">Esmeralda Premium</span>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Gestión de Usuarios -->
+            <div class="settings-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                    <h3 style="margin: 0; border: none; padding: 0;">Gestión de Usuarios</h3>
+                    <button class="btn-secondary" onclick="openInviteModal()">+ Invitar Usuario</button>
+                </div>
+                <div class="user-list" id="usersTable">
+                    <div style="padding: 20px; text-align: center; color: var(--text-muted);">Cargando usuarios...</div>
+                </div>
+            </div>
+
+            <!-- Modal Invitar Usuario -->
+            <div id="inviteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+                <div style="background:white; border-radius:16px; padding:30px; width:460px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                    <h3 style="margin-bottom:20px; font-size:1.2rem;">Invitar Nuevo Usuario</h3>
+                    <div class="form-group">
+                        <label>Nombre Completo</label>
+                        <input type="text" id="inv_name" placeholder="Ej: Juan Pérez" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Correo Institucional</label>
+                        <input type="email" id="inv_email" placeholder="usuario@institucion.edu.co" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Rol</label>
+                        <select id="inv_role" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                            <option value="lider">Líder de Factor</option>
+                            <option value="operativo">Operativo</option>
+                            <option value="inst_admin">Administrador Institucional</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña Temporal</label>
+                        <input type="text" id="inv_password" value="SIACTemp2025!" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">El usuario deberá cambiarla en su primer acceso.</p>
+                    </div>
+                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                        <button class="btn-ghost" onclick="closeInviteModal()">Cancelar</button>
+                        <button class="btn-primary" onclick="submitInviteUser()">Crear Usuario</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Cambiar Rol -->
+            <div id="changeRoleModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1001; align-items:center; justify-content:center;">
+                <div style="background:white; border-radius:16px; padding:30px; width:440px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                    <h3 style="margin-bottom:6px; font-size:1.1rem;">Cambiar Rol</h3>
+                    <p id="changeRoleEmail" style="font-size:0.85rem; color:#6b7280; margin-bottom:18px;"></p>
+                    <label style="display:block; font-weight:500; margin-bottom:8px;">Nuevo Rol</label>
+                    <select id="changeRoleSelect" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.95rem;" onchange="onChangeRoleSelectChanged(this.value)">
+                        <option value="estudiante">Estudiante / Participante</option>
+                        <option value="profesor">Profesor / Docente</option>
+                        <option value="lider">Líder de Factor</option>
+                        <option value="operativo">Operativo</option>
+                        <option value="inst_admin">Administrador Institucional</option>
+                    </select>
+                    <!-- Campo de institución: solo visible cuando se delega inst_admin desde superadmin -->
+                    <div id="changeRoleInstField" style="display:none; margin-top:14px;">
+                        <label style="display:block; font-weight:500; margin-bottom:6px;">Asignar a Institución</label>
+                        <select id="changeRoleInstSelect" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.95rem;">
+                        </select>
+                        <p style="font-size:0.78rem; color:#6b7280; margin-top:4px;">El administrador institucional quedará vinculado a esta institución.</p>
+                    </div>
+                    <input type="hidden" id="changeRoleUserId">
+                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                        <button class="btn-ghost" onclick="document.getElementById('changeRoleModal').style.display='none'">Cancelar</button>
+                        <button class="btn-primary" onclick="submitChangeRole()">Guardar Cambio</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Confirmar Eliminar -->
+            <div id="deleteUserModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1001; align-items:center; justify-content:center;">
+                <div style="background:white; border-radius:16px; padding:30px; width:400px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                    <h3 style="margin-bottom:6px; font-size:1.1rem; color:#ef4444;">⚠️ Eliminar Usuario</h3>
+                    <p id="deleteUserEmail" style="font-size:0.9rem; color:#374151; margin-bottom:6px;"></p>
+                    <p style="font-size:0.82rem; color:#6b7280;">Esta acción es irreversible.</p>
+                    <input type="hidden" id="deleteUserId">
+                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                        <button class="btn-ghost" onclick="document.getElementById('deleteUserModal').style.display='none'">Cancelar</button>
+                        <button style="background:#ef4444; color:white; border:none; border-radius:8px; padding:10px 20px; cursor:pointer; font-weight:600;" onclick="submitDeleteUser()">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Resetear Contraseña -->
+            <div id="resetPassModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1001; align-items:center; justify-content:center;">
+                <div style="background:white; border-radius:16px; padding:30px; width:400px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                    <h3 style="margin-bottom:6px; font-size:1.1rem;">Resetear Contraseña</h3>
+                    <p id="resetPassEmail" style="font-size:0.85rem; color:#6b7280; margin-bottom:4px;"></p>
+                    <p style="font-size:0.82rem; color:#6b7280;">Se generará una contraseña temporal.</p>
+                    <input type="hidden" id="resetPassUserId">
+                    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                        <button class="btn-ghost" onclick="document.getElementById('resetPassModal').style.display='none'">Cancelar</button>
+                        <button class="btn-primary" onclick="submitResetPass()">Resetear</button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Gestión del Modelo de Evaluación -->
+            <div class="settings-card" style="border-left: 5px solid var(--primary-color);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                        <h3 style="margin: 0; border: none; padding: 0;">Gestión del Modelo de Evaluación</h3>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-secondary" onclick="syncModelWithBackend()">💾 Guardar Cambios en Servidor</button>
+                            <button class="btn-excel" id="btnDownloadModelCSV" onclick="exportModelToCSV()">📥 Descargar Modelo (Excel/CSV)</button>
+                            <button class="btn-primary" onclick="addFactor()">+ Añadir Factor</button>
+                        </div>
+                    </div>
+                    <!-- BREADCRUMB de contexto activo -->
+                    <div id="contextBreadcrumb" style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px 15px; margin-bottom: 15px; font-size: 0.85rem; color: #0369a1;">⏳ Cargando contexto...</div>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
+                        Administra dinámicamente la estructura de Factores, Características y Aspectos a evaluar. Los
+                        cambios se reflejarán automáticamente en los módulos de Evidencias y Autoevaluación.
+                    </p>
+                    <div id="modelEditorContainer">
+                        <!-- Dynamic Editor Injected via JS -->
+                    </div>
+                </div>
+            </div>
+    </main>
+</div>
+
+    <script src="{{ url_for('static', filename='data.js') }}?v=2.2"></script>
+    <script>
+        window.addEventListener('error', function(e) {
+            const errDiv = document.createElement('div');
+            errDiv.style.background = '#fee2e2';
+            errDiv.style.color = '#b91c1c';
+            errDiv.style.padding = '15px';
+            errDiv.style.border = '1px solid #fca5a5';
+            errDiv.style.borderRadius = '8px';
+            errDiv.style.margin = '20px';
+            errDiv.style.fontWeight = 'bold';
+            errDiv.style.position = 'relative';
+            errDiv.style.zIndex = '9999';
+            errDiv.innerHTML = `⚠️ Error de JavaScript detectado: ${e.message}<br><small style="font-weight:normal;color:#7f1d1d;">Archivo: ${e.filename} (Línea ${e.lineno}:${e.colno})</small>`;
+            document.body.insertBefore(errDiv, document.body.firstChild);
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            const errDiv = document.createElement('div');
+            errDiv.style.background = '#fee2e2';
+            errDiv.style.color = '#b91c1c';
+            errDiv.style.padding = '15px';
+            errDiv.style.border = '1px solid #fca5a5';
+            errDiv.style.borderRadius = '8px';
+            errDiv.style.margin = '20px';
+            errDiv.style.fontWeight = 'bold';
+            errDiv.style.position = 'relative';
+            errDiv.style.zIndex = '9999';
+            errDiv.innerHTML = `⚠️ Error de Red o Promesa fallida: ${e.reason ? e.reason.message || e.reason : e}<br><small style="font-weight:normal;color:#7f1d1d;">Detalle: ${e.reason ? e.reason.stack || '' : ''}</small>`;
+            document.body.insertBefore(errDiv, document.body.firstChild);
+        });
+
+        let user = null;
+        try {
+            user = JSON.parse(localStorage.getItem('siac_user'));
+        } catch(e) {
+            console.error("Error parsing siac_user:", e);
+        }
+        if (!user) { window.top.location.href = 'login.html'; }
+                if (user) {
+            const rL = { admin: 'Super Admin', inst_admin: 'Admin Inst.', lider: 'Líder', operativo: 'Operativo', estudiante: 'Estudiante', profesor: 'Profesor' };
+            const rName = rL[user.role] || (user.role ? user.role.toUpperCase() : 'USUARIO');
+            const bClass = (user.role === 'admin' || user.role === 'inst_admin') ? 'aprobado' : 'revision';
+            document.getElementById('userInfo').innerHTML = `<span>${user.email}</span> <span class="status ${bClass}" style="margin-left:10px; padding:2px 8px; border-radius:12px; font-size:0.7rem;">${rName}</span>`;
+        }
+
+        function logout() {
+            localStorage.removeItem('siac_user');
+            window.top.location.href = 'index.html';
+        }
+
+        // --- Lógica del Gestor de Modelo ---
+        function renderModelEditor() {
+            const container = document.getElementById('modelEditorContainer');
+            const progId = getProgramId();
+
+            // TRAZABILIDAD: Bloquear si no hay programa activo
+            if (!progId || progId == 0) {
+                container.innerHTML = `
+                    <div style="background: #fef9c3; border: 2px dashed #ca8a04; border-radius: 12px; padding: 30px; text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: 15px;">🗂️</div>
+                        <h3 style="color: #92400e; margin-bottom: 10px;">Sin Programa Activo</h3>
+                        <p style="color: #78350f; max-width: 450px; margin: 0 auto; font-size: 0.95rem;">
+                            Para definir Factores, Características y Aspectos de evaluación, primero debes:
+                        </p>
+                        <ol style="text-align: left; max-width: 350px; margin: 15px auto; color: #78350f; font-size: 0.9rem; line-height: 2;">
+                            <li>Crear o seleccionar una <strong>Institución</strong></li>
+                            <li>Crear o seleccionar un <strong>Programa Académico</strong></li>
+                            <li>Hacer clic en <strong>"Cambiar / Cargar"</strong></li>
+                        </ol>
+                        <p style="color: #92400e; font-size: 0.85rem;">El modelo quedará vinculado exclusivamente a ese programa.</p>
+                    </div>`;
+                const addBtn = document.querySelector('[onclick="addFactor()"]');
+                if (addBtn) { addBtn.disabled = false; addBtn.style.opacity = ''; addBtn.style.cursor = ''; addBtn.title = ''; }
+                const saveBtn = document.querySelector('[onclick="syncModelWithBackend()"]');
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.style.opacity = ''; saveBtn.style.cursor = ''; }
+                return;
+            }
+
+            // Re-habilitar botones si hay programa activo
+            const addBtn = document.querySelector('[onclick="addFactor()"]');
+            if (addBtn) { addBtn.disabled = false; addBtn.style.opacity = ''; addBtn.style.cursor = ''; addBtn.title = ''; }
+            const saveBtn = document.querySelector('[onclick="syncModelWithBackend()"]');
+            if (saveBtn) { saveBtn.disabled = false; saveBtn.style.opacity = ''; saveBtn.style.cursor = ''; }
+
+            const data = getDataModel();
+            let html = '';
+
+            if (data.length === 0) {
+                html = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">No hay factores definidos. Haz clic en "Añadir Factor" para comenzar.</p>';
+            } else {
+                const totalFactorWeight = data.reduce((sum, f) => sum + (f.weight || 0), 0);
+                if (totalFactorWeight !== 100) {
+                    html += `<div style="background: #fee2e2; color: #b91c1c; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem;">
+                                ⚠️ <strong>Advertencia:</strong> La suma del peso de todos los factores es ${totalFactorWeight}%. Debe ser exactamente 100%.
+                             </div>`;
+                }
+            }
+
+            data.forEach((factor, fIndex) => {
+                const totalCharWeight = factor.characteristics.reduce((sum, c) => sum + (c.weight || 0), 0);
+
+                html += `
+                    <div style="border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 15px; background: #fafafa;">
+                        <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; border-top-left-radius: 8px; border-top-right-radius: 8px; border-bottom: 1px solid var(--border-color);">
+                            <div style="font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 15px;">
+                                Factor ${factor.number}: ${factor.name}
+                                <div style="font-weight: normal; font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
+                                    Peso: <input type="number" min="0" max="100" style="width: 60px; padding: 3px; text-align: center; border: 1px solid var(--border-color); border-radius: 4px;" value="${factor.weight || 0}" onchange="updateFactorWeight('${factor.id}', this.value)"> %
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn-ghost" style="font-size: 0.8rem; padding: 5px 10px; color: var(--primary-color);" onclick="addCharacteristic('${factor.id}')">+ Característica</button>
+                                <button class="btn-ghost" style="font-size: 0.8rem; padding: 5px 10px; color: var(--primary-color);" onclick="editFactor('${factor.id}')">Editar</button>
+                                <button class="btn-ghost" style="font-size: 0.8rem; padding: 5px 10px; color: #ef4444;" onclick="deleteFactor('${factor.id}')">Eliminar</button>
+                            </div>
+                        </div>
+                        <div style="padding: 15px;">
+                `;
+
+                if (factor.characteristics.length > 0 && totalCharWeight !== 100) {
+                    html += `<div style="color: #b91c1c; font-size: 0.85rem; margin-bottom: 15px;">
+                                ⚠️ La suma de las características en este factor es ${totalCharWeight}%. Debe sumar 100%.
+                             </div>`;
+                }
+
+                if (factor.characteristics.length === 0) {
+                    html += '<div style="font-size: 0.85rem; color: var(--text-muted);">Sin características asignadas.</div>';
+                }
+
+                factor.characteristics.forEach((char, cIndex) => {
+                    html += `
+                        <div style="margin-left: 20px; margin-bottom: 15px; border-left: 2px solid var(--border-color); padding-left: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-main); display: flex; align-items: center; gap: 15px;">
+                                    Caract. ${char.number}: ${char.name}
+                                    <div style="font-weight: normal; font-size: 0.8rem; display: flex; align-items: center; gap: 5px; color: var(--text-muted);">
+                                        Peso: <input type="number" min="0" max="100" style="width: 50px; padding: 2px; text-align: center; border: 1px solid var(--border-color); border-radius: 4px;" value="${char.weight || 0}" onchange="updateCharWeight('${factor.id}', '${char.id}', this.value)"> %
+                                    </div>
+                                </div>
+                                <div>
+                                    <button class="btn-ghost" style="font-size: 0.75rem; padding: 4px 8px; color: var(--primary-color);" onclick="addAspect('${factor.id}', '${char.id}')">+ Aspecto</button>
+                                    <button class="btn-ghost" style="font-size: 0.75rem; padding: 4px 8px; color: var(--primary-color);" onclick="editCharacteristic('${factor.id}', '${char.id}')">Editar</button>
+                                    <button class="btn-ghost" style="font-size: 0.75rem; padding: 4px 8px; color: #ef4444;" onclick="deleteCharacteristic('${factor.id}', '${char.id}')">Eliminar</button>
+                                </div>
+                            </div>
+                            <div style="margin-left: 15px;">
+                    `;
+
+                    if (char.aspects.length === 0) {
+                        html += '<div style="font-size: 0.8rem; color: var(--text-muted);">Sin aspectos asignados.</div>';
+                    }
+
+                    char.aspects.forEach((asp, aIndex) => {
+                        html += `
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); background: var(--white); padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 5px;">
+                                <div>• Aspecto ${aIndex + 1}: ${asp.text}</div>
+                                <div>
+                                    <button class="btn-ghost" style="font-size: 0.75rem; padding: 2px 6px; color: var(--primary-color);" onclick="editAspect('${factor.id}', '${char.id}', '${asp.id}')">Editar</button>
+                                    <button class="btn-ghost" style="font-size: 0.75rem; padding: 2px 6px; color: #ef4444;" onclick="deleteAspect('${factor.id}', '${char.id}', '${asp.id}')">X</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                <table class="evidence-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre del Archivo</th>
+                            <th>Subido por</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
                     </thead>
                     <tbody id="evidenceList">
                         <!-- Dynamic content -->
