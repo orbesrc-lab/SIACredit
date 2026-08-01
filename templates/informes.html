@@ -921,19 +921,15 @@
                 }
             });
             
-            const html = `
-                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-                <head>
-                    <meta charset="UTF-8">
-                    \${styles}
-                </head>
-                <body>
-                    <h2>Plan de Mejoramiento Consolidado — \${document.getElementById('inst_name_display').textContent}</h2>
-                    <br>
-                    \${tempTable.outerHTML}
-                
+            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}</head><body>
+                <h2>Plan de Mejoramiento Consolidado &mdash; ${document.getElementById('inst_name_display').textContent}</h2><br>${tempTable.outerHTML}
+            </body></html>`;
+            win.document.write(html);
+            win.document.close();
+            win.focus();
+            setTimeout(() => win.print(), 500);
+        }
 
-    
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -1739,18 +1735,11 @@ document.addEventListener("DOMContentLoaded", () => {
         function imprimirPESTA() {
             const contenido = document.getElementById('pestaMarkdownReport').innerHTML;
             const win = window.open('', '_blank', 'width=900,height=700');
-            win.document.write(`
-                <html><head>
-                <title>Informe PESTA</title>
-                <style>
-                    body { font-family: 'Inter', sans-serif; padding: 40px; color: #333; line-height:1.6; }
-                    h1, h2, h3 { color: #0284c7; }
-                </style>
-                </head><body>
-                ${contenido}
-                <script>window.onload = function() { setTimeout(()=> { window.print(); }, 500); }<\/script>
-                
-    
+            win.document.write(`<!DOCTYPE html><html><head><title>Informe PESTA</title><style>body{font-family:Inter,sans-serif;padding:40px;color:#333;line-height:1.6}h1,h2,h3{color:#0284c7}</style></head><body>${contenido}</body></html>`);
+            win.document.close();
+            win.focus();
+            setTimeout(() => win.print(), 500);
+        }
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
