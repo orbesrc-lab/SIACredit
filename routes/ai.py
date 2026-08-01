@@ -754,7 +754,12 @@ def global_settings():
         if 'ai_api_key' in data: current_data['ai_api_key'] = data.get('ai_api_key')
         if 'ai_voice_colombia' in data: current_data['ai_voice_colombia'] = data.get('ai_voice_colombia')
         if 'ai_global_enabled' in data: current_data['ai_global_enabled'] = data.get('ai_global_enabled')
-        if 'carousel_images' in data: current_data['carousel_images'] = data.get('carousel_images')
+        if 'carousel_images' in data:
+            c_imgs = data.get('carousel_images')
+            if c_imgs and len(c_imgs) > 0:
+                current_data['carousel_images'] = c_imgs
+            elif data.get('clear_carousel'):
+                current_data['carousel_images'] = []
         if 'carousel_speed' in data: current_data['carousel_speed'] = data.get('carousel_speed')
         if 'carousel_size' in data: current_data['carousel_size'] = data.get('carousel_size')
         
