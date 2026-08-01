@@ -1719,18 +1719,9 @@
         // Aplicar permisos
         aplicarPermisosEnUI();
 
-        // Agregar botón de "Modo Edición Permisos" si es super_admin
-        if(_userRole === 'super_admin' || _userRole === 'admin') {
-            const btnPerm = document.createElement('button');
-            btnPerm.className = 'btn-secondary';
-            btnPerm.innerText = '⚙️ Configurar Permisos';
-            btnPerm.style.position = 'fixed';
-            btnPerm.style.bottom = '20px';
-            btnPerm.style.right = '20px';
-            btnPerm.style.zIndex = '9999';
-            btnPerm.onclick = togglePermEditMode;
-            document.body.appendChild(btnPerm);
-        }
+
+        // NOTE: Floating permissions button removed - use Configuracion module instead
+
     });
 
     function aplicarPermisosEnUI() {
@@ -1739,17 +1730,16 @@
             const nodeId = node.getAttribute('data-permission-node');
             const allowedRoles = _globalPermissions[nodeId];
             
-            // Si no hay roles restrictivos configurados, todos los botones permanecen 100% visibles y funcionales
+            // Si no hay roles restrictivos configurados, todos los botones permanecen visibles
             if(allowedRoles && Array.isArray(allowedRoles) && allowedRoles.length > 0) {
                 if(!allowedRoles.includes(_userRole) && _userRole !== 'super_admin' && _userRole !== 'admin') {
                     node.style.display = 'none';
                 } else {
-                    node.style.display = 'inline-flex';
+                    node.style.display = '';
                 }
             } else {
-                // Habilitado por defecto para todos
-                if (node.id === 'btnImprimir') node.style.display = 'inline-flex';
-                else node.style.display = '';
+                // Sin restricciones = visible para todos
+                node.style.display = '';
             }
         });
     }
