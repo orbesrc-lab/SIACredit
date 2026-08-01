@@ -1476,7 +1476,25 @@ document.addEventListener("DOMContentLoaded", () => {
         // ============================================================
         // GENERACIÓN PDF — VENTANA DEDICADA (Informe Autoevaluación)
         // ============================================================
-        function imprimirInformeCompleto() {
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof initHeader === 'function') await initHeader();
+            else {
+                try {
+                    const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        document.getElementById('inst_name_display').textContent = data.name || 'INSTITUCIÓN EDUCATIVA';
+                        if (data.logo_url) {
+                            const img = document.getElementById('inst_logo_img');
+                            img.src = data.logo_url; img.style.display = 'block';
+                        }
+                    }
+                } catch(e){}
+            }
+        });
+
+    function imprimirInformeCompleto() {
             // Recoger datos ya renderizados en el DOM
             const titulo    = document.getElementById('informeTitulo').textContent;
             const fecha     = document.getElementById('informeFecha').textContent;
@@ -3566,11 +3584,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 </script>
 
-</body>
-</html>
-            `);
-            win.document.close();
-        }
+
 
         function renderDOFA(dofaData) {
             document.getElementById('dofaLoading').style.display = 'none';
