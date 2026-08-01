@@ -13,13 +13,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     let originalRole = user.role;
     
     // MAPEO DE ROLES REALES (DB) A COLUMNAS DE LA MATRIZ:
-    // Ahora la matriz tiene columnas independientes para: super_admin, admin, lider, operativo, consultor, auditor, profesor, estudiante
+    // El rol más alto en la base de datos es 'admin' (etiquetado como Super Admin en UI).
+    // El administrador institucional es 'inst_admin' (etiquetado como Administrador en UI).
     let mappedRole = originalRole;
-    if (originalRole === 'inst_admin') {
-        mappedRole = 'admin'; // Administrador Institucional usa la columna de Administrador
-    }
     
-    if (mappedRole === 'super_admin') return; // Bypass global
+    // El Super Administrador (rol 'admin' en DB) nunca pierde acceso.
+    if (mappedRole === 'admin') return; // Bypass global
 
     // 2. Mapeo de páginas (URLs) a módulos de permisos
     const pageToModuleMap = {
