@@ -78,22 +78,50 @@
             display: flex; align-items: center; gap: 8px;
         }
 
-        /* Estilos del Chatbot IA */
-        .ai-chat-widget { position: fixed; bottom: 20px; right: 20px; width: 350px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #e2e8f0; }
-        .ai-chat-header { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; cursor: pointer; }
-        .ai-chat-body { display: flex; flex-direction: column; height: 400px; }
-        .ai-chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
-        .ai-message { background: #e0e7ff; color: #1e40af; padding: 10px 15px; border-radius: 15px 15px 15px 0; max-width: 85%; align-self: flex-start; font-size: 0.9rem; line-height: 1.4; }
-        .user-message { background: #3b82f6; color: white; padding: 10px 15px; border-radius: 15px 15px 0 15px; max-width: 85%; align-self: flex-end; font-size: 0.9rem; line-height: 1.4; }
-        .ai-chat-input-area { display: flex; padding: 10px; background: white; border-top: 1px solid #e2e8f0; }
-        .ai-chat-input-area input { flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-size: 0.9rem; }
-        .ai-chat-input-area button { background: #3b82f6; color: white; border: none; padding: 8px 15px; margin-left: 10px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-        .ai-chat-input-area button:hover { background: #2563eb; }
+        /* ===== MARGY IA CHATBOT WIDGET STYLES ===== */
+        .margy-fab-trigger { position: fixed; bottom: 24px; right: 24px; z-index: 9998; display: flex; align-items: center; gap: 10px; cursor: pointer; background: linear-gradient(135deg, #0f2c6e 0%, #1d4ed8 50%, #7c3aed 100%); padding: 6px 18px 6px 6px; border-radius: 50px; box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4), 0 4px 12px rgba(0,0,0,0.15); border: 2px solid rgba(255, 255, 255, 0.4); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); color: white; }
+        .margy-fab-trigger:hover { transform: translateY(-4px) scale(1.04); box-shadow: 0 16px 35px rgba(37, 99, 235, 0.5), 0 6px 16px rgba(0,0,0,0.2); }
+        .margy-avatar-wrap { position: relative; width: 44px; height: 44px; border-radius: 50%; }
+        .margy-avatar-img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid #ffffff; background: #ffffff; }
+        .margy-online-dot { position: absolute; bottom: 0px; right: 0px; width: 13px; height: 13px; background: #10b981; border: 2px solid #ffffff; border-radius: 50%; }
+        .margy-fab-label { font-weight: 700; font-size: 0.95rem; letter-spacing: 0.3px; }
+
+        .margy-chat-card { display: none; position: fixed; bottom: 88px; right: 24px; width: 400px; max-width: calc(100vw - 32px); height: 580px; max-height: calc(100vh - 120px); background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(16px); border-radius: 24px; box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.8); z-index: 9999; flex-direction: column; overflow: hidden; animation: margySlideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes margySlideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        .margy-header { background: linear-gradient(135deg, #0f2c6e 0%, #1d4ed8 50%, #7c3aed 100%); color: white; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; }
+        .margy-header-info { display: flex; align-items: center; gap: 12px; }
+        .margy-header-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); object-fit: cover; background: #fff; }
+        .margy-header-title { font-weight: 700; font-size: 1.05rem; line-height: 1.2; margin: 0; }
+        .margy-header-subtitle { font-size: 0.78rem; color: rgba(255, 255, 255, 0.85); margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+        .margy-close-btn { background: rgba(255, 255, 255, 0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .margy-close-btn:hover { background: rgba(255, 255, 255, 0.35); }
+
+        .margy-body { flex: 1; padding: 16px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 12px; }
+        .margy-msg-row { display: flex; gap: 10px; align-items: flex-start; max-width: 90%; }
+        .margy-msg-row.user { align-self: flex-end; flex-direction: row-reverse; }
+        .margy-msg-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #cbd5e1; background: #fff; flex-shrink: 0; }
+        .margy-msg-bubble { padding: 12px 16px; border-radius: 18px 18px 18px 4px; font-size: 0.92rem; line-height: 1.5; color: #1e293b; background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .margy-msg-row.user .margy-msg-bubble { border-radius: 18px 18px 4px 18px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #ffffff; border: none; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
+
+        .margy-file-chip-bar { display: none; padding: 8px 16px; background: #eff6ff; border-top: 1px solid #dbeafe; align-items: center; justify-content: space-between; font-size: 0.85rem; color: #1e40af; }
+        .margy-file-chip-name { display: flex; align-items: center; gap: 6px; font-weight: 600; max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .margy-file-remove-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-weight: bold; font-size: 1.1rem; padding: 0 4px; }
+
+        .margy-input-bar { padding: 12px 16px; background: #ffffff; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px; }
+        .margy-attach-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s; flex-shrink: 0; }
+        .margy-attach-btn:hover { background: #e2e8f0; color: #1e293b; }
+        .margy-text-input { flex: 1; padding: 10px 16px; border: 1px solid #cbd5e1; border-radius: 24px; outline: none; font-size: 0.92rem; transition: border-color 0.2s; }
+        .margy-text-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+        .margy-send-btn { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; padding: 10px 18px; border-radius: 24px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .margy-send-btn:hover { transform: scale(1.04); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+
         .typing-indicator { display: flex; gap: 4px; padding: 5px; }
         .typing-dot { width: 6px; height: 6px; background: #3b82f6; border-radius: 50%; animation: typing 1.4s infinite ease-in-out; }
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
         @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
 
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 3000; align-items: center; justify-content: center; }
         .modal-overlay.open { display: flex !important; }
@@ -748,29 +776,169 @@
         </div>
     </div>
 
-    <!-- Widget Chatbot IA -->
-    <div id="aiChatWidget" class="ai-chat-widget">
-        <div class="ai-chat-header" onclick="toggleChat()">
-            <span>* Asistente IA (Margy) CNA</span>
-            <span id="chatToggleIcon">▼</span>
+    <!-- ===== WIDGET CHATBOT MARGY IA ===== -->
+    <div id="margyFabTrigger" class="margy-fab-trigger" onclick="toggleChat()">
+        <div class="margy-avatar-wrap">
+            <img src="{{ url_for('static', filename='margy_avatar.png') }}" class="margy-avatar-img" alt="Margy IA">
+            <span class="margy-online-dot"></span>
         </div>
-        <div class="ai-chat-body" id="aiChatBody" style="display:none;">
-            <div class="ai-chat-messages" id="aiChatMessages">
-                <div class="ai-message">¡Hola! Soy Margy, tu asistente de Inteligencia Artificial para la acreditación. Puedo ayudarte a analizar cuadros estadísticos o generar reportes de los factores. ¿En qué te ayudo hoy?</div>
+        <span class="margy-fab-label">Margy IA</span>
+    </div>
+
+    <div id="margyChatCard" class="margy-chat-card">
+        <div class="margy-header">
+            <div class="margy-header-info">
+                <img src="{{ url_for('static', filename='margy_avatar.png') }}" class="margy-header-avatar" alt="Margy">
+                <div>
+                    <h4 class="margy-header-title">Margy IA</h4>
+                    <div class="margy-header-subtitle">
+                        <span style="display:inline-block; width:8px; height:8px; background:#10b981; border-radius:50%;"></span>
+                        Auditora & Asistente CNA
+                    </div>
+                </div>
             </div>
-            <div class="ai-chat-input-area" style="align-items: center;">
-                <input type="file" id="aiChatFile" style="display:none;" onchange="updateChatFileLabel()">
-                <label for="aiChatFile" id="aiChatFileLabel" style="cursor:pointer; font-size:1.2rem; padding:0 8px; color:#64748b; margin-bottom:0;" title="Adjuntar archivo">📎</label>
-                <input type="text" id="aiChatInput" placeholder="Escribe tu consulta..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
-                <button onclick="sendChatMessage()">Enviar</button>
+            <button class="margy-close-btn" onclick="toggleChat()" title="Cerrar chat">×</button>
+        </div>
+
+        <div class="margy-body" id="aiChatMessages">
+            <div class="margy-msg-row">
+                <img src="{{ url_for('static', filename='margy_avatar.png') }}" class="margy-msg-avatar" alt="Margy">
+                <div class="margy-msg-bubble">
+                    ¡Hola! Soy <strong>Margy</strong>, tu auditora e investigadora de IA para el aseguramiento de calidad CNA / SGC. Puedo analizar datos, documentos adjuntos o resolver tus inquietudes. ¿En qué te ayudo hoy?
+                </div>
             </div>
+        </div>
+
+        <div class="margy-file-chip-bar" id="margyFileChipBar">
+            <span class="margy-file-chip-name" id="margyFileNameChip">📄 archivo.pdf</span>
+            <button class="margy-file-remove-btn" onclick="removeChatFile()" title="Quitar archivo">×</button>
+        </div>
+
+        <div class="margy-input-bar">
+            <input type="file" id="aiChatFile" style="display:none;" onchange="updateChatFileLabel()">
+            <label for="aiChatFile" class="margy-attach-btn" title="Adjuntar archivo o evidencia">📎</label>
+            <input type="text" id="aiChatInput" class="margy-text-input" placeholder="Hazle una pregunta a Margy..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
+            <button class="margy-send-btn" onclick="sendChatMessage()">
+                <span>Enviar</span> 🚀
+            </button>
         </div>
     </div>
 
     <script src="{{ url_for('static', filename='data.js') }}"></script>
     <script>
+        // ===== MARGY IA CHATBOT LOGIC =====
+        function toggleChat() {
+            const card = document.getElementById('margyChatCard');
+            if (!card) return;
+            const isHidden = card.style.display === 'none' || card.style.display === '';
+            card.style.display = isHidden ? 'flex' : 'none';
+            if (isHidden) {
+                document.getElementById('aiChatInput')?.focus();
+            }
+        }
+
+        function updateChatFileLabel() {
+            const input = document.getElementById('aiChatFile');
+            const chipBar = document.getElementById('margyFileChipBar');
+            const chipName = document.getElementById('margyFileNameChip');
+            if (input && input.files && input.files[0]) {
+                chipName.textContent = '📄 ' + input.files[0].name;
+                chipBar.style.display = 'flex';
+            } else {
+                chipBar.style.display = 'none';
+            }
+        }
+
+        function removeChatFile() {
+            const input = document.getElementById('aiChatFile');
+            const chipBar = document.getElementById('margyFileChipBar');
+            if (input) input.value = '';
+            if (chipBar) chipBar.style.display = 'none';
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('aiChatInput');
+            const fileInput = document.getElementById('aiChatFile');
+            const text = input ? input.value.trim() : '';
+            const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+
+            if (!text && !file) return;
+
+            const messagesContainer = document.getElementById('aiChatMessages');
+            
+            // User message bubble
+            let userMsgHtml = `<div class="margy-msg-row user"><div class="margy-msg-bubble">${text || '📄 Archivo adjunto cargado'}</div></div>`;
+            messagesContainer.innerHTML += userMsgHtml;
+            
+            input.value = '';
+            removeChatFile();
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Loading indicator bubble
+            const loadingId = 'margy_loading_' + Date.now();
+            let loadingHtml = `
+                <div class="margy-msg-row" id="${loadingId}">
+                    <img src="/static/margy_avatar.png" class="margy-msg-avatar" alt="Margy">
+                    <div class="margy-msg-bubble" style="display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:0.85rem; color:#64748b;">Margy está analizando...</span>
+                        <div class="typing-indicator">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>`;
+            messagesContainer.innerHTML += loadingHtml;
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            try {
+                let fileUrl = null;
+                if (file) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+                    const uploadData = await uploadRes.json();
+                    fileUrl = uploadData.url || uploadData.file_url;
+                }
+
+                const res = await fetch('/api/ai/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: text, file_url: fileUrl })
+                });
+                const data = await res.json();
+                
+                document.getElementById(loadingId)?.remove();
+
+                let rawAnswer = data.answer || data.error || 'No se pudo obtener respuesta de Margy.';
+                let formattedAnswer = typeof marked !== 'undefined' ? marked.parse(rawAnswer) : rawAnswer.replace(/\n/g, '<br>');
+
+                let aiMsgHtml = `
+                    <div class="margy-msg-row">
+                        <img src="/static/margy_avatar.png" class="margy-msg-avatar" alt="Margy">
+                        <div class="margy-msg-bubble">
+                            ${formattedAnswer}
+                        </div>
+                    </div>`;
+                messagesContainer.innerHTML += aiMsgHtml;
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            } catch(err) {
+                document.getElementById(loadingId)?.remove();
+                let errHtml = `
+                    <div class="margy-msg-row">
+                        <img src="/static/margy_avatar.png" class="margy-msg-avatar" alt="Margy">
+                        <div class="margy-msg-bubble" style="border-color:#fca5a5; background:#fef2f2; color:#991b1b;">
+                            ⚠️ Error de comunicación con Margy IA. Por favor intenta de nuevo.
+                        </div>
+                    </div>`;
+                messagesContainer.innerHTML += errHtml;
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
 
         // ===== CHART & FACTOR HELPERS =====
+
         // Contador único para IDs de canvas en el informe
         let _chartCounter = 0;
         const _informeCharts = {};
