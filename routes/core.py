@@ -1319,6 +1319,7 @@ def get_form_permissions():
 
 @core_bp.route('/api/permissions/form', methods=['POST'])
 def save_form_permissions():
+    import json
     try:
         payload = request.json
         inst_id = payload.get('inst_id', 1)
@@ -1330,16 +1331,17 @@ def save_form_permissions():
         if res.data:
             db_id = res.data[0]['id']
             supabase.table('statistics').update({
-                "data_json": permissions
+                "data_json": json.dumps(permissions)
             }).eq("id", db_id).execute()
         else:
             supabase.table('statistics').insert({
                 "table_id": "FORM_PERMISSIONS",
-                "data_json": permissions,
+                "data_json": json.dumps(permissions),
                 "inst_id": inst_id,
                 "program_id": program_id
             }).execute()
             
         return jsonify({"status": "success"})
     except Exception as e:
+        print("Error saving permissions:", str(e))
         return jsonify({"status": "error", "message": str(e)})
