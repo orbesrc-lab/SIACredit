@@ -2707,11 +2707,11 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.status === 'success') {
-                    Swal.fire('¡Permisos Guardados!', 'La matriz de control de acceso por rol ha sido actualizada.', 'success');
+                    alert('¡Permisos Guardados! La matriz de control de acceso por rol ha sido actualizada.');
                 } else {
-                    Swal.fire('Error', data.message || 'No se pudieron guardar los permisos.', 'error');
+                    alert('Error: ' + (data.message || 'No se pudieron guardar los permisos.'));
                 }
-            } catch(e) { Swal.fire('Error', 'Error de red al guardar permisos.', 'error'); }
+            } catch(e) { alert('Error de red al guardar permisos.'); }
         }
 
 
