@@ -10,9 +10,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         return; // Probablemente en login u otra página pública
     }
 
-    const role = user.role;
-    // Si es super_admin, tiene acceso a todo.
-    if (role === 'super_admin') return;
+    let originalRole = user.role;
+    
+    // MAPEO DE ROLES REALES (DB) A COLUMNAS DE LA MATRIZ:
+    // La matriz tiene: super_admin, admin, consultor, auditor, user (Docente/Usuario)
+    let mappedRole = originalRole;
+    if (['profesor', 'estudiante', 'operativo'].includes(originalRole)) {
+        mappedRole = 'user'; // Caen en la columna "Docente / Usuario"
+    } else if (['inst_admin', 'lider'].includes(originalRole)) {
+        mappedRole = 'admin'; // Caen en la columna "Administrador"
+    }
+    
+    if (mappedRole === 'super_admin') return; // Bypass global
 
     // 2. Mapeo de páginas (URLs) a módulos de permisos
     const pageToModuleMap = {
@@ -76,14 +85,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 4. VERIFICAR ACCESO A LA PÁGINA ACTUAL
             const requiredModule = pageToModuleMap[currentPage];
             
-            // Si el módulo requiere permisos y el rol no está incluido (y no es admin)
-            // Nota: Se asume que 'admin' también podría estar restringido si se desmarca, 
-            // pero usualmente admin tiene todo. Nos basamos estrictamente en la DB.
             if (requiredModule && requiredModule !== 'configuracion' && perms[requiredModule]) {
-                if (!perms[requiredModule].includes(role)) {
+                if (!perms[requiredModule].includes(mappedRole)) {
                     // BLOQUEADO - Redirigir al dashboard si no es dashboard, sino alertar.
                     if (currentPage !== 'dashboard.html') {
-                        // Importamos swal dinámicamente si no existe, o usamos alert
                         if (typeof Swal !== 'undefined') {
                             await Swal.fire({
                                 icon: 'error',
@@ -110,7 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const linkModule = pageToModuleMap[linkPage];
                     
                     if (linkModule && perms[linkModule]) {
-                        if (!perms[linkModule].includes(role)) {
+                        if (!perms[linkModule].includes(mappedRole)) {
                             // Ocultar el enlace (display: none)
                             link.style.display = 'none';
                             link.classList.add('permission-hidden');
@@ -120,11 +125,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             
             // 6. LIMPIAR SIDEBAR GROUPS VACÍOS
-            // Si un grupo completo quedó vacío (todos sus enlaces ocultos), ocultar el grupo
             const sidebarGroups = document.querySelectorAll('.sidebar-group');
             sidebarGroups.forEach(group => {
                 const visibleLinks = group.querySelectorAll('.sidebar-submenu a:not(.permission-hidden)');
-                // Si hay submenu y no quedaron enlaces visibles
                 if (group.querySelector('.sidebar-submenu') && visibleLinks.length === 0) {
                     group.style.display = 'none';
                 }
