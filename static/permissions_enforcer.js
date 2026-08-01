@@ -13,12 +13,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     let originalRole = user.role;
     
     // MAPEO DE ROLES REALES (DB) A COLUMNAS DE LA MATRIZ:
-    // La matriz tiene: super_admin, admin, consultor, auditor, user (Docente/Usuario)
+    // Ahora la matriz tiene columnas independientes para: super_admin, admin, lider, operativo, consultor, auditor, profesor, estudiante
     let mappedRole = originalRole;
-    if (['profesor', 'estudiante', 'operativo'].includes(originalRole)) {
-        mappedRole = 'user'; // Caen en la columna "Docente / Usuario"
-    } else if (['inst_admin', 'lider'].includes(originalRole)) {
-        mappedRole = 'admin'; // Caen en la columna "Administrador"
+    if (originalRole === 'inst_admin') {
+        mappedRole = 'admin'; // Administrador Institucional usa la columna de Administrador
     }
     
     if (mappedRole === 'super_admin') return; // Bypass global
