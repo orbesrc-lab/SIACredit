@@ -29,32 +29,117 @@
         <div class="sidebar-header" style="justify-content: center; padding: 20px 15px;">
             <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
         </div>
-        <div class="sidebar-menu" id="accordionSidebar">
-            <div class="sidebar-group">
-                <div class="sidebar-group-title" onclick="window.location.href='dashboard.html'">
+                        <div class="sidebar-menu" id="accordionSidebar">
+            <!-- Autoevaluación global -->
+            <div class="sidebar-group" active">
+                <div class="sidebar-group-title" onclick="toggleSidebarGroup(this)">
                     <div class="group-icon">
-                        <span>⬅️</span>
-                        <span>Volver al Dashboard</span>
+                        <span>📂</span>
+                        <span>Autoevaluación global</span>
+                    </div>
+                    <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+                <div class="sidebar-submenu">
+                    <div class="sidebar-submenu-inner">
+                        <a href="dashboard.html" class="sidebar-item active">📊 Dashboard Global</a>
+                        <a href="autoevaluacion.html" class="sidebar-item">📝 Autoevaluación</a>
+                        <a href="evidencias.html" class="sidebar-item">📁 Evidencias</a>
+                        <a href="encuestas.html" class="sidebar-item">📋 Encuestas</a>
+                        <a href="estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análisis Institucional -->
+            <div class="sidebar-group">
+                <div class="sidebar-group-title" onclick="toggleSidebarGroup(this)">
+                    <div class="group-icon">
+                        <span>📊</span>
+                        <span>Análisis Institucional</span>
+                    </div>
+                    <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+                <div class="sidebar-submenu">
+                    <div class="sidebar-submenu-inner">
+                        <a href="informes.html" class="sidebar-item">📄 Informes</a>
+                        <a href="dofa.html" class="sidebar-item">🎯 Diagnóstico DOFA</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Autorregulación -->
+            <div class="sidebar-group">
+                <div class="sidebar-group-title" onclick="toggleSidebarGroup(this)">
+                    <div class="group-icon">
+                        <span>⚖️</span>
+                        <span>Autorregulación</span>
+                    </div>
+                    <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+                <div class="sidebar-submenu">
+                    <div class="sidebar-submenu-inner">
+                        <a href="planificacion.html" class="sidebar-item">🗓️ Planificación</a>
                     </div>
                 </div>
             </div>
             
-            <div class="sidebar-group" active>
-                <div class="sidebar-group-title">
+            <a id="menuCapacitacion" href="formacion.html" class="sidebar-item" style="display:none;" style="margin-top: 5px;">🎓 Capacitación</a>
+            
+            <!-- Diagnóstico Empresarial -->
+            <div class="sidebar-group" id="menuConsultoriaB2B" style="display:none;">
+                <div class="sidebar-group-title" onclick="toggleSidebarGroup(this)">
                     <div class="group-icon">
-                        <span>🏢</span>
-                        <span style="color: #6366f1; font-weight: 600;">SKEL 360 Admin</span>
+                        <span>💼</span>
+                        <span style="color: #6366f1; font-weight: 600;">Consultoría B2B</span>
                     </div>
+                    <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </div>
-                <div class="sidebar-submenu" style="display: block;">
+                <div class="sidebar-submenu">
                     <div class="sidebar-submenu-inner">
-                        <a href="#" class="sidebar-item active">🏢 Empresas (Tenants)</a>
-                        <a href="#" class="sidebar-item">👥 Organización</a>
-                        <a href="#" class="sidebar-item">🧠 Competencias</a>
-                        <a href="#" class="sidebar-item">📋 Evaluaciones</a>
+                        <a href="empresa_dashboard.html" class="sidebar-item">📊 Hub Estratégico</a>
+                        <a href="empresa_informe_gerencial.html" class="sidebar-item">📑 Informe Gerencial Integral</a>
                     </div>
                 </div>
             </div>
+
+            <!-- SKEL 360 -->
+            <div class="sidebar-group">
+                <div class="sidebar-group-title" onclick="toggleSidebarGroup(this)">
+                    <div class="group-icon">
+                        <span>🏢</span>
+                        <span style="color: #8b5cf6; font-weight: 600;">SKEL HC 360</span>
+                    </div>
+                    <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+                <div class="sidebar-submenu">
+                    <div class="sidebar-submenu-inner">
+                        <a href="skel360.html" class="sidebar-item">⚡ Panel de Administración</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Herramientas Gerenciales -->
+            <div class="sidebar-group">
+                <div class="sidebar-group-title" onclick="toggleSidebarGroup(this)">
+                    <div class="group-icon">
+                        <span>🛠️</span>
+                        <span>Herramientas Gerenciales</span>
+                    </div>
+                    <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+                <div class="sidebar-submenu">
+                    <div class="sidebar-submenu-inner">
+                        <a href="biblioteca.html" class="sidebar-item">📚 Biblioteca</a>
+                        <a href="crm.html" class="sidebar-item" id="menuCrm" style="display:none; color: #10b981;">🚀 B2B CRM</a>
+                        <a href="/backup" class="sidebar-item" id="menuBackup" style="display:none;">🛡️ Backup y Seguridad</a>
+                    </div>
+                </div>
+            </div>
+
+            <a href="configuracion.html" class="sidebar-item">⚙️ Configuración</a>
+        </div>
+        <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444;">🚪 Cerrar Sesión</a>
         </div>
     </aside>
 
@@ -80,7 +165,7 @@
             <div class="card" style="margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3>Gestión de Tenants (Empresas)</h3>
-                    <button class="btn-primary" onclick="alert('Funcionalidad para crear empresa en desarrollo.')">+ Nueva Empresa</button>
+                    <button class="btn-primary" onclick="abrirModalEmpresa()">+ Nueva Empresa</button>
                 </div>
                 
                 <table class="admin-table">
@@ -103,7 +188,74 @@
     </main>
     </div>
 
+
+    <!-- MODAL NUEVA EMPRESA -->
+    <div id="modal-nueva-empresa" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:30px; border-radius:12px; width:90%; max-width:500px;">
+            <h2 style="margin-bottom:20px;">Crear Nueva Empresa</h2>
+            <form id="form-empresa">
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px;">Nombre de la Empresa</label>
+                    <input type="text" id="emp-nombre" required style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px;">NIT</label>
+                    <input type="text" id="emp-nit" required style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px;">Sector</label>
+                    <input type="text" id="emp-sector" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom:25px;">
+                    <label style="display:block; margin-bottom:5px;">Ciudad</label>
+                    <input type="text" id="emp-ciudad" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" onclick="cerrarModalEmpresa()" style="padding:10px 15px; background:#e5e7eb; border:none; border-radius:5px; cursor:pointer;">Cancelar</button>
+                    <button type="submit" style="padding:10px 15px; background:#4338ca; color:white; border:none; border-radius:5px; cursor:pointer;">Guardar Empresa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        
+        function abrirModalEmpresa() {
+            document.getElementById('modal-nueva-empresa').style.display = 'flex';
+        }
+        function cerrarModalEmpresa() {
+            document.getElementById('modal-nueva-empresa').style.display = 'none';
+        }
+        
+        document.getElementById('form-empresa').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                nombre: document.getElementById('emp-nombre').value,
+                nit: document.getElementById('emp-nit').value,
+                sector: document.getElementById('emp-sector').value,
+                ciudad: document.getElementById('emp-ciudad').value
+            };
+            
+            try {
+                const response = await fetch('/api/skel360/empresas', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if(result.status === 'success') {
+                    cerrarModalEmpresa();
+                    document.getElementById('form-empresa').reset();
+                    loadEmpresas();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch(error) {
+                console.error(error);
+                alert('Error de conexión.');
+            }
+        });
+
         async function loadEmpresas() {
             try {
                 const response = await fetch('/api/skel360/empresas');
