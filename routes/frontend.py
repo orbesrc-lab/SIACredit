@@ -117,3 +117,10 @@ def skel360():
 def skel360_portal():
     return render_template('skel360_portal.html')
 
+@frontend_bp.route('/skel360/diccionario')
+def skel360_diccionario():
+    return render_template('skel_diccionario.html')
+
+@frontend_bp.route('/skel360/empresa/<id>')
+def skel360_empresa(id):
+    return render_template('skel_empresa_dashboard.html', empresa_id=id)

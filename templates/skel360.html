@@ -165,7 +165,10 @@
             <div class="card" style="margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3>Gestión de Tenants (Empresas)</h3>
-                    <button class="btn-primary" onclick="abrirModalEmpresa()">+ Nueva Empresa</button>
+                    <div>
+                        <a href="/skel360/diccionario" class="btn-primary" style="background: #0ea5e9; margin-right: 10px; text-decoration: none;">📚 Gestor de Formularios</a>
+                        <button class="btn-primary" onclick="abrirModalEmpresa()">+ Nueva Empresa</button>
+                    </div>
                 </div>
                 
                 <table class="admin-table">
@@ -275,8 +278,9 @@
                             <td>${emp.ciudad || '-'}</td>
                             <td><span style="background: #10b981; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem;">${emp.estado}</span></td>
                             <td>
-                                <button onclick="configurarLogistica('${emp.id}')" style="background: #f59e0b; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-right: 5px;">⚙️ Configurar Envío</button>
-                                <button onclick="generarInformeIA('${emp.id}')" style="background: #8b5cf6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">✨ Generar Informe IA</button>
+                                <a href="/skel360/empresa/${emp.id}" class="btn-primary" style="background: #3b82f6; text-decoration: none; padding: 5px 10px; margin-right: 5px; font-size: 0.85rem;">👥 Estructura</a>
+                                <button onclick="configurarLogistica('${emp.id}')" style="background: #f59e0b; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-right: 5px; font-size: 0.85rem;">⚙️ Envío</button>
+                                <button onclick="generarInformeIA('${emp.id}')" style="background: #8b5cf6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.85rem;">✨ IA</button>
                             </td>
                         `;
                         tbody.appendChild(tr);
