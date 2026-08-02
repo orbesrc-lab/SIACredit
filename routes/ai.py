@@ -52,13 +52,13 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
         else:
             # Fallback per provider if model is empty in DB
             if provider == 'openai': model = 'gpt-4o-mini'
-            elif provider == 'gemini': model = 'gemini-2.5-flash'
+            elif provider == 'gemini': model = 'gemini-1.5-flash'
             elif provider == 'anthropic': model = 'claude-3-5-sonnet-20240620'
             else: model = 'glm-4'
             
         # Prevent using deprecated Gemini models saved previously in DB
-        if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
-            model = 'gemini-2.5-flash'
+        if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
+            model = 'gemini-1.5-flash'
 
         # If institution is blocked from global and has no own key → raise clear error
         if inst_config and inst_config.get('blocked_global') and not inst_config.get('ai_api_key'):
@@ -78,13 +78,24 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
     if not api_key or set(api_key) <= {'•', '*', '\u2022'}:
         api_key = DEFAULT_STATIC_GEMINI_KEY
 
-    if provider:
-        provider = str(provider).strip().lower()
-    if model:
-        model = str(model).encode('ascii', 'ignore').decode('ascii').strip()
+        if provider:
+            provider = str(provider).strip().lower()
+        if model:
+            model = str(model).encode('ascii', 'ignore').decode('ascii').strip()
 
-    if not api_key:
-        api_key = DEFAULT_STATIC_GEMINI_KEY
+        # Prevent using deprecated Gemini models saved previously in DB
+        if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
+            model = 'gemini-1.5-flash' # The only valid model is 1.5
+
+        # Intelligent API Key mismatch detector (e.g. if user selected Gemini but left a Zhipu key)
+        if provider == 'gemini' and api_key and not api_key.startswith('AIza'):
+            if '.' in api_key:
+                print(f"[DEBUG] Detected Zhipu key passed to Gemini. Auto-correcting provider to Zhipu.")
+                provider = 'zhipu'
+                model = 'glm-4'
+                
+        if not api_key:
+            api_key = DEFAULT_STATIC_GEMINI_KEY
 
 
 
