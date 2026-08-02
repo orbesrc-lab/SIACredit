@@ -197,3 +197,93 @@ def carga_masiva_empresa(empresa_id):
     except Exception as e:
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@skel_hc_bp.route('/empresa/<empresa_id>/perfiles', methods=['GET', 'POST'])
+def gestionar_perfiles(empresa_id):
+    try:
+        sb = get_supabase()
+        if request.method == 'GET':
+            # Obtener cargos y sus competencias asignadas
+            cargos = sb.table('skel_cargos').select('*').eq('empresa_id', empresa_id).execute().data
+            asignaciones = sb.table('skel_cargos_diccionario').select('*').execute().data
+            
+            cargos_list = []
+            for c in cargos:
+                c_asig = [a['competencia_id'] for a in asignaciones if a['cargo_id'] == c['id']]
+                cargos_list.append({"id": c['id'], "nombre": c['nombre'], "competencias": c_asig})
+                
+            return jsonify({"status": "success", "data": cargos_list}), 200
+            
+        elif request.method == 'POST':
+            # Guardar asignación de competencias
+            data = request.json
+            cargo_id = data.get('cargo_id')
+            competencia_ids = data.get('competencias', [])
+            
+            # Borrar las anteriores
+            sb.table('skel_cargos_diccionario').delete().eq('cargo_id', cargo_id).execute()
+            
+            # Insertar las nuevas
+            if competencia_ids:
+                inserts = [{"cargo_id": cargo_id, "competencia_id": comp_id, "nivel_esperado": 3} for comp_id in competencia_ids]
+                sb.table('skel_cargos_diccionario').insert(inserts).execute()
+                
+            return jsonify({"status": "success", "message": "Perfiles actualizados"}), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+import uuid
+
+@skel_hc_bp.route('/empresa/<empresa_id>/lanzar', methods=['POST'])
+def lanzar_encuestas(empresa_id):
+    try:
+        sb = get_supabase()
+        
+        # 1. Crear la Evaluación
+        eval_res = sb.table('skel_evaluaciones').insert({
+            "empresa_id": empresa_id,
+            "nombre": "Evaluación 360",
+            "descripcion": "Ciclo de evaluación automático",
+            "estado": "Activa"
+        }).execute()
+        
+        if not eval_res.data:
+            return jsonify({"status": "error", "message": "No se pudo crear la evaluación"}), 500
+            
+        evaluacion_id = eval_res.data[0]['id']
+        
+        # 2. Obtener Colaboradores
+        colabs = sb.table('skel_colaboradores').select('*').eq('empresa_id', empresa_id).execute().data
+        
+        if not colabs:
+            return jsonify({"status": "error", "message": "No hay colaboradores para lanzar"}), 400
+            
+        # 3. Generar Tokens
+        tokens = []
+        for colab in colabs:
+            token = str(uuid.uuid4())
+            tokens.append({
+                "colaborador_id": colab['id'],
+                "evaluacion_id": evaluacion_id,
+                "token": token,
+                "estado": "Generado"
+            })
+            
+        if tokens:
+            sb.table('skel_tokens_acceso').insert(tokens).execute()
+            
+        # Construir listado de links para mostrar
+        links = []
+        for t, c in zip(tokens, colabs):
+            links.append({
+                "nombre": f"{c.get('nombres')} {c.get('apellidos')}".strip(),
+                "correo": c.get('correo'),
+                "link": f"https://skel360.online/evaluar?token={t['token']}"
+            })
+            
+        return jsonify({"status": "success", "message": f"Se lanzaron {len(tokens)} encuestas.", "links": links}), 200
+        
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
