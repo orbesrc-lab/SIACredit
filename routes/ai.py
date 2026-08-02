@@ -1127,10 +1127,63 @@ def ai_chat():
             inst_id=data.get('inst_id')
         )
         
+        # Save Q&A to ai_chat_logs for Chatbot Fine-Tuning
+        try:
+            from utils.db import supabase
+            supabase.table('ai_chat_logs').insert({
+                "inst_id": data.get('inst_id'),
+                "user_uid": data.get('user_uid') or "N/A",
+                "prompt": final_prompt,
+                "response": answer,
+                "provider": "unknown", # Could be extracted from call_ai if refactored, but this works
+                "model": "auto"
+            }).execute()
+        except Exception as log_e:
+            print(f"Error logging chat to DB: {log_e}")
+        
         return jsonify({"status": "success", "answer": answer})
     except Exception as e:
         print(f"Error AI Chat: {e}")
         return jsonify({"error": str(e)})
+
+@ai_bp.route('/api/export-chat-logs', methods=['GET'])
+def export_chat_logs():
+    try:
+        from utils.db import supabase
+        import json
+        import io
+        from flask import send_file
+        
+        # Superadmin check can be done via frontend or JWT, assuming it's protected by the UI
+        res = supabase.table('ai_chat_logs').select("*").order("created_at", desc=False).execute()
+        
+        jsonl_lines = []
+        for row in res.data:
+            # Format as JSONL with OpenAI fine-tuning structure
+            line = {
+                "messages": [
+                    {"role": "system", "content": "Te llamas Margy. Eres una asistente experta en evaluación y aseguramiento de alta calidad para organizaciones, instituciones educativas y empresas, desarrollada por SKEL. Responde de manera formal, académica, profesional y analítica basándote en altos estándares de calidad."},
+                    {"role": "user", "content": row.get('prompt', '')},
+                    {"role": "assistant", "content": row.get('response', '')}
+                ]
+            }
+            jsonl_lines.append(json.dumps(line, ensure_ascii=False))
+            
+        jsonl_content = "\n".join(jsonl_lines)
+        
+        mem = io.BytesIO()
+        mem.write(jsonl_content.encode('utf-8'))
+        mem.seek(0)
+        
+        return send_file(
+            mem,
+            mimetype='application/jsonl',
+            as_attachment=True,
+            download_name='margy_training_data.jsonl'
+        )
+    except Exception as e:
+        print(f"Error exporting chat logs: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @ai_bp.route('/api/ai/generate_report', methods=['POST'])
 def ai_generate_report():
