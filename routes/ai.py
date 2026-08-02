@@ -869,7 +869,9 @@ def inst_ai_settings():
             current_data.pop('ai_model', None)
         elif 'ai_api_key' in data:
             new_key = data['ai_api_key'].strip()
-            if new_key and '••••' not in new_key:
+            # Verify new_key does not consist of just placeholder dots/stars
+            import re
+            if new_key and not re.match(r'^[\u2022\u25cf*]+$', new_key) and not '' in new_key and not '•' in new_key:
                 current_data['ai_api_key'] = new_key
 
         config_str = json.dumps(current_data)

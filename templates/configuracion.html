@@ -3003,9 +3003,12 @@
             const payload = {
                 inst_id: instId,
                 ai_provider: document.getElementById('instAiProvider').value,
-                ai_model: document.getElementById('instAiModel').value,
-                ai_api_key: document.getElementById('instAiKey').value
+                ai_model: document.getElementById('instAiModel').value
             };
+            const instAiKey = document.getElementById('instAiKey').value.trim();
+            if (instAiKey !== '' && !/^[\u2022 *]+$/.test(instAiKey)) {
+                payload.ai_api_key = instAiKey;
+            }
             try {
                 const res = await fetch('/api/inst-ai-settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
                 const data = await res.json();
