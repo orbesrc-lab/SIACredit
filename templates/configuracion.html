@@ -648,6 +648,39 @@
                 </table>
             </div>
 
+            <!-- Entrenamiento de Chatbot Externo -->
+            <div id="chatbotTrainingCard" class="settings-card" style="display: none; border-left: 5px solid #10b981;">
+                <h3>🤖 Entrenamiento de Chatbot Externo (Fine-Tuning)</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
+                    Aquí puedes revisar y eliminar las interacciones antes de descargarlas. Esto garantiza que tu dataset de entrenamiento para OpenAI, Gemini o Zhipu sea de alta calidad.
+                </p>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <a href="/api/export-chat-logs" class="btn primary" style="display: inline-flex; align-items: center; gap: 8px; background-color: #6366f1;">
+                        ⬇️ Descargar (JSONL)
+                    </a>
+                    <a href="/api/export-chat-logs-csv" class="btn primary" style="display: inline-flex; align-items: center; gap: 8px; background-color: #10b981;">
+                        📊 Descargar (CSV / Excel)
+                    </a>
+                </div>
+
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px;">
+                    <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead style="position: sticky; top: 0; background: #fff; z-index: 1;">
+                            <tr style="border-bottom: 2px solid var(--border-color);">
+                                <th style="padding: 12px; color: var(--text-muted); width: 100px;">Fecha</th>
+                                <th style="padding: 12px; color: var(--text-muted);">Pregunta del Usuario</th>
+                                <th style="padding: 12px; color: var(--text-muted);">Respuesta de Margy</th>
+                                <th style="padding: 12px; color: var(--text-muted); width: 80px;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="chatbotTrainingTableBody">
+                            <tr><td colspan="4" style="text-align: center; padding: 20px;">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Gestión de Programa (Admins e Inst_Admins) -->
             <div id="progSelectorCard" class="settings-card" style="display: none;">
                 <h3>Gestión de Programas Académicos</h3>
@@ -1918,6 +1951,62 @@
             }
         }
         
+        window.loadChatbotTraining = async function() {
+            try {
+                const res = await fetch('/api/chat-logs');
+                if(res.ok) {
+                    const data = await res.json();
+                    const tbody = document.getElementById('chatbotTrainingTableBody');
+                    if(data.status === 'success' && data.data) {
+                        const logs = data.data;
+                        if (logs.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No hay registros de entrenamiento.</td></tr>';
+                            return;
+                        }
+                        
+                        let html = '';
+                        logs.forEach(log => {
+                            const d = new Date(log.created_at);
+                            const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            
+                            html += `
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 12px; font-size: 0.85rem; color: var(--text-muted);">${dateStr}</td>
+                                    <td style="padding: 12px; font-size: 0.9rem;">${(log.prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+                                    <td style="padding: 12px; font-size: 0.85rem; color: #4b5563;">
+                                        <div style="max-height: 80px; overflow-y: auto; font-family: monospace; background: #f9fafb; padding: 8px; border-radius: 4px;">
+                                            ${(log.response || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px;">
+                                        <button onclick="window.deleteChatbotLog('${log.id}')" class="btn-secondary" style="padding: 6px 10px; font-size: 0.85rem; color: #ef4444; border-color: #fecaca; background: #fef2f2;">🗑️ Eliminar</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        tbody.innerHTML = html;
+                    }
+                }
+            } catch(e) {
+                console.error("Error loading chatbot training logs", e);
+            }
+        };
+
+        window.deleteChatbotLog = async function(id) {
+            if(!confirm("¿Estás seguro de que deseas eliminar este registro de entrenamiento? Esta acción no se puede deshacer.")) return;
+            try {
+                const res = await fetch('/api/chat-logs/' + id, { method: 'DELETE' });
+                if(res.ok) {
+                    const data = await res.json();
+                    if(data.status === 'success') {
+                        window.loadChatbotTraining();
+                    }
+                }
+            } catch(e) {
+                console.error("Error deleting log", e);
+            }
+        };
+
         window.resolveBotMessage = async function(id) {
             const reply = prompt("Escribe la respuesta oficial para esta pregunta. El bot la aprenderá para el futuro:");
             if(reply === null) return; // cancelled
@@ -3207,6 +3296,11 @@
                         if(bcard) {
                             bcard.style.display = 'block';
                             loadBotInbox();
+                        }
+                        const ccard = document.getElementById('chatbotTrainingCard');
+                        if(ccard) {
+                            ccard.style.display = 'block';
+                            loadChatbotTraining();
                         }
                     }
                 }

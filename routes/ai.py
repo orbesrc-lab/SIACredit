@@ -1185,6 +1185,63 @@ def export_chat_logs():
         print(f"Error exporting chat logs: {e}")
         return jsonify({"error": str(e)}), 500
 
+@ai_bp.route('/api/chat-logs', methods=['GET'])
+def get_chat_logs():
+    try:
+        from utils.db import supabase
+        res = supabase.table('ai_chat_logs').select("*").order("created_at", desc=True).execute()
+        return jsonify({"status": "success", "data": res.data})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@ai_bp.route('/api/chat-logs/<int:log_id>', methods=['DELETE'])
+def delete_chat_log(log_id):
+    try:
+        from utils.db import supabase
+        supabase.table('ai_chat_logs').delete().eq("id", log_id).execute()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@ai_bp.route('/api/export-chat-logs-csv', methods=['GET'])
+def export_chat_logs_csv():
+    try:
+        from utils.db import supabase
+        import csv
+        import io
+        from flask import send_file
+        
+        res = supabase.table('ai_chat_logs').select("*").order("created_at", desc=False).execute()
+        
+        # Use StringIO to build CSV
+        si = io.StringIO()
+        writer = csv.writer(si)
+        # Add UTF-8 BOM so Excel opens it automatically with correct encoding
+        si.write('\ufeff')
+        writer.writerow(['ID', 'Fecha', 'Pregunta', 'Respuesta'])
+        
+        for row in res.data:
+            writer.writerow([
+                row.get('id', ''),
+                row.get('created_at', ''),
+                row.get('prompt', ''),
+                row.get('response', '')
+            ])
+            
+        mem = io.BytesIO()
+        mem.write(si.getvalue().encode('utf-8'))
+        mem.seek(0)
+        
+        return send_file(
+            mem,
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name='margy_training_data.csv'
+        )
+    except Exception as e:
+        print(f"Error exporting chat logs CSV: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @ai_bp.route('/api/ai/generate_report', methods=['POST'])
 def ai_generate_report():
     data = request.json
