@@ -184,8 +184,8 @@ def carga_masiva_empresa(empresa_id):
                 "area_id": area_id,
                 "nombres": str(row.get('Nombre')),
                 "apellidos": "",
-                "identificacion": str(row.get('Cédula')),
-                "correo": str(row.get('Correo')),
+                "documento": str(row.get('Cédula')),
+                "email": str(row.get('Correo')),
                 "estado": "Activo"
             })
             
@@ -278,7 +278,7 @@ def lanzar_encuestas(empresa_id):
         for t, c in zip(tokens, colabs):
             links.append({
                 "nombre": f"{c.get('nombres')} {c.get('apellidos')}".strip(),
-                "correo": c.get('correo'),
+                "correo": c.get('email'),
                 "link": f"https://skel360.online/evaluar?token={t['token']}"
             })
             
