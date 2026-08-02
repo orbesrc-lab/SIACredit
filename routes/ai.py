@@ -51,13 +51,13 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
         else:
             # Fallback per provider if model is empty in DB
             if provider == 'openai': model = 'gpt-4o-mini'
-            elif provider == 'gemini': model = 'gemini-1.5-flash'
+            elif provider == 'gemini': model = 'gemini-2.5-flash'
             elif provider == 'anthropic': model = 'claude-3-5-sonnet-20240620'
             else: model = 'glm-4'
             
         # Prevent using deprecated Gemini models saved previously in DB
-        if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
-            model = 'gemini-1.5-flash'
+        if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
+            model = 'gemini-2.5-flash'
 
         # If institution is blocked from global and has no own key → raise clear error
         if inst_config and inst_config.get('blocked_global') and not inst_config.get('ai_api_key'):
@@ -83,8 +83,8 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
             model = str(model).encode('ascii', 'ignore').decode('ascii').strip()
 
         # Prevent using deprecated Gemini models saved previously in DB
-        if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
-            model = 'gemini-1.5-flash' # The only valid model is 1.5
+        if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
+            model = 'gemini-2.5-flash'
 
         if not api_key:
             api_key = DEFAULT_STATIC_GEMINI_KEY
