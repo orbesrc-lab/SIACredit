@@ -162,7 +162,7 @@
                     <div class="card" style="text-align: center;">
                         <h4 style="margin-bottom: 10px;">1. Carga de Empleados</h4>
                         <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Sube el Excel con la estructura organizacional de la empresa.</p>
-                        <button class="btn-primary" style="background: #3b82f6; width: 100%;" onclick="alert('Carga masiva en desarrollo')">Subir Plantilla Excel</button>
+                        <button class="btn-primary" style="background: #3b82f6; width: 100%;" onclick="uploadExcel()">Subir Plantilla Excel</button>
                     </div>
                     <div class="card" style="text-align: center;">
                         <h4 style="margin-bottom: 10px;">2. Asignar Competencias</h4>
@@ -199,7 +199,62 @@
 
 
     <script>
-        console.log("Empresa Dashboard loaded");
+        const empresaId = "{{ empresa_id }}";
+        
+        async function loadEmpresa() {
+            try {
+                const response = await fetch('/api/skel360/empresas');
+                const result = await response.json();
+                if(result.status === 'success') {
+                    const emp = result.data.find(e => e.id === empresaId);
+                    if(emp) document.getElementById('empresa-nombre').innerText = emp.nombre;
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        async function uploadExcel() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx, .xls';
+            input.onchange = async e => {
+                const file = e.target.files[0];
+                if(!file) return;
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                document.getElementById('colaboradores-list').innerHTML = '<tr><td colspan="5" style="text-align: center;">Procesando archivo...</td></tr>';
+                
+                try {
+                    const response = await fetch(`/api/skel360/empresa/${empresaId}/carga-masiva`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const result = await response.json();
+                    if(result.status === 'success') {
+                        alert(result.message);
+                        loadColaboradores();
+                    } else {
+                        alert('Error: ' + result.message);
+                        document.getElementById('colaboradores-list').innerHTML = '<tr><td colspan="5" style="text-align: center;">Error al cargar.</td></tr>';
+                    }
+                } catch(error) {
+                    console.error(error);
+                    alert('Error de conexión');
+                }
+            };
+            input.click();
+        }
+        
+        async function loadColaboradores() {
+            try {
+                // Mock visual por ahora. En la Fase 9 haremos un GET real.
+                document.getElementById('colaboradores-list').innerHTML = '<tr><td colspan="5" style="text-align: center;">Colaboradores procesados (Recarga la vista).</td></tr>';
+            } catch(e) { console.error(e); }
+        }
+        
+        loadEmpresa();
+        loadColaboradores();
     </script>
 </body>
 </html>
