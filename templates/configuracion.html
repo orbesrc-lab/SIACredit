@@ -626,9 +626,9 @@
                 <button class="btn-primary" onclick="saveInstitution()" style="margin-top: 10px;">Guardar Institución</button>
             </div>
 
-            <!-- (Merged into Chatbot Training) -->
+            <!-- (Bandeja del Bot Merged into Chatbot Training) -->
 
-            <!-- Entrenamiento de Chatbot Externo y Bandeja -->
+            <!-- Entrenamiento de Chatbot Externo -->
             <div id="chatbotTrainingCard" class="settings-card" style="display: none; border-left: 5px solid #10b981;">
                 <h3>🤖 Centro de Entrenamiento y Bandeja de Entrada</h3>
                 <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
@@ -1894,14 +1894,8 @@
             });
         }
 
-                        tbody.innerHTML = html;
-                    }
-                }
-            } catch(e) {
-                console.log('Error loading bot inbox', e);
-            }
-        }
-        
+        // (loadBotInbox removed, merged into loadChatbotTraining)
+
         window.loadChatbotTraining = async function() {
             try {
                 const [chatRes, botRes] = await Promise.all([
@@ -1979,8 +1973,8 @@
                                     Esperando respuesta...
                                 </td>
                                 <td style="padding: 12px; display: flex; gap: 5px; flex-direction: column;">
-                                    <button onclick="window.resolveBotMessage('${log.id}')" class="btn-primary" style="padding: 6px 10px; font-size: 0.85rem; background-color: #10b981;">Responder</button>
-                                    <button onclick="window.dismissBotMessage('${log.id}')" class="btn-secondary" style="padding: 6px 10px; font-size: 0.85rem;">Descartar</button>
+                                    <button onclick="resolveBotMessage('${log.id}')" class="btn-primary" style="padding: 6px 10px; font-size: 0.85rem; background-color: #10b981;">Responder</button>
+                                    <button onclick="dismissBotMessage('${log.id}')" class="btn-secondary" style="padding: 6px 10px; font-size: 0.85rem;">Descartar</button>
                                 </td>
                             </tr>
                         `;
@@ -3293,10 +3287,15 @@
                         loadPartners();
                     }
                     if(['admin', 'super_admin', 'superadmin'].includes(userData.role)) {
+                        const bcard = document.getElementById('botInboxCard');
+                        if(bcard) {
+                            bcard.style.display = 'block';
+                            loadBotInbox();
+                        }
                         const ccard = document.getElementById('chatbotTrainingCard');
                         if(ccard) {
                             ccard.style.display = 'block';
-                            window.loadChatbotTraining();
+                            loadChatbotTraining();
                         }
                     }
                 }
