@@ -270,29 +270,31 @@ def lanzar_encuestas(empresa_id):
             return jsonify({"status": "error", "message": "No hay colaboradores para lanzar"}), 400
             
         # 3. Generar Tokens
-        tokens = []
+        tokens_to_insert = []
         for colab in colabs:
-            token = str(uuid.uuid4())
-            tokens.append({
+            tokens_to_insert.append({
+                "empresa_id": empresa_id,
                 "colaborador_id": colab['id'],
                 "evaluacion_id": evaluacion_id,
-                "token": token,
+                "tipo": "Encuesta",
                 "estado": "Generado"
             })
             
-        if tokens:
-            sb.table('skel_tokens_acceso').insert(tokens).execute()
+        inserted_tokens = []
+        if tokens_to_insert:
+            res = sb.table('skel_tokens_acceso').insert(tokens_to_insert).execute()
+            inserted_tokens = res.data
             
         # Construir listado de links para mostrar
         links = []
-        for t, c in zip(tokens, colabs):
+        for t, c in zip(inserted_tokens, colabs):
             links.append({
                 "nombre": f"{c.get('nombres')} {c.get('apellidos')}".strip(),
                 "correo": c.get('email'),
-                "link": f"https://skel360.online/evaluar?token={t['token']}"
+                "link": f"https://skel360.online/evaluar?token={t['id']}"
             })
             
-        return jsonify({"status": "success", "message": f"Se lanzaron {len(tokens)} encuestas.", "links": links}), 200
+        return jsonify({"status": "success", "message": f"Se lanzaron {len(inserted_tokens)} encuestas.", "links": links}), 200
         
     except Exception as e:
         traceback.print_exc()
@@ -307,7 +309,7 @@ def get_evaluacion_publica(token):
     try:
         sb = get_supabase()
         # 1. Validar Token
-        token_res = sb.table('skel_tokens_acceso').select('*, skel_colaboradores(*)').eq('token', token).execute().data
+        token_res = sb.table('skel_tokens_acceso').select('*, skel_colaboradores(*)').eq('id', token).execute().data
         if not token_res:
             return jsonify({"status": "error", "message": "Token inválido o expirado"}), 404
             
@@ -352,7 +354,7 @@ def submit_evaluacion(token):
     try:
         sb = get_supabase()
         # 1. Validar Token
-        token_res = sb.table('skel_tokens_acceso').select('*').eq('token', token).execute().data
+        token_res = sb.table('skel_tokens_acceso').select('*').eq('id', token).execute().data
         if not token_res or token_res[0].get('estado') == 'Completado':
             return jsonify({"status": "error", "message": "Token inválido"}), 400
             
@@ -378,7 +380,7 @@ def submit_evaluacion(token):
             sb.table('skel_360_respuestas').insert(inserts).execute()
             
         # 3. Invalidar Token
-        sb.table('skel_tokens_acceso').update({"estado": "Completado"}).eq('token', token).execute()
+        sb.table('skel_tokens_acceso').update({"estado": "Completado"}).eq('id', token).execute()
         
         return jsonify({"status": "success", "message": "Evaluación guardada con éxito"}), 200
         
