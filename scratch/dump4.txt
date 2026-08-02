@@ -1,0 +1,769 @@
+P0: PARTE 1
+P1: DISEÑO METODOLÓGICO
+P2: Objetivo
+P3: Identificar las brechas de competencias técnicas, comportamentales, digitales, estratégicas y de liderazgo de los colaboradores, determinando las necesidades reales de formación y distinguiendo aquellas situaciones que requieren capacitación de aquellas que demandan mejoras en procesos, recursos, tecnología o gestión organizacional.
+P5: Población
+P6: Aplica para:
+P7: ✓ Alta Gerencia
+P8: ✓ Directores
+P9: ✓ Supervisores
+P10: ✓ Operarios
+P11: ✓ Personal Administrativo
+P12: ✓ Personal Comercial
+P13: ✓ Personal Técnico
+P15: Tiempo estimado
+P16: 12 minutos
+P18: Escala General
+P19: Todas las preguntas utilizarán exactamente la misma escala para facilitar el análisis estadístico.
+P21: Escala de Prioridad de Formación
+P22: Algunas preguntas utilizarán esta escala.
+P24: Escala de Frecuencia
+P26: Escala de Dominio
+P28: Criterios de interpretación
+P29: Durante el análisis, cada dimensión se calificará sobre 100 puntos:
+P30: 90–100: Fortaleza consolidada. Mantener y aprovechar como capacidad interna.
+P31: 80–89: Buen nivel. Requiere actualización periódica.
+P32: 70–79: Nivel aceptable. Se recomienda fortalecer mediante acciones específicas.
+P33: 60–69: Brecha moderada. Priorizar acciones de desarrollo.
+P34: Menor de 60: Brecha crítica. Requiere intervención inmediata.
+P36: Variables que evaluará el instrumento
+P37: El diagnóstico medirá, como mínimo, las siguientes dimensiones:
+P38: Alineación estratégica.
+P39: Conocimiento del cargo.
+P40: Claridad de roles y responsabilidades.
+P41: Cumplimiento de procesos.
+P42: Competencias técnicas.
+P43: Competencias digitales.
+P44: Uso de herramientas tecnológicas.
+P45: Aprovechamiento de la Inteligencia Artificial.
+P46: Comunicación.
+P47: Trabajo en equipo.
+P48: Liderazgo (cuando aplique).
+P49: Pensamiento crítico.
+P50: Resolución de problemas.
+P51: Gestión del tiempo.
+P52: Adaptabilidad.
+P53: Orientación al cliente.
+P54: Innovación y mejora continua.
+P55: Productividad.
+P56: Recursos y herramientas disponibles.
+P57: Clima organizacional.
+P58: Motivación para aprender.
+P59: Aspiraciones de desarrollo.
+P60: Necesidades de formación.
+P61: Barreras para el desempeño.
+P62: Riesgos asociados a las brechas de competencias.
+P64: Tipología de preguntas
+P65: El instrumento combinará distintos tipos de preguntas para obtener un diagnóstico más preciso:
+P66: Escalas Likert para medir percepciones y nivel de acuerdo.
+P67: Escalas de dominio para identificar el nivel de competencia.
+P68: Escalas de frecuencia para conocer el uso real de habilidades y herramientas.
+P69: Escalas de prioridad para establecer la urgencia de formación.
+P70: Preguntas de selección múltiple para identificar causas y preferencias.
+P71: Preguntas abiertas para recoger propuestas y necesidades no contempladas.
+P73: Principios de diseño
+P74: El cuestionario se construye bajo los siguientes principios:
+P75: Pertinencia: cada pregunta debe aportar información útil para la toma de decisiones.
+P76: No redundancia: evitar preguntas repetitivas, salvo cuando permitan contrastar percepciones entre niveles.
+P77: Comparabilidad: todas las dimensiones deben poder compararse por área, cargo y nivel jerárquico.
+P78: Accionabilidad: cada resultado debe traducirse en acciones concretas de formación o mejora organizacional.
+P79: Escalabilidad: el instrumento debe ser aplicable tanto en pequeñas empresas como en organizaciones con múltiples sedes.
+P80: INSTRUMENTO INTEGRAL PARA EL DIAGNÓSTICO DE NECESIDADES DE FORMACIÓN (IIDNF)
+P81: PARTE 2
+P82: CARACTERIZACIÓN DEL COLABORADOR
+P83: Objetivo: Identificar el contexto laboral del colaborador para segmentar las necesidades de formación por área, cargo, experiencia, modalidad de trabajo, nivel jerárquico y condiciones de desempeño.
+P85: SECCIÓN A.
+P86: Información General
+P87: 1. Área a la que pertenece
+P88: ○ Alta Dirección
+P89: ○ Administrativa
+P90: ○ Talento Humano
+P91: ○ Financiera
+P92: ○ Comercial
+P93: ○ Mercadeo
+P94: ○ Producción
+P95: ○ Operaciones
+P96: ○ Logística
+P97: ○ Compras
+P98: ○ Tecnología
+P99: ○ Calidad
+P100: ○ Jurídica
+P101: ○ Servicio al Cliente
+P102: ○ Investigación y Desarrollo
+P103: ○ Otra: ____________
+P105: 2. Cargo
+P108: 3. Nivel del cargo
+P109: ○ Alta Gerencia
+P110: ○ Director
+P111: ○ Supervisor / Coordinador
+P112: ○ Profesional
+P113: ○ Técnico
+P114: ○ Auxiliar
+P115: ○ Operario
+P117: 4. Antigüedad en la empresa
+P118: ○ Menos de 6 meses
+P119: ○ 6 meses a 1 año
+P120: ○ 1 a 3 años
+P121: ○ 3 a 5 años
+P122: ○ Más de 5 años
+P124: 5. Antigüedad en el cargo
+P125: ○ Menos de 6 meses
+P126: ○ 6 meses a 1 año
+P127: ○ 1 a 3 años
+P128: ○ Más de 3 años
+P130: 6. Nivel educativo
+P131: ○ Primaria
+P132: ○ Bachiller
+P133: ○ Técnico
+P134: ○ Tecnólogo
+P135: ○ Profesional
+P136: ○ Especialización
+P137: ○ Maestría
+P138: ○ Doctorado
+P140: 7. Tipo de contrato
+P141: ○ Indefinido
+P142: ○ Fijo
+P143: ○ Prestación de servicios
+P144: ○ Aprendiz
+P145: ○ Temporal
+P147: 8. Modalidad de trabajo
+P148: ○ Presencial
+P149: ○ Híbrido
+P150: ○ Remoto
+P152: 9. Personas a cargo
+P153: ○ Ninguna
+P154: ○ 1 a 5
+P155: ○ 6 a 15
+P156: ○ 16 a 30
+P157: ○ Más de 30
+P159: 10. ¿Con qué frecuencia interactúa con clientes?
+P160: ○ Nunca
+P161: ○ Ocasionalmente
+P162: ○ Frecuentemente
+P163: ○ Permanentemente
+P165: SECCIÓN B.
+P166: Contexto del Cargo
+P167: Escala
+P168: 1 = Totalmente en desacuerdo
+P169: 5 = Totalmente de acuerdo
+P172: SECCIÓN C.
+P173: Recursos para Trabajar
+P175: SECCIÓN D.
+P176: Causas del Bajo Desempeño
+P177: Esta es una de las secciones más importantes del instrumento, porque evita concluir erróneamente que todo problema debe resolverse con capacitación.
+P178: Cuando una actividad no se realiza como esperaba, ¿cuáles suelen ser las causas?
+P179: (Marque máximo tres opciones)
+P180: □ No conozco completamente cómo realizarla.
+P181: □ Nunca recibí capacitación.
+P182: □ El procedimiento no está claro.
+P183: □ No existe un procedimiento documentado.
+P184: □ No tengo acceso a la información necesaria.
+P185: □ Las herramientas tecnológicas son insuficientes.
+P186: □ El software presenta fallas.
+P187: □ No dispongo del tiempo suficiente.
+P188: □ La carga laboral es muy alta.
+P189: □ Falta coordinación entre áreas.
+P190: □ Las instrucciones cambian constantemente.
+P191: □ No recibo suficiente orientación de mi jefe.
+P192: □ Los objetivos no son claros.
+P193: □ No cuento con los recursos necesarios.
+P194: □ El problema no depende de mí.
+P195: □ Otra:
+P198: SECCIÓN E.
+P199: Percepción del Aprendizaje
+P200: Escala Likert
+P202: SECCIÓN F.
+P203: Preferencias de Aprendizaje
+P204: ¿Cómo aprende mejor?
+P205: (Marque máximo tres)
+P206: □ Cursos presenciales
+P207: □ Cursos virtuales en vivo
+P208: □ Cursos virtuales grabados
+P209: □ Videos cortos
+P210: □ Microlearning (5-10 minutos)
+P211: □ Podcasts
+P212: □ Manuales
+P213: □ Simulaciones
+P214: □ Casos prácticos
+P215: □ Aprendizaje en el puesto de trabajo
+P216: □ Mentorías
+P217: □ Coaching
+P218: □ Comunidades de práctica
+P220: ¿Cuál duración considera ideal para una capacitación?
+P221: ○ Menos de 30 minutos
+P222: ○ 1 hora
+P223: ○ 2 horas
+P224: ○ Medio día
+P225: ○ Un día
+P226: ○ Varias sesiones cortas
+P228: ¿En qué horario prefiere capacitarse?
+P229: ○ Dentro de la jornada laboral
+P230: ○ Antes de iniciar labores
+P231: ○ Después de la jornada
+P232: ○ Fines de semana
+P233: ○ Indiferente
+P235: ¿Qué logramos con esta parte?
+P236: Con estas primeras 25 afirmaciones y las preguntas de contexto ya es posible identificar:
+P237: Si el colaborador conoce realmente su cargo.
+P238: Si las brechas se originan por falta de formación o por problemas de organización.
+P239: Si existen limitaciones de recursos, tecnología o comunicación.
+P240: La disposición del colaborador hacia el aprendizaje.
+P241: El formato y las condiciones que maximizarán la efectividad de la capacitación.
+P242: Además, esta información permite segmentar los resultados por área, cargo, antigüedad y modalidad de trabajo, lo que hace posible construir diagnósticos comparativos y planes de formación específicos en lugar de acciones generales.
+P243: En la Parte 3 abordaremos el núcleo del instrumento: la evaluación integral de competencias técnicas, digitales y transversales mediante una matriz que permitirá calcular automáticamente el nivel de dominio, la importancia para el cargo, la frecuencia de uso y la prioridad de formación para cada competencia. Esta sección será la base para generar el mapa de brechas de competencias de la organización.
+P244: INSTRUMENTO INTEGRAL PARA EL DIAGNÓSTICO DE NECESIDADES DE FORMACIÓN (IIDNF)
+P245: PARTE 3
+P246: MATRIZ INTEGRAL DE COMPETENCIAS
+P248: ¿Cómo responder?
+P249: Para cada competencia responda las cinco columnas.
+P250: Nota metodológica: La columna "Prioridad de capacitación" refleja la percepción del colaborador. Posteriormente se contrastará con las demás variables para determinar la prioridad objetiva de formación.
+P252: BLOQUE A
+P253: Competencias Técnicas Generales
+P255: BLOQUE B
+P256: Competencias Digitales
+P258: BLOQUE C
+P259: Inteligencia Artificial
+P261: BLOQUE D
+P262: Competencias Analíticas
+P264: BLOQUE E
+P265: Comunicación
+P267: BLOQUE F
+P268: Trabajo en Equipo
+P270: BLOQUE G
+P271: Organización Personal
+P273: BLOQUE H
+P274: Calidad
+P276: BLOQUE I (Solo para cargos con personal a cargo)
+P277: Liderazgo
+P279: BLOQUE J
+P280: Competencias del Futuro
+P281: Marque las competencias que considera más importantes para su desarrollo durante los próximos tres años (seleccione máximo cinco):
+P282: □ Inteligencia Artificial.
+P283: □ Automatización de procesos.
+P284: □ Análisis de datos.
+P285: □ Power BI.
+P286: □ Ciencia de datos.
+P287: □ Ciberseguridad.
+P288: □ Liderazgo.
+P289: □ Gestión de proyectos.
+P290: □ Innovación.
+P291: □ Creatividad.
+P292: □ Design Thinking.
+P293: □ Metodologías ágiles.
+P294: □ Negociación.
+P295: □ Servicio al cliente.
+P296: □ Comunicación efectiva.
+P297: □ Gestión del cambio.
+P298: □ Transformación digital.
+P299: □ Sostenibilidad.
+P300: □ Gestión de riesgos.
+P301: □ Otra: ___________________________
+P303: Valor agregado de esta sección
+P304: Esta matriz permite calcular indicadores que normalmente no se obtienen con una encuesta convencional, por ejemplo:
+P305: Brecha de Competencia (BC): diferencia entre el nivel requerido (importancia) y el nivel actual declarado.
+P306: Índice de Uso: frecuencia con la que la competencia se aplica en el puesto.
+P307: Índice de Impacto: beneficio esperado al fortalecer la competencia.
+P308: Índice de Prioridad de Formación (IPF): combinación de importancia, brecha, frecuencia e impacto para priorizar las acciones formativas.
+P309: Mapa de competencias críticas: identifica las competencias que concentran las mayores brechas por persona, cargo, área o nivel jerárquico.
+P310: Observación metodológica
+P311: En proyectos de consultoría suelo incorporar una mejora adicional: no todas las competencias deberían aparecer para todos los colaboradores. Una vez el encuestado selecciona su cargo o nivel jerárquico en la Parte 2, el sistema puede mostrar únicamente las competencias relevantes para ese perfil (por ejemplo, un operario no vería el bloque de liderazgo, mientras que un director sí). Esto reduce el tiempo de respuesta entre un 30 % y un 40 % sin sacrificar la calidad del diagnóstico, además de mejorar significativamente la experiencia del usuario.
+P312: INSTRUMENTO INTEGRAL PARA EL DIAGNÓSTICO DE NECESIDADES DE FORMACIÓN (IIDNF)
+P313: PARTE 4
+P314: PRODUCTIVIDAD, PROCESOS Y BARRERAS DEL DESEMPEÑO
+P316: SECCIÓN A.
+P317: Productividad Individual
+P318: Escala
+P319: 1 = Totalmente en desacuerdo
+P320: 5 = Totalmente de acuerdo
+P322: SECCIÓN B.
+P323: Procesos de Trabajo
+P325: SECCIÓN C.
+P326: Recursos y Tecnología
+P328: SECCIÓN D.
+P329: Inteligencia Artificial y Automatización
+P331: SECCIÓN E.
+P332: Diagnóstico de Causas del Desempeño
+P333: Cuando tiene dificultades para cumplir una actividad, indique qué tan frecuente es cada una de las siguientes situaciones.
+P334: Escala:
+P335: 1 = Nunca
+P336: 5 = Siempre
+P337: Interpretación: Una puntuación alta en los ítems 36 o 37 sugiere una brecha de conocimientos susceptible de resolverse con formación. En cambio, puntuaciones altas en los ítems 38 a 50 apuntan a necesidades de intervención sobre procesos, tecnología, liderazgo, comunicación o gestión organizacional.
+P339: SECCIÓN F.
+P340: Identificación de Oportunidades de Mejora
+P341: Seleccione hasta cinco opciones que, en su opinión, tendrían el mayor impacto para mejorar su desempeño.
+P342: □ Capacitación técnica especializada.
+P343: □ Capacitación en herramientas digitales.
+P344: □ Formación en Inteligencia Artificial.
+P345: □ Formación en liderazgo.
+P346: □ Formación en comunicación.
+P347: □ Formación en servicio al cliente.
+P348: □ Formación en gestión del tiempo.
+P349: □ Formación en análisis de datos.
+P350: □ Mejorar los procedimientos de trabajo.
+P351: □ Actualizar los sistemas informáticos.
+P352: □ Automatizar procesos repetitivos.
+P353: □ Contar con mejores equipos o recursos.
+P354: □ Mejorar la comunicación entre áreas.
+P355: □ Recibir mayor acompañamiento del jefe.
+P356: □ Definir mejor las funciones y responsabilidades.
+P357: □ Reducir la carga laboral.
+P358: □ Mejorar el acceso a la información.
+P359: □ Implementar un programa de mentoría.
+P360: □ Crear comunidades de práctica para compartir conocimientos.
+P361: □ Otra: ______________________________
+P363: SECCIÓN G.
+P364: Priorización de Problemas
+P365: ¿Cuáles son los tres principales factores que limitan actualmente su desempeño?
+P370: SECCIÓN H.
+P371: Evaluación del Impacto Esperado
+P372: Si la organización implementara mejoras en las áreas que usted identificó, ¿qué impacto estima que tendrían en su desempeño?
+P373: ○ Muy bajo.
+P374: ○ Bajo.
+P375: ○ Moderado.
+P376: ○ Alto.
+P377: ○ Muy alto.
+P379: ¿Qué hace especial esta parte del instrumento?
+P380: Esta sección no solo identifica qué cursos desean los colaboradores, sino que diferencia con claridad entre:
+P381: Necesidades de capacitación, cuando la causa es una brecha de conocimientos o habilidades.
+P382: Necesidades de rediseño de procesos, cuando el problema es organizacional.
+P383: Necesidades tecnológicas, cuando las herramientas limitan el desempeño.
+P384: Necesidades de liderazgo, cuando faltan orientación, seguimiento o retroalimentación.
+P385: Necesidades de gestión del cambio, cuando las prioridades y los procedimientos son inestables.
+P386: Con esta información, el plan de acción puede combinar iniciativas de formación con proyectos de mejora organizacional, evitando invertir recursos en capacitación cuando el origen del problema no está en las competencias del personal.
+P387: INSTRUMENTO INTEGRAL PARA EL DIAGNÓSTICO DE NECESIDADES DE FORMACIÓN (IIDNF)
+P388: PARTE 5
+P389: DESARROLLO PROFESIONAL Y NECESIDADES DE FORMACIÓN
+P390: Objetivo: Identificar las necesidades reales de aprendizaje, las aspiraciones de desarrollo y las modalidades de formación más efectivas para cada colaborador.
+P392: SECCIÓN A.
+P393: Aprendizaje Continuo
+P394: Escala
+P395: 1 = Totalmente en desacuerdo
+P396: 5 = Totalmente de acuerdo
+P398: SECCIÓN B.
+P399: Necesidades de Desarrollo por Competencia
+P400: Indique el nivel de prioridad que tiene cada una de las siguientes competencias para su desarrollo durante los próximos 12 meses.
+P401: Escala:
+P402: 1 = No la necesito
+P403: 2 = Baja prioridad
+P404: 3 = Prioridad media
+P405: 4 = Alta prioridad
+P406: 5 = Prioridad crítica
+P407: Competencias Técnicas
+P409: Competencias Digitales
+P411: Competencias Blandas
+P413: Liderazgo
+P414: (Solo para quienes tienen personal a cargo)
+P416: SECCIÓN C.
+P417: Intereses de Formación
+P418: Seleccione los diez temas que considera más relevantes para su desarrollo profesional.
+P419: Gestión
+P420: □ Planeación estratégica.
+P421: □ Gestión de proyectos.
+P422: □ Gestión por procesos.
+P423: □ Gestión del riesgo.
+P424: □ Gestión del cambio.
+P425: □ Gestión de la calidad.
+P426: □ Gestión documental.
+P428: Tecnología
+P429: □ Inteligencia Artificial.
+P430: □ ChatGPT.
+P431: □ Microsoft Copilot.
+P432: □ Power BI.
+P433: □ Excel Avanzado.
+P434: □ Automatización con Power Automate.
+P435: □ Análisis de datos.
+P436: □ Visualización de datos.
+P437: □ Ciberseguridad.
+P438: □ Computación en la nube.
+P440: Competencias Humanas
+P441: □ Liderazgo.
+P442: □ Comunicación.
+P443: □ Servicio al cliente.
+P444: □ Negociación.
+P445: □ Inteligencia emocional.
+P446: □ Trabajo en equipo.
+P447: □ Resolución de conflictos.
+P448: □ Creatividad.
+P449: □ Innovación.
+P450: □ Pensamiento crítico.
+P451: □ Gestión del tiempo.
+P452: □ Productividad personal.
+P454: Comercial
+P455: □ Ventas consultivas.
+P456: □ Marketing Digital.
+P457: □ CRM.
+P458: □ Fidelización.
+P459: □ Experiencia del cliente.
+P461: Otros
+P462: □ Sostenibilidad.
+P463: □ ESG.
+P464: □ Transformación Digital.
+P465: □ Normatividad.
+P466: □ Finanzas.
+P467: □ Compras.
+P468: □ Logística.
+P469: □ Otro:
+P472: SECCIÓN D.
+P473: Modalidad Preferida
+P474: Seleccione máximo tres.
+P475: □ Curso presencial.
+P476: □ Curso virtual sincrónico.
+P477: □ Curso virtual asincrónico.
+P478: □ Microlearning (5-10 minutos).
+P479: □ Videos.
+P480: □ Podcasts.
+P481: □ Taller práctico.
+P482: □ Laboratorio.
+P483: □ Simulación.
+P484: □ Mentoría.
+P485: □ Coaching.
+P486: □ Comunidad de práctica.
+P487: □ Aprendizaje en el puesto de trabajo.
+P489: SECCIÓN E.
+P490: Intensidad Horaria
+P491: ¿Cuál considera adecuada?
+P492: ○ Menos de 2 horas.
+P493: ○ 2 a 4 horas.
+P494: ○ 4 a 8 horas.
+P495: ○ 8 a 16 horas.
+P496: ○ Más de 16 horas.
+P498: SECCIÓN F.
+P499: Disponibilidad
+P500: Seleccione los horarios que mejor se adapten a usted.
+P501: □ Durante la jornada laboral.
+P502: □ Antes de iniciar labores.
+P503: □ Después de la jornada.
+P504: □ Fines de semana.
+P505: □ Horario flexible.
+P507: SECCIÓN G.
+P508: Expectativas de Desarrollo
+P509: Seleccione máximo tres.
+P510: □ Mejorar mi desempeño.
+P511: □ Prepararme para asumir nuevas responsabilidades.
+P512: □ Obtener un ascenso.
+P513: □ Actualizar conocimientos.
+P514: □ Obtener certificaciones.
+P515: □ Liderar proyectos.
+P516: □ Incrementar mi productividad.
+P517: □ Desarrollar competencias digitales.
+P518: □ Mejorar mis habilidades de liderazgo.
+P519: □ Prepararme para cambios tecnológicos.
+P520: □ Compartir conocimientos con otros colaboradores.
+P522: SECCIÓN H.
+P523: Compromiso con el Aprendizaje
+P524: Escala
+P525: 1 = Totalmente en desacuerdo
+P526: 5 = Totalmente de acuerdo
+P528: SECCIÓN I.
+P529: Preguntas Estratégicas (Abiertas)
+P530: Estas respuestas son fundamentales para enriquecer el análisis cuantitativo con información cualitativa.
+P531: ¿Qué conocimiento o habilidad considera que tendría el mayor impacto en su desempeño y por qué?
+P533: Si pudiera eliminar una dificultad que afecta su trabajo diario, ¿cuál sería?
+P535: ¿Qué tema considera que la organización debería fortalecer para prepararse para los próximos tres años?
+P537: ¿Qué buenas prácticas o conocimientos posee que podrían compartirse con otros colaboradores?
+P539: ¿Qué sugerencias tiene para mejorar el programa de capacitación y desarrollo de la organización?
+P542: Valor metodológico de esta parte
+P543: Esta sección transforma el diagnóstico en un instrumento de gestión del talento. No solo identifica brechas, sino que también recoge:
+P544: Motivación para aprender.
+P545: Prioridades percibidas por el colaborador.
+P546: Preferencias de aprendizaje.
+P547: Disponibilidad para la formación.
+P548: Aspiraciones de carrera.
+P549: Conocimientos internos que pueden convertirse en programas de formación entre pares.
+P550: Temas emergentes que la organización aún no ha incorporado.
+P551: Además, la combinación de esta información con las secciones anteriores permite diseñar rutas de aprendizaje diferenciadas por cargo, área y nivel jerárquico, maximizando el impacto del plan de capacitación.
+
+--- TABLES ---
+
+TABLE 0:
+  R0: Valor | Interpretación
+  R1: 1 | Totalmente en desacuerdo
+  R2: 2 | En desacuerdo
+  R3: 3 | Ni de acuerdo ni en desacuerdo
+  R4: 4 | De acuerdo
+  R5: 5 | Totalmente de acuerdo
+
+TABLE 1:
+  R0: Valor | Interpretación
+  R1: 1 | No necesito formación
+  R2: 2 | Baja prioridad
+  R3: 3 | Prioridad media
+  R4: 4 | Alta prioridad
+  R5: 5 | Necesidad crítica
+
+TABLE 2:
+  R0: Valor | Interpretación
+  R1: 1 | Nunca
+  R2: 2 | Rara vez
+  R3: 3 | Algunas veces
+  R4: 4 | Frecuentemente
+  R5: 5 | Siempre
+
+TABLE 3:
+  R0: Valor | Interpretación
+  R1: 1 | No conozco el tema
+  R2: 2 | Nivel básico
+  R3: 3 | Nivel intermedio
+  R4: 4 | Nivel avanzado
+  R5: 5 | Experto
+
+TABLE 4:
+  R0: No | Afirmación | 1 | 2 | 3 | 4 | 5
+  R1: 1 | Conozco claramente las responsabilidades de mi cargo. | ○ | ○ | ○ | ○ | ○
+  R2: 2 | Entiendo cómo mi trabajo aporta al logro de los objetivos de la organización. | ○ | ○ | ○ | ○ | ○
+  R3: 3 | Conozco los indicadores mediante los cuales se evalúa mi desempeño. | ○ | ○ | ○ | ○ | ○
+  R4: 4 | Tengo claridad sobre los resultados que se esperan de mi trabajo. | ○ | ○ | ○ | ○ | ○
+  R5: 5 | Comprendo completamente los procedimientos asociados a mi cargo. | ○ | ○ | ○ | ○ | ○
+  R6: 6 | Conozco las políticas internas que regulan mis funciones. | ○ | ○ | ○ | ○ | ○
+  R7: 7 | Sé a quién acudir cuando necesito apoyo técnico o administrativo. | ○ | ○ | ○ | ○ | ○
+  R8: 8 | Conozco los riesgos asociados a mi trabajo. | ○ | ○ | ○ | ○ | ○
+  R9: 9 | Conozco los estándares de calidad aplicables a mis funciones. | ○ | ○ | ○ | ○ | ○
+  R10: 10 | Tengo autonomía suficiente para desarrollar mi trabajo. | ○ | ○ | ○ | ○ | ○
+
+TABLE 5:
+  R0: No | Afirmación | 1 | 2 | 3 | 4 | 5
+  R1: 11 | Dispongo de los equipos necesarios para realizar mi trabajo. | ○ | ○ | ○ | ○ | ○
+  R2: 12 | Las herramientas tecnológicas funcionan adecuadamente. | ○ | ○ | ○ | ○ | ○
+  R3: 13 | Tengo acceso oportuno a la información que necesito. | ○ | ○ | ○ | ○ | ○
+  R4: 14 | Los procedimientos están documentados y actualizados. | ○ | ○ | ○ | ○ | ○
+  R5: 15 | Recibo oportunamente los cambios en procedimientos o políticas. | ○ | ○ | ○ | ○ | ○
+  R6: 16 | La información que recibo es clara. | ○ | ○ | ○ | ○ | ○
+  R7: 17 | Dispongo del tiempo suficiente para realizar mi trabajo con calidad. | ○ | ○ | ○ | ○ | ○
+  R8: 18 | La carga laboral es adecuada. | ○ | ○ | ○ | ○ | ○
+  R9: 19 | Las herramientas digitales facilitan mi trabajo. | ○ | ○ | ○ | ○ | ○
+  R10: 20 | La empresa proporciona los recursos necesarios para aprender continuamente. | ○ | ○ | ○ | ○ | ○
+
+TABLE 6:
+  R0: No | Afirmación | 1 | 2 | 3 | 4 | 5
+  R1: 21 | Me gusta aprender cosas nuevas. | ○ | ○ | ○ | ○ | ○
+  R2: 22 | Estoy dispuesto a capacitarme fuera de mi horario laboral cuando sea necesario. | ○ | ○ | ○ | ○ | ○
+  R3: 23 | Aplico fácilmente lo que aprendo. | ○ | ○ | ○ | ○ | ○
+  R4: 24 | Comparto mis conocimientos con otros compañeros. | ○ | ○ | ○ | ○ | ○
+  R5: 25 | Considero que la formación mejora mi desempeño. | ○ | ○ | ○ | ○ | ○
+
+TABLE 7:
+  R0: Escala | Valor
+  R1: Importancia para su cargo | 1 = Nada importante · 5 = Crítica
+  R2: Nivel actual | 1 = No la domino · 5 = Experto
+  R3: Frecuencia de uso | 1 = Nunca · 5 = Todos los días
+  R4: Impacto de mejorarla | 1 = Muy bajo · 5 = Muy alto
+  R5: Prioridad de capacitación | 1 = No necesaria · 5 = Crítica
+
+TABLE 8:
+  R0: Competencia | Importancia | Nivel actual | Frecuencia | Impacto | Prioridad
+  R1: Conocimiento de las funciones del cargo | □ | □ | □ | □ | □
+  R2: Conocimiento de los procesos del área | □ | □ | □ | □ | □
+  R3: Manejo de procedimientos internos | □ | □ | □ | □ | □
+  R4: Gestión documental | □ | □ | □ | □ | □
+  R5: Redacción de informes | □ | □ | □ | □ | □
+  R6: Interpretación de indicadores | □ | □ | □ | □ | □
+  R7: Solución de problemas técnicos | □ | □ | □ | □ | □
+  R8: Análisis de información | □ | □ | □ | □ | □
+  R9: Planeación del trabajo | □ | □ | □ | □ | □
+  R10: Organización de actividades | □ | □ | □ | □ | □
+
+TABLE 9:
+  R0: Competencia | Importancia | Nivel | Frecuencia | Impacto | Prioridad
+  R1: Microsoft Word | □ | □ | □ | □ | □
+  R2: Microsoft Excel | □ | □ | □ | □ | □
+  R3: Microsoft PowerPoint | □ | □ | □ | □ | □
+  R4: Microsoft Outlook | □ | □ | □ | □ | □
+  R5: Microsoft Teams | □ | □ | □ | □ | □
+  R6: Google Workspace | □ | □ | □ | □ | □
+  R7: Gestión de archivos en la nube | □ | □ | □ | □ | □
+  R8: Videoconferencias | □ | □ | □ | □ | □
+  R9: Seguridad digital | □ | □ | □ | □ | □
+  R10: Gestión de contraseñas y protección de datos | □ | □ | □ | □ | □
+
+TABLE 10:
+  R0: Competencia | Importancia | Nivel | Frecuencia | Impacto | Prioridad
+  R1: Uso de ChatGPT u otras IA generativas | □ | □ | □ | □ | □
+  R2: Elaboración de prompts efectivos | □ | □ | □ | □ | □
+  R3: Uso responsable y ético de la IA | □ | □ | □ | □ | □
+  R4: Automatización de tareas con IA | □ | □ | □ | □ | □
+  R5: Uso de IA para generar documentos | □ | □ | □ | □ | □
+  R6: Uso de IA para analizar información | □ | □ | □ | □ | □
+  R7: Uso de IA para mejorar la productividad | □ | □ | □ | □ | □
+  R8: Verificación crítica de resultados generados por IA | □ | □ | □ | □ | □
+
+TABLE 11:
+  R0: Competencia | Importancia | Nivel | Frecuencia | Impacto | Prioridad
+  R1: Interpretación de datos | □ | □ | □ | □ | □
+  R2: Pensamiento crítico | □ | □ | □ | □ | □
+  R3: Resolución de problemas | □ | □ | □ | □ | □
+  R4: Análisis de riesgos | □ | □ | □ | □ | □
+  R5: Toma de decisiones basada en datos | □ | □ | □ | □ | □
+  R6: Innovación | □ | □ | □ | □ | □
+  R7: Mejora continua | □ | □ | □ | □ | □
+
+TABLE 12:
+  R0: Competencia | Importancia | Nivel | Frecuencia | Impacto | Prioridad
+  R1: Comunicación oral | □ | □ | □ | □ | □
+  R2: Comunicación escrita | □ | □ | □ | □ | □
+  R3: Escucha activa | □ | □ | □ | □ | □
+  R4: Presentación de ideas | □ | □ | □ | □ | □
+  R5: Elaboración de informes | □ | □ | □ | □ | □
+  R6: Comunicación con clientes | □ | □ | □ | □ | □
+  R7: Comunicación entre áreas | □ | □ | □ | □ | □
+
+TABLE 13:
+  R0: Competencia | Importancia | Nivel | Frecuencia | Impacto | Prioridad
+  R1: Colaboración | □ | □ | □ | □ | □
+  R2: Resolución de conflictos | □ | □ | □ | □ | □
+  R3: Empatía | □ | □ | □ | □ | □
+  R4: Adaptabilidad | □ | □ | □ | □ | □
+  R5: Orientación al servicio | □ | □ | □ | □ | □
+  R6: Gestión del cambio | □ | □ | □ | □ | □
+
+TABLE 14:
+  R0: Competencia | Importancia | Nivel | Frecuencia | Impacto | Prioridad
+  R1: Gestión del tiempo | □ | □ | □ | □ | □
+  R2: Planeación | □ | □ | □ | □ | □
+  R3: Organización | □ | □ | □ | □ | □
+  R4: Cumplimiento de compromisos | □ | □ | □ | □ | □
+  R5: Manejo de prioridades | □ | □ | □ | □ | □
+  R6: Autonomía | □ | □ | □ | □ | □
+
+TABLE 15:
+  R0: Competencia | Importancia | Nivel | Frecuencia | Impacto | Prioridad
+  R1: Orientación a la calidad | □ | □ | □ | □ | □
+  R2: Atención al detalle | □ | □ | □ | □ | □
+  R3: Cumplimiento de procedimientos | □ | □ | □ | □ | □
+  R4: Gestión del riesgo | □ | □ | □ | □ | □
+  R5: Cumplimiento normativo | □ | □ | □ | □ | □
+
+TABLE 16:
+  R0: Competencia | Importancia | Nivel | Frecuencia | Impacto | Prioridad
+  R1: Dirección de equipos | □ | □ | □ | □ | □
+  R2: Delegación | □ | □ | □ | □ | □
+  R3: Retroalimentación | □ | □ | □ | □ | □
+  R4: Desarrollo del talento | □ | □ | □ | □ | □
+  R5: Coaching | □ | □ | □ | □ | □
+  R6: Motivación del equipo | □ | □ | □ | □ | □
+  R7: Gestión del desempeño | □ | □ | □ | □ | □
+  R8: Gestión de conflictos | □ | □ | □ | □ | □
+  R9: Planeación estratégica | □ | □ | □ | □ | □
+  R10: Gestión del cambio | □ | □ | □ | □ | □
+
+TABLE 17:
+  R0: No. | Afirmación | 1 | 2 | 3 | 4 | 5
+  R1: 1 | Cumplo mis actividades dentro de los tiempos establecidos. | ○ | ○ | ○ | ○ | ○
+  R2: 2 | Mi carga laboral es adecuada. | ○ | ○ | ○ | ○ | ○
+  R3: 3 | Logro cumplir mis objetivos mensuales. | ○ | ○ | ○ | ○ | ○
+  R4: 4 | Mi trabajo presenta pocos errores o reprocesos. | ○ | ○ | ○ | ○ | ○
+  R5: 5 | Puedo priorizar adecuadamente mis actividades. | ○ | ○ | ○ | ○ | ○
+  R6: 6 | Mi productividad ha mejorado durante el último año. | ○ | ○ | ○ | ○ | ○
+  R7: 7 | Tengo tiempo para aprender nuevas habilidades. | ○ | ○ | ○ | ○ | ○
+  R8: 8 | Mi trabajo podría realizarse de forma más eficiente. | ○ | ○ | ○ | ○ | ○
+  R9: 9 | Existen actividades que consumen tiempo sin aportar valor. | ○ | ○ | ○ | ○ | ○
+  R10: 10 | Considero que puedo mejorar significativamente mi desempeño. | ○ | ○ | ○ | ○ | ○
+
+TABLE 18:
+  R0: No. | Afirmación | 1 | 2 | 3 | 4 | 5
+  R1: 11 | Los procedimientos de mi área son claros. | ○ | ○ | ○ | ○ | ○
+  R2: 12 | Los procedimientos están actualizados. | ○ | ○ | ○ | ○ | ○
+  R3: 13 | Las actividades entre áreas están bien coordinadas. | ○ | ○ | ○ | ○ | ○
+  R4: 14 | Los procesos tienen pocos pasos innecesarios. | ○ | ○ | ○ | ○ | ○
+  R5: 15 | Conozco el flujo completo del proceso en el que participo. | ○ | ○ | ○ | ○ | ○
+  R6: 16 | Las responsabilidades están claramente definidas. | ○ | ○ | ○ | ○ | ○
+  R7: 17 | Las decisiones se toman oportunamente. | ○ | ○ | ○ | ○ | ○
+  R8: 18 | Las actividades se asignan de forma organizada. | ○ | ○ | ○ | ○ | ○
+  R9: 19 | Existen mecanismos para mejorar continuamente los procesos. | ○ | ○ | ○ | ○ | ○
+  R10: 20 | Cuando ocurre un error, se analizan sus causas y se implementan acciones de mejora. | ○ | ○ | ○ | ○ | ○
+
+TABLE 19:
+  R0: No. | Afirmación | 1 | 2 | 3 | 4 | 5
+  R1: 21 | Dispongo de los equipos necesarios para trabajar. | ○ | ○ | ○ | ○ | ○
+  R2: 22 | El software utilizado responde a las necesidades del cargo. | ○ | ○ | ○ | ○ | ○
+  R3: 23 | Las herramientas tecnológicas son fáciles de usar. | ○ | ○ | ○ | ○ | ○
+  R4: 24 | Los sistemas funcionan con estabilidad y rapidez. | ○ | ○ | ○ | ○ | ○
+  R5: 25 | La información que necesito está disponible cuando la requiero. | ○ | ○ | ○ | ○ | ○
+  R6: 26 | Los sistemas están integrados entre sí. | ○ | ○ | ○ | ○ | ○
+  R7: 27 | Las herramientas digitales aumentan mi productividad. | ○ | ○ | ○ | ○ | ○
+  R8: 28 | Conozco todas las funcionalidades de las herramientas que utilizo. | ○ | ○ | ○ | ○ | ○
+  R9: 29 | Recibo soporte técnico oportuno cuando lo necesito. | ○ | ○ | ○ | ○ | ○
+  R10: 30 | La organización invierte en nuevas tecnologías para mejorar el trabajo. | ○ | ○ | ○ | ○ | ○
+
+TABLE 20:
+  R0: No. | Afirmación | 1 | 2 | 3 | 4 | 5
+  R1: 31 | Conozco las posibilidades de la Inteligencia Artificial aplicada a mi trabajo. | ○ | ○ | ○ | ○ | ○
+  R2: 32 | He utilizado herramientas de IA para mejorar mi productividad. | ○ | ○ | ○ | ○ | ○
+  R3: 33 | Sé identificar tareas que podrían automatizarse. | ○ | ○ | ○ | ○ | ○
+  R4: 34 | Considero que la IA puede ayudarme a reducir tareas repetitivas. | ○ | ○ | ○ | ○ | ○
+  R5: 35 | Me interesa capacitarme en herramientas de IA y automatización. | ○ | ○ | ○ | ○ | ○
+
+TABLE 21:
+  R0: No. | Posible causa | 1 | 2 | 3 | 4 | 5
+  R1: 36 | Desconozco cómo realizar la actividad. | ○ | ○ | ○ | ○ | ○
+  R2: 37 | Nunca recibí capacitación sobre el tema. | ○ | ○ | ○ | ○ | ○
+  R3: 38 | El procedimiento no está claramente definido. | ○ | ○ | ○ | ○ | ○
+  R4: 39 | No dispongo de los recursos necesarios. | ○ | ○ | ○ | ○ | ○
+  R5: 40 | Las herramientas tecnológicas presentan fallas. | ○ | ○ | ○ | ○ | ○
+  R6: 41 | La carga laboral es excesiva. | ○ | ○ | ○ | ○ | ○
+  R7: 42 | Las prioridades cambian constantemente. | ○ | ○ | ○ | ○ | ○
+  R8: 43 | No recibo suficiente orientación de mi jefe inmediato. | ○ | ○ | ○ | ○ | ○
+  R9: 44 | Existe poca comunicación entre áreas. | ○ | ○ | ○ | ○ | ○
+  R10: 45 | Las funciones y responsabilidades no están claramente definidas. | ○ | ○ | ○ | ○ | ○
+  R11: 46 | No cuento con tiempo para capacitarme. | ○ | ○ | ○ | ○ | ○
+  R12: 47 | Las herramientas tecnológicas requieren actualización. | ○ | ○ | ○ | ○ | ○
+  R13: 48 | Los cambios organizacionales no se comunican oportunamente. | ○ | ○ | ○ | ○ | ○
+  R14: 49 | No recibo retroalimentación sobre mi desempeño. | ○ | ○ | ○ | ○ | ○
+  R15: 50 | Los objetivos de mi cargo no son claros. | ○ | ○ | ○ | ○ | ○
+
+TABLE 22:
+  R0: No. | Afirmación | 1 | 2 | 3 | 4 | 5
+  R1: 1 | Considero que aprender continuamente es parte de mi desarrollo profesional. | ○ | ○ | ○ | ○ | ○
+  R2: 2 | Busco oportunidades para adquirir nuevos conocimientos. | ○ | ○ | ○ | ○ | ○
+  R3: 3 | Aplico en mi trabajo lo aprendido en capacitaciones anteriores. | ○ | ○ | ○ | ○ | ○
+  R4: 4 | Comparto mis conocimientos con otros colaboradores. | ○ | ○ | ○ | ○ | ○
+  R5: 5 | Me adapto con facilidad a nuevas formas de trabajo. | ○ | ○ | ○ | ○ | ○
+  R6: 6 | Estoy dispuesto(a) a aprender nuevas tecnologías. | ○ | ○ | ○ | ○ | ○
+  R7: 7 | Estoy dispuesto(a) a desarrollar competencias diferentes a las de mi cargo actual. | ○ | ○ | ○ | ○ | ○
+  R8: 8 | Considero que la capacitación contribuye a mejorar mis resultados. | ○ | ○ | ○ | ○ | ○
+  R9: 9 | La organización promueve el aprendizaje continuo. | ○ | ○ | ○ | ○ | ○
+  R10: 10 | Me siento motivado(a) para participar en programas de formación. | ○ | ○ | ○ | ○ | ○
+
+TABLE 23:
+  R0: Competencia | 1 | 2 | 3 | 4 | 5
+  R1: Actualización técnica propia del cargo | ○ | ○ | ○ | ○ | ○
+  R2: Normatividad aplicable a mi trabajo | ○ | ○ | ○ | ○ | ○
+  R3: Calidad y mejora de procesos | ○ | ○ | ○ | ○ | ○
+  R4: Gestión documental | ○ | ○ | ○ | ○ | ○
+  R5: Análisis de información | ○ | ○ | ○ | ○ | ○
+
+TABLE 24:
+  R0: Competencia | 1 | 2 | 3 | 4 | 5
+  R1: Microsoft Excel | ○ | ○ | ○ | ○ | ○
+  R2: Power BI | ○ | ○ | ○ | ○ | ○
+  R3: Herramientas colaborativas | ○ | ○ | ○ | ○ | ○
+  R4: Inteligencia Artificial Generativa | ○ | ○ | ○ | ○ | ○
+  R5: Automatización de procesos | ○ | ○ | ○ | ○ | ○
+  R6: Ciberseguridad | ○ | ○ | ○ | ○ | ○
+
+TABLE 25:
+  R0: Competencia | 1 | 2 | 3 | 4 | 5
+  R1: Comunicación efectiva | ○ | ○ | ○ | ○ | ○
+  R2: Trabajo en equipo | ○ | ○ | ○ | ○ | ○
+  R3: Resolución de problemas | ○ | ○ | ○ | ○ | ○
+  R4: Pensamiento crítico | ○ | ○ | ○ | ○ | ○
+  R5: Gestión del tiempo | ○ | ○ | ○ | ○ | ○
+  R6: Servicio al cliente | ○ | ○ | ○ | ○ | ○
+  R7: Negociación | ○ | ○ | ○ | ○ | ○
+  R8: Innovación | ○ | ○ | ○ | ○ | ○
+
+TABLE 26:
+  R0: Competencia | 1 | 2 | 3 | 4 | 5
+  R1: Liderazgo de equipos | ○ | ○ | ○ | ○ | ○
+  R2: Coaching y mentoría | ○ | ○ | ○ | ○ | ○
+  R3: Retroalimentación efectiva | ○ | ○ | ○ | ○ | ○
+  R4: Gestión del desempeño | ○ | ○ | ○ | ○ | ○
+  R5: Planeación estratégica | ○ | ○ | ○ | ○ | ○
+  R6: Gestión del cambio | ○ | ○ | ○ | ○ | ○
+
+TABLE 27:
+  R0: No. | Afirmación | 1 | 2 | 3 | 4 | 5
+  R1: 11 | Me comprometo a completar las capacitaciones asignadas. | ○ | ○ | ○ | ○ | ○
+  R2: 12 | Aplicaré los conocimientos adquiridos en mi trabajo. | ○ | ○ | ○ | ○ | ○
+  R3: 13 | Compartiré los aprendizajes con mi equipo. | ○ | ○ | ○ | ○ | ○
+  R4: 14 | Participaré activamente en las actividades de formación. | ○ | ○ | ○ | ○ | ○
+  R5: 15 | Buscaré oportunidades para continuar aprendiendo de forma autónoma. | ○ | ○ | ○ | ○ | ○

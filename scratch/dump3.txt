@@ -1,0 +1,606 @@
+P0: PARTE 1. Definir tu peso objetivo REALISTA (no el “ideal teórico”)
+P1: 1. Tus datos de partida
+P2: Peso actual: 100 kg
+P3: Estatura: 1,68 m
+P4: Edad: 53 años
+P5: Con estos datos:
+P6: IMC actual: ~35,4 → obesidad grado II
+Esto no es un juicio, es un punto técnico de referencia para tomar decisiones correctas.
+P8: 2. Error común que vamos a evitar
+P9: ❌ Pretender bajar “hasta 70 kg rápido”.
+A los 53 años, esto suele provocar:
+P10: Pérdida de músculo
+P11: Fatiga persistente
+P12: Efecto rebote
+P13: Abandono del proceso
+P15: 3. Peso objetivo funcional (en fases)
+P16: Como coach, trabajo con metas escalonadas, no con un solo número.
+P17: 🎯 FASE 1 – Meta inicial (12–16 semanas)
+P18: Peso objetivo: 88–90 kg
+P19: Pérdida esperada: 10–12 kg
+P20: Beneficios:
+P21: Disminución clara de grasa visceral
+P22: Mejor presión arterial
+P23: Mejor movilidad
+P24: Alta motivación (resultados visibles)
+P25: 👉 Esta fase es clave para “desbloquear” el metabolismo.
+P27: 🎯 FASE 2 – Meta intermedia
+P28: Peso objetivo: 80–82 kg
+P29: Aquí el cuerpo ya funciona distinto
+P30: Se consolida el hábito
+P31: Menor inflamación articular
+P32: Mayor energía diaria
+P34: 🎯 FASE 3 – Peso de estabilidad (no estético, sino saludable)
+P35: Rango probable: 75–78 kg
+P36: Este es un peso:
+P37: Mantenible a largo plazo
+P38: Compatible con tu edad
+P39: Protector del músculo
+P40: Realista sin vivir “a dieta”
+P41: 📌 Este será tu peso de estabilidad, no de sacrificio.
+P43: 4. Ritmo correcto de pérdida
+P44: 0,7 a 1 kg por semana
+P45: Más rápido = mayor riesgo de rebote
+P46: Más lento = abandono por frustración
+P48: 5. Indicadores que usaremos (no solo la balanza)
+P49: Además del peso:
+P50: Medida de cintura
+P51: Energía diaria
+P52: Calidad del sueño
+P53: Sensación de hambre
+P54: Ropa
+P55: 👉 Si estos mejoran, el plan está funcionando, incluso si el peso se estanca unos días.
+P57: Cierre de la PARTE 1
+P58: Tu objetivo no es bajar rápido, sino:
+P59: bajar, estabilizar y no volver a empezar dentro de un año
+P60: Proteína: 140–160 g
+P61: Grasas saludables: 70–80 g
+P62: Carbohidratos: 80–120 g
+P63: Esto equivale aproximadamente a:
+P64: Proteína: 35–40 %
+P65: Grasas: 40–45 %
+P66: Carbohidratos: 20–25 %
+P68: 4. Estructura base del plato (visual y simple)
+P72: Cada comida principal debe tener:
+P73: Proteína clara como protagonista
+P74: Vegetales abundantes
+P75: Grasa medida
+P76: Carbohidrato solo si corresponde al momento del día
+P78: 5. Distribución diaria de comidas (recomendada)
+P79: Opción ideal: 3 comidas + 1 snack
+P80: (no más, no menos al inicio)
+P81: Desayuno
+P82: Proteína alta
+P83: Algo de grasa
+P84: Carbohidrato opcional (pequeño)
+P85: Ejemplo:
+P86: Huevos + vegetales + aguacate
+P87: O yogurt griego + semillas
+P89: Almuerzo
+P90: Comida más completa del día
+P91: Aquí pueden ir la mayoría de los carbohidratos
+P92: Ejemplo:
+P93: Proteína magra
+P94: Verduras
+P95: Arroz integral / legumbres (porción medida)
+P97: Snack (si hay hambre real)
+P98: Proteína + grasa
+P99: SIN azúcar
+P100: Ejemplo:
+P101: Yogurt griego
+P102: Huevo cocido
+P103: Frutos secos medidos
+P105: Cena
+P106: Proteína + vegetales
+P107: Sin carbohidratos o mínimos
+P108: Ejemplo:
+P109: Pescado o pollo + ensalada + aceite de oliva
+P110: .. PARTE 3. Alimentos concretos + ejemplo de día completo (realista y sostenible)
+P112: 1. Alimentos PERMITIDOS (base del plan)
+P113: Proteínas (prioridad absoluta)
+P114: Debes incluir proteína en cada comida.
+P115: Huevos
+P116: Pollo, pavo
+P117: Pescados (atún, salmón, sardina, merluza)
+P118: Carne magra (res, cerdo magro)
+P119: Yogurt griego natural sin azúcar
+P120: Queso fresco / queso campesino (moderado)
+P121: Legumbres (lentejas, garbanzos, fríjol) en porciones medidas
+P123: Vegetales (libres y recomendados)
+P124: Puedes comerlos sin miedo.
+P125: Espinaca, lechuga, rúgula
+P126: Brócoli, coliflor
+P127: Pepino, zucchini
+P128: Tomate
+P129: Berenjena
+P130: Pimentón
+P131: Repollo
+P132: 👉 Aportan saciedad, fibra y control glucémico.
+P134: Grasas saludables (medidas, no libres)
+P135: Aceite de oliva
+P136: Aguacate
+P137: Frutos secos (nueces, almendras)
+P138: Semillas (chía, linaza)
+P139: 📌 Grasa saludable sí, pero en cantidad controlada.
+P141: Carbohidratos permitidos (estratégicos)
+P142: No son diarios obligatorios, pero sí funcionales.
+P143: Avena
+P144: Arroz integral
+P145: Quinoa
+P146: Papa o yuca (porciones pequeñas)
+P147: Fruta entera (1 porción/día)
+P148: ❗ Preferiblemente desayuno o almuerzo, no de noche.
+P150: 2. Alimentos a EVITAR (clave para no sabotear el plan)
+P151: 🚫 Azúcar en todas sus formas
+🚫 Harinas blancas
+🚫 Pan, galletas, pasteles
+🚫 Bebidas azucaradas
+🚫 Jugos (incluso naturales)
+🚫 Alcohol (al menos en esta fase)
+🚫 Ultra procesados
+P152: Estos alimentos disparan insulina y hambre, aunque “no comas mucho”.
+P154: 3. Ejemplo de DÍA COMPLETO (1.700 kcal aprox.)
+P158: 4
+P159: 🥣 DESAYUNO
+P160: 3 huevos completos
+P161: Espinaca + tomate salteados
+P162: ¼ de aguacate
+P163: Café o té sin azúcar
+P164: ✔ Alto en proteína
+✔ Energía estable
+✔ Hambre controlada
+P166: 🍽️ ALMUERZO
+P167: 180–200 g de pechuga de pollo o pescado
+P168: Plato grande de verduras
+P169: ½ taza de arroz integral o legumbres
+P170: 1 cucharada de aceite de oliva
+P171: ✔ Aquí van los carbohidratos
+✔ Comida más fuerte del día
+P173: 🧁 SNACK (solo si hay hambre real)
+P174: Yogurt griego natural
+P175: 10–15 almendras
+P176: ✔ Controla ansiedad
+✔ Evita atracones nocturnos
+P178: 🍽️ CENA
+P179: 180 g de pescado, pollo o carne magra
+P180: Ensalada grande (lechuga, pepino, tomate)
+P181: 1 cucharada de aceite de oliva
+P182: ✔ Sin carbohidratos
+✔ Facilita descanso y quema de grasa
+P184: 4. Reglas de oro (muy importantes)
+P185: Nunca comas proteína sola: acompaña con vegetales.
+P186: No piques entre comidas fuera del snack planificado.
+P187: No compenses (ni castigo ni premio).
+P188: Agua: mínimo 2–2,5 litros/día.
+P189: Si un día fallas, sigues al siguiente, no abandonas.
+P191: 5. Qué deberías notar en 7–10 días
+P192: Menos inflamación abdominal
+P193: Ropa más suelta
+P194: Hambre más estable
+P195: Descenso inicial de peso (2–4 kg, parte agua)
+P196: PARTE 4. Ejercicio mínimo necesario para bajar grasa, proteger músculo y cuidar articulaciones (53 años)
+P198: 1. Principio clave (muy importante)
+P199: A partir de los 50 años, el ejercicio no es para “quemar calorías”, sino para:
+P200: Preservar masa muscular
+P201: Mantener metabolismo activo
+P202: Proteger rodillas, cadera y espalda
+P203: Evitar flacidez y efecto rebote
+P204: 📌 Sin fuerza, la dieta sola falla a mediano plazo.
+P206: 2. Lo MÍNIMO efectivo (no negociable)
+P207: 🏋️ Entrenamiento de fuerza: 3 días/semana
+P208: 30–40 minutos
+P209: No necesitas gimnasio al inicio
+P210: Peso corporal o cargas moderadas
+P211: 🚶 Actividad diaria: caminar
+P212: 7.000–10.000 pasos/día
+P213: Ritmo cómodo pero continuo
+P214: 👉 Esto es suficiente para perder grasa sin castigar el cuerpo.
+P216: 3. Entrenamiento de fuerza recomendado (simple y seguro)
+P220: 4
+P221: Ejercicios base (cuerpo completo)
+P222: Hazlos 2–3 series cada uno:
+P223: Sentadillas (o sentarse y pararse de una silla)
+P224: Flexiones apoyadas en pared o banco
+P225: Remo con banda elástica o mancuernas
+P226: Peso muerto ligero (o bisagra de cadera)
+P227: Press de hombro con poco peso
+P228: Plancha (20–40 segundos)
+P229: ✔ Activan grandes grupos musculares
+✔ Elevan metabolismo
+✔ Protegen articulaciones
+P231: Frecuencia sugerida
+P232: Lunes: Fuerza
+P233: Martes: Caminata
+P234: Miércoles: Fuerza
+P235: Jueves: Caminata
+P236: Viernes: Fuerza
+P237: Fin de semana: Movimiento libre (caminar, movilidad)
+P239: 4. Cardio: cuánto y cómo (sin errores)
+P240: ❌ Correr largas distancias
+❌ Cardio intenso diario
+❌ Castigar rodillas para “sudar más”
+P241: ✔ Caminar
+✔ Bicicleta estática
+✔ Elíptica
+✔ Natación
+P242: 📌 El cardio acompaña, no lidera el proceso.
+P244: 5. Señales de que el ejercicio está bien ajustado
+P245: Te sientes cansado, pero no agotado
+P246: Duermes mejor
+P247: Menos dolor articular
+P248: Más firmeza corporal
+P249: Hambre más controlada
+P250: 🚨 Señal de alerta:
+P251: Fatiga constante
+P252: Dolor persistente
+P253: Ansiedad por comida
+➡ Indica exceso de entrenamiento
+P255: 6. El error más común (y peligroso)
+P256: “Voy a entrenar duro para bajar más rápido”
+P257: Resultado habitual:
+P258: Más hambre
+P259: Más cortisol
+P260: Menos adherencia
+P261: Abandono
+P262: 👉 Constancia > intensidad
+P263: PARTE 5. Sueño, estrés y hormonas: cómo evitar el rebote (clave a los 53 años)
+P265: 1. El punto que casi todos subestiman
+P266: A partir de los 50 años, el peso no se regula solo con comida y ejercicio.
+Si el sueño y el estrés no están bajo control:
+P267: El cuerpo se defiende
+P268: Aumenta el hambre
+P269: Se frena la pérdida de grasa
+P270: Aparece el rebote, incluso “haciendo todo bien”
+P272: 2. Hormonas clave que influyen en tu peso
+P276: 4
+P277: 🧠 Cortisol (estrés)
+P278: Se eleva con:
+P279: Falta de sueño
+P280: Entrenamiento excesivo
+P281: Dietas muy restrictivas
+P282: Efecto:
+P283: Acumulación de grasa abdominal
+P284: Antojos nocturnos
+P285: Dificultad para bajar de peso
+P287: 🍽️ Grelina y leptina (hambre y saciedad)
+P288: Dormir poco:
+P289: ↑ grelina (hambre)
+P290: ↓ leptina (saciedad)
+P291: Resultado:
+P292: Comes más sin darte cuenta
+P293: El cuerpo pide carbohidratos rápidos
+P294: 📌 No es falta de voluntad, es fisiología.
+P296: 3. Sueño: la regla mínima efectiva
+P297: Objetivo realista
+P298: 👉 7–8 horas por noche, no “cuando se pueda”.
+P299: Reglas prácticas (aplícalas tal cual)
+P300: Cena al menos 2–3 horas antes de dormir
+P301: Evita pantallas brillantes la última hora
+P302: Nada de café después de las 2 p. m.
+P303: Dormitorio oscuro y fresco
+P304: Horario regular (incluso fines de semana)
+P305: ✔ Dormir bien facilita la pérdida de grasa
+✔ Dormir mal la bloquea, aunque comas bien
+P307: 4. Estrés: cómo bajarlo sin cambiar tu vida
+P308: No necesitas meditar una hora ni ir a retiros.
+P309: Estrategias simples y efectivas
+P310: Caminatas diarias (ya las tienes en el plan)
+P311: Respiración 4–6:
+P312: Inhala 4 segundos
+P313: Exhala 6 segundos
+P314: 5 minutos, 2 veces al día
+P315: Pausas reales durante el día
+P316: Menos autoexigencia: esto es un proceso, no una prueba
+P317: 📌 Bajar el estrés ayuda más que recortar 200 kcal.
+P319: 5. Señales de que esta parte está funcionando
+P320: ✔ Te despiertas con más energía
+✔ Menos ansiedad nocturna
+✔ Hambre más predecible
+✔ Descenso de grasa abdominal
+✔ Mejor estado de ánimo
+P322: 6. El gran error que vamos a evitar
+P323: “Cuando llegue al peso, relajo todo”
+P324: Eso genera:
+P325: Subida rápida de peso
+P326: Frustración
+P327: Nuevo intento más restrictivo
+P328: 👉 Aquí no hay “fin del plan”, hay transición a mantenimiento.
+P330: CIERRE GENERAL HASTA AQUÍ
+P331: Ya construimos:
+P332: 🎯 Objetivo de peso realista
+P333: 🍽️ Calorías y macronutrientes correctos
+P334: 🥗 Alimentos y estructura diaria
+P335: 🏋️ Ejercicio mínimo efectivo
+P336: 😴 Sueño y estrés para no rebotar
+P337: PARTE 6. Cómo medir el progreso, ajustar sin frustración y pasar a mantenimiento
+P339: 1. Cómo medir el progreso (más allá de la balanza)
+P340: 📅 Frecuencia correcta
+P341: Peso: 1 vez por semana
+P342: Mismo día
+P343: Mismo horario
+P344: En ayunas
+P345: Medidas corporales: cada 15 días
+P346: Cintura (la más importante)
+P347: Ropa y sensaciones: semanal
+P348: 📌 Pesarte todos los días no mejora resultados, solo genera ansiedad.
+P350: 2. Qué esperar semana a semana (normalización)
+P351: 👉 Meseta ≠ fracaso. Es adaptación.
+P353: 3. Qué hacer si el peso se estanca (protocolo correcto)
+P354: 🚨 Regla de oro
+P355: Solo ajustamos si pasan 2 semanas seguidas sin cambios.
+P356: Orden de ajuste (NO al revés)
+P357: Revisar adherencia real (no percepción)
+P358: Aumentar pasos diarios (+1.000–2.000)
+P359: Optimizar sueño
+P360: Reducir 100–150 kcal máximo
+P361: ❌ Nunca:
+P362: Quitar más comida de golpe
+P363: Entrenar el doble
+P364: Saltarte comidas
+P366: 4. Indicadores de éxito reales
+P367: ✔ Hambre controlada
+✔ Energía estable
+✔ Fuerza mantenida
+✔ Menos grasa abdominal
+✔ Rutina sostenible
+P368: Si estos están bien, el peso se acomodará.
+P370: 5. Cuándo pasar a mantenimiento (muy importante)
+P371: Señales claras
+P372: Estás en 88–90 kg (fase 1 cumplida)
+P373: Comes sin ansiedad
+P374: Entrenas con regularidad
+P375: El peso se mantiene 3–4 semanas
+P377: 6. Cómo pasar a mantenimiento SIN subir de peso
+P378: Protocolo de transición (4 semanas)
+P379: Sumar 100–150 kcal/semana
+P380: Reintroducir carbohidratos gradualmente
+P381: Mantener proteína y fuerza
+P382: Observar respuesta del cuerpo
+P383: 📌 Esto evita el temido rebote metabólico.
+P385: 7. Regla final (mentalidad correcta)
+P386: No estás “haciendo dieta”, estás aprendiendo a comer y moverte como la persona que quieres ser.
+P387: El éxito es:
+P388: No volver a empezar
+P389: No vivir restringido
+P390: No pelear con la comida
+P391: MENÚ SEMANAL SALUDABLE Y ECONÓMICO
+P392: (Basado en alimentos comunes en mercados y tiendas locales)
+P393: Principios del menú
+P394: Proteína en cada comida
+P395: Verduras a diario
+P396: Carbohidratos complejos controlados
+P397: Preparaciones simples y baratas
+P398: Reutilización inteligente de alimentos
+P399: (Porción orientativa diaria: ~1.650–1.750 kcal)
+P401: Lunes
+P402: Desayuno
+P403: 2 huevos (hervidos o revueltos con poca grasa)
+P404: Arepa pequeña de maíz precocido (masa de maíz)
+P405: Tomate en rodajas
+P406: Café o té sin azúcar
+P407: Almuerzo
+P408: Pollo guisado (150–180 g)
+P409: Arroz integral (½ taza cocida)
+P410: Ensalada de lechuga y pepino
+P411: Aceite de oliva (1 cucharadita)
+P412: Snack
+P413: Yogurt natural o yogurt griego (sin azúcar)
+P414: Cena
+P415: Caldo de verduras con pollo desmechado
+P416: Verduras mixtas (zanahoria, cebolla, espinaca)
+P418: Martes
+P419: Desayuno
+P420: Avena cocida con agua (sin azúcar; puedes endulzar con stevia)
+P421: Banano pequeño
+P422: Almuerzo
+P423: Carne magra (res) guisada o al sartén (150–180 g)
+P424: Ensalada de repollo y limón
+P425: Yuca hervida (porción pequeña)
+P426: Snack
+P427: Huevo duro
+P428: Cena
+P429: Sardina en agua o al horno (económica y rica en proteína)
+P430: Ensalada de tomate y cebolla
+P432: Miércoles
+P433: Desayuno
+P434: Huevos revueltos con espinaca
+P435: Arepa pequeña
+P436: Almuerzo
+P437: Lentejas cocidas con verduras (porción razonable)
+P438: Arroz integral (¼ taza)
+P439: Ensalada de lechuga
+P440: Snack
+P441: Rodajas de pepino con limón y sal ligera
+P442: Cena
+P443: Pollo a la plancha
+P444: Brócoli al vapor
+P446: Jueves
+P447: Desayuno
+P448: Avena con trozos de fruta (papaya o piña)
+P449: Café o té sin azúcar
+P450: Almuerzo
+P451: Pescado (tilapia o similar, 150–180 g)
+P452: Ensalada de repollo + zanahoria
+P453: Papa criolla cocida (porción pequeña)
+P454: Snack
+P455: Yogurt natural
+P456: Cena
+P457: Omelette de huevos con cebolla y espinaca
+P459: Viernes
+P460: Desayuno
+P461: 2 huevos duros
+P462: Arepa pequeña o una porción moderada de plátano cocido
+P463: Almuerzo
+P464: Sopa de verduras con trozos de pollo
+P465: ½ taza de arroz integral
+P466: Snack
+P467: Zanahorias baby o en bastones
+P468: Cena
+P469: Ensalada grande con atún en agua
+(lechuga, tomate, pepino, limón)
+P471: Sábado
+P472: Desayuno
+P473: Avena con trozos de mango (en temporada)
+P474: Té o café sin azúcar
+P475: Almuerzo
+P476: Carne magra a la plancha (res o cerdo magro)
+P477: Ensalada de repollo y limón
+P478: Papa criolla (porción pequeña)
+P479: Snack
+P480: Yogurt natural con semillas de chía
+P481: Cena
+P482: Pollo en trozos con vegetales al horno o sartén
+P484: Domingo
+P485: Desayuno
+P486: Tortilla de huevo con tomate y cebolla
+P487: Arepa pequeña
+P488: Almuerzo
+P489: Lentejas o fríjoles guisados
+P490: Ensalada fresca
+P491: Arroz integral (¼ taza)
+P492: Snack
+P493: Rodajas de pepino
+P494: Cena
+P495: Sopa ligera de pollo con verduras
+P497: Consejos para economizar y hacer el menú práctico
+P498: 1. Compra estacional y mercados locales
+P499: Frutas y verduras de estación suelen ser más baratas y frescas en mercados campesinos.
+P500: 2. Compra al por mayor cuando sea posible
+P501: Arroz, lentejas y avena se conservan bien y rinden varias porciones.
+P502: 3. Reutiliza ingredientes
+P503: Ejemplo:
+P504: Pollo desmechado de almuerzo para la cena en caldo o ensalada.
+P505: Arroz del almuerzo para mezclar con lentejas al día siguiente.
+P506: 4. Usa productos locales
+P507: Arepa (masa de maíz precocido)
+P508: Frutas tropicales (papaya, piña, banano)
+P509: Verduras variadas
+P510: Estos alimentos son parte de la dieta tradicional colombiana y económicos.
+P511: 5. Evita azúcar añadida y bebidas azucaradas
+P512: Puedes usar stevia si quieres endulzar sin calorías.
+P514: Ajustes según temporada y mercado de Santiago de Cali
+P515: En Cali y el Pacífico colombiano hay disponibilidad amplia de frutas tropicales y verduras frescas la mayor parte del año.
+P516: En mercados puedes encontrar pollo, huevos y pescado a precios competitivos si compras por volumen.
+P518: Cómo usar este menú dentro de tu plan de calorías
+P519: Este menú está diseñado para que mantenga el déficit calórico recomendado (~1.650–1.750 kcal/día) sin sentir hambre constante, con alto aporte de proteína y control de carbohidratos complejos.
+Los tamaños de porción pueden ajustarse según tu progreso semanal y sensaciones de hambre.
+P520: Tabla de 30 días – Rutina Alimentaria
+P521: 1. PROTEÍNAS (base del plan)
+P522: 🐔 Pollo (principal proteína económica)
+P523: Pollo entero o presas: 9 kg
+P524: Equivale a ~600 g/día para 3 personas
+P525: Preferible comprar entero y porcionar
+P527: 🥩 Carne de res magra
+P528: Carne magra (posta, bola, muchacho): 3 kg
+P530: 🐟 Pescado económico
+P531: Tilapia / bagre / pescado de río: 3 kg
+P532: Sardina (fresca o en lata en agua):
+P533: Fresca: 1,5 kg
+P534: o enlatada: 8–10 latas (120 g)
+P536: 🥚 Huevos
+P537: Huevos: 90 unidades
+P538: Promedio: 6 huevos/día (para los 3)
+P540: 🥫 Atún en agua
+P541: Atún en agua: 6–8 latas (120 g)
+P543: 🥛 Lácteos
+P544: Yogurt natural sin azúcar: 6 litros
+P545: (puede ser en bolsa o presentación grande)
+P547: 2. LEGUMINOSAS (muy económicas y rendidoras)
+P548: Lentejas secas: 3 kg
+P549: Fríjol seco (rojo, cargamanto o bola roja): 3 kg
+P550: 👉 Rinden mucho al cocinarse (triplican volumen).
+P552: 3. CARBOHIDRATOS CONTROLADOS
+P553: 🌾 Granos y cereales
+P554: Arroz integral: 4 kg
+P555: Avena en hojuelas: 3 kg
+P557: 🌽 Tubérculos y plátanos
+P558: Papa criolla: 4 kg
+P559: Yuca: 4 kg
+P560: Plátano verde o maduro: 4 kg
+P562: 🫓 Arepas
+P563: Harina de maíz precocida: 2 kg
+P564: (o arepas listas económicas)
+P566: 4. VERDURAS (priorizar mercado local)
+P567: 🥬 Verduras base (muy económicas)
+P568: Repollo: 4 unidades medianas
+P569: Lechuga: 6 unidades
+P570: Espinaca: 2 kg
+P571: Zanahoria: 4 kg
+P572: Pepino cohombro: 4 kg
+P574: 🍅 Verduras complementarias
+P575: Tomate: 4 kg
+P576: Cebolla cabezona: 3 kg
+P577: Cebolla larga: 2 manojos
+P578: Pimentón: 1,5 kg
+P579: Brócoli: 2 kg
+P581: 5. FRUTAS (solo las necesarias, económicas)
+P582: Banano: 4 kg
+P583: Papaya: 2 grandes (≈4 kg)
+P584: Mango (en temporada): 3 kg
+P585: Piña (opcional): 2 unidades
+P586: 👉 Compra según temporada para bajar costos.
+P588: 6. GRASAS Y CONDIMENTOS (uso moderado)
+P589: Aceite vegetal o de oliva: 1 litro
+P590: Sal: 1 kg
+P591: Ajo: 1 kg
+P592: Limón: 2 kg
+P593: Comino, pimienta, laurel: cantidades pequeñas
+P595: 7. RESUMEN GENERAL DE COMPRA (quincenal)
+P597: 8. RECOMENDACIONES PARA AHORRAR EN CALI
+P598: Comprar pollo entero y porcionar.
+P599: Comprar legumbres secas, no enlatadas.
+P600: Ir a plazas de mercado (Santa Elena, Alameda, barrios).
+P601: Comprar frutas y verduras de temporada.
+P602: Cocinar en lote para 2–3 días.
+
+--- TABLES ---
+
+TABLE 0:
+  R0: Semana | Qué es normal
+  R1: 1–2 | Bajada rápida (agua + glucógeno)
+  R2: 3–6 | Bajada constante de grasa
+  R3: 7–9 | Meseta breve (ajuste metabólico)
+  R4: 10–12 | Nueva bajada más lenta
+
+TABLE 1:
+  R0: Día | Desayuno (y cantidades) | Almuerzo (y cantidades) | Snack | Cena (y cantidades)
+  R1: 1 | 2 huevos + arepa pequeña + tomate (100 g) | Pollo guisado (180 g) + arroz integral ½ taza + ensalada | Yogurt natural (150 g) | Caldo de verduras + pollo desmechado (150 g)
+  R2: 2 | Avena con agua (½ taza cruda) + banano pequeño | Carne magra (170 g) + repollo (100 g) + yuca 100 g | Huevo duro (1) | Sardina al horno (150 g) + ensalada tomate (80 g)
+  R3: 3 | Huevos revueltos (2) + espinaca (50 g) | Lentejas (1 taza cocida) + arroz integral ¼ taza | Pepino (100 g) | Pollo a la plancha (180 g) + brócoli (120 g)
+  R4: 4 | Avena con papaya (100 g) | Pescado tilapia (180 g) + ensalada repollo (100 g) + papa criolla (80 g) | Yogurt natural (150 g) | Omelette 2 huevos + cebolla (50 g) + espinaca (40 g)
+  R5: 5 | 2 huevos duros + arepa pequeña | Sopa de verduras con pollo (180 g) + arroz integral ½ taza | Zanahoria (100 g) | Ensalada grande + atún en agua (120 g)
+  R6: 6 | Avena con mango (100 g) | Carne magra (170 g) + ensalada (lechuga 80 g) + papa criolla (80 g) | Yogurt natural (150 g) | Pollo con vegetales (180 g)
+  R7: 7 | Tortilla 2 huevos + tomate (80 g) | Fríjoles (1 taza cocida) + arroz integral ¼ taza + ensalada | Pepino (100 g) | Sopa ligera de pollo (150 g)
+  R8: 8 | 2 huevos + arepa pequeña + tomate (100 g) | Pollo guisado (180 g) + arroz integral ½ taza + ensalada | Yogurt natural (150 g) | Caldo de verduras con pollo (150 g)
+  R9: 9 | Avena con agua (½ taza cruda) + banano pequeño | Carne magra (170 g) + repollo (100 g) + yuca (100 g) | Huevo duro (1) | Sardina al horno (150 g) + ensalada tomate (80 g)
+  R10: 10 | Huevos revueltos (2) + espinaca (50 g) | Lentejas (1 taza cocida) + arroz integral ¼ taza | Pepino (100 g) | Pollo a la plancha (180 g) + brócoli (120 g)
+  R11: 11 | Avena con papaya (100 g) | Pescado tilapia (180 g) + ensalada repollo (100 g) + papa criolla (80 g) | Yogurt natural (150 g) | Omelette 2 huevos + cebolla (50 g) + espinaca (40 g)
+  R12: 12 | 2 huevos duros + arepa pequeña | Sopa de verduras con pollo (180 g) + arroz integral ½ taza | Zanahoria (100 g) | Ensalada grande + atún en agua (120 g)
+  R13: 13 | Avena con mango (100 g) | Carne magra (170 g) + ensalada (80 g) + papa criolla (80 g) | Yogurt natural (150 g) | Pollo con vegetales (180 g)
+  R14: 14 | Tortilla 2 huevos + tomate (80 g) | Fríjoles (1 taza cocida) + arroz integral ¼ taza + ensalada | Pepino (100 g) | Sopa ligera de pollo (150 g)
+  R15: 15 | 2 huevos + arepa pequeña + tomate (100 g) | Pollo guisado (180 g) + arroz integral ½ taza + ensalada | Yogurt natural (150 g) | Caldo de verduras + pollo (150 g)
+  R16: 16 | Avena con agua (½ taza cruda) + banano pequeño | Carne magra (170 g) + repollo (100 g) + yuca (100 g) | Huevo duro (1) | Sardina al horno (150 g) + ensalada tomate (80 g)
+  R17: 17 | Huevos revueltos (2) + espinaca (50 g) | Lentejas (1 taza cocida) + arroz integral ¼ taza | Pepino (100 g) | Pollo a la plancha (180 g) + brócoli (120 g)
+  R18: 18 | Avena con papaya (100 g) | Pescado tilapia (180 g) + ensalada repollo (100 g) + papa criolla (80 g) | Yogurt natural (150 g) | Omelette 2 huevos + cebolla (50 g) + espinaca
+  R19: 19 | 2 huevos duros + arepa pequeña | Sopa de verduras con pollo (180 g) + arroz integral ½ taza | Zanahoria (100 g) | Ensalada con atún en agua (120 g)
+  R20: 20 | Avena con mango (100 g) | Carne magra (170 g) + ensalada (80 g) + papa criolla (80 g) | Yogurt natural (150 g) | Pollo con vegetales (180 g)
+  R21: 21 | Tortilla 2 huevos + tomate (80 g) | Fríjoles (1 taza cocida) + arroz integral ¼ taza + ensalada | Pepino (100 g) | Sopa ligera de pollo (150 g)
+  R22: 22 | 2 huevos + arepa pequeña + tomate (100 g) | Pollo guisado (180 g) + arroz integral ½ taza + ensalada | Yogurt natural (150 g) | Caldo de verduras + pollo (150 g)
+  R23: 23 | Avena + banano pequeño | Carne magra (170 g) + repollo (100 g) + yuca (100 g) | Huevo duro (1) | Sardina al horno (150 g) + ensalada tomate
+  R24: 24 | Huevos revueltos + espinaca | Lentejas (1 taza cocida) + arroz integral ¼ taza | Pepino (100 g) | Pollo a la plancha + brócoli
+  R25: 25 | Avena con papaya | Pescado tilapia + ensalada + papa criolla | Yogurt natural | Omelette 2 huevos con vegetales
+  R26: 26 | 2 huevos duros + arepa | Sopa de verduras con pollo + arroz integral ½ taza | Zanahoria | Ensalada con atún en agua
+  R27: 27 | Avena con mango | Carne magra + ensalada + papa criolla | Yogurt natural | Pollo con vegetales
+  R28: 28 | Tortilla 2 huevos + tomate | Fríjoles + arroz integral ¼ taza + ensalada | Pepino | Sopa ligera de pollo
+  R29: 29 | 2 huevos + arepa + tomate | Pollo guisado + arroz integral ½ taza + ensalada | Huevo duro (1) | Caldo de verduras con pollo
+  R30: 30 | Avena + banano | Carne magra + repollo + yuca | Yogurt natural | Sardina al horno + ensalada
+
+TABLE 2:
+  R0: Categoría | Volumen aproximado
+  R1: Proteínas animales | ~20 kg
+  R2: Huevos | 90 unidades
+  R3: Leguminosas secas | 6 kg
+  R4: Arroz + avena | 7 kg
+  R5: Tubérculos | 12 kg
+  R6: Verduras | ~25 kg
+  R7: Frutas | ~15 kg

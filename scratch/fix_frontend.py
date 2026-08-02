@@ -1,4 +1,6 @@
-from flask import Blueprint, render_template, request, send_from_directory
+import os
+
+correct_content = """from flask import Blueprint, render_template, request, send_from_directory
 from utils.db import supabase
 import json
 from flask import current_app
@@ -124,10 +126,12 @@ def skel360_diccionario():
 def skel360_empresa(id):
     return render_template('skel_empresa_dashboard.html', empresa_id=id)
 
-@frontend_bp.route('/skel360/empresa/<empresa_id>/resultados')
-def skel_empresa_resultados(empresa_id):
-    return render_template('skel_empresa_resultados.html', empresa_id=empresa_id)
-
 @frontend_bp.route('/evaluar')
 def evaluar_publico():
     return render_template('skel_evaluar.html')
+"""
+
+with open(r'c:\SIAC\routes\frontend.py', 'w', encoding='utf-8') as f:
+    f.write(correct_content)
+    
+print("frontend.py fixed.")

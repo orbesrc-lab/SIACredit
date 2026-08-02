@@ -1,16 +1,13 @@
-import sys, json
-sys.path.append('c:\\SIAC')
-from utils.db import supabase
+import os
+import psycopg2
+from dotenv import load_dotenv
 
-res = supabase.table('statistics').select('id, data_json').eq('table_id', 'GLOBAL_CONFIG').order('id', desc=True).limit(5).execute()
-print(f"Total config rows found: {len(res.data)}")
-for row in res.data:
-    try:
-        data = json.loads(row["data_json"])
-        images = data.get("carousel_images", [])
-        print(f"ID: {row['id']} | Has carousel_images: {'carousel_images' in data} | Images count: {len(images)}")
-        if images:
-            for img in images:
-                print(f"  - {img}")
-    except Exception as e:
-        print(f"Error reading row {row['id']}: {e}")
+load_dotenv()
+db_url = os.getenv('SUPABASE_DB_URL') or os.getenv('DATABASE_URL')
+conn = psycopg2.connect(db_url)
+cur = conn.cursor()
+cur.execute("SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name='skel_diccionario_comportamientos';")
+print("comportamientos:", cur.fetchall())
+
+cur.execute("SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name='skel_diccionario_competencias';")
+print("competencias:", cur.fetchall())

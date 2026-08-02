@@ -1,0 +1,116 @@
+P0: SKEL Human Capital 360®
+PRODUCT BIBLE
+Versión 1.0
+P1: Documento Maestro del Producto
+Este documento centraliza la visión, arquitectura, reglas de negocio, diseño funcional y técnico del proyecto SKEL Human Capital 360®. Todos los documentos del proyecto derivan de esta Product Bible.
+P2: 01. Visión del Producto
+P3: Propósito del producto.
+P4: Problema que resuelve.
+P5: Propuesta de valor.
+P6: Mercado objetivo.
+P7: Objetivos estratégicos.
+P8: Factores diferenciadores.
+P9: 02. Modelo de Negocio
+P10: Segmentos de clientes.
+P11: Modelo SaaS.
+P12: Planes comerciales.
+P13: Multiempresa.
+P14: Licenciamiento.
+P15: 03. Arquitectura Empresarial
+P16: Capacidades de negocio.
+P17: Mapa de dominios.
+P18: Arquitectura funcional.
+P19: Arquitectura técnica.
+P20: 04. Dominio del Negocio
+P21: Empresas.
+P22: Colaboradores.
+P23: Competencias.
+P24: Evaluaciones.
+P25: Planes de desarrollo.
+P26: Analítica.
+P27: IA.
+P28: 05. Reglas del Negocio
+P29: Organización.
+P30: Competencias.
+P31: Evaluaciones.
+P32: IA.
+P33: Seguridad.
+P34: Auditoría.
+P35: 06. Modelo de Datos
+P36: Modelo conceptual.
+P37: Modelo lógico.
+P38: Modelo físico.
+P39: Catálogos.
+P40: Auditoría.
+P41: RLS.
+P42: 07. Arquitectura de Software
+P43: Frontend.
+P44: Backend.
+P45: Supabase.
+P46: Flask.
+P47: Servicios.
+P48: Eventos.
+P49: Integraciones.
+P50: 08. Inteligencia Artificial
+P51: Motor de recomendaciones.
+P52: Prompt Engine.
+P53: LLM Router.
+P54: Explainability.
+P55: Historial.
+P56: 09. UX/UI
+P57: Design System.
+P58: Wireframes.
+P59: Flujos.
+P60: Accesibilidad.
+P61: 10. API
+P62: REST.
+P63: Autenticación.
+P64: Versionado.
+P65: OpenAPI.
+P66: 11. Product Backlog
+P67: Épicas.
+P68: Capacidades.
+P69: Historias.
+P70: Sprints.
+P71: Roadmap.
+P72: 12. Calidad
+P73: Pruebas.
+P74: Seguridad.
+P75: Rendimiento.
+P76: Observabilidad.
+P77: CI/CD.
+P78: 13. Implementación
+P79: Despliegue.
+P80: Migraciones.
+P81: Manual técnico.
+P82: Manual funcional.
+P83: 14. Anexos
+P84: Glosario.
+P85: Diccionario de datos.
+P86: KPIs.
+P87: Competencias.
+P88: Plantillas.
+P89: Principios Rectores
+P90: Configuration over code.
+P91: Domain-Driven Design (DDD).
+P92: API First.
+P93: Multi-Tenant desde el diseño.
+P94: Security by Design.
+P95: AI Assisted, Human Approved.
+P96: Auditoría completa.
+P97: Escalabilidad horizontal.
+P98: Orden de Construcción Recomendado
+P99: 1. Product Bible
+P100: 2. Modelo de Dominio
+P101: 3. Modelo Lógico de Datos
+P102: 4. Modelo Físico de Datos
+P103: 5. APIs
+P104: 6. Backend
+P105: 7. Frontend
+P106: 8. Motor Analítico
+P107: 9. Motor de IA
+P108: 10. Dashboards
+P109: 11. QA
+P110: 12. Despliegue
+
+--- TABLES ---

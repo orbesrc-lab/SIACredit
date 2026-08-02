@@ -245,6 +245,70 @@ def gestionar_perfiles(empresa_id):
 
 import uuid
 
+@skel_hc_bp.route('/empresa/<empresa_id>/resultados', methods=['GET'])
+def get_resultados_empresa(empresa_id):
+    try:
+        sb = get_supabase()
+        
+        # 1. Obtener todas las evaluaciones de la empresa
+        evals = sb.table('skel_evaluaciones').select('id').eq('empresa_id', empresa_id).execute().data
+        if not evals:
+            return jsonify({"status": "success", "data": []}), 200
+            
+        eval_ids = [e['id'] for e in evals]
+        
+        # 2. Obtener respuestas
+        respuestas = sb.table('skel_360_respuestas').select('*, skel_diccionario_comportamientos(competencia_id, descripcion)').in_('evaluacion_id', eval_ids).execute().data
+        
+        # 3. Obtener colaboradores
+        colabs = sb.table('skel_colaboradores').select('id, nombres, apellidos').eq('empresa_id', empresa_id).execute().data
+        colabs_dict = {c['id']: f"{c.get('nombres','')} {c.get('apellidos','')}".strip() for c in colabs}
+        
+        # 4. Obtener competencias
+        comps = sb.table('skel_diccionario_competencias').select('id, nombre').execute().data
+        comps_dict = {c['id']: c['nombre'] for c in comps}
+        
+        # 5. Agrupar resultados
+        agrupados = {}
+        for r in respuestas:
+            colab_id = r['evaluado_id']
+            if colab_id not in agrupados:
+                agrupados[colab_id] = {"nombre": colabs_dict.get(colab_id, "Desconocido"), "competencias_raw": {}, "total_pts": 0, "total_items": 0}
+            
+            comp_id = r.get('skel_diccionario_comportamientos', {}).get('competencia_id')
+            puntaje = r.get('puntaje', 0)
+            
+            if comp_id:
+                comp_name = comps_dict.get(comp_id, "General")
+                if comp_name not in agrupados[colab_id]["competencias_raw"]:
+                    agrupados[colab_id]["competencias_raw"][comp_name] = {"pts": 0, "count": 0}
+                agrupados[colab_id]["competencias_raw"][comp_name]["pts"] += puntaje
+                agrupados[colab_id]["competencias_raw"][comp_name]["count"] += 1
+                
+            agrupados[colab_id]["total_pts"] += puntaje
+            agrupados[colab_id]["total_items"] += 1
+            
+        # Formatear
+        resultados_finales = []
+        for colab_id, data in agrupados.items():
+            prom_global = round(data["total_pts"] / data["total_items"], 1) if data["total_items"] > 0 else 0
+            comps_promedios = {}
+            for c_name, c_data in data["competencias_raw"].items():
+                comps_promedios[c_name] = round(c_data["pts"] / c_data["count"], 1) if c_data["count"] > 0 else 0
+                
+            resultados_finales.append({
+                "colaborador_id": colab_id,
+                "colaborador_nombre": data["nombre"],
+                "promedio_global": prom_global,
+                "competencias": comps_promedios
+            })
+            
+        return jsonify({"status": "success", "data": resultados_finales}), 200
+        
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @skel_hc_bp.route('/empresa/<empresa_id>/lanzar', methods=['POST'])
 def lanzar_encuestas(empresa_id):
     try:

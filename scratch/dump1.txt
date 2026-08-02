@@ -1,0 +1,2099 @@
+P0: SKEL Human Capital 360®
+P1: Software Requirements Specification (SRS)
+P2: Estado: En construcción
+P3: Propietario del producto: SKEL
+P4: Nombre del proyecto: SKEL Human Capital 360®
+P5: Subtítulo
+P6: Sistema Inteligente para el Diagnóstico, Evaluación de Competencias, Analítica del Talento Humano y Generación Automática de Planes de Desarrollo.
+P8: 1. Propósito del Documento
+P9: Este documento define los requisitos funcionales y no funcionales de la plataforma SKEL Human Capital 360®, proporcionando una guía integral para el diseño, desarrollo, implementación y evolución del sistema.
+P10: Su finalidad es alinear a los equipos de producto, desarrollo, experiencia de usuario, inteligencia artificial y consultoría alrededor de una visión común del software.
+P11: Este documento constituye la fuente oficial de referencia para la construcción de la plataforma.
+P13: 2. Visión del Producto
+P14: Problema
+P15: Actualmente las organizaciones realizan inversiones importantes en capacitación sin contar con mecanismos objetivos que permitan responder preguntas fundamentales como:
+P16: ¿Qué competencias necesita realmente cada colaborador?
+P17: ¿Cuáles son las brechas críticas de la organización?
+P18: ¿Qué áreas requieren mayor intervención?
+P19: ¿Qué programas de formación generan mayor impacto?
+P20: ¿Qué problemas no se solucionan mediante capacitación?
+P21: ¿Cuál es el retorno esperado de la inversión en desarrollo del talento?
+P22: La mayoría de las organizaciones toman estas decisiones con base en percepciones, solicitudes individuales o cumplimiento normativo, en lugar de utilizar evidencia objetiva derivada de datos.
+P24: Solución
+P25: SKEL Human Capital 360® será una plataforma SaaS basada en analítica avanzada e Inteligencia Artificial que permitirá:
+P26: Diagnosticar competencias organizacionales e individuales.
+P27: Identificar brechas de conocimiento, habilidades y comportamientos.
+P28: Determinar las causas del bajo desempeño.
+P29: Diferenciar problemas de capacitación de problemas de procesos, liderazgo, recursos o tecnología.
+P30: Generar automáticamente planes estratégicos de formación.
+P31: Recomendar rutas de aprendizaje personalizadas.
+P32: Medir el impacto del desarrollo del talento mediante indicadores.
+P34: 3. Objetivo General
+P35: Desarrollar una plataforma inteligente que permita gestionar de manera integral el ciclo de diagnóstico, desarrollo, seguimiento y mejora continua del talento humano mediante analítica de datos e Inteligencia Artificial.
+P37: 4. Objetivos Específicos
+P38: La plataforma deberá ser capaz de:
+P39: Administrar organizaciones con múltiples sedes y unidades de negocio.
+P40: Gestionar colaboradores, cargos y estructuras organizacionales.
+P41: Administrar diccionarios de competencias.
+P42: Crear instrumentos de evaluación configurables.
+P43: Aplicar evaluaciones de competencias.
+P44: Aplicar diagnósticos de necesidades de formación.
+P45: Administrar evaluaciones 90°, 180°, 270° y 360°.
+P46: Analizar automáticamente los resultados.
+P47: Identificar brechas de competencias.
+P48: Priorizar necesidades de capacitación.
+P49: Generar rutas individuales de aprendizaje.
+P50: Construir planes estratégicos de formación.
+P51: Generar dashboards ejecutivos.
+P52: Medir indicadores de desempeño del talento humano.
+P53: Integrar Inteligencia Artificial para recomendaciones automáticas.
+P55: 5. Alcance
+P56: La primera versión (MVP) incluirá:
+P57: Incluye
+P58: Gestión de empresas.
+P59: Gestión de sedes.
+P60: Gestión de áreas.
+P61: Gestión de cargos.
+P62: Gestión de colaboradores.
+P63: Gestión de competencias.
+P64: Creación de evaluaciones.
+P65: Aplicación de encuestas.
+P66: Motor de análisis.
+P67: Dashboard ejecutivo.
+P68: Reportes.
+P69: Planes de capacitación.
+P70: Recomendaciones mediante IA.
+P71: No incluye (MVP)
+P72: Nómina.
+P73: Reclutamiento.
+P74: Selección.
+P75: Evaluación salarial.
+P76: LMS completo.
+P77: Gestión documental avanzada.
+P78: Firma electrónica.
+P79: Estas funcionalidades podrán incorporarse en versiones posteriores.
+P81: 6. Público Objetivo
+P82: La plataforma estará dirigida a:
+P83: Organizaciones
+P84: Empresas privadas.
+P85: Empresas públicas.
+P86: Instituciones educativas.
+P87: Universidades.
+P88: Hospitales.
+P89: Clínicas.
+P90: Fundaciones.
+P91: Organizaciones sin ánimo de lucro.
+P92: Consultoras.
+P93: Entidades gubernamentales.
+P95: Usuarios
+P96: Administrador Global
+P97: Responsable de administrar toda la plataforma.
+P99: Administrador de Empresa
+P100: Responsable de administrar una organización específica.
+P102: Director de Talento Humano
+P103: Gestiona competencias, evaluaciones y planes de desarrollo.
+P105: Directivos
+P106: Consultan indicadores estratégicos y resultados ejecutivos.
+P108: Jefes Inmediatos
+P109: Realizan seguimiento al desempeño de sus equipos.
+P111: Colaboradores
+P112: Responden evaluaciones, consultan sus resultados y ejecutan rutas de aprendizaje.
+P114: Consultores
+P115: Implementan proyectos para diferentes organizaciones.
+P117: 7. Propuesta de Valor
+P118: SKEL Human Capital 360® permitirá que las organizaciones pasen de un modelo reactivo de capacitación a un modelo predictivo y basado en evidencia.
+P119: La plataforma transformará los datos provenientes de evaluaciones en decisiones concretas para el desarrollo del talento humano.
+P121: 8. Principios del Sistema
+P122: Toda funcionalidad desarrollada deberá respetar los siguientes principios:
+P123: Inteligencia
+P124: El sistema deberá analizar antes de recomendar.
+P126: Objetividad
+P127: Las decisiones deberán basarse en datos y evidencia.
+P129: Configurabilidad
+P130: Todos los catálogos deberán ser parametrizables.
+P132: Escalabilidad
+P133: La plataforma deberá soportar múltiples empresas sin modificaciones estructurales.
+P135: Modularidad
+P136: Cada componente deberá poder evolucionar de manera independiente.
+P138: Interoperabilidad
+P139: La plataforma deberá facilitar futuras integraciones mediante APIs.
+P141: Trazabilidad
+P142: Toda evaluación deberá conservar su historial.
+P144: Seguridad
+P145: Toda la información deberá protegerse mediante autenticación, autorización y auditoría.
+P147: 9. Factores Diferenciadores
+P148: El sistema no será únicamente una plataforma de encuestas.
+P149: Será un motor inteligente capaz de:
+P150: Diagnosticar.
+P151: Interpretar.
+P152: Priorizar.
+P153: Recomendar.
+P154: Generar planes de acción.
+P155: Medir impacto.
+P156: Aprender del comportamiento organizacional.
+P158: 10. Arquitectura Conceptual
+P159: El funcionamiento general del sistema seguirá el siguiente ciclo:
+P160: Configuración de la organización.
+P161: Definición de la estructura organizacional.
+P162: Configuración de competencias.
+P163: Construcción del instrumento de evaluación.
+P164: Aplicación de evaluaciones.
+P165: Procesamiento y validación de datos.
+P166: Cálculo de indicadores.
+P167: Identificación de brechas.
+P168: Generación de recomendaciones mediante IA.
+P169: Diseño automático del Plan Estratégico de Formación.
+P170: Seguimiento a la ejecución.
+P171: Evaluación del impacto y mejora continua.
+P173: 11. Criterios de Éxito del Producto
+P174: El producto se considerará exitoso cuando permita:
+P175: Reducir el tiempo de diagnóstico de necesidades de formación.
+P176: Priorizar objetivamente las inversiones en capacitación.
+P177: Identificar brechas críticas por colaborador, cargo, área y organización.
+P178: Generar automáticamente planes de desarrollo.
+P179: Disponer de información ejecutiva para la toma de decisiones.
+P180: Medir el impacto de la formación sobre indicadores organizacionales.
+P182: 12. Entregables del Proyecto
+P183: La documentación técnica completa estará compuesta por:
+P184: Software Requirements Specification (SRS).
+P185: Software Architecture Document (SAD).
+P186: Functional Specification Document (FSD).
+P187: Modelo de Datos.
+P188: Diccionario de Datos.
+P189: Catálogo de Competencias.
+P190: Catálogo de Indicadores.
+P191: Especificación de APIs.
+P192: Wireframes y prototipos.
+P193: Backlog del Producto.
+P194: Casos de Uso.
+P195: Historias de Usuario.
+P196: Reglas de Negocio.
+P197: Modelo de IA.
+P198: Manual de Implementación.
+P200: Estado del documento: Aprobado para iniciar el diseño funcional y arquitectónico del sistema.
+P201: Siguiente documento: Documento 2 – Arquitectura Funcional y Mapa General de Módulos.
+P202: SKEL Human Capital 360®
+P203: Documento 2
+P204: Software Functional Architecture (SFA)
+P205: Arquitectura Funcional del Sistema
+P206: Versión 1.0
+P208: 1. Objetivo
+P209: Este documento define la arquitectura funcional de SKEL Human Capital 360®, describiendo todos los módulos, subsistemas, relaciones, flujos de información y responsabilidades funcionales que conforman la plataforma.
+P210: La arquitectura propuesta permitirá desarrollar un sistema escalable, modular, desacoplado y orientado a servicios.
+P212: 2. Filosofía Arquitectónica
+P213: SKEL Human Capital 360® será un sistema basado en cinco principios fundamentales:
+P214: Modularidad.
+P215: Configuración antes que programación.
+P216: Analítica basada en datos.
+P217: Inteligencia Artificial como motor de apoyo a la decisión.
+P218: Escalabilidad multiempresa (Multi-Tenant).
+P219: Cada módulo deberá funcionar de manera independiente, pero compartir un modelo de datos común.
+P221: 3. Arquitectura General
+P222: La plataforma estará organizada en cuatro capas funcionales.
+P223: Capa 1. Administración
+P224: Permite configurar toda la organización.
+P225: Incluye:
+P226: Empresas.
+P227: Sedes.
+P228: Áreas.
+P229: Procesos.
+P230: Cargos.
+P231: Usuarios.
+P232: Roles.
+P233: Permisos.
+P234: Competencias.
+P235: Catálogos.
+P236: Configuración general.
+P237: Esta capa es la base sobre la que operan todas las demás.
+P239: Capa 2. Operación
+P240: Gestiona toda la información generada por los usuarios.
+P241: Incluye:
+P242: Colaboradores.
+P243: Instrumentos de evaluación.
+P244: Encuestas.
+P245: Evaluaciones 90°, 180°, 270° y 360°.
+P246: Diagnóstico de necesidades de formación.
+P247: Evaluaciones de desempeño.
+P248: Planes individuales de desarrollo.
+P249: Planes de capacitación.
+P251: Capa 3. Inteligencia
+P252: Es el corazón de SKEL Human Capital 360®.
+P253: Aquí se ejecutarán:
+P254: Motor de cálculo.
+P255: Algoritmos de brechas.
+P256: Motor de competencias.
+P257: Motor de IA.
+P258: Recomendador.
+P259: Analítica.
+P260: KPIs.
+P261: Dashboards.
+P262: Predicción.
+P263: Benchmark.
+P265: Capa 4. Gobierno
+P266: Garantiza la administración y trazabilidad.
+P267: Incluye:
+P268: Auditoría.
+P269: Históricos.
+P270: Versionamiento.
+P271: Seguridad.
+P272: Logs.
+P273: Integraciones.
+P274: APIs.
+P275: Configuración.
+P277: 4. Arquitectura de Módulos
+P278: La plataforma estará conformada por los siguientes módulos.
+P280: Módulo 01
+P281: Administración General
+P282: Responsabilidad:
+P283: Administrar toda la configuración inicial.
+P284: Submódulos:
+P285: Empresas
+P286: Sedes
+P287: Áreas
+P288: Procesos
+P289: Dependencias
+P290: Centros de costo
+P291: Ubicaciones
+P293: Módulo 02
+P294: Gestión Organizacional
+P295: Responsabilidad
+P296: Representar la estructura organizacional.
+P297: Submódulos
+P298: Organigrama
+P299: Cargos
+P300: Manual de funciones
+P301: Perfil de cargo
+P302: Relaciones jerárquicas
+P304: Módulo 03
+P305: Gestión del Talento
+P306: Responsabilidad
+P307: Administrar los colaboradores.
+P308: Submódulos
+P309: Colaboradores
+P310: Equipos
+P311: Historial laboral
+P312: Formación académica
+P313: Certificaciones
+P314: Experiencia
+P316: Módulo 04
+P317: Diccionario de Competencias
+P318: Uno de los módulos más importantes.
+P319: Submódulos
+P320: Competencias
+P321: Familias
+P322: Niveles
+P323: Indicadores
+P324: Conductas observables
+P325: Evidencias
+P326: Escalas
+P328: Módulo 05
+P329: Motor de Evaluaciones
+P330: Será completamente parametrizable.
+P331: Tipos
+P332: Diagnóstico
+P333: Competencias
+P334: Desempeño
+P335: Potencial
+P336: Clima
+P337: Cultura
+P338: Liderazgo
+P339: Riesgos
+P340: Capacitación
+P341: Necesidades
+P342: 360°
+P344: Módulo 06
+P345: Motor de Encuestas
+P346: Constructor visual.
+P347: Permitirá crear:
+P348: Preguntas
+P349: Matrices
+P350: Likert
+P351: Opción múltiple
+P352: Escalas
+P353: Lógica condicional
+P354: Secciones
+P355: Versiones
+P357: Módulo 07
+P358: Motor Analítico
+P359: Este módulo será exclusivo de SKEL.
+P360: Responsabilidades
+P361: Calcular
+P362: Normalizar
+P363: Clasificar
+P364: Ponderar
+P365: Priorizar
+P366: Comparar
+P367: Agrupar
+P368: Predecir
+P370: Módulo 08
+P371: Motor de IA
+P372: Entradas
+P373: ↓
+P374: Resultados
+P375: ↓
+P376: Prompts
+P377: ↓
+P378: LLM
+P379: ↓
+P380: Respuesta
+P381: ↓
+P382: Recomendaciones
+P383: ↓
+P384: Planes
+P385: ↓
+P386: Reportes
+P387: Funciones
+P388: Interpretar resultados.
+P389: Detectar brechas.
+P390: Identificar riesgos.
+P391: Recomendar cursos.
+P392: Generar informes.
+P393: Responder preguntas.
+P394: Explicar indicadores.
+P396: Módulo 09
+P397: Learning Analytics
+P398: Generará automáticamente
+P399: KPIs
+P400: Radar
+P401: Heat Maps
+P402: Ranking
+P403: Brechas
+P404: Tendencias
+P405: Comparativos
+P406: Benchmark
+P408: Módulo 10
+P409: Planes de Formación
+P410: Permitirá
+P411: Crear
+P412: Editar
+P413: Aprobar
+P414: Ejecutar
+P415: Controlar
+P416: Evaluar
+P417: Planes.
+P419: Módulo 11
+P420: Biblioteca
+P421: Cursos
+P422: Videos
+P423: Documentos
+P424: Certificaciones
+P425: Rutas
+P426: Competencias
+P428: Módulo 12
+P429: Reportes
+P430: PDF
+P431: Excel
+P432: Power BI
+P433: Word
+P434: Presentaciones
+P436: Módulo 13
+P437: Configuración
+P438: Parámetros
+P439: Catálogos
+P440: Escalas
+P441: Variables
+P442: Pesos
+P443: Ponderaciones
+P444: IA
+P446: Módulo 14
+P447: Seguridad
+P448: Usuarios
+P449: Roles
+P450: Permisos
+P451: Auditoría
+P452: Logs
+P453: Historial
+P455: 5. Flujo Principal
+P456: La lógica principal del sistema será la siguiente:
+P457: Registrar la empresa.
+P458: Configurar la estructura organizacional.
+P459: Definir cargos y competencias.
+P460: Crear el instrumento de evaluación.
+P461: Asignar la evaluación.
+P462: Recibir respuestas.
+P463: Validar la información.
+P464: Calcular indicadores.
+P465: Identificar brechas.
+P466: Ejecutar el motor de IA.
+P467: Generar recomendaciones.
+P468: Construir el Plan Estratégico de Formación.
+P469: Ejecutar seguimiento.
+P470: Medir impacto.
+P472: 6. Relaciones entre Módulos
+P473: Todos los módulos compartirán un modelo de datos único.
+P474: Ejemplo:
+P475: Empresa
+P476: ↓
+P477: Áreas
+P478: ↓
+P479: Cargos
+P480: ↓
+P481: Competencias
+P482: ↓
+P483: Colaboradores
+P484: ↓
+P485: Evaluaciones
+P486: ↓
+P487: Resultados
+P488: ↓
+P489: IA
+P490: ↓
+P491: Planes
+P492: ↓
+P493: Dashboard
+P495: 7. Principios de Desarrollo
+P496: Todos los módulos deberán cumplir:
+P497: Independencia funcional.
+P498: APIs desacopladas.
+P499: Configuración mediante catálogos.
+P500: Versionamiento.
+P501: Auditoría completa.
+P502: Escalabilidad horizontal.
+P503: Multiempresa.
+P504: Multiidioma.
+P505: Responsive.
+P506: Integración futura con LMS, ERP y HRIS.
+P508: 8. Decisiones Arquitectónicas
+P509: Se establecen como lineamientos del proyecto:
+P510: La plataforma será "configuration-driven": los administradores podrán adaptar competencias, instrumentos, escalas y reglas sin modificar el código fuente.
+P511: Todos los procesos críticos deberán quedar registrados en auditoría.
+P512: Los cálculos del motor analítico serán reutilizables por cualquier módulo.
+P513: El motor de IA consumirá datos estructurados y devolverá resultados estructurados para evitar respuestas ambiguas.
+P514: Los módulos de analítica y reportes consumirán una capa de servicios independiente del motor transaccional, permitiendo escalar el procesamiento sin afectar la operación diaria.
+P516: 9. Dependencias del Documento
+P517: Este documento será la base para desarrollar:
+P518: Documento 3: Modelo de Datos.
+P519: Documento 4: Reglas de Negocio.
+P520: Documento 5: Casos de Uso.
+P521: Documento 6: Historias de Usuario.
+P522: Documento 7: APIs.
+P523: Documento 8: Wireframes.
+P524: Documento 9: Backlog Scrum.
+P525: Documento 10: Arquitectura Técnica (Supabase + Backend + IA).
+P527: Estado: Aprobado para iniciar el diseño de la base de datos y los servicios del sistema.
+P528: DOCUMENTO 3
+P529: BUSINESS DOMAIN MODEL (BDM)
+P530: Modelo Conceptual del Negocio
+P531: Versión 1.0
+P533: 1. Objetivo
+P534: Este documento define el dominio funcional del negocio sobre el cual se construirá SKEL Human Capital 360®.
+P535: No describe tablas.
+P536: No describe pantallas.
+P537: No describe APIs.
+P538: Describe el conocimiento del negocio.
+P539: Aquí se establecen las entidades fundamentales, sus relaciones, las reglas del dominio y el ciclo de vida de la información.
+P540: Este documento será la base para:
+P541: Base de datos
+P542: APIs
+P543: Backend
+P544: IA
+P545: Dashboards
+P546: Reportes
+P547: Algoritmos
+P549: 2. ¿Qué es una entidad?
+P550: Una entidad representa cualquier objeto del negocio sobre el cual la plataforma necesita almacenar información.
+P551: Ejemplos:
+P552: Empresa
+P553: Empleado
+P554: Competencia
+P555: Evaluación
+P556: Curso
+P557: Área
+P558: Cargo
+P560: 3. Dominio General
+P561: La plataforma administra un ecosistema completo.
+P562: EMPRESA
+P564: │
+P566: ├── Sedes
+P568: ├── Áreas
+P570: ├── Procesos
+P572: ├── Cargos
+P574: ├── Competencias
+P576: ├── Colaboradores
+P578: ├── Evaluaciones
+P580: ├── Resultados
+P582: ├── IA
+P584: ├── Planes
+P586: └── Indicadores
+P588: 4. Entidades del Dominio
+P589: EMPRESA
+P590: Representa una organización que utiliza SKEL Human Capital 360.
+P591: Puede ser
+P592: Empresa
+P593: Universidad
+P594: Hospital
+P595: Gobierno
+P596: Consultora
+P597: Fundación
+P599: Atributos principales
+P600: Nombre
+P601: NIT
+P602: Logo
+P603: Sector
+P604: Tamaño
+P605: País
+P606: Ciudad
+P607: Idioma
+P608: Zona horaria
+P609: Estado
+P611: Relaciones
+P612: Una empresa tiene muchas sedes.
+P613: Una empresa tiene muchas áreas.
+P614: Una empresa tiene muchos colaboradores.
+P615: Una empresa tiene muchos procesos.
+P617: SEDE
+P618: Representa una ubicación física.
+P619: Ejemplo
+P620: Cali
+P621: Bogotá
+P622: Medellín
+P623: Quito
+P625: Una sede pertenece a una empresa.
+P627: ÁREA
+P628: Ejemplo
+P629: Talento Humano
+P630: Financiera
+P631: TI
+P632: Calidad
+P633: Mercadeo
+P634: Investigación
+P636: Una empresa tiene muchas áreas.
+P637: Un área tiene muchos colaboradores.
+P638: Un área tiene muchos procesos.
+P640: PROCESO
+P641: Ejemplo
+P642: Compras
+P643: Matrículas
+P644: Ventas
+P645: Facturación
+P646: Investigación
+P647: Docencia
+P649: Cada proceso puede pertenecer a un área.
+P650: Un proceso puede tener muchos cargos.
+P652: CARGO
+P653: Esta entidad será extremadamente importante.
+P654: No representa una persona.
+P655: Representa una función.
+P656: Ejemplo
+P657: Director
+P658: Analista
+P659: Auxiliar
+P660: Operario
+P661: Supervisor
+P663: Un cargo tiene:
+P664: Funciones
+P665: Responsabilidades
+P666: Competencias
+P667: Indicadores
+P668: Nivel jerárquico
+P669: Perfil
+P671: Un cargo puede existir sin empleados.
+P673: COLABORADOR
+P674: Representa una persona.
+P675: No representa un usuario.
+P676: Esto es importante.
+P677: Puede existir un colaborador sin acceso al sistema.
+P678: Ejemplo
+P679: Empleado operativo.
+P681: Un colaborador pertenece a
+P682: Empresa
+P683: ↓
+P684: Área
+P685: ↓
+P686: Cargo
+P687: ↓
+P688: Jefe
+P689: ↓
+P690: Equipo
+P692: El colaborador tendrá
+P693: Historia laboral
+P694: Evaluaciones
+P695: Cursos
+P696: Competencias
+P697: Planes
+P698: Indicadores
+P700: USUARIO
+P701: NO es un colaborador.
+P702: Un usuario representa una cuenta.
+P703: Ejemplo
+P704: Un consultor externo.
+P705: Puede ingresar.
+P706: Pero no pertenece a la empresa.
+P708: Esto evitará muchos problemas futuros.
+P710: COMPETENCIA
+P711: Este será el núcleo de todo el software.
+P712: No será una lista.
+P713: Será una entidad inteligente.
+P714: Ejemplo
+P715: Comunicación.
+P717: Una competencia tendrá
+P718: Nombre
+P719: Código
+P720: Descripción
+P721: Categoría
+P722: Familia
+P723: Nivel
+P724: Conductas observables
+P725: Indicadores
+P726: Cursos relacionados
+P727: IA relacionada
+P729: Una competencia puede estar asociada a
+P730: muchos cargos
+P731: muchos cursos
+P732: muchas evaluaciones
+P733: muchos colaboradores
+P735: FAMILIA DE COMPETENCIAS
+P736: Ejemplo
+P737: Digitales
+P738: Liderazgo
+P739: Blandas
+P740: Técnicas
+P741: Estratégicas
+P742: Calidad
+P743: Innovación
+P745: Cada competencia pertenece a una familia.
+P747: NIVEL DE COMPETENCIA
+P748: Muy importante.
+P749: No se guardará simplemente
+P750: Básico
+P751: Intermedio
+P752: Avanzado
+P753: Cada nivel tendrá
+P754: Conductas
+P755: Evidencias
+P756: Resultados esperados
+P758: Ejemplo
+P759: Nivel 3
+P760: "Analiza información y toma decisiones utilizando datos."
+P762: CONDUCTA OBSERVABLE
+P763: Esta entidad casi nunca existe en otros softwares.
+P764: Nosotros sí la tendremos.
+P765: Ejemplo
+P766: Escucha activamente.
+P767: Presenta informes claros.
+P768: Lidera reuniones.
+P769: Gestiona conflictos.
+P771: Las conductas serán evaluables.
+P773: INDICADOR
+P774: Ejemplo
+P775: Cumplimiento
+P776: Productividad
+P777: Servicio
+P778: Calidad
+P780: Un indicador puede medir
+P781: Área
+P782: Proceso
+P783: Persona
+P784: Competencia
+P785: Curso
+P787: CURSO
+P788: No será un curso solamente.
+P789: Será un objeto inteligente.
+P790: Tendrá
+P791: Competencias que desarrolla.
+P792: Horas.
+P793: Modalidad.
+P794: Nivel.
+P795: Costo.
+P796: Proveedor.
+P797: Certificación.
+P798: IA.
+P800: RUTA DE APRENDIZAJE
+P801: Aquí está una innovación.
+P802: No recomendaremos cursos.
+P803: Recomendaremos rutas.
+P804: Ejemplo
+P805: Liderazgo Inicial
+P806: ↓
+P807: Comunicación
+P808: ↓
+P809: Coaching
+P810: ↓
+P811: Gestión de Equipos
+P812: ↓
+P813: Feedback
+P814: ↓
+P815: Proyecto Final
+P817: EVALUACIÓN
+P818: Será otra entidad muy poderosa.
+P819: No solamente encuesta.
+P820: Puede ser
+P821: Competencias
+P822: 360°
+P823: Desempeño
+P824: Potencial
+P825: Capacitación
+P826: Clima
+P827: Cultura
+P828: Riesgo
+P830: Cada evaluación tendrá
+P831: Preguntas
+P832: Secciones
+P833: Escalas
+P834: Versiones
+P835: IA
+P837: PREGUNTA
+P838: Cada pregunta será una entidad.
+P839: Esto permitirá
+P840: Versionar
+P841: Reutilizar
+P842: Clasificar
+P843: Relacionar con competencias
+P845: RESPUESTA
+P846: Cada respuesta conservará
+P847: Persona
+P848: Fecha
+P849: Pregunta
+P850: Valor
+P851: Tiempo
+P852: Dispositivo
+P853: Ubicación (opcional)
+P855: BRECHA
+P856: Este será uno de los activos más valiosos del sistema.
+P857: No será un cálculo.
+P858: Será una entidad.
+P859: Porque una brecha puede tener
+P860: Estado
+P861: Prioridad
+P862: Responsable
+P863: Plan
+P864: Seguimiento
+P865: Fecha
+P867: PLAN DE DESARROLLO
+P868: Relacionado con
+P869: Persona
+P870: Competencias
+P871: Cursos
+P872: Coaching
+P873: Mentoría
+P874: Proyectos
+P875: Indicadores
+P877: PLAN DE CAPACITACIÓN
+P878: Relacionado con
+P879: Empresa
+P880: Áreas
+P881: Presupuesto
+P882: Cronograma
+P883: Cursos
+P884: Resultados
+P886: IA
+P887: La IA será una entidad.
+P888: No solamente un servicio.
+P889: Guardará
+P890: Prompt
+P891: Modelo
+P892: Respuesta
+P893: Versión
+P894: Tiempo
+P895: Costo
+P896: Tokens
+P897: Resultado
+P899: DASHBOARD
+P900: Otra entidad.
+P901: Cada dashboard tendrá
+P902: Widgets
+P903: KPIs
+P904: Filtros
+P905: Permisos
+P906: Visualizaciones
+P908: REPORTE
+P909: Podrá ser
+P910: PDF
+P911: Excel
+P912: Word
+P913: PowerPoint
+P914: HTML
+P916: AUDITORÍA
+P917: Todo cambio quedará registrado.
+P918: Usuario
+P919: Fecha
+P920: Antes
+P921: Después
+P922: IP
+P923: Dispositivo
+P925: NOTIFICACIONES
+P926: Correo
+P927: WhatsApp
+P928: SMS
+P929: Push
+P930: Internas
+P932: ARCHIVOS
+P933: Todos los documentos estarán separados.
+P934: No se almacenarán dentro de otras entidades.
+P936: 5. Reglas Fundamentales del Dominio
+P937: Estas reglas son obligatorias y deberán reflejarse posteriormente en la base de datos y en la lógica del sistema.
+P938: Organización y estructura
+P939: Una Empresa puede tener múltiples Sedes.
+P940: Una Sede puede contener múltiples Áreas.
+P941: Un Área puede gestionar múltiples Procesos.
+P942: Un Proceso puede involucrar uno o varios Cargos.
+P943: Un Cargo puede existir sin colaboradores asignados.
+P944: Un Colaborador solo puede tener un cargo principal activo, aunque podrá registrar historial de cambios.
+P945: Competencias
+P946: Una Competencia puede estar asociada a múltiples cargos.
+P947: Un Cargo debe tener un perfil de competencias definido.
+P948: Cada competencia pertenece a una única Familia de Competencias.
+P949: Cada competencia podrá tener diferentes niveles de dominio y conductas observables.
+P950: Evaluaciones
+P951: Una Evaluación está compuesta por una o más secciones.
+P952: Cada sección contiene múltiples preguntas.
+P953: Una pregunta puede reutilizarse en diferentes evaluaciones.
+P954: Las respuestas nunca se eliminan; solo pueden quedar inactivas por razones de auditoría.
+P955: Planes de desarrollo
+P956: Una Brecha puede generar uno o varios planes de acción.
+P957: Un Plan de Desarrollo puede incluir cursos, mentorías, coaching, proyectos o autoaprendizaje.
+P958: Todo plan debe tener responsable, fecha de inicio, fecha de seguimiento y estado.
+P959: Inteligencia Artificial
+P960: Las recomendaciones de IA deben ser reproducibles; por ello se almacenará el modelo utilizado, la versión, el prompt y los datos de entrada que dieron origen al resultado.
+P961: Las recomendaciones de IA apoyan la decisión, pero la aprobación final corresponde a un usuario autorizado.
+P963: 6. Catálogo inicial de entidades
+P964: Para facilitar el trabajo de desarrollo, el sistema partirá con un catálogo inicial de entidades de negocio:
+P965: Empresa
+P966: Sede
+P967: Área
+P968: Proceso
+P969: Cargo
+P970: Colaborador
+P971: Usuario
+P972: Rol
+P973: Permiso
+P974: Competencia
+P975: Familia de Competencias
+P976: Nivel de Competencia
+P977: Conducta Observable
+P978: Indicador
+P979: Evaluación
+P980: Sección de Evaluación
+P981: Pregunta
+P982: Opción de Respuesta
+P983: Respuesta
+P984: Resultado
+P985: Brecha
+P986: Plan de Desarrollo
+P987: Plan de Capacitación
+P988: Curso
+P989: Ruta de Aprendizaje
+P990: Dashboard
+P991: Reporte
+P992: Recomendación de IA
+P993: Notificación
+P994: Archivo
+P995: Auditoría
+P997: Observación crítica para Antograviti
+P998: No crear todavía la base de datos.
+P999: El siguiente paso no es programar.
+P1000: El siguiente paso es elaborar el Modelo Lógico del Dominio, donde definiremos:
+P1001: Relaciones 1:1
+P1002: Relaciones 1:N
+P1003: Relaciones N:M
+P1004: Cardinalidades
+P1005: Claves de negocio
+P1006: Restricciones
+P1007: Estados
+P1008: Ciclos de vida
+P1009: Herencia
+P1010: Entidades configurables
+P1011: Catálogos parametrizables
+P1012: Ese documento permitirá diseñar una base de datos sólida desde el inicio, evitando migraciones complejas y cambios estructurales en fases posteriores.
+P1013: DOCUMENTO 4
+P1014: BUSINESS RULES SPECIFICATION (BRS)
+P1015: Especificación de Reglas del Negocio
+P1016: Versión 1.0
+P1018: 1. Objetivo
+P1019: Definir todas las reglas funcionales que gobiernan el comportamiento del sistema.
+P1020: Estas reglas serán obligatorias para:
+P1021: Base de datos
+P1022: Backend
+P1023: APIs
+P1024: IA
+P1025: Dashboards
+P1026: Seguridad
+P1027: Reportes
+P1028: Una regla del negocio nunca dependerá de una pantalla.
+P1029: Las pantallas deberán respetar las reglas.
+P1031: 2. Clasificación de reglas
+P1032: Las dividiremos en diez categorías.
+P1033: BR-100 Organización
+P1034: BR-200 Usuarios
+P1035: BR-300 Competencias
+P1036: BR-400 Evaluaciones
+P1037: BR-500 Motor Analítico
+P1038: BR-600 IA
+P1039: BR-700 Planes de Formación
+P1040: BR-800 Reportes
+P1041: BR-900 Seguridad
+P1042: BR-1000 Auditoría
+P1044: BR-100
+P1045: Organización
+P1046: BR-101
+P1047: Una empresa puede tener múltiples sedes.
+P1048: Nunca podrá pertenecer a otra empresa.
+P1050: BR-102
+P1051: Una sede pertenece únicamente a una empresa.
+P1053: BR-103
+P1054: Un área pertenece únicamente a una sede.
+P1055: (En una versión futura podrá existir un catálogo global de áreas reutilizables).
+P1057: BR-104
+P1058: Un cargo podrá utilizarse en varias sedes.
+P1060: BR-105
+P1061: Una empresa puede crear competencias propias.
+P1062: Además podrá utilizar competencias del catálogo SKEL.
+P1064: BR-106
+P1065: Toda empresa tendrá una configuración independiente.
+P1066: No podrá acceder a datos de otra empresa.
+P1067: (MultiTenant)
+P1069: BR-200
+P1070: Colaboradores
+P1071: BR-201
+P1072: Todo colaborador debe pertenecer a un cargo.
+P1074: BR-202
+P1075: Todo colaborador pertenece a un área.
+P1077: BR-203
+P1078: Un colaborador tendrá un jefe inmediato.
+P1079: Excepto el máximo directivo.
+P1081: BR-204
+P1082: Un colaborador podrá cambiar de cargo.
+P1083: Nunca se eliminará el historial.
+P1085: BR-205
+P1086: Un colaborador puede abandonar la organización.
+P1087: Nunca se eliminará.
+P1088: Quedará Inactivo.
+P1090: BR-206
+P1091: Todo colaborador podrá tener múltiples evaluaciones.
+P1093: BR-300
+P1094: Competencias
+P1095: Aquí está el ADN del sistema.
+P1097: BR-301
+P1098: Toda competencia pertenece a una familia.
+P1100: BR-302
+P1101: Toda competencia tendrá niveles.
+P1103: BR-303
+P1104: Cada nivel tendrá conductas observables.
+P1106: BR-304
+P1107: Toda competencia tendrá evidencias.
+P1109: BR-305
+P1110: Toda competencia tendrá indicadores asociados.
+P1112: BR-306
+P1113: Una competencia podrá asociarse a muchos cargos.
+P1115: BR-307
+P1116: Un cargo tendrá muchas competencias.
+P1118: BR-308
+P1119: Una competencia podrá ser
+P1120: Organizacional
+P1121: Transversal
+P1122: Digital
+P1123: Técnica
+P1124: Liderazgo
+P1125: Innovación
+P1126: IA
+P1128: BR-309
+P1129: Nunca se eliminará una competencia.
+P1130: Solo podrá quedar obsoleta.
+P1132: BR-400
+P1133: Evaluaciones
+P1135: BR-401
+P1136: Una evaluación pertenece a una empresa.
+P1138: BR-402
+P1139: Una evaluación tendrá versiones.
+P1141: BR-403
+P1142: Una evaluación nunca se modifica.
+P1143: Si cambia
+P1144: se crea otra versión.
+P1146: BR-404
+P1147: Las preguntas podrán reutilizarse.
+P1149: BR-405
+P1150: Las respuestas nunca se eliminan.
+P1152: BR-406
+P1153: Una respuesta queda asociada
+P1154: Persona
+P1155: Pregunta
+P1156: Fecha
+P1157: Versión
+P1159: BR-407
+P1160: Toda evaluación tendrá
+P1161: Estado
+P1162: Borrador
+P1163: Activa
+P1164: Cerrada
+P1165: Archivada
+P1167: BR-408
+P1168: No podrá responderse dos veces una misma evaluación, salvo que el administrador configure explícitamente múltiples aplicaciones.
+P1170: BR-409
+P1171: Las evaluaciones podrán programarse.
+P1173: BR-410
+P1174: Las evaluaciones podrán enviarse automáticamente.
+P1176: BR-500
+P1177: Motor Analítico
+P1178: Aquí está el gran diferencial.
+P1180: BR-501
+P1181: Toda respuesta será normalizada.
+P1183: BR-502
+P1184: Toda competencia tendrá un puntaje.
+P1186: BR-503
+P1187: Toda competencia tendrá una brecha.
+P1189: BR-504
+P1190: Toda brecha tendrá prioridad.
+P1192: BR-505
+P1193: Toda prioridad tendrá un nivel de riesgo.
+P1195: BR-506
+P1196: El sistema calculará automáticamente
+P1197: Índice Competencial
+P1198: Índice Digital
+P1199: Índice Liderazgo
+P1200: Índice Productividad
+P1201: Índice Innovación
+P1202: Índice Aprendizaje
+P1203: Índice Riesgo
+P1205: BR-507
+P1206: Los indicadores nunca serán editables.
+P1208: BR-508
+P1209: Todos los cálculos quedarán registrados.
+P1211: BR-600
+P1212: Inteligencia Artificial
+P1213: Aquí nace el sistema experto.
+P1215: BR-601
+P1216: La IA nunca reemplaza al consultor.
+P1217: Solo recomienda.
+P1219: BR-602
+P1220: Toda respuesta de IA deberá guardar
+P1221: Prompt
+P1222: Modelo
+P1223: Versión
+P1224: Fecha
+P1225: Tokens
+P1226: Costo
+P1228: BR-603
+P1229: Toda recomendación tendrá explicación.
+P1230: No solamente resultado.
+P1232: BR-604
+P1233: La IA podrá generar
+P1234: Planes
+P1235: Cursos
+P1236: Competencias
+P1237: Reportes
+P1238: Resúmenes
+P1239: KPIs
+P1241: BR-605
+P1242: La IA aprenderá únicamente de datos autorizados.
+P1244: BR-606
+P1245: Toda recomendación podrá ser aceptada, modificada o rechazada por un usuario autorizado.
+P1247: BR-700
+P1248: Planes de Formación
+P1250: BR-701
+P1251: Todo plan nace de una brecha.
+P1253: BR-702
+P1254: Un plan podrá contener
+P1255: Cursos
+P1256: Coaching
+P1257: Mentoría
+P1258: Proyectos
+P1259: Lecturas
+P1260: Certificaciones
+P1262: BR-703
+P1263: Todo plan tendrá indicadores.
+P1265: BR-704
+P1266: Todo plan tendrá seguimiento.
+P1268: BR-705
+P1269: Todo plan tendrá evaluación final.
+P1271: BR-706
+P1272: Toda capacitación podrá medirse.
+P1274: BR-800
+P1275: Reportes
+P1277: BR-801
+P1278: Todos los reportes serán dinámicos.
+P1280: BR-802
+P1281: Todo dashboard respetará permisos.
+P1283: BR-803
+P1284: Todo reporte podrá exportarse.
+P1286: BR-900
+P1287: Seguridad
+P1289: BR-901
+P1290: Todo usuario tendrá rol.
+P1292: BR-902
+P1293: Todo rol tendrá permisos.
+P1295: BR-903
+P1296: Todo acceso quedará registrado.
+P1298: BR-904
+P1299: Todo cambio quedará auditado.
+P1301: BR-905
+P1302: No existirá eliminación física de información crítica.
+P1304: BR-1000
+P1305: Auditoría
+P1307: BR-1001
+P1308: Toda modificación quedará registrada.
+P1310: BR-1002
+P1311: Todo cálculo quedará registrado.
+P1313: BR-1003
+P1314: Toda recomendación IA quedará registrada.
+P1316: BR-1004
+P1317: Todo cambio de configuración quedará registrado.
+P1319: BR-1005
+P1320: Todo registro tendrá
+P1321: Usuario
+P1322: Fecha
+P1323: Hora
+P1324: IP (si aplica)
+P1325: Dispositivo (si aplica)
+P1326: Origen del cambio
+P1328: 3. Estados de las entidades
+P1329: Una regla transversal que facilitará el mantenimiento del sistema es definir estados estándar.
+P1330: Las entidades principales (empresa, colaborador, evaluación, plan, curso, competencia, etc.) deberán utilizar un catálogo común de estados cuando aplique:
+P1331: Borrador
+P1332: Activo
+P1333: Programado
+P1334: En ejecución
+P1335: Suspendido
+P1336: Finalizado
+P1337: Archivado
+P1338: Inactivo
+P1339: Esto evita crear estados diferentes para cada módulo y simplifica los reportes y la lógica de negocio.
+P1341: 4. Reglas transversales
+P1342: Estas reglas aplican a todo el sistema:
+P1343: Ninguna información crítica se elimina físicamente; se realiza borrado lógico.
+P1344: Todas las operaciones importantes deben quedar auditadas.
+P1345: Los catálogos deben ser configurables por administradores autorizados.
+P1346: Los cálculos automáticos nunca podrán modificarse manualmente; cualquier recálculo deberá generar una nueva versión del resultado.
+P1347: Las reglas de negocio deberán implementarse en el backend y no depender exclusivamente de validaciones en la interfaz.
+P1348: DOCUMENTO 5
+P1349: LOGICAL DATA MODEL (LDM)
+P1350: Modelo Lógico de Datos
+P1351: Versión 1.0
+P1353: Objetivo
+P1354: Definir la estructura lógica completa de la información que utilizará SKEL Human Capital 360®, estableciendo entidades, relaciones, cardinalidades, agrupaciones funcionales y dominios de datos.
+P1355: Este documento servirá como puente entre el Modelo Conceptual del Negocio (BDM) y el Modelo Físico de Base de Datos (PDM).
+P1357: 1. Filosofía del Modelo de Datos
+P1358: La base de datos debe diseñarse siguiendo los siguientes principios:
+P1359: Multiempresa (Multi-Tenant) desde el primer día.
+P1360: Separación entre datos maestros (Master Data), datos transaccionales (Transactional Data) y datos analíticos (Analytical Data).
+P1361: Catálogos parametrizables para evitar cambios en el código.
+P1362: Historial y trazabilidad de los cambios.
+P1363: Escalabilidad para incorporar nuevos módulos sin rediseñar la estructura existente.
+P1365: 2. Dominios de Datos
+P1366: La plataforma se organizará en 12 dominios funcionales, cada uno con sus propias entidades.
+P1368: DOMINIO 01
+P1369: ORGANIZACIÓN
+P1370: Este dominio define la estructura organizacional.
+P1371: Entidades
+P1372: Empresa
+P1374: ↓
+P1376: Sede
+P1378: ↓
+P1380: Área
+P1382: ↓
+P1384: Proceso
+P1386: ↓
+P1388: Subproceso
+P1390: ↓
+P1392: Cargo
+P1394: ↓
+P1396: Equipo
+P1398: Relaciones
+P1399: Empresa
+P1401: 1 ---- N
+P1403: Sede
+P1404: Sede
+P1406: 1 ---- N
+P1408: Área
+P1409: Área
+P1411: 1 ---- N
+P1413: Proceso
+P1414: Proceso
+P1416: 1 ---- N
+P1418: Cargo
+P1419: Cargo
+P1421: 1 ---- N
+P1423: Colaborador
+P1425: DOMINIO 02
+P1426: SEGURIDAD
+P1427: Este dominio controla el acceso.
+P1428: Usuario
+P1430: ↓
+P1432: Rol
+P1434: ↓
+P1436: Permiso
+P1438: ↓
+P1440: Grupo
+P1442: ↓
+P1444: Política
+P1446: ↓
+P1448: Sesión
+P1450: ↓
+P1452: Token
+P1454: Relación
+P1455: Usuario
+P1457: N ----- N
+P1459: Roles
+P1460: porque un usuario podrá tener varios roles.
+P1462: DOMINIO 03
+P1463: TALENTO HUMANO
+P1464: Aquí vivirá toda la información del colaborador.
+P1465: Colaborador
+P1467: ↓
+P1469: Historial Laboral
+P1471: ↓
+P1473: Experiencia
+P1475: ↓
+P1477: Educación
+P1479: ↓
+P1481: Certificaciones
+P1483: ↓
+P1485: Idiomas
+P1487: ↓
+P1489: Competencias
+P1491: ↓
+P1493: Evaluaciones
+P1495: ↓
+P1497: Planes
+P1499: Aquí aparece una innovación.
+P1500: No guardaremos solamente información laboral.
+P1501: Guardaremos
+P1502: Evolución.
+P1504: DOMINIO 04
+P1505: COMPETENCIAS
+P1506: Este será el módulo más complejo.
+P1507: Familia
+P1509: ↓
+P1511: Competencia
+P1513: ↓
+P1515: Nivel
+P1517: ↓
+P1519: Conducta
+P1521: ↓
+P1523: Indicador
+P1525: ↓
+P1527: Curso
+P1529: ↓
+P1531: Ruta
+P1533: Relaciones
+P1534: Una competencia
+P1535: ↓
+P1536: Muchos cargos
+P1537: ↓
+P1538: Muchas evaluaciones
+P1539: ↓
+P1540: Muchos cursos
+P1541: ↓
+P1542: Muchas preguntas
+P1543: ↓
+P1544: Muchos indicadores
+P1546: Esto significa que
+P1547: Competencia
+P1548: será el centro del software.
+P1550: DOMINIO 05
+P1551: EVALUACIONES
+P1552: Evaluación
+P1554: ↓
+P1556: Versión
+P1558: ↓
+P1560: Sección
+P1562: ↓
+P1564: Pregunta
+P1566: ↓
+P1568: Opción
+P1570: ↓
+P1572: Respuesta
+P1574: ↓
+P1576: Resultado
+P1578: Observa algo importante.
+P1579: No existe una tabla
+P1580: Encuesta.
+P1581: Porque una encuesta
+P1582: es solamente un tipo
+P1583: de evaluación.
+P1585: DOMINIO 06
+P1586: FORMACIÓN
+P1587: Curso
+P1589: ↓
+P1591: Módulo
+P1593: ↓
+P1595: Contenido
+P1597: ↓
+P1599: Actividad
+P1601: ↓
+P1603: Evaluación
+P1605: ↓
+P1607: Certificado
+P1609: Pero además
+P1610: Ruta
+P1612: ↓
+P1614: Curso
+P1616: ↓
+P1618: Competencia
+P1620: ↓
+P1622: Indicador
+P1624: ↓
+P1626: Objetivo
+P1628: DOMINIO 07
+P1629: ANALYTICS
+P1630: Aquí está la magia.
+P1631: No trabajará directamente con las tablas transaccionales.
+P1632: Tendrá su propio dominio.
+P1633: Indicadores
+P1635: ↓
+P1637: KPIs
+P1639: ↓
+P1641: Heat Maps
+P1643: ↓
+P1645: Radar
+P1647: ↓
+P1649: Ranking
+P1651: ↓
+P1653: Benchmark
+P1655: ↓
+P1657: Predicción
+P1659: DOMINIO 08
+P1660: IA
+P1661: Aquí está otra innovación.
+P1662: No será solamente un API.
+P1663: Será un dominio.
+P1664: Prompt
+P1666: ↓
+P1668: Modelo
+P1670: ↓
+P1672: Versión
+P1674: ↓
+P1676: Contexto
+P1678: ↓
+P1680: Respuesta
+P1682: ↓
+P1684: Recomendación
+P1686: ↓
+P1688: Acción
+P1690: ↓
+P1692: Historial
+P1694: Así podremos cambiar
+P1695: GPT
+P1696: Claude
+P1697: Gemini
+P1698: Llama
+P1699: sin modificar el resto del sistema.
+P1701: DOMINIO 09
+P1702: REPORTES
+P1703: Dashboard
+P1705: ↓
+P1707: Widget
+P1709: ↓
+P1711: Gráfico
+P1713: ↓
+P1715: Filtro
+P1717: ↓
+P1719: Exportación
+P1721: DOMINIO 10
+P1722: CONFIGURACIÓN
+P1723: Todo será configurable.
+P1724: Escalas
+P1726: ↓
+P1728: Catálogos
+P1730: ↓
+P1732: Estados
+P1734: ↓
+P1736: Variables
+P1738: ↓
+P1740: Pesos
+P1742: ↓
+P1744: Algoritmos
+P1746: No programaremos
+P1747: listas.
+P1749: DOMINIO 11
+P1750: AUDITORÍA
+P1751: Muy importante.
+P1752: Entidad
+P1754: ↓
+P1756: Cambio
+P1758: ↓
+P1760: Usuario
+P1762: ↓
+P1764: Fecha
+P1766: ↓
+P1768: Valor anterior
+P1770: ↓
+P1772: Valor nuevo
+P1774: ↓
+P1776: Origen
+P1778: Nunca perderemos información.
+P1780: DOMINIO 12
+P1781: INTEGRACIONES
+P1782: API
+P1784: ↓
+P1786: ERP
+P1788: ↓
+P1790: LMS
+P1792: ↓
+P1794: CRM
+P1796: ↓
+P1798: Power BI
+P1800: ↓
+P1802: Microsoft
+P1804: ↓
+P1806: Google
+P1808: ↓
+P1810: Webhooks
+P1812: 3. Clasificación de Tablas
+P1813: Aquí viene una decisión arquitectónica muy importante.
+P1814: No todas las tablas son iguales.
+P1815: Las clasificaremos en cinco tipos:
+P1816: A. Tablas Maestras (Master Data)
+P1817: Información relativamente estable y reutilizable.
+P1818: Ejemplos:
+P1819: Empresas
+P1820: Sedes
+P1821: Áreas
+P1822: Cargos
+P1823: Competencias
+P1824: Familias de competencias
+P1825: Cursos
+P1826: Catálogos
+P1827: B. Tablas Transaccionales
+P1828: Registran eventos y operaciones del día a día.
+P1829: Ejemplos:
+P1830: Evaluaciones
+P1831: Respuestas
+P1832: Resultados
+P1833: Planes de desarrollo
+P1834: Inscripciones a cursos
+P1835: Seguimientos
+P1836: C. Tablas Analíticas
+P1837: Almacenan cálculos e indicadores para acelerar consultas.
+P1838: Ejemplos:
+P1839: Índices de competencias
+P1840: KPIs
+P1841: Brechas consolidadas
+P1842: Indicadores históricos
+P1843: Tendencias
+P1844: D. Tablas de Configuración
+P1845: Permiten parametrizar el sistema sin modificar código.
+P1846: Ejemplos:
+P1847: Escalas
+P1848: Estados
+P1849: Ponderaciones
+P1850: Reglas
+P1851: Algoritmos
+P1852: Variables globales
+P1853: E. Tablas de Auditoría
+P1854: Registran todas las operaciones críticas.
+P1855: Ejemplos:
+P1856: Cambios de configuración
+P1857: Accesos
+P1858: Modificaciones
+P1859: Ejecuciones de IA
+P1860: Reprocesos de indicadores
+P1862: 4. Convenciones de Modelado
+P1863: Para mantener consistencia en toda la plataforma:
+P1864: Todas las entidades tendrán un identificador único (uuid).
+P1865: Todas las tablas incluirán campos estándar de auditoría (created_at, updated_at, created_by, updated_by, status).
+P1866: Las relaciones N:M se implementarán mediante tablas puente explícitas.
+P1867: Los catálogos serán reutilizables y versionables.
+P1868: Las entidades críticas soportarán historial cuando aplique (versionado lógico).
+P1869: DOCUMENTO 6
+P1870: USE CASE SPECIFICATION (UCS)
+P1871: Especificación de Casos de Uso
+P1872: Versión: 1.0
+P1873: Objetivo: Definir todas las interacciones entre los actores y la plataforma SKEL Human Capital 360®.
+P1875: 1. Actores del Sistema
+P1876: Actores principales
+P1878: 2. Mapa General de Casos de Uso
+P1879: Administrar Plataforma
+P1880: │
+P1881: ├── Gestionar Empresas
+P1882: ├── Gestionar Usuarios
+P1883: ├── Gestionar Competencias
+P1884: ├── Gestionar Cargos
+P1885: ├── Gestionar Colaboradores
+P1886: ├── Diseñar Evaluaciones
+P1887: ├── Aplicar Evaluaciones
+P1888: ├── Analizar Resultados
+P1889: ├── Ejecutar IA
+P1890: ├── Generar Planes
+P1891: ├── Administrar Formación
+P1892: ├── Consultar Dashboards
+P1893: └── Emitir Reportes
+P1895: 3. Caso de Uso UC-001
+P1896: Nombre
+P1897: Registrar Empresa
+P1898: Actor principal
+P1899: Administrador Global
+P1900: Objetivo
+P1901: Crear una nueva organización dentro de la plataforma.
+P1902: Precondiciones
+P1903: El administrador está autenticado.
+P1904: Tiene permisos de creación.
+P1905: Flujo principal
+P1906: Selecciona "Nueva empresa".
+P1907: Ingresa datos generales.
+P1908: Define configuración inicial.
+P1909: Guarda la información.
+P1910: El sistema crea la empresa.
+P1911: El sistema crea automáticamente:
+P1912: Configuración base.
+P1913: Catálogos iniciales.
+P1914: Roles predeterminados.
+P1915: Escalas estándar.
+P1916: Postcondiciones
+P1917: La empresa queda disponible para configuración.
+P1919: UC-002
+P1920: Configurar Estructura Organizacional
+P1921: Actor
+P1922: Administrador Empresa
+P1923: Flujo
+P1924: Crear sedes.
+P1925: Crear áreas.
+P1926: Crear procesos.
+P1927: Crear cargos.
+P1928: Definir jerarquía.
+P1929: Resultado
+P1930: La organización queda estructurada.
+P1932: UC-003
+P1933: Crear Diccionario de Competencias
+P1934: Actor
+P1935: Director de Talento Humano
+P1936: Flujo
+P1937: Crear familias.
+P1938: Crear competencias.
+P1939: Definir niveles.
+P1940: Asociar conductas observables.
+P1941: Asociar indicadores.
+P1942: Asociar cargos.
+P1944: UC-004
+P1945: Diseñar Instrumento de Evaluación
+P1946: Actor
+P1947: Director de Talento Humano
+P1948: Flujo
+P1949: Crear evaluación.
+P1950: Agregar secciones.
+P1951: Agregar preguntas.
+P1952: Configurar escalas.
+P1953: Configurar lógica condicional.
+P1954: Publicar versión.
+P1956: UC-005
+P1957: Aplicar Evaluación
+P1958: Actor
+P1959: Colaborador
+P1960: Flujo
+P1961: Recibe invitación.
+P1962: Ingresa al sistema.
+P1963: Responde evaluación.
+P1964: Guarda avances.
+P1965: Finaliza.
+P1966: El sistema valida.
+P1967: Se registran respuestas.
+P1969: UC-006
+P1970: Procesar Resultados
+P1971: Actor
+P1972: Motor Analítico
+P1973: Flujo
+P1974: Validar respuestas.
+P1975: Calcular índices.
+P1976: Calcular brechas.
+P1977: Calcular riesgos.
+P1978: Clasificar resultados.
+P1979: Persistir indicadores.
+P1981: UC-007
+P1982: Ejecutar Inteligencia Artificial
+P1983: Actor
+P1984: Motor IA
+P1985: Flujo
+P1986: Recibe resultados.
+P1987: Construye contexto.
+P1988: Ejecuta el modelo de IA.
+P1989: Obtiene recomendaciones.
+P1990: Clasifica acciones.
+P1991: Genera borrador de informe.
+P1993: UC-008
+P1994: Generar Plan Estratégico de Formación
+P1995: Actor
+P1996: Director de Talento Humano
+P1997: Flujo
+P1998: Revisar brechas.
+P1999: Priorizar competencias.
+P2000: Seleccionar población objetivo.
+P2001: Definir acciones.
+P2002: Aprobar plan.
+P2003: Publicar.
+P2005: UC-009
+P2006: Consultar Dashboard Ejecutivo
+P2007: Actor
+P2008: Directivo
+P2009: Flujo
+P2010: Seleccionar empresa.
+P2011: Aplicar filtros.
+P2012: Consultar KPIs.
+P2013: Analizar tendencias.
+P2014: Exportar resultados.
+P2016: UC-010
+P2017: Ejecutar Seguimiento
+P2018: Actor
+P2019: Jefe Inmediato
+P2020: Flujo
+P2021: Consultar plan.
+P2022: Registrar avances.
+P2023: Evaluar transferencia.
+P2024: Registrar observaciones.
+P2025: Cerrar seguimiento.
+P2027: 4. Casos de Uso futuros
+P2028: El MVP no implementará todos los casos desde el inicio.
+P2029: Se propone clasificarlos por fases:
+P2030: Fase 1 (MVP)
+P2031: Gestión de empresas.
+P2032: Gestión de usuarios.
+P2033: Gestión de colaboradores.
+P2034: Competencias.
+P2035: Evaluaciones.
+P2036: Motor analítico.
+P2037: Dashboards básicos.
+P2038: IA para recomendaciones.
+P2039: Planes de formación.
+P2040: Fase 2
+P2041: Evaluación 360°.
+P2042: Biblioteca de aprendizaje.
+P2043: Rutas de aprendizaje.
+P2044: Certificaciones.
+P2045: Seguimiento.
+P2046: Fase 3
+P2047: Benchmark organizacional.
+P2048: Analítica predictiva.
+P2049: Integraciones con LMS.
+P2050: Integraciones con ERP.
+P2051: Integraciones con HRIS.
+P2053: 5. Reglas para todos los casos de uso
+P2054: Cada caso de uso deberá incluir siempre:
+P2055: Identificador único.
+P2056: Nombre.
+P2057: Objetivo.
+P2058: Actor principal.
+P2059: Actores secundarios.
+P2060: Precondiciones.
+P2061: Flujo principal.
+P2062: Flujos alternativos.
+P2063: Excepciones.
+P2064: Reglas de negocio relacionadas.
+P2065: Postcondiciones.
+P2066: Eventos generados.
+P2067: Permisos requeridos.
+P2069: Recomendación estratégica
+P2070: Aquí quiero proponerte una decisión que puede ahorrar meses de desarrollo.
+P2071: No desarrollar el sistema "pantalla por pantalla".
+P2072: Desarrollarlo por capacidades de negocio (Business Capabilities).
+P2073: Por ejemplo:
+P2074: Capacidad: Gestión de Competencias
+P2075: Incluye:
+P2076: Diccionario.
+P2077: Familias.
+P2078: Niveles.
+P2079: Conductas.
+P2080: Indicadores.
+P2081: Asociación a cargos.
+P2082: Todo eso se desarrolla como una unidad funcional.
+P2083: Después:
+P2084: Capacidad: Evaluaciones
+P2085: Incluye:
+P2086: Constructor.
+P2087: Preguntas.
+P2088: Escalas.
+P2089: Aplicación.
+P2090: Resultados.
+P2091: DOCUMENTO 7
+P2092: MASTER PRODUCT BACKLOG
+P2093: SKEL Human Capital 360®
+P2094: Versión 1.0
+P2096: INTRODUCCIÓN
+P2097: El Product Backlog representa la totalidad del trabajo requerido para construir SKEL Human Capital 360®.
+P2098: No está organizado por pantallas.
+P2099: Está organizado por Business Capabilities.
+P2100: ¿Por qué?
+P2101: Porque las pantallas cambian.
+P2102: Las capacidades del negocio permanecen.
+P2104: ROADMAP GENERAL
+P2105: FASE 1
+P2107: Foundation
+P2109: ↓
+P2111: FASE 2
+P2113: Core HR
+P2115: ↓
+P2117: FASE 3
+P2119: Competencias
+P2121: ↓
+P2123: FASE 4
+P2125: Evaluaciones
+P2127: ↓
+P2129: FASE 5
+P2131: Motor Analítico
+P2133: ↓
+P2135: FASE 6
+P2137: IA
+P2139: ↓
+P2141: FASE 7
+P2143: Learning Analytics
+P2145: ↓
+P2147: FASE 8
+P2149: Planes
+P2151: ↓
+P2153: FASE 9
+P2155: Dashboard Ejecutivo
+P2157: ↓
+P2159: FASE 10
+P2161: Integraciones
+P2163: ÉPICA 1
+P2164: FOUNDATION
+P2165: Objetivo
+P2166: Crear toda la infraestructura base.
+P2168: Capability
+P2169: MultiTenant
+P2170: Historias
+P2171: Crear empresa
+P2172: Editar empresa
+P2173: Eliminar empresa
+P2174: Suspender empresa
+P2175: Activar empresa
+P2176: Configuración inicial
+P2178: Capability
+P2179: Autenticación
+P2180: Historias
+P2181: Registro
+P2182: Login
+P2183: Logout
+P2184: Reset Password
+P2185: 2FA (futuro)
+P2186: OAuth
+P2188: Capability
+P2189: Roles
+P2190: Historias
+P2191: Crear rol
+P2192: Editar rol
+P2193: Eliminar rol
+P2194: Duplicar rol
+P2195: Asignar permisos
+P2197: Capability
+P2198: Permisos
+P2199: Historias
+P2200: Crear permiso
+P2201: Asignar
+P2202: Revocar
+P2203: Agrupar
+P2204: Auditar
+P2206: ÉPICA 2
+P2207: ORGANIZACIÓN
+P2208: Capabilities
+P2209: Empresa
+P2210: Sedes
+P2211: Áreas
+P2212: Procesos
+P2213: Subprocesos
+P2214: Equipos
+P2215: Centros de costo
+P2216: Ubicaciones
+P2218: Historias
+P2219: CRUD completo
+P2220: Importación Excel
+P2221: Importación CSV
+P2222: Importación API
+P2223: Exportación
+P2224: Historial
+P2226: ÉPICA 3
+P2227: TALENTO HUMANO
+P2228: Capabilities
+P2229: Colaboradores
+P2230: Cargos
+P2231: Historial
+P2232: Educación
+P2233: Idiomas
+P2234: Certificaciones
+P2235: Experiencia
+P2236: Organigrama
+P2238: Historias
+P2239: Crear colaborador
+P2240: Actualizar
+P2241: Mover
+P2242: Ascender
+P2243: Retirar
+P2244: Reingresar
+P2245: Importar
+P2246: Sincronizar
+P2248: ÉPICA 4
+P2249: DICCIONARIO DE COMPETENCIAS
+P2250: Esta será probablemente una de las épicas más grandes del proyecto.
+P2251: Capabilities
+P2252: Familias
+P2253: Competencias
+P2254: Subcompetencias
+P2255: Conductas
+P2256: Indicadores
+P2257: Niveles
+P2258: Escalas
+P2259: Relaciones
+P2260: Cursos
+P2262: Historias
+P2263: Crear competencia
+P2264: Duplicar
+P2265: Versionar
+P2266: Obsoleta
+P2267: Relacionar
+P2268: Buscar
+P2269: Filtrar
+P2270: Importar
+P2272: ÉPICA 5
+P2273: MOTOR DE EVALUACIONES
+P2274: Capabilities
+P2275: Constructor
+P2276: Preguntas
+P2277: Matrices
+P2278: Likert
+P2279: Condicionales
+P2280: Versiones
+P2281: Programación
+P2282: Invitaciones
+P2283: Seguimiento
+P2285: Historias
+P2286: Crear evaluación
+P2287: Duplicar
+P2288: Publicar
+P2289: Cerrar
+P2290: Archivar
+P2291: Enviar
+P2292: Recordatorios
+P2294: ÉPICA 6
+P2295: RESPUESTAS
+P2296: Capabilities
+P2297: Captura
+P2298: AutoSave
+P2299: Validación
+P2300: Anónimas
+P2301: Tiempo
+P2302: Dispositivo
+P2303: Ubicación
+P2305: Historias
+P2306: Guardar
+P2307: Editar
+P2308: Continuar
+P2309: Finalizar
+P2310: Cancelar
+P2312: ÉPICA 7
+P2313: MOTOR ANALÍTICO
+P2314: Aquí está el verdadero corazón.
+P2315: Capabilities
+P2316: Normalización
+P2317: Ponderación
+P2318: Índices
+P2319: Brechas
+P2320: Priorización
+P2321: Ranking
+P2322: Clasificación
+P2323: Predicción
+P2325: Historias
+P2326: Calcular
+P2327: Recalcular
+P2328: Comparar
+P2329: Actualizar
+P2330: Versionar
+P2331: Auditar
+P2333: ÉPICA 8
+P2334: MOTOR IA
+P2335: Capabilities
+P2336: Prompt Builder
+P2337: Context Builder
+P2338: Model Router
+P2339: Prompt History
+P2340: Recommendations
+P2341: Explainability
+P2342: Learning
+P2344: Historias
+P2345: Generar informe
+P2346: Generar plan
+P2347: Explicar indicador
+P2348: Recomendar cursos
+P2349: Responder preguntas
+P2350: Generar resumen ejecutivo
+P2352: ÉPICA 9
+P2353: PLANES DE DESARROLLO
+P2354: Capabilities
+P2355: Planes
+P2356: Seguimiento
+P2357: Coaching
+P2358: Mentoría
+P2359: Cursos
+P2360: Proyectos
+P2361: KPIs
+P2363: Historias
+P2364: Crear plan
+P2365: Editar
+P2366: Cerrar
+P2367: Aprobar
+P2368: Asignar
+P2369: Evaluar
+P2371: ÉPICA 10
+P2372: LEARNING ANALYTICS
+P2373: Capabilities
+P2374: KPIs
+P2375: Radar
+P2376: Heat Maps
+P2377: Benchmark
+P2378: Comparativos
+P2379: Predicción
+P2381: Historias
+P2382: Dashboard Gerencial
+P2383: Dashboard RRHH
+P2384: Dashboard Director
+P2385: Dashboard Colaborador
+P2386: Dashboard Consultor
+P2388: ÉPICA 11
+P2389: REPORTES
+P2390: Capabilities
+P2391: PDF
+P2392: Excel
+P2393: Word
+P2394: PowerPoint
+P2395: Power BI
+P2396: JSON
+P2398: Historias
+P2399: Exportar
+P2400: Programar
+P2401: Compartir
+P2402: Firmar
+P2403: Enviar
+P2405: ÉPICA 12
+P2406: INTEGRACIONES
+P2407: Capabilities
+P2408: API
+P2409: Webhooks
+P2410: Power BI
+P2411: Google
+P2412: Microsoft
+P2413: ERP
+P2414: LMS
+P2415: CRM
+P2417: Historias
+P2418: Conectar
+P2419: Sincronizar
+P2420: Actualizar
+P2421: Monitor
+P2422: Logs
+P2424: BACKLOG DEL MVP
+P2425: No todo debe construirse al inicio.
+P2426: Sprint 0 – Preparación
+P2427: Repositorio Git.
+P2428: CI/CD.
+P2429: Ambientes.
+P2430: Diseño UI.
+P2431: Arquitectura base.
+P2432: Modelo de autenticación.
+P2433: Convenciones de desarrollo.
+P2434: Sprint 1 – Foundation
+P2435: Multiempresa.
+P2436: Login.
+P2437: Roles.
+P2438: Permisos.
+P2439: Configuración.
+P2440: Sprint 2 – Organización
+P2441: Empresas.
+P2442: Sedes.
+P2443: Áreas.
+P2444: Cargos.
+P2445: Colaboradores.
+P2446: Sprint 3 – Competencias
+P2447: Familias.
+P2448: Competencias.
+P2449: Niveles.
+P2450: Conductas.
+P2451: Indicadores.
+P2452: Sprint 4 – Evaluaciones
+P2453: Constructor.
+P2454: Preguntas.
+P2455: Encuestas.
+P2456: Aplicación.
+P2457: Sprint 5 – Resultados
+P2458: Motor de cálculo.
+P2459: Índices.
+P2460: Brechas.
+P2461: Sprint 6 – IA
+P2462: Prompt Engine.
+P2463: Recomendaciones.
+P2464: Informes.
+P2465: Sprint 7 – Dashboard
+P2466: KPIs.
+P2467: Gráficos.
+P2468: Exportación.
+P2469: Sprint 8 – Planes
+P2470: Planes de formación.
+P2471: Seguimiento.
+P2472: Reportes.
+P2474: PRIORIZACIÓN (MoSCoW)
+P2475: Must Have (Obligatorio para el MVP)
+P2476: Multiempresa.
+P2477: Usuarios.
+P2478: Roles.
+P2479: Colaboradores.
+P2480: Competencias.
+P2481: Evaluaciones.
+P2482: Motor de cálculo.
+P2483: IA para recomendaciones.
+P2484: Dashboard básico.
+P2485: Reportes PDF.
+P2486: Should Have (Alta prioridad)
+P2487: Evaluación 180°.
+P2488: Rutas de aprendizaje.
+P2489: Importación masiva.
+P2490: Dashboard avanzado.
+P2491: Auditoría completa.
+P2492: Could Have (Valor agregado)
+P2493: Benchmark.
+P2494: Predicción.
+P2495: Integración con Power BI.
+P2496: LMS.
+P2497: Coaching.
+P2498: Mentoría.
+P2499: Won't Have (Posterior al MVP)
+P2500: Nómina.
+P2501: Reclutamiento.
+P2502: Selección.
+P2503: Gestión salarial.
+P2504: Desempeño financiero.
+P2506: Criterios de Aceptación Globales
+P2507: Cada historia de usuario deberá cumplir como mínimo:
+P2508: Cumplimiento funcional.
+P2509: Validaciones de negocio.
+P2510: Seguridad por roles.
+P2511: Auditoría automática.
+P2512: Respuesta consistente de la API.
+P2513: Manejo de errores.
+P2514: Registro en logs.
+P2515: Cobertura de pruebas.
+P2516: Documentación técnica.
+P2517: Cumplimiento de estándares de UI/UX.
+P2519: Definición de Terminado (Definition of Done)
+P2520: Una funcionalidad se considerará terminada cuando:
+P2521: El código haya sido revisado y aprobado.
+P2522: Existan pruebas unitarias y de integración exitosas.
+P2523: La funcionalidad cumpla las reglas de negocio definidas.
+P2524: Las APIs estén documentadas.
+P2525: Los eventos críticos se registren en auditoría.
+P2526: La interfaz sea consistente con el sistema de diseño.
+P2527: Se actualice la documentación técnica correspondiente.
+P2528: El Product Owner apruebe el criterio de aceptación.
+
+--- TABLES ---
+
+TABLE 0:
+  R0: Dominio | Descripción
+  R1: D01 | Organización
+  R2: D02 | Seguridad
+  R3: D03 | Talento Humano
+  R4: D04 | Competencias
+  R5: D05 | Evaluaciones
+  R6: D06 | Formación
+  R7: D07 | Analítica
+  R8: D08 | Inteligencia Artificial
+  R9: D09 | Reportes
+  R10: D10 | Configuración
+  R11: D11 | Auditoría
+  R12: D12 | Integraciones
+
+TABLE 1:
+  R0: Actor | Descripción
+  R1: Administrador Global | Administra toda la plataforma SaaS.
+  R2: Administrador de Empresa | Configura una organización específica.
+  R3: Director de Talento Humano | Gestiona competencias, evaluaciones y planes de desarrollo.
+  R4: Directivo | Consulta indicadores y aprueba planes.
+  R5: Jefe Inmediato | Evalúa colaboradores y realiza seguimiento.
+  R6: Colaborador | Responde evaluaciones y consulta su desarrollo.
+  R7: Consultor | Implementa proyectos para múltiples organizaciones.
+  R8: Motor de IA | Analiza información y genera recomendaciones automáticas.
+  R9: Sistema de Notificaciones | Envía correos, mensajes y recordatorios.
