@@ -233,13 +233,13 @@
             }
         }
 
-        async function cargarAutoevaluacion() {
+                async function cargarAutoevaluacion() {
             try {
                 const res = await fetch(`/api/informe_dinamico?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const data = await res.json();
-                if(data && data.status === 'success' && data.data) {
-                    let html = `<h3>Análisis Fortalezas y Debilidades</h3>${marked.parse(data.data.fortalezas || '')}`;
-                    html += `<h3>Recomendaciones</h3>${marked.parse(data.data.recomendaciones || '')}`;
+                if(data && !data.error && data.factores) {
+                    let html = `<h3>Análisis Fortalezas y Debilidades</h3>${marked.parse(data.fortalezas || '')}`;
+                    html += `<h3>Recomendaciones</h3>${marked.parse(data.recomendaciones || '')}`;
                     document.getElementById('texto_informe_dinamico').innerHTML = html;
                 } else {
                     document.getElementById('texto_informe_dinamico').innerHTML = "No hay reporte dinámico generado aún para esta institución.";
@@ -290,9 +290,8 @@
             } catch(e) {}
         }
 
-        async function cargarB2B() {
+                async function cargarB2B() {
             try {
-                // MEFI/MEFE
                 const mefiRes = await fetch(`/api/business/matrix/MEFI?inst_id=${getInstId()}`);
                 const mefeRes = await fetch(`/api/business/matrix/MEFE?inst_id=${getInstId()}`);
                 let mefiData = await mefiRes.json();
@@ -302,66 +301,57 @@
                 let hasMefi = false;
                 if(mefiData.data && mefiData.data.factors && mefiData.data.factors.length > 0) {
                     hasMefi = true;
-                    mefiData.data.factors.forEach(f => { mmHtml += `<li><b>${f.type.toUpperCase()}:</b> ${f.factor} (Peso: ${f.weight})</li>`; });
+                    mefiData.data.factors.forEach(f => { mmHtml += `<li><b>${(f.type||'').toUpperCase()}:</b> ${f.factor} (Peso: ${f.weight})</li>`; });
                 } else { mmHtml += "<li>No hay factores internos definidos.</li>"; }
                 mmHtml += "</ul><h4>Análisis Externo (MEFE)</h4><ul>";
                 let hasMefe = false;
                 if(mefeData.data && mefeData.data.factors && mefeData.data.factors.length > 0) {
                     hasMefe = true;
-                    mefeData.data.factors.forEach(f => { mmHtml += `<li><b>${f.type.toUpperCase()}:</b> ${f.factor} (Peso: ${f.weight})</li>`; });
+                    mefeData.data.factors.forEach(f => { mmHtml += `<li><b>${(f.type||'').toUpperCase()}:</b> ${f.factor} (Peso: ${f.weight})</li>`; });
                 } else { mmHtml += "<li>No hay factores externos definidos.</li>"; }
                 mmHtml += "</ul>";
-                
                 document.getElementById('texto_mefi_mefe').innerHTML = (hasMefi || hasMefe) ? mmHtml : "No hay matrices MEFI/MEFE guardadas.";
 
-                // Porter
                 const porterRes = await fetch(`/api/business/matrix/PORTER?inst_id=${getInstId()}`);
                 let porterData = await porterRes.json();
-                let porterHtml = "<ul>";
-                if(porterData.data && porterData.data.analysis && porterData.data.analysis.scores && porterData.data.analysis.scores.length > 0) {
-                    porterData.data.analysis.scores.forEach(s => { porterHtml += `<li><b>${s.force}:</b> Impacto ${s.score}/10 - ${s.description}</li>`; });
-                    document.getElementById('texto_porter').innerHTML = porterHtml + "</ul>";
-                } else {
-                    document.getElementById('texto_porter').innerHTML = "No hay datos del análisis de 5 Fuerzas de Porter.";
-                }
+                let pHtml = "<ul>";
+                if(porterData.data && porterData.data.factors && porterData.data.factors.length > 0) {
+                    porterData.data.factors.forEach(f => { pHtml += `<li><b>${f.force}:</b> ${f.factor} (Impacto: ${f.impact})</li>`; });
+                    pHtml += "</ul>";
+                    document.getElementById('texto_porter').innerHTML = pHtml;
+                } else { document.getElementById('texto_porter').innerHTML = "No hay datos de Porter."; }
 
-                // Riesgos y Stakeholders
-                const rRes = await fetch(`/api/business/matrix/RIESGOS?inst_id=${getInstId()}`);
-                const sRes = await fetch(`/api/business/matrix/STAKEHOLDERS?inst_id=${getInstId()}`);
-                let rData = await rRes.json();
-                let sData = await sRes.json();
-                
-                let rsHtml = "<h4>Principales Riesgos</h4><ul>";
-                let hasRiesgos = false;
-                if(rData.data && rData.data.risks && rData.data.risks.length > 0) {
-                    hasRiesgos = true;
-                    rData.data.risks.forEach(r => { rsHtml += `<li>${r.categoria}: ${r.descripcion} (Severidad: ${r.impacto})</li>`; });
-                } else { rsHtml += "<li>No hay riesgos registrados.</li>"; }
-                
-                rsHtml += "</ul><h4>Stakeholders Clave</h4><ul>";
-                let hasStakeholders = false;
-                if(sData.data && sData.data.stakeholders && sData.data.stakeholders.length > 0) {
-                    hasStakeholders = true;
-                    sData.data.stakeholders.forEach(s => { rsHtml += `<li>${s.nombre} - Poder: ${s.poder}, Interés: ${s.interes} (Estrategia: ${s.estrategia})</li>`; });
-                } else { rsHtml += "<li>No hay stakeholders registrados.</li>"; }
-                
-                document.getElementById('texto_riesgos_stakeholders').innerHTML = (hasRiesgos || hasStakeholders) ? rsHtml + "</ul>" : "No hay datos de Riesgos ni Stakeholders.";
+                const riesgosRes = await fetch(`/api/business/matrix/RIESGOS?inst_id=${getInstId()}`);
+                let riesgosData = await riesgosRes.json();
+                if(riesgosData.data && riesgosData.data.risks && riesgosData.data.risks.length > 0) {
+                    let rHtml = "<ul>";
+                    riesgosData.data.risks.forEach(r => { rHtml += `<li><b>${r.risk}:</b> Prob ${r.probability} x Imp ${r.impact} = Nivel ${r.level}</li>`; });
+                    rHtml += "</ul>";
+                    document.getElementById('texto_riesgos').innerHTML = rHtml;
+                } else { document.getElementById('texto_riesgos').innerHTML = "No hay datos de Riesgos."; }
 
-                // Comunicacion
-                const cRes = await fetch(`/api/business/matrix/COMUNICACION?inst_id=${getInstId()}`);
-                let cData = await cRes.json();
-                let cHtml = "<ul>";
-                if(cData.data && cData.data.plan && cData.data.plan.length > 0) {
-                    cData.data.plan.forEach(p => { cHtml += `<li><b>Audiencia:</b> ${p.audiencia} | <b>Mensaje:</b> ${p.mensaje} | <b>Canal:</b> ${p.canal}</li>`; });
-                    document.getElementById('texto_comunicacion').innerHTML = cHtml + "</ul>";
-                } else {
-                    document.getElementById('texto_comunicacion').innerHTML = "No hay plan de comunicación guardado.";
-                }
-
-            } catch(e) { console.error("Error B2B", e); }
+                const shRes = await fetch(`/api/business/matrix/STAKEHOLDERS?inst_id=${getInstId()}`);
+                let shData = await shRes.json();
+                if(shData.data && shData.data.stakeholders && shData.data.stakeholders.length > 0) {
+                    let sHtml = "<ul>";
+                    shData.data.stakeholders.forEach(s => { sHtml += `<li><b>${s.name}:</b> Int ${s.interest} x Pod ${s.power} - ${s.strategy}</li>`; });
+                    sHtml += "</ul>";
+                    document.getElementById('texto_stakeholders').innerHTML = sHtml;
+                } else { document.getElementById('texto_stakeholders').innerHTML = "No hay datos de Stakeholders."; }
+                
+                const comRes = await fetch(`/api/business/matrix/COMUNICACION?inst_id=${getInstId()}`);
+                let comData = await comRes.json();
+                if(comData.data && comData.data.plans && comData.data.plans.length > 0) {
+                    let cHtml = "<ul>";
+                    comData.data.plans.forEach(c => { cHtml += `<li><b>${c.audience}:</b> ${c.message} (${c.channel})</li>`; });
+                    cHtml += "</ul>";
+                    document.getElementById('texto_comunicacion').innerHTML = cHtml;
+                } else { document.getElementById('texto_comunicacion').innerHTML = "No hay datos de Comunicación."; }
+                
+            } catch(e) { console.error(e); }
         }
 
-        async function cargarPlanificacion() {
+                async function cargarPlanificacion() {
             try {
                 const res = await fetch(`/api/planning/tree?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const data = await res.json();
@@ -389,14 +379,13 @@
 
                 const finRes = await fetch(`/api/planning/reports/finance?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const finData = await finRes.json();
-                if(finData && finData.status === 'success' && finData.data && finData.data.items && finData.data.items.length > 0) {
-                    document.getElementById('texto_financiero').innerHTML = `<p><b>Presupuesto Total Estimado:</b> $${finData.data.total_budget}</p>
-                    <p>Se cuenta con ${finData.data.items.length} actividades presupuestadas.</p>`;
+                if(finData && finData.status === 'success' && finData.report && finData.report.length > 0) {
+                    document.getElementById('texto_financiero').innerHTML = `<p><b>Presupuesto Total Estimado:</b> $${finData.total_projected || 0}</p>
+                    <p>Se cuenta con ${finData.report.length} ejes presupuestados.</p>`;
                 } else {
-                    document.getElementById('texto_financiero').innerHTML = "No hay reporte financiero presupuestado.";
+                    document.getElementById('texto_financiero').innerHTML = "No hay reporte financiero generado.";
                 }
-
-            } catch(e) { console.error("Error Planificacion", e); }
+            } catch(e) { console.error(e); }
         }
 
         async function cargarISO() {
