@@ -10,8 +10,7 @@ import base64
 
 ai_bp = Blueprint('ai', __name__)
 
-STATIC_FALLBACK_KEY = base64.b64decode("QVEuQWI4Uk42SlhWUDZUeUJfcU5QMkhxQlUxX2I4NXpRT0RPdTlyMk5mbHRVdTE1LWtsQWc=").decode('utf-8')
-DEFAULT_STATIC_GEMINI_KEY = os.getenv("GEMINI_API_KEY", STATIC_FALLBACK_KEY)
+DEFAULT_STATIC_GEMINI_KEY = os.getenv("GEMINI_API_KEY", "")
 
 
 def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
@@ -87,13 +86,6 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
         if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
             model = 'gemini-1.5-flash' # The only valid model is 1.5
 
-        # Intelligent API Key mismatch detector (e.g. if user selected Gemini but left a Zhipu key)
-        if provider == 'gemini' and api_key and not api_key.startswith('AIza'):
-            if '.' in api_key:
-                print(f"[DEBUG] Detected Zhipu key passed to Gemini. Auto-correcting provider to Zhipu.")
-                provider = 'zhipu'
-                model = 'glm-4'
-                
         if not api_key:
             api_key = DEFAULT_STATIC_GEMINI_KEY
 
