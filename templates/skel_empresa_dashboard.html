@@ -176,7 +176,8 @@
                     </div>
                     <div class="card" style="text-align: center;">
                         <h4 style="margin-bottom: 10px;">3. Logística de Envío</h4>
-                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Genera los Magic Links y lanza la evaluación.</p>
+                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Define quién evalúa a quién y lanza la evaluación.</p>
+                        <button class="btn-primary" style="background:#3b82f6; width: 100%; margin-bottom: 10px;" onclick="abrirModalRed360()">Configurar Red 360</button>
                         <button class="btn-primary" onclick="lanzarEncuestas()" style="background:#10b981; width: 100%; margin-bottom: 10px;">🚀 Lanzar Encuestas</button>
                         <a href="/skel360/empresa/{{ empresa_id }}/resultados" class="btn-primary" style="background:#8b5cf6; text-decoration:none; display:block;">📈 Resultados</a>
                     </div>
@@ -263,6 +264,56 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal Red 360 -->
+        <div id="modalRed360" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+            <div style="background:var(--glass-bg); padding:30px; border-radius:15px; width:80vw; max-width:900px; height:80vh; display:flex; flex-direction:column; border:1px solid var(--glass-border); box-shadow:var(--shadow-lg);">
+                <h3 style="margin-bottom:10px;">Configurar Red 360</h3>
+                <p style="margin-bottom:15px; font-size:0.9rem; color:var(--text-muted);">Selecciona a quién quieres configurar y asigna sus evaluadores. (Autoevaluación siempre está incluida por defecto).</p>
+                
+                <div style="display:flex; gap:20px; flex:1; overflow:hidden;">
+                    <!-- Lista de Evaluados -->
+                    <div style="width:300px; display:flex; flex-direction:column; background:rgba(0,0,0,0.2); border-radius:8px; border:1px solid var(--border-color);">
+                        <div style="padding:15px; font-weight:bold; border-bottom:1px solid var(--border-color);">Colaboradores (Evaluados)</div>
+                        <div id="lista-evaluados" style="flex:1; overflow-y:auto; padding:10px;">
+                            <!-- Items -->
+                        </div>
+                    </div>
+                    
+                    <!-- Panel de Asignación -->
+                    <div id="panel-asignacion" style="flex:1; display:flex; flex-direction:column; background:rgba(0,0,0,0.1); border-radius:8px; padding:20px; display:none;">
+                        <h4 id="lbl-evaluado-actual" style="margin-bottom:15px; color:var(--primary-color);">Configurando a: </h4>
+                        
+                        <div style="margin-bottom:15px;">
+                            <label style="font-weight:bold; color:var(--text-muted); font-size:0.85rem;">Jefe Directo (Opcional)</label>
+                            <select id="sel-jefe" style="width:100%; padding:8px; border-radius:5px; background:#fff; color:#000; margin-top:5px;"></select>
+                        </div>
+                        
+                        <div style="margin-bottom:15px; flex:1; display:flex; flex-direction:column;">
+                            <label style="font-weight:bold; color:var(--text-muted); font-size:0.85rem;">Pares y Subordinados</label>
+                            <div style="font-size:0.8rem; margin-bottom:5px;">Selecciona múltiples usando Ctrl o Cmd</div>
+                            <select id="sel-otros" multiple style="width:100%; flex:1; padding:8px; border-radius:5px; background:#fff; color:#000; margin-top:5px; font-family:inherit;"></select>
+                            <div style="margin-top:10px;">
+                                Asignar seleccionados como:
+                                <button type="button" class="btn-primary" style="padding:5px 10px; margin-left:5px;" onclick="agregarA('Par')">Pares</button>
+                                <button type="button" class="btn-primary" style="padding:5px 10px; margin-left:5px;" onclick="agregarA('Subordinado')">Subordinados</button>
+                            </div>
+                        </div>
+                        
+                        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:5px; border:1px solid var(--border-color);">
+                            <div style="font-weight:bold; margin-bottom:5px;">Red Actual:</div>
+                            <ul id="lista-red-actual" style="margin:0; padding-left:20px; font-size:0.9rem; max-height:100px; overflow-y:auto;"></ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                    <button class="btn-primary" style="background:#64748b;" onclick="document.getElementById('modalRed360').style.display='none'">Cerrar</button>
+                    <button class="btn-primary" onclick="guardarRedGlobal()" style="background:#10b981;">Guardar Toda la Red 360</button>
+                </div>
+            </div>
+        </div>
+        
         <!-- Modal Links -->
         <div id="modalLinks" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
             <div style="background:var(--glass-bg); padding:30px; border-radius:15px; width:800px; max-width:90%; border:1px solid var(--glass-border); box-shadow:var(--shadow-lg);">
@@ -465,6 +516,141 @@
             } catch(e) { console.error(e); alert('Error al guardar matriz'); }
         }
         
+        let red360 = []; // Array of {evaluado_id, evaluador_id, relacion}
+        let currentEvaluadoId = null;
+
+        async function abrirModalRed360() {
+            document.getElementById('modalRed360').style.display = 'flex';
+            
+            // Fetch current network
+            try {
+                const res = await fetch(`/api/skel360/empresa/${empresaId}/red360`);
+                const data = await res.json();
+                red360 = data.data || [];
+            } catch(e) { console.error(e); }
+            
+            renderListaEvaluados();
+        }
+
+        function renderListaEvaluados() {
+            const container = document.getElementById('lista-evaluados');
+            let html = '';
+            
+            // Wait for allColaboradores if not loaded yet
+            if(window.allColaboradores) {
+                window.allColaboradores.forEach(c => {
+                    const evaluadoresCount = red360.filter(r => r.evaluado_id === c.id).length;
+                    html += `
+                        <div class="red-evaluado-item" onclick="seleccionarEvaluado('${c.id}', '${c.nombres} ${c.apellidos}')" 
+                             style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+                            <span>${c.nombres} ${c.apellidos}</span>
+                            <span style="background:${evaluadoresCount>0?'#10b981':'#64748b'}; color:#fff; border-radius:10px; padding:2px 8px; font-size:0.75rem;">${evaluadoresCount} ev.</span>
+                        </div>
+                    `;
+                });
+            }
+            container.innerHTML = html;
+        }
+
+        function seleccionarEvaluado(id, nombre) {
+            currentEvaluadoId = id;
+            document.getElementById('panel-asignacion').style.display = 'flex';
+            document.getElementById('lbl-evaluado-actual').innerText = `Configurando a: ${nombre}`;
+            
+            // Highlight item
+            document.querySelectorAll('.red-evaluado-item').forEach(el => el.style.background = 'transparent');
+            event.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)';
+            
+            llenarSelectores();
+            renderRedActual();
+        }
+
+        function llenarSelectores() {
+            const selJefe = document.getElementById('sel-jefe');
+            const selOtros = document.getElementById('sel-otros');
+            selJefe.innerHTML = '<option value="">Sin asignar / Ninguno</option>';
+            selOtros.innerHTML = '';
+            
+            const currentJefeId = red360.find(r => r.evaluado_id === currentEvaluadoId && r.relacion === 'Jefe')?.evaluador_id;
+            
+            window.allColaboradores.forEach(c => {
+                if(c.id === currentEvaluadoId) return; // No auto-assign here
+                
+                const selectedJefe = c.id === currentJefeId ? 'selected' : '';
+                selJefe.innerHTML += `<option value="${c.id}" ${selectedJefe}>${c.nombres} ${c.apellidos}</option>`;
+                
+                selOtros.innerHTML += `<option value="${c.id}">${c.nombres} ${c.apellidos} (${c.cargo || c.skel_cargos?.nombre || 'N/A'})</option>`;
+            });
+            
+            // Auto update jefe on change
+            selJefe.onchange = (e) => {
+                // Remove existing jefe
+                red360 = red360.filter(r => !(r.evaluado_id === currentEvaluadoId && r.relacion === 'Jefe'));
+                if(e.target.value) {
+                    red360.push({ evaluado_id: currentEvaluadoId, evaluador_id: e.target.value, relacion: 'Jefe' });
+                }
+                renderRedActual();
+                renderListaEvaluados(); // Update counts
+                // Reselect current in UI list
+                document.querySelector(`[onclick*="${currentEvaluadoId}"]`).style.background = 'rgba(59, 130, 246, 0.2)';
+            };
+        }
+
+        function agregarA(relacion) {
+            const selOtros = document.getElementById('sel-otros');
+            const selectedOptions = Array.from(selOtros.selectedOptions);
+            
+            selectedOptions.forEach(opt => {
+                const evaluador_id = opt.value;
+                // Avoid duplicates
+                if(!red360.find(r => r.evaluado_id === currentEvaluadoId && r.evaluador_id === evaluador_id && r.relacion === relacion)) {
+                    red360.push({ evaluado_id: currentEvaluadoId, evaluador_id, relacion });
+                }
+            });
+            selOtros.selectedIndex = -1;
+            renderRedActual();
+            renderListaEvaluados();
+            document.querySelector(`[onclick*="${currentEvaluadoId}"]`).style.background = 'rgba(59, 130, 246, 0.2)';
+        }
+
+        function quitarDeRed(indexEnRed) {
+            red360.splice(indexEnRed, 1);
+            llenarSelectores(); // to reset Jefe if needed
+            renderRedActual();
+            renderListaEvaluados();
+            document.querySelector(`[onclick*="${currentEvaluadoId}"]`).style.background = 'rgba(59, 130, 246, 0.2)';
+        }
+
+        function renderRedActual() {
+            const lista = document.getElementById('lista-red-actual');
+            lista.innerHTML = '<li>Autoevaluación (Automática)</li>';
+            
+            red360.forEach((r, idx) => {
+                if(r.evaluado_id === currentEvaluadoId) {
+                    const evaluador = window.allColaboradores.find(c => c.id === r.evaluador_id);
+                    if(evaluador) {
+                        lista.innerHTML += `<li>${r.relacion}: ${evaluador.nombres} ${evaluador.apellidos} 
+                            <button type="button" onclick="quitarDeRed(${idx})" style="color:red; background:none; border:none; cursor:pointer;">❌</button></li>`;
+                    }
+                }
+            });
+        }
+        
+        async function guardarRedGlobal() {
+            try {
+                const res = await fetch(`/api/skel360/empresa/${empresaId}/red360`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ asignaciones: red360 })
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    alert('Red 360 guardada correctamente. Ahora puedes Lanzar las Encuestas.');
+                    document.getElementById('modalRed360').style.display = 'none';
+                }
+            } catch(e) { console.error(e); }
+        }
+
         async function lanzarEncuestas() {
             if(!confirm('¿Estás seguro de generar las evaluaciones para todos los colaboradores?')) return;
             

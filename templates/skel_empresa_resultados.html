@@ -122,6 +122,36 @@
             flex: 1;
         }
 
+        .btn-print {
+            background: rgba(255,255,255,0.1);
+            color: #e2e8f0;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-print:hover { background: rgba(255,255,255,0.2); }
+
+        @media print {
+            body { background: white; color: black; background-image: none; }
+            .header, .btn-back, .btn-print, #loader { display: none !important; }
+            .result-card { 
+                page-break-inside: avoid;
+                border: 1px solid #ccc;
+                background: white;
+                box-shadow: none;
+                margin-bottom: 20px;
+                color: black;
+            }
+            .colab-name { color: black; }
+            .score-badge { border: 1px solid #333; }
+            .grid { display: block; }
+            .chart-container canvas { 
+                filter: invert(1) hue-rotate(180deg);
+            }
+        }
     </style>
 </head>
 <body>
@@ -177,8 +207,11 @@
                         
                         card.innerHTML = `
                             <div class="colab-header">
-                                <h3 class="colab-name">${item.colaborador_nombre}</h3>
-                                <div class="score-badge ${getScoreClass(item.promedio_global)}">${item.promedio_global.toFixed(1)}</div>
+                                <div>
+                                    <h3 class="colab-name">${item.colaborador_nombre}</h3>
+                                    <div class="score-badge ${getScoreClass(item.promedio_global)}" style="margin-top:5px;">${item.promedio_global.toFixed(1)}</div>
+                                </div>
+                                <button class="btn-print" onclick="window.print()" title="Imprimir o Guardar PDF">🖨️ Reporte</button>
                             </div>
                             <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px;">Desempeño por Competencias:</div>
                             <div class="chart-container">

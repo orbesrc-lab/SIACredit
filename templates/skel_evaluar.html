@@ -103,7 +103,7 @@
         <form id="eval-form" style="display: none;">
             <div class="welcome-card">
                 <h1 id="user-name">Hola, Colaborador</h1>
-                <p>Estás realizando tu Autoevaluación 360. Por favor, califica cada comportamiento del 1 al 5, donde 1 es "Nunca" y 5 es "Siempre".</p>
+                <p id="desc-text">Estás realizando tu Autoevaluación 360. Por favor, califica cada comportamiento del 1 al 5, donde 1 es "Nunca" y 5 es "Siempre".</p>
             </div>
 
             <div id="competencias-container"></div>
@@ -125,18 +125,25 @@
 
             try {
                 const res = await fetch(`/api/skel360/evaluar/${token}`);
-                const result = await res.json();
+                const data = await res.json();
                 
                 document.getElementById('loader').style.display = 'none';
-
-                if(result.status !== 'success') {
-                    showError(result.message);
-                    return;
+                
+                if(data.status === 'success') {
+                    document.getElementById('eval-form').style.display = 'block';
+                    
+                    if(data.tipo === 'Autoevaluación' || !data.tipo) {
+                        document.getElementById('user-name').innerText = `Hola, ${data.empleado}`;
+                        document.getElementById('desc-text').innerText = 'Estás realizando tu Autoevaluación 360. Por favor, califica cada comportamiento del 1 al 5, donde 1 es "Nunca" y 5 es "Siempre".';
+                    } else {
+                        document.getElementById('user-name').innerText = `Evaluando a: ${data.empleado}`;
+                        document.getElementById('desc-text').innerText = `Estás realizando la evaluación de ${data.empleado} en calidad de ${data.tipo}. Por favor, califica su comportamiento del 1 al 5.`;
+                    }
+                    
+                    renderForm(data.data);
+                } else {
+                    showError(data.message);
                 }
-
-                document.getElementById('user-name').innerText = `Hola, ${result.empleado}`;
-                renderForm(result.data);
-                document.getElementById('eval-form').style.display = 'block';
 
             } catch(e) {
                 console.error(e);

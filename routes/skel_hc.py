@@ -433,16 +433,35 @@ def lanzar_encuestas(empresa_id):
         if not colabs:
             return jsonify({"status": "error", "message": "No hay colaboradores para lanzar"}), 400
             
-        # 3. Generar Tokens
+        colabs_dict = {c['id']: f"{c.get('nombres','')} {c.get('apellidos','')}".strip() for c in colabs}
+        
+        # 3. Obtener Red 360
+        red_360 = sb.table('skel_360_red').select('*').eq('empresa_id', empresa_id).execute().data
+        
+        # 4. Generar Tokens
         tokens_to_insert = []
         for colab in colabs:
+            # Autoevaluación siempre
             tokens_to_insert.append({
                 "empresa_id": empresa_id,
                 "colaborador_id": colab['id'],
+                "evaluado_id": colab['id'],
                 "evaluacion_id": evaluacion_id,
-                "tipo": "Encuesta",
+                "tipo": "Autoevaluación",
                 "estado": "Generado"
             })
+            
+            # Evaluadores adicionales
+            evaluadores = [r for r in red_360 if r['evaluado_id'] == colab['id']]
+            for ev in evaluadores:
+                tokens_to_insert.append({
+                    "empresa_id": empresa_id,
+                    "colaborador_id": ev['evaluador_id'], # Quien llena la encuesta
+                    "evaluado_id": colab['id'],           # A quien están evaluando
+                    "evaluacion_id": evaluacion_id,
+                    "tipo": ev['relacion'],
+                    "estado": "Generado"
+                })
             
         inserted_tokens = []
         if tokens_to_insert:
@@ -451,11 +470,15 @@ def lanzar_encuestas(empresa_id):
             
         # Construir listado de links para mostrar
         links = []
-        for t, c in zip(inserted_tokens, colabs):
+        for t in inserted_tokens:
+            evaluado_nombre = colabs_dict.get(t['evaluado_id'], "Desconocido")
+            evaluador_nombre = colabs_dict.get(t['colaborador_id'], "Desconocido")
+            
             links.append({
-                "nombre": f"{c.get('nombres')} {c.get('apellidos')}".strip(),
-                "correo": c.get('email'),
-                "link": f"https://skel360.online/evaluar?token={t['id']}"
+                "colaborador_nombre": evaluador_nombre,  # A quien se le manda el link
+                "tipo": t['tipo'],
+                "evaluando_a": evaluado_nombre,          # A quien van a evaluar
+                "link": f"https://www.skel360.online/evaluar?token={t['id']}"
             })
             
         return jsonify({"status": "success", "message": f"Se lanzaron {len(inserted_tokens)} encuestas.", "links": links}), 200
@@ -467,6 +490,38 @@ def lanzar_encuestas(empresa_id):
 # ==============================================================================
 # Módulo 06: Formulario Público de Evaluación
 # ==============================================================================
+@skel_hc_bp.route('/empresa/<empresa_id>/red360', methods=['GET', 'POST'])
+def gestionar_red360(empresa_id):
+    try:
+        sb = get_supabase()
+        if request.method == 'GET':
+            red = sb.table('skel_360_red').select('*').eq('empresa_id', empresa_id).execute().data
+            return jsonify({"status": "success", "data": red}), 200
+            
+        elif request.method == 'POST':
+            data = request.json
+            asignaciones = data.get('asignaciones', [])
+            
+            # Borrar la red existente
+            sb.table('skel_360_red').delete().eq('empresa_id', empresa_id).execute()
+            
+            # Insertar nueva red
+            if asignaciones:
+                # Cada asig: { evaluado_id, evaluador_id, relacion }
+                inserts = []
+                for a in asignaciones:
+                    inserts.append({
+                        "empresa_id": empresa_id,
+                        "evaluado_id": a['evaluado_id'],
+                        "evaluador_id": a['evaluador_id'],
+                        "relacion": a['relacion']
+                    })
+                sb.table('skel_360_red').insert(inserts).execute()
+                
+            return jsonify({"status": "success", "message": "Red 360 actualizada"}), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/evaluar/<token>', methods=['GET'])
 def get_evaluacion_publica(token):
@@ -481,8 +536,8 @@ def get_evaluacion_publica(token):
         if t_data.get('estado') == 'Completado':
             return jsonify({"status": "error", "message": "Esta evaluación ya fue completada"}), 400
             
-        # 1. Obtener Colaborador
-        evaluado_id = t_data.get('colaborador_id')
+        # 1. Obtener Colaborador (El que es evaluado)
+        evaluado_id = t_data.get('evaluado_id') or t_data.get('colaborador_id')
         colab = sb.table('skel_colaboradores').select('cargo_id, nombres, apellidos, email, skel_cargos(nombre)').eq('id', evaluado_id).execute().data[0]
         
         # 2. Obtener Perfil del Evaluado
@@ -520,6 +575,7 @@ def get_evaluacion_publica(token):
             "empleado": f"{colab.get('nombres')} {colab.get('apellidos')}".strip(),
             "evaluacion_id": t_data.get('evaluacion_id'),
             "evaluado_id": colab.get('id'),
+            "tipo": t_data.get('tipo', 'Autoevaluación'),
             "data": list(comps_dict.values())
         }), 200
         
@@ -538,7 +594,8 @@ def submit_evaluacion(token):
             
         t_data = token_res[0]
         evaluacion_id = t_data.get('evaluacion_id')
-        evaluador_id = t_data.get('colaborador_id')
+        evaluador_id = t_data.get('colaborador_id') # Quien responde
+        evaluado_id = t_data.get('evaluado_id') or evaluador_id # A quien evaluan
         
         data = request.json
         respuestas = data.get('respuestas', {}) # { comp_id: puntaje }
@@ -548,7 +605,7 @@ def submit_evaluacion(token):
         for comp_id, puntaje in respuestas.items():
             inserts.append({
                 "evaluacion_id": evaluacion_id,
-                "evaluado_id": evaluador_id,
+                "evaluado_id": evaluado_id,
                 "evaluador_id": evaluador_id,
                 "comportamiento_id": comp_id,
                 "puntaje": int(puntaje)
