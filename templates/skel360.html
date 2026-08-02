@@ -383,7 +383,7 @@
             alert('Generando Tokens Únicos (Magic Links) para todos los colaboradores de la empresa...');
             try {
                 // En la vida real, enviamos evaluacion_id
-                const response = await fetch(\`/api/skel360/empresa/\${empresaId}/evaluacion/UUID_MOCK/lanzar\`, {method: 'POST'});
+                const response = await fetch(`/api/skel360/empresa/${empresaId}/evaluacion/UUID_MOCK/lanzar`, {method: 'POST'});
                 const result = await response.json();
                 if(result.status === 'success') {
                     alert(result.message);
