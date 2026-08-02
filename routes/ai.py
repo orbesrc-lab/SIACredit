@@ -826,10 +826,10 @@ def global_settings_carousel_upload():
         storage_path = f"carousel/{filename}"
         
         # Upload to Supabase
-        supabase.storage.from_('evidencias').upload(
-            storage_path,
-            file_bytes,
-            {"content-type": file.content_type or "image/jpeg"}
+        res = supabase.storage.from_('evidencias').upload(
+            path=storage_path,
+            file=file_bytes,
+            file_options={"content-type": file.content_type or "image/jpeg", "upsert": "true"}
         )
         
         file_url = supabase.storage.from_('evidencias').get_public_url(storage_path)

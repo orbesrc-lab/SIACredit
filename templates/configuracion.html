@@ -2925,7 +2925,7 @@
         async function uploadCarouselImage(input) {
             if (!input.files || input.files.length === 0) return;
             if (carouselImages.length >= 6) {
-                alert("Has alcanzado el máximo de 6 imágenes.");
+                Swal.fire('Atención', 'Has alcanzado el máximo de 6 imágenes.', 'warning');
                 input.value = "";
                 return;
             }
@@ -2946,11 +2946,19 @@
                 if (data.status === 'success') {
                     carouselImages.push(data.url);
                     renderCarouselPreview();
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Imagen subida al carrusel',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
                 } else {
-                    alert("Error subiendo imagen: " + data.message);
+                    Swal.fire('Error', "Error subiendo imagen: " + data.message, 'error');
                 }
             } catch (e) {
-                alert("Error subiendo imagen");
+                Swal.fire('Error', "Error de red subiendo imagen.", 'error');
             } finally {
                 document.getElementById('carouselUploadLoading').style.display = 'none';
                 input.value = ""; // Reset file input
@@ -2958,10 +2966,20 @@
         }
         
         function removeCarouselImage(index) {
-            if(confirm("¿Seguro que quieres eliminar esta imagen del carrusel?")) {
-                carouselImages.splice(index, 1);
-                renderCarouselPreview();
-            }
+            Swal.fire({
+                title: '¿Eliminar imagen?',
+                text: "Esta imagen se quitará del carrusel.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Sí, eliminar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    carouselImages.splice(index, 1);
+                    renderCarouselPreview();
+                }
+            });
         }
         
         function renderCarouselPreview() {
