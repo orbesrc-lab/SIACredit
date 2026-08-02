@@ -243,8 +243,10 @@
                     let html = `<h3>Análisis Fortalezas y Debilidades</h3>${marked.parse(data.data.fortalezas || '')}`;
                     html += `<h3>Recomendaciones</h3>${marked.parse(data.data.recomendaciones || '')}`;
                     document.getElementById('texto_informe_dinamico').innerHTML = html;
+                } else {
+                    document.getElementById('texto_informe_dinamico').innerHTML = "No hay reporte dinámico generado aún para esta institución.";
                 }
-            } catch(e) {}
+            } catch(e) { document.getElementById('texto_informe_dinamico').innerHTML = "Error cargando reporte."; }
         }
 
         async function cargarEstadisticas() {
@@ -253,7 +255,7 @@
                 const data = await res.json();
                 if(data) {
                     // Estudiantes
-                    if(data.table_estudiantes) {
+                    if(data.table_estudiantes && data.table_estudiantes.length > 0) {
                         const labels = data.table_estudiantes.map(r => r.periodo || 'N/A');
                         const inscritos = data.table_estudiantes.map(r => parseInt(r.inscritos) || 0);
                         const admitidos = data.table_estudiantes.map(r => parseInt(r.admitidos) || 0);
@@ -267,9 +269,11 @@
                             ]},
                             options: { responsive: true, maintainAspectRatio: false }
                         });
+                    } else {
+                        document.getElementById('chartEstudiantes').parentElement.innerHTML = "<p style='text-align:center; padding-top: 50px; color:#64748b;'>No hay datos de estudiantes</p>";
                     }
                     // Docentes
-                    if(data.table_docentes) {
+                    if(data.table_docentes && data.table_docentes.length > 0) {
                         let doc = 0, mae = 0, esp = 0;
                         data.table_docentes.forEach(r => {
                             doc += parseInt(r.doctorado) || 0;
@@ -281,6 +285,8 @@
                             data: { labels: ['Doctorado', 'Maestría', 'Especialización'], datasets: [{ data: [doc, mae, esp], backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'] }] },
                             options: { responsive: true, maintainAspectRatio: false }
                         });
+                    } else {
+                        document.getElementById('chartDocentes').parentElement.innerHTML = "<p style='text-align:center; padding-top: 50px; color:#64748b;'>No hay datos de docentes</p>";
                     }
                 }
             } catch(e) {}
@@ -295,24 +301,31 @@
                 let mefeData = await mefeRes.json();
                 
                 let mmHtml = "<h4>Análisis Interno (MEFI)</h4><ul>";
-                if(mefiData.data && mefiData.data.factors) {
+                let hasMefi = false;
+                if(mefiData.data && mefiData.data.factors && mefiData.data.factors.length > 0) {
+                    hasMefi = true;
                     mefiData.data.factors.forEach(f => { mmHtml += `<li><b>${f.type.toUpperCase()}:</b> ${f.factor} (Peso: ${f.weight})</li>`; });
-                }
+                } else { mmHtml += "<li>No hay factores internos definidos.</li>"; }
                 mmHtml += "</ul><h4>Análisis Externo (MEFE)</h4><ul>";
-                if(mefeData.data && mefeData.data.factors) {
+                let hasMefe = false;
+                if(mefeData.data && mefeData.data.factors && mefeData.data.factors.length > 0) {
+                    hasMefe = true;
                     mefeData.data.factors.forEach(f => { mmHtml += `<li><b>${f.type.toUpperCase()}:</b> ${f.factor} (Peso: ${f.weight})</li>`; });
-                }
+                } else { mmHtml += "<li>No hay factores externos definidos.</li>"; }
                 mmHtml += "</ul>";
-                document.getElementById('texto_mefi_mefe').innerHTML = mmHtml;
+                
+                document.getElementById('texto_mefi_mefe').innerHTML = (hasMefi || hasMefe) ? mmHtml : "No hay matrices MEFI/MEFE guardadas.";
 
                 // Porter
                 const porterRes = await fetch(`/api/business/matrix/PORTER?inst_id=${getInstId()}`);
                 let porterData = await porterRes.json();
                 let porterHtml = "<ul>";
-                if(porterData.data && porterData.data.analysis && porterData.data.analysis.scores) {
+                if(porterData.data && porterData.data.analysis && porterData.data.analysis.scores && porterData.data.analysis.scores.length > 0) {
                     porterData.data.analysis.scores.forEach(s => { porterHtml += `<li><b>${s.force}:</b> Impacto ${s.score}/10 - ${s.description}</li>`; });
+                    document.getElementById('texto_porter').innerHTML = porterHtml + "</ul>";
+                } else {
+                    document.getElementById('texto_porter').innerHTML = "No hay datos del análisis de 5 Fuerzas de Porter.";
                 }
-                document.getElementById('texto_porter').innerHTML = porterHtml + "</ul>";
 
                 // Riesgos y Stakeholders
                 const rRes = await fetch(`/api/business/matrix/RIESGOS?inst_id=${getInstId()}`);
@@ -321,23 +334,31 @@
                 let sData = await sRes.json();
                 
                 let rsHtml = "<h4>Principales Riesgos</h4><ul>";
-                if(rData.data && rData.data.risks) {
+                let hasRiesgos = false;
+                if(rData.data && rData.data.risks && rData.data.risks.length > 0) {
+                    hasRiesgos = true;
                     rData.data.risks.forEach(r => { rsHtml += `<li>${r.categoria}: ${r.descripcion} (Severidad: ${r.impacto})</li>`; });
-                }
+                } else { rsHtml += "<li>No hay riesgos registrados.</li>"; }
+                
                 rsHtml += "</ul><h4>Stakeholders Clave</h4><ul>";
-                if(sData.data && sData.data.stakeholders) {
+                let hasStakeholders = false;
+                if(sData.data && sData.data.stakeholders && sData.data.stakeholders.length > 0) {
+                    hasStakeholders = true;
                     sData.data.stakeholders.forEach(s => { rsHtml += `<li>${s.nombre} - Poder: ${s.poder}, Interés: ${s.interes} (Estrategia: ${s.estrategia})</li>`; });
-                }
-                document.getElementById('texto_riesgos_stakeholders').innerHTML = rsHtml + "</ul>";
+                } else { rsHtml += "<li>No hay stakeholders registrados.</li>"; }
+                
+                document.getElementById('texto_riesgos_stakeholders').innerHTML = (hasRiesgos || hasStakeholders) ? rsHtml + "</ul>" : "No hay datos de Riesgos ni Stakeholders.";
 
                 // Comunicacion
                 const cRes = await fetch(`/api/business/matrix/COMUNICACION?inst_id=${getInstId()}`);
                 let cData = await cRes.json();
                 let cHtml = "<ul>";
-                if(cData.data && cData.data.plan) {
+                if(cData.data && cData.data.plan && cData.data.plan.length > 0) {
                     cData.data.plan.forEach(p => { cHtml += `<li><b>Audiencia:</b> ${p.audiencia} | <b>Mensaje:</b> ${p.mensaje} | <b>Canal:</b> ${p.canal}</li>`; });
+                    document.getElementById('texto_comunicacion').innerHTML = cHtml + "</ul>";
+                } else {
+                    document.getElementById('texto_comunicacion').innerHTML = "No hay plan de comunicación guardado.";
                 }
-                document.getElementById('texto_comunicacion').innerHTML = cHtml + "</ul>";
 
             } catch(e) { console.error("Error B2B", e); }
         }
@@ -346,7 +367,7 @@
             try {
                 const res = await fetch(`/api/planning/tree?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const data = await res.json();
-                if(data && data.status === 'success' && data.tree) {
+                if(data && data.status === 'success' && data.tree && data.tree.length > 0) {
                     let html = "";
                     data.tree.forEach(eje => {
                         html += `<h4>Eje Estratégico: ${eje.name}</h4><ul>`;
@@ -364,13 +385,17 @@
                         html += "</ul>";
                     });
                     document.getElementById('texto_planificacion').innerHTML = html;
+                } else {
+                    document.getElementById('texto_planificacion').innerHTML = "No hay estructura de planificación definida.";
                 }
 
                 const finRes = await fetch(`/api/planning/reports/finance?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const finData = await finRes.json();
-                if(finData && finData.status === 'success') {
+                if(finData && finData.status === 'success' && finData.data && finData.data.items && finData.data.items.length > 0) {
                     document.getElementById('texto_financiero').innerHTML = `<p><b>Presupuesto Total Estimado:</b> $${finData.data.total_budget}</p>
                     <p>Se cuenta con ${finData.data.items.length} actividades presupuestadas.</p>`;
+                } else {
+                    document.getElementById('texto_financiero').innerHTML = "No hay reporte financiero presupuestado.";
                 }
 
             } catch(e) { console.error("Error Planificacion", e); }
@@ -382,28 +407,43 @@
                 const data = await res.json();
                 
                 let estHtml = "", misHtml = "", apoHtml = "", sipocHtml = "<ul>";
+                let hasIso = false;
                 
                 if(data.data && data.data.procesos) {
                     const proc = data.data.procesos;
                     
-                    (proc.estrategicos || []).forEach(p => { 
-                        estHtml += `<div class="iso-card card-strat">${p.nombre}</div>`; 
-                        sipocHtml += `<li><b>${p.nombre} (Estratégico):</b> ${p.sipoc ? p.sipoc.objetivo : 'Sin caracterizar'}</li>`;
-                    });
-                    (proc.misionales || []).forEach(p => { 
-                        misHtml += `<div class="iso-card card-misional">${p.nombre}</div>`; 
-                        sipocHtml += `<li><b>${p.nombre} (Misional):</b> ${p.sipoc ? p.sipoc.objetivo : 'Sin caracterizar'}</li>`;
-                    });
-                    (proc.apoyo || []).forEach(p => { 
-                        apoHtml += `<div class="iso-card card-apoyo">${p.nombre}</div>`; 
-                        sipocHtml += `<li><b>${p.nombre} (Apoyo):</b> ${p.sipoc ? p.sipoc.objetivo : 'Sin caracterizar'}</li>`;
-                    });
+                    if (proc.estrategicos && proc.estrategicos.length > 0) {
+                        hasIso = true;
+                        proc.estrategicos.forEach(p => { 
+                            estHtml += `<div class="iso-card card-strat">${p.nombre}</div>`; 
+                            sipocHtml += `<li><b>${p.nombre} (Estratégico):</b> ${p.sipoc && p.sipoc.objetivo ? p.sipoc.objetivo : 'Sin caracterizar'}</li>`;
+                        });
+                    }
+                    if (proc.misionales && proc.misionales.length > 0) {
+                        hasIso = true;
+                        proc.misionales.forEach(p => { 
+                            misHtml += `<div class="iso-card card-misional">${p.nombre}</div>`; 
+                            sipocHtml += `<li><b>${p.nombre} (Misional):</b> ${p.sipoc && p.sipoc.objetivo ? p.sipoc.objetivo : 'Sin caracterizar'}</li>`;
+                        });
+                    }
+                    if (proc.apoyo && proc.apoyo.length > 0) {
+                        hasIso = true;
+                        proc.apoyo.forEach(p => { 
+                            apoHtml += `<div class="iso-card card-apoyo">${p.nombre}</div>`; 
+                            sipocHtml += `<li><b>${p.nombre} (Apoyo):</b> ${p.sipoc && p.sipoc.objetivo ? p.sipoc.objetivo : 'Sin caracterizar'}</li>`;
+                        });
+                    }
                 }
                 
-                document.getElementById('iso-estrategicos').innerHTML = estHtml || "<i>N/A</i>";
-                document.getElementById('iso-misionales').innerHTML = misHtml || "<i>N/A</i>";
-                document.getElementById('iso-apoyo').innerHTML = apoHtml || "<i>N/A</i>";
-                document.getElementById('texto_caracterizaciones').innerHTML = sipocHtml + "</ul>";
+                document.getElementById('iso-estrategicos').innerHTML = estHtml || "<i>No configurado</i>";
+                document.getElementById('iso-misionales').innerHTML = misHtml || "<i>No configurado</i>";
+                document.getElementById('iso-apoyo').innerHTML = apoHtml || "<i>No configurado</i>";
+                
+                if (hasIso) {
+                    document.getElementById('texto_caracterizaciones').innerHTML = sipocHtml + "</ul>";
+                } else {
+                    document.getElementById('texto_caracterizaciones').innerHTML = "No se ha configurado el mapa de procesos de ISO 9001.";
+                }
 
             } catch(e) { console.error("Error ISO", e); }
         }
