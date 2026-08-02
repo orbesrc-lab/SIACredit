@@ -811,16 +811,36 @@ async function cargarISO() {
                 margin:       [10, 10, 10, 10],
                 filename:     'Informe_Gerencial_Integral.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
+                html2canvas:  { scale: 2, useCORS: true, logging: false, imageTimeout: 10000 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             
-            // Add loading state
-            Swal.fire({ title: 'Generando PDF', text: 'Por favor espere...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-            
-            html2pdf().set(opt).from(element).save().then(() => {
-                Swal.close();
+            Swal.fire({ 
+                title: 'Generando PDF', 
+                text: 'El informe es muy extenso e incluye gráficos pesados. Esto puede tomar hasta un minuto. Por favor espere...', 
+                allowOutsideClick: false, 
+                didOpen: () => Swal.showLoading() 
             });
+            
+            // Set a fallback timeout to close the modal if html2pdf hangs completely
+            const fallbackTimeout = setTimeout(() => {
+                Swal.fire('Atención', 'La generación del PDF está tomando demasiado tiempo. Es posible que algunos elementos (como imágenes o gráficos) estén bloqueando la exportación.', 'warning');
+            }, 45000);
+
+            try {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    clearTimeout(fallbackTimeout);
+                    Swal.fire('¡Éxito!', 'El Informe Gerencial ha sido descargado.', 'success');
+                }).catch(e => {
+                    clearTimeout(fallbackTimeout);
+                    console.error(e);
+                    Swal.fire('Error', 'Ocurrió un problema generando el PDF.', 'error');
+                });
+            } catch(e) {
+                clearTimeout(fallbackTimeout);
+                console.error(e);
+                Swal.fire('Error', 'No se pudo iniciar la generación del PDF.', 'error');
+            }
         }
 
         document.addEventListener('DOMContentLoaded', init);
