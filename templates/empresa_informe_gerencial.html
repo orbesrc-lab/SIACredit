@@ -208,10 +208,8 @@
         </main>
     </div>
 
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script>
-        function getInstId() { return JSON.parse(localStorage.getItem('siac_user') || '{}').inst_id || 1; }
-        function getProgramId() { return localStorage.getItem('selected_program_id') || 0; }
-
         async function init() {
             Swal.fire({ title: 'Consolidando Informe...', text: 'Recopilando datos de todas las áreas', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
