@@ -166,7 +166,7 @@
                         <input type="file" id="fileInput" style="display:none;" onchange="uploadExcelHandler(event)">
                         <div style="display:flex; gap:10px;">
                             <button class="btn-primary" style="flex:1;" onclick="document.getElementById('fileInput').click()">Subir Plantilla Excel</button>
-                            <button class="btn-primary" style="flex:1; background:var(--accent-color);" onclick="abrirModalColaborador()">+ Crear Colaborador</button>
+                            <button class="btn-primary" style="flex:1; background:#10b981;" onclick="abrirModalColaborador()">+ Crear Colaborador</button>
                         </div>
                     </div>
                     <div class="card" style="text-align: center;">
@@ -177,7 +177,7 @@
                     <div class="card" style="text-align: center;">
                         <h4 style="margin-bottom: 10px;">3. Logística de Envío</h4>
                         <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Genera los Magic Links y lanza la evaluación.</p>
-                        <button class="btn-primary" onclick="lanzarEncuestas()" style="background:var(--accent-color); width: 100%; margin-bottom: 10px;">🚀 Lanzar Encuestas</button>
+                        <button class="btn-primary" onclick="lanzarEncuestas()" style="background:#10b981; width: 100%; margin-bottom: 10px;">🚀 Lanzar Encuestas</button>
                         <a href="/skel360/empresa/{{ empresa_id }}/resultados" class="btn-primary" style="background:#8b5cf6; text-decoration:none; display:block;">📈 Resultados</a>
                     </div>
                 </div>
@@ -357,8 +357,15 @@
                 area: document.getElementById('colab-area').value
             };
             
-            const res = await fetch(`/api/skel360/empresa/${empresaId}/colaborador`, {
-                method: 'POST',
+            const method = data.id ? 'PUT' : 'POST';
+            const url = data.id ? `/api/skel360/colaborador/${data.id}` : `/api/skel360/empresa/${empresaId}/colaboradores`;
+            
+            if (method === 'PUT') {
+                data.empresa_id = empresaId; // Make sure the backend has it for getting area/cargo
+            }
+            
+            const res = await fetch(url, {
+                method: method,
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             });
@@ -370,7 +377,7 @@
         
         async function eliminarColaborador(id) {
             if(!confirm('¿Eliminar este colaborador?')) return;
-            await fetch(`/api/skel360/empresa/${empresaId}/colaborador/${id}`, {method: 'DELETE'});
+            await fetch(`/api/skel360/colaborador/${id}`, {method: 'DELETE'});
             loadColaboradores();
         }
 
