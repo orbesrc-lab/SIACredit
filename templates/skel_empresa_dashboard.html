@@ -371,8 +371,30 @@
         
         async function loadColaboradores() {
             try {
-                // Mock visual por ahora. En la Fase 9 haremos un GET real.
-                document.getElementById('colaboradores-list').innerHTML = '<tr><td colspan="5" style="text-align: center;">Colaboradores procesados (Recarga la vista).</td></tr>';
+                const response = await fetch(`/api/skel360/empresa/${empresaId}/colaboradores`);
+                const result = await response.json();
+                const tbody = document.getElementById('colaboradores-list');
+                tbody.innerHTML = '';
+                
+                if (result.status === 'success' && result.data && result.data.length > 0) {
+                    result.data.forEach(colab => {
+                        const tr = document.createElement('tr');
+                        const nombreCompleto = `${colab.nombres || ''} ${colab.apellidos || ''}`.trim();
+                        const cargo = colab.skel_cargos ? colab.skel_cargos.nombre : '-';
+                        const area = colab.skel_areas ? colab.skel_areas.nombre : '-';
+                        
+                        tr.innerHTML = `
+                            <td><strong>${nombreCompleto}</strong></td>
+                            <td>${colab.documento || '-'}</td>
+                            <td>${colab.email || '-'}</td>
+                            <td>${cargo}</td>
+                            <td>${area}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No hay colaboradores cargados.</td></tr>';
+                }
             } catch(e) { console.error(e); }
         }
         

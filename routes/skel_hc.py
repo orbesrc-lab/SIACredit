@@ -198,6 +198,16 @@ def carga_masiva_empresa(empresa_id):
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@skel_hc_bp.route('/empresa/<empresa_id>/colaboradores', methods=['GET'])
+def get_colaboradores(empresa_id):
+    try:
+        sb = get_supabase()
+        res = sb.table('skel_colaboradores').select('*, skel_cargos(nombre), skel_areas(nombre)').eq('empresa_id', empresa_id).execute()
+        return jsonify({"status": "success", "data": res.data}), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @skel_hc_bp.route('/empresa/<empresa_id>/perfiles', methods=['GET', 'POST'])
 def gestionar_perfiles(empresa_id):
     try:
