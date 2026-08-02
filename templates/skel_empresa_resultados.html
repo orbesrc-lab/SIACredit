@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resultados Analíticos - SKEL HC 360</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -66,52 +67,59 @@
             margin-bottom: 30px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
         }
 
-        th, td {
-            padding: 15px;
-            text-align: left;
+        .result-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .colab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 10px;
         }
 
-        th {
-            background: rgba(0,0,0,0.2);
+        .colab-name {
+            font-size: 1.1rem;
             font-weight: 600;
-            color: #94a3b8;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.05em;
-        }
-
-        tr:hover td {
-            background: rgba(255,255,255,0.02);
+            margin: 0;
+            color: #e2e8f0;
         }
 
         .score-badge {
             padding: 5px 12px;
             border-radius: 20px;
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 1.1rem;
             display: inline-block;
         }
         .score-high { background: rgba(16, 185, 129, 0.2); color: #34d399; }
         .score-med { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
         .score-low { background: rgba(239, 68, 68, 0.2); color: #f87171; }
         
-        .comp-tag {
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            color: #93c5fd;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            margin-right: 5px;
-            margin-bottom: 5px;
-            display: inline-block;
+        .chart-container {
+            width: 100%;
+            height: 250px;
+            margin-top: 10px;
+            flex: 1;
         }
 
     </style>
@@ -120,26 +128,23 @@
     <div class="container">
         <div class="header">
             <div>
-                <h1 style="margin:0; color:var(--primary-color);">Resultados de Evaluación</h1>
+                <h1 style="margin:0; color:var(--primary-color);">Resultados de Evaluación 360</h1>
                 <p style="margin:5px 0 0 0; color:#94a3b8;">Dashboard Analítico Organizacional</p>
             </div>
             <a href="/skel360/empresa/{{ empresa_id }}" class="btn-back">⬅ Volver al Dashboard</a>
         </div>
 
-        <div class="card">
-            <h3>Consolidado por Colaborador</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Colaborador</th>
-                        <th>Promedio Global</th>
-                        <th>Desglose por Competencias</th>
-                    </tr>
-                </thead>
-                <tbody id="resultados-tbody">
-                    <tr><td colspan="3" style="text-align:center;">Cargando resultados...</td></tr>
-                </tbody>
-            </table>
+        <div id="loader" style="text-align: center; padding: 50px; color: #94a3b8;">
+            <h2>Calculando promedios y generando gráficas...</h2>
+        </div>
+
+        <div id="results-container" class="grid" style="display: none;">
+            <!-- Cards will be injected here -->
+        </div>
+        
+        <div id="empty-state" class="card" style="display: none; text-align: center; padding: 50px;">
+            <h3 style="color: #94a3b8;">Aún no hay resultados para mostrar</h3>
+            <p style="color: #64748b;">Los resultados aparecerán aquí conforme los colaboradores completen sus encuestas.</p>
         </div>
     </div>
 
@@ -156,31 +161,84 @@
             try {
                 const res = await fetch(`/api/skel360/empresa/${empresaId}/resultados`);
                 const data = await res.json();
-                const tbody = document.getElementById('resultados-tbody');
+                
+                document.getElementById('loader').style.display = 'none';
                 
                 if (data.status === 'success' && data.data.length > 0) {
-                    tbody.innerHTML = '';
-                    data.data.forEach(item => {
-                        const tr = document.createElement('tr');
+                    const container = document.getElementById('results-container');
+                    container.style.display = 'grid';
+                    
+                    data.data.forEach((item, index) => {
+                        // Create card element
+                        const card = document.createElement('div');
+                        card.className = 'result-card';
                         
-                        let compsHtml = '';
-                        for(const [cName, cScore] of Object.entries(item.competencias)) {
-                            compsHtml += `<span class="comp-tag">${cName}: <strong>${cScore}</strong></span>`;
-                        }
+                        const chartId = `chart-${index}`;
                         
-                        tr.innerHTML = `
-                            <td><strong>${item.colaborador_nombre}</strong></td>
-                            <td><span class="score-badge ${getScoreClass(item.promedio_global)}">${item.promedio_global}</span></td>
-                            <td>${compsHtml || '<em>Sin desglose</em>'}</td>
+                        card.innerHTML = `
+                            <div class="colab-header">
+                                <h3 class="colab-name">${item.colaborador_nombre}</h3>
+                                <div class="score-badge ${getScoreClass(item.promedio_global)}">${item.promedio_global.toFixed(1)}</div>
+                            </div>
+                            <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px;">Desempeño por Competencias:</div>
+                            <div class="chart-container">
+                                <canvas id="${chartId}"></canvas>
+                            </div>
                         `;
-                        tbody.appendChild(tr);
+                        container.appendChild(card);
+                        
+                        // Prepare data for Chart.js radar chart
+                        const labels = Object.keys(item.competencias);
+                        const scores = Object.values(item.competencias);
+                        
+                        const ctx = document.getElementById(chartId).getContext('2d');
+                        new Chart(ctx, {
+                            type: 'radar',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Puntuación',
+                                    data: scores,
+                                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                                    borderColor: 'rgba(59, 130, 246, 1)',
+                                    pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                                    pointBorderColor: '#fff',
+                                    pointHoverBackgroundColor: '#fff',
+                                    pointHoverBorderColor: 'rgba(16, 185, 129, 1)'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    r: {
+                                        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                        pointLabels: {
+                                            color: '#cbd5e1',
+                                            font: { size: 10 }
+                                        },
+                                        ticks: {
+                                            color: '#64748b',
+                                            backdropColor: 'transparent',
+                                            min: 0,
+                                            max: 5,
+                                            stepSize: 1
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    legend: { display: false }
+                                }
+                            }
+                        });
                     });
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No hay resultados registrados aún.</td></tr>';
+                    document.getElementById('empty-state').style.display = 'block';
                 }
             } catch(e) {
                 console.error(e);
-                document.getElementById('resultados-tbody').innerHTML = '<tr><td colspan="3" style="text-align:center;">Error al cargar resultados.</td></tr>';
+                document.getElementById('loader').innerHTML = '<h3 style="color:#ef4444;">Error al cargar resultados. Por favor intenta de nuevo.</h3>';
             }
         }
 
