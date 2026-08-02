@@ -55,11 +55,29 @@
         .card-apoyo { border-top: 4px solid #10b981; }
 
         @media print {
+            body, html { 
+                height: auto !important; 
+                overflow: visible !important; 
+                background: white !important; 
+            }
+            .dashboard-container, .main-content, .report-container {
+                display: block !important;
+                height: auto !important; 
+                overflow: visible !important; 
+                position: static !important;
+            }
             .sidebar, .top-actions, .btn-expert { display: none !important; }
-            .report-container { box-shadow: none; border: none; max-width: 100%; padding: 0; }
-            .editable-content { border: none; background: transparent; padding: 0; }
-            .chart-box { height: 250px; }
-            body { background: white; }
+            .report-container { box-shadow: none !important; border: none !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            .editable-content { border: none !important; background: transparent !important; padding: 0 !important; }
+            
+            /* Page breaks for professional formatting */
+            .report-chapter { page-break-before: always; }
+            .report-chapter:first-of-type { page-break-before: avoid; }
+            .section-card { page-break-inside: avoid; margin-bottom: 20px; border: none !important; box-shadow: none !important; }
+            h2, h3, h4 { page-break-after: avoid; }
+            table { page-break-inside: auto; width: 100% !important; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            .chart-box { height: 250px; page-break-inside: avoid; }
         }
     </style>
     <!-- Frappe Gantt -->
