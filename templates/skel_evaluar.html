@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación 360 - SKEL HC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --card-bg: #ffffff;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        body { background: var(--bg-color); color: var(--text-color); line-height: 1.6; padding-bottom: 50px; }
+        
+        .header { background: white; padding: 15px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .header img { height: 40px; }
+        
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        
+        .welcome-card { background: var(--primary); color: white; border-radius: var(--radius); padding: 30px 20px; text-align: center; margin-bottom: 30px; box-shadow: var(--shadow); }
+        .welcome-card h1 { font-size: 1.5rem; margin-bottom: 10px; font-weight: 700; }
+        .welcome-card p { font-size: 0.95rem; opacity: 0.9; }
+
+        .competencia-block { background: var(--card-bg); border-radius: var(--radius); padding: 25px; margin-bottom: 25px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .competencia-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 5px; color: var(--primary); }
+        .competencia-desc { font-size: 0.9rem; color: #64748b; margin-bottom: 20px; }
+
+        .pregunta { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+        .pregunta:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .pregunta-text { font-size: 1rem; font-weight: 500; margin-bottom: 15px; }
+
+        .escala { display: flex; gap: 10px; justify-content: space-between; }
+        .escala label { 
+            flex: 1; 
+            text-align: center; 
+            background: #f1f5f9; 
+            padding: 12px 5px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            border: 2px solid transparent; 
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .escala label:hover { background: #e2e8f0; }
+        .escala input[type="radio"] { display: none; }
+        .escala input[type="radio"]:checked + span { color: var(--primary); }
+        .escala label:has(input[type="radio"]:checked) {
+            background: #eff6ff;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-submit { 
+            display: block; 
+            width: 100%; 
+            padding: 15px; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            border-radius: var(--radius); 
+            font-size: 1.1rem; 
+            font-weight: 700; 
+            cursor: pointer; 
+            box-shadow: var(--shadow);
+            transition: background 0.3s;
+        }
+        .btn-submit:hover { background: var(--primary-hover); }
+
+        #error-msg { color: #ef4444; font-weight: 600; text-align: center; margin-bottom: 20px; display: none; }
+        #success-msg { color: #10b981; font-weight: 600; text-align: center; margin-bottom: 20px; display: none; font-size: 1.2rem; }
+
+        @media (max-width: 600px) {
+            .escala { flex-wrap: wrap; }
+            .escala label { flex: 1 1 30%; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <img src="/static/logo_skel.png" alt="SKEL 360">
+        <div style="font-weight: 600; font-size: 0.9rem; color: #64748b;">Evaluación 360</div>
+    </header>
+
+    <div class="container" id="app">
+        <div id="loader" style="text-align: center; padding: 50px; font-weight: 600;">Cargando tu evaluación...</div>
+        
+        <div id="error-msg"></div>
+        <div id="success-msg">
+            <h2>¡Gracias por participar!</h2>
+            <p style="margin-top:10px; font-weight: 400; color:#64748b;">Tus respuestas han sido guardadas de forma segura y confidencial. Ya puedes cerrar esta pestaña.</p>
+        </div>
+
+        <form id="eval-form" style="display: none;">
+            <div class="welcome-card">
+                <h1 id="user-name">Hola, Colaborador</h1>
+                <p>Estás realizando tu Autoevaluación 360. Por favor, califica cada comportamiento del 1 al 5, donde 1 es "Nunca" y 5 es "Siempre".</p>
+            </div>
+
+            <div id="competencias-container"></div>
+            
+            <button type="submit" class="btn-submit" id="btn-submit">Enviar Evaluación</button>
+        </form>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        let respuestasData = {};
+
+        async function init() {
+            if(!token) {
+                showError("Link inválido. Falta el token de acceso.");
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/skel360/evaluar/${token}`);
+                const result = await res.json();
+                
+                document.getElementById('loader').style.display = 'none';
+
+                if(result.status !== 'success') {
+                    showError(result.message);
+                    return;
+                }
+
+                document.getElementById('user-name').innerText = `Hola, ${result.empleado}`;
+                renderForm(result.data);
+                document.getElementById('eval-form').style.display = 'block';
+
+            } catch(e) {
+                console.error(e);
+                showError("Ocurrió un error al cargar la evaluación.");
+            }
+        }
+
+        function renderForm(competencias) {
+            const container = document.getElementById('competencias-container');
+            let html = '';
+
+            competencias.forEach(comp => {
+                html += `
+                    <div class="competencia-block">
+                        <div class="competencia-title">${comp.nombre}</div>
+                        <div class="competencia-desc">${comp.descripcion || ''}</div>
+                `;
+
+                comp.comportamientos.forEach(preg => {
+                    html += `
+                        <div class="pregunta">
+                            <div class="pregunta-text">${preg.descripcion}</div>
+                            <div class="escala">
+                                <label><input type="radio" name="preg_${preg.id}" value="1" required><span>1</span></label>
+                                <label><input type="radio" name="preg_${preg.id}" value="2" required><span>2</span></label>
+                                <label><input type="radio" name="preg_${preg.id}" value="3" required><span>3</span></label>
+                                <label><input type="radio" name="preg_${preg.id}" value="4" required><span>4</span></label>
+                                <label><input type="radio" name="preg_${preg.id}" value="5" required><span>5</span></label>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        document.getElementById('eval-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.innerText = 'Enviando...';
+
+            const formData = new FormData(e.target);
+            let payload = {};
+            for (let [key, value] of formData.entries()) {
+                const comp_id = key.replace('preg_', '');
+                payload[comp_id] = value;
+            }
+
+            try {
+                const res = await fetch(`/api/skel360/evaluar/${token}/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ respuestas: payload })
+                });
+                const result = await res.json();
+                
+                if(result.status === 'success') {
+                    document.getElementById('eval-form').style.display = 'none';
+                    document.getElementById('success-msg').style.display = 'block';
+                } else {
+                    showError(result.message);
+                    btn.disabled = false;
+                    btn.innerText = 'Enviar Evaluación';
+                }
+            } catch(error) {
+                console.error(error);
+                showError("Error de red al enviar la evaluación.");
+                btn.disabled = false;
+                btn.innerText = 'Enviar Evaluación';
+            }
+        });
+
+        function showError(msg) {
+            document.getElementById('loader').style.display = 'none';
+            const err = document.getElementById('error-msg');
+            err.innerText = msg;
+            err.style.display = 'block';
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

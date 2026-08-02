@@ -297,3 +297,91 @@ def lanzar_encuestas(empresa_id):
     except Exception as e:
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# ==============================================================================
+# Módulo 06: Formulario Público de Evaluación
+# ==============================================================================
+
+@skel_hc_bp.route('/evaluar/<token>', methods=['GET'])
+def get_evaluacion_publica(token):
+    try:
+        sb = get_supabase()
+        # 1. Validar Token
+        token_res = sb.table('skel_tokens_acceso').select('*, skel_colaboradores(*)').eq('token', token).execute().data
+        if not token_res:
+            return jsonify({"status": "error", "message": "Token inválido o expirado"}), 404
+            
+        t_data = token_res[0]
+        if t_data.get('estado') == 'Completado':
+            return jsonify({"status": "error", "message": "Esta evaluación ya fue completada"}), 400
+            
+        colab = t_data.get('skel_colaboradores', {})
+        cargo_id = colab.get('cargo_id')
+        
+        # 2. Buscar Competencias asignadas al Cargo
+        asig = sb.table('skel_cargos_diccionario').select('competencia_id').eq('cargo_id', cargo_id).execute().data
+        if not asig:
+            return jsonify({"status": "error", "message": "No hay competencias asignadas a tu cargo"}), 404
+            
+        comp_ids = [a['competencia_id'] for a in asig]
+        
+        # 3. Traer detalles del diccionario
+        comps = sb.table('skel_diccionario_competencias').select('*').in_('id', comp_ids).execute().data
+        comports = sb.table('skel_diccionario_comportamientos').select('*').in_('competencia_id', comp_ids).execute().data
+        
+        # Agrupar
+        comps_dict = {c['id']: {**c, 'comportamientos': []} for c in comps}
+        for comp in comports:
+            if comp['competencia_id'] in comps_dict:
+                comps_dict[comp['competencia_id']]['comportamientos'].append(comp)
+                
+        return jsonify({
+            "status": "success",
+            "empleado": f"{colab.get('nombres')} {colab.get('apellidos')}".strip(),
+            "evaluacion_id": t_data.get('evaluacion_id'),
+            "evaluado_id": colab.get('id'),
+            "data": list(comps_dict.values())
+        }), 200
+        
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@skel_hc_bp.route('/evaluar/<token>/submit', methods=['POST'])
+def submit_evaluacion(token):
+    try:
+        sb = get_supabase()
+        # 1. Validar Token
+        token_res = sb.table('skel_tokens_acceso').select('*').eq('token', token).execute().data
+        if not token_res or token_res[0].get('estado') == 'Completado':
+            return jsonify({"status": "error", "message": "Token inválido"}), 400
+            
+        t_data = token_res[0]
+        evaluacion_id = t_data.get('evaluacion_id')
+        evaluador_id = t_data.get('colaborador_id')
+        
+        data = request.json
+        respuestas = data.get('respuestas', {}) # { comp_id: puntaje }
+        
+        # 2. Insertar respuestas
+        inserts = []
+        for comp_id, puntaje in respuestas.items():
+            inserts.append({
+                "evaluacion_id": evaluacion_id,
+                "evaluado_id": evaluador_id,
+                "evaluador_id": evaluador_id,
+                "comportamiento_id": comp_id,
+                "puntaje": int(puntaje)
+            })
+            
+        if inserts:
+            sb.table('skel_360_respuestas').insert(inserts).execute()
+            
+        # 3. Invalidar Token
+        sb.table('skel_tokens_acceso').update({"estado": "Completado"}).eq('token', token).execute()
+        
+        return jsonify({"status": "success", "message": "Evaluación guardada con éxito"}), 200
+        
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
