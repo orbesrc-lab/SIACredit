@@ -244,17 +244,39 @@
 
     <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script>
-        async function init() {
-            Swal.fire({ title: 'Consolidando Informe...', text: 'Recopilando datos de todas las áreas', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                async function init() {
+            Swal.fire({ 
+                title: 'Consolidando Informe...', 
+                html: '<div>Recopilando datos de todas las áreas</div><div style="margin-top:15px; height:20px; background:#e2e8f0; border-radius:10px; overflow:hidden;"><div id="load-progress" style="height:100%; width:0%; background:#3b82f6; transition:width 0.3s;"></div></div><div id="load-text" style="margin-top:10px; font-size:0.85rem; color:#64748b;">0 / 5 módulos</div>',
+                allowOutsideClick: false, 
+                showConfirmButton: false,
+                didOpen: () => Swal.showLoading() 
+            });
             
             try {
+                let completed = 0;
+                const total = 5;
+                const updateProgress = (name) => {
+                    completed++;
+                    const p = Math.round((completed / total) * 100);
+                    const bar = document.getElementById('load-progress');
+                    const txt = document.getElementById('load-text');
+                    if(bar) bar.style.width = p + '%';
+                    if(txt) txt.innerHTML = `${completed} / ${total} módulos (${name})`;
+                };
+
+                const wrap = async (fn, name) => {
+                    await fn();
+                    updateProgress(name);
+                };
+
                 // Fetch data in parallel
                 await Promise.all([
-                    cargarAutoevaluacion(),
-                    cargarEstadisticas(),
-                    cargarB2B(),
-                    cargarPlanificacion(),
-                    cargarISO()
+                    wrap(cargarAutoevaluacion, 'Autoevaluación'),
+                    wrap(cargarEstadisticas, 'Estadísticas'),
+                    wrap(cargarB2B, 'Consultoría B2B'),
+                    wrap(cargarPlanificacion, 'Planificación'),
+                    wrap(cargarISO, 'Procesos ISO')
                 ]);
 
                 // Intentar cargar la versión guardada y sobreescribir si existe
@@ -621,7 +643,49 @@
             } catch(e) { console.error("Error B2B", e); }
         }
 
-        async function cargarISO() {
+        
+        async function cargarPlanificacion() {
+            try {
+                const treeRes = await fetch(`/api/planning/tree?inst_id=${getInstId()}`);
+                const treeData = await treeRes.json();
+                if (treeData && !treeData.error && typeof renderTree === 'function') {
+                    renderTree(treeData.tree);
+                    let ganttTasks = [];
+                    (treeData.tree || []).forEach(eje => {
+                        (eje.children || []).forEach(obj => {
+                            (obj.children || []).forEach(strat => {
+                                if(strat.start_date && strat.end_date) {
+                                    let progress = 0;
+                                    if(strat.status === 'Completed') progress = 100;
+                                    else if(strat.status === 'In Progress') progress = 50;
+                                    ganttTasks.push({
+                                        id: strat.id,
+                                        name: strat.title,
+                                        start: strat.start_date,
+                                        end: strat.end_date,
+                                        progress: progress,
+                                        custom_class: strat.status === 'Completed' ? 'bar-success' : 'bar-primary'
+                                    });
+                                }
+                            });
+                        });
+                    });
+                    if (ganttTasks.length > 0) {
+                        new Gantt("#ganttGlobal", ganttTasks, {
+                            header_height: 50, column_width: 30, step: 24, view_modes: ['Quarter Day', 'Half Day', 'Day', 'Week', 'Month'], bar_height: 20, bar_corner_radius: 3, arrow_curve: 5, padding: 18, view_mode: 'Month', language: 'es'
+                        });
+                    } else {
+                        document.getElementById('ganttGlobal').parentElement.innerHTML = "<p style='color:#64748b;'>No hay estrategias con fechas.</p>";
+                    }
+                }
+                const finRes = await fetch(`/api/b2b/financiero?inst_id=${getInstId()}`);
+                const finData = await finRes.json();
+                if(finData && finData.informe) {
+                    document.getElementById('texto_financiero').innerHTML = marked.parse(finData.informe);
+                }
+            } catch(e) { console.error("Error Planificacion", e); }
+        }
+async function cargarISO() {
             try {
                 const res = await fetch(`/api/business/matrix/ISO9001?inst_id=${getInstId()}`);
                 const data = await res.json();
