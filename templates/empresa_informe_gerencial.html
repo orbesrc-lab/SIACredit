@@ -5,12 +5,636 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Informe Gerencial Integral - SKEL SIAC</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+        let _informeCharts = {};
+        let _chartCounter = 0;
+
+        // --- Helpers from Informes ---
+        function renderCuadrosProfesores(cuadros) {
+            let dt = cuadros['factor4_profesores'] || cuadros['factor3_profesores'];
+            if (!dt) return '';
+            _chartCounter++;
+            const canvasId = 'chart_prof_' + _chartCounter;
+            const tableHtml = dt;
+            const labels = [], dataVals = [], bgColors = [];
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = tableHtml;
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push('#3b82f6');
+                }
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Cantidad', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${tableHtml}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
+                        </div>
+                    </div>`;
+        }
+        function renderCuadrosCurriculares(cuadros) { return renderCuadrosGeneric(cuadros['factor5_academicos']||cuadros['factor4_academicos'], 'aspectos académicos'); }
+        function renderCuadrosExtension(cuadros) { return renderCuadrosGeneric(cuadros['factor7_extension']||cuadros['factor6_extension'], 'extensión e impacto'); }
+        function renderCuadrosInvestigacion(cuadros) { return renderCuadrosGeneric(cuadros['factor8_investigacion']||cuadros['factor7_investigacion'], 'investigación'); }
+        function renderCuadrosRecursos(cuadros) { return renderCuadrosGeneric(cuadros['factor10_recursos']||cuadros['factor9_recursos'], 'recursos e infraestructura'); }
+        function renderCuadrosGeneric(dt, context) {
+            if (!dt) return '';
+            _chartCounter++;
+            const canvasId = 'chart_gen_' + _chartCounter;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = dt;
+            const labels = [], dataVals = [], bgColors = [];
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach((tr, i) => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push(i % 2 === 0 ? '#10b981' : '#f59e0b');
+                }
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Total', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${dt}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
+                        </div>
+                    </div>`;
+        }
+        function renderAIAnalysisPorFactor(cuadros, ...keys) {
+            if(!cuadros) return '';
+            for (const key of keys) {
+                const txt = cuadros[`ai_analysis_${key}`];
+                if (txt && txt.trim()) {
+                    return `<div class="informe-ai-block" style="margin-top:15px; padding:15px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px;">
+                        <h5 style="color:#0369a1; margin-top:0;">🤖 Análisis de IA</h5>
+                        <div style="font-size:0.9rem; color:#334155;">${marked.parse(txt)}</div>
+                    </div>`;
+                }
+            }
+            return '';
+        }
+        function renderAIAnalisisEstadisticas(cuadros) {
+            const statsKeys = ['table_estudiantes','table_docentes','table_desercion','table_vinculacion_docente','table_investigacion','table_productividad','table_extension','table_infraestructura'];
+            const labels = {'table_estudiantes': 'Población Estudiantil', 'table_docentes': 'Planta Docente', 'table_desercion': 'Deserción / Permanencia'};
+            let html = '';
+            statsKeys.forEach(k => {
+                if (cuadros[`ai_analysis_${k}`]) {
+                    html += `<div class="informe-ai-block" style="margin-bottom:14px; border-bottom:1px dashed #cbd5e1; padding-bottom:14px;">
+                        <h5 style="color:#1e40af;">📌 Análsis IA: ${labels[k]||k}</h5>
+                        <div class="ai-md-content" style="font-size:0.9rem;">${marked.parse(cuadros[`ai_analysis_${k}`])}</div>
+                    </div>`;
+                }
+            });
+            return html;
+        }
+        function escHtml(str) {
+            if(!str) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        // --- Read-Only Tree Renderer ---
+        function renderTree(tree) {
+            const container = document.getElementById('planningTree');
+            if(!tree || tree.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:#64748b;">No hay Planificación Estratégica definida.</div>`;
+                return;
+            }
+            let html = '<div style="display:flex; flex-direction:column; gap:15px;">';
+            tree.forEach(axis => {
+                html += `
+                <div style="border-left:5px solid #2563eb; background:white; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
+                    <div style="padding:15px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                        <span style="font-size:0.8rem; font-weight:bold; color:#2563eb; text-transform:uppercase;">Eje Estratégico</span>
+                        <h4 style="margin:5px 0 0; color:#1e293b;">${escHtml(axis.name)}</h4>
+                        ${axis.description ? `<p style="margin:10px 0 0; font-size:0.9rem; color:#64748b;">${escHtml(axis.description)}</p>` : ''}
+                    </div>
+                    <div style="padding:15px; display:flex; flex-direction:column; gap:15px;">
+                `;
+                
+                if (axis.children && axis.children.length > 0) {
+                    axis.children.forEach(obj => {
+                        html += `
+                        <div style="border-left:4px solid #10b981; padding-left:15px; margin-left:10px;">
+                            <span style="font-size:0.75rem; font-weight:bold; color:#10b981; text-transform:uppercase;">Objetivo</span>
+                            <h5 style="margin:3px 0; color:#0f172a;">${escHtml(obj.title)}</h5>
+                            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                        `;
+                        
+                        if (obj.children && obj.children.length > 0) {
+                            obj.children.forEach(strat => {
+                                const statusColor = strat.status === 'Completed' ? '#10b981' : (strat.status === 'In Progress' ? '#3b82f6' : '#94a3b8');
+                                html += `
+                                <div style="border-left:3px solid #f59e0b; background:#fefce8; padding:10px 15px; border-radius:6px; margin-left:10px; display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <span style="font-size:0.7rem; font-weight:bold; color:#f59e0b; text-transform:uppercase;">Estrategia / Proyecto</span>
+                                        <h6 style="margin:2px 0 5px; font-size:0.95rem; color:#334155;">${escHtml(strat.title)}</h6>
+                                        <div style="font-size:0.8rem; color:#64748b;">Responsable: <b>${escHtml(strat.assigned_to_name||'Sin Asignar')}</b> | Fechas: ${escHtml(strat.start_date||'N/A')} al ${escHtml(strat.end_date||'N/A')}</div>
+                                    </div>
+                                    <span style="background:${statusColor}; color:white; padding:4px 8px; border-radius:12px; font-size:0.7rem; font-weight:bold;">${escHtml(strat.status)}</span>
+                                </div>
+                                `;
+                            });
+                        } else {
+                            html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic; margin-left:10px;">Sin estrategias definidas.</div>`;
+                        }
+                        html += `</div></div>`;
+                    });
+                } else {
+                    html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic;">Sin objetivos definidos.</div>`;
+                }
+                html += `</div></div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js">
+        let _informeCharts = {};
+        let _chartCounter = 0;
+
+        // --- Helpers from Informes ---
+        function renderCuadrosProfesores(cuadros) {
+            let dt = cuadros['factor4_profesores'] || cuadros['factor3_profesores'];
+            if (!dt) return '';
+            _chartCounter++;
+            const canvasId = 'chart_prof_' + _chartCounter;
+            const tableHtml = dt;
+            const labels = [], dataVals = [], bgColors = [];
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = tableHtml;
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push('#3b82f6');
+                }
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Cantidad', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${tableHtml}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
+                        </div>
+                    </div>`;
+        }
+        function renderCuadrosCurriculares(cuadros) { return renderCuadrosGeneric(cuadros['factor5_academicos']||cuadros['factor4_academicos'], 'aspectos académicos'); }
+        function renderCuadrosExtension(cuadros) { return renderCuadrosGeneric(cuadros['factor7_extension']||cuadros['factor6_extension'], 'extensión e impacto'); }
+        function renderCuadrosInvestigacion(cuadros) { return renderCuadrosGeneric(cuadros['factor8_investigacion']||cuadros['factor7_investigacion'], 'investigación'); }
+        function renderCuadrosRecursos(cuadros) { return renderCuadrosGeneric(cuadros['factor10_recursos']||cuadros['factor9_recursos'], 'recursos e infraestructura'); }
+        function renderCuadrosGeneric(dt, context) {
+            if (!dt) return '';
+            _chartCounter++;
+            const canvasId = 'chart_gen_' + _chartCounter;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = dt;
+            const labels = [], dataVals = [], bgColors = [];
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach((tr, i) => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push(i % 2 === 0 ? '#10b981' : '#f59e0b');
+                }
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Total', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${dt}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
+                        </div>
+                    </div>`;
+        }
+        function renderAIAnalysisPorFactor(cuadros, ...keys) {
+            if(!cuadros) return '';
+            for (const key of keys) {
+                const txt = cuadros[`ai_analysis_${key}`];
+                if (txt && txt.trim()) {
+                    return `<div class="informe-ai-block" style="margin-top:15px; padding:15px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px;">
+                        <h5 style="color:#0369a1; margin-top:0;">🤖 Análisis de IA</h5>
+                        <div style="font-size:0.9rem; color:#334155;">${marked.parse(txt)}</div>
+                    </div>`;
+                }
+            }
+            return '';
+        }
+        function renderAIAnalisisEstadisticas(cuadros) {
+            const statsKeys = ['table_estudiantes','table_docentes','table_desercion','table_vinculacion_docente','table_investigacion','table_productividad','table_extension','table_infraestructura'];
+            const labels = {'table_estudiantes': 'Población Estudiantil', 'table_docentes': 'Planta Docente', 'table_desercion': 'Deserción / Permanencia'};
+            let html = '';
+            statsKeys.forEach(k => {
+                if (cuadros[`ai_analysis_${k}`]) {
+                    html += `<div class="informe-ai-block" style="margin-bottom:14px; border-bottom:1px dashed #cbd5e1; padding-bottom:14px;">
+                        <h5 style="color:#1e40af;">📌 Análsis IA: ${labels[k]||k}</h5>
+                        <div class="ai-md-content" style="font-size:0.9rem;">${marked.parse(cuadros[`ai_analysis_${k}`])}</div>
+                    </div>`;
+                }
+            });
+            return html;
+        }
+        function escHtml(str) {
+            if(!str) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        // --- Read-Only Tree Renderer ---
+        function renderTree(tree) {
+            const container = document.getElementById('planningTree');
+            if(!tree || tree.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:#64748b;">No hay Planificación Estratégica definida.</div>`;
+                return;
+            }
+            let html = '<div style="display:flex; flex-direction:column; gap:15px;">';
+            tree.forEach(axis => {
+                html += `
+                <div style="border-left:5px solid #2563eb; background:white; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
+                    <div style="padding:15px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                        <span style="font-size:0.8rem; font-weight:bold; color:#2563eb; text-transform:uppercase;">Eje Estratégico</span>
+                        <h4 style="margin:5px 0 0; color:#1e293b;">${escHtml(axis.name)}</h4>
+                        ${axis.description ? `<p style="margin:10px 0 0; font-size:0.9rem; color:#64748b;">${escHtml(axis.description)}</p>` : ''}
+                    </div>
+                    <div style="padding:15px; display:flex; flex-direction:column; gap:15px;">
+                `;
+                
+                if (axis.children && axis.children.length > 0) {
+                    axis.children.forEach(obj => {
+                        html += `
+                        <div style="border-left:4px solid #10b981; padding-left:15px; margin-left:10px;">
+                            <span style="font-size:0.75rem; font-weight:bold; color:#10b981; text-transform:uppercase;">Objetivo</span>
+                            <h5 style="margin:3px 0; color:#0f172a;">${escHtml(obj.title)}</h5>
+                            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                        `;
+                        
+                        if (obj.children && obj.children.length > 0) {
+                            obj.children.forEach(strat => {
+                                const statusColor = strat.status === 'Completed' ? '#10b981' : (strat.status === 'In Progress' ? '#3b82f6' : '#94a3b8');
+                                html += `
+                                <div style="border-left:3px solid #f59e0b; background:#fefce8; padding:10px 15px; border-radius:6px; margin-left:10px; display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <span style="font-size:0.7rem; font-weight:bold; color:#f59e0b; text-transform:uppercase;">Estrategia / Proyecto</span>
+                                        <h6 style="margin:2px 0 5px; font-size:0.95rem; color:#334155;">${escHtml(strat.title)}</h6>
+                                        <div style="font-size:0.8rem; color:#64748b;">Responsable: <b>${escHtml(strat.assigned_to_name||'Sin Asignar')}</b> | Fechas: ${escHtml(strat.start_date||'N/A')} al ${escHtml(strat.end_date||'N/A')}</div>
+                                    </div>
+                                    <span style="background:${statusColor}; color:white; padding:4px 8px; border-radius:12px; font-size:0.7rem; font-weight:bold;">${escHtml(strat.status)}</span>
+                                </div>
+                                `;
+                            });
+                        } else {
+                            html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic; margin-left:10px;">Sin estrategias definidas.</div>`;
+                        }
+                        html += `</div></div>`;
+                    });
+                } else {
+                    html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic;">Sin objetivos definidos.</div>`;
+                }
+                html += `</div></div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+        let _informeCharts = {};
+        let _chartCounter = 0;
+
+        // --- Helpers from Informes ---
+        function renderCuadrosProfesores(cuadros) {
+            let dt = cuadros['factor4_profesores'] || cuadros['factor3_profesores'];
+            if (!dt) return '';
+            _chartCounter++;
+            const canvasId = 'chart_prof_' + _chartCounter;
+            const tableHtml = dt;
+            const labels = [], dataVals = [], bgColors = [];
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = tableHtml;
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push('#3b82f6');
+                }
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Cantidad', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${tableHtml}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
+                        </div>
+                    </div>`;
+        }
+        function renderCuadrosCurriculares(cuadros) { return renderCuadrosGeneric(cuadros['factor5_academicos']||cuadros['factor4_academicos'], 'aspectos académicos'); }
+        function renderCuadrosExtension(cuadros) { return renderCuadrosGeneric(cuadros['factor7_extension']||cuadros['factor6_extension'], 'extensión e impacto'); }
+        function renderCuadrosInvestigacion(cuadros) { return renderCuadrosGeneric(cuadros['factor8_investigacion']||cuadros['factor7_investigacion'], 'investigación'); }
+        function renderCuadrosRecursos(cuadros) { return renderCuadrosGeneric(cuadros['factor10_recursos']||cuadros['factor9_recursos'], 'recursos e infraestructura'); }
+        function renderCuadrosGeneric(dt, context) {
+            if (!dt) return '';
+            _chartCounter++;
+            const canvasId = 'chart_gen_' + _chartCounter;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = dt;
+            const labels = [], dataVals = [], bgColors = [];
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach((tr, i) => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push(i % 2 === 0 ? '#10b981' : '#f59e0b');
+                }
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Total', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${dt}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
+                        </div>
+                    </div>`;
+        }
+        function renderAIAnalysisPorFactor(cuadros, ...keys) {
+            if(!cuadros) return '';
+            for (const key of keys) {
+                const txt = cuadros[`ai_analysis_${key}`];
+                if (txt && txt.trim()) {
+                    return `<div class="informe-ai-block" style="margin-top:15px; padding:15px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px;">
+                        <h5 style="color:#0369a1; margin-top:0;">🤖 Análisis de IA</h5>
+                        <div style="font-size:0.9rem; color:#334155;">${marked.parse(txt)}</div>
+                    </div>`;
+                }
+            }
+            return '';
+        }
+        function renderAIAnalisisEstadisticas(cuadros) {
+            const statsKeys = ['table_estudiantes','table_docentes','table_desercion','table_vinculacion_docente','table_investigacion','table_productividad','table_extension','table_infraestructura'];
+            const labels = {'table_estudiantes': 'Población Estudiantil', 'table_docentes': 'Planta Docente', 'table_desercion': 'Deserción / Permanencia'};
+            let html = '';
+            statsKeys.forEach(k => {
+                if (cuadros[`ai_analysis_${k}`]) {
+                    html += `<div class="informe-ai-block" style="margin-bottom:14px; border-bottom:1px dashed #cbd5e1; padding-bottom:14px;">
+                        <h5 style="color:#1e40af;">📌 Análsis IA: ${labels[k]||k}</h5>
+                        <div class="ai-md-content" style="font-size:0.9rem;">${marked.parse(cuadros[`ai_analysis_${k}`])}</div>
+                    </div>`;
+                }
+            });
+            return html;
+        }
+        function escHtml(str) {
+            if(!str) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        // --- Read-Only Tree Renderer ---
+        function renderTree(tree) {
+            const container = document.getElementById('planningTree');
+            if(!tree || tree.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:#64748b;">No hay Planificación Estratégica definida.</div>`;
+                return;
+            }
+            let html = '<div style="display:flex; flex-direction:column; gap:15px;">';
+            tree.forEach(axis => {
+                html += `
+                <div style="border-left:5px solid #2563eb; background:white; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
+                    <div style="padding:15px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                        <span style="font-size:0.8rem; font-weight:bold; color:#2563eb; text-transform:uppercase;">Eje Estratégico</span>
+                        <h4 style="margin:5px 0 0; color:#1e293b;">${escHtml(axis.name)}</h4>
+                        ${axis.description ? `<p style="margin:10px 0 0; font-size:0.9rem; color:#64748b;">${escHtml(axis.description)}</p>` : ''}
+                    </div>
+                    <div style="padding:15px; display:flex; flex-direction:column; gap:15px;">
+                `;
+                
+                if (axis.children && axis.children.length > 0) {
+                    axis.children.forEach(obj => {
+                        html += `
+                        <div style="border-left:4px solid #10b981; padding-left:15px; margin-left:10px;">
+                            <span style="font-size:0.75rem; font-weight:bold; color:#10b981; text-transform:uppercase;">Objetivo</span>
+                            <h5 style="margin:3px 0; color:#0f172a;">${escHtml(obj.title)}</h5>
+                            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                        `;
+                        
+                        if (obj.children && obj.children.length > 0) {
+                            obj.children.forEach(strat => {
+                                const statusColor = strat.status === 'Completed' ? '#10b981' : (strat.status === 'In Progress' ? '#3b82f6' : '#94a3b8');
+                                html += `
+                                <div style="border-left:3px solid #f59e0b; background:#fefce8; padding:10px 15px; border-radius:6px; margin-left:10px; display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <span style="font-size:0.7rem; font-weight:bold; color:#f59e0b; text-transform:uppercase;">Estrategia / Proyecto</span>
+                                        <h6 style="margin:2px 0 5px; font-size:0.95rem; color:#334155;">${escHtml(strat.title)}</h6>
+                                        <div style="font-size:0.8rem; color:#64748b;">Responsable: <b>${escHtml(strat.assigned_to_name||'Sin Asignar')}</b> | Fechas: ${escHtml(strat.start_date||'N/A')} al ${escHtml(strat.end_date||'N/A')}</div>
+                                    </div>
+                                    <span style="background:${statusColor}; color:white; padding:4px 8px; border-radius:12px; font-size:0.7rem; font-weight:bold;">${escHtml(strat.status)}</span>
+                                </div>
+                                `;
+                            });
+                        } else {
+                            html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic; margin-left:10px;">Sin estrategias definidas.</div>`;
+                        }
+                        html += `</div></div>`;
+                    });
+                } else {
+                    html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic;">Sin objetivos definidos.</div>`;
+                }
+                html += `</div></div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Using html2pdf for proper page breaks -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
+        let _informeCharts = {};
+        let _chartCounter = 0;
+
+        // --- Helpers from Informes ---
+        function renderCuadrosProfesores(cuadros) {
+            let dt = cuadros['factor4_profesores'] || cuadros['factor3_profesores'];
+            if (!dt) return '';
+            _chartCounter++;
+            const canvasId = 'chart_prof_' + _chartCounter;
+            const tableHtml = dt;
+            const labels = [], dataVals = [], bgColors = [];
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = tableHtml;
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push('#3b82f6');
+                }
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Cantidad', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${tableHtml}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
+                        </div>
+                    </div>`;
+        }
+        function renderCuadrosCurriculares(cuadros) { return renderCuadrosGeneric(cuadros['factor5_academicos']||cuadros['factor4_academicos'], 'aspectos académicos'); }
+        function renderCuadrosExtension(cuadros) { return renderCuadrosGeneric(cuadros['factor7_extension']||cuadros['factor6_extension'], 'extensión e impacto'); }
+        function renderCuadrosInvestigacion(cuadros) { return renderCuadrosGeneric(cuadros['factor8_investigacion']||cuadros['factor7_investigacion'], 'investigación'); }
+        function renderCuadrosRecursos(cuadros) { return renderCuadrosGeneric(cuadros['factor10_recursos']||cuadros['factor9_recursos'], 'recursos e infraestructura'); }
+        function renderCuadrosGeneric(dt, context) {
+            if (!dt) return '';
+            _chartCounter++;
+            const canvasId = 'chart_gen_' + _chartCounter;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = dt;
+            const labels = [], dataVals = [], bgColors = [];
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach((tr, i) => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push(i % 2 === 0 ? '#10b981' : '#f59e0b');
+                }
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Total', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${dt}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
+                        </div>
+                    </div>`;
+        }
+        function renderAIAnalysisPorFactor(cuadros, ...keys) {
+            if(!cuadros) return '';
+            for (const key of keys) {
+                const txt = cuadros[`ai_analysis_${key}`];
+                if (txt && txt.trim()) {
+                    return `<div class="informe-ai-block" style="margin-top:15px; padding:15px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px;">
+                        <h5 style="color:#0369a1; margin-top:0;">🤖 Análisis de IA</h5>
+                        <div style="font-size:0.9rem; color:#334155;">${marked.parse(txt)}</div>
+                    </div>`;
+                }
+            }
+            return '';
+        }
+        function renderAIAnalisisEstadisticas(cuadros) {
+            const statsKeys = ['table_estudiantes','table_docentes','table_desercion','table_vinculacion_docente','table_investigacion','table_productividad','table_extension','table_infraestructura'];
+            const labels = {'table_estudiantes': 'Población Estudiantil', 'table_docentes': 'Planta Docente', 'table_desercion': 'Deserción / Permanencia'};
+            let html = '';
+            statsKeys.forEach(k => {
+                if (cuadros[`ai_analysis_${k}`]) {
+                    html += `<div class="informe-ai-block" style="margin-bottom:14px; border-bottom:1px dashed #cbd5e1; padding-bottom:14px;">
+                        <h5 style="color:#1e40af;">📌 Análsis IA: ${labels[k]||k}</h5>
+                        <div class="ai-md-content" style="font-size:0.9rem;">${marked.parse(cuadros[`ai_analysis_${k}`])}</div>
+                    </div>`;
+                }
+            });
+            return html;
+        }
+        function escHtml(str) {
+            if(!str) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        // --- Read-Only Tree Renderer ---
+        function renderTree(tree) {
+            const container = document.getElementById('planningTree');
+            if(!tree || tree.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:#64748b;">No hay Planificación Estratégica definida.</div>`;
+                return;
+            }
+            let html = '<div style="display:flex; flex-direction:column; gap:15px;">';
+            tree.forEach(axis => {
+                html += `
+                <div style="border-left:5px solid #2563eb; background:white; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
+                    <div style="padding:15px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                        <span style="font-size:0.8rem; font-weight:bold; color:#2563eb; text-transform:uppercase;">Eje Estratégico</span>
+                        <h4 style="margin:5px 0 0; color:#1e293b;">${escHtml(axis.name)}</h4>
+                        ${axis.description ? `<p style="margin:10px 0 0; font-size:0.9rem; color:#64748b;">${escHtml(axis.description)}</p>` : ''}
+                    </div>
+                    <div style="padding:15px; display:flex; flex-direction:column; gap:15px;">
+                `;
+                
+                if (axis.children && axis.children.length > 0) {
+                    axis.children.forEach(obj => {
+                        html += `
+                        <div style="border-left:4px solid #10b981; padding-left:15px; margin-left:10px;">
+                            <span style="font-size:0.75rem; font-weight:bold; color:#10b981; text-transform:uppercase;">Objetivo</span>
+                            <h5 style="margin:3px 0; color:#0f172a;">${escHtml(obj.title)}</h5>
+                            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                        `;
+                        
+                        if (obj.children && obj.children.length > 0) {
+                            obj.children.forEach(strat => {
+                                const statusColor = strat.status === 'Completed' ? '#10b981' : (strat.status === 'In Progress' ? '#3b82f6' : '#94a3b8');
+                                html += `
+                                <div style="border-left:3px solid #f59e0b; background:#fefce8; padding:10px 15px; border-radius:6px; margin-left:10px; display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <span style="font-size:0.7rem; font-weight:bold; color:#f59e0b; text-transform:uppercase;">Estrategia / Proyecto</span>
+                                        <h6 style="margin:2px 0 5px; font-size:0.95rem; color:#334155;">${escHtml(strat.title)}</h6>
+                                        <div style="font-size:0.8rem; color:#64748b;">Responsable: <b>${escHtml(strat.assigned_to_name||'Sin Asignar')}</b> | Fechas: ${escHtml(strat.start_date||'N/A')} al ${escHtml(strat.end_date||'N/A')}</div>
+                                    </div>
+                                    <span style="background:${statusColor}; color:white; padding:4px 8px; border-radius:12px; font-size:0.7rem; font-weight:bold;">${escHtml(strat.status)}</span>
+                                </div>
+                                `;
+                            });
+                        } else {
+                            html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic; margin-left:10px;">Sin estrategias definidas.</div>`;
+                        }
+                        html += `</div></div>`;
+                    });
+                } else {
+                    html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic;">Sin objetivos definidos.</div>`;
+                }
+                html += `</div></div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+</script>
     <style>
         /* General Layout */
         body { background: #f8fafc; font-family: 'Inter', sans-serif; }
@@ -64,7 +688,163 @@
     </style>
     <!-- Frappe Gantt -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js">
+        let _informeCharts = {};
+        let _chartCounter = 0;
+
+        // --- Helpers from Informes ---
+        function renderCuadrosProfesores(cuadros) {
+            let dt = cuadros['factor4_profesores'] || cuadros['factor3_profesores'];
+            if (!dt) return '';
+            _chartCounter++;
+            const canvasId = 'chart_prof_' + _chartCounter;
+            const tableHtml = dt;
+            const labels = [], dataVals = [], bgColors = [];
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = tableHtml;
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push('#3b82f6');
+                }
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Cantidad', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${tableHtml}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
+                        </div>
+                    </div>`;
+        }
+        function renderCuadrosCurriculares(cuadros) { return renderCuadrosGeneric(cuadros['factor5_academicos']||cuadros['factor4_academicos'], 'aspectos académicos'); }
+        function renderCuadrosExtension(cuadros) { return renderCuadrosGeneric(cuadros['factor7_extension']||cuadros['factor6_extension'], 'extensión e impacto'); }
+        function renderCuadrosInvestigacion(cuadros) { return renderCuadrosGeneric(cuadros['factor8_investigacion']||cuadros['factor7_investigacion'], 'investigación'); }
+        function renderCuadrosRecursos(cuadros) { return renderCuadrosGeneric(cuadros['factor10_recursos']||cuadros['factor9_recursos'], 'recursos e infraestructura'); }
+        function renderCuadrosGeneric(dt, context) {
+            if (!dt) return '';
+            _chartCounter++;
+            const canvasId = 'chart_gen_' + _chartCounter;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = dt;
+            const labels = [], dataVals = [], bgColors = [];
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach((tr, i) => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push(i % 2 === 0 ? '#10b981' : '#f59e0b');
+                }
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Total', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${dt}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
+                        </div>
+                    </div>`;
+        }
+        function renderAIAnalysisPorFactor(cuadros, ...keys) {
+            if(!cuadros) return '';
+            for (const key of keys) {
+                const txt = cuadros[`ai_analysis_${key}`];
+                if (txt && txt.trim()) {
+                    return `<div class="informe-ai-block" style="margin-top:15px; padding:15px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px;">
+                        <h5 style="color:#0369a1; margin-top:0;">🤖 Análisis de IA</h5>
+                        <div style="font-size:0.9rem; color:#334155;">${marked.parse(txt)}</div>
+                    </div>`;
+                }
+            }
+            return '';
+        }
+        function renderAIAnalisisEstadisticas(cuadros) {
+            const statsKeys = ['table_estudiantes','table_docentes','table_desercion','table_vinculacion_docente','table_investigacion','table_productividad','table_extension','table_infraestructura'];
+            const labels = {'table_estudiantes': 'Población Estudiantil', 'table_docentes': 'Planta Docente', 'table_desercion': 'Deserción / Permanencia'};
+            let html = '';
+            statsKeys.forEach(k => {
+                if (cuadros[`ai_analysis_${k}`]) {
+                    html += `<div class="informe-ai-block" style="margin-bottom:14px; border-bottom:1px dashed #cbd5e1; padding-bottom:14px;">
+                        <h5 style="color:#1e40af;">📌 Análsis IA: ${labels[k]||k}</h5>
+                        <div class="ai-md-content" style="font-size:0.9rem;">${marked.parse(cuadros[`ai_analysis_${k}`])}</div>
+                    </div>`;
+                }
+            });
+            return html;
+        }
+        function escHtml(str) {
+            if(!str) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        // --- Read-Only Tree Renderer ---
+        function renderTree(tree) {
+            const container = document.getElementById('planningTree');
+            if(!tree || tree.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:#64748b;">No hay Planificación Estratégica definida.</div>`;
+                return;
+            }
+            let html = '<div style="display:flex; flex-direction:column; gap:15px;">';
+            tree.forEach(axis => {
+                html += `
+                <div style="border-left:5px solid #2563eb; background:white; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
+                    <div style="padding:15px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                        <span style="font-size:0.8rem; font-weight:bold; color:#2563eb; text-transform:uppercase;">Eje Estratégico</span>
+                        <h4 style="margin:5px 0 0; color:#1e293b;">${escHtml(axis.name)}</h4>
+                        ${axis.description ? `<p style="margin:10px 0 0; font-size:0.9rem; color:#64748b;">${escHtml(axis.description)}</p>` : ''}
+                    </div>
+                    <div style="padding:15px; display:flex; flex-direction:column; gap:15px;">
+                `;
+                
+                if (axis.children && axis.children.length > 0) {
+                    axis.children.forEach(obj => {
+                        html += `
+                        <div style="border-left:4px solid #10b981; padding-left:15px; margin-left:10px;">
+                            <span style="font-size:0.75rem; font-weight:bold; color:#10b981; text-transform:uppercase;">Objetivo</span>
+                            <h5 style="margin:3px 0; color:#0f172a;">${escHtml(obj.title)}</h5>
+                            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                        `;
+                        
+                        if (obj.children && obj.children.length > 0) {
+                            obj.children.forEach(strat => {
+                                const statusColor = strat.status === 'Completed' ? '#10b981' : (strat.status === 'In Progress' ? '#3b82f6' : '#94a3b8');
+                                html += `
+                                <div style="border-left:3px solid #f59e0b; background:#fefce8; padding:10px 15px; border-radius:6px; margin-left:10px; display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <span style="font-size:0.7rem; font-weight:bold; color:#f59e0b; text-transform:uppercase;">Estrategia / Proyecto</span>
+                                        <h6 style="margin:2px 0 5px; font-size:0.95rem; color:#334155;">${escHtml(strat.title)}</h6>
+                                        <div style="font-size:0.8rem; color:#64748b;">Responsable: <b>${escHtml(strat.assigned_to_name||'Sin Asignar')}</b> | Fechas: ${escHtml(strat.start_date||'N/A')} al ${escHtml(strat.end_date||'N/A')}</div>
+                                    </div>
+                                    <span style="background:${statusColor}; color:white; padding:4px 8px; border-radius:12px; font-size:0.7rem; font-weight:bold;">${escHtml(strat.status)}</span>
+                                </div>
+                                `;
+                            });
+                        } else {
+                            html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic; margin-left:10px;">Sin estrategias definidas.</div>`;
+                        }
+                        html += `</div></div>`;
+                    });
+                } else {
+                    html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic;">Sin objetivos definidos.</div>`;
+                }
+                html += `</div></div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+</script>
     <!-- End Frappe Gantt -->
 </head>
 <body>
@@ -242,7 +1022,163 @@
         </main>
     </div>
 
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script src="{{ url_for('static', filename='app.js') }}">
+        let _informeCharts = {};
+        let _chartCounter = 0;
+
+        // --- Helpers from Informes ---
+        function renderCuadrosProfesores(cuadros) {
+            let dt = cuadros['factor4_profesores'] || cuadros['factor3_profesores'];
+            if (!dt) return '';
+            _chartCounter++;
+            const canvasId = 'chart_prof_' + _chartCounter;
+            const tableHtml = dt;
+            const labels = [], dataVals = [], bgColors = [];
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = tableHtml;
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push('#3b82f6');
+                }
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Cantidad', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${tableHtml}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
+                        </div>
+                    </div>`;
+        }
+        function renderCuadrosCurriculares(cuadros) { return renderCuadrosGeneric(cuadros['factor5_academicos']||cuadros['factor4_academicos'], 'aspectos académicos'); }
+        function renderCuadrosExtension(cuadros) { return renderCuadrosGeneric(cuadros['factor7_extension']||cuadros['factor6_extension'], 'extensión e impacto'); }
+        function renderCuadrosInvestigacion(cuadros) { return renderCuadrosGeneric(cuadros['factor8_investigacion']||cuadros['factor7_investigacion'], 'investigación'); }
+        function renderCuadrosRecursos(cuadros) { return renderCuadrosGeneric(cuadros['factor10_recursos']||cuadros['factor9_recursos'], 'recursos e infraestructura'); }
+        function renderCuadrosGeneric(dt, context) {
+            if (!dt) return '';
+            _chartCounter++;
+            const canvasId = 'chart_gen_' + _chartCounter;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = dt;
+            const labels = [], dataVals = [], bgColors = [];
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach((tr, i) => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push(i % 2 === 0 ? '#10b981' : '#f59e0b');
+                }
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Total', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${dt}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
+                        </div>
+                    </div>`;
+        }
+        function renderAIAnalysisPorFactor(cuadros, ...keys) {
+            if(!cuadros) return '';
+            for (const key of keys) {
+                const txt = cuadros[`ai_analysis_${key}`];
+                if (txt && txt.trim()) {
+                    return `<div class="informe-ai-block" style="margin-top:15px; padding:15px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px;">
+                        <h5 style="color:#0369a1; margin-top:0;">🤖 Análisis de IA</h5>
+                        <div style="font-size:0.9rem; color:#334155;">${marked.parse(txt)}</div>
+                    </div>`;
+                }
+            }
+            return '';
+        }
+        function renderAIAnalisisEstadisticas(cuadros) {
+            const statsKeys = ['table_estudiantes','table_docentes','table_desercion','table_vinculacion_docente','table_investigacion','table_productividad','table_extension','table_infraestructura'];
+            const labels = {'table_estudiantes': 'Población Estudiantil', 'table_docentes': 'Planta Docente', 'table_desercion': 'Deserción / Permanencia'};
+            let html = '';
+            statsKeys.forEach(k => {
+                if (cuadros[`ai_analysis_${k}`]) {
+                    html += `<div class="informe-ai-block" style="margin-bottom:14px; border-bottom:1px dashed #cbd5e1; padding-bottom:14px;">
+                        <h5 style="color:#1e40af;">📌 Análsis IA: ${labels[k]||k}</h5>
+                        <div class="ai-md-content" style="font-size:0.9rem;">${marked.parse(cuadros[`ai_analysis_${k}`])}</div>
+                    </div>`;
+                }
+            });
+            return html;
+        }
+        function escHtml(str) {
+            if(!str) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        // --- Read-Only Tree Renderer ---
+        function renderTree(tree) {
+            const container = document.getElementById('planningTree');
+            if(!tree || tree.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:#64748b;">No hay Planificación Estratégica definida.</div>`;
+                return;
+            }
+            let html = '<div style="display:flex; flex-direction:column; gap:15px;">';
+            tree.forEach(axis => {
+                html += `
+                <div style="border-left:5px solid #2563eb; background:white; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
+                    <div style="padding:15px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                        <span style="font-size:0.8rem; font-weight:bold; color:#2563eb; text-transform:uppercase;">Eje Estratégico</span>
+                        <h4 style="margin:5px 0 0; color:#1e293b;">${escHtml(axis.name)}</h4>
+                        ${axis.description ? `<p style="margin:10px 0 0; font-size:0.9rem; color:#64748b;">${escHtml(axis.description)}</p>` : ''}
+                    </div>
+                    <div style="padding:15px; display:flex; flex-direction:column; gap:15px;">
+                `;
+                
+                if (axis.children && axis.children.length > 0) {
+                    axis.children.forEach(obj => {
+                        html += `
+                        <div style="border-left:4px solid #10b981; padding-left:15px; margin-left:10px;">
+                            <span style="font-size:0.75rem; font-weight:bold; color:#10b981; text-transform:uppercase;">Objetivo</span>
+                            <h5 style="margin:3px 0; color:#0f172a;">${escHtml(obj.title)}</h5>
+                            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                        `;
+                        
+                        if (obj.children && obj.children.length > 0) {
+                            obj.children.forEach(strat => {
+                                const statusColor = strat.status === 'Completed' ? '#10b981' : (strat.status === 'In Progress' ? '#3b82f6' : '#94a3b8');
+                                html += `
+                                <div style="border-left:3px solid #f59e0b; background:#fefce8; padding:10px 15px; border-radius:6px; margin-left:10px; display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <span style="font-size:0.7rem; font-weight:bold; color:#f59e0b; text-transform:uppercase;">Estrategia / Proyecto</span>
+                                        <h6 style="margin:2px 0 5px; font-size:0.95rem; color:#334155;">${escHtml(strat.title)}</h6>
+                                        <div style="font-size:0.8rem; color:#64748b;">Responsable: <b>${escHtml(strat.assigned_to_name||'Sin Asignar')}</b> | Fechas: ${escHtml(strat.start_date||'N/A')} al ${escHtml(strat.end_date||'N/A')}</div>
+                                    </div>
+                                    <span style="background:${statusColor}; color:white; padding:4px 8px; border-radius:12px; font-size:0.7rem; font-weight:bold;">${escHtml(strat.status)}</span>
+                                </div>
+                                `;
+                            });
+                        } else {
+                            html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic; margin-left:10px;">Sin estrategias definidas.</div>`;
+                        }
+                        html += `</div></div>`;
+                    });
+                } else {
+                    html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic;">Sin objetivos definidos.</div>`;
+                }
+                html += `</div></div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+</script>
     <script>
         async function init() {
             Swal.fire({ title: 'Consolidando Informe...', text: 'Recopilando datos de todas las áreas', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
@@ -813,928 +1749,161 @@
 
         document.addEventListener('DOMContentLoaded', init);
     
+        
         let _informeCharts = {};
         let _chartCounter = 0;
-        let nodeDataMap = {};
 
-function renderCuadrosProfesores(cuadros) {
+        // --- Helpers from Informes ---
+        function renderCuadrosProfesores(cuadros) {
             let dt = cuadros['factor4_profesores'] || cuadros['factor3_profesores'];
             if (!dt) return '';
-            const cid = `inf_chart_prof_${++_chartCounter}`;
-            let html = `<p class="cuadros-section-title"> Cuadros — Comunidad de Profesores</p>`;
-
-            if (dt.profesores && dt.profesores.length > 0) {
-                html += `
-                <table class="data-grid-table">
-                  <thead><tr><th>Período</th><th>Nombre</th><th>Dedicación</th><th>Formación</th><th>Años Exp.</th></tr></thead>
-                  <tbody>${dt.profesores.map(p=>`<tr><td>${p.periodo||'-'}</td><td>${p.nombre||'-'}</td><td>${p.dedicacion||'-'}</td><td>${p.formacion||'-'}</td><td>${p.exp||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-
-                // Gráfica dedicación
-                const dedicaciones = {};
-                dt.profesores.forEach(p => {
-                    const d = p.dedicacion || 'Sin dato';
-                    dedicaciones[d] = (dedicaciones[d]||0) + 1;
-                });
-                html += `<div class="informe-chart-wrap"><h5> Distribución por tipo de dedicación</h5>${_mkCanvas(cid)}</div>`;
-                _buildChart(cid, {
-                    type: 'bar',
-                    data: {
-                        labels: Object.keys(dedicaciones),
-                        datasets: [{ label: 'Docentes', data: Object.values(dedicaciones), backgroundColor: ['#2563eb','#10b981','#f59e0b','#8b5cf6','#ef4444'] }]
-                    },
-                    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, title:{display:true, text:'Docentes por tipo de vinculación'} } }
-                });
-            }
-            // IA de estadísticas de docentes
-            html += renderAIAnalysisPorFactor(cuadros, 'factor4_profesores', 'factor3_profesores', 'table_docentes', 'table_vinculacion_docente');
-            return html;
-        }
-
-        // ----------------------------------------------------------------
-        // CURRICULAR — Factor 5
-        // ----------------------------------------------------------------
-        function renderCuadrosCurriculares(cuadros) {
-            let dt = cuadros['factor5_curricular'];
-            if (!dt) return '';
-            const cid = `inf_chart_curr_${++_chartCounter}`;
-            let html = `<p class="cuadros-section-title"> Cuadros — Aspectos Académicos y Curriculares</p>`;
-
-            if (dt.asignaturas && dt.asignaturas.length > 0) {
-                html += `
-                <table class="data-grid-table">
-                  <thead><tr><th>Código</th><th>Asignatura</th><th>Créditos</th><th>Semestre</th><th>Núcleo</th><th>Estado</th></tr></thead>
-                  <tbody>${dt.asignaturas.map(p=>`<tr><td>${p.codigo||'-'}</td><td>${p.nombre||'-'}</td><td>${p.creditos||'-'}</td><td>${p.semestre||'-'}</td><td>${p.nucleo||'-'}</td><td>${p.estado||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-
-                const nucleos = {};
-                dt.asignaturas.forEach(a => { nucleos[a.nucleo||'Otro'] = (nucleos[a.nucleo||'Otro']||0) + parseFloat(a.creditos||0); });
-                html += `<div class="informe-chart-wrap"><h5> Distribución de créditos por núcleo de formación</h5>${_mkCanvas(cid)}</div>`;
-                _buildChart(cid, {
-                    type: 'doughnut',
-                    data: {
-                        labels: Object.keys(nucleos),
-                        datasets: [{ data: Object.values(nucleos), backgroundColor: ['#2563eb','#10b981','#f59e0b','#8b5cf6'] }]
-                    },
-                    options: { responsive:true, maintainAspectRatio:false, plugins:{ title:{display:true, text:'Créditos por Núcleo de Formación'} } }
-                });
-            }
-            if (dt.competencias && dt.competencias.length > 0) {
-                html += `
-                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Perfil y Competencias</p>
-                <table class="data-grid-table">
-                  <thead><tr><th>Competencia</th><th>Tipo</th><th>Asignaturas Asociadas</th></tr></thead>
-                  <tbody>${dt.competencias.map(c=>`<tr><td>${c.competencia||'-'}</td><td>${c.tipo||'-'}</td><td>${c.asignaturas||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-            }
-            if (dt.revisiones && dt.revisiones.length > 0) {
-                html += `
-                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Histórico de Revisiones Curriculares</p>
-                <table class="data-grid-table">
-                  <thead><tr><th>Fecha</th><th>Tipo de Revisión</th><th>Aspectos Modificados</th><th>Aprobación</th></tr></thead>
-                  <tbody>${dt.revisiones.map(r=>`<tr><td>${r.fecha||'-'}</td><td>${r.tipo||'-'}</td><td>${r.modificaciones||'-'}</td><td>${r.aprobacion||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-            }
-            html += renderAIAnalysisPorFactor(cuadros, 'factor5_curricular');
-            return html;
-        }
-
-        // ----------------------------------------------------------------
-        // SECTOR EXTERNO — Factor 7
-        // ----------------------------------------------------------------
-        function renderCuadrosExtension(cuadros) {
-            let dt = cuadros['factor7_extension'];
-            if (!dt) return '';
-            const cid = `inf_chart_ext_${++_chartCounter}`;
-            let html = `<p class="cuadros-section-title"> Cuadros — Sector Externo y Proyección</p>`;
-
-            if (dt.egresados && dt.egresados.length > 0) {
-                html += `
-                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Impacto en Egresados</p>
-                <table class="data-grid-table">
-                  <thead><tr><th>Período</th><th>Total Egresados</th><th>Ubicados Laboralmente</th><th>Sector</th></tr></thead>
-                  <tbody>${dt.egresados.map(e=>`<tr><td>${e.periodo||'-'}</td><td>${e.egresados||'-'}</td><td>${e.ubicados||'-'}</td><td>${e.sector||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-
-                const periodos = dt.egresados.map(e=>e.periodo||'');
-                const totEgr   = dt.egresados.map(e=>parseInt(e.egresados||0));
-                const ubicados = dt.egresados.map(e=>parseInt(e.ubicados||0));
-                html += `<div class="informe-chart-wrap"><h5> Egresados y ubicación laboral por período</h5>${_mkCanvas(cid)}</div>`;
-                _buildChart(cid, {
-                    type: 'bar',
-                    data: {
-                        labels: periodos,
-                        datasets: [
-                            { label:'Total Egresados', data:totEgr, backgroundColor:'#cbd5e1' },
-                            { label:'Ubicados Laboralmente', data:ubicados, backgroundColor:'#10b981' }
-                        ]
-                    },
-                    options: { responsive:true, maintainAspectRatio:false, plugins:{ title:{display:true, text:'Empleabilidad de Egresados'} } }
-                });
-            }
-            if (dt.convenios && dt.convenios.length > 0) {
-                html += `
-                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Convenios Vigentes</p>
-                <table class="data-grid-table">
-                  <thead><tr><th>Entidad</th><th>Sector</th><th>Vigencia</th><th>Estado</th></tr></thead>
-                  <tbody>${dt.convenios.map(c=>`<tr><td>${c.entidad||'-'}</td><td>${c.sector||'-'}</td><td>${c.vigencia||'-'}</td><td>${c.estado||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-            }
-            if (dt.practicas && dt.practicas.length > 0) {
-                html += `
-                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Prácticas Empresariales</p>
-                <table class="data-grid-table">
-                  <thead><tr><th>Período</th><th>Empresa</th><th>Tipo</th><th>Estudiantes</th><th>Estado</th></tr></thead>
-                  <tbody>${dt.practicas.map(p=>`<tr><td>${p.periodo||'-'}</td><td>${p.empresa||'-'}</td><td>${p.tipo||'-'}</td><td>${p.estudiantes||'-'}</td><td>${p.estado||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-            }
-            html += renderAIAnalysisPorFactor(cuadros, 'factor7_extension', 'table_extension');
-            return html;
-        }
-
-        // ----------------------------------------------------------------
-        // INVESTIGACIÓN — Factor 8
-        // ----------------------------------------------------------------
-        function renderCuadrosInvestigacion(cuadros) {
-            let dt = cuadros['factor8_investigacion'];
-            if (!dt) return '';
-            const cid = `inf_chart_inv_${++_chartCounter}`;
-            let html = `<p class="cuadros-section-title"> Cuadros — Investigación, Innovación y Creación</p>`;
-
-            if (dt.proyectos && dt.proyectos.length > 0) {
-                html += `
-                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Proyectos de Investigación</p>
-                <table class="data-grid-table">
-                  <thead><tr><th>Proyecto</th><th>Investigador P.</th><th>Línea</th><th>Financiación</th><th>Estado</th></tr></thead>
-                  <tbody>${dt.proyectos.map(p=>`<tr><td>${p.proyecto||'-'}</td><td>${p.ip||'-'}</td><td>${p.linea||'-'}</td><td>${p.financiacion||'-'}</td><td>${p.estado||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-
-                const estados = {};
-                dt.proyectos.forEach(p=>{ estados[p.estado||'Otro']=(estados[p.estado||'Otro']||0)+1; });
-                html += `<div class="informe-chart-wrap"><h5> Estado de proyectos de investigación</h5>${_mkCanvas(cid)}</div>`;
-                _buildChart(cid, {
-                    type: 'bar',
-                    data: {
-                        labels: Object.keys(estados),
-                        datasets: [{ label:'Proyectos', data:Object.values(estados), backgroundColor:['#3b82f6','#10b981','#64748b'] }]
-                    },
-                    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, title:{display:true, text:'Proyectos por Estado'} } }
-                });
-            }
-            if (dt.grupos && dt.grupos.length > 0) {
-                html += `
-                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Grupos de Investigación</p>
-                <table class="data-grid-table">
-                  <thead><tr><th>Nombre</th><th>Categoría Minciencias</th><th>Integrantes</th><th>Estado</th></tr></thead>
-                  <tbody>${dt.grupos.map(g=>`<tr><td>${g.nombre||'-'}</td><td>${g.categoria||'-'}</td><td>${g.integrantes||'-'}</td><td>${g.estado||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-            }
-            if (dt.publicaciones && dt.publicaciones.length > 0) {
-                html += `
-                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Publicaciones y Productos</p>
-                <table class="data-grid-table">
-                  <thead><tr><th>Período</th><th>Título</th><th>Tipo</th><th>Autores</th><th>Indexación</th></tr></thead>
-                  <tbody>${dt.publicaciones.map(p=>`<tr><td>${p.periodo||'-'}</td><td>${p.titulo||'-'}</td><td>${p.tipo||'-'}</td><td>${p.autores||'-'}</td><td>${p.indexacion||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-            }
-            if (dt.semilleros && dt.semilleros.length > 0) {
-                html += `
-                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Semilleros de Investigación</p>
-                <table class="data-grid-table">
-                  <thead><tr><th>Nombre</th><th>Tutor</th><th>Estudiantes</th><th>Proyectos Activos</th></tr></thead>
-                  <tbody>${dt.semilleros.map(s=>`<tr><td>${s.nombre||'-'}</td><td>${s.tutor||'-'}</td><td>${s.estudiantes||'-'}</td><td>${s.proyectos||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-            }
-            html += renderAIAnalysisPorFactor(cuadros, 'factor8_investigacion', 'table_investigacion', 'table_productividad');
-            return html;
-        }
-
-        // ----------------------------------------------------------------
-        // RECURSOS Y AMBIENTES — Factor 10
-        // ----------------------------------------------------------------
-        function renderCuadrosRecursos(cuadros) {
-            let dt = cuadros['factor10_recursos'];
-            if (!dt) return '';
-            const cid = `inf_chart_rec_${++_chartCounter}`;
-            let html = `<p class="cuadros-section-title"> Cuadros — Recursos, Ambientes e Infraestructura</p>`;
-
-            if (dt.aulas && dt.aulas.length > 0) {
-                html += `
-                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Aulas y Laboratorios</p>
-                <table class="data-grid-table">
-                  <thead><tr><th>Espacio</th><th>Cantidad</th><th>Capacidad</th><th>Ocupación %</th><th>Estado</th></tr></thead>
-                  <tbody>${dt.aulas.map(a=>`<tr><td>${a.espacio||'-'}</td><td>${a.cantidad||'-'}</td><td>${a.capacidad||'-'}</td><td>${a.ocupacion||'-'}</td><td>${a.estado||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-
-                const estados = {};
-                dt.aulas.forEach(a=>{ estados[a.estado||'Otro']=(estados[a.estado||'Otro']||0)+parseInt(a.cantidad||1); });
-                html += `<div class="informe-chart-wrap"><h5> Estado físico de espacios académicos</h5>${_mkCanvas(cid)}</div>`;
-                _buildChart(cid, {
-                    type: 'pie',
-                    data: {
-                        labels: Object.keys(estados),
-                        datasets: [{ data:Object.values(estados), backgroundColor:['#10b981','#3b82f6','#f59e0b','#ef4444'] }]
-                    },
-                    options: { responsive:true, maintainAspectRatio:false, plugins:{ title:{display:true, text:'Estado de Espacios Físicos'} } }
-                });
-            }
-            if (dt.oficinas && dt.oficinas.length > 0) {
-                html += `
-                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Oficinas y Bienestar</p>
-                <table class="data-grid-table">
-                  <thead><tr><th>Área</th><th>Cantidad</th><th>Área m²</th><th>Dotación</th><th>Estado</th></tr></thead>
-                  <tbody>${dt.oficinas.map(o=>`<tr><td>${o.area||'-'}</td><td>${o.cantidad||'-'}</td><td>${o.m2||'-'}</td><td>${o.dotacion||'-'}</td><td>${o.estado||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-            }
-            if (dt.biblioteca && dt.biblioteca.length > 0) {
-                html += `
-                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Recursos Bibliográficos</p>
-                <table class="data-grid-table">
-                  <thead><tr><th>Período</th><th>Libros Físicos</th><th>E-Books</th><th>Bases de Datos</th><th>Usuarios Activos</th></tr></thead>
-                  <tbody>${dt.biblioteca.map(b=>`<tr><td>${b.periodo||'-'}</td><td>${b.fisicos||'-'}</td><td>${b.ebooks||'-'}</td><td>${b.bd||'-'}</td><td>${b.usuarios||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-            }
-            if (dt.tecnologico && dt.tecnologico.length > 0) {
-                html += `
-                <p style="font-weight:700;margin-top:14px;font-size:0.9rem;">Recursos Tecnológicos</p>
-                <table class="data-grid-table">
-                  <thead><tr><th>Período</th><th>Labs Cómputo</th><th>Computadores</th><th>Software</th><th>Licencias</th></tr></thead>
-                  <tbody>${dt.tecnologico.map(t=>`<tr><td>${t.periodo||'-'}</td><td>${t.labs||'-'}</td><td>${t.pc||'-'}</td><td>${t.software||'-'}</td><td>${t.licencias||'-'}</td></tr>`).join('')}</tbody>
-                </table>`;
-            }
-            html += renderAIAnalysisPorFactor(cuadros, 'factor10_recursos', 'table_infraestructura');
-            return html;
-        }
-
-        // --- Lógica del Chatbot IA ---
-
-        const user = JSON.parse(localStorage.getItem('siac_user') || 'null');
-        if (!user) { window.top.location.href = 'login.html'; }
-        const roleLabel = (user && user.role) ? user.role.toUpperCase() : 'ADMIN';
-        try {
-            document.getElementById('userInfo').innerHTML = `<span>${user ? user.email : ''}</span> <span class="status ${(user && (user.role === 'admin' || user.role === 'inst_admin')) ? 'aprobado' : 'revision'}" style="margin-left:10px; padding:2px 8px; border-radius:12px; font-size:0.7rem;">${roleLabel}</span>`;
-        } catch(e) { console.warn('userInfo error:', e); }
-        
-        function logout() { localStorage.removeItem('siac_user'); window.top.location.href = 'login.html'; }
-
-        async function loadInstitution() {
-            try {
-                const instId = getInstId();
-                if (!instId) { document.getElementById('inst_name_display').textContent = 'Mi Organización'; return; }
-                const resp = await fetch(`/api/institution?inst_id=${instId}`);
-                if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                const data = await resp.json();
-                document.getElementById('inst_name_display').textContent = data.name || 'Mi Organización';
-                if (data.logo_url) {
-                    const img = document.getElementById('inst_logo_img');
-                    img.src = data.logo_url; img.style.display = 'block';
-                }
-            } catch(e) {
-                console.error('loadInstitution error:', e);
-                document.getElementById('inst_name_display').textContent = 'Mi Organización';
-            }
-        }
-        loadInstitution();
-        loadNotifications();
-        updateContextBreadcrumb();
-
-        // --- FUNCIONES GESTIÓN DE NOTIFICACIONES ---
-        async function loadNotifications() {
-            const user = JSON.parse(localStorage.getItem('siac_user'));
-            if (!user || !user.email) return;
+            _chartCounter++;
+            const canvasId = 'chart_prof_' + _chartCounter;
+            const tableHtml = dt;
+            const labels = [], dataVals = [], bgColors = [];
             
-            try {
-                const resp = await fetch(`/api/notificaciones?inst_id=${getInstId()}&program_id=${getProgramId()}&email=${user.email}`);
-                const notifications = await resp.json();
-                
-                const bell = document.getElementById('notifBell');
-                const badge = document.getElementById('notifBadge');
-                const list = document.getElementById('notifList');
-                
-                const unreadCount = notifications.filter(n => !n.leido).length;
-                
-                if (unreadCount > 0) {
-                    badge.style.display = 'flex';
-                    badge.textContent = unreadCount;
-                } else {
-                    badge.style.display = 'none';
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = tableHtml;
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push('#3b82f6');
                 }
-                
-                if (notifications.length === 0) {
-                    list.innerHTML = `<div class="notif-empty">No tienes notificaciones.</div>`;
-                    return;
-                }
-                
-                let html = '';
-                notifications.forEach(n => {
-                    const unreadClass = n.leido ? '' : 'unread';
-                    const timeStr = new Date(n.created_at).toLocaleString();
-                    html += `
-                        <div class="notif-item ${unreadClass}" onclick="markAsRead(${n.id})">
-                            <div class="notif-title">${n.titulo}</div>
-                            <div class="notif-desc">${n.mensaje}</div>
-                            <span class="notif-time">${timeStr}</span>
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Cantidad', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${tableHtml}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
                         </div>
-                    `;
-                });
-                list.innerHTML = html;
-            } catch (e) {
-                console.error("Error loading notifications:", e);
-            }
+                    </div>`;
         }
-        
-        async function markAsRead(id) {
-            try {
-                const resp = await fetch(`/api/notificaciones/${id}/read`, { method: 'POST' });
-                if (resp.ok) {
-                    loadNotifications();
+        function renderCuadrosCurriculares(cuadros) { return renderCuadrosGeneric(cuadros['factor5_academicos']||cuadros['factor4_academicos'], 'aspectos académicos'); }
+        function renderCuadrosExtension(cuadros) { return renderCuadrosGeneric(cuadros['factor7_extension']||cuadros['factor6_extension'], 'extensión e impacto'); }
+        function renderCuadrosInvestigacion(cuadros) { return renderCuadrosGeneric(cuadros['factor8_investigacion']||cuadros['factor7_investigacion'], 'investigación'); }
+        function renderCuadrosRecursos(cuadros) { return renderCuadrosGeneric(cuadros['factor10_recursos']||cuadros['factor9_recursos'], 'recursos e infraestructura'); }
+        function renderCuadrosGeneric(dt, context) {
+            if (!dt) return '';
+            _chartCounter++;
+            const canvasId = 'chart_gen_' + _chartCounter;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = dt;
+            const labels = [], dataVals = [], bgColors = [];
+            const rows = tempDiv.querySelectorAll('tbody tr');
+            rows.forEach((tr, i) => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 2) {
+                    labels.push(tds[0].innerText.trim());
+                    dataVals.push(parseInt(tds[1].innerText.replace(/,/g, '')) || 0);
+                    bgColors.push(i % 2 === 0 ? '#10b981' : '#f59e0b');
                 }
-            } catch(e) { console.error(e); }
+            });
+            const config = {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Total', data: dataVals, backgroundColor: bgColors }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            };
+            return `<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:15px;">
+                        <div style="flex:1; min-width:300px; font-size:0.85rem;">${dt}</div>
+                        <div style="flex:1; min-width:300px; height:250px;">
+                            <canvas id="${canvasId}" data-config='${JSON.stringify(config).replace(/'/g, "&#39;")}'></canvas>
+                        </div>
+                    </div>`;
         }
-        
-        async function markAllAsRead() {
-            const user = JSON.parse(localStorage.getItem('siac_user'));
-            if (!user || !user.email) return;
-            
-            try {
-                const resp = await fetch(`/api/notificaciones/read-all?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: user.email })
-                });
-                if (resp.ok) {
-                    loadNotifications();
+        function renderAIAnalysisPorFactor(cuadros, ...keys) {
+            if(!cuadros) return '';
+            for (const key of keys) {
+                const txt = cuadros[`ai_analysis_${key}`];
+                if (txt && txt.trim()) {
+                    return `<div class="informe-ai-block" style="margin-top:15px; padding:15px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px;">
+                        <h5 style="color:#0369a1; margin-top:0;">🤖 Análisis de IA</h5>
+                        <div style="font-size:0.9rem; color:#334155;">${marked.parse(txt)}</div>
+                    </div>`;
                 }
-            } catch(e) { console.error(e); }
-        }
-        
-        function toggleNotifDropdown(e) {
-            e.stopPropagation();
-            document.getElementById('notifDropdown').classList.toggle('show');
-        }
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', () => {
-            const dd = document.getElementById('notifDropdown');
-            if (dd) dd.classList.remove('show');
-        });
-        
-        // --- EXPORTAR PLAN DE MEJORAMIENTO A EXCEL ---
-        function exportPlanesExcel() {
-            const table = document.getElementById('tablaPlanesMejora');
-            if (!table) {
-                alert("Primero genere el informe para cargar los planes de mejora.");
-                return;
             }
-            const styles = `<style>table{border-collapse:collapse;width:100%;font-family:'Segoe UI',sans-serif}th{background:#d97706;color:#fff;font-weight:bold;text-align:left;padding:12px;border:1px solid #e2e8f0}td{padding:10px;border:1px solid #e2e8f0}tr:nth-child(even){background:#f9fafb}.badge-completado{background:#dcfce7;color:#166534;font-weight:bold;border-radius:4px;padding:2px 6px}.badge-vencido{background:#fee2e2;color:#991b1b;font-weight:bold;border-radius:4px;padding:2px 6px}.badge-proceso{background:#dbeafe;color:#1e40af;font-weight:bold;border-radius:4px;padding:2px 6px}.badge-pendiente{background:#fef3c7;color:#92400e;font-weight:bold;border-radius:4px;padding:2px 6px}</style>`;
-            const tempTable = table.cloneNode(true);
-            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}</head><body><h2>Plan de Mejoramiento Consolidado &mdash; ${document.getElementById('inst_name_display').textContent}</h2><br>${tempTable.outerHTML}</body></html>`;
-            const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Plan_Mejoramiento_${new Date().getFullYear()}.xls`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 1500);
-        }
-
-        async function updateContextBreadcrumb() {
-            const breadcrumb = document.getElementById('contextBreadcrumb');
-            if (!breadcrumb) return;
-            const progId = getProgramId();
-            const instId = getInstId();
-            
-            breadcrumb.style.display = 'block';
-            
-            if (!progId || progId == 0) {
-                // Check if user is inst_admin or admin - they can generate global institutional reports
-                const _cu = JSON.parse(localStorage.getItem('siac_user') || '{}');
-                const _cr = _cu.role || '';
-                const _canBypass = ['admin', 'super_admin', 'inst_admin'].includes(_cr);
-
-                if (!_canBypass) {
-                    breadcrumb.innerHTML = `⚠️ <strong>Contexto:</strong> Sin programa activo &mdash; Ve a <a href="configuracion.html" style="color:#b45309;font-weight:bold;text-decoration:underline;">Configuración</a> para seleccionar un programa.`;
-                    breadcrumb.style.background = '#fef9c3';
-                    breadcrumb.style.borderColor = '#ca8a04';
-                    breadcrumb.style.color = '#92400e';
-                    document.getElementById('informeContainer').innerHTML = `
-                        <div style="background:#fef9c3;border:2px dashed #ca8a04;border-radius:12px;padding:40px;text-align:center;margin-top:20px;">
-                            <div style="font-size:3rem;margin-bottom:15px;"></div>
-                            <h3 style="color:#92400e;margin-bottom:10px;">Sin Programa Académico Activo</h3>
-                            <p style="color:#78350f;max-width:500px;margin:0 auto;font-size:0.95rem;line-height:1.6;">
-                                No se puede generar ningún informe porque no tienes un Programa Académico activo.<br><br>
-                                Por favor, ve a <a href="configuracion.html" style="color:#92400e;text-decoration:underline;font-weight:bold;">Configuración</a>, selecciona o crea una Institución y un Programa Académico.
-                            </p>
-                        </div>`;
-                    document.querySelectorAll('.export-actions button').forEach(btn => {
-                        if (btn.id !== 'btnRRC') {
-                            btn.disabled = true;
-                            btn.style.opacity = '0.5';
-                            btn.style.cursor = 'not-allowed';
-                        }
-                    });
-                    return;
-                }
-                // Admin/inst_admin: show global institutional report notice
-                breadcrumb.innerHTML = `🏛️ <strong>Contexto:</strong> Vista Institucional Global &mdash; Informe consolidado de todos los programas de la institución.`;
-                breadcrumb.style.background = '#eff6ff';
-                breadcrumb.style.borderColor = '#bfdbfe';
-                breadcrumb.style.color = '#1e40af';
-                // Continue normally — do NOT return, let the report generate with program_id=0
-            }
-
-
-            try {
-                const [instResp, progResp] = await Promise.all([
-                    fetch('/api/institutions?t=' + Date.now()),
-                    fetch(`/api/programs?inst_id=${instId}&t=` + Date.now())
-                ]);
-                const institutions = await instResp.json();
-                const programs = await progResp.json();
-
-                const inst = institutions.find(i => i.id == instId);
-                const prog = programs.find(p => p.id == progId);
-
-                const instName = inst ? inst.name : `ID: ${instId}`;
-                const progName = prog ? `${prog.name} (${prog.period})` : `ID: ${progId}`;
-
-                breadcrumb.innerHTML = `🏛️ <strong>Institución:</strong> ${instName} &nbsp;›&nbsp; 📚 <strong>Programa:</strong> ${progName}`;
-                breadcrumb.style.background = '#f0f9ff';
-                breadcrumb.style.borderColor = '#bae6fd';
-                breadcrumb.style.color = '#0369a1';
-            } catch(e) {
-                breadcrumb.innerHTML = `🏛️ Inst. ID: ${instId} &nbsp;›&nbsp; 📚 Prog. ID: ${progId}`;
-            }
-        }
-
-        function getCNAClass(avg) {
-            if (avg >= 4.5) return 'grade-4-5';
-            if (avg >= 4.0) return 'grade-4-0';
-            if (avg >= 3.0) return 'grade-3-0';
-            if (avg > 0) return 'grade-low';
             return '';
         }
-
-        async function generarInforme(tipo) {
-            document.getElementById('loadingSpinner').style.display = 'block';
-            document.getElementById('informeContainer').style.display = 'none';
-            document.getElementById('btnImprimir').style.display = 'none';
-
-            try {
-                const res = await fetch(`/api/informe_dinamico?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const data = await res.json();
-                
-                // Fetch Planes de Mejora
-                const pmResp = await fetch(`/api/planes_mejora?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const planes = await pmResp.json();
-                data.planes_mejora = planes;
-                
-                // Fetch users to resolve names
-                let users = [];
-                try {
-                    const uResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                    users = await uResp.json();
-                } catch(e) {
-                    console.error("Error loading users:", e);
+        function renderAIAnalisisEstadisticas(cuadros) {
+            const statsKeys = ['table_estudiantes','table_docentes','table_desercion','table_vinculacion_docente','table_investigacion','table_productividad','table_extension','table_infraestructura'];
+            const labels = {'table_estudiantes': 'Población Estudiantil', 'table_docentes': 'Planta Docente', 'table_desercion': 'Deserción / Permanencia'};
+            let html = '';
+            statsKeys.forEach(k => {
+                if (cuadros[`ai_analysis_${k}`]) {
+                    html += `<div class="informe-ai-block" style="margin-bottom:14px; border-bottom:1px dashed #cbd5e1; padding-bottom:14px;">
+                        <h5 style="color:#1e40af;">📌 Análsis IA: ${labels[k]||k}</h5>
+                        <div class="ai-md-content" style="font-size:0.9rem;">${marked.parse(cuadros[`ai_analysis_${k}`])}</div>
+                    </div>`;
                 }
-                window.systemUsers = users;
-                
-                renderInforme(data, tipo);
-            } catch (err) {
-                alert("Error generando informe: " + err);
-            } finally {
-                document.getElementById('loadingSpinner').style.display = 'none';
-            }
+            });
+            return html;
         }
-
-        function renderInforme(data, tipo) {
-            const container = document.getElementById('informeContainer');
-            document.getElementById('informeTitulo').textContent = `INFORME ${tipo.toUpperCase()} DE AUTOEVALUACIÓN`;
-            
-            let subtitleText = `Generado el: ${new Date().toLocaleDateString()}`;
-            if (tipo === 'parcial') {
-                subtitleText += ` &nbsp;|&nbsp; <span style="color:#d97706; font-weight:bold; background:#fef3c7; padding:4px 8px; border-radius:12px; font-size:0.9rem;">⚠️ Documento Preliminar en Construcción</span>`;
-            } else {
-                subtitleText += ` &nbsp;|&nbsp; <span style="color:#166534; font-weight:bold; background:#dcfce7; padding:4px 8px; border-radius:12px; font-size:0.9rem;">✅ Documento Final Oficial</span>`;
-            }
-            document.getElementById('informeFecha').innerHTML = subtitleText;
-            
-            const tbody = document.querySelector('#tablaResumen tbody');
-            tbody.innerHTML = '';
-            
-            const radarLabels = [];
-            const radarData = [];
-
-            const detalleDiv = document.getElementById('detalleFactores');
-            detalleDiv.innerHTML = '';
-
-            // Destruir charts anteriores del informe
-            Object.keys(_informeCharts).forEach(k => { try { _informeCharts[k].destroy(); } catch(e){} delete _informeCharts[k]; });
-            _chartCounter = 0;
-
-            // Guard: if no factores data, show friendly message
-            if (!data.factores || data.factores.length === 0) {
-                container.innerHTML = `<div style="background:#fff7ed;border:2px dashed #f97316;border-radius:12px;padding:40px;text-align:center;margin-top:20px;">
-                    <div style="font-size:3rem;margin-bottom:15px;">📋</div>
-                    <h3 style="color:#c2410c;margin-bottom:10px;">Sin Datos de Autoevaluación</h3>
-                    <p style="color:#7c2d12;max-width:500px;margin:0 auto;font-size:0.9rem;line-height:1.6;">
-                        No se encontraron evaluaciones guardadas para esta institución.<br><br>
-                        Por favor asegúrese de que los factores del modelo estén calificados en la sección de <strong>Autoevaluación</strong> antes de generar un informe.
-                    </p></div>`;
-                container.style.display = 'block';
-                document.getElementById('btnImprimir').style.display = 'none';
-                return;
-            }
-
-            // Acumular TODO el HTML primero (para evitar que innerHTML+= destruya canvas)
-            let todoElHtml = '';
-
-
-            data.factores.forEach(f => {
-                // Resumen
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>Factor ${f.number}: ${f.name}</td>
-                    <td><b>${f.nota_promedio.toFixed(1)}</b> / 5.0</td>
-                    <td><span class="grade-badge ${getCNAClass(f.nota_promedio)}">${f.cualitativo}</span></td>
-                `;
-                tbody.appendChild(tr);
-
-                radarLabels.push(`F${f.number}`);
-                radarData.push(f.nota_promedio);
-
-                // Detalle
-                let factorHtml = `
-                    <div class="factor-section">
-                        <div class="factor-title">
-                            <span>Factor ${f.number}: ${f.name}</span>
-                            <span class="grade-badge ${getCNAClass(f.nota_promedio)}" style="font-size:1rem;">${f.nota_promedio.toFixed(1)} - ${f.cualitativo}</span>
-                        </div>
-                        <div style="background:#f8fafc; padding:15px; border-radius:8px; margin-bottom:20px; font-style:italic;">
-                            <b>Justificación Consolidada:</b> ${f.justificacion_general || 'No hay justificaciones cualitativas registradas.'}
-                        </div>
-                `;
-
-                // Renderizar Características del Factor (Autoevaluación vs. Percepción)
-                let charsHtml = `<h4>Evaluación por Características y Percepción de la Comunidad:</h4>
-                                 <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:25px;">`;
-                f.caracteristicas.forEach(c => {
-                    const cnaClass = getCNAClass(c.nota_promedio);
-                    
-                    let percHtml = '';
-                    if (c.percepcion_cantidad > 0) {
-                        const percClass = getCNAClass(c.percepcion_promedio);
-                        percHtml = `
-                            <div style="margin-top:8px; display:flex; align-items:center; gap:10px; font-size:0.8rem; color:#0369a1; background:#f0f9ff; padding:6px 12px; border-radius:6px; border:1px solid #bae6fd; flex-wrap:wrap;">
-                                <span> <b>Percepción Comunidad:</b> ${c.percepcion_promedio.toFixed(2)} / 5.0 (${c.percepcion_cantidad} respuestas)</span>
-                                <span class="grade-badge ${percClass}" style="padding:2px 8px; font-size:0.72rem;">${c.percepcion_promedio >= 4.5 ? 'Plenamente' : c.percepcion_promedio >= 4.0 ? 'Alto Grado' : c.percepcion_promedio >= 3.0 ? 'Aceptable' : 'No se cumple'}</span>
-                            </div>
-                        `;
-                        if (c.percepcion_comentarios && c.percepcion_comentarios.length > 0) {
-                            const topComments = c.percepcion_comentarios.slice(0, 2);
-                            percHtml += `<div style="font-size:0.78rem; color:#64748b; margin-top:5px; padding-left:12px; font-style:italic;">`;
-                            topComments.forEach(comm => {
-                                percHtml += `— "${comm.text}" (${comm.target})<br>`;
-                            });
-                            percHtml += `</div>`;
-                        }
-                    } else {
-                        percHtml = `
-                            <div style="margin-top:8px; font-size:0.8rem; color:#64748b; background:#f8fafc; padding:6px 12px; border-radius:6px; border:1px solid #e2e8f0;">
-                                ℹ️ Sin datos de encuestas vinculadas a esta característica.
-                            </div>
-                        `;
-                    }
-                    
-                    charsHtml += `
-                        <div style="background:#fff; border:1px solid var(--border-color); border-radius:8px; padding:15px; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
-                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                                <span style="font-weight:600; font-size:0.92rem; color:var(--text-main);">${c.number}. ${c.name}</span>
-                                <span class="grade-badge ${cnaClass}" style="font-size:0.75rem;">Autoevaluación: ${c.nota_promedio > 0 ? c.nota_promedio.toFixed(1) : 'Sin evaluar'}</span>
-                            </div>
-                            ${percHtml}
-                        </div>
-                    `;
-                });
-                charsHtml += `</div>`;
-                factorHtml += charsHtml;
-
-
-                // Renderizar Cuadros de Datos + IA si existen para este factor
-                const c_name = String(f.name).toLowerCase();
-                if (f.number == 3 || f.number == 4 || c_name.includes('profesores') || c_name.includes('docentes')) {
-                    factorHtml += renderCuadrosProfesores(data.cuadros);
-                } else if (f.number == 5 || c_name.includes('académicos') || c_name.includes('academicos') || c_name.includes('curricular')) {
-                    factorHtml += renderCuadrosCurriculares(data.cuadros);
-                } else if (f.number == 7 || c_name.includes('entorno') || c_name.includes('extensi') || c_name.includes('sector externo')) {
-                    factorHtml += renderCuadrosExtension(data.cuadros);
-                } else if (f.number == 8 || c_name.includes('investigaci') || c_name.includes('innovaci')) {
-                    factorHtml += renderCuadrosInvestigacion(data.cuadros);
-                } else if (f.number == 10 || f.number == 9 || c_name.includes('recursos') || c_name.includes('ambientes') || c_name.includes('infraestructura') || c_name.includes('medios')) {
-                    factorHtml += renderCuadrosRecursos(data.cuadros);
-                } else {
-                    // Para otros factores, mostrar análisis de IA de estadisticas si existe
-                    const anyAI = renderAIAnalysisPorFactor(data.cuadros,
-                        `table_estudiantes`, `table_desercion`);
-                    if (anyAI) factorHtml += anyAI;
-                }
-
-                // Renderizar Evidencias Documentales
-                let hasEvidences = false;
-                let evidencesHtml = `<h4>Evidencias Documentales Anexas:</h4><ul class="evidence-list">`;
-                f.caracteristicas.forEach(c => {
-                    c.aspectos.forEach(a => {
-                        if (a.evidencias && a.evidencias.length > 0) {
-                            hasEvidences = true;
-                            a.evidencias.forEach(ev => {
-                                const periodBadge = ev.period ? `<span style="background:#e2e8f0; color:#475569; padding:2px 6px; border-radius:4px; font-size:0.75rem; margin-right:5px; font-weight:600;">[${ev.period}]</span>` : '';
-                                evidencesHtml += `<li><b>[A${a.number}]</b> ${periodBadge} <a href="javascript:void(0)" onclick="abrirVisor('${ev.file_url || ''}', '${(ev.name || '').replace(/'/g, "\\'")}')" style="color:var(--primary-color); text-decoration:none;">👁️ ${ev.name}</a></li>`;
-                            });
-                        }
-                    });
-                });
-                evidencesHtml += `</ul>`;
-                
-                if (hasEvidences) {
-                    factorHtml += evidencesHtml;
-                } else {
-                    factorHtml += `<p style="color:#64748b; font-size:0.9rem;">No hay evidencias documentales anexas para este factor.</p>`;
-                }
-
-                factorHtml += `</div>`;
-                todoElHtml += factorHtml;
-            });
-
-            // === SECCIÓN ANÁLISIS DE IA DE ESTADÍSTICAS (módulo Estadísticas) ===
-            const statsAIHtml = renderAIAnalisisEstadisticas(data.cuadros);
-            if (statsAIHtml || (data.cuadros && data.cuadros['ai_analysis_global'])) {
-                let aiSectionHtml = `
-                    <div class="factor-section" style="margin-top:40px; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
-                        <div class="factor-title" style="background:linear-gradient(135deg,#4338ca,#312e81); color:white; border-bottom:none; border-radius:8px 8px 0 0;">
-                            <span>* Análisis de IA — Cuadros de Datos Estadísticos</span>
-                        </div>
-                        <div style="padding:25px; background:white; border:1px solid #e2e8f0; border-radius:0 0 8px 8px;">
-                `;
-                if (data.cuadros && data.cuadros['ai_analysis_global']) {
-                    aiSectionHtml += `
-                        <div class="informe-ai-block" style="margin-bottom:14px;">
-                            <h5>🌐 Análisis Integral Global</h5>
-                            <div class="ai-md-content">${marked.parse(data.cuadros['ai_analysis_global'])}</div>
-                        </div>`;
-                }
-                
-                if (statsAIHtml) {
-                    aiSectionHtml += statsAIHtml;
-                }
-                
-                aiSectionHtml += `
-                        </div>
-                    </div>
-                `;
-                todoElHtml += aiSectionHtml;
-            }
-            
-            const planes = data.planes_mejora || [];
-            const totalPlanes = planes.length;
-            
-            const avgProgress = totalPlanes > 0 ? (planes.reduce((acc, p) => acc + (p.avance || 0), 0) / totalPlanes).toFixed(1) : '0.0';
-            const totalDinero = planes.reduce((acc, p) => acc + (parseFloat(p.presupuesto_dinero) || 0), 0);
-            const timeBudgets = planes.map(p => p.presupuesto_tiempo).filter(t => t && t.trim() !== '');
-            const totalTiempoText = timeBudgets.length > 0 ? `${timeBudgets.length} asignados` : 'Ninguno';
-            
-            let pendingCount = 0;
-            let processCount = 0;
-            let completedCount = 0;
-            let expiredCount = 0;
-            const now = new Date();
-            
-            planes.forEach(p => {
-                const limitDate = new Date(p.fecha_limite);
-                if (p.estado === 'Completado') {
-                    completedCount++;
-                } else if (limitDate < now) {
-                    expiredCount++;
-                } else if (p.avance > 0 || p.estado === 'En proceso') {
-                    processCount++;
-                } else {
-                    pendingCount++;
-                }
-            });
-            
-            let planesHtml = `
-                <div class="planes-consolidado-section">
-                    <h2 style="font-size:14pt; font-weight:700; color:#1e3a8a; margin:28px 0 12px; border-bottom:2px solid #2563eb; padding-bottom:6px; text-align: left;">Plan de Mejoramiento Consolidado del Programa</h2>
-                    <p style="color:#64748b; margin-bottom:20px; text-align: left; font-size: 0.9rem;">Seguimiento detallado de las acciones de mejoramiento registradas por los líderes de factor.</p>
-                    
-                    <div class="planes-grid">
-                        <div class="planes-metrics-card" style="grid-template-columns: repeat(3, 1fr); gap: 15px; flex: 2; display: grid;">
-                            <div class="plane-metric-box" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
-                                <span class="plane-metric-val" style="display:block; font-size:1.3rem; font-weight:700; color:#0f172a;">${totalPlanes}</span>
-                                <span class="plane-metric-lbl" style="font-size:0.75rem; color:#64748b;">Total Acciones</span>
-                            </div>
-                            <div class="plane-metric-box" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
-                                <span class="plane-metric-val" style="display:block; font-size:1.3rem; font-weight:700; color:#2563eb;">${avgProgress}%</span>
-                                <span class="plane-metric-lbl" style="font-size:0.75rem; color:#64748b;">Avance Promedio</span>
-                            </div>
-                            <div class="plane-metric-box" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
-                                <span class="plane-metric-val" style="display:block; font-size:1.3rem; font-weight:700; color:#059669;">$${totalDinero.toLocaleString()}</span>
-                                <span class="plane-metric-lbl" style="font-size:0.75rem; color:#64748b;">Inversión Total</span>
-                            </div>
-                            <div class="plane-metric-box" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
-                                <span class="plane-metric-val" style="display:block; font-size:1.3rem; font-weight:700; color:#d97706;">${totalTiempoText}</span>
-                                <span class="plane-metric-lbl" style="font-size:0.75rem; color:#64748b;">Tiempo Asignado</span>
-                            </div>
-                            <div class="plane-metric-box" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
-                                <span class="plane-metric-val" style="display:block; font-size:1.3rem; font-weight:700; color:#10b981;">${completedCount}</span>
-                                <span class="plane-metric-lbl" style="font-size:0.75rem; color:#64748b;">Completadas</span>
-                            </div>
-                            <div class="plane-metric-box" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center;">
-                                <span class="plane-metric-val" style="display:block; font-size:1.3rem; font-weight:700; color:#ef4444;">${expiredCount}</span>
-                                <span class="plane-metric-lbl" style="font-size:0.75rem; color:#64748b;">Vencidas</span>
-                            </div>
-                        </div>
-                        <div class="planes-chart-card" style="flex: 1;">
-                            <h5 style="margin: 0 0 15px; font-weight:600; color:#475569; font-size:0.85rem; text-transform:uppercase;">Distribución de Acciones</h5>
-                            <div style="position:relative; height:180px; width:100%;">
-                                <canvas id="planesMejoraChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-                        <h3 style="margin:0; font-size:11pt; font-weight:700; color:#1e293b;">Listado de Acciones</h3>
-                        <button class="btn-primary" onclick="exportPlanesExcel()" style="background:#d97706; border:none; padding:8px 16px; border-radius:6px; font-size:0.85rem; cursor:pointer; color: white;">📥 Exportar Plan (Excel)</button>
-                    </div>
-                    
-                    <table class="summary-table" id="tablaPlanesMejora" style="margin-top:10px; width:100%; border-collapse:collapse; font-size:8.5pt;">
-                        <thead>
-                            <tr style="background:#1e3a8a; color:white;">
-                                <th style="padding:8px 10px; text-align:left;">Caract.</th>
-                                <th style="padding:8px 10px; text-align:left;">Actividad / Acción</th>
-                                <th style="padding:8px 10px; text-align:left;">Meta</th>
-                                <th style="padding:8px 10px; text-align:left;">Fecha Inicio</th>
-                                <th style="padding:8px 10px; text-align:left;">Fecha Fin</th>
-                                <th style="padding:8px 10px; text-align:left;">P. Tiempo</th>
-                                <th style="padding:8px 10px; text-align:left;">P. Dinero</th>
-                                <th style="padding:8px 10px; text-align:left;">Responsable</th>
-                                <th style="padding:8px 10px; text-align:left;">Rol</th>
-                                <th style="padding:8px 10px; text-align:left;">Indicador</th>
-                                <th style="padding:8px 10px; text-align:left;">Avance</th>
-                                <th style="padding:8px 10px; text-align:left;">Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-            
-            if (planes.length === 0) {
-                planesHtml += `<tr><td colspan="12" style="text-align:center; color:#94a3b8; padding:20px;">No se han formulado acciones de mejoramiento para este programa.</td></tr>`;
-            } else {
-                planes.forEach(p => {
-                    const statusVal = p.estado === 'Completado' ? 'Completado' : (new Date(p.fecha_limite) < now ? 'Vencido' : p.estado);
-                    const badgeClass = statusVal === 'Completado' ? 'grade-4-5' : statusVal === 'Vencido' ? 'grade-low' : statusVal === 'En proceso' ? 'grade-4-0' : 'grade-3-0';
-                    
-                    const uObj = (window.systemUsers || []).find(u => u.email === p.responsable);
-                    const respName = uObj ? (uObj.name || uObj.email) : p.responsable;
-                    
-                    const indText = p.indicador_tipo === 'porcentaje' ? `Porcentaje (${p.indicador_meta_num}/${p.indicador_meta_den})` :
-                                    p.indicador_tipo === 'documento' ? (p.indicador_documento_url ? '📄 Soporte subido' : '⚠️ Sin soporte') :
-                                    ' Opinión (Encuestas)';
-                                    
-                    planesHtml += `
-                        <tr>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;"><b>C. ${p.char_id}</b></td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-align: left;">${p.accion}</td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-align: left;">${p.meta || '-'}</td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;">${p.fecha_inicio || '-'}</td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;">${p.fecha_limite || '-'}</td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;">${p.presupuesto_tiempo || '-'}</td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;">${p.presupuesto_dinero ? '$' + Number(p.presupuesto_dinero).toLocaleString() : '$0'}</td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-align: left;">${respName}</td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-transform: uppercase;">${p.responsable_rol || 'lider'}</td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; text-align: left;">${indText}</td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0; width:100px;">
-                                <div style="display:flex; align-items:center; gap:6px;">
-                                    <progress value="${p.avance}" max="100" style="flex:1; height:8px; border-radius:4px;"></progress>
-                                    <span>${p.avance}%</span>
-                                </div>
-                            </td>
-                            <td style="padding:7px 10px; border-bottom:1px solid #e2e8f0;"><span class="grade-badge ${badgeClass}" style="padding:4px 8px; font-size:0.75rem;">${statusVal}</span></td>
-                        </tr>
-                    `;
-                });
-            }
-            
-            planesHtml += `
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            
-            todoElHtml += planesHtml;
-
-            // Inyectar TODO el HTML de una sola vez (preserva canvas para _buildChart)
-            _pendingCharts = []; // reset before rebuilding
-            detalleDiv.innerHTML = todoElHtml;
-            _flushCharts(); // NOW draw charts — canvas elements exist in DOM
-
-            // Dibujar Radar
-            if (window.myRadar) window.myRadar.destroy();
-            const ctx = document.getElementById('radarChart').getContext('2d');
-            window.myRadar = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: radarLabels,
-                    datasets: [{
-                        label: 'Calificación Obtenida',
-                        data: radarData,
-                        backgroundColor: 'rgba(37, 99, 235, 0.2)',
-                        borderColor: 'rgba(37, 99, 235, 1)',
-                        pointBackgroundColor: 'rgba(37, 99, 235, 1)'
-                    }, {
-                        label: 'Meta Ideal (Plenamente)',
-                        data: Array(radarLabels.length).fill(4.5),
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        borderColor: 'rgba(16, 185, 129, 0.5)',
-                        borderDash: [5, 5]
-                    }]
-                },
-                options: {
-                    scales: { r: { min: 0, max: 5 } },
-                    responsive: true, maintainAspectRatio: false
-                }
-            });
-
-            // Render Planes Donut Chart
-            if (window.myPlanesChart) window.myPlanesChart.destroy();
-            const pmCtx = document.getElementById('planesMejoraChart');
-            if (pmCtx) {
-                window.myPlanesChart = new Chart(pmCtx.getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Completado', 'Vencido', 'En proceso', 'Pendiente'],
-                        datasets: [{
-                            data: [completedCount, expiredCount, processCount, pendingCount],
-                            backgroundColor: ['#10b981', '#ef4444', '#3b82f6', '#f59e0b'],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'right',
-                                labels: { boxWidth: 12, font: { size: 10 } }
-                            }
-                        }
-                    }
-                });
-            }
-
-            container.style.display = 'block';
-            document.getElementById('btnImprimir').style.display = 'inline-block';
-        }
-
-        // ============================================================
-
-function escHtml(str) {
+        function escHtml(str) {
             if(!str) return '';
             return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
         }
 
-        // ─── Load users for assignment dropdowns ──────────────────────
-        let institutionUsers = [];
-        async function loadInstitutionUsers() {
-            try {
-                const res = await fetch(`/api/planning/users?inst_id=${getInstId()}`);
-                const data = await res.json();
-                if(data.status === 'success') institutionUsers = data.users;
-            } catch(e) { console.warn('Could not load users list', e); }
-        }
-
-        function buildUserSelect(selectedValue = '') {
-            const roleLabels = {
-                'admin': 'Administrador', 'lider': 'Líder de Factor',
-                'operador': 'Operador', 'docente': 'Docente', 'estudiante': 'Estudiante'
-            };
-            let opts = `<option value="">-- Seleccionar responsable --</option>`;
-            institutionUsers.forEach(u => {
-                const label = roleLabels[u.role] || u.role || '';
-                const sel = u.name === selectedValue || u.email === selectedValue ? 'selected' : '';
-                opts += `<option value="${escHtml(u.name)}" ${sel}>${escHtml(u.name)} (${label})</option>`;
-            });
-            // Add current value if not in list
-            if(selectedValue && !institutionUsers.find(u => u.name === selectedValue || u.email === selectedValue)) {
-                opts += `<option value="${escHtml(selectedValue)}" selected>${escHtml(selectedValue)}</option>`;
-            }
-            return `<select id="f_resp">${opts}</select>`;
-        }
-
-        // ─── Render Tree (professional) ───────────────────────────────
+        // --- Read-Only Tree Renderer ---
         function renderTree(tree) {
-            nodeDataMap = {}
+            const container = document.getElementById('planningTree');
+            if(!tree || tree.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:#64748b;">No hay Planificación Estratégica definida.</div>`;
+                return;
+            }
+            let html = '<div style="display:flex; flex-direction:column; gap:15px;">';
+            tree.forEach(axis => {
+                html += `
+                <div style="border-left:5px solid #2563eb; background:white; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
+                    <div style="padding:15px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                        <span style="font-size:0.8rem; font-weight:bold; color:#2563eb; text-transform:uppercase;">Eje Estratégico</span>
+                        <h4 style="margin:5px 0 0; color:#1e293b;">${escHtml(axis.name)}</h4>
+                        ${axis.description ? `<p style="margin:10px 0 0; font-size:0.9rem; color:#64748b;">${escHtml(axis.description)}</p>` : ''}
+                    </div>
+                    <div style="padding:15px; display:flex; flex-direction:column; gap:15px;">
+                `;
+                
+                if (axis.children && axis.children.length > 0) {
+                    axis.children.forEach(obj => {
+                        html += `
+                        <div style="border-left:4px solid #10b981; padding-left:15px; margin-left:10px;">
+                            <span style="font-size:0.75rem; font-weight:bold; color:#10b981; text-transform:uppercase;">Objetivo</span>
+                            <h5 style="margin:3px 0; color:#0f172a;">${escHtml(obj.title)}</h5>
+                            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                        `;
+                        
+                        if (obj.children && obj.children.length > 0) {
+                            obj.children.forEach(strat => {
+                                const statusColor = strat.status === 'Completed' ? '#10b981' : (strat.status === 'In Progress' ? '#3b82f6' : '#94a3b8');
+                                html += `
+                                <div style="border-left:3px solid #f59e0b; background:#fefce8; padding:10px 15px; border-radius:6px; margin-left:10px; display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <span style="font-size:0.7rem; font-weight:bold; color:#f59e0b; text-transform:uppercase;">Estrategia / Proyecto</span>
+                                        <h6 style="margin:2px 0 5px; font-size:0.95rem; color:#334155;">${escHtml(strat.title)}</h6>
+                                        <div style="font-size:0.8rem; color:#64748b;">Responsable: <b>${escHtml(strat.assigned_to_name||'Sin Asignar')}</b> | Fechas: ${escHtml(strat.start_date||'N/A')} al ${escHtml(strat.end_date||'N/A')}</div>
+                                    </div>
+                                    <span style="background:${statusColor}; color:white; padding:4px 8px; border-radius:12px; font-size:0.7rem; font-weight:bold;">${escHtml(strat.status)}</span>
+                                </div>
+                                `;
+                            });
+                        } else {
+                            html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic; margin-left:10px;">Sin estrategias definidas.</div>`;
+                        }
+                        html += `</div></div>`;
+                    });
+                } else {
+                    html += `<div style="font-size:0.85rem; color:#94a3b8; font-style:italic;">Sin objetivos definidos.</div>`;
+                }
+                html += `</div></div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
 
 </script>
 </body>
