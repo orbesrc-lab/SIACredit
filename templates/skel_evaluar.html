@@ -176,8 +176,31 @@
             container.innerHTML = html;
         }
 
+        document.getElementById('btn-submit').addEventListener('click', (e) => {
+            const form = document.getElementById('eval-form');
+            if (!form.checkValidity()) {
+                e.preventDefault();
+                showError("Por favor, responde todas las preguntas para poder enviar la evaluación.");
+                const firstInvalid = form.querySelector(':invalid');
+                if (firstInvalid) {
+                    // Find the parent .pregunta container and scroll to it
+                    const container = firstInvalid.closest('.pregunta');
+                    if (container) {
+                        container.style.border = "2px solid #ef4444";
+                        container.style.padding = "10px";
+                        container.style.borderRadius = "8px";
+                        container.scrollIntoView({behavior: 'smooth', block: 'center'});
+                        setTimeout(() => { container.style.border = "none"; container.style.padding = "0"; }, 3000);
+                    } else {
+                        firstInvalid.scrollIntoView({behavior: 'smooth', block: 'center'});
+                    }
+                }
+            }
+        });
+
         document.getElementById('eval-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            document.getElementById('error-msg').style.display = 'none';
             const btn = document.getElementById('btn-submit');
             btn.disabled = true;
             btn.innerText = 'Enviando...';
