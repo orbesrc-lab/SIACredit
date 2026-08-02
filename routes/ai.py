@@ -1144,6 +1144,32 @@ def ai_chat():
         return jsonify({"status": "success", "answer": answer})
     except Exception as e:
         print(f"Error AI Chat: {e}")
+        
+        # Fallback: Intentar buscar en la base de datos de entrenamiento (ai_chat_logs)
+        if question and not file_url:
+            try:
+                from utils.db import supabase
+                res = supabase.table('ai_chat_logs').select('prompt, response').execute()
+                if res.data:
+                    query_words = set([w for w in question.lower().replace('?','').replace('¿','').split() if len(w) > 3])
+                    best_match = None
+                    best_score = 0
+                    for row in res.data:
+                        if not row.get('prompt') or not row.get('response'): continue
+                        prompt_words = set([w for w in row['prompt'].lower().replace('?','').replace('¿','').split() if len(w) > 3])
+                        
+                        score = len(query_words.intersection(prompt_words))
+                        # Basic threshold: at least 1 significant word match, but prioritize higher scores
+                        if score > best_score and score >= 1:
+                            best_score = score
+                            best_match = row['response']
+                    
+                    if best_match:
+                        fallback_msg = f"{best_match}\n\n*(Modo Offline: IA sin conexión. Respuesta obtenida de la base de conocimiento interno.)*"
+                        return jsonify({"status": "success", "answer": fallback_msg})
+            except Exception as fallback_e:
+                print(f"Fallback search error: {fallback_e}")
+                
         return jsonify({"error": str(e)})
 
 @ai_bp.route('/api/export-chat-logs', methods=['GET'])
