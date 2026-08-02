@@ -584,9 +584,10 @@
                         <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
                             <tr style="background:#f1f5f9;"><th style="padding:8px;text-align:left;">Fuerza</th><th style="padding:8px;text-align:left;">Descripción</th><th style="padding:8px;">Impacto</th></tr>
                 `;
-                if(porterData.data && porterData.data.factors && porterData.data.factors.length > 0) {
-                    porterData.data.factors.forEach(f => { 
-                        pHtml += `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px; font-weight:600;">${(f.type||'').toUpperCase()}</td><td style="padding:8px;">${f.factor}</td><td style="padding:8px;">${f.level||'N/A'}</td></tr>`; 
+                if(porterData.data && porterData.data.forces && Object.keys(porterData.data.forces).length > 0) {
+                    const translations = { rivalidad: 'Rivalidad entre competidores', proveedores: 'Poder de proveedores', clientes: 'Poder de clientes', entrantes: 'Amenaza de nuevos entrantes', sustitutos: 'Amenaza de sustitutos' };
+                    Object.entries(porterData.data.forces).forEach(([key, val]) => {
+                        pHtml += `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px; font-weight:600;">${translations[key] || key}</td><td style="padding:8px;">${val}</td><td style="padding:8px;">Alta/Media/Baja</td></tr>`; 
                     });
                 } else { pHtml += `<tr><td colspan="3" style="padding:8px;">No hay fuerzas registradas.</td></tr>`; }
                 pHtml += `</table></div>`;
@@ -600,9 +601,9 @@
                         <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
                             <tr style="background:#f1f5f9;"><th style="padding:8px;text-align:left;">Riesgo</th><th style="padding:8px;">Probabilidad</th><th style="padding:8px;">Impacto</th><th style="padding:8px;text-align:left;">Mitigación</th></tr>
                 `;
-                if(riesgosData.data && riesgosData.data.factors && riesgosData.data.factors.length > 0) {
-                    riesgosData.data.factors.forEach(f => { 
-                        rHtml += `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px;">${f.factor}</td><td style="padding:8px;">${f.prob||'N/A'}</td><td style="padding:8px;">${f.impact||'N/A'}</td><td style="padding:8px;">${f.mitigation||'No definida'}</td></tr>`; 
+                if(riesgosData.data && riesgosData.data.risks && riesgosData.data.risks.length > 0) {
+                    riesgosData.data.risks.forEach(f => { 
+                        rHtml += `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px;">${f.desc||''}</td><td style="padding:8px;">${f.prob||''}</td><td style="padding:8px;">${f.impact||''}</td><td style="padding:8px;">${f.plan||'No definida'}</td></tr>`; 
                     });
                 } else { rHtml += `<tr><td colspan="4" style="padding:8px;">No hay riesgos.</td></tr>`; }
                 rHtml += `</table></div>`;
@@ -615,9 +616,9 @@
                         <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
                             <tr style="background:#f1f5f9;"><th style="padding:8px;text-align:left;">Stakeholder</th><th style="padding:8px;">Interés</th><th style="padding:8px;">Poder</th><th style="padding:8px;text-align:left;">Estrategia</th></tr>
                 `;
-                if(stData.data && stData.data.factors && stData.data.factors.length > 0) {
-                    stData.data.factors.forEach(f => { 
-                        sHtml += `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px;">${f.factor}</td><td style="padding:8px;">${f.interest||'N/A'}</td><td style="padding:8px;">${f.power||'N/A'}</td><td style="padding:8px;">${f.strategy||''}</td></tr>`; 
+                if(stData.data && stData.data.stakeholders && stData.data.stakeholders.length > 0) {
+                    stData.data.stakeholders.forEach(f => { 
+                        sHtml += `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px;">${f.grupo||''}</td><td style="padding:8px;">${f.interes||''}</td><td style="padding:8px;">${f.poder||''}</td><td style="padding:8px;">${f.estrategia||''}</td></tr>`; 
                     });
                 } else { sHtml += `<tr><td colspan="4" style="padding:8px;">No hay stakeholders.</td></tr>`; }
                 sHtml += `</table></div>`;
@@ -631,9 +632,9 @@
                         <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
                             <tr style="background:#f1f5f9;"><th style="padding:8px;text-align:left;">Asunto</th><th style="padding:8px;text-align:left;">Audiencia</th><th style="padding:8px;text-align:left;">Canal</th><th style="padding:8px;text-align:left;">Frecuencia</th></tr>
                 `;
-                if(comData.data && comData.data.factors && comData.data.factors.length > 0) {
-                    comData.data.factors.forEach(f => { 
-                        cHtml += `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px;">${f.factor}</td><td style="padding:8px;">${f.audience||''}</td><td style="padding:8px;">${f.channel||''}</td><td style="padding:8px;">${f.frequency||''}</td></tr>`; 
+                if(comData.data && comData.data.communications && comData.data.communications.length > 0) {
+                    comData.data.communications.forEach(f => { 
+                        cHtml += `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:8px;">${f.que||''}</td><td style="padding:8px;">${f.a_quien||''}</td><td style="padding:8px;">${f.como||''}</td><td style="padding:8px;">${f.frecuencia||''}</td></tr>`; 
                     });
                 } else { cHtml += `<tr><td colspan="4" style="padding:8px;">No hay comunicación.</td></tr>`; }
                 cHtml += `</table></div>`;
@@ -647,8 +648,8 @@
             try {
                 const treeRes = await fetch(`/api/planning/tree?inst_id=${getInstId()}`);
                 const treeData = await treeRes.json();
-                if (treeData && !treeData.error && typeof renderTree === 'function') {
-                    renderTree(treeData.tree);
+                if (typeof renderTree === 'function') {
+                    renderTree(treeData.tree || []);
                     let ganttTasks = [];
                     (treeData.tree || []).forEach(eje => {
                         (eje.children || []).forEach(obj => {
