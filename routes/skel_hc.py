@@ -381,15 +381,29 @@ def get_evaluacion_publica(token):
         if t_data.get('estado') == 'Completado':
             return jsonify({"status": "error", "message": "Esta evaluación ya fue completada"}), 400
             
-        colab = t_data.get('skel_colaboradores', {})
-        cargo_id = colab.get('cargo_id')
+        # 1. Obtener Colaborador
+        evaluado_id = t_data.get('colaborador_id')
+        colab = sb.table('skel_colaboradores').select('cargo_id, nombres, apellidos, email, skel_cargos(nombre)').eq('id', evaluado_id).execute().data[0]
         
-        # 2. Buscar Competencias asignadas al Cargo
-        asig = sb.table('skel_cargos_diccionario').select('competencia_id').eq('cargo_id', cargo_id).execute().data
-        if not asig:
+        # 2. Obtener Perfil del Evaluado
+        cargo_id = colab['cargo_id']
+        
+        # 3. Obtener competencias asignadas a su cargo
+        asignaciones = sb.table('skel_cargos_diccionario').select('competencia_id').eq('cargo_id', cargo_id).execute().data
+        
+        # Fallback para cargos duplicados por error de subida de Excel
+        if not asignaciones:
+            cargo_nombre = colab.get('skel_cargos', {}).get('nombre') if colab.get('skel_cargos') else None
+            if cargo_nombre:
+                otros_cargos = sb.table('skel_cargos').select('id').eq('empresa_id', t_data['empresa_id']).eq('nombre', cargo_nombre).execute().data
+                otros_ids = [c['id'] for c in otros_cargos]
+                if otros_ids:
+                    asignaciones = sb.table('skel_cargos_diccionario').select('competencia_id').in_('cargo_id', otros_ids).execute().data
+                    
+        if not asignaciones:
             return jsonify({"status": "error", "message": "No hay competencias asignadas a tu cargo"}), 404
             
-        comp_ids = [a['competencia_id'] for a in asig]
+        comp_ids = [a['competencia_id'] for a in asignaciones]
         
         # 3. Traer detalles del diccionario
         comps = sb.table('skel_diccionario_competencias').select('*').in_('id', comp_ids).execute().data
