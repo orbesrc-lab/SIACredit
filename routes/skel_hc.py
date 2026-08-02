@@ -273,6 +273,41 @@ def manage_colaborador(colab_id):
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@skel_hc_bp.route('/empresa/<empresa_id>/perfiles/matriz', methods=['POST'])
+def gestionar_perfiles_matriz(empresa_id):
+    try:
+        sb = get_supabase()
+        data = request.json
+        asignaciones = data.get('asignaciones', [])
+        
+        # Eliminar TODAS las asignaciones de todos los cargos de esta empresa para hacer sync
+        cargos = sb.table('skel_cargos').select('id').eq('empresa_id', empresa_id).execute().data
+        cargo_ids = [c['id'] for c in cargos]
+        if cargo_ids:
+            # Delete in chunks or one by one if there's no IN operator easily available for delete
+            # supabase-py supports in_ for delete!
+            sb.table('skel_cargos_diccionario').delete().in_('cargo_id', cargo_ids).execute()
+            
+            # Preparar las nuevas inserciones
+            inserts = []
+            for asig in asignaciones:
+                c_id = asig.get('cargo_id')
+                comps = asig.get('competencias', [])
+                if c_id in cargo_ids:
+                    for comp in comps:
+                        inserts.append({
+                            "cargo_id": c_id,
+                            "competencia_id": comp
+                        })
+            
+            if inserts:
+                sb.table('skel_cargos_diccionario').insert(inserts).execute()
+                
+        return jsonify({"status": "success", "message": "Matriz guardada con éxito"}), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @skel_hc_bp.route('/empresa/<empresa_id>/perfiles', methods=['GET', 'POST'])
 def gestionar_perfiles(empresa_id):
     try:

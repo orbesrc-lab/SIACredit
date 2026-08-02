@@ -240,27 +240,29 @@
             </div>
         </div>
 
-        <!-- Modal Perfiles -->
+        <!-- Modal Perfiles (Matriz) -->
         <div id="modalPerfiles" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-            <div style="background:var(--glass-bg); padding:30px; border-radius:15px; width:600px; max-width:90%; border:1px solid var(--glass-border); box-shadow:var(--shadow-lg);">
-                <h3 style="margin-bottom:20px;">Gestionar Perfiles de Cargos</h3>
-                <div style="margin-bottom:15px;">
-                    <label>Seleccionar Cargo:</label>
-                    <select id="select-cargo" onchange="cargarCompetenciasCargo()" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-color);">
-                        <option value="">Cargando cargos...</option>
-                    </select>
+            <div style="background:var(--glass-bg); padding:30px; border-radius:15px; width:95vw; max-width:1200px; height:90vh; display:flex; flex-direction:column; border:1px solid var(--glass-border); box-shadow:var(--shadow-lg);">
+                <h3 style="margin-bottom:10px;">Matriz de Asignación de Competencias a Cargos</h3>
+                <p style="margin-bottom:15px; font-size:0.9rem; color:var(--text-muted);">Marca las casillas para asignar cada competencia a los cargos correspondientes.</p>
+                
+                <div style="flex:1; overflow:auto; margin-bottom:20px; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.8);">
+                    <table class="admin-table" style="min-width:max-content; white-space:nowrap; margin-top:0;">
+                        <thead id="matriz-thead">
+                            <!-- Columnas dinámicas -->
+                        </thead>
+                        <tbody id="matriz-tbody">
+                            <!-- Filas dinámicas -->
+                        </tbody>
+                    </table>
                 </div>
-                <div style="margin-bottom:15px; max-height:250px; overflow-y:auto; padding:10px; background:rgba(0,0,0,0.2); border-radius:8px;">
-                    <h4>Competencias a evaluar:</h4>
-                    <div id="lista-competencias">Cargando...</div>
-                </div>
-                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
                     <button class="btn-primary" style="background:#64748b;" onclick="document.getElementById('modalPerfiles').style.display='none'">Cancelar</button>
-                    <button class="btn-primary" onclick="guardarPerfil()">Guardar Asignación</button>
+                    <button class="btn-primary" onclick="guardarMatrizPerfiles()" style="background:#10b981;">Guardar Matriz Completa</button>
                 </div>
             </div>
         </div>
-        
         <!-- Modal Links -->
         <div id="modalLinks" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
             <div style="background:var(--glass-bg); padding:30px; border-radius:15px; width:800px; max-width:90%; border:1px solid var(--glass-border); box-shadow:var(--shadow-lg);">
@@ -386,59 +388,81 @@
         
         async function abrirModalPerfiles() {
             document.getElementById('modalPerfiles').style.display = 'flex';
-            
-            const resDicc = await fetch('/api/skel360/diccionario');
-            const dataDicc = await resDicc.json();
-            allCompetencias = dataDicc.data || [];
-            
-            const resPerf = await fetch(`/api/skel360/empresa/${empresaId}/perfiles`);
-            const dataPerf = await resPerf.json();
-            allCargos = dataPerf.data || [];
-            
-            const sel = document.getElementById('select-cargo');
-            sel.innerHTML = '<option value="">Seleccione un cargo...</option>';
-            allCargos.forEach(c => {
-                sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
-            });
-            
-            document.getElementById('lista-competencias').innerHTML = 'Seleccione un cargo arriba.';
-        }
-        
-        function cargarCompetenciasCargo() {
-            const cargoId = document.getElementById('select-cargo').value;
-            if(!cargoId) {
-                document.getElementById('lista-competencias').innerHTML = 'Seleccione un cargo arriba.';
-                return;
-            }
-            
-            const cargo = allCargos.find(c => c.id === cargoId);
-            const html = allCompetencias.map(comp => {
-                const isChecked = cargo.competencias.includes(comp.id) ? 'checked' : '';
-                return `<label style="display:block; margin-bottom:5px;"><input type="checkbox" class="comp-cb" value="${comp.id}" ${isChecked}> ${comp.nombre}</label>`;
-            }).join('');
-            
-            document.getElementById('lista-competencias').innerHTML = html;
-        }
-        
-        async function guardarPerfil() {
-            const cargoId = document.getElementById('select-cargo').value;
-            if(!cargoId) return alert('Seleccione un cargo');
-            
-            const checks = document.querySelectorAll('.comp-cb:checked');
-            const compIds = Array.from(checks).map(c => c.value);
+            document.getElementById('matriz-thead').innerHTML = '<tr><th>Cargando matriz...</th></tr>';
+            document.getElementById('matriz-tbody').innerHTML = '';
             
             try {
-                const res = await fetch(`/api/skel360/empresa/${empresaId}/perfiles`, {
+                const resDicc = await fetch('/api/skel360/diccionario');
+                const dataDicc = await resDicc.json();
+                allCompetencias = dataDicc.data || [];
+                
+                const resPerf = await fetch(`/api/skel360/empresa/${empresaId}/perfiles`);
+                const dataPerf = await resPerf.json();
+                allCargos = dataPerf.data || [];
+                
+                renderizarMatriz();
+            } catch(e) { console.error(e); }
+        }
+        
+        function renderizarMatriz() {
+            const thead = document.getElementById('matriz-thead');
+            const tbody = document.getElementById('matriz-tbody');
+            
+            let theadHtml = `<tr><th style="position:sticky; left:0; top:0; background:#f8fafc; z-index:20; border-bottom:1px solid var(--border-color); box-shadow: 2px 0 5px rgba(0,0,0,0.05);">Competencias \\ Cargos</th>`;
+            allCargos.forEach(c => {
+                theadHtml += `<th style="text-align:center; position:sticky; top:0; background:#f8fafc; z-index:10; border-bottom:1px solid var(--border-color);">${c.nombre}</th>`;
+            });
+            theadHtml += '</tr>';
+            thead.innerHTML = theadHtml;
+            
+            let tbodyHtml = '';
+            allCompetencias.forEach(comp => {
+                let rowHtml = `<tr><td style="position:sticky; left:0; background:#f8fafc; max-width:300px; white-space:normal; border-right:1px solid var(--border-color); z-index:5; box-shadow: 2px 0 5px rgba(0,0,0,0.05);"><strong>${comp.nombre}</strong><br><small style="color:var(--text-muted); font-size:0.75rem;">${comp.comportamientos ? comp.comportamientos.length : 0} comportamientos</small></td>`;
+                
+                allCargos.forEach(c => {
+                    const isChecked = c.competencias.includes(comp.id) ? 'checked' : '';
+                    rowHtml += `<td style="text-align:center;"><input type="checkbox" class="matriz-cb" data-cargo="${c.id}" data-comp="${comp.id}" ${isChecked} style="width:18px; height:18px; cursor:pointer;"></td>`;
+                });
+                
+                rowHtml += '</tr>';
+                tbodyHtml += rowHtml;
+            });
+            tbody.innerHTML = tbodyHtml;
+        }
+        
+        async function guardarMatrizPerfiles() {
+            const checkboxes = document.querySelectorAll('.matriz-cb:checked');
+            
+            const asignacionesMap = {};
+            allCargos.forEach(c => asignacionesMap[c.id] = []);
+            
+            checkboxes.forEach(cb => {
+                const cId = cb.getAttribute('data-cargo');
+                const compId = cb.getAttribute('data-comp');
+                if(asignacionesMap[cId]) {
+                    asignacionesMap[cId].push(compId);
+                }
+            });
+            
+            const asignaciones = Object.keys(asignacionesMap).map(k => ({
+                cargo_id: k,
+                competencias: asignacionesMap[k]
+            }));
+            
+            try {
+                const res = await fetch(`/api/skel360/empresa/${empresaId}/perfiles/matriz`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ cargo_id: cargoId, competencias: compIds })
+                    body: JSON.stringify({ asignaciones })
                 });
                 const data = await res.json();
                 if(data.status === 'success') {
-                    alert('Asignación guardada con éxito.');
+                    alert('Asignaciones masivas guardadas con éxito.');
                     document.getElementById('modalPerfiles').style.display = 'none';
+                } else {
+                    alert('Error: ' + data.message);
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error(e); alert('Error al guardar matriz'); }
         }
         
         async function lanzarEncuestas() {
