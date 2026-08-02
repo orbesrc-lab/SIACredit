@@ -626,33 +626,13 @@
                 <button class="btn-primary" onclick="saveInstitution()" style="margin-top: 10px;">Guardar Institución</button>
             </div>
 
-            <!-- Bandeja de Entrada del Bot (Solo Superadmins/Admins) -->
-            <div id="botInboxCard" class="settings-card" style="display: none; border-left: 5px solid #2563eb;">
-                <h3>🤖 Bandeja del Bot (Preguntas No Respondidas)</h3>
-                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
-                    Aquí se registran las preguntas o mensajes de usuarios que el bot de SKEL no pudo entender. Úsalas para mejorar el sistema en el futuro.
-                </p>
-                
-                <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
-                    <thead>
-                        <tr style="border-bottom: 2px solid var(--border-color);">
-                            <th style="padding: 12px; color: var(--text-muted);">Fecha</th>
-                            <th style="padding: 12px; color: var(--text-muted);">Pregunta / Mensaje</th>
-                            <th style="padding: 12px; color: var(--text-muted);">Estado</th>
-                            <th style="padding: 12px; color: var(--text-muted);">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="botInboxTableBody">
-                        <tr><td colspan="4" style="text-align: center; padding: 20px;">Cargando...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+            <!-- (Merged into Chatbot Training) -->
 
-            <!-- Entrenamiento de Chatbot Externo -->
+            <!-- Entrenamiento de Chatbot Externo y Bandeja -->
             <div id="chatbotTrainingCard" class="settings-card" style="display: none; border-left: 5px solid #10b981;">
-                <h3>🤖 Entrenamiento de Chatbot Externo (Fine-Tuning)</h3>
+                <h3>🤖 Centro de Entrenamiento y Bandeja de Entrada</h3>
                 <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
-                    Aquí puedes revisar y eliminar las interacciones antes de descargarlas. Esto garantiza que tu dataset de entrenamiento para OpenAI, Gemini o Zhipu sea de alta calidad.
+                    Aquí puedes revisar las interacciones de los usuarios y enseñar a Margy a responder preguntas nuevas. Elimina el "ruido" antes de descargar tu dataset para Fine-Tuning.
                 </p>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -1914,35 +1894,6 @@
             });
         }
 
-        // Lógica para la Bandeja del Bot
-        async function loadBotInbox() {
-            try {
-                const res = await fetch('/api/bot/unanswered');
-                if(res.ok) {
-                    const data = await res.json();
-                    const tbody = document.getElementById('botInboxTableBody');
-                    if(data.status === 'success' && data.data) {
-                        const pendingMsgs = data.data.filter(m => m.status === 'pending');
-                        if (pendingMsgs.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No hay mensajes pendientes.</td></tr>';
-                            return;
-                        }
-                        
-                        let html = '';
-                        // Sort descending by date
-                        pendingMsgs.sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).forEach(msg => {
-                            html += `
-                                <tr style="border-bottom: 1px solid var(--border-color);">
-                                    <td style="padding: 12px; font-size: 0.85rem; color: var(--text-muted);">${msg.created_at}</td>
-                                    <td style="padding: 12px; font-weight: 500;">${msg.question}</td>
-                                    <td style="padding: 12px;"><span style="background: #fef3c7; color: #d97706; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Pendiente</span></td>
-                                    <td style="padding: 12px;">
-                                        <button onclick="resolveBotMessage('${msg.id}')" class="btn-primary" style="padding: 6px 12px; font-size: 0.85rem; background-color: #10b981;">Responder y Entrenar</button>
-                                        <button onclick="dismissBotMessage('${msg.id}')" class="btn-secondary" style="padding: 6px 12px; font-size: 0.85rem; margin-left: 5px;">Descartar</button>
-                                    </td>
-                                </tr>
-                            `;
-                        });
                         tbody.innerHTML = html;
                     }
                 }
@@ -1953,40 +1904,90 @@
         
         window.loadChatbotTraining = async function() {
             try {
-                const res = await fetch('/api/chat-logs');
-                if(res.ok) {
-                    const data = await res.json();
-                    const tbody = document.getElementById('chatbotTrainingTableBody');
+                const [chatRes, botRes] = await Promise.all([
+                    fetch('/api/chat-logs').catch(() => null),
+                    fetch('/api/bot/unanswered').catch(() => null)
+                ]);
+                
+                let combined = [];
+                
+                if(chatRes && chatRes.ok) {
+                    const data = await chatRes.json();
                     if(data.status === 'success' && data.data) {
-                        const logs = data.data;
-                        if (logs.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No hay registros de entrenamiento.</td></tr>';
-                            return;
-                        }
-                        
-                        let html = '';
-                        logs.forEach(log => {
-                            const d = new Date(log.created_at);
-                            const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                            
-                            html += `
-                                <tr style="border-bottom: 1px solid var(--border-color);">
-                                    <td style="padding: 12px; font-size: 0.85rem; color: var(--text-muted);">${dateStr}</td>
-                                    <td style="padding: 12px; font-size: 0.9rem;">${(log.prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-                                    <td style="padding: 12px; font-size: 0.85rem; color: #4b5563;">
-                                        <div style="max-height: 80px; overflow-y: auto; font-family: monospace; background: #f9fafb; padding: 8px; border-radius: 4px;">
-                                            ${(log.response || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
-                                        </div>
-                                    </td>
-                                    <td style="padding: 12px;">
-                                        <button onclick="window.deleteChatbotLog('${log.id}')" class="btn-secondary" style="padding: 6px 10px; font-size: 0.85rem; color: #ef4444; border-color: #fecaca; background: #fef2f2;">🗑️ Eliminar</button>
-                                    </td>
-                                </tr>
-                            `;
+                        data.data.forEach(m => {
+                            combined.push({
+                                id: m.id, type: 'ai_chat', created_at: m.created_at,
+                                question: m.prompt || '', response: m.response || ''
+                            });
                         });
-                        tbody.innerHTML = html;
                     }
                 }
+                
+                if(botRes && botRes.ok) {
+                    const data = await botRes.json();
+                    if(data.status === 'success' && data.data) {
+                        data.data.filter(m => m.status === 'pending').forEach(m => {
+                            combined.push({
+                                id: m.id, type: 'bot_pending', created_at: m.created_at,
+                                question: m.question || '', response: null
+                            });
+                        });
+                    }
+                }
+                
+                const tbody = document.getElementById('chatbotTrainingTableBody');
+                if (combined.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No hay registros de entrenamiento ni preguntas pendientes.</td></tr>';
+                    return;
+                }
+                
+                // Sort descending by date
+                combined.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                
+                let html = '';
+                combined.forEach(log => {
+                    let dateStr = log.created_at;
+                    try {
+                        const d = new Date(log.created_at);
+                        if (!isNaN(d)) dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    } catch(e) {}
+                    
+                    if (log.type === 'ai_chat') {
+                        html += `
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px; font-size: 0.85rem; color: var(--text-muted);">${dateStr}</td>
+                                <td style="padding: 12px; font-size: 0.9rem;">${(log.question).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+                                <td style="padding: 12px; font-size: 0.85rem; color: #4b5563;">
+                                    <div style="max-height: 80px; overflow-y: auto; font-family: monospace; background: #f9fafb; padding: 8px; border-radius: 4px;">
+                                        ${(log.response).replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+                                    </div>
+                                </td>
+                                <td style="padding: 12px;">
+                                    <button onclick="window.deleteChatbotLog('${log.id}')" class="btn-secondary" style="padding: 6px 10px; font-size: 0.85rem; color: #ef4444; border-color: #fecaca; background: #fef2f2;">🗑️ Eliminar</button>
+                                </td>
+                            </tr>
+                        `;
+                    } else if (log.type === 'bot_pending') {
+                        html += `
+                            <tr style="border-bottom: 1px solid var(--border-color); background-color: #fffbeb;">
+                                <td style="padding: 12px; font-size: 0.85rem; color: var(--text-muted);">${dateStr}</td>
+                                <td style="padding: 12px; font-size: 0.9rem; font-weight: 500;">
+                                    <span style="display:inline-block; margin-bottom:4px; font-size:0.75rem; font-weight:bold; color:#d97706; background:#fef3c7; padding:2px 6px; border-radius:4px;">No Respondida</span><br>
+                                    ${(log.question).replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+                                </td>
+                                <td style="padding: 12px; font-size: 0.85rem; color: #9ca3af; font-style: italic;">
+                                    Esperando respuesta...
+                                </td>
+                                <td style="padding: 12px; display: flex; gap: 5px; flex-direction: column;">
+                                    <button onclick="window.resolveBotMessage('${log.id}')" class="btn-primary" style="padding: 6px 10px; font-size: 0.85rem; background-color: #10b981;">Responder</button>
+                                    <button onclick="window.dismissBotMessage('${log.id}')" class="btn-secondary" style="padding: 6px 10px; font-size: 0.85rem;">Descartar</button>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                });
+                tbody.innerHTML = html;
+                
             } catch(e) {
                 console.error("Error loading chatbot training logs", e);
             }
@@ -2019,7 +2020,7 @@
                 });
                 if(res.ok) {
                     if (reply.trim() !== "") alert("¡Pregunta guardada y bot entrenado!");
-                    loadBotInbox();
+                    window.loadChatbotTraining();
                 }
             } catch(e) {
                 console.log('Error resolving msg', e);
@@ -2030,7 +2031,7 @@
             try {
                 const res = await fetch(`/api/bot/unanswered/${id}/resolve`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({}) });
                 if(res.ok) {
-                    loadBotInbox();
+                    window.loadChatbotTraining();
                 }
             } catch(e) {
                 console.log('Error dismissing msg', e);
@@ -3292,15 +3293,10 @@
                         loadPartners();
                     }
                     if(['admin', 'super_admin', 'superadmin'].includes(userData.role)) {
-                        const bcard = document.getElementById('botInboxCard');
-                        if(bcard) {
-                            bcard.style.display = 'block';
-                            loadBotInbox();
-                        }
                         const ccard = document.getElementById('chatbotTrainingCard');
                         if(ccard) {
                             ccard.style.display = 'block';
-                            loadChatbotTraining();
+                            window.loadChatbotTraining();
                         }
                     }
                 }

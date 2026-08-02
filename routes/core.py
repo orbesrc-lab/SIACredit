@@ -1271,6 +1271,18 @@ def resolve_bot_unanswered(msg_id):
                 if reply_text:
                     msg["status"] = "answered"
                     msg["response"] = reply_text
+                    
+                    # Also insert into ai_chat_logs for unified export
+                    try:
+                        supabase.table('ai_chat_logs').insert({
+                            "prompt": msg.get("question", ""),
+                            "response": reply_text,
+                            "provider": "admin_manual",
+                            "model": "manual"
+                        }).execute()
+                    except Exception as e_log:
+                        print(f"Error logging manual response: {e_log}")
+                        
                 else:
                     msg["status"] = "resolved"
                 break
