@@ -45,6 +45,12 @@ app.register_blueprint(planning_bp)
 from routes.export import export_bp
 app.register_blueprint(export_bp)
 
+from routes.skel_hc import skel_hc_bp
+app.register_blueprint(skel_hc_bp)
+
+from routes.skel_evaluations import skel_evaluaciones_bp
+app.register_blueprint(skel_evaluaciones_bp)
+
 from routes.core import core_bp
 from routes.reports import reports_bp
 from routes.prospects import prospects_bp

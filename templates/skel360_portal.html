@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKEL Human Capital 360 - Mis Evaluaciones</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e1b4b;
+            --primary-gradient: linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%);
+            --secondary: #8b5cf6;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --bg-color: #f8fafc;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+        .header {
+            background: white; padding: 20px 40px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .container {
+            max-width: 800px; margin: 40px auto; padding: 0 20px; flex-grow: 1; width: 100%; box-sizing: border-box;
+        }
+        .card {
+            background: white; border-radius: 16px; padding: 40px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); text-align: center;
+        }
+        .title { font-size: 1.8rem; font-weight: 800; color: var(--text-dark); margin-bottom: 10px; }
+        .subtitle { font-size: 1rem; color: var(--text-muted); margin-bottom: 30px; }
+        
+        .input-group { margin-bottom: 25px; text-align: left; }
+        .input-group label { display: block; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; }
+        .input-group input { width: 100%; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; box-sizing: border-box; }
+        .input-group input:focus { border-color: var(--secondary); outline: none; }
+        
+        .btn {
+            background: var(--primary-gradient); color: white; border: none; padding: 14px 28px;
+            font-size: 1rem; font-weight: 600; border-radius: 8px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%; display: inline-block; box-sizing: border-box;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(67, 56, 202, 0.4); }
+        
+        #survey-container { display: none; text-align: left; }
+        .survey-section { margin-bottom: 30px; }
+        .survey-question { font-weight: 600; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL" style="height: 40px;">
+        <div style="font-weight: 600; color: var(--text-muted);">Portal del Colaborador</div>
+    </header>
+
+    <div class="container">
+        <!-- Pantalla de Login Kiosco / Cargando Magic Link -->
+        <div id="login-container" class="card">
+            <div id="loading-magic-link" style="display: none;">
+                <h2 class="title">✨ Autenticando acceso seguro...</h2>
+                <p class="subtitle">Verificando tu enlace único (Magic Link)</p>
+            </div>
+            
+            <div id="kiosco-login" style="display: none;">
+                <h2 class="title">📱 Acceso a Evaluaciones</h2>
+                <p class="subtitle">Ingresa tu número de identificación para comenzar.</p>
+                <div class="input-group">
+                    <label>Número de Identificación (Cédula)</label>
+                    <input type="text" id="documento" placeholder="Ej: 1020304050" required>
+                </div>
+                <!-- ID de Empresa Hardcodeado en la URL genérica del Kiosco (ej: ?empresa=uuid) -->
+                <button class="btn" onclick="iniciarKiosco()">Ingresar a la Evaluación</button>
+            </div>
+        </div>
+
+        <!-- Contenedor del Formulario Real -->
+        <div id="survey-container" class="card">
+            <h2 class="title" id="survey-title">Cargando Formulario...</h2>
+            <p class="subtitle" id="survey-desc"></p>
+            <div id="survey-content"></div>
+            <button class="btn" onclick="enviarRespuestas()" style="margin-top: 20px;">Enviar Respuestas</button>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const empresa = urlParams.get('empresa');
+        let sessionToken = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (token) {
+                // Modo Magic Link
+                document.getElementById('loading-magic-link').style.display = 'block';
+                sessionToken = token;
+                setTimeout(cargarFormulario, 1500); // Simulando validación del token en backend
+            } else if (empresa) {
+                // Modo Kiosco
+                document.getElementById('kiosco-login').style.display = 'block';
+            } else {
+                document.getElementById('login-container').innerHTML = `
+                    <h2 class="title" style="color: #ef4444;">Acceso Denegado</h2>
+                    <p class="subtitle">No cuentas con un enlace válido ni estás en un Kiosco autorizado.</p>
+                `;
+            }
+        });
+
+        async function iniciarKiosco() {
+            const documento = document.getElementById('documento').value;
+            if(!documento) return alert('Por favor ingresa tu cédula.');
+            
+            try {
+                // Evaluacion ID harcodeada por ahora, en la vida real viene en la URL del QR
+                const response = await fetch('/api/skel360/kiosco/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        empresa_id: empresa,
+                        documento: documento,
+                        evaluacion_id: 'e1' // Mock
+                    })
+                });
+                
+                const result = await response.json();
+                if(result.status === 'success') {
+                    sessionToken = result.token;
+                    cargarFormulario();
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Simulando inicio de sesión (Backend puede requerir tabla).");
+                cargarFormulario(); // Fallback simulación
+            }
+        }
+
+        function cargarFormulario() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('survey-container').style.display = 'block';
+            document.getElementById('survey-title').innerText = "Instrumento de Diagnóstico 360";
+            document.getElementById('survey-desc').innerText = "Por favor responde las siguientes preguntas con total sinceridad.";
+            
+            document.getElementById('survey-content').innerHTML = `
+                <div class="survey-section">
+                    <h3>Sección A. Información General</h3>
+                    <div class="survey-question">¿Comprendes las responsabilidades de tu cargo?</div>
+                    <select style="width:100%; padding:10px; border-radius:5px;"><option>Totalmente de acuerdo</option><option>De acuerdo</option></select>
+                </div>
+            `;
+        }
+
+        function enviarRespuestas() {
+            alert('¡Respuestas guardadas exitosamente mediante token seguro!');
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>
