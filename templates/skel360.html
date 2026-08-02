@@ -290,6 +290,10 @@
             }
         }
         
+        // Ejecutar inmediatamente
+        loadEmpresas();
+        
+        // También intentar en DOMContentLoaded por si acaso
         document.addEventListener('DOMContentLoaded', () => {
             loadEmpresas();
         });
