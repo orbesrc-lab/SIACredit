@@ -163,7 +163,11 @@
                         <h4 style="margin-bottom: 10px;">1. Carga de Empleados</h4>
                         <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Sube el Excel con la estructura organizacional de la empresa.</p>
                         <a href="/static/plantilla_empleados.xlsx" download style="display:block; font-size: 0.8rem; color: #3b82f6; text-decoration: none; margin-bottom: 15px; font-weight: 600;">📥 Descargar plantilla de ejemplo</a>
-                        <button class="btn-primary" style="background: #3b82f6; width: 100%;" onclick="uploadExcel()">Subir Plantilla Excel</button>
+                        <input type="file" id="fileInput" style="display:none;" onchange="uploadExcelHandler(event)">
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-primary" style="flex:1;" onclick="document.getElementById('fileInput').click()">Subir Plantilla Excel</button>
+                            <button class="btn-primary" style="flex:1; background:var(--accent-color);" onclick="abrirModalColaborador()">+ Crear Colaborador</button>
+                        </div>
                     </div>
                     <div class="card" style="text-align: center;">
                         <h4 style="margin-bottom: 10px;">2. Asignar Competencias</h4>
@@ -187,16 +191,55 @@
                             <th>Correo</th>
                             <th>Cargo</th>
                             <th>Área</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="colaboradores-list">
-                        <tr><td colspan="5" style="text-align: center;">No hay colaboradores cargados.</td></tr>
+                        <tr><td colspan="6" style="text-align: center;">No hay colaboradores cargados.</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
     
+        <!-- Modal Colaborador -->
+        <div id="modalColaborador" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+            <div style="background:var(--glass-bg); padding:30px; border-radius:15px; width:500px; max-width:90%; border:1px solid var(--glass-border); box-shadow:var(--shadow-lg);">
+                <h3 id="modalColabTitle" style="margin-bottom:20px;">Crear Colaborador</h3>
+                <form id="formColaborador" onsubmit="guardarColaborador(event)">
+                    <input type="hidden" id="colab-id">
+                    <div style="margin-bottom:15px;">
+                        <label>Nombres</label>
+                        <input type="text" id="colab-nombres" required style="width:100%; padding:8px; border-radius:5px; border:1px solid #ccc; background:#fff; color:#000;">
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label>Apellidos</label>
+                        <input type="text" id="colab-apellidos" required style="width:100%; padding:8px; border-radius:5px; border:1px solid #ccc; background:#fff; color:#000;">
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label>Cédula / Documento</label>
+                        <input type="text" id="colab-documento" required style="width:100%; padding:8px; border-radius:5px; border:1px solid #ccc; background:#fff; color:#000;">
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label>Correo Electrónico</label>
+                        <input type="email" id="colab-email" required style="width:100%; padding:8px; border-radius:5px; border:1px solid #ccc; background:#fff; color:#000;">
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label>Cargo (Escriba el nombre exacto)</label>
+                        <input type="text" id="colab-cargo" required style="width:100%; padding:8px; border-radius:5px; border:1px solid #ccc; background:#fff; color:#000;">
+                    </div>
+                    <div style="margin-bottom:20px;">
+                        <label>Área</label>
+                        <input type="text" id="colab-area" required style="width:100%; padding:8px; border-radius:5px; border:1px solid #ccc; background:#fff; color:#000;">
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px;">
+                        <button type="button" class="btn-secondary" onclick="cerrarModalColaborador()" style="padding:8px 15px; margin-right:10px; border:none; border-radius:5px; cursor:pointer;">Cancelar</button>
+                        <button type="submit" class="btn-primary" style="padding:8px 15px; background:var(--primary-color); color:white; border:none; border-radius:5px; cursor:pointer;">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Modal Perfiles -->
         <div id="modalPerfiles" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
             <div style="background:var(--glass-bg); padding:30px; border-radius:15px; width:600px; max-width:90%; border:1px solid var(--glass-border); box-shadow:var(--shadow-lg);">
@@ -253,28 +296,83 @@
             } catch(e) { console.error(e); }
         }
         
-        async function uploadExcel() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.xlsx, .xls';
-            input.onchange = async e => {
-                const file = e.target.files[0];
-                if(!file) return;
-                
-                const formData = new FormData();
-                formData.append('file', file);
-                
-                document.getElementById('colaboradores-list').innerHTML = '<tr><td colspan="5" style="text-align: center;">Procesando archivo...</td></tr>';
-                
-                try {
-                    const response = await fetch(`/api/skel360/empresa/${empresaId}/carga-masiva`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const result = await response.json();
-                    if(result.status === 'success') {
-                        alert(result.message);
-                        loadColaboradores();
+        async function uploadExcelHandler(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            document.getElementById('colaboradores-list').innerHTML = '<tr><td colspan="6" style="text-align: center;">Procesando archivo...</td></tr>';
+            
+            try {
+                const response = await fetch(`/api/skel360/empresa/${empresaId}/carga-masiva`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if(result.status === 'success') {
+                    alert(result.message);
+                    loadColaboradores();
+                } else {
+                    alert('Error: ' + result.message);
+                    loadColaboradores();
+                }
+            } catch(error) {
+                console.error(error);
+                alert('Error de conexión');
+            }
+        }
+        
+        async function abrirModalColaborador(id = '') {
+            document.getElementById('modalColabTitle').innerText = id ? 'Editar Colaborador' : 'Crear Colaborador';
+            document.getElementById('colab-id').value = id;
+            if(id) {
+                const colab = window.allColaboradores.find(c => c.id == id);
+                document.getElementById('colab-nombres').value = colab.nombres;
+                document.getElementById('colab-apellidos').value = colab.apellidos;
+                document.getElementById('colab-documento').value = colab.documento;
+                document.getElementById('colab-email').value = colab.email;
+                document.getElementById('colab-cargo').value = colab.skel_cargos?.nombre || '';
+                document.getElementById('colab-area').value = colab.skel_areas?.nombre || '';
+            } else {
+                document.getElementById('formColaborador').reset();
+            }
+            document.getElementById('modalColaborador').style.display = 'flex';
+        }
+        
+        function cerrarModalColaborador() {
+            document.getElementById('modalColaborador').style.display = 'none';
+        }
+        
+        async function guardarColaborador(e) {
+            e.preventDefault();
+            const data = {
+                id: document.getElementById('colab-id').value,
+                nombres: document.getElementById('colab-nombres').value,
+                apellidos: document.getElementById('colab-apellidos').value,
+                documento: document.getElementById('colab-documento').value,
+                email: document.getElementById('colab-email').value,
+                cargo: document.getElementById('colab-cargo').value,
+                area: document.getElementById('colab-area').value
+            };
+            
+            const res = await fetch(`/api/skel360/empresa/${empresaId}/colaborador`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            if((await res.json()).status === 'success') {
+                cerrarModalColaborador();
+                loadColaboradores();
+            }
+        }
+        
+        async function eliminarColaborador(id) {
+            if(!confirm('¿Eliminar este colaborador?')) return;
+            await fetch(`/api/skel360/empresa/${empresaId}/colaborador/${id}`, {method: 'DELETE'});
+            loadColaboradores();
+        }
 
         let allCargos = [];
         let allCompetencias = [];
@@ -282,12 +380,10 @@
         async function abrirModalPerfiles() {
             document.getElementById('modalPerfiles').style.display = 'flex';
             
-            // Cargar Diccionario
             const resDicc = await fetch('/api/skel360/diccionario');
             const dataDicc = await resDicc.json();
             allCompetencias = dataDicc.data || [];
             
-            // Cargar Cargos de la empresa
             const resPerf = await fetch(`/api/skel360/empresa/${empresaId}/perfiles`);
             const dataPerf = await resPerf.json();
             allCargos = dataPerf.data || [];
@@ -357,44 +453,33 @@
                 }
             } catch(e) { console.error(e); }
         }
-
-                    } else {
-                        alert('Error: ' + result.message);
-                        document.getElementById('colaboradores-list').innerHTML = '<tr><td colspan="5" style="text-align: center;">Error al cargar.</td></tr>';
-                    }
-                } catch(error) {
-                    console.error(error);
-                    alert('Error de conexión');
-                }
-            };
-            input.click();
-        }
         
         async function loadColaboradores() {
             try {
                 const response = await fetch(`/api/skel360/empresa/${empresaId}/colaboradores`);
                 const result = await response.json();
-                const tbody = document.getElementById('colaboradores-list');
-                tbody.innerHTML = '';
-                
-                if (result.status === 'success' && result.data && result.data.length > 0) {
-                    result.data.forEach(colab => {
-                        const tr = document.createElement('tr');
-                        const nombreCompleto = `${colab.nombres || ''} ${colab.apellidos || ''}`.trim();
-                        const cargo = colab.skel_cargos ? colab.skel_cargos.nombre : '-';
-                        const area = colab.skel_areas ? colab.skel_areas.nombre : '-';
-                        
-                        tr.innerHTML = `
-                            <td><strong>${nombreCompleto}</strong></td>
-                            <td>${colab.documento || '-'}</td>
-                            <td>${colab.email || '-'}</td>
-                            <td>${cargo}</td>
-                            <td>${area}</td>
+                if(result.status === 'success') {
+                    const tbody = document.getElementById('colaboradores-list');
+                    tbody.innerHTML = '';
+                    if(result.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay colaboradores cargados.</td></tr>';
+                    }
+                    window.allColaboradores = result.data;
+                    result.data.forEach(c => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><strong>${c.nombres || ''} ${c.apellidos || ''}</strong></td>
+                                <td>${c.documento || ''}</td>
+                                <td>${c.email || ''}</td>
+                                <td>${c.skel_cargos?.nombre || ''}</td>
+                                <td>${c.skel_areas?.nombre || ''}</td>
+                                <td>
+                                    <button onclick="abrirModalColaborador('${c.id}')" style="background:#3b82f6; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; margin-right:5px;">✏️</button>
+                                    <button onclick="eliminarColaborador('${c.id}')" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">🗑️</button>
+                                </td>
+                            </tr>
                         `;
-                        tbody.appendChild(tr);
                     });
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No hay colaboradores cargados.</td></tr>';
                 }
             } catch(e) { console.error(e); }
         }

@@ -198,12 +198,77 @@ def carga_masiva_empresa(empresa_id):
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@skel_hc_bp.route('/empresa/<empresa_id>/colaboradores', methods=['GET'])
+@skel_hc_bp.route('/empresa/<empresa_id>/colaboradores', methods=['GET', 'POST'])
 def get_colaboradores(empresa_id):
     try:
         sb = get_supabase()
-        res = sb.table('skel_colaboradores').select('*, skel_cargos(nombre), skel_areas(nombre)').eq('empresa_id', empresa_id).execute()
-        return jsonify({"status": "success", "data": res.data}), 200
+        if request.method == 'GET':
+            res = sb.table('skel_colaboradores').select('*, skel_cargos(nombre), skel_areas(nombre)').eq('empresa_id', empresa_id).execute()
+            return jsonify({"status": "success", "data": res.data}), 200
+            
+        elif request.method == 'POST':
+            data = request.json
+            
+            # Helper para buscar o crear area/cargo
+            def get_or_create(table, nombre):
+                if not nombre: return None
+                exist = sb.table(table).select('id').eq('empresa_id', empresa_id).eq('nombre', nombre).execute().data
+                if exist: return exist[0]['id']
+                res = sb.table(table).insert({"empresa_id": empresa_id, "nombre": nombre}).execute()
+                return res.data[0]['id'] if res.data else None
+                
+            cargo_id = get_or_create('skel_cargos', data.get('cargo'))
+            area_id = get_or_create('skel_areas', data.get('area'))
+            
+            insert_data = {
+                "empresa_id": empresa_id,
+                "nombres": data.get('nombres', ''),
+                "apellidos": data.get('apellidos', ''),
+                "documento": data.get('documento', ''),
+                "email": data.get('email', ''),
+                "cargo_id": cargo_id,
+                "area_id": area_id
+            }
+            sb.table('skel_colaboradores').insert(insert_data).execute()
+            return jsonify({"status": "success", "message": "Colaborador creado"}), 200
+            
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@skel_hc_bp.route('/colaborador/<colab_id>', methods=['PUT', 'DELETE'])
+def manage_colaborador(colab_id):
+    try:
+        sb = get_supabase()
+        if request.method == 'DELETE':
+            sb.table('skel_colaboradores').delete().eq('id', colab_id).execute()
+            return jsonify({"status": "success", "message": "Colaborador eliminado"}), 200
+            
+        elif request.method == 'PUT':
+            data = request.json
+            empresa_id = data.get('empresa_id')
+            
+            def get_or_create(table, nombre):
+                if not nombre: return None
+                exist = sb.table(table).select('id').eq('empresa_id', empresa_id).eq('nombre', nombre).execute().data
+                if exist: return exist[0]['id']
+                res = sb.table(table).insert({"empresa_id": empresa_id, "nombre": nombre}).execute()
+                return res.data[0]['id'] if res.data else None
+                
+            cargo_id = get_or_create('skel_cargos', data.get('cargo'))
+            area_id = get_or_create('skel_areas', data.get('area'))
+            
+            update_data = {
+                "nombres": data.get('nombres', ''),
+                "apellidos": data.get('apellidos', ''),
+                "documento": data.get('documento', ''),
+                "email": data.get('email', ''),
+                "cargo_id": cargo_id,
+                "area_id": area_id
+            }
+            sb.table('skel_colaboradores').update(update_data).eq('id', colab_id).execute()
+            return jsonify({"status": "success", "message": "Colaborador actualizado"}), 200
+            
     except Exception as e:
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
