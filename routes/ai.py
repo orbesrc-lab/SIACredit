@@ -129,6 +129,9 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
         else:
             base_url = "https://open.bigmodel.cn/api/paas/v4/"
         
+        if not api_key:
+            raise Exception("No se ha configurado una llave API válida. Por favor ingresa tu llave de IA en el panel de Configuración.")
+            
         client = OpenAI(api_key=api_key, base_url=base_url)
         try:
             response = client.chat.completions.create(
