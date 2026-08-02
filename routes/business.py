@@ -502,3 +502,26 @@ def generate_iso9001_ai():
         return jsonify({'status': 'success', 'data': result})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@business_bp.route('/api/business/ai_expert_improve', methods=['POST'])
+def ai_expert_improve():
+    try:
+        data = request.json
+        original_text = data.get('text', '')
+        
+        prompt = f'''Eres un experto Doctor en Dirección Administrativa y Gerencia Estratégica.
+Se te proporciona una sección de un Informe Gerencial Integral. Tu tarea es analizar, mejorar y elevar el tono de este texto a un nivel altamente profesional y ejecutivo, sin perder los datos originales.
+Texto original:
+{original_text}
+
+Devuelve únicamente el texto mejorado en formato HTML (puedes usar <strong>, <ul>, <p>, etc.) o texto plano si prefieres, pero preferiblemente HTML limpio. No uses markdown.'''
+
+        model = get_gemini_model()
+        if not model:
+            return jsonify({'status': 'error', 'error': 'AI not configured'}), 500
+            
+        response = model.generate_content(prompt)
+        return jsonify({'status': 'success', 'improved_text': response.text})
+    except Exception as e:
+        print(f"Error in ai_expert_improve: {e}")
+        return jsonify({'status': 'error', 'error': str(e)}), 500

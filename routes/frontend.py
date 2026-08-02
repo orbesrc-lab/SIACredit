@@ -85,6 +85,10 @@ def empresa_stakeholders():
 def empresa_comunicacion():
     return render_template('empresa_comunicacion.html')
 
+@frontend_bp.route('/empresa_informe_gerencial.html')
+def empresa_informe_gerencial():
+    return render_template('empresa_informe_gerencial.html')
+
 @frontend_bp.route('/empresa_iso.html')
 def empresa_iso():
     return render_template('empresa_iso.html')
