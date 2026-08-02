@@ -606,7 +606,6 @@
                     });
                 } else { rHtml += `<tr><td colspan="4" style="padding:8px;">No hay riesgos.</td></tr>`; }
                 rHtml += `</table></div>`;
-                document.getElementById('texto_riesgos').innerHTML = rHtml;
 
                 const stRes = await fetch(`/api/business/matrix/STAKEHOLDERS?inst_id=${getInstId()}`);
                 let stData = await stRes.json();
@@ -622,7 +621,7 @@
                     });
                 } else { sHtml += `<tr><td colspan="4" style="padding:8px;">No hay stakeholders.</td></tr>`; }
                 sHtml += `</table></div>`;
-                document.getElementById('texto_stakeholders').innerHTML = sHtml;
+                document.getElementById('texto_riesgos_stakeholders').innerHTML = rHtml + sHtml;
 
                 const comRes = await fetch(`/api/business/matrix/COMUNICACION?inst_id=${getInstId()}`);
                 let comData = await comRes.json();
@@ -682,6 +681,8 @@
                 const finData = await finRes.json();
                 if(finData && finData.informe) {
                     document.getElementById('texto_financiero').innerHTML = marked.parse(finData.informe);
+                } else {
+                    document.getElementById('texto_financiero').innerHTML = "<p style='color:#64748b;'>No hay reporte financiero configurado.</p>";
                 }
             } catch(e) { console.error("Error Planificacion", e); }
         }
