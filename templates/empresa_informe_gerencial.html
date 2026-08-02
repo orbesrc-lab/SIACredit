@@ -99,16 +99,12 @@
                     
                     <div class="section-card">
                         <button class="btn-expert" onclick="improveText('texto_informe_dinamico')"><i class="fas fa-user-tie"></i> Mejorar con Experto</button>
-                                                <h3 class="section-title">Informe Dinámico Generado</h3>
+                        <h3 class="section-title">Informe Dinámico Generado</h3>
                         
-                        <!-- NEW CNA RESUMEN -->
-
-                        <div id="detalleFactoresCompleto" style="margin-top: 30px;">
+                        <div id="detalleFactoresCompleto" class="editable-content" contenteditable="true" style="margin-top: 30px;">
                             <!-- Aquí se inyectarán todos los factores, encuestas, características, cuadros e IA -->
                         </div>
                         
-                        <div id="texto_informe_dinamico" style="display:none;"></div>
-
                         <div style="display: flex; flex-wrap: wrap; gap: 30px; margin-bottom: 30px; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                             <div style="flex: 1; min-width: 350px;">
                                 <h4 style="color: #1e3a8a; margin-bottom: 15px; font-size: 1.1rem;"><i class="fas fa-list"></i> Resumen Ejecutivo (Escala CNA)</h4>
@@ -760,7 +756,7 @@ async function cargarISO() {
 
         async function guardarInforme() {
             const dataToSave = {
-                texto_informe_dinamico: document.getElementById('texto_informe_dinamico').innerHTML,
+                detalleFactoresCompleto: document.getElementById('detalleFactoresCompleto').innerHTML,
                 texto_mefi_mefe: document.getElementById('texto_mefi_mefe').innerHTML,
                 texto_porter: document.getElementById('texto_porter').innerHTML,
                 texto_riesgos_stakeholders: document.getElementById('texto_riesgos_stakeholders').innerHTML,
@@ -793,7 +789,7 @@ async function cargarISO() {
                 const data = await res.json();
                 if(data && data.data) {
                     const d = data.data;
-                    if(d.texto_informe_dinamico) document.getElementById('texto_informe_dinamico').innerHTML = d.texto_informe_dinamico;
+                    if(d.detalleFactoresCompleto) document.getElementById('detalleFactoresCompleto').innerHTML = d.detalleFactoresCompleto;
                     if(d.texto_mefi_mefe) document.getElementById('texto_mefi_mefe').innerHTML = d.texto_mefi_mefe;
                     if(d.texto_porter) document.getElementById('texto_porter').innerHTML = d.texto_porter;
                     if(d.texto_riesgos_stakeholders) document.getElementById('texto_riesgos_stakeholders').innerHTML = d.texto_riesgos_stakeholders;
