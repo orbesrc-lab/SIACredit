@@ -1,174 +1,290 @@
-
+<script>
+        const empresaId = "{{ empresa_id }}";
         
-        function abrirModalEmpresa() {
-            document.getElementById('modal-nueva-empresa').style.display = 'flex';
-        }
-        function cerrarModalEmpresa() {
-            document.getElementById('modal-nueva-empresa').style.display = 'none';
-        }
-        
-        document.getElementById('form-empresa').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = {
-                nombre: document.getElementById('emp-nombre').value,
-                nit: document.getElementById('emp-nit').value,
-                sector: document.getElementById('emp-sector').value,
-                ciudad: document.getElementById('emp-ciudad').value
-            };
-            
-            try {
-                const response = await fetch('/api/skel360/empresas', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                if(result.status === 'success') {
-                    cerrarModalEmpresa();
-                    document.getElementById('form-empresa').reset();
-                    loadEmpresas();
-                } else {
-                    alert('Error: ' + result.message);
-                }
-            } catch(error) {
-                console.error(error);
-                alert('Error de conexión.');
-            }
-        });
-
-        async function loadEmpresas() {
+        async function loadEmpresa() {
             try {
                 const response = await fetch('/api/skel360/empresas');
                 const result = await response.json();
-                const tbody = document.getElementById('empresas-list');
-                tbody.innerHTML = '';
-                
-                if (result.status === 'success' && result.data.length > 0) {
-                    document.getElementById('count-empresas').innerText = result.data.length;
-                    
-                    result.data.forEach(emp => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td><strong>${emp.nombre}</strong></td>
-                            <td>${emp.nit || '-'}</td>
-                            <td>${emp.sector || '-'}</td>
-                            <td>${emp.ciudad || '-'}</td>
-                            <td><span style="background: #10b981; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem;">${emp.estado}</span></td>
-                            <td>
-                                <button onclick="configurarLogistica('${emp.id}')" style="background: #f59e0b; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-right: 5px;">⚙️ Configurar Envío</button>
-                                <button onclick="generarInformeIA('${emp.id}')" style="background: #8b5cf6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">✨ Generar Informe IA</button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay empresas registradas. Ejecuta el SQL inicial en Supabase.</td></tr>';
+                if(result.status === 'success') {
+                    const emp = result.data.find(e => e.id === empresaId);
+                    if(emp) document.getElementById('empresa-nombre').innerText = emp.nombre;
                 }
-            } catch (error) {
-                console.error('Error fetching empresas:', error);
-                document.getElementById('empresas-list').innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Error al cargar datos.</td></tr>';
-            }
+            } catch(e) { console.error(e); }
         }
         
-        document.addEventListener('DOMContentLoaded', () => {
-            loadEmpresas();
-        });
-
-        async function generarInformeIA(empresaId) {
-            alert('Calculando Índice de Prioridad de Formación y conectando con Inteligencia Artificial. Esto tomará unos segundos...');
+        async function uploadExcelHandler(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            document.getElementById('colaboradores-list').innerHTML = '<tr><td colspan="6" style="text-align: center;">Procesando archivo...</td></tr>';
+            
             try {
-                const response = await fetch(`/api/skel360/evaluaciones/empresa/${empresaId}/informe-ia`);
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    // Mostrar informe en un modal o ventana (simplificado con alert o consola por ahora)
-                    console.log("Top Brechas:", result.data.top_brechas);
-                    
-                    // Crear un simple modal para mostrar el reporte
-                    const modalHtml = `
-                        <div id="ia-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; justify-content:center; align-items:center; z-index:9999;">
-                            <div style="background:white; padding:30px; border-radius:12px; width:80%; max-width:800px; max-height:80vh; overflow-y:auto; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
-                                <h2>✨ Informe Gerencial Estratégico (SKEL AI)</h2>
-                                <div style="margin-top:20px; font-size:1rem; line-height:1.6; color:#333;">
-                                    ${result.data.informe_ia.replace(/\n/g, '<br>')}
-                                </div>
-                                <div style="margin-top:20px; text-align:right;">
-                                    <button onclick="document.getElementById('ia-modal').remove()" class="btn-primary">Cerrar</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-                } else {
-                    alert('Aún no hay datos de evaluaciones (Matriz) para esta empresa. Ingresa datos primero.');
-                }
-            } catch (error) {
-                console.error('Error al generar informe:', error);
-                alert('Error al conectar con el motor de IA.');
-            }
-        }
-
-        function configurarLogistica(empresaId) {
-            const modalHtml = `
-                <div id="logistica-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; justify-content:center; align-items:center; z-index:9999;">
-                    <div style="background:white; padding:30px; border-radius:12px; width:90%; max-width:500px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
-                        <h2>⚙️ Configuración Logística (Empresa)</h2>
-                        <p style="color:#666; margin-bottom:20px;">Habilita o deshabilita los métodos por los cuales los colaboradores podrán acceder a las evaluaciones.</p>
-                        
-                        <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px;">
-                            <div>
-                                <strong>📧 Magic Links (Email)</strong>
-                                <div style="font-size:0.85rem; color:#888;">Acceso directo con un clic al correo. Ideal para administrativos.</div>
-                            </div>
-                            <input type="checkbox" checked style="transform: scale(1.5);">
-                        </div>
-                        
-                        <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px;">
-                            <div>
-                                <strong>📱 Kiosco / Código QR</strong>
-                                <div style="font-size:0.85rem; color:#888;">Acceso genérico digitando solo la cédula. Ideal para operarios.</div>
-                            </div>
-                            <input type="checkbox" checked style="transform: scale(1.5);">
-                        </div>
-
-                        <div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px;">
-                            <div>
-                                <strong>💻 Portal del Colaborador</strong>
-                                <div style="font-size:0.85rem; color:#888;">Acceso mediante usuario y contraseña tradicionales.</div>
-                            </div>
-                            <input type="checkbox" style="transform: scale(1.5);">
-                        </div>
-                        
-                        <div style="margin-bottom:20px;">
-                            <button onclick="lanzarEncuestas('${empresaId}')" class="btn-primary" style="width:100%; background:#10b981; margin-bottom:10px;">🚀 Lanzar Encuestas Ahora (Crear Tokens)</button>
-                            <div style="font-size:0.8rem; color:#666; text-align:center;">Esto generará links seguros y enviará correos (si aplica).</div>
-                        </div>
-
-                        <div style="text-align:right;">
-                            <button onclick="document.getElementById('logistica-modal').remove()" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">Guardar y Cerrar</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-        }
-
-        async function lanzarEncuestas(empresaId) {
-            // Simulamos el endpoint de lanzamiento
-            alert('Generando Tokens Únicos (Magic Links) para todos los colaboradores de la empresa...');
-            try {
-                // En la vida real, enviamos evaluacion_id
-                const response = await fetch(\`/api/skel360/empresa/\${empresaId}/evaluacion/UUID_MOCK/lanzar\`, {method: 'POST'});
+                const response = await fetch(`/api/skel360/empresa/${empresaId}/carga-masiva`, {
+                    method: 'POST',
+                    body: formData
+                });
                 const result = await response.json();
                 if(result.status === 'success') {
                     alert(result.message);
+                    loadColaboradores();
                 } else {
-                    alert('Operación simulada (Falta UUID de evaluación real). ' + result.message);
+                    alert('Error: ' + result.message);
+                    loadColaboradores();
                 }
-            } catch(e) {
-                console.log(e);
-                alert('Tokens generados (simulación).');
+            } catch(error) {
+                console.error(error);
+                alert('Error de conexión');
             }
         }
-    
+        
+        async function abrirModalColaborador(id = '') {
+            document.getElementById('modalColabTitle').innerText = id ? 'Editar Colaborador' : 'Crear Colaborador';
+            document.getElementById('colab-id').value = id;
+            if(id) {
+                const colab = window.allColaboradores.find(c => c.id == id);
+                document.getElementById('colab-nombres').value = colab.nombres;
+                document.getElementById('colab-apellidos').value = colab.apellidos;
+                document.getElementById('colab-documento').value = colab.documento;
+                document.getElementById('colab-email').value = colab.email;
+                document.getElementById('colab-cargo').value = colab.skel_cargos?.nombre || '';
+                document.getElementById('colab-area').value = colab.skel_areas?.nombre || '';
+            } else {
+                document.getElementById('formColaborador').reset();
+            }
+            document.getElementById('modalColaborador').style.display = 'flex';
+        }
+        
+        function cerrarModalColaborador() {
+            document.getElementById('modalColaborador').style.display = 'none';
+        }
+        
+        async function guardarColaborador(e) {
+            e.preventDefault();
+            const data = {
+                id: document.getElementById('colab-id').value,
+                nombres: document.getElementById('colab-nombres').value,
+                apellidos: document.getElementById('colab-apellidos').value,
+                documento: document.getElementById('colab-documento').value,
+                email: document.getElementById('colab-email').value,
+                cargo: document.getElementById('colab-cargo').value,
+                area: document.getElementById('colab-area').value
+            };
+            
+            const res = await fetch(`/api/skel360/empresa/${empresaId}/colaborador`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            if((await res.json()).status === 'success') {
+                cerrarModalColaborador();
+                loadColaboradores();
+            }
+        }
+        
+        async function eliminarColaborador(id) {
+            if(!confirm('¿Eliminar este colaborador?')) return;
+            await fetch(`/api/skel360/empresa/${empresaId}/colaborador/${id}`, {method: 'DELETE'});
+            loadColaboradores();
+        }
+
+        let allCargos = [];
+        let allCompetencias = [];
+        
+        async function abrirModalPerfiles() {
+            document.getElementById('modalPerfiles').style.display = 'flex';
+            
+            const resDicc = await fetch('/api/skel360/diccionario');
+            const dataDicc = await resDicc.json();
+            allCompetencias = dataDicc.data || [];
+            
+            const resPerf = await fetch(`/api/skel360/empresa/${empresaId}/perfiles`);
+            const dataPerf = await resPerf.json();
+            allCargos = dataPerf.data || [];
+            
+            const sel = document.getElementById('select-cargo');
+            sel.innerHTML = '<option value="">Seleccione un cargo...</option>';
+            allCargos.forEach(c => {
+                sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+            });
+            
+            document.getElementById('lista-competencias').innerHTML = 'Seleccione un cargo arriba.';
+        }
+        
+        function cargarCompetenciasCargo() {
+            const cargoId = document.getElementById('select-cargo').value;
+            if(!cargoId) {
+                document.getElementById('lista-competencias').innerHTML = 'Seleccione un cargo arriba.';
+                return;
+            }
+            
+            const cargo = allCargos.find(c => c.id === cargoId);
+            const html = allCompetencias.map(comp => {
+                const isChecked = cargo.competencias.includes(comp.id) ? 'checked' : '';
+                return `<label style="display:block; margin-bottom:5px;"><input type="checkbox" class="comp-cb" value="${comp.id}" ${isChecked}> ${comp.nombre}</label>`;
+            }).join('');
+            
+            document.getElementById('lista-competencias').innerHTML = html;
+        }
+        
+        async function guardarPerfil() {
+            const cargoId = document.getElementById('select-cargo').value;
+            if(!cargoId) return alert('Seleccione un cargo');
+            
+            const checks = document.querySelectorAll('.comp-cb:checked');
+            const compIds = Array.from(checks).map(c => c.value);
+            
+            try {
+                const res = await fetch(`/api/skel360/empresa/${empresaId}/perfiles`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ cargo_id: cargoId, competencias: compIds })
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    alert('Asignación guardada con éxito.');
+                    document.getElementById('modalPerfiles').style.display = 'none';
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        async function lanzarEncuestas() {
+            if(!confirm('¿Estás seguro de generar las evaluaciones para todos los colaboradores?')) return;
+            
+            try {
+                const res = await fetch(`/api/skel360/empresa/${empresaId}/lanzar`, {method: 'POST'});
+                const data = await res.json();
+                if(data.status === 'success') {
+                    alert(data.message);
+                    const tbody = document.getElementById('links-tbody');
+                    tbody.innerHTML = '';
+                    data.links.forEach(l => {
+                        tbody.innerHTML += `<tr><td>${l.nombre}</td><td>${l.correo}</td><td><a href="${l.link}" target="_blank" style="color:#3b82f6; font-size:0.85rem;">${l.link}</a></td></tr>`;
+                    });
+                    document.getElementById('modalLinks').style.display = 'flex';
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        async function loadColaboradores() {
+            try {
+                const response = await fetch(`/api/skel360/empresa/${empresaId}/colaboradores`);
+                const result = await response.json();
+                if(result.status === 'success') {
+                    const tbody = document.getElementById('colaboradores-list');
+                    tbody.innerHTML = '';
+                    if(result.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay colaboradores cargados.</td></tr>';
+                    }
+                    window.allColaboradores = result.data;
+                    result.data.forEach(c => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><strong>${c.nombres || ''} ${c.apellidos || ''}</strong></td>
+                                <td>${c.documento || ''}</td>
+                                <td>${c.email || ''}</td>
+                                <td>${c.skel_cargos?.nombre || ''}</td>
+                                <td>${c.skel_areas?.nombre || ''}</td>
+                                <td>
+                                    <button onclick="abrirModalColaborador('${c.id}')" style="background:#3b82f6; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; margin-right:5px;">✏️</button>
+                                    <button onclick="eliminarColaborador('${c.id}')" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">🗑️</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        loadEmpresa();
+        loadColaboradores();
+
+        let allCargos = [];
+        let allCompetencias = [];
+        
+        async function abrirModalPerfiles() {
+            document.getElementById('modalPerfiles').style.display = 'flex';
+            
+            // Cargar Diccionario
+            const resDicc = await fetch('/api/skel360/diccionario');
+            const dataDicc = await resDicc.json();
+            allCompetencias = dataDicc.data || [];
+            
+            // Cargar Cargos de la empresa
+            const resPerf = await fetch(`/api/skel360/empresa/${empresaId}/perfiles`);
+            const dataPerf = await resPerf.json();
+            allCargos = dataPerf.data || [];
+            
+            const sel = document.getElementById('select-cargo');
+            sel.innerHTML = '<option value="">Seleccione un cargo...</option>';
+            allCargos.forEach(c => {
+                sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+            });
+            
+            document.getElementById('lista-competencias').innerHTML = 'Seleccione un cargo arriba.';
+        }
+        
+        function cargarCompetenciasCargo() {
+            const cargoId = document.getElementById('select-cargo').value;
+            if(!cargoId) {
+                document.getElementById('lista-competencias').innerHTML = 'Seleccione un cargo arriba.';
+                return;
+            }
+            
+            const cargo = allCargos.find(c => c.id === cargoId);
+            const html = allCompetencias.map(comp => {
+                const isChecked = cargo.competencias.includes(comp.id) ? 'checked' : '';
+                return `<label style="display:block; margin-bottom:5px;"><input type="checkbox" class="comp-cb" value="${comp.id}" ${isChecked}> ${comp.nombre}</label>`;
+            }).join('');
+            
+            document.getElementById('lista-competencias').innerHTML = html;
+        }
+        
+        async function guardarPerfil() {
+            const cargoId = document.getElementById('select-cargo').value;
+            if(!cargoId) return alert('Seleccione un cargo');
+            
+            const checks = document.querySelectorAll('.comp-cb:checked');
+            const compIds = Array.from(checks).map(c => c.value);
+            
+            try {
+                const res = await fetch(`/api/skel360/empresa/${empresaId}/perfiles`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ cargo_id: cargoId, competencias: compIds })
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    alert('Asignación guardada con éxito.');
+                    document.getElementById('modalPerfiles').style.display = 'none';
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        async function lanzarEncuestas() {
+            if(!confirm('¿Estás seguro de generar las evaluaciones para todos los colaboradores?')) return;
+            
+            try {
+                const res = await fetch(`/api/skel360/empresa/${empresaId}/lanzar`, {method: 'POST'});
+                const data = await res.json();
+                if(data.status === 'success') {
+                    alert(data.message);
+                    const tbody = document.getElementById('links-tbody');
+                    tbody.innerHTML = '';
+                    data.links.forEach(l => {
+                        tbody.innerHTML += `<tr><td>${l.nombre}</td><td>${l.correo}</td><td><a href="${l.link}" target="_blank" style="color:#3b82f6; font-size:0.85rem;">${l.link}</a></td></tr>`;
+                    });
+                    document.getElementById('modalLinks').style.display = 'flex';
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch(e) { console.error(e); }
+        }
+
+    </script>
+</body>
+</html>
