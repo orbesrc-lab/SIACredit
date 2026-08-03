@@ -138,5 +138,5 @@ def skel360_reporte_individual():
 
 @frontend_bp.route('/skel360/empresa/<empresa_id>/plan-formacion')
 def skel_empresa_plan_formacion(empresa_id):
-    return render_template('skel_empresa_plan_formacion.html')
+    return render_template('skel_empresa_plan_formacion.html', empresa_id=empresa_id)
 
