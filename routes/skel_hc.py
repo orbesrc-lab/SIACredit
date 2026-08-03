@@ -744,6 +744,19 @@ def get_reporte_individual(evaluado_id):
                 "brecha": brecha
             })
             
+        # 6. Fetch saved individual plan and comments
+        saved_plan = ""
+        saved_comments = ""
+        plan_check = sb.table('statistics').select('data_json').eq('table_id', 'SKEL_PLAN_INDIVIDUAL').eq('inst_id', str(evaluado_id)).execute().data
+        if plan_check:
+            import json
+            try:
+                saved_data = json.loads(plan_check[0]['data_json'])
+                saved_plan = saved_data.get('plan', '')
+                saved_comments = saved_data.get('comentarios', '')
+            except:
+                pass
+
         return jsonify({
             "status": "success",
             "colaborador": {
@@ -751,12 +764,42 @@ def get_reporte_individual(evaluado_id):
                 "apellidos": colab.get("apellidos", ""),
                 "cargo": colab.get("skel_cargos", {}).get("nombre", "N/A")
             },
-            "resultados": resultados
+            "resultados": resultados,
+            "saved_plan": saved_plan,
+            "saved_comments": saved_comments
         })
         
     except Exception as e:
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@skel_hc_bp.route('/reporte/individual/<evaluado_id>/plan_accion', methods=['POST'])
+def save_plan_accion_individual(evaluado_id):
+    try:
+        data = request.json
+        plan = data.get('plan', '')
+        comentarios = data.get('comentarios', '')
+        
+        import json
+        sb = get_supabase()
+        
+        # Delete any previous
+        sb.table('statistics').delete().eq('table_id', 'SKEL_PLAN_INDIVIDUAL').eq('inst_id', str(evaluado_id)).execute()
+        # Insert new
+        sb.table('statistics').insert({
+            'table_id': 'SKEL_PLAN_INDIVIDUAL',
+            'inst_id': str(evaluado_id),
+            'data_json': json.dumps({
+                "plan": plan,
+                "comentarios": comentarios
+            })
+        }).execute()
+        
+        return jsonify({"status": "success", "message": "Plan guardado correctamente"})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @skel_hc_bp.route('/reporte/ia', methods=['POST'])
 def generar_plan_ia():

@@ -107,6 +107,7 @@
             
             <div style="text-align: center; margin-top: 30px;" class="actions-bottom">
                 <button class="btn btn-secondary" onclick="window.history.back()" style="padding: 12px 30px; font-size: 1.05rem;">⬅ Volver a Resultados</button>
+                <button class="btn btn-primary" onclick="guardarPlanAccion()" style="padding: 12px 30px; font-size: 1.05rem; background: #10b981; margin-left: 10px;">💾 Guardar Plan</button>
             </div>
         </div>
     </div>
@@ -134,6 +135,13 @@
                     resultadosGlobal = data.resultados;
                     renderTabla(data.resultados);
                     renderRadar(data.resultados);
+                    
+                    if (data.saved_plan) {
+                        document.getElementById('texto-compromisos').value = data.saved_plan;
+                    }
+                    if (data.saved_comments) {
+                        document.getElementById('texto-comentarios').value = data.saved_comments;
+                    }
                 } else {
                     alert("Error: " + data.message);
                 }
@@ -260,6 +268,29 @@
                 alert("Error al conectar con IA");
             } finally {
                 btnSpinner.style.display = 'none';
+            }
+        }
+
+        async function guardarPlanAccion() {
+            const plan = document.getElementById('texto-compromisos').value;
+            const comentarios = document.getElementById('texto-comentarios').value;
+            
+            try {
+                const res = await fetch(`/api/skel360/reporte/individual/${evaluadoId}/plan_accion`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ plan: plan, comentarios: comentarios })
+                });
+                const data = await res.json();
+                
+                if (data.status === 'success') {
+                    alert('✅ ' + data.message);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error de conexión al guardar');
             }
         }
 
