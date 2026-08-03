@@ -622,3 +622,132 @@ def submit_evaluacion(token):
     except Exception as e:
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# ==============================================================================
+# Fase 4: Reporte Individual 360 y Brechas
+# ==============================================================================
+
+@skel_hc_bp.route('/reporte/individual/<evaluado_id>', methods=['GET'])
+def get_reporte_individual(evaluado_id):
+    try:
+        sb = get_supabase()
+        
+        # 1. Info del Colaborador y Empresa
+        res_colab = sb.table('skel_colaboradores').select('*, skel_cargos(nombre)').eq('id', evaluado_id).execute()
+        if not res_colab.data:
+            return jsonify({"status": "error", "message": "Colaborador no encontrado"}), 404
+        colab = res_colab.data[0]
+        empresa_id = colab['empresa_id']
+        
+        # 2. Obtener la Red (quiénes lo evaluaron) para cruzar relaciones
+        res_red = sb.table('skel_360_red').select('*').eq('evaluado_id', evaluado_id).execute()
+        red = { r['evaluador_id']: r['relacion'] for r in res_red.data }
+        # Añadir a la red a sí mismo
+        red[evaluado_id] = "Autoevaluación"
+        
+        # 3. Obtener Respuestas
+        res_resp = sb.table('skel_360_respuestas').select('*, skel_diccionario_comportamientos(competencia_id)').eq('evaluado_id', evaluado_id).execute()
+        respuestas = res_resp.data
+        
+        # 4. Agrupar por Competencia y Relación
+        comps_data = {}
+        
+        res_comps = sb.table('skel_diccionario_competencias').select('*').execute()
+        comp_map = { c['id']: {"nombre": c['nombre'], "nivel_esperado": 4.0} for c in res_comps.data }
+        
+        for r in respuestas:
+            if not r.get('skel_diccionario_comportamientos'):
+                continue
+            comp_id = r['skel_diccionario_comportamientos']['competencia_id']
+            if comp_id not in comps_data:
+                comps_data[comp_id] = {
+                    "id": comp_id,
+                    "nombre": comp_map.get(comp_id, {}).get("nombre", "Desconocida"),
+                    "nivel_esperado": comp_map.get(comp_id, {}).get("nivel_esperado", 4.0),
+                    "puntajes": {"Autoevaluación": [], "Jefe": [], "Pares": [], "Subordinados": []}
+                }
+            
+            evaluador = r['evaluador_id']
+            # Mapear "Par" a "Pares", "Subordinado" a "Subordinados" si es necesario
+            relacion_raw = red.get(evaluador, "Pares")
+            if relacion_raw == "Par": relacion_raw = "Pares"
+            if relacion_raw == "Subordinado": relacion_raw = "Subordinados"
+            if relacion_raw not in comps_data[comp_id]["puntajes"]:
+                comps_data[comp_id]["puntajes"][relacion_raw] = []
+                
+            comps_data[comp_id]["puntajes"][relacion_raw].append(r['puntaje'])
+        
+        # 5. Calcular promedios
+        resultados = []
+        for comp_id, data in comps_data.items():
+            promedios = {}
+            total_sum = 0
+            total_count = 0
+            for rel, pts in data["puntajes"].items():
+                if pts:
+                    prom = sum(pts) / len(pts)
+                    promedios[rel] = round(prom, 2)
+                    if rel != "Autoevaluación":
+                        total_sum += sum(pts)
+                        total_count += len(pts)
+                else:
+                    promedios[rel] = 0
+            
+            # Promedio 360: promedio de evaluadores externos (sin autoevaluación), si no hay externos, usa autoeval
+            promedio_360 = round(total_sum / total_count, 2) if total_count > 0 else promedios.get("Autoevaluación", 0)
+            brecha = round(promedio_360 - data["nivel_esperado"], 2)
+            
+            resultados.append({
+                "competencia_id": comp_id,
+                "nombre": data["nombre"],
+                "nivel_esperado": data["nivel_esperado"],
+                "promedios": promedios,
+                "promedio_360": promedio_360,
+                "brecha": brecha
+            })
+            
+        return jsonify({
+            "status": "success",
+            "colaborador": {
+                "nombres": colab.get("nombres", ""),
+                "apellidos": colab.get("apellidos", ""),
+                "cargo": colab.get("skel_cargos", {}).get("nombre", "N/A")
+            },
+            "resultados": resultados
+        })
+        
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@skel_hc_bp.route('/reporte/ia', methods=['POST'])
+def generar_plan_ia():
+    try:
+        data = request.json
+        resultados = data.get('resultados', [])
+        
+        if not resultados:
+            return jsonify({"status": "error", "message": "No hay resultados de competencias para analizar"}), 400
+            
+        prompt = "Actúa como un experto en Recursos Humanos y desarrollo organizacional. "
+        prompt += "A continuación te presento los resultados de una evaluación de desempeño 360 de un colaborador, "
+        prompt += "indicando la competencia, su nivel esperado y la brecha (un valor negativo indica que está por debajo de lo esperado):\n\n"
+        
+        for r in resultados:
+            prompt += f"- {r.get('nombre', 'Competencia')}: Esperado {r.get('nivel_esperado', 4)}, Obtenido {r.get('promedio_360', 0)} (Brecha: {r.get('brecha', 0)})\n"
+            
+        prompt += "\nGenera un 'Plan de Acción' muy conciso y directo (en texto plano o viñetas simples, no uses markdown complejo). Sugiere 2 a 3 acciones prácticas y concretas que el colaborador debe tomar a corto plazo para cerrar las brechas más críticas."
+        
+        # Llamar a AI
+        try:
+            from routes.ai_generator import generar_informe_ia_base
+            texto_ia = generar_informe_ia_base(prompt)
+        except Exception as ai_e:
+            print("Error IA:", ai_e)
+            texto_ia = "Plan sugerido (Fallback IA no disponible):\n\n1. Identificar cursos en la plataforma correspondientes a las competencias con mayor brecha.\n2. Establecer reuniones periódicas con el Jefe Directo para seguimiento.\n3. Solicitar feedback continuo a pares para mejorar habilidades interpersonales."
+            
+        return jsonify({"status": "success", "plan": texto_ia})
+        
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500

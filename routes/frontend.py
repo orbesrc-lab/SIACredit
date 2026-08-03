@@ -131,3 +131,8 @@ def skel_empresa_resultados(empresa_id):
 @frontend_bp.route('/evaluar')
 def evaluar_publico():
     return render_template('skel_evaluar.html')
+
+@frontend_bp.route('/skel360/reporte/individual')
+def skel360_reporte_individual():
+    return render_template('reporte_individual_360.html')
+
