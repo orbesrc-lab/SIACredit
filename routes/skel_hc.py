@@ -747,7 +747,8 @@ def get_reporte_individual(evaluado_id):
         # 6. Fetch saved individual plan and comments
         saved_plan = ""
         saved_comments = ""
-        plan_check = sb.table('statistics').select('data_json').eq('table_id', 'SKEL_PLAN_INDIVIDUAL').eq('inst_id', str(evaluado_id)).execute().data
+        table_id = f"SKEL_PLAN_INDIVIDUAL_{evaluado_id}"
+        plan_check = sb.table('statistics').select('data_json').eq('table_id', table_id).execute().data
         if plan_check:
             import json
             try:
@@ -783,12 +784,12 @@ def save_plan_accion_individual(evaluado_id):
         import json
         sb = get_supabase()
         
+        table_id = f"SKEL_PLAN_INDIVIDUAL_{evaluado_id}"
         # Delete any previous
-        sb.table('statistics').delete().eq('table_id', 'SKEL_PLAN_INDIVIDUAL').eq('inst_id', str(evaluado_id)).execute()
+        sb.table('statistics').delete().eq('table_id', table_id).execute()
         # Insert new
         sb.table('statistics').insert({
-            'table_id': 'SKEL_PLAN_INDIVIDUAL',
-            'inst_id': str(evaluado_id),
+            'table_id': table_id,
             'data_json': json.dumps({
                 "plan": plan,
                 "comentarios": comentarios
@@ -894,7 +895,8 @@ def get_plan_formacion_empresa(empresa_id):
         
         # 5. Fetch saved AI Plan (if any)
         saved_plan = None
-        plan_check = sb.table('statistics').select('data_json').eq('table_id', 'SKEL_PLAN_IA').eq('inst_id', str(empresa_id)).execute().data
+        table_id = f"SKEL_PLAN_IA_{empresa_id}"
+        plan_check = sb.table('statistics').select('data_json').eq('table_id', table_id).execute().data
         if plan_check:
             import json
             try:
@@ -942,12 +944,12 @@ def generar_plan_formacion_ia(empresa_id):
             # Guardar el plan generado en la base de datos
             import json
             sb = get_supabase()
+            table_id = f"SKEL_PLAN_IA_{empresa_id}"
             # Delete any previous plan for this company
-            sb.table('statistics').delete().eq('table_id', 'SKEL_PLAN_IA').eq('inst_id', str(empresa_id)).execute()
+            sb.table('statistics').delete().eq('table_id', table_id).execute()
             # Insert the new plan
             sb.table('statistics').insert({
-                'table_id': 'SKEL_PLAN_IA',
-                'inst_id': str(empresa_id),
+                'table_id': table_id,
                 'data_json': json.dumps({"plan": texto_ia})
             }).execute()
             
