@@ -41,6 +41,15 @@ def extract_json_from_response(text):
             return text[:end_idx+1]
         return text
 
+def generar_informe_ia_base(prompt):
+    """Wrapper para usar en endpoints internos sin necesidad de petición HTTP."""
+    messages = [
+        {"role": "system", "content": "Eres un experto asesor y gurú en Recursos Humanos y desarrollo de habilidades institucionales."},
+        {"role": "user", "content": prompt}
+    ]
+    # Llama a call_ai y devuelve el texto directamente
+    return call_ai(messages, max_tokens=1500)
+
 @ai_generator_bp.route('/api/ai/course/structure', methods=['POST'])
 def generate_course_structure():
     data = request.json
