@@ -969,3 +969,48 @@ def generar_plan_formacion_ia(empresa_id):
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
+
+@skel_hc_bp.route('/empresas/<empresa_id>', methods=['DELETE'])
+def delete_empresa(empresa_id):
+    try:
+        sb = get_supabase()
+        # Eliminar las estadísticas asociadas
+        sb.table('statistics').delete().like('table_id', f'%_{empresa_id}').execute()
+        
+        # Safe cascade delete
+        colabs = sb.table('skel_colaboradores').select('id').eq('empresa_id', empresa_id).execute().data
+        colab_ids = [c['id'] for c in colabs]
+        if colab_ids:
+            sb.table('skel_360_respuestas').delete().in_('evaluado_id', colab_ids).execute()
+            sb.table('skel_360_red').delete().in_('evaluado_id', colab_ids).execute()
+            sb.table('skel_tokens_acceso').delete().in_('colaborador_id', colab_ids).execute()
+            
+        sb.table('skel_evaluaciones').delete().eq('empresa_id', empresa_id).execute()
+        
+        cargos = sb.table('skel_cargos').select('id').eq('empresa_id', empresa_id).execute().data
+        if cargos:
+            cargo_ids = [ca['id'] for ca in cargos]
+            sb.table('skel_cargos_competencias').delete().in_('cargo_id', cargo_ids).execute()
+            
+        sb.table('skel_colaboradores').delete().eq('empresa_id', empresa_id).execute()
+        sb.table('skel_cargos').delete().eq('empresa_id', empresa_id).execute()
+        sb.table('skel_areas').delete().eq('empresa_id', empresa_id).execute()
+        
+        # Eliminar la empresa
+        sb.table('skel_empresas').delete().eq('id', empresa_id).execute()
+        return jsonify({"status": "success", "message": "Empresa eliminada correctamente"})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@skel_hc_bp.route('/empresas/<empresa_id>/estado', methods=['PATCH'])
+def toggle_estado_empresa(empresa_id):
+    try:
+        data = request.json
+        nuevo_estado = data.get('estado')
+        sb = get_supabase()
+        sb.table('skel_empresas').update({'estado': nuevo_estado}).eq('id', empresa_id).execute()
+        return jsonify({"status": "success", "message": "Estado actualizado"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
