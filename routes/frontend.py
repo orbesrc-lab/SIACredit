@@ -136,3 +136,7 @@ def evaluar_publico():
 def skel360_reporte_individual():
     return render_template('reporte_individual_360.html')
 
+@frontend_bp.route('/skel360/empresa/<empresa_id>/plan-formacion')
+def skel_empresa_plan_formacion(empresa_id):
+    return render_template('skel_empresa_plan_formacion.html')
+

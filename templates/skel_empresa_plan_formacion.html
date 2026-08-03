@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan Maestro de Capacitación - SKEL HC 360</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-color: #f8fafc;
+            --primary-color: #3b82f6;
+            --secondary-color: #1e293b;
+            --accent-color: #10b981;
+            --danger-color: #ef4444;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.15) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .btn-back {
+            background: var(--secondary-color);
+            color: white;
+            border: 1px solid var(--glass-border);
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-back:hover {
+            background: #334155;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .colab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 10px;
+        }
+
+        .colab-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+            color: #e2e8f0;
+        }
+
+        .score-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: inline-block;
+        }
+        .score-high { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .score-med { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .score-low { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        
+        .chart-container {
+            width: 100%;
+            height: 250px;
+            margin-top: 10px;
+            flex: 1;
+        }
+
+        .btn-print {
+            background: rgba(255,255,255,0.1);
+            color: #e2e8f0;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-print:hover { background: rgba(255,255,255,0.2); }
+
+        @media print {
+            body { background: white; color: black; background-image: none; }
+            .header, .btn-back, .btn-print, #loader, #empty-state { display: none !important; }
+            
+            /* Hide all cards by default during print, unless they have .print-mode */
+            .result-card { display: none !important; }
+            
+            .result-card.print-mode { 
+                display: flex !important;
+                flex-direction: column;
+                page-break-inside: avoid;
+                border: 2px solid #ccc;
+                background: white;
+                box-shadow: none;
+                margin: 0;
+                padding: 40px;
+                width: 100%;
+                box-sizing: border-box;
+                height: 100vh;
+            }
+            .colab-name { color: black; font-size: 2rem; }
+            .score-badge { border: 2px solid #333; font-size: 1.5rem; padding: 10px 20px; }
+            .grid { display: block; }
+            .chart-container {
+                height: 60vh !important;
+                margin-top: 40px;
+            }
+            .chart-container canvas { 
+                filter: invert(1) hue-rotate(180deg);
+                max-width: 100%;
+            }
+            .print-title { display: block !important; text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 30px; color: #333; }
+        }
+        
+        .print-title { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1 style="margin:0; color:var(--primary-color);">Resultados de Evaluación 360</h1>
+                <p style="margin:5px 0 0 0; color:#94a3b8;">Dashboard Analítico Organizacional</p>
+            </div>
+            <a href="/skel360/empresa/{{ empresa_id }}" class="btn-back">⬅ Volver al Dashboard</a>
+        </div>
+
+        <div id="loader" style="text-align: center; padding: 50px; color: #94a3b8;">
+            <h2>Calculando promedios y generando gráficas...</h2>
+        </div>
+
+        <div id="results-container" class="grid" style="display: none;">
+            <!-- Cards will be injected here -->
+        </div>
+        
+        <div id="empty-state" class="card" style="display: none; text-align: center; padding: 50px;">
+            <h3 style="color: #94a3b8;">Aún no hay resultados para mostrar</h3>
+            <p style="color: #64748b;">Los resultados aparecerán aquí conforme los colaboradores completen sus encuestas.</p>
+        </div>
+    </div>
+
+    
+    <script>
+        const empresaId = window.location.pathname.split('/')[3];
+        let brechasGlobal = [];
+        
+        async function loadPlan() {
+            try {
+                const res = await fetch(`/api/skel360/empresa/${empresaId}/plan_formacion`);
+                const data = await res.json();
+                
+                if(data.status === 'success' && data.data.length > 0) {
+                    brechasGlobal = data.data;
+                    renderChart(data.data);
+                } else {
+                    document.getElementById('plan-ia-content').innerHTML = "<p style='text-align:center;'>No hay datos suficientes para generar el plan.</p>";
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        
+        function renderChart(data) {
+            // Filtrar solo las negativas y tomar las top 10 peores
+            const negativas = data.filter(d => d.brecha < 0).slice(0, 10);
+            
+            const labels = negativas.map(d => d.nombre);
+            const brechas = negativas.map(d => d.brecha);
+            
+            const ctx = document.getElementById('gapChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Brecha Promedio (Frente a 4.0)',
+                        data: brechas,
+                        backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                        borderColor: '#ef4444',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { color: '#e2e8f0' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+        
+        async function generarPlanIA() {
+            const container = document.getElementById('plan-ia-content');
+            container.innerHTML = "<p style='text-align:center; color:#3b82f6;'>⏳ Analizando brechas y estructurando plan maestro con Inteligencia Artificial...</p>";
+            
+            try {
+                const res = await fetch(`/api/skel360/empresa/${empresaId}/plan_formacion/ia`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ resultados: brechasGlobal })
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    container.innerHTML = data.plan;
+                } else {
+                    container.innerHTML = `<p style="color:#ef4444;">Error: ${data.message}</p>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<p style="color:#ef4444;">Error al conectar con la IA.</p>`;
+            }
+        }
+        
+        window.onload = loadPlan;
+    </script>
+</body>
+</html>
+

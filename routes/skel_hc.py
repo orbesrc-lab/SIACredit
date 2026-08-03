@@ -42,7 +42,15 @@ def create_empresa():
             "nit": data.get('nit'),
             "sector": data.get('sector'),
             "pais": data.get('pais'),
-            "ciudad": data.get('ciudad')
+            "ciudad": data.get('ciudad'),
+            "contacto_email": data.get('contacto_email'),
+            "contacto_telefono": data.get('contacto_telefono'),
+            "num_empleados": data.get('num_empleados'),
+            "num_departamentos": data.get('num_departamentos'),
+            "mision": data.get('mision'),
+            "vision": data.get('vision'),
+            "logo_url": data.get('logo_url'),
+            "logo_institucion_evaluadora": data.get('logo_institucion_evaluadora')
         }).execute()
         return jsonify({"status": "success", "data": res.data}), 201
     except Exception as e:
@@ -129,6 +137,36 @@ def seed_diccionario():
                 ]).execute()
                 
         return jsonify({"status": "success", "message": "Diccionario inicializado"}), 201
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@skel_hc_bp.route('/diccionario', methods=['POST'])
+def create_competencia_manual():
+    try:
+        data = request.json
+        sb = get_supabase()
+        
+        # 1. Crear la competencia
+        comp_res = sb.table('skel_diccionario_competencias').insert({
+            "nombre": data.get('nombre'),
+            "descripcion": data.get('descripcion', ''),
+            "tipo": data.get('tipo', 'Blanda')
+        }).execute()
+        
+        nueva_comp = comp_res.data[0]
+        
+        # 2. Agregar preguntas/comportamientos
+        comportamientos = data.get('comportamientos', [])
+        if comportamientos:
+            insert_data = [
+                {"competencia_id": nueva_comp['id'], "descripcion": comp}
+                for comp in comportamientos if comp.strip()
+            ]
+            if insert_data:
+                sb.table('skel_diccionario_comportamientos').insert(insert_data).execute()
+                
+        return jsonify({"status": "success", "data": nueva_comp}), 201
     except Exception as e:
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -751,3 +789,102 @@ def generar_plan_ia():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# ==============================================================================
+# Módulo 07: Plan de Capacitación Institucional
+# ==============================================================================
+
+@skel_hc_bp.route('/empresa/<empresa_id>/plan_formacion', methods=['GET'])
+def get_plan_formacion_empresa(empresa_id):
+    try:
+        sb = get_supabase()
+        
+        # 1. Traer todas las evaluaciones de la empresa
+        evals = sb.table('skel_evaluaciones').select('id').eq('empresa_id', empresa_id).execute().data
+        if not evals:
+            return jsonify({"status": "success", "data": []})
+            
+        eval_ids = [e['id'] for e in evals]
+        
+        # 2. Traer respuestas de esas evaluaciones, unidas con la competencia
+        # Obtenemos directamente las competencias
+        res_comps = sb.table('skel_diccionario_competencias').select('*').execute().data
+        comp_map = {c['id']: c for c in res_comps}
+        
+        # Traer respuestas
+        resp_res = sb.table('skel_360_respuestas').select('*, skel_diccionario_comportamientos(competencia_id)').in_('evaluacion_id', eval_ids).execute().data
+        
+        # 3. Agrupar puntajes por competencia a nivel empresa
+        comps_data = {}
+        for r in resp_res:
+            if not r.get('skel_diccionario_comportamientos'): continue
+            comp_id = r['skel_diccionario_comportamientos']['competencia_id']
+            if comp_id not in comps_data:
+                info = comp_map.get(comp_id, {})
+                comps_data[comp_id] = {
+                    "id": comp_id,
+                    "nombre": info.get('nombre', 'Desconocida'),
+                    "tipo": info.get('tipo', 'Blanda'),
+                    "nivel_esperado": 4.0,
+                    "sum_pts": 0,
+                    "count": 0
+                }
+            comps_data[comp_id]["sum_pts"] += r.get('puntaje', 0)
+            comps_data[comp_id]["count"] += 1
+            
+        # 4. Calcular promedios y brechas
+        resultados = []
+        for c_id, dat in comps_data.items():
+            promedio = round(dat["sum_pts"] / dat["count"], 1) if dat["count"] > 0 else 0
+            brecha = round(promedio - dat["nivel_esperado"], 1)
+            resultados.append({
+                "id": c_id,
+                "nombre": dat["nombre"],
+                "tipo": dat["tipo"],
+                "nivel_esperado": dat["nivel_esperado"],
+                "promedio_empresa": promedio,
+                "brecha": brecha
+            })
+            
+        # Ordenar por brecha (de más negativa a más positiva)
+        resultados.sort(key=lambda x: x["brecha"])
+        
+        return jsonify({"status": "success", "data": resultados})
+        
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@skel_hc_bp.route('/empresa/<empresa_id>/plan_formacion/ia', methods=['POST'])
+def generar_plan_formacion_ia(empresa_id):
+    try:
+        data = request.json
+        resultados = data.get('resultados', [])
+        
+        if not resultados:
+            return jsonify({"status": "error", "message": "No hay resultados para analizar"}), 400
+            
+        prompt = "Actúa como Consultor en Desarrollo Organizacional. "
+        prompt += "A continuación tienes los resultados consolidados de todas las evaluaciones 360 de una empresa, "
+        prompt += "identificando las brechas en competencias (valores negativos = urgencia de capacitación):\n\n"
+        
+        for r in resultados:
+            prompt += f"- {r['nombre']} ({r['tipo']}): Brecha {r['brecha']}\n"
+            
+        prompt += "\nBasado en esto, redacta un 'Plan Maestro de Capacitación Institucional'. "
+        prompt += "Agrupa las necesidades por prioridad. Sé ejecutivo, usa formato limpio HTML (usando <ul>, <li>, <h3>, <p>) "
+        prompt += "para que se vea directamente en la plataforma. Propón nombres de cursos sugeridos para las 3 competencias más críticas."
+        
+        try:
+            from routes.ai_generator import generar_informe_ia_base
+            texto_ia = generar_informe_ia_base(prompt)
+        except Exception as ai_e:
+            texto_ia = "<h3>Plan Maestro Sugerido</h3><ul><li>Implementar programa de Liderazgo para mandos medios.</li><li>Taller de comunicación asertiva.</li></ul>"
+            
+        return jsonify({"status": "success", "plan": texto_ia})
+        
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+

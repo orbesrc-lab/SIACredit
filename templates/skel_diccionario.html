@@ -157,7 +157,7 @@
                     <h3>Gestor de Formularios y Competencias</h3>
                     <div>
                         <a href="/skel360.html" class="btn-primary" style="background: #64748b; margin-right: 10px; text-decoration: none;">⬅ Volver a Empresas</a>
-                        <button class="btn-primary" onclick="alert('En desarrollo')">+ Nueva Competencia</button>
+                        <button class="btn-primary" onclick="abrirModalCompetencia()">+ Nueva Competencia</button>
                     </div>
                 </div>
                 
@@ -171,37 +171,128 @@
                         </tr>
                     </thead>
                     <tbody id="diccionario-list">
-                        <tr><td colspan="4" style="text-align: center;">Cargando competencias...</td></tr>
+                        <tr><td colspan="4" style="text-align: center;">Cargando...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
-
     </main>
     </div>
 
+    <!-- MODAL NUEVA COMPETENCIA -->
+    <div id="modal-nueva-competencia" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:30px; border-radius:12px; width:90%; max-width:600px; max-height: 90vh; overflow-y: auto;">
+            <h2 style="margin-bottom:20px;">Agregar Nueva Competencia</h2>
+            <form id="form-competencia">
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px;">Nombre de la Competencia</label>
+                    <input type="text" id="comp-nombre" required style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;" placeholder="Ej: Pensamiento Crítico">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px;">Descripción Corta</label>
+                    <input type="text" id="comp-desc" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px;">Tipo</label>
+                    <select id="comp-tipo" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">
+                        <option value="Blanda">Blanda / Transversal</option>
+                        <option value="Técnica">Técnica / Específica</option>
+                        <option value="Digital">Digital</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom:25px;">
+                    <label style="display:block; margin-bottom:5px;">Comportamientos (Preguntas)</label>
+                    <p style="font-size:0.8rem; color:#64748b; margin-bottom:10px;">Escribe un comportamiento por línea. Estos serán las preguntas a evaluar (ej: ¿Analiza datos antes de decidir?).</p>
+                    <textarea id="comp-comportamientos" rows="5" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;" required></textarea>
+                </div>
+                
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" onclick="cerrarModalCompetencia()" style="padding:10px 15px; background:#e5e7eb; border:none; border-radius:5px; cursor:pointer;">Cancelar</button>
+                    <button type="submit" style="padding:10px 15px; background:#4338ca; color:white; border:none; border-radius:5px; cursor:pointer;">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script>
+        function toggleSidebarGroup(header) {
+            const group = header.parentElement;
+            group.classList.toggle('active');
+        }
+
+        function abrirModalCompetencia() {
+            document.getElementById('modal-nueva-competencia').style.display = 'flex';
+        }
+        function cerrarModalCompetencia() {
+            document.getElementById('modal-nueva-competencia').style.display = 'none';
+        }
+
+        document.getElementById('form-competencia').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const comportamientos_text = document.getElementById('comp-comportamientos').value;
+            const comportamientos = comportamientos_text.split('\n').map(c => c.trim()).filter(c => c.length > 0);
+            
+            if(comportamientos.length === 0) {
+                alert("Debes ingresar al menos un comportamiento.");
+                return;
+            }
+            
+            const payload = {
+                nombre: document.getElementById('comp-nombre').value,
+                descripcion: document.getElementById('comp-desc').value,
+                tipo: document.getElementById('comp-tipo').value,
+                comportamientos: comportamientos
+            };
+            
+            try {
+                const res = await fetch('/api/skel360/diccionario', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    cerrarModalCompetencia();
+                    document.getElementById('form-competencia').reset();
+                    loadDiccionario();
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch(error) {
+                alert("Error al guardar.");
+            }
+        });
+
         async function loadDiccionario() {
             try {
-                const response = await fetch('/api/skel360/diccionario');
-                const result = await response.json();
+                const res = await fetch('/api/skel360/diccionario');
+                const data = await res.json();
+                
                 const tbody = document.getElementById('diccionario-list');
                 tbody.innerHTML = '';
                 
-                if (result.status === 'success' && result.data.length > 0) {
-                    result.data.forEach(comp => {
-                        const comportamientos = comp.comportamientos.map(c => `<li>${c.descripcion}</li>`).join('');
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td><strong>${comp.nombre}</strong></td>
-                            <td><span style="background: #e2e8f0; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">${comp.tipo || '-'}</span></td>
-                            <td>${comp.descripcion || '-'}<br><ul style="margin-top: 5px; padding-left: 15px; font-size: 0.85rem; color: #555;">${comportamientos}</ul></td>
-                            <td>
-                                <button onclick="alert('Editar en desarrollo')" style="background: #3b82f6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">✏️ Editar</button>
-                            </td>
+                if (data.status === 'success' && data.data.length > 0) {
+                    data.data.forEach(comp => {
+                        let compListHTML = '<ul style="margin: 0; padding-left: 20px; font-size: 0.9rem; color: #64748b;">';
+                        comp.comportamientos.forEach(c => {
+                            compListHTML += `<li>${c.descripcion}</li>`;
+                        });
+                        compListHTML += '</ul>';
+                        
+                        tbody.innerHTML += `
+                            <tr>
+                                <td style="font-weight: 600;">${comp.nombre}</td>
+                                <td><span style="background:#e2e8f0; padding:2px 8px; border-radius:12px; font-size:0.8rem;">${comp.tipo || 'Evaluación'}</span></td>
+                                <td>
+                                    <div style="margin-bottom: 5px;">${comp.descripcion || '-'}</div>
+                                    ${compListHTML}
+                                </td>
+                                <td>
+                                    <button class="btn-primary" style="padding: 5px 10px; font-size: 0.8rem; background: #3b82f6;" onclick="alert('En desarrollo')">✏️ Editar</button>
+                                </td>
+                            </tr>
                         `;
-                        tbody.appendChild(tr);
                     });
                 } else {
                     tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No hay competencias. <button onclick="seedDiccionario()" class="btn-primary" style="margin-left: 10px; font-size: 0.8rem; padding: 5px 10px;">Cargar Plantilla Básica</button></td></tr>';
