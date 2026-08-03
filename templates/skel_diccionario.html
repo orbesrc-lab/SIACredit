@@ -312,5 +312,15 @@
         
         loadDiccionario();
     </script>
+
+    <script>
+        // Ocultar menú lateral si estamos dentro del modal/iframe de la SPA
+        if (window.self !== window.top) {
+            document.addEventListener("DOMContentLoaded", () => {
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar) sidebar.style.display = 'none';
+            });
+        }
+    </script>
 </body>
 </html>
