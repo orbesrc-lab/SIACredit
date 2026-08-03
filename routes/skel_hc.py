@@ -782,7 +782,7 @@ def generar_plan_ia():
             texto_ia = generar_informe_ia_base(prompt)
         except Exception as ai_e:
             print("Error IA:", ai_e)
-            texto_ia = "Plan sugerido (Fallback IA no disponible):\n\n1. Identificar cursos en la plataforma correspondientes a las competencias con mayor brecha.\n2. Establecer reuniones periódicas con el Jefe Directo para seguimiento.\n3. Solicitar feedback continuo a pares para mejorar habilidades interpersonales."
+            texto_ia = "⚠️ **Análisis IA no disponible**\n\nEl sistema no pudo generar el análisis personalizado porque la llave API de Inteligencia Artificial es inválida o no está configurada. Por favor, dirígete al panel de **Configuración Global** e ingresa una API Key válida (ej. Gemini o OpenAI) para habilitar esta función."
             
         return jsonify({"status": "success", "plan": texto_ia})
         
@@ -880,7 +880,14 @@ def generar_plan_formacion_ia(empresa_id):
             from routes.ai_generator import generar_informe_ia_base
             texto_ia = generar_informe_ia_base(prompt)
         except Exception as ai_e:
-            texto_ia = "<h3>Plan Maestro Sugerido</h3><ul><li>Implementar programa de Liderazgo para mandos medios.</li><li>Taller de comunicación asertiva.</li></ul>"
+            texto_ia = """
+            <div style="background-color: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 15px; border-radius: 4px;">
+                <h3 style="color: #ef4444; margin-top: 0; display: flex; align-items: center; gap: 8px;">
+                    ⚠️ Análisis IA no disponible
+                </h3>
+                <p style="margin-bottom: 0;">El sistema no pudo generar el plan maestro personalizado porque la <strong>llave API de Inteligencia Artificial es inválida o no está configurada</strong>. Por favor, ingresa una API Key válida en el panel de <strong>Configuración Global</strong> para habilitar los insights generativos.</p>
+            </div>
+            """
             
         return jsonify({"status": "success", "plan": texto_ia})
         
