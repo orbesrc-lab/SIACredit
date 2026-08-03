@@ -228,7 +228,7 @@
                                     <h3 class="colab-name">${item.colaborador_nombre}</h3>
                                     <div class="score-badge ${getScoreClass(item.promedio_global)}" style="margin-top:5px;">${item.promedio_global.toFixed(1)}</div>
                                 </div>
-                                <button class="btn-print" onclick="window.print()" title="Imprimir o Guardar PDF">🖨️ Reporte</button>
+                                <button class="btn-print" onclick="window.location.href='/skel360/reporte/individual?id=${item.colaborador_id}'" title="Ver Reporte Individual 360">📊 Reporte 360</button>
                             </div>
                             <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px;">Desempeño por Competencias:</div>
                             <div class="chart-container">
