@@ -849,7 +849,18 @@ def get_plan_formacion_empresa(empresa_id):
         # Ordenar por brecha (de más negativa a más positiva)
         resultados.sort(key=lambda x: x["brecha"])
         
-        return jsonify({"status": "success", "data": resultados})
+        # 5. Fetch saved AI Plan (if any)
+        saved_plan = None
+        plan_check = sb.table('statistics').select('data_json').eq('table_id', 'SKEL_PLAN_IA').eq('inst_id', str(empresa_id)).execute().data
+        if plan_check:
+            import json
+            try:
+                saved_data = json.loads(plan_check[0]['data_json'])
+                saved_plan = saved_data.get('plan')
+            except:
+                pass
+        
+        return jsonify({"status": "success", "data": resultados, "saved_plan": saved_plan})
         
     except Exception as e:
         traceback.print_exc()
@@ -873,12 +884,30 @@ def generar_plan_formacion_ia(empresa_id):
             prompt += f"- {r['nombre']} ({r['tipo']}): Brecha {r['brecha']}\n"
             
         prompt += "\nBasado en esto, redacta un 'Plan Maestro de Capacitación Institucional'. "
-        prompt += "Agrupa las necesidades por prioridad. Sé ejecutivo, usa formato limpio HTML (usando <ul>, <li>, <h3>, <p>) "
-        prompt += "para que se vea directamente en la plataforma. Propón nombres de cursos sugeridos para las 3 competencias más críticas."
+        prompt += "Agrupa las necesidades por prioridad. Sé ejecutivo, usa formato HTML (usando <ul>, <li>, <h3>, <p>, <strong>, etc.) "
+        prompt += "para que se vea directamente en la plataforma.\n"
+        prompt += "CRÍTICO: Para cada curso propuesto (sugiere 3 a 5 cursos para las áreas más urgentes), DEBES incluir explícitamente:\n"
+        prompt += "1. Nombre del curso.\n"
+        prompt += "2. Horas estimadas.\n"
+        prompt += "3. Contenidos principales del curso.\n"
+        prompt += "4. Promesa de valor (qué se espera lograr o cómo impactará si los colaboradores toman ese curso)."
         
         try:
             from routes.ai_generator import generar_informe_ia_base
             texto_ia = generar_informe_ia_base(prompt)
+            
+            # Guardar el plan generado en la base de datos
+            import json
+            sb = get_supabase()
+            # Delete any previous plan for this company
+            sb.table('statistics').delete().eq('table_id', 'SKEL_PLAN_IA').eq('inst_id', str(empresa_id)).execute()
+            # Insert the new plan
+            sb.table('statistics').insert({
+                'table_id': 'SKEL_PLAN_IA',
+                'inst_id': str(empresa_id),
+                'data_json': json.dumps({"plan": texto_ia})
+            }).execute()
+            
         except Exception as ai_e:
             texto_ia = """
             <div style="background-color: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 15px; border-radius: 4px;">
