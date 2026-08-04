@@ -905,8 +905,6 @@ def save_plan_accion_individual(evaluado_id):
         
         table_id = f"SKEL_PLAN_INDIVIDUAL_{evaluado_id}"
         # Delete any previous
-        sb.table('statistics').delete().eq('table_id', table_id).execute()
-        # Insert new
         sb.table('statistics').insert({
             'table_id': table_id,
             'data_json': json.dumps({
@@ -914,7 +912,11 @@ def save_plan_accion_individual(evaluado_id):
                 "comentarios": comentarios
             })
         }).execute()
-        
+        return jsonify({"status": "success", "message": "Plan guardado correctamente"})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @skel_hc_bp.route('/reporte/ia', methods=['POST'])
 def generar_plan_ia():
     try:
