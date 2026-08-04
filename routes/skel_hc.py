@@ -279,12 +279,30 @@ def manage_colaborador(colab_id):
     try:
         sb = get_supabase()
         if request.method == 'DELETE':
-            # Eliminar registros dependientes primero (tokens y red 360)
-            sb.table('skel_tokens_acceso').delete().eq('colaborador_id', colab_id).execute()
-            sb.table('skel_tokens_acceso').delete().eq('evaluado_id', colab_id).execute()
-            sb.table('skel_360_red').delete().eq('evaluador_id', colab_id).execute()
-            sb.table('skel_360_red').delete().eq('evaluado_id', colab_id).execute()
-            # Ahora sí eliminar el colaborador
+            # 1. Desvincular como jefe de otros colaboradores
+            try:
+                sb.table('skel_colaboradores').update({'jefe_id': None}).eq('jefe_id', colab_id).execute()
+            except Exception: pass
+
+            # 2. Eliminar respuestas de evaluaciones asociadas
+            for tbl in ['skel_360_respuestas', 'skel_evaluaciones_respuestas']:
+                try:
+                    sb.table(tbl).delete().eq('evaluador_id', colab_id).execute()
+                    sb.table(tbl).delete().eq('evaluado_id', colab_id).execute()
+                except Exception: pass
+
+            # 3. Eliminar tokens y red 360
+            try:
+                sb.table('skel_tokens_acceso').delete().eq('colaborador_id', colab_id).execute()
+                sb.table('skel_tokens_acceso').delete().eq('evaluado_id', colab_id).execute()
+            except Exception: pass
+
+            try:
+                sb.table('skel_360_red').delete().eq('evaluador_id', colab_id).execute()
+                sb.table('skel_360_red').delete().eq('evaluado_id', colab_id).execute()
+            except Exception: pass
+
+            # 4. Eliminar el colaborador finalmente
             sb.table('skel_colaboradores').delete().eq('id', colab_id).execute()
             return jsonify({"status": "success", "message": "Colaborador eliminado"}), 200
             
