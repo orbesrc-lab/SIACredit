@@ -13,7 +13,7 @@
         }
         body { background-color: var(--report-bg); font-family: 'Inter', sans-serif; overflow: auto !important; }
         .report-container { max-width: 1050px; margin: 40px auto; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+        .header { position: sticky; top: 0; background: white; z-index: 100; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; padding-top: 15px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
         .header-title h1 { font-size: 2rem; color: #1e293b; margin-bottom: 5px; }
         .header-title p { color: #64748b; font-size: 1.1rem; }
         .actions { display: flex; gap: 10px; }
@@ -120,8 +120,9 @@
             <textarea id="texto-comentarios" style="min-height: 80px;" placeholder="Observaciones adicionales o compromisos de la sesión..."></textarea>
             
             <div style="text-align: center; margin-top: 30px;" class="actions-bottom no-pdf">
-                <button class="btn btn-secondary" onclick="window.history.back()" style="padding: 12px 30px; font-size: 1.05rem;">⬅ Volver a Resultados</button>
-                <button class="btn btn-primary" onclick="guardarPlanAccion()" style="padding: 12px 30px; font-size: 1.05rem; background: #10b981; margin-left: 10px;">💾 Guardar Plan</button>
+                <button class="btn btn-secondary" onclick="window.history.back()" style="padding: 12px 20px; font-size: 1rem;">⬅ Volver a Resultados</button>
+                <button class="btn btn-primary" onclick="guardarPlanAccion()" style="padding: 12px 20px; font-size: 1rem; background: #3b82f6; margin-left: 10px;">💾 Guardar Plan</button>
+                <button class="btn btn-primary" onclick="descargarPDF()" style="padding: 12px 20px; font-size: 1rem; background: linear-gradient(135deg, #10b981, #059669); margin-left: 10px;">📄 Descargar PDF Gerencial</button>
             </div>
         </div>
     </div>
