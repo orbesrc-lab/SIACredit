@@ -904,7 +904,9 @@ def save_plan_accion_individual(evaluado_id):
         sb = get_supabase()
         
         table_id = f"SKEL_PLAN_INDIVIDUAL_{evaluado_id}"
-        # Delete any previous
+        # Delete any previous record
+        sb.table('statistics').delete().eq('table_id', table_id).execute()
+        # Insert new record
         sb.table('statistics').insert({
             'table_id': table_id,
             'data_json': json.dumps({
