@@ -624,6 +624,7 @@ def lanzar_encuestas(empresa_id):
             evaluador_info = colabs_dict.get(t['colaborador_id'], {"nombre": "Desconocido", "email": ""})
             
             links.append({
+                "id": t['id'],
                 "nombre": f"{evaluador_info['nombre']} ({t['tipo']})",  # A quien se le manda el link
                 "correo": evaluador_info['email'],
                 "colaborador_nombre": evaluador_info['nombre'],
@@ -914,12 +915,6 @@ def save_plan_accion_individual(evaluado_id):
             })
         }).execute()
         
-        return jsonify({"status": "success", "message": "Plan guardado correctamente"})
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
 @skel_hc_bp.route('/reporte/ia', methods=['POST'])
 def generar_plan_ia():
     try:
@@ -1131,4 +1126,90 @@ def toggle_estado_empresa(empresa_id):
         sb.table('skel_empresas').update({'estado': nuevo_estado}).eq('id', empresa_id).execute()
         return jsonify({"status": "success", "message": "Estado actualizado"})
     except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@skel_hc_bp.route('/empresa/<empresa_id>/enviar-correo', methods=['POST'])
+def enviar_correo_evaluacion(empresa_id):
+    try:
+        from utils.mail import send_email
+        sb = get_supabase()
+        data = request.json or {}
+        token_id = data.get('token_id')
+        
+        query = sb.table('skel_tokens_acceso').select('*').eq('empresa_id', empresa_id)
+        if token_id:
+            query = query.eq('id', token_id)
+        else:
+            query = query.eq('estado', 'Generado')
+            
+        tokens = query.execute().data
+        if not tokens:
+            return jsonify({"status": "error", "message": "No se encontraron tokens pendientes de envío"}), 404
+            
+        colabs = sb.table('skel_colaboradores').select('id, nombres, apellidos, email').eq('empresa_id', empresa_id).execute().data
+        colabs_dict = {c['id']: c for c in colabs}
+        
+        enviados = 0
+        fallidos = 0
+        
+        for t in tokens:
+            evaluador = colabs_dict.get(t['colaborador_id'], {})
+            evaluado = colabs_dict.get(t['evaluado_id'], {})
+            
+            destinatario = evaluador.get('email')
+            if not destinatario or '@' not in destinatario:
+                fallidos += 1
+                continue
+                
+            evaluador_nombre = f"{evaluador.get('nombres','')} {evaluador.get('apellidos','')}".strip() or "Colaborador"
+            evaluado_nombre = f"{evaluado.get('nombres','')} {evaluado.get('apellidos','')}".strip() or "Colaborador"
+            tipo_eval = t.get('tipo', 'Evaluación')
+            link = f"https://www.skel360.online/evaluar?token={t['id']}"
+            
+            asunto = f"Invitación a proceso de Evaluación 360° - {tipo_eval}"
+            html_content = f"""
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #3b82f6; padding-bottom: 15px;">
+                    <h2 style="color: #1e293b; margin: 0;">SKEL Human Capital 360</h2>
+                    <p style="color: #64748b; font-size: 0.9rem; margin-top: 5px;">Proceso de Evaluación del Desempeño</p>
+                </div>
+                <div style="color: #334155; font-size: 1rem; line-height: 1.6;">
+                    <p>Hola, <strong>{evaluador_nombre}</strong> 👋</p>
+                    <p>Has sido asignado(a) para participar en el proceso de <strong>Evaluación 360°</strong> de la institución.</p>
+                    <div style="background: #f8fafc; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                        <p style="margin: 0; font-weight: 600; color: #1e3a8a;">📋 Detalle de la Asignación:</p>
+                        <ul style="margin: 10px 0 0 20px; padding: 0; color: #475569;">
+                            <li><strong>Tipo de Evaluación:</strong> {tipo_eval}</li>
+                            <li><strong>Evaluando a:</strong> {evaluado_nombre}</li>
+                        </ul>
+                    </div>
+                    <p>El propósito de esta evaluación es identificar fortalezas y oportunidades de mejora para impulsar el desarrollo profesional continuo. Tus respuestas son totalmente confidenciales.</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{link}" target="_blank" style="background-color: #10b981; color: white; padding: 14px 28px; font-weight: bold; border-radius: 8px; text-decoration: none; display: inline-block; font-size: 1rem; box-shadow: 0 4px 6px rgba(16,185,129,0.2);">
+                            🚀 Iniciar Evaluación Ahora
+                        </a>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #94a3b8; text-align: center;">Si el botón no funciona, ingresa a este enlace:<br><a href="{link}" style="color: #3b82f6;">{link}</a></p>
+                </div>
+                <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #f1f5f9; text-align: center; font-size: 0.8rem; color: #94a3b8;">
+                    Este es un mensaje automático generado por el sistema SKEL HC 360.
+                </div>
+            </div>
+            """
+            
+            res_envio = send_email(destinatario, asunto, html_content)
+            if res_envio:
+                enviados += 1
+            else:
+                fallidos += 1
+                
+        return jsonify({
+            "status": "success", 
+            "message": f"Proceso finalizado. Enviados: {enviados}, Fallidos/Sin correo: {fallidos}",
+            "enviados": enviados,
+            "fallidos": fallidos
+        }), 200
+        
+    except Exception as e:
+        traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500

@@ -319,17 +319,18 @@
         
         <!-- Modal Links -->
         <div id="modalLinks" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-            <div style="background:var(--glass-bg); padding:30px; border-radius:15px; width:800px; max-width:90%; border:1px solid var(--glass-border); box-shadow:var(--shadow-lg);">
+            <div style="background:var(--glass-bg); padding:30px; border-radius:15px; width:900px; max-width:95%; border:1px solid var(--glass-border); box-shadow:var(--shadow-lg);">
                 <h3 style="margin-bottom:20px;">Encuestas Lanzadas (Magic Links)</h3>
-                <p style="margin-bottom:15px;">Copia y comparte estos links seguros con los colaboradores para que ingresen a su formulario.</p>
+                <p style="margin-bottom:15px;">Copia y comparte estos links o envíalos directamente por correo electrónico con las instrucciones del proceso.</p>
                 <div style="max-height:400px; overflow-y:auto;">
                     <table class="admin-table">
-                        <thead><tr><th>Colaborador</th><th>Correo</th><th>Magic Link</th></tr></thead>
+                        <thead><tr><th>Colaborador</th><th>Correo</th><th>Magic Link</th><th>Acción</th></tr></thead>
                         <tbody id="links-tbody"></tbody>
                     </table>
                 </div>
-                <div style="display:flex; justify-content:flex-end; margin-top:20px;">
-                    <button class="btn-primary" onclick="document.getElementById('modalLinks').style.display='none'">Cerrar</button>
+                <div style="display:flex; justify-content:space-between; margin-top:20px; align-items:center;">
+                    <button class="btn-primary" onclick="enviarCorreosTodos()" style="background:#10b981;">📧 Enviar Correos a Todos</button>
+                    <button class="btn-primary" onclick="document.getElementById('modalLinks').style.display='none'" style="background:#64748b;">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -676,13 +677,66 @@
                     const tbody = document.getElementById('links-tbody');
                     tbody.innerHTML = '';
                     data.links.forEach(l => {
-                        tbody.innerHTML += `<tr><td>${l.nombre}</td><td>${l.correo}</td><td><a href="${l.link}" target="_blank" style="color:#3b82f6; font-size:0.85rem;">${l.link}</a></td></tr>`;
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${l.nombre}</td>
+                                <td>${l.correo || '<span style="color:#ef4444;">Sin correo</span>'}</td>
+                                <td><a href="${l.link}" target="_blank" style="color:#3b82f6; font-size:0.85rem;">${l.link}</a></td>
+                                <td>
+                                    <button class="btn-primary" onclick="enviarCorreoIndividual('${l.id || ''}', '${l.correo || ''}')" style="background:#3b82f6; padding:5px 10px; font-size:0.8rem;">✉️ Enviar</button>
+                                </td>
+                            </tr>
+                        `;
                     });
                     document.getElementById('modalLinks').style.display = 'flex';
                 } else {
                     alert('Error: ' + data.message);
                 }
             } catch(e) { console.error(e); }
+        }
+
+        async function enviarCorreoIndividual(tokenId, correo) {
+            if(!correo || correo === 'undefined') {
+                alert('Este colaborador no tiene un correo registrado.');
+                return;
+            }
+            if(!confirm(`¿Enviar la invitación de evaluación por correo a: ${correo}?`)) return;
+            try {
+                const res = await fetch(`/api/skel360/empresa/${empresaId}/enviar-correo`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ token_id: tokenId })
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    alert(`✅ ${data.message}`);
+                } else {
+                    alert(`❌ Error al enviar correo: ${data.message}`);
+                }
+            } catch(e) {
+                console.error(e);
+                alert('Error al conectar con el servidor de correo.');
+            }
+        }
+
+        async function enviarCorreosTodos() {
+            if(!confirm('¿Estás seguro de enviar por correo la invitación a TODOS los colaboradores asignados?')) return;
+            try {
+                const res = await fetch(`/api/skel360/empresa/${empresaId}/enviar-correo`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ enviar_todos: true })
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    alert(`✅ ${data.message}`);
+                } else {
+                    alert(`❌ Error al enviar correos: ${data.message}`);
+                }
+            } catch(e) {
+                console.error(e);
+                alert('Error al conectar con el servidor de correo.');
+            }
         }
         
         async function loadColaboradores() {
