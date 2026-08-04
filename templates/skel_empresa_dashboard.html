@@ -759,8 +759,9 @@
                                 <td>${c.skel_cargos?.nombre || ''}</td>
                                 <td>${c.skel_areas?.nombre || ''}</td>
                                 <td>
-                                    <button onclick="abrirModalColaborador('${c.id}')" style="background:#3b82f6; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; margin-right:5px;">✏️</button>
-                                    <button onclick="eliminarColaborador('${c.id}')" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">🗑️</button>
+                                    <button onclick="window.location.href='/skel360/reporte/individual?id=${c.id}'" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; margin-right:5px;" title="Ver Reporte Individual y Descargar PDF">📊 Reporte PDF</button>
+                                    <button onclick="abrirModalColaborador('${c.id}')" style="background:#3b82f6; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; margin-right:5px;" title="Editar">✏️</button>
+                                    <button onclick="eliminarColaborador('${c.id}')" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" title="Eliminar">🗑️</button>
                                 </td>
                             </tr>
                         `;
