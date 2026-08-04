@@ -432,9 +432,20 @@
         }
         
         async function eliminarColaborador(id) {
-            if(!confirm('¿Eliminar este colaborador?')) return;
-            await fetch(`/api/skel360/colaborador/${id}`, {method: 'DELETE'});
-            loadColaboradores();
+            if(!confirm('¿Eliminar este colaborador? Se borrarán también sus tokens y evaluaciones asociadas.')) return;
+            try {
+                const res = await fetch(`/api/skel360/colaborador/${id}`, {method: 'DELETE'});
+                const data = await res.json();
+                if(data.status === 'success') {
+                    alert('Colaborador eliminado correctamente.');
+                    loadColaboradores();
+                } else {
+                    alert('Error al eliminar: ' + data.message);
+                }
+            } catch(e) {
+                console.error(e);
+                alert('Error de conexión al eliminar el colaborador.');
+            }
         }
 
         let allCargos = [];
