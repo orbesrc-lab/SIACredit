@@ -185,21 +185,23 @@
                 </div>
 
                 <h3>Colaboradores Cargados</h3>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Cédula</th>
-                            <th>Correo</th>
-                            <th>Cargo</th>
-                            <th>Área</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="colaboradores-list">
-                        <tr><td colspan="6" style="text-align: center;">No hay colaboradores cargados.</td></tr>
-                    </tbody>
-                </table>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
+                    <table class="admin-table" style="margin-top: 0; border-top: none;">
+                        <thead style="position: sticky; top: 0; background: #fff; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Cédula</th>
+                                <th>Correo</th>
+                                <th>Cargo</th>
+                                <th>Área</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="colaboradores-list">
+                            <tr><td colspan="6" style="text-align: center;">No hay colaboradores cargados.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 

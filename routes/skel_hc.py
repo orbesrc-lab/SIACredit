@@ -566,7 +566,7 @@ def get_evaluacion_publica(token):
     try:
         sb = get_supabase()
         # 1. Validar Token
-        token_res = sb.table('skel_tokens_acceso').select('*, skel_colaboradores(*)').eq('id', token).execute().data
+        token_res = sb.table('skel_tokens_acceso').select('*').eq('id', token).execute().data
         if not token_res:
             return jsonify({"status": "error", "message": "Token inválido o expirado"}), 404
             
