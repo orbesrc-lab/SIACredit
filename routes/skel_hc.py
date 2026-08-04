@@ -796,6 +796,15 @@ def get_reporte_individual(evaluado_id):
         colab = res_colab.data[0]
         empresa_id = colab['empresa_id']
         
+        empresa_nombre = "Empresa"
+        empresa_logo = ""
+        try:
+            res_emp = sb.table('skel_empresas').select('nombre, logo_url').eq('id', empresa_id).execute().data
+            if res_emp:
+                empresa_nombre = res_emp[0].get('nombre', 'Empresa')
+                empresa_logo = res_emp[0].get('logo_url', '')
+        except: pass
+        
         # 2. Obtener la Red (quiénes lo evaluaron) para cruzar relaciones
         res_red = sb.table('skel_360_red').select('*').eq('evaluado_id', evaluado_id).execute()
         red = { r['evaluador_id']: r['relacion'] for r in res_red.data }
@@ -882,7 +891,9 @@ def get_reporte_individual(evaluado_id):
             "colaborador": {
                 "nombres": colab.get("nombres", ""),
                 "apellidos": colab.get("apellidos", ""),
-                "cargo": colab.get("skel_cargos", {}).get("nombre", "N/A")
+                "cargo": colab.get("skel_cargos", {}).get("nombre", "N/A"),
+                "empresa_nombre": empresa_nombre,
+                "empresa_logo": empresa_logo
             },
             "resultados": resultados,
             "saved_plan": saved_plan,
