@@ -471,7 +471,7 @@ def lanzar_encuestas(empresa_id):
         if not colabs:
             return jsonify({"status": "error", "message": "No hay colaboradores para lanzar"}), 400
             
-        colabs_dict = {c['id']: f"{c.get('nombres','')} {c.get('apellidos','')}".strip() for c in colabs}
+        colabs_dict = {c['id']: {"nombre": f"{c.get('nombres','')} {c.get('apellidos','')}".strip(), "email": c.get('email', '')} for c in colabs}
         
         # 3. Obtener Red 360
         red_360 = sb.table('skel_360_red').select('*').eq('empresa_id', empresa_id).execute().data
@@ -509,13 +509,15 @@ def lanzar_encuestas(empresa_id):
         # Construir listado de links para mostrar
         links = []
         for t in inserted_tokens:
-            evaluado_nombre = colabs_dict.get(t['evaluado_id'], "Desconocido")
-            evaluador_nombre = colabs_dict.get(t['colaborador_id'], "Desconocido")
+            evaluado_info = colabs_dict.get(t['evaluado_id'], {"nombre": "Desconocido", "email": ""})
+            evaluador_info = colabs_dict.get(t['colaborador_id'], {"nombre": "Desconocido", "email": ""})
             
             links.append({
-                "colaborador_nombre": evaluador_nombre,  # A quien se le manda el link
+                "nombre": f"{evaluador_info['nombre']} ({t['tipo']})",  # A quien se le manda el link
+                "correo": evaluador_info['email'],
+                "colaborador_nombre": evaluador_info['nombre'],
                 "tipo": t['tipo'],
-                "evaluando_a": evaluado_nombre,          # A quien van a evaluar
+                "evaluando_a": evaluado_info['nombre'],          # A quien van a evaluar
                 "link": f"https://www.skel360.online/evaluar?token={t['id']}"
             })
             
