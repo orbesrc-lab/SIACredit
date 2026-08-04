@@ -41,7 +41,7 @@ with open(r'c:\SIAC\templates\skel_diccionario.html', 'w', encoding='utf-8') as 
 
 # 2. Build Empresa Dashboard view
 empresa_content = '''
-        <div class="content-wrapper">
+        <div class="content-wrapper" style="flex: 1; overflow-y: auto; padding: 20px;">
             <div class="card" style="margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3>Gestión de Empresa: <span id="empresa-nombre">Cargando...</span></h3>
