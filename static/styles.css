@@ -255,6 +255,12 @@ body {
     background: var(--secondary-bg);
 }
 
+.content-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px;
+}
+
 .topbar {
     height: 70px;
     background: var(--white);
