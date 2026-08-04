@@ -939,8 +939,7 @@ def generar_plan_ia():
         if not resultados:
             return jsonify({"status": "error", "message": "No hay resultados de competencias para analizar"}), 400
             
-        prompt = f"""Actúa como Consultor Senior en Desarrollo Organizacional y Evaluación 360°.
-Realiza un Análisis de Competencias Gerencial y Diagnóstico de Sesgos de Percepción exhaustivo, riguroso y de alto nivel ejecutivo para el colaborador.
+        prompt = f"""Genera un Diagnóstico Ejecutivo de Competencias 360° y Análisis de Sesgos de Percepción de alto nivel organizativo para el colaborador.
 
 DATOS CONSOLIDADOS DE LA EVALUACIÓN 360°:
 """
@@ -958,7 +957,7 @@ DATOS CONSOLIDADOS DE LA EVALUACIÓN 360°:
             prompt += f"  Desglose -> Autoevaluación: {auto} | Jefe: {jefe} | Pares: {pares} | Subordinados: {sub}\n\n"
 
         prompt += """INSTRUCCIONES DE ESTRUCTURA Y ANÁLISIS:
-Genera un informe gerencial estructurado en las siguientes 3 secciones en español profesional, claro y enriquecedor (usa viñetas o numeración simple, NO uses símbolos de código o asteriscos extraños):
+Genera un informe gerencial estructurado en las siguientes 3 secciones en español profesional (NO incluyas frases ni introducciones como 'Como Consultor Senior...', ve DIRECTAMENTE a la sección 1; NO uses asteriscos ni símbolos markdown extraños):
 
 1. DIAGNÓSTICO DE SESGOS Y PERCEPCIÓN 360°:
 - Analiza si existe un Sesgo de Sobreestimación (la autoevaluación es marcadamente superior a la mirada externa de pares/jefe) o de Subestimación (el entorno valora al colaborador por encima de su propia autopercepción).

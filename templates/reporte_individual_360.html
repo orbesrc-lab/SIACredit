@@ -48,116 +48,16 @@
         
         @media print {
             body { background: white !important; margin: 0 !important; padding: 0 !important; }
-            .report-container, .no-pdf { display: none !important; }
-            #informe-gerencial-imprimible { display: block !important; visibility: visible !important; width: 100% !important; margin: 0 !important; padding: 20px !important; }
-            * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .report-container { max-width: 100% !important; margin: 0 !important; padding: 15px !important; box-shadow: none !important; border: none !important; }
+            .no-pdf, .actions-bottom, button { display: none !important; }
+            textarea { border: 1px solid #cbd5e1 !important; background: #ffffff !important; font-family: inherit !important; font-size: 0.95rem !important; resize: none !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
     </style>
 </head>
 <body>
-    <!-- Documento Ejecutivo Imprimible (Solo visible en PDF / Impresión) -->
-    <div id="informe-gerencial-imprimible" style="display:none; font-family:'Inter', Arial, sans-serif; color:#0f172a; background: white;">
-        
-        <!-- PÁGINA 1: RESUMEN EJECUTIVO (Logos, Ficha, Radar, Brechas y Sesgos) -->
-        <div style="page-break-after: always; break-after: page; padding: 20px;">
-            <!-- Header con Ambos Logos: SKEL (Evaluador) + Empresa del Funcionario (Evaluado) -->
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #1e3a8a; padding-bottom: 12px; margin-bottom: 18px;">
-                <div style="display:flex; align-items:center; gap: 12px;">
-                    <div style="background:linear-gradient(135deg, #1e3a8a, #3b82f6); color:white; font-weight:900; font-size:1.25rem; padding:6px 14px; border-radius:8px; letter-spacing:1px;">SKEL 360°</div>
-                    <div>
-                        <h1 style="font-size:1.25rem; color:#1e3a8a; margin:0; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Informe Ejecutivo de Desempeño 360°</h1>
-                        <p style="font-size:0.8rem; color:#64748b; margin:2px 0 0 0; font-weight: 500;">Evaluador: <strong>SKEL Human Capital 360°</strong></p>
-                    </div>
-                </div>
-                <div style="text-align: right; border-left: 2px solid #e2e8f0; padding-left: 12px;">
-                    <div style="font-size:0.98rem; font-weight:800; color:#0f172a; text-transform:uppercase;" id="pdf-empresa-nombre">EMPRESA EVALUADA</div>
-                    <p style="font-size: 0.75rem; color: #64748b; margin-top: 2px; font-weight: 500;" id="pdf-fecha-emision"></p>
-                    <span style="background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 0.68rem; border:1px solid #c7d2fe;">DOCUMENTO CONFIDENCIAL</span>
-                </div>
-            </div>
-
-            <!-- Ficha del Evaluado -->
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-left: 5px solid #1e3a8a; padding: 12px 18px; border-radius: 6px; margin-bottom: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <span style="font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-weight:bold;">Colaborador Evaluado</span>
-                    <h2 style="margin: 2px 0 0 0; font-size: 1.15rem; color: #0f172a;" id="pdf-colab-nombre"></h2>
-                </div>
-                <div>
-                    <span style="font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-weight:bold;">Cargo / Posición</span>
-                    <h3 style="margin: 2px 0 0 0; font-size: 1.05rem; color: #334155; font-weight: 600;" id="pdf-colab-cargo"></h3>
-                </div>
-            </div>
-
-            <!-- Gráfica Radar y Tabla Brechas -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 18px; align-items: start;">
-                <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; background: #ffffff; text-align:center;">
-                    <h3 style="font-size: 0.88rem; color: #1e3a8a; margin-top: 0; margin-bottom: 8px; border-bottom:1px solid #f1f5f9; padding-bottom:6px;">Mapa Radar 360°</h3>
-                    <img id="pdf-radar-img" src="" style="width: 100%; max-width: 250px; height: auto; display: block; margin: auto;" />
-                </div>
-                <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; background: #ffffff;">
-                    <h3 style="font-size: 0.88rem; color: #1e3a8a; margin-top: 0; margin-bottom: 8px; border-bottom:1px solid #f1f5f9; padding-bottom:6px;">Consolidado de Brechas</h3>
-                    <table style="width:100%; border-collapse: collapse; font-size: 0.78rem;">
-                        <thead>
-                            <tr style="background:#f1f5f9; color:#334155; text-align:left;">
-                                <th style="padding:5px; border-bottom:2px solid #cbd5e1;">Competencia</th>
-                                <th style="padding:5px; border-bottom:2px solid #cbd5e1; text-align:center;">Esp.</th>
-                                <th style="padding:5px; border-bottom:2px solid #cbd5e1; text-align:center;">Obt.</th>
-                                <th style="padding:5px; border-bottom:2px solid #cbd5e1; text-align:center;">Brecha</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pdf-tabla-brechas-body"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Diagnóstico de Sesgos -->
-            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px; margin-bottom: 15px;">
-                <h3 style="color: #1e40af; margin-top: 0; margin-bottom: 6px; font-size: 0.95rem;">
-                    🎯 Diagnóstico de Sesgos y Percepción 360°
-                </h3>
-                <div id="pdf-bias-content" style="font-size: 0.85rem; color: #1e293b; line-height: 1.5;"></div>
-            </div>
-
-            <!-- Pie de Página 1 -->
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #e2e8f0; padding-top: 10px; font-size: 0.72rem; color: #94a3b8;">
-                <div>Plataforma SKEL Human Capital 360° • Página 1 de 2</div>
-                <div>Documento Oficial Confidencial</div>
-            </div>
-        </div>
-
-        <!-- PÁGINA 2: PLAN DE ACCIÓN Y ANÁLISIS DE IA -->
-        <div style="padding: 20px;">
-            <!-- Header de Continuación -->
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 18px;">
-                <div style="display:flex; align-items:center; gap: 10px;">
-                    <div style="background:#1e3a8a; color:white; font-weight:bold; font-size:1rem; padding:4px 10px; border-radius:6px;">SKEL 360°</div>
-                    <h2 style="font-size:1.1rem; color:#1e3a8a; margin:0; font-weight:800; text-transform:uppercase;">Plan Estratégico y Diagnóstico Experto</h2>
-                </div>
-                <div style="font-size: 0.78rem; color: #64748b; font-weight:500;" id="pdf-fecha-emision-p2"></div>
-            </div>
-
-            <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; background: #ffffff; margin-bottom: 20px;">
-                <h3 style="color: #1e3a8a; margin-top: 0; margin-bottom: 10px; font-size: 1rem; border-bottom:1px solid #f1f5f9; padding-bottom:6px;">
-                    ✍️ Plan de Acción Estratégico y Diagnóstico IA (30, 60 y 90 Días)
-                </h3>
-                <div id="pdf-plan-content" style="font-size: 0.88rem; color: #334155; line-height: 1.6; white-space: pre-wrap;"></div>
-                
-                <div id="pdf-comments-block" style="margin-top: 15px; display:none;">
-                    <h4 style="color: #475569; font-size: 0.85rem; margin-bottom: 6px;">Observaciones y Compromisos de Retroalimentación:</h4>
-                    <div id="pdf-comments-content" style="font-size: 0.82rem; color: #64748b; font-style: italic; background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 3px solid #cbd5e1;"></div>
-                </div>
-            </div>
-
-            <!-- Pie de Página 2 -->
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #e2e8f0; padding-top: 10px; font-size: 0.72rem; color: #94a3b8;">
-                <div>Plataforma SKEL Human Capital 360° • Página 2 de 2</div>
-                <div>Documento Oficial Confidencial</div>
-            </div>
-        </div>
-    </div>
-    
     <div class="report-container" id="reporte-container">
-        <!-- Header Principal de la Pantalla con Ambos Logos (SKEL + Empresa Evaluada) -->
+        <!-- Header Principal de la Pantalla y PDF con Ambos Logos (SKEL + Empresa Evaluada) -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1e3a8a; padding-bottom: 20px; margin-bottom: 25px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; font-weight: 900; font-size: 1.3rem; padding: 10px 18px; border-radius: 10px; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(30,58,138,0.25);">SKEL 360°</div>
@@ -175,7 +75,7 @@
             </div>
         </div>
 
-        <!-- Ficha Técnica del Evaluado en Pantalla -->
+        <!-- Ficha Técnica del Evaluado -->
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-left: 5px solid #1e3a8a; padding: 18px 22px; border-radius: 10px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <span style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;">Colaborador Evaluado</span>
@@ -267,20 +167,10 @@
                     const nombreComp = `${data.colaborador.nombres} ${data.colaborador.apellidos}`;
                     const cargoComp = data.colaborador.cargo || 'N/A';
                     const empNombre = data.colaborador.empresa_nombre || 'EMPRESA EVALUADA';
-                    const fechaTxt = 'Fecha: ' + new Date().toLocaleDateString('es-ES');
 
                     document.getElementById('colaborador-nombre').innerText = nombreComp;
                     document.getElementById('colaborador-cargo').innerText = cargoComp;
                     document.getElementById('web-empresa-nombre').innerText = empNombre;
-                    
-                    // Llenar inmediatamente la plantilla de impresión PDF
-                    document.getElementById('pdf-colab-nombre').innerText = nombreComp;
-                    document.getElementById('pdf-colab-cargo').innerText = cargoComp;
-                    document.getElementById('pdf-empresa-nombre').innerText = empNombre;
-                    document.getElementById('pdf-fecha-emision').innerText = fechaTxt;
-                    if(document.getElementById('pdf-fecha-emision-p2')) {
-                        document.getElementById('pdf-fecha-emision-p2').innerText = fechaTxt;
-                    }
                     
                     resultadosGlobal = data.resultados;
                     renderTabla(data.resultados);
@@ -289,12 +179,9 @@
                     
                     if (data.saved_plan) {
                         document.getElementById('texto-compromisos').value = data.saved_plan;
-                        document.getElementById('pdf-plan-content').innerText = data.saved_plan;
                     }
                     if (data.saved_comments) {
                         document.getElementById('texto-comentarios').value = data.saved_comments;
-                        document.getElementById('pdf-comments-block').style.display = 'block';
-                        document.getElementById('pdf-comments-content').innerText = data.saved_comments;
                     }
                 } else {
                     alert("Error: " + data.message);
@@ -354,61 +241,85 @@
             }
 
             textEl.innerHTML = msg;
-            const pdfBias = document.getElementById('pdf-bias-content');
-            if(pdfBias) pdfBias.innerHTML = msg;
         }
 
         async function descargarPDF() {
+            const container = document.getElementById('reporte-container');
+            const nombreColab = document.getElementById('colaborador-nombre').innerText || 'Colaborador';
+            const btnHide = document.querySelectorAll('.no-pdf');
+            
+            btnHide.forEach(el => el.style.display = 'none');
+
+            // Reemplazar temporalmente textareas por bloques formateados para impresion/PDF
+            const compTextarea = document.getElementById('texto-compromisos');
+            const commTextarea = document.getElementById('texto-comentarios');
+            
+            const divComp = document.createElement('div');
+            divComp.style.whiteSpace = 'pre-wrap';
+            divComp.style.fontSize = '0.92rem';
+            divComp.style.lineHeight = '1.6';
+            divComp.style.color = '#334155';
+            divComp.style.background = '#ffffff';
+            divComp.style.padding = '15px';
+            divComp.style.borderRadius = '8px';
+            divComp.style.border = '1px solid #cbd5e1';
+            divComp.style.marginBottom = '20px';
+            divComp.innerText = compTextarea.value || 'Sin compromisos registrados.';
+            compTextarea.parentNode.insertBefore(divComp, compTextarea);
+            compTextarea.style.display = 'none';
+
+            let divComm = null;
+            if(commTextarea.value.trim()) {
+                divComm = document.createElement('div');
+                divComm.style.whiteSpace = 'pre-wrap';
+                divComm.style.fontSize = '0.88rem';
+                divComm.style.lineHeight = '1.5';
+                divComm.style.color = '#475569';
+                divComm.style.background = '#f8fafc';
+                divComm.style.padding = '12px';
+                divComm.style.borderRadius = '6px';
+                divComm.style.border = '1px solid #cbd5e1';
+                divComm.innerText = commTextarea.value;
+                commTextarea.parentNode.insertBefore(divComm, commTextarea);
+                commTextarea.style.display = 'none';
+            }
+
+            const opt = {
+                margin: [8, 8, 8, 8],
+                filename: `Informe_Ejecutivo_360_${nombreColab.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
             try {
-                const planVal = document.getElementById('texto-compromisos').value || 'Sin compromisos registrados.';
-                const obsVal = document.getElementById('texto-comentarios').value || '';
-                
-                document.getElementById('pdf-plan-content').innerText = planVal;
-                if(obsVal.trim()) {
-                    document.getElementById('pdf-comments-block').style.display = 'block';
-                    document.getElementById('pdf-comments-content').innerText = obsVal;
-                }
-
-                const canvas = document.getElementById('radarChart');
-                if(canvas) {
-                    document.getElementById('pdf-radar-img').src = canvas.toDataURL('image/png');
-                }
-
-                const pdfTarget = document.getElementById('informe-gerencial-imprimible');
-                pdfTarget.style.display = 'block';
-                
-                const nombreColab = document.getElementById('colaborador-nombre').innerText || 'Colaborador';
-                const opt = {
-                    margin: [8, 8, 8, 8],
-                    filename: `Informe_Ejecutivo_360_${nombreColab.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, logging: false },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
-
                 if(typeof html2pdf !== 'undefined') {
-                    await html2pdf().set(opt).from(pdfTarget).save();
-                    pdfTarget.style.display = 'none';
+                    await html2pdf().set(opt).from(container).save();
                 } else {
                     window.print();
-                    pdfTarget.style.display = 'none';
                 }
             } catch(e) {
                 console.error("Error al exportar PDF:", e);
                 window.print();
+            } finally {
+                btnHide.forEach(el => el.style.display = '');
+                compTextarea.style.display = '';
+                divComp.remove();
+                if(divComm) {
+                    commTextarea.style.display = '';
+                    divComm.remove();
+                }
             }
         }
 
         function renderTabla(resultados) {
             const tbody = document.getElementById('tabla-brechas');
-            const pdfTbody = document.getElementById('pdf-tabla-brechas-body');
             tbody.innerHTML = '';
-            if(pdfTbody) pdfTbody.innerHTML = '';
             
             resultados.forEach(r => {
                 const gapClass = r.brecha >= 0 ? 'gap-positive' : 'gap-negative';
                 const gapSign = r.brecha > 0 ? '+' : '';
-                const rowHtml = `
+                tbody.innerHTML += `
                     <tr>
                         <td>${r.nombre}</td>
                         <td>${r.nivel_esperado}</td>
@@ -416,8 +327,6 @@
                         <td class="${gapClass}">${gapSign}${r.brecha}</td>
                     </tr>
                 `;
-                tbody.innerHTML += rowHtml;
-                if(pdfTbody) pdfTbody.innerHTML += rowHtml;
             });
         }
 
