@@ -31,7 +31,7 @@
       ]
     },
     {
-      "source": "/(?!static/)(.*)",
+      "source": "/(.*\\.html|api/.*|skel360/.*)",
       "headers": [
         {
           "key": "Cache-Control",
