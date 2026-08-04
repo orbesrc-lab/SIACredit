@@ -610,11 +610,16 @@ def get_evaluacion_publica(token):
         # 3. Obtener competencias asignadas a su cargo
         asignaciones = sb.table('skel_cargos_diccionario').select('competencia_id').eq('cargo_id', cargo_id).execute().data
         
-        # Fallback para cargos duplicados por error de subida de Excel
+        # Fallback para cargos duplicados por diferencias de espacios o plurales
         if not asignaciones:
             cargo_nombre = colab.get('skel_cargos', {}).get('nombre') if colab.get('skel_cargos') else None
             if cargo_nombre:
-                otros_cargos = sb.table('skel_cargos').select('id').eq('empresa_id', t_data['empresa_id']).eq('nombre', cargo_nombre).execute().data
+                # Extraer la raíz limpia del nombre del cargo
+                base_clean = cargo_nombre.strip()
+                if base_clean.endswith('s') or base_clean.endswith('S'):
+                    base_clean = base_clean[:-1]
+                
+                otros_cargos = sb.table('skel_cargos').select('id').eq('empresa_id', t_data['empresa_id']).ilike('nombre', f"%{base_clean}%").execute().data
                 otros_ids = [c['id'] for c in otros_cargos]
                 if otros_ids:
                     asignaciones = sb.table('skel_cargos_diccionario').select('competencia_id').in_('cargo_id', otros_ids).execute().data
