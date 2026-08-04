@@ -6,7 +6,6 @@
     <title>Reporte Individual 360 - SKEL HC</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { background-color: #f8fafc; font-family: 'Inter', sans-serif; overflow: auto !important; }
         .report-container { max-width: 1050px; margin: 40px auto; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
@@ -33,13 +32,27 @@
         textarea { width: 100%; min-height: 140px; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.95rem; margin-bottom: 20px; resize: vertical; line-height: 1.6; box-sizing: border-box; }
         textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
         .ai-loading { display: none; color: #3b82f6; font-weight: 600; margin-left: 10px; }
-        @media print { body { display: none !important; } }
+        .btn-ver-informe {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(124,58,237,0.3);
+            transition: all 0.2s;
+        }
+        .btn-ver-informe:hover { opacity: 0.9; transform: translateY(-1px); }
     </style>
 </head>
 <body>
-    <!-- Pantalla visible (NUNCA se imprime - print:none) -->
     <div class="report-container" id="reporte-container">
-        <!-- Encabezado con identidad institucional -->
+        <!-- Encabezado -->
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #1e3a8a; padding-bottom:20px; margin-bottom:25px;">
             <div style="display:flex; align-items:center; gap:14px;">
                 <div style="background:linear-gradient(135deg,#1e3a8a,#3b82f6); color:white; font-weight:900; font-size:1.3rem; padding:10px 18px; border-radius:10px; letter-spacing:1px; box-shadow:0 4px 12px rgba(30,58,138,0.25);">SKEL 360°</div>
@@ -69,7 +82,9 @@
             </div>
             <div style="display:flex; gap:8px; margin-left:20px;">
                 <button class="btn btn-secondary" onclick="window.history.back()">⬅ Volver</button>
-                <button class="btn btn-primary" onclick="descargarPDF()" id="btn-pdf" style="background:linear-gradient(135deg,#10b981,#059669);">📄 Descargar PDF Gerencial</button>
+                <button class="btn-ver-informe" id="btn-ver-informe" onclick="abrirVisorInforme()">
+                    📋 Ver Informe Gerencial
+                </button>
             </div>
         </div>
 
@@ -110,22 +125,18 @@
             <textarea id="texto-compromisos" placeholder="Haga clic en 'Generar Análisis con IA' para obtener la interpretación experta..."></textarea>
             <h4 style="color:#334155; margin-bottom:10px;">Comentarios Adicionales / Retroalimentación</h4>
             <textarea id="texto-comentarios" style="min-height:80px;" placeholder="Observaciones adicionales o compromisos de la sesión..."></textarea>
-            <div style="text-align:center; margin-top:30px; display:flex; gap:10px; justify-content:center;">
+            <div style="text-align:center; margin-top:30px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
                 <button class="btn btn-secondary" onclick="window.history.back()" style="padding:12px 20px; font-size:1rem;">⬅ Volver a Resultados</button>
                 <button class="btn btn-primary" onclick="guardarPlanAccion()" style="padding:12px 20px; font-size:1rem; background:#3b82f6;">💾 Guardar Plan</button>
-                <button class="btn btn-primary" onclick="descargarPDF()" style="padding:12px 20px; font-size:1rem; background:linear-gradient(135deg,#10b981,#059669);">📄 Descargar PDF Gerencial</button>
+                <button class="btn-ver-informe" onclick="abrirVisorInforme()" style="padding:12px 22px; font-size:1rem;">📋 Ver Informe Gerencial</button>
             </div>
         </div>
     </div>
-
-    <!-- ═══ PLANTILLA PDF OCULTA (solo se muestra al generar PDF) ═══ -->
-    <div id="pdf-template" style="position:absolute; left:-9999px; top:0; width:794px; background:white;"></div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const evaluadoId = urlParams.get('id');
         let resultadosGlobal = [];
-        let radarInstance = null;
 
         async function cargarReporte() {
             if (!evaluadoId) {
@@ -136,8 +147,8 @@
                 const res = await fetch(`/api/skel360/reporte/individual/${evaluadoId}`);
                 const data = await res.json();
                 if (data.status === 'success') {
-                    const nombre = `${data.colaborador.nombres} ${data.colaborador.apellidos}`;
-                    const cargo  = data.colaborador.cargo || 'N/A';
+                    const nombre  = `${data.colaborador.nombres} ${data.colaborador.apellidos}`;
+                    const cargo   = data.colaborador.cargo || 'N/A';
                     const empresa = data.colaborador.empresa_nombre || 'EMPRESA EVALUADA';
                     document.getElementById('colaborador-nombre').innerText = nombre;
                     document.getElementById('colaborador-cargo').innerText = cargo;
@@ -161,7 +172,7 @@
             const tbody = document.getElementById('tabla-brechas');
             tbody.innerHTML = '';
             resultados.forEach(r => {
-                const cls = r.brecha >= 0 ? 'gap-positive' : 'gap-negative';
+                const cls  = r.brecha >= 0 ? 'gap-positive' : 'gap-negative';
                 const sign = r.brecha > 0 ? '+' : '';
                 tbody.innerHTML += `<tr>
                     <td>${r.nombre}</td>
@@ -176,15 +187,15 @@
             const ctx = document.getElementById('radarChart').getContext('2d');
             const labels = resultados.map(r => r.nombre);
             const datasets = [];
-            const autoData = resultados.map(r => r.promedios['Autoevaluación'] || 0);
-            const jefeData = resultados.map(r => r.promedios['Jefe'] || 0);
+            const autoData  = resultados.map(r => r.promedios['Autoevaluación'] || 0);
+            const jefeData  = resultados.map(r => r.promedios['Jefe'] || 0);
             const paresData = resultados.map(r => r.promedios['Pares'] || 0);
             const subData   = resultados.map(r => r.promedios['Subordinados'] || 0);
-            if (autoData.some(v => v > 0)) datasets.push({ label:'Autoevaluación', data:autoData, borderColor:'#cbd5e1', backgroundColor:'rgba(203,213,225,0.2)', borderDash:[5,5] });
+            if (autoData.some(v => v > 0))  datasets.push({ label:'Autoevaluación', data:autoData, borderColor:'#cbd5e1', backgroundColor:'rgba(203,213,225,0.2)', borderDash:[5,5] });
             if (jefeData.some(v => v > 0))  datasets.push({ label:'Jefe', data:jefeData, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.2)' });
             if (paresData.some(v => v > 0)) datasets.push({ label:'Pares', data:paresData, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.2)' });
             if (subData.some(v => v > 0))   datasets.push({ label:'Subordinados', data:subData, borderColor:'#8b5cf6', backgroundColor:'rgba(139,92,246,0.2)' });
-            radarInstance = new Chart(ctx, {
+            new Chart(ctx, {
                 type: 'radar',
                 data: { labels, datasets },
                 options: {
@@ -207,189 +218,264 @@
             });
             const textEl  = document.getElementById('bias-text');
             const badgeEl = document.getElementById('bias-badge-box');
-            if (autoCount===0 || extCount===0) {
+            if (autoCount === 0 || extCount === 0) {
                 textEl.innerText = "Se requiere la participación completa de la autoevaluación y evaluadores externos.";
                 badgeEl.innerHTML = '<span class="bias-badge badge-align">Datos en Proceso</span>';
                 return;
             }
-            const autoProm = autoSum/autoCount;
-            const extProm  = extSum/extCount;
+            const autoProm = autoSum / autoCount;
+            const extProm  = extSum  / extCount;
             const diff     = autoProm - extProm;
             let msg = `<strong>Promedio Autoevaluación:</strong> ${autoProm.toFixed(2)} pts | <strong>Promedio Externo (Jefe/Pares/Subordinados):</strong> ${extProm.toFixed(2)} pts.<br>`;
             if (diff > 0.4) {
-                msg += `<strong>Diagnóstico:</strong> <em>Sesgo de Sobreestimación</em> (+${diff.toFixed(2)} pts). El colaborador percibe un nivel superior a la evaluación del entorno. Se sugiere alinear expectativas.`;
+                msg += `<strong>Diagnóstico:</strong> <em>Sesgo de Sobreestimación</em> (+${diff.toFixed(2)} pts). El colaborador percibe un nivel superior a la evaluación del entorno.`;
                 badgeEl.innerHTML = `<span class="bias-badge badge-over">⚠️ Sesgo de Sobreestimación (+${diff.toFixed(2)})</span>`;
             } else if (diff < -0.4) {
                 msg += `<strong>Diagnóstico:</strong> <em>Subestimación / Modestia Profesional</em> (${diff.toFixed(2)} pts). El equipo valora más al colaborador que su propia autopercepción.`;
                 badgeEl.innerHTML = `<span class="bias-badge badge-under">💡 Potencial No Reconocido (${diff.toFixed(2)})</span>`;
             } else {
-                msg += `<strong>Diagnóstico:</strong> <em>Alta Alineación de Percepción</em> (diferencia mínima de ${diff.toFixed(2)} pts). Excelente coincidencia entre autopercepción y evaluación del equipo.`;
+                msg += `<strong>Diagnóstico:</strong> <em>Alta Alineación de Percepción</em> (diferencia de ${diff.toFixed(2)} pts). Excelente coincidencia entre autopercepción y evaluación del equipo.`;
                 badgeEl.innerHTML = `<span class="bias-badge badge-align">✅ Alta Alineación (${diff.toFixed(2)})</span>`;
             }
             textEl.innerHTML = msg;
         }
 
-        /* ─── PDF Gerencial ─────────────────────────────────────────── */
-        async function descargarPDF() {
-            const btn = document.getElementById('btn-pdf');
-            btn.disabled = true;
-            btn.innerText = '⏳ Generando PDF...';
-
-            // 1. Capturar imagen del radar (ya está renderizado con animation:false)
-            const canvas   = document.getElementById('radarChart');
-            const radarB64 = canvas ? canvas.toDataURL('image/png') : '';
-
-            // 2. Recoger todos los datos actuales de pantalla
-            const nombre   = document.getElementById('colaborador-nombre').innerText || '';
-            const cargo    = document.getElementById('colaborador-cargo').innerText || '';
-            const empresa  = document.getElementById('web-empresa-nombre').innerText || '';
-            const fecha    = new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' });
-            const plan     = document.getElementById('texto-compromisos').value || 'Sin compromisos registrados.';
-            const obs      = document.getElementById('texto-comentarios').value || '';
+        /* ─── VISOR INFORME GERENCIAL ───────────────────────────────────── */
+        function abrirVisorInforme() {
+            const nombre  = document.getElementById('colaborador-nombre').innerText || '';
+            const cargo   = document.getElementById('colaborador-cargo').innerText   || '';
+            const empresa = document.getElementById('web-empresa-nombre').innerText  || '';
+            const fecha   = new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' });
+            const plan    = document.getElementById('texto-compromisos').value || 'Sin compromisos registrados.';
+            const obs     = document.getElementById('texto-comentarios').value || '';
             const biasHTML = document.getElementById('bias-text').innerHTML || '';
 
-            // Reconstruir filas de tabla con colores inline (no depende de clases CSS externas)
-            let tablaBrechasRows = '';
+            // Capturar radar como imagen
+            const canvas = document.getElementById('radarChart');
+            const radarImg = canvas ? canvas.toDataURL('image/png') : '';
+
+            // Construir filas de brechas con colores inline
+            let filasBrechas = '';
             resultadosGlobal.forEach(r => {
                 const color = r.brecha >= 0 ? '#10b981' : '#ef4444';
                 const sign  = r.brecha > 0 ? '+' : '';
-                tablaBrechasRows += '<tr>' +
-                    '<td style="padding:5px 6px; border-bottom:1px solid #f1f5f9;">' + r.nombre + '</td>' +
-                    '<td style="padding:5px 6px; border-bottom:1px solid #f1f5f9; text-align:center;">' + r.nivel_esperado + '</td>' +
-                    '<td style="padding:5px 6px; border-bottom:1px solid #f1f5f9; text-align:center;"><strong>' + r.promedio_360 + '</strong></td>' +
-                    '<td style="padding:5px 6px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; color:' + color + ';">' + sign + r.brecha + '</td>' +
+                filasBrechas +=
+                    '<tr>' +
+                    '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; font-size:0.82rem;">' + r.nombre + '</td>' +
+                    '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; text-align:center; font-size:0.82rem;">' + r.nivel_esperado + '</td>' +
+                    '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.82rem;">' + r.promedio_360 + '</td>' +
+                    '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; color:' + color + '; font-size:0.82rem;">' + sign + r.brecha + '</td>' +
                     '</tr>';
             });
 
-            const obsBlock = obs.trim() ? (
-                '<div style="margin-top:18px; border-top:1px solid #f1f5f9; padding-top:14px;">' +
-                '<div style="font-size:0.82rem; font-weight:700; color:#475569; margin-bottom:6px;">Observaciones y Compromisos:</div>' +
-                '<div style="font-size:0.8rem; color:#64748b; font-style:italic; background:#f8fafc; padding:10px; border-radius:6px; border-left:3px solid #cbd5e1; white-space:pre-wrap;">' + obs + '</div>' +
-                '</div>'
-            ) : '';
+            const obsHTML = obs.trim()
+                ? '<div style="margin-top:20px; padding-top:16px; border-top:1px solid #e2e8f0;">' +
+                  '<p style="font-size:0.82rem; font-weight:700; color:#475569; margin:0 0 6px 0;">Observaciones y Compromisos de Retroalimentación:</p>' +
+                  '<div style="font-size:0.82rem; color:#64748b; font-style:italic; background:#f8fafc; padding:12px; border-radius:6px; border-left:3px solid #cbd5e1; white-space:pre-wrap;">' + obs + '</div>' +
+                  '</div>'
+                : '';
 
-            const radarBlock = radarB64
-                ? '<img src="' + radarB64 + '" style="width:100%; max-width:240px; height:auto; display:block; margin:auto;" />'
-                : '<p style="color:#94a3b8; font-size:0.8rem; text-align:center;">Gráfica no disponible</p>';
+            const htmlVisor = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Informe Ejecutivo 360° — ${nombre}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1e1e2e; font-family: Arial, 'Segoe UI', sans-serif; color: #0f172a; }
 
-            // 3. Construir HTML del documento ejecutivo (sin backticks anidados)
-            const htmlDoc =
-              '<div style="font-family:Arial,sans-serif; color:#0f172a; background:white; padding:0; margin:0; width:794px;">'
+  /* ─── BARRA DE HERRAMIENTAS (solo en pantalla) ─── */
+  #toolbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+    background: linear-gradient(135deg, #1e3a8a, #312e81);
+    padding: 12px 30px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  #toolbar .brand { color: white; font-weight: 800; font-size: 1.05rem; display:flex; align-items:center; gap:10px; }
+  #toolbar .brand span { background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 6px; letter-spacing:1px; }
+  #toolbar .actions { display: flex; gap: 10px; }
+  .tbtn {
+    padding: 9px 20px; border-radius: 8px; font-weight: 700; font-size: 0.92rem;
+    cursor: pointer; border: none; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+  }
+  .tbtn-print { background: #10b981; color: white; }
+  .tbtn-print:hover { background: #059669; }
+  .tbtn-close { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
+  .tbtn-close:hover { background: rgba(255,255,255,0.25); }
 
-              // PÁGINA 1
-              + '<div style="page-break-after:always; padding:24px 28px 20px 28px;">'
+  /* ─── ÁREA DE DOCUMENTO ─── */
+  #doc-wrapper { margin-top: 70px; padding: 30px 20px 50px; display: flex; flex-direction: column; align-items: center; }
+  .a4-page {
+    background: white;
+    width: 794px;
+    min-height: 1123px;
+    padding: 36px 40px 32px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+    border-radius: 4px;
+    margin-bottom: 28px;
+  }
 
-              // Encabezado dual
-              + '<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:4px solid #1e3a8a; padding-bottom:14px; margin-bottom:18px;">'
-                + '<div style="display:flex; align-items:center; gap:12px;">'
-                  + '<div style="background:#1e3a8a; color:white; font-weight:900; font-size:1.1rem; padding:7px 14px; border-radius:8px; letter-spacing:1px;">SKEL 360&deg;</div>'
-                  + '<div>'
-                    + '<div style="font-size:1.1rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Informe Ejecutivo de Desempe&ntilde;o 360&deg;</div>'
-                    + '<div style="font-size:0.78rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>'
-                  + '</div>'
-                + '</div>'
-                + '<div style="text-align:right; border-left:2px solid #e2e8f0; padding-left:14px;">'
-                  + '<div style="font-size:0.92rem; font-weight:800; color:#0f172a; text-transform:uppercase;">' + empresa + '</div>'
-                  + '<div style="font-size:0.72rem; color:#64748b; margin-top:2px;">' + fecha + '</div>'
-                  + '<span style="background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:10px; font-size:0.68rem; font-weight:bold; border:1px solid #c7d2fe;">CONFIDENCIAL</span>'
-                + '</div>'
-              + '</div>'
+  /* ─── ESTILOS DEL DOCUMENTO ─── */
+  .doc-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 4px solid #1e3a8a; padding-bottom: 14px; margin-bottom: 18px;
+  }
+  .doc-header-left { display: flex; align-items: center; gap: 12px; }
+  .skel-badge { background: #1e3a8a; color: white; font-weight: 900; font-size: 1.1rem; padding: 7px 14px; border-radius: 8px; letter-spacing: 1px; }
+  .doc-header-right { text-align: right; border-left: 2px solid #e2e8f0; padding-left: 14px; }
+  .ficha { background:#f8fafc; border:1px solid #e2e8f0; border-left:5px solid #1e3a8a; padding:12px 18px; border-radius:8px; margin-bottom:18px; display:flex; justify-content:space-between; }
+  .ficha-label { font-size:0.7rem; color:#64748b; text-transform:uppercase; font-weight:bold; }
+  .ficha-value { font-size:1.05rem; font-weight:800; color:#0f172a; margin-top:3px; }
+  .ficha-value-sm { font-size:0.95rem; font-weight:600; color:#334155; margin-top:3px; }
+  .two-col { display: flex; gap: 16px; margin-bottom: 18px; }
+  .two-col > div { flex: 1; }
+  .card { border:1px solid #e2e8f0; border-radius:8px; padding:12px; background:#fff; }
+  .card-title { font-size:0.85rem; font-weight:700; color:#1e3a8a; margin-bottom:8px; border-bottom:1px solid #f1f5f9; padding-bottom:6px; }
+  .bias-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:14px; margin-bottom:14px; }
+  .bias-title { font-size:0.9rem; font-weight:700; color:#1e40af; margin-bottom:6px; }
+  .plan-box { border:1px solid #e2e8f0; border-radius:8px; padding:20px; background:#fff; margin-bottom:20px; }
+  .plan-title { font-size:0.95rem; font-weight:700; color:#1e3a8a; margin-bottom:12px; border-bottom:1px solid #f1f5f9; padding-bottom:8px; }
+  .plan-text { font-size:0.87rem; color:#334155; line-height:1.65; white-space:pre-wrap; }
+  .page-footer { display:flex; justify-content:space-between; border-top:1px solid #e2e8f0; padding-top:10px; font-size:0.68rem; color:#94a3b8; margin-top:auto; }
+  .confidencial { background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:10px; font-size:0.68rem; font-weight:bold; border:1px solid #c7d2fe; }
 
-              // Ficha técnica
-              + '<div style="background:#f8fafc; border:1px solid #e2e8f0; border-left:5px solid #1e3a8a; padding:12px 18px; border-radius:8px; margin-bottom:18px; display:flex; justify-content:space-between;">'
-                + '<div>'
-                  + '<div style="font-size:0.7rem; color:#64748b; text-transform:uppercase; font-weight:bold;">Colaborador Evaluado</div>'
-                  + '<div style="font-size:1.05rem; font-weight:800; color:#0f172a; margin-top:3px;">' + nombre + '</div>'
-                + '</div>'
-                + '<div style="text-align:right;">'
-                  + '<div style="font-size:0.7rem; color:#64748b; text-transform:uppercase; font-weight:bold;">Cargo / Posici&oacute;n</div>'
-                  + '<div style="font-size:0.95rem; font-weight:600; color:#334155; margin-top:3px;">' + cargo + '</div>'
-                + '</div>'
-              + '</div>'
+  /* ─── PRINT ─── */
+  @media print {
+    body { background: white !important; }
+    #toolbar { display: none !important; }
+    #doc-wrapper { margin-top: 0 !important; padding: 0 !important; background: white !important; }
+    .a4-page {
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      margin: 0 !important;
+      width: 100% !important;
+      min-height: auto !important;
+      page-break-after: always;
+    }
+    .a4-page:last-child { page-break-after: auto; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  }
+</style>
+</head>
+<body>
 
-              // Radar + Tabla
-              + '<div style="display:flex; gap:16px; margin-bottom:18px;">'
-                + '<div style="flex:1; border:1px solid #e2e8f0; border-radius:8px; padding:12px; background:#fff; text-align:center;">'
-                  + '<div style="font-size:0.85rem; font-weight:700; color:#1e3a8a; margin-bottom:8px; border-bottom:1px solid #f1f5f9; padding-bottom:6px;">Mapa Radar 360&deg;</div>'
-                  + radarBlock
-                + '</div>'
-                + '<div style="flex:1; border:1px solid #e2e8f0; border-radius:8px; padding:12px; background:#fff;">'
-                  + '<div style="font-size:0.85rem; font-weight:700; color:#1e3a8a; margin-bottom:8px; border-bottom:1px solid #f1f5f9; padding-bottom:6px;">Consolidado de Brechas</div>'
-                  + '<table style="width:100%; border-collapse:collapse; font-size:0.76rem;">'
-                    + '<thead><tr style="background:#f1f5f9;">'
-                      + '<th style="padding:5px; border-bottom:2px solid #cbd5e1; text-align:left;">Competencia</th>'
-                      + '<th style="padding:5px; border-bottom:2px solid #cbd5e1; text-align:center;">Esp.</th>'
-                      + '<th style="padding:5px; border-bottom:2px solid #cbd5e1; text-align:center;">Obt.</th>'
-                      + '<th style="padding:5px; border-bottom:2px solid #cbd5e1; text-align:center;">Brecha</th>'
-                    + '</tr></thead>'
-                    + '<tbody>' + tablaBrechasRows + '</tbody>'
-                  + '</table>'
-                + '</div>'
-              + '</div>'
+<!-- BARRA DE HERRAMIENTAS -->
+<div id="toolbar">
+  <div class="brand">
+    <span>SKEL 360°</span>
+    <span style="background:transparent; color:rgba(255,255,255,0.75); font-size:0.9rem; font-weight:500; letter-spacing:normal;">Informe Ejecutivo de Desempeño — ${nombre}</span>
+  </div>
+  <div class="actions">
+    <button class="tbtn tbtn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+    <button class="tbtn tbtn-close" onclick="window.close()">✕ Cerrar</button>
+  </div>
+</div>
 
-              // Sesgos
-              + '<div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:14px; margin-bottom:14px;">'
-                + '<div style="font-size:0.92rem; font-weight:700; color:#1e40af; margin-bottom:6px;">&#127919; Diagn&oacute;stico de Sesgos y Percepci&oacute;n 360&deg;</div>'
-                + '<div style="font-size:0.82rem; color:#1e293b; line-height:1.5;">' + biasHTML + '</div>'
-              + '</div>'
+<!-- DOCUMENTO -->
+<div id="doc-wrapper">
 
-              // Pie pág 1
-              + '<div style="display:flex; justify-content:space-between; border-top:1px solid #e2e8f0; padding-top:8px; font-size:0.68rem; color:#94a3b8; margin-top:10px;">'
-                + '<span>Plataforma SKEL Human Capital 360&deg; &bull; P&aacute;gina 1 de 2</span>'
-                + '<span>Documento Oficial Confidencial</span>'
-              + '</div>'
-              + '</div>'
+  <!-- ══════ PÁGINA 1 ══════ -->
+  <div class="a4-page">
+    <!-- Encabezado -->
+    <div class="doc-header">
+      <div class="doc-header-left">
+        <div class="skel-badge">SKEL 360°</div>
+        <div>
+          <div style="font-size:1.1rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Informe Ejecutivo de Desempeño 360°</div>
+          <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
+        </div>
+      </div>
+      <div class="doc-header-right">
+        <div style="font-size:0.92rem; font-weight:800; color:#0f172a; text-transform:uppercase;">${empresa}</div>
+        <div style="font-size:0.72rem; color:#64748b; margin-top:2px;">${fecha}</div>
+        <span class="confidencial">DOCUMENTO CONFIDENCIAL</span>
+      </div>
+    </div>
 
-              // PÁGINA 2
-              + '<div style="padding:24px 28px 20px 28px;">'
+    <!-- Ficha técnica -->
+    <div class="ficha">
+      <div>
+        <div class="ficha-label">Colaborador Evaluado</div>
+        <div class="ficha-value">${nombre}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="ficha-label">Cargo / Posición</div>
+        <div class="ficha-value-sm">${cargo}</div>
+      </div>
+    </div>
 
-              // Encabezado pág 2
-              + '<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #1e3a8a; padding-bottom:10px; margin-bottom:18px;">'
-                + '<div style="display:flex; align-items:center; gap:10px;">'
-                  + '<div style="background:#1e3a8a; color:white; font-weight:bold; font-size:0.92rem; padding:4px 10px; border-radius:6px;">SKEL 360&deg;</div>'
-                  + '<div style="font-size:1rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Plan Estrat&eacute;gico y Diagn&oacute;stico Experto</div>'
-                + '</div>'
-                + '<div style="font-size:0.75rem; color:#64748b;">' + fecha + '</div>'
-              + '</div>'
+    <!-- Radar + Tabla -->
+    <div class="two-col">
+      <div class="card" style="text-align:center;">
+        <div class="card-title">Mapa Radar 360°</div>
+        ${radarImg ? '<img src="' + radarImg + '" style="width:100%; max-width:260px; height:auto; display:block; margin:auto;" />' : '<p style="color:#94a3b8; font-size:0.8rem;">Gráfica no disponible</p>'}
+      </div>
+      <div class="card">
+        <div class="card-title">Consolidado de Brechas</div>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f8fafc;">
+              <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.78rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
+              <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.78rem; font-weight:700; color:#475569; text-align:center;">Esp.</th>
+              <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.78rem; font-weight:700; color:#475569; text-align:center;">Obt.</th>
+              <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.78rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
+            </tr>
+          </thead>
+          <tbody>${filasBrechas}</tbody>
+        </table>
+      </div>
+    </div>
 
-              // Plan de Acción
-              + '<div style="border:1px solid #e2e8f0; border-radius:8px; padding:20px; background:#fff; margin-bottom:20px;">'
-                + '<div style="font-size:0.95rem; font-weight:700; color:#1e3a8a; margin-bottom:12px; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">&#9997;&#65039; Plan de Acci&oacute;n Estrat&eacute;gico (30, 60 y 90 D&iacute;as)</div>'
-                + '<div style="font-size:0.87rem; color:#334155; line-height:1.65; white-space:pre-wrap;">' + plan + '</div>'
-                + obsBlock
-              + '</div>'
+    <!-- Sesgos -->
+    <div class="bias-box">
+      <div class="bias-title">🎯 Diagnóstico de Sesgos y Percepción 360°</div>
+      <div style="font-size:0.83rem; color:#1e293b; line-height:1.55;">${biasHTML}</div>
+    </div>
 
-              // Pie pág 2
-              + '<div style="display:flex; justify-content:space-between; border-top:1px solid #e2e8f0; padding-top:8px; font-size:0.68rem; color:#94a3b8;">'
-                + '<span>Plataforma SKEL Human Capital 360&deg; &bull; P&aacute;gina 2 de 2</span>'
-                + '<span>Documento Oficial Confidencial</span>'
-              + '</div>'
-              + '</div>'
-            + '</div>';
+    <!-- Pie -->
+    <div class="page-footer">
+      <span>Plataforma SKEL Human Capital 360° • Página 1 de 2</span>
+      <span>Documento Oficial Confidencial</span>
+    </div>
+  </div>
 
-            // 4. Inyectar en el contenedor offscreen y generar PDF
-            const tpl = document.getElementById('pdf-template');
-            tpl.innerHTML = htmlDoc;
+  <!-- ══════ PÁGINA 2 ══════ -->
+  <div class="a4-page">
+    <!-- Encabezado pág 2 -->
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #1e3a8a; padding-bottom:10px; margin-bottom:20px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="skel-badge" style="font-size:0.92rem; padding:4px 10px;">SKEL 360°</div>
+        <div style="font-size:1rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Plan Estratégico y Diagnóstico Experto</div>
+      </div>
+      <div style="font-size:0.75rem; color:#64748b;">${fecha}</div>
+    </div>
 
-            const opt = {
-                margin:      [0, 0, 0, 0],
-                filename:    'Informe_Ejecutivo_360_' + nombre.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf',
-                image:       { type:'jpeg', quality:0.98 },
-                html2canvas: { scale:2, useCORS:true, logging:false, backgroundColor:'#ffffff', width:794 },
-                jsPDF:       { unit:'mm', format:'a4', orientation:'portrait' },
-                pagebreak:   { mode:['css','legacy'] }
-            };
+    <!-- Plan de Acción -->
+    <div class="plan-box">
+      <div class="plan-title">✍️ Plan de Acción Estratégico (30, 60 y 90 Días)</div>
+      <div class="plan-text">${plan}</div>
+      ${obsHTML}
+    </div>
 
-            try {
-                await html2pdf().set(opt).from(tpl).save();
-            } catch(e) {
-                console.error('Error generando PDF:', e);
-                alert('Error al generar el PDF: ' + e.message);
-            } finally {
-                tpl.innerHTML = '';
-                btn.disabled = false;
-                btn.innerText = '📄 Descargar PDF Gerencial';
+    <!-- Pie -->
+    <div class="page-footer">
+      <span>Plataforma SKEL Human Capital 360° • Página 2 de 2</span>
+      <span>Documento Oficial Confidencial</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>`;
+
+            const visor = window.open('', '_blank', 'width=900,height=800,scrollbars=yes,resizable=yes');
+            if (!visor) {
+                alert('El navegador bloqueó la ventana emergente. Por favor permite las ventanas emergentes para este sitio.');
+                return;
             }
+            visor.document.write(htmlVisor);
+            visor.document.close();
         }
 
         /* ─── IA ─────────────────────────────────────────────────────── */
@@ -412,7 +498,7 @@
                 if (data.status === 'success') {
                     const textArea = document.getElementById('texto-compromisos');
                     textArea.value = '';
-                    let txt = (data.plan || '').replace(/\*\*/g, '').replace(/###/g, '').trim();
+                    let txt = (data.plan || '').replace(/\*\*/g, '').replace(/###/g, '').replace(/\*/g, '').trim();
                     let i = 0;
                     function typeWriter() {
                         if (i < txt.length) {
