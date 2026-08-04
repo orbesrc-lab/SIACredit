@@ -933,7 +933,7 @@ def generar_plan_ia():
         for r in resultados:
             prompt += f"- {r.get('nombre', 'Competencia')}: Esperado {r.get('nivel_esperado', 4)}, Obtenido {r.get('promedio_360', 0)} (Brecha: {r.get('brecha', 0)})\n"
             
-        prompt += "\nGenera un 'Plan de Acción' muy conciso y directo (en texto plano o viñetas simples, no uses markdown complejo). Sugiere 2 a 3 acciones prácticas y concretas que el colaborador debe tomar a corto plazo para cerrar las brechas más críticas."
+        prompt += "\nGenera un 'Plan de Acción y Compromisos' conciso, estructurado y profesional en español. Sugiere 3 compromisos de mejora práctica y concretos orientados a cerrar las brechas identificadas. Usa viñetas o numeración simple. No uses formato markdown con asteriscos dobles."
         
         # Llamar a AI
         try:

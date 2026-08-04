@@ -233,11 +233,20 @@
             });
         }
         
+        let typeWriterTimeout = null;
+
         async function generarPlanIA() {
             if(resultadosGlobal.length === 0) return alert("No hay datos para analizar.");
             
             const btnSpinner = document.getElementById('ai-spinner');
+            const btn = document.querySelector('.action-plan button');
+            if(btn) btn.disabled = true;
             btnSpinner.style.display = 'inline-block';
+            
+            if(typeWriterTimeout) {
+                clearTimeout(typeWriterTimeout);
+                typeWriterTimeout = null;
+            }
             
             try {
                 const res = await fetch('/api/skel360/reporte/ia', {
@@ -250,13 +259,18 @@
                 if(data.status === 'success') {
                     const textArea = document.getElementById('texto-compromisos');
                     textArea.value = "";
-                    let txt = data.plan;
+                    
+                    // Limpiar símbolos markdown (asteriscos y comillas)
+                    let txt = (data.plan || "").replace(/\*\*/g, '').replace(/###/g, '').trim();
+                    
                     let i = 0;
                     function typeWriter() {
                         if (i < txt.length) {
                             textArea.value += txt.charAt(i);
                             i++;
-                            setTimeout(typeWriter, 15);
+                            typeWriterTimeout = setTimeout(typeWriter, 12);
+                        } else {
+                            typeWriterTimeout = null;
                         }
                     }
                     typeWriter();
@@ -268,6 +282,7 @@
                 alert("Error al conectar con IA");
             } finally {
                 btnSpinner.style.display = 'none';
+                if(btn) btn.disabled = false;
             }
         }
 
