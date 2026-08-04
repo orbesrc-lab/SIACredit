@@ -6,12 +6,13 @@
     <title>Reporte Individual 360 - SKEL HC</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --report-bg: #f8fafc;
         }
         body { background-color: var(--report-bg); font-family: 'Inter', sans-serif; overflow: auto !important; }
-        .report-container { max-width: 1000px; margin: 40px auto; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .report-container { max-width: 1050px; margin: 40px auto; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
         .header-title h1 { font-size: 2rem; color: #1e293b; margin-bottom: 5px; }
         .header-title p { color: #64748b; font-size: 1.1rem; }
@@ -25,15 +26,22 @@
         .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
         .chart-box { background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
         th { background: #f8fafc; color: #475569; font-weight: 600; }
         .gap-positive { color: #10b981; font-weight: 600; }
         .gap-negative { color: #ef4444; font-weight: 600; }
         
+        .bias-card { background: #eff6ff; border: 1px solid #bfdbfe; padding: 20px; border-radius: 12px; margin-bottom: 30px; }
+        .bias-card h3 { color: #1e40af; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 1.15rem; }
+        .bias-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-top: 5px; }
+        .badge-align { background: #dcfce7; color: #15803d; }
+        .badge-over { background: #fef3c7; color: #b45309; }
+        .badge-under { background: #e0e7ff; color: #4338ca; }
+
         .action-plan { background: #f8fafc; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; }
         .action-plan h3 { color: #1e293b; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;}
-        textarea { width: 100%; min-height: 120px; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.95rem; margin-bottom: 20px; resize: vertical; }
+        textarea { width: 100%; min-height: 140px; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.95rem; margin-bottom: 20px; resize: vertical; line-height: 1.6; }
         textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
         
         .ai-loading { display: none; color: #3b82f6; font-weight: 600; margin-left: 10px; }
@@ -41,38 +49,37 @@
         @media print {
             body { background: white; }
             .report-container { box-shadow: none; padding: 0; margin: 0; max-width: 100%; }
-            .actions, .btn { display: none !important; }
+            .actions, .no-print, .no-pdf { display: none !important; }
             .action-plan { page-break-inside: avoid; }
             textarea { border: none; background: transparent; padding: 0; resize: none; min-height: auto; }
-            /* To make sure chart renders well in print */
             canvas { max-height: 400px; }
             * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
         }
     </style>
 </head>
 <body>
-    <div class="report-container">
+    <div class="report-container" id="reporte-container">
         <div class="header">
             <div class="header-title">
-                <h1>Reporte Individual 360</h1>
-                <p id="colaborador-nombre">Cargando...</p>
-                <p id="colaborador-cargo" style="font-size:0.9rem; color:#94a3b8;"></p>
+                <h1>Informe Ejecutivo de Evaluación 360°</h1>
+                <p id="colaborador-nombre" style="font-weight: 700; color: #1e293b;">Cargando...</p>
+                <p id="colaborador-cargo" style="font-size:0.95rem; color:#64748b; font-weight: 500;"></p>
             </div>
-            <div class="actions">
+            <div class="actions no-pdf">
                 <button class="btn btn-secondary" onclick="window.history.back()">Volver</button>
-                <button class="btn btn-primary" onclick="window.print()">🖨️ Exportar PDF</button>
+                <button class="btn btn-primary" onclick="descargarPDF()" style="background: linear-gradient(135deg, #10b981, #059669);">📄 Descargar PDF Gerencial</button>
             </div>
         </div>
 
         <div class="content-grid">
             <div class="chart-box">
-                <h3 style="text-align:center; color:#334155; margin-bottom:15px;">Perspectivas 360 (Radar)</h3>
+                <h3 style="text-align:center; color:#334155; margin-bottom:15px; font-size: 1.1rem;">Perspectivas 360 (Radar)</h3>
                 <canvas id="radarChart"></canvas>
             </div>
             
             <div class="chart-box">
-                <h3 style="text-align:center; color:#334155; margin-bottom:15px;">Brechas de Competencias</h3>
-                <div style="overflow-x:auto; overflow-y:auto; max-height: 400px;">
+                <h3 style="text-align:center; color:#334155; margin-bottom:15px; font-size: 1.1rem;">Brechas de Competencias</h3>
+                <div style="overflow-x:auto; overflow-y:auto; max-height: 380px;">
                     <table>
                         <thead>
                             <tr>
@@ -90,22 +97,29 @@
             </div>
         </div>
 
+        <!-- Diagnóstico de Sesgos y Percepción -->
+        <div class="bias-card" id="bias-container">
+            <h3>🎯 Diagnóstico de Sesgos y Percepción de Impacto</h3>
+            <p id="bias-text" style="font-size: 0.95rem; color: #334155; line-height: 1.6;">Analizando sesgos de autopercepción vs evaluación de pares y jefe...</p>
+            <div id="bias-badge-box"></div>
+        </div>
+
         <div class="action-plan">
             <h3>
-                <span>✍️ Plan de Acción y Compromisos</span>
-                <button class="btn btn-primary" style="font-size:0.85rem; padding: 8px 15px;" onclick="generarPlanIA()">
-                    ✨ Sugerir con IA
+                <span>✍️ Plan de Acción y Análisis Experto IA</span>
+                <button class="btn btn-primary no-pdf" style="font-size:0.85rem; padding: 8px 15px;" onclick="generarPlanIA()">
+                    ✨ Generar Análisis con IA
                     <span class="ai-loading" id="ai-spinner">⏳</span>
                 </button>
             </h3>
-            <p style="font-size:0.9rem; color:#64748b; margin-bottom:15px;">Documente los acuerdos de la sesión de retroalimentación.</p>
+            <p style="font-size:0.9rem; color:#64748b; margin-bottom:15px;">Diagnóstico de fortalezas, brechas y compromisos a 30, 60 y 90 días.</p>
             
-            <textarea id="texto-compromisos" placeholder="Escriba aquí los compromisos, o haga clic en 'Sugerir con IA' para obtener recomendaciones basadas en las brechas..."></textarea>
+            <textarea id="texto-compromisos" placeholder="Haga clic en 'Generar Análisis con IA' para obtener la interpretación experta de competencias y sesgos..."></textarea>
             
-            <h4 style="color:#334155; margin-bottom:10px;">Comentarios del Evaluado (Opcional)</h4>
-            <textarea id="texto-comentarios" style="min-height: 80px;" placeholder="Observaciones adicionales del colaborador..."></textarea>
+            <h4 style="color:#334155; margin-bottom:10px;">Comentarios Adicionales del Evaluado / Retroalimentación</h4>
+            <textarea id="texto-comentarios" style="min-height: 80px;" placeholder="Observaciones adicionales o compromisos de la sesión..."></textarea>
             
-            <div style="text-align: center; margin-top: 30px;" class="actions-bottom">
+            <div style="text-align: center; margin-top: 30px;" class="actions-bottom no-pdf">
                 <button class="btn btn-secondary" onclick="window.history.back()" style="padding: 12px 30px; font-size: 1.05rem;">⬅ Volver a Resultados</button>
                 <button class="btn btn-primary" onclick="guardarPlanAccion()" style="padding: 12px 30px; font-size: 1.05rem; background: #10b981; margin-left: 10px;">💾 Guardar Plan</button>
             </div>
@@ -135,6 +149,7 @@
                     resultadosGlobal = data.resultados;
                     renderTabla(data.resultados);
                     renderRadar(data.resultados);
+                    calcularSesgos(data.resultados);
                     
                     if (data.saved_plan) {
                         document.getElementById('texto-compromisos').value = data.saved_plan;
@@ -149,6 +164,79 @@
                 console.error(e);
                 alert("Error de conexión");
             }
+        }
+
+        function calcularSesgos(resultados) {
+            let autoSum = 0, autoCount = 0;
+            let extSum = 0, extCount = 0;
+            
+            resultados.forEach(r => {
+                const auto = r.promedios['Autoevaluación'];
+                if(auto) {
+                    autoSum += auto;
+                    autoCount++;
+                }
+                
+                ['Jefe', 'Pares', 'Subordinados'].forEach(rel => {
+                    const val = r.promedios[rel];
+                    if(val) {
+                        extSum += val;
+                        extCount++;
+                    }
+                });
+            });
+
+            const autoProm = autoCount > 0 ? (autoSum / autoCount) : 0;
+            const extProm = extCount > 0 ? (extSum / extCount) : 0;
+            const diff = autoProm - extProm;
+
+            const textEl = document.getElementById('bias-text');
+            const badgeBox = document.getElementById('bias-badge-box');
+
+            if(autoCount === 0 || extCount === 0) {
+                textEl.innerText = "Se requiere la participación completa de la autoevaluación y evaluadores externos para calcular la divergencia de percepción.";
+                badgeBox.innerHTML = '<span class="bias-badge badge-align">Datos en Proceso</span>';
+                return;
+            }
+
+            let msg = `<strong>Promedio Autoevaluación:</strong> ${autoProm.toFixed(2)} pts | <strong>Promedio Evaluación Externa (Jefe/Pares/Subordinados):</strong> ${extProm.toFixed(2)} pts.<br>`;
+
+            if(diff > 0.4) {
+                msg += `<strong>Diagnóstico:</strong> Existe un <em>Sesgo de Sobreestimación</em> (diferencia de +${diff.toFixed(2)} pts). El colaborador percibe un nivel de desempeño superior a la evaluación del entorno. Se sugiere alinear expectativas en las sesiones de retroalimentación.`;
+                badgeBox.innerHTML = '<span class="bias-badge badge-over">⚠️ Sesgo de Sobreestimación (+ ' + diff.toFixed(2) + ')</span>';
+            } else if(diff < -0.4) {
+                msg += `<strong>Diagnóstico:</strong> Existe un <em>Sesgo de Subestimación / Modestia Profesional</em> (diferencia de ${diff.toFixed(2)} pts). El equipo asigna calificaciones más altas que la propia autopercepción del colaborador, evidenciando potencial no reconocido.`;
+                badgeBox.innerHTML = '<span class="bias-badge badge-under">💡 Subestimación / Potencial Oculto (' + diff.toFixed(2) + ')</span>';
+            } else {
+                msg += `<strong>Diagnóstico:</strong> Excelente <em>Alineación de Percepción</em> (diferencia mínima de ${diff.toFixed(2)} pts). Existe alta coincidencia entre la visión del colaborador y la percepción de su equipo de trabajo.`;
+                badgeBox.innerHTML = '<span class="bias-badge badge-align">✅ Alta Alineación de Percepción</span>';
+            }
+
+            textEl.innerHTML = msg;
+        }
+
+        function descargarPDF() {
+            const element = document.getElementById('reporte-container');
+            const nombreColab = document.getElementById('colaborador-nombre').innerText || 'Colaborador';
+            
+            const btnHide = document.querySelectorAll('.no-pdf');
+            btnHide.forEach(el => el.style.display = 'none');
+            
+            const opt = {
+                margin: [8, 8, 8, 8],
+                filename: `Informe_360_${nombreColab.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                btnHide.forEach(el => el.style.display = '');
+            }).catch(err => {
+                console.error(err);
+                btnHide.forEach(el => el.style.display = '');
+                alert("Ocurrió un error al generar el PDF.");
+            });
         }
 
         function renderTabla(resultados) {

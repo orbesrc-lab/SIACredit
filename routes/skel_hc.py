@@ -926,14 +926,38 @@ def generar_plan_ia():
         if not resultados:
             return jsonify({"status": "error", "message": "No hay resultados de competencias para analizar"}), 400
             
-        prompt = "Actúa como un experto en Recursos Humanos y desarrollo organizacional. "
-        prompt += "A continuación te presento los resultados de una evaluación de desempeño 360 de un colaborador, "
-        prompt += "indicando la competencia, su nivel esperado y la brecha (un valor negativo indica que está por debajo de lo esperado):\n\n"
-        
+        prompt = f"""Actúa como Consultor Senior en Desarrollo Organizacional y Evaluación 360°.
+Realiza un Análisis de Competencias Gerencial y Diagnóstico de Sesgos de Percepción exhaustivo, riguroso y de alto nivel ejecutivo para el colaborador.
+
+DATOS CONSOLIDADOS DE LA EVALUACIÓN 360°:
+"""
         for r in resultados:
-            prompt += f"- {r.get('nombre', 'Competencia')}: Esperado {r.get('nivel_esperado', 4)}, Obtenido {r.get('promedio_360', 0)} (Brecha: {r.get('brecha', 0)})\n"
+            auto = r.get('autoevaluacion', 'N/A')
+            jefe = r.get('jefe', 'N/A')
+            pares = r.get('pares', 'N/A')
+            sub = r.get('subordinados', 'N/A')
+            esp = r.get('nivel_esperado', 4)
+            p_360 = r.get('promedio_360', 0)
+            brecha = r.get('brecha', 0)
             
-        prompt += "\nGenera un 'Plan de Acción y Compromisos' conciso, estructurado y profesional en español. Sugiere 3 compromisos de mejora práctica y concretos orientados a cerrar las brechas identificadas. Usa viñetas o numeración simple. No uses formato markdown con asteriscos dobles."
+            prompt += f"- Competencia: {r.get('nombre')}\n"
+            prompt += f"  Nivel Requerido: {esp} | Promedio 360 Obtenido: {p_360} | Brecha: {brecha:+}\n"
+            prompt += f"  Desglose -> Autoevaluación: {auto} | Jefe: {jefe} | Pares: {pares} | Subordinados: {sub}\n\n"
+
+        prompt += """INSTRUCCIONES DE ESTRUCTURA Y ANÁLISIS:
+Genera un informe gerencial estructurado en las siguientes 3 secciones en español profesional, claro y enriquecedor (usa viñetas o numeración simple, NO uses símbolos de código o asteriscos extraños):
+
+1. DIAGNÓSTICO DE SESGOS Y PERCEPCIÓN 360°:
+- Analiza si existe un Sesgo de Sobreestimación (la autoevaluación es marcadamente superior a la mirada externa de pares/jefe) o de Subestimación (el entorno valora al colaborador por encima de su propia autopercepción).
+- Compara la convergencia o divergencia entre la visión del Jefe, los Pares y los Subordinados.
+
+2. FORTALEZAS Y COMPETENCIAS CRÍTICAS A INTERVENIR:
+- Detalla las 2 competencias de mayor fortaleza estratégica y cómo apalancarlas.
+- Detalla las 2 competencias con brecha crítica negativa y su impacto específico en los objetivos del rol.
+
+3. PLAN DE ACCIÓN Y COMPROMISOS GERENCIALES:
+- Presenta 3 compromisos prácticos, medibles y concretos organizados con metas a 30, 60 y 90 días para cerrar las brechas identificadas.
+"""
         
         # Llamar a AI
         try:
@@ -941,7 +965,7 @@ def generar_plan_ia():
             texto_ia = generar_informe_ia_base(prompt)
         except Exception as ai_e:
             print("Error IA:", ai_e)
-            texto_ia = "⚠️ **Análisis IA no disponible**\n\nEl sistema no pudo generar el análisis personalizado porque la llave API de Inteligencia Artificial es inválida o no está configurada. Por favor, dirígete al panel de **Configuración Global** e ingresa una API Key válida (ej. Gemini o OpenAI) para habilitar esta función."
+            texto_ia = "⚠️ Análisis IA no disponible. Por favor, verifica la llave de Inteligencia Artificial en la configuración."
             
         return jsonify({"status": "success", "plan": texto_ia})
         
