@@ -175,8 +175,59 @@ def create_competencia_manual():
 # Módulo 05: Carga Masiva (Estructura y Logística)
 # ==============================================================================
 
+def deduplicate_cargos_empresa(sb, empresa_id):
+    """
+    Agrupa los cargos de una empresa por nombre normalizado (sin espacios extras, ignorando mayúsculas/minúsculas y plurales).
+    Consolida las asignaciones de competencias y migra los colaboradores al cargo principal que posee las competencias.
+    """
+    try:
+        import re
+        cargos = sb.table('skel_cargos').select('*').eq('empresa_id', empresa_id).execute().data
+        if not cargos:
+            return
+
+        def norm(n):
+            s = n.strip().lower()
+            return re.sub(r's$', '', s)
+
+        groups = {}
+        for c in cargos:
+            k = norm(c['nombre'])
+            if k not in groups:
+                groups[k] = []
+            groups[k].append(c)
+
+        for k, list_cargos in groups.items():
+            if len(list_cargos) > 1:
+                survivor = None
+                for c in list_cargos:
+                    asig = sb.table('skel_cargos_diccionario').select('id').eq('cargo_id', c['id']).execute().data
+                    if asig and not survivor:
+                        survivor = c
+                if not survivor:
+                    survivor = list_cargos[0]
+
+                for c in list_cargos:
+                    if c['id'] != survivor['id']:
+                        sb.table('skel_colaboradores').update({'cargo_id': survivor['id']}).eq('cargo_id', c['id']).execute()
+                        asigs_dup = sb.table('skel_cargos_diccionario').select('*').eq('cargo_id', c['id']).execute().data
+                        for a in asigs_dup:
+                            exist = sb.table('skel_cargos_diccionario').select('id').eq('cargo_id', survivor['id']).eq('competencia_id', a['competencia_id']).execute().data
+                            if not exist:
+                                sb.table('skel_cargos_diccionario').insert({
+                                    'cargo_id': survivor['id'],
+                                    'competencia_id': a['competencia_id'],
+                                    'nivel_requerido': a.get('nivel_requerido', 5)
+                                }).execute()
+                        sb.table('skel_cargos_diccionario').delete().eq('cargo_id', c['id']).execute()
+                        try:
+                            sb.table('skel_cargos').delete().eq('id', c['id']).execute()
+                        except Exception: pass
+    except Exception as e:
+        print(f"Error deduplicando cargos: {e}")
+
 @skel_hc_bp.route('/empresa/<empresa_id>/carga-masiva', methods=['POST'])
-def carga_masiva_empresa(empresa_id):
+def carga_masiva_colaboradores(empresa_id):
     try:
         if 'file' not in request.files:
             return jsonify({"status": "error", "message": "No se encontró el archivo"}), 400
@@ -190,32 +241,62 @@ def carga_masiva_empresa(empresa_id):
         
         sb = get_supabase()
         
-        # Procesar de forma básica (crear áreas y colaboradores)
-        # Por seguridad y simplicidad en el MVP, creamos una sede por defecto
+        # Sede por defecto
         sede_res = sb.table('skel_sedes').insert({"empresa_id": empresa_id, "nombre": "Sede Principal"}).execute()
         sede_id = sede_res.data[0]['id'] if sede_res.data else None
         
-        # Agrupar áreas
+        # Agrupar áreas con verificación inteligente de existentes
         areas_unicas = df['Área'].dropna().unique()
         areas_dict = {}
+        areas_existentes = sb.table('skel_areas').select('*').eq('empresa_id', empresa_id).execute().data
+        
+        def find_existing_area(nombre):
+            n_clean = str(nombre).strip().lower()
+            for ex in areas_existentes:
+                if ex['nombre'].strip().lower() == n_clean:
+                    return ex['id']
+            return None
+
         for area in areas_unicas:
-            res = sb.table('skel_areas').insert({"empresa_id": empresa_id, "sede_id": sede_id, "nombre": str(area)}).execute()
-            if res.data:
-                areas_dict[str(area)] = res.data[0]['id']
+            a_str = str(area).strip()
+            found_id = find_existing_area(a_str)
+            if found_id:
+                areas_dict[a_str] = found_id
+            else:
+                res = sb.table('skel_areas').insert({"empresa_id": empresa_id, "sede_id": sede_id, "nombre": a_str}).execute()
+                if res.data:
+                    areas_dict[a_str] = res.data[0]['id']
+                    areas_existentes.append(res.data[0])
                 
-        # Agrupar cargos
+        # Agrupar cargos con verificación inteligente de existentes
         cargos_unicos = df['Cargo'].dropna().unique()
         cargos_dict = {}
+        cargos_existentes = sb.table('skel_cargos').select('*').eq('empresa_id', empresa_id).execute().data
+        
+        def find_existing_cargo(nombre):
+            n_clean = str(nombre).strip().lower().rstrip('s')
+            for ex in cargos_existentes:
+                ex_clean = ex['nombre'].strip().lower().rstrip('s')
+                if ex_clean == n_clean:
+                    return ex['id']
+            return None
+
         for cargo in cargos_unicos:
-            res = sb.table('skel_cargos').insert({"empresa_id": empresa_id, "nombre": str(cargo), "nivel_jerarquico": 1}).execute()
-            if res.data:
-                cargos_dict[str(cargo)] = res.data[0]['id']
+            c_str = str(cargo).strip()
+            found_id = find_existing_cargo(c_str)
+            if found_id:
+                cargos_dict[c_str] = found_id
+            else:
+                res = sb.table('skel_cargos').insert({"empresa_id": empresa_id, "nombre": c_str, "nivel_jerarquico": 1}).execute()
+                if res.data:
+                    cargos_dict[c_str] = res.data[0]['id']
+                    cargos_existentes.append(res.data[0])
                 
         # Insertar colaboradores
         colabs = []
         for index, row in df.iterrows():
-            area_id = areas_dict.get(str(row.get('Área')))
-            cargo_id = cargos_dict.get(str(row.get('Cargo')))
+            area_id = areas_dict.get(str(row.get('Área')).strip())
+            cargo_id = cargos_dict.get(str(row.get('Cargo')).strip())
             colabs.append({
                 "empresa_id": empresa_id,
                 "cargo_id": cargo_id,
@@ -229,6 +310,9 @@ def carga_masiva_empresa(empresa_id):
             
         if colabs:
             sb.table('skel_colaboradores').insert(colabs).execute()
+            
+        # Ejecutar auto-limpieza de cargos
+        deduplicate_cargos_empresa(sb, empresa_id)
             
         return jsonify({"status": "success", "message": f"Se procesaron {len(colabs)} colaboradores."}), 201
         
@@ -365,6 +449,9 @@ def gestionar_perfiles_matriz(empresa_id):
             if inserts:
                 sb.table('skel_cargos_diccionario').insert(inserts).execute()
                 
+        # Auto-limpieza de cargos duplicados al guardar la matriz
+        deduplicate_cargos_empresa(sb, empresa_id)
+
         return jsonify({"status": "success", "message": "Matriz guardada con éxito"}), 200
     except Exception as e:
         traceback.print_exc()
