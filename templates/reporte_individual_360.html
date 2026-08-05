@@ -242,7 +242,7 @@
             textEl.innerHTML = msg;
         }
 
-        /* ─── VISOR INFORME GERENCIAL (Hojas Carta 8.5x11 Exactas y Simétricas) ─── */
+        /* ─── VISOR INFORME GERENCIAL (Paginación Dinámica Multi-Sección sin Cortes) ─── */
         function abrirVisorInforme() {
             const nombre  = document.getElementById('colaborador-nombre').innerText || '';
             const cargo   = document.getElementById('colaborador-cargo').innerText   || '';
@@ -257,15 +257,27 @@
             const canvas = document.getElementById('radarChart');
             const radarImg = canvas ? canvas.toDataURL('image/png') : '';
 
-            // Repartir inteligentemente el texto entre la Pág 3 (Diagnóstico) y la Pág 4 (Plan de Acción)
-            let diagnosticoTexto = biasHTML;
-            let planTexto = rawPlan;
+            // Parser multi-sección para que NUNCA se corte el texto
+            let sec1 = biasHTML;
+            let sec2 = '';
+            let sec3 = rawPlan;
 
             if (rawPlan && (rawPlan.includes('DIAGNÓSTICO') || rawPlan.includes('1.'))) {
-                const idxSplit = rawPlan.search(/(2\.\s*FORTALEZAS|3\.\s*PLAN|FORTALEZAS Y COMPETENCIAS)/i);
-                if (idxSplit !== -1) {
-                    diagnosticoTexto = `<div style="white-space:pre-wrap; line-height:1.55; font-size:0.83rem; color:#334155;">${rawPlan.substring(0, idxSplit).trim()}</div>`;
-                    planTexto = rawPlan.substring(idxSplit).trim();
+                const idx2 = rawPlan.search(/(2\.\s*FORTALEZAS|FORTALEZAS Y COMPETENCIAS)/i);
+                const idx3 = rawPlan.search(/(3\.\s*PLAN|PLAN DE ACCIÓN)/i);
+
+                if (idx2 !== -1) {
+                    sec1 = `<div style="white-space:pre-wrap; line-height:1.55; font-size:0.83rem; color:#334155;">${rawPlan.substring(0, idx2).trim()}</div>`;
+                    if (idx3 !== -1 && idx3 > idx2) {
+                        sec2 = rawPlan.substring(idx2, idx3).trim();
+                        sec3 = rawPlan.substring(idx3).trim();
+                    } else {
+                        sec2 = rawPlan.substring(idx2).trim();
+                        sec3 = '';
+                    }
+                } else if (idx3 !== -1) {
+                    sec1 = `<div style="white-space:pre-wrap; line-height:1.55; font-size:0.83rem; color:#334155;">${rawPlan.substring(0, idx3).trim()}</div>`;
+                    sec3 = rawPlan.substring(idx3).trim();
                 }
             }
 
@@ -376,6 +388,110 @@
                 ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height: 48px; max-width: 170px; object-fit: contain; display: block; margin-left: auto; margin-bottom: 4px;" />`
                 : '';
 
+            const totalPaginas = sec2 ? 5 : 4;
+
+            let paginasAnalisisHTML = `
+  <!-- ══════ PÁGINA 3: DIAGNÓSTICO EXPERTO DE SESGOS Y PERCEPCIÓN ══════ -->
+  <div class="letter-page">
+    <div>
+      <div class="doc-header">
+        <div class="doc-header-left">
+          <div class="skel-badge">SKEL 360°</div>
+          <div>
+            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Diagnóstico Experto de Sesgos y Percepción 360°</div>
+            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
+          </div>
+        </div>
+        <div class="doc-header-right">
+          ${logoEmpresaHTML}
+          <div style="font-size:0.88rem; font-weight:800; color:#0f172a; text-transform:uppercase;">${empresa}</div>
+          <div style="font-size:0.70rem; color:#64748b; margin-top:1px;">${fecha}</div>
+          <span class="confidencial">DOCUMENTO CONFIDENCIAL</span>
+        </div>
+      </div>
+      <div class="bias-container">
+        <div style="font-size:0.98rem; font-weight:800; color:#1d4ed8; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+          <span>🎯 Diagnóstico Cualitativo de Percepción y Convergencia</span>
+        </div>
+        ${sec1}
+      </div>
+    </div>
+    <div class="page-footer">
+      <span>Plataforma SKEL Human Capital 360° • Página 3 de ${totalPaginas} (Tamaño Carta)</span>
+      <span>Documento Oficial Confidencial</span>
+    </div>
+  </div>`;
+
+            if (sec2) {
+                paginasAnalisisHTML += `
+  <!-- ══════ PÁGINA 4: FORTALEZAS Y COMPETENCIAS CRÍTICAS ══════ -->
+  <div class="letter-page">
+    <div>
+      <div class="doc-header">
+        <div class="doc-header-left">
+          <div class="skel-badge">SKEL 360°</div>
+          <div>
+            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Fortalezas y Competencias Críticas</div>
+            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
+          </div>
+        </div>
+        <div class="doc-header-right">
+          ${logoEmpresaHTML}
+          <div style="font-size:0.88rem; font-weight:800; color:#0f172a; text-transform:uppercase;">${empresa}</div>
+          <div style="font-size:0.70rem; color:#64748b; margin-top:1px;">${fecha}</div>
+          <span class="confidencial">DOCUMENTO CONFIDENCIAL</span>
+        </div>
+      </div>
+      <div class="plan-container">
+        <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
+          ⭐ Fortalezas Estratégicas y Competencias a Intervenir
+        </div>
+        <div style="font-size:0.83rem; color:#334155; line-height:1.55; white-space:pre-wrap;">${sec2}</div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span>Plataforma SKEL Human Capital 360° • Página 4 de 5 (Tamaño Carta)</span>
+      <span>Documento Oficial Confidencial</span>
+    </div>
+  </div>`;
+            }
+
+            const numPaginaPlan = sec2 ? 5 : 4;
+            const textPlanFinal = sec3 || rawPlan;
+
+            paginasAnalisisHTML += `
+  <!-- ══════ PÁGINA ${numPaginaPlan}: PLAN ESTRATÉGICO Y COMPROMISOS ══════ -->
+  <div class="letter-page">
+    <div>
+      <div class="doc-header">
+        <div class="doc-header-left">
+          <div class="skel-badge">SKEL 360°</div>
+          <div>
+            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Plan Estratégico de Desarrollo Gerencial</div>
+            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
+          </div>
+        </div>
+        <div class="doc-header-right">
+          ${logoEmpresaHTML}
+          <div style="font-size:0.88rem; font-weight:800; color:#0f172a; text-transform:uppercase;">${empresa}</div>
+          <div style="font-size:0.70rem; color:#64748b; margin-top:1px;">${fecha}</div>
+          <span class="confidencial">DOCUMENTO CONFIDENCIAL</span>
+        </div>
+      </div>
+      <div class="plan-container">
+        <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
+          ✍️ Plan de Acción Estratégico a 30, 60 y 90 Días
+        </div>
+        <div style="font-size:0.83rem; color:#334155; line-height:1.55; white-space:pre-wrap;">${textPlanFinal}</div>
+        ${obsHTML}
+      </div>
+    </div>
+    <div class="page-footer">
+      <span>Plataforma SKEL Human Capital 360° • Página ${numPaginaPlan} de ${totalPaginas} (Tamaño Carta)</span>
+      <span>Documento Oficial Confidencial</span>
+    </div>
+  </div>`;
+
             const htmlVisor = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -416,9 +532,7 @@
   .letter-page {
     background: #ffffff;
     width: 816px; /* 8.5 in */
-    height: 1056px; /* 11 in */
-    min-height: 1056px;
-    max-height: 1056px;
+    min-height: 1056px; /* 11 in */
     padding: 36px 44px 30px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.35);
     border-radius: 6px;
@@ -426,7 +540,6 @@
     flex-direction: column;
     justify-content: space-between;
     box-sizing: border-box;
-    overflow: hidden;
     position: relative;
   }
 
@@ -471,8 +584,6 @@
     border-radius: 8px;
     padding: 18px 22px;
     margin-bottom: 16px;
-    flex: 1;
-    overflow-y: auto;
   }
   .plan-container p { font-size: 0.83rem; color: #334155; line-height: 1.55; white-space: pre-wrap; }
 
@@ -493,12 +604,10 @@
       border-radius: 0 !important;
       margin: 0 !important;
       width: 8.5in !important;
-      height: 11in !important;
-      max-height: 11in !important;
+      min-height: 100vh !important;
       padding: 8mm 10mm !important;
       page-break-after: always;
       page-break-inside: avoid;
-      overflow: hidden !important;
     }
     .letter-page:last-child { page-break-after: auto; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -580,7 +689,7 @@
 
     <!-- Pie Página 1 -->
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página 1 de 4 (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página 1 de ${totalPaginas} (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>
@@ -608,73 +717,12 @@
 
     <!-- Pie Página 2 -->
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página 2 de 4 (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página 2 de ${totalPaginas} (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>
 
-  <!-- ══════ PÁGINA 3: DIAGNÓSTICO EXPERTO DE SESGOS Y PERCEPCIÓN ══════ -->
-  <div class="letter-page">
-    <div>
-      <!-- Encabezado pág 3 -->
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #1e3a8a; padding-bottom:10px; margin-bottom:16px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <div class="skel-badge" style="font-size:0.9rem; padding:4px 10px;">SKEL 360°</div>
-          <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Diagnóstico Experto de Sesgos y Percepción 360°</div>
-        </div>
-        <div style="display:flex; align-items:center; gap:10px;">
-          ${empresaLogo ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height:30px; max-width:110px; object-fit:contain;" />` : ''}
-          <div style="font-size:0.72rem; color:#64748b; text-align:right;">${fecha}</div>
-        </div>
-      </div>
-
-      <!-- Bloque de Diagnóstico Cualitativo -->
-      <div class="bias-container">
-        <div style="font-size:0.98rem; font-weight:800; color:#1d4ed8; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-          <span>🎯 Diagnóstico Cualitativo de Percepción y Convergencia</span>
-        </div>
-        ${diagnosticoTexto}
-      </div>
-    </div>
-
-    <!-- Pie Página 3 -->
-    <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página 3 de 4 (Tamaño Carta)</span>
-      <span>Documento Oficial Confidencial</span>
-    </div>
-  </div>
-
-  <!-- ══════ PÁGINA 4: PLAN ESTRATÉGICO Y COMPROMISOS ══════ -->
-  <div class="letter-page">
-    <div>
-      <!-- Encabezado pág 4 -->
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #1e3a8a; padding-bottom:10px; margin-bottom:16px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <div class="skel-badge" style="font-size:0.9rem; padding:4px 10px;">SKEL 360°</div>
-          <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Plan Estratégico de Desarrollo Gerencial</div>
-        </div>
-        <div style="display:flex; align-items:center; gap:10px;">
-          ${empresaLogo ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height:30px; max-width:110px; object-fit:contain;" />` : ''}
-          <div style="font-size:0.72rem; color:#64748b; text-align:right;">${fecha}</div>
-        </div>
-      </div>
-
-      <!-- Plan de Acción -->
-      <div class="plan-container">
-        <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
-          ✍️ Plan de Acción Estratégico a 30, 60 y 90 Días
-        </div>
-        <div style="font-size:0.83rem; color:#334155; line-height:1.55; white-space:pre-wrap;">${planTexto}</div>
-        ${obsHTML}
-      </div>
-    </div>
-
-    <!-- Pie Página 4 -->
-    <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página 4 de 4 (Tamaño Carta)</span>
-      <span>Documento Oficial Confidencial</span>
-    </div>
-  </div>
+  ${paginasAnalisisHTML}
 
 </div>
 </body>
