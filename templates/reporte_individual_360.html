@@ -137,6 +137,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const evaluadoId = urlParams.get('id');
         let resultadosGlobal = [];
+        let empresaLogoGlobal = '';
 
         async function cargarReporte() {
             if (!evaluadoId) {
@@ -150,6 +151,7 @@
                     const nombre  = `${data.colaborador.nombres} ${data.colaborador.apellidos}`;
                     const cargo   = data.colaborador.cargo || 'N/A';
                     const empresa = data.colaborador.empresa_nombre || 'EMPRESA EVALUADA';
+                    empresaLogoGlobal = data.colaborador.empresa_logo || '';
                     document.getElementById('colaborador-nombre').innerText = nombre;
                     document.getElementById('colaborador-cargo').innerText = cargo;
                     document.getElementById('web-empresa-nombre').innerText = empresa;
@@ -240,11 +242,12 @@
             textEl.innerHTML = msg;
         }
 
-        /* ─── VISOR INFORME GERENCIAL ───────────────────────────────────── */
+        /* ─── VISOR INFORME GERENCIAL (TAMAÑO CARTA CON LOGOS) ────────────────── */
         function abrirVisorInforme() {
             const nombre  = document.getElementById('colaborador-nombre').innerText || '';
             const cargo   = document.getElementById('colaborador-cargo').innerText   || '';
             const empresa = document.getElementById('web-empresa-nombre').innerText  || '';
+            const empresaLogo = empresaLogoGlobal || '';
             const fecha   = new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' });
             const plan    = document.getElementById('texto-compromisos').value || 'Sin compromisos registrados.';
             const obs     = document.getElementById('texto-comentarios').value || '';
@@ -261,18 +264,22 @@
                 const sign  = r.brecha > 0 ? '+' : '';
                 filasBrechas +=
                     '<tr>' +
-                    '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; font-size:0.82rem;">' + r.nombre + '</td>' +
-                    '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; text-align:center; font-size:0.82rem;">' + r.nivel_esperado + '</td>' +
-                    '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.82rem;">' + r.promedio_360 + '</td>' +
-                    '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; color:' + color + '; font-size:0.82rem;">' + sign + r.brecha + '</td>' +
+                    '<td style="padding:5px 7px; border-bottom:1px solid #f1f5f9; font-size:0.8rem;">' + r.nombre + '</td>' +
+                    '<td style="padding:5px 7px; border-bottom:1px solid #f1f5f9; text-align:center; font-size:0.8rem;">' + r.nivel_esperado + '</td>' +
+                    '<td style="padding:5px 7px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.8rem;">' + r.promedio_360 + '</td>' +
+                    '<td style="padding:5px 7px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; color:' + color + '; font-size:0.8rem;">' + sign + r.brecha + '</td>' +
                     '</tr>';
             });
 
             const obsHTML = obs.trim()
-                ? '<div style="margin-top:20px; padding-top:16px; border-top:1px solid #e2e8f0;">' +
+                ? '<div style="margin-top:16px; padding-top:14px; border-top:1px solid #e2e8f0;">' +
                   '<p style="font-size:0.82rem; font-weight:700; color:#475569; margin:0 0 6px 0;">Observaciones y Compromisos de Retroalimentación:</p>' +
                   '<div style="font-size:0.82rem; color:#64748b; font-style:italic; background:#f8fafc; padding:12px; border-radius:6px; border-left:3px solid #cbd5e1; white-space:pre-wrap;">' + obs + '</div>' +
                   '</div>'
+                : '';
+
+            const logoEmpresaHTML = empresaLogo
+                ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height: 48px; max-width: 170px; object-fit: contain; display: block; margin-left: auto; margin-bottom: 4px;" />`
                 : '';
 
             const htmlVisor = `<!DOCTYPE html>
@@ -281,10 +288,14 @@
 <meta charset="UTF-8">
 <title>Informe Ejecutivo 360° — ${nombre}</title>
 <style>
+  @page {
+    size: letter portrait;
+    margin: 8mm;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #1e1e2e; font-family: Arial, 'Segoe UI', sans-serif; color: #0f172a; }
 
-  /* ─── BARRA DE HERRAMIENTAS (solo en pantalla) ─── */
+  /* ─── BARRA DE HERRAMIENTAS ─── */
   #toolbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
     background: linear-gradient(135deg, #1e3a8a, #312e81);
@@ -304,56 +315,66 @@
   .tbtn-close { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
   .tbtn-close:hover { background: rgba(255,255,255,0.25); }
 
-  /* ─── ÁREA DE DOCUMENTO ─── */
-  #doc-wrapper { margin-top: 70px; padding: 30px 20px 50px; display: flex; flex-direction: column; align-items: center; }
-  .a4-page {
+  /* ─── DOCUMENTO TAMAÑO CARTA ─── */
+  #doc-wrapper { margin-top: 70px; padding: 25px 15px 40px; display: flex; flex-direction: column; align-items: center; }
+  .letter-page {
     background: white;
-    width: 794px;
-    min-height: 1123px;
-    padding: 36px 40px 32px;
+    width: 816px; /* 8.5 pulg = Tamañó Carta */
+    min-height: 1056px; /* 11 pulg */
+    padding: 34px 40px 28px;
     box-shadow: 0 8px 40px rgba(0,0,0,0.35);
     border-radius: 4px;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
   }
 
-  /* ─── ESTILOS DEL DOCUMENTO ─── */
+  /* ─── ESTILOS INTERNOS ─── */
   .doc-header {
     display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 4px solid #1e3a8a; padding-bottom: 14px; margin-bottom: 18px;
+    border-bottom: 3px solid #1e3a8a; padding-bottom: 12px; margin-bottom: 16px;
   }
   .doc-header-left { display: flex; align-items: center; gap: 12px; }
-  .skel-badge { background: #1e3a8a; color: white; font-weight: 900; font-size: 1.1rem; padding: 7px 14px; border-radius: 8px; letter-spacing: 1px; }
+  .skel-badge { background: #1e3a8a; color: white; font-weight: 900; font-size: 1.05rem; padding: 6px 12px; border-radius: 8px; letter-spacing: 1px; }
   .doc-header-right { text-align: right; border-left: 2px solid #e2e8f0; padding-left: 14px; }
-  .ficha { background:#f8fafc; border:1px solid #e2e8f0; border-left:5px solid #1e3a8a; padding:12px 18px; border-radius:8px; margin-bottom:18px; display:flex; justify-content:space-between; }
-  .ficha-label { font-size:0.7rem; color:#64748b; text-transform:uppercase; font-weight:bold; }
-  .ficha-value { font-size:1.05rem; font-weight:800; color:#0f172a; margin-top:3px; }
-  .ficha-value-sm { font-size:0.95rem; font-weight:600; color:#334155; margin-top:3px; }
-  .two-col { display: flex; gap: 16px; margin-bottom: 18px; }
+  .ficha { background:#f8fafc; border:1px solid #e2e8f0; border-left:5px solid #1e3a8a; padding:10px 16px; border-radius:8px; margin-bottom:16px; display:flex; justify-content:space-between; }
+  .ficha-label { font-size:0.68rem; color:#64748b; text-transform:uppercase; font-weight:bold; }
+  .ficha-value { font-size:1.02rem; font-weight:800; color:#0f172a; margin-top:2px; }
+  .ficha-value-sm { font-size:0.92rem; font-weight:600; color:#334155; margin-top:2px; }
+  .two-col { display: flex; gap: 14px; margin-bottom: 16px; }
   .two-col > div { flex: 1; }
-  .card { border:1px solid #e2e8f0; border-radius:8px; padding:12px; background:#fff; }
-  .card-title { font-size:0.85rem; font-weight:700; color:#1e3a8a; margin-bottom:8px; border-bottom:1px solid #f1f5f9; padding-bottom:6px; }
-  .bias-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:14px; margin-bottom:14px; }
-  .bias-title { font-size:0.9rem; font-weight:700; color:#1e40af; margin-bottom:6px; }
-  .plan-box { border:1px solid #e2e8f0; border-radius:8px; padding:20px; background:#fff; margin-bottom:20px; }
-  .plan-title { font-size:0.95rem; font-weight:700; color:#1e3a8a; margin-bottom:12px; border-bottom:1px solid #f1f5f9; padding-bottom:8px; }
-  .plan-text { font-size:0.87rem; color:#334155; line-height:1.65; white-space:pre-wrap; }
-  .page-footer { display:flex; justify-content:space-between; border-top:1px solid #e2e8f0; padding-top:10px; font-size:0.68rem; color:#94a3b8; margin-top:auto; }
-  .confidencial { background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:10px; font-size:0.68rem; font-weight:bold; border:1px solid #c7d2fe; }
+  .card { border:1px solid #e2e8f0; border-radius:8px; padding:10px; background:#fff; }
+  .card-title { font-size:0.83rem; font-weight:700; color:#1e3a8a; margin-bottom:6px; border-bottom:1px solid #f1f5f9; padding-bottom:4px; }
+  .bias-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:12px; margin-bottom:12px; }
+  .bias-title { font-size:0.87rem; font-weight:700; color:#1e40af; margin-bottom:4px; }
+  .plan-box { border:1px solid #e2e8f0; border-radius:8px; padding:18px; background:#fff; margin-bottom:16px; flex: 1; }
+  .plan-title { font-size:0.92rem; font-weight:700; color:#1e3a8a; margin-bottom:10px; border-bottom:1px solid #f1f5f9; padding-bottom:6px; }
+  .plan-text { font-size:0.85rem; color:#334155; line-height:1.6; white-space:pre-wrap; }
+  .page-footer { display:flex; justify-content:space-between; border-top:1px solid #e2e8f0; padding-top:8px; font-size:0.68rem; color:#94a3b8; margin-top:auto; }
+  .confidencial { background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:10px; font-size:0.65rem; font-weight:bold; border:1px solid #c7d2fe; display:inline-block; margin-top:3px; }
 
-  /* ─── PRINT ─── */
+  /* ─── AJUSTES IMPRESIÓN (TAMAÑO CARTA) ─── */
   @media print {
+    @page {
+      size: letter portrait;
+      margin: 8mm 10mm 8mm 10mm;
+    }
     body { background: white !important; }
     #toolbar { display: none !important; }
-    #doc-wrapper { margin-top: 0 !important; padding: 0 !important; background: white !important; }
-    .a4-page {
+    #doc-wrapper { margin-top: 0 !important; padding: 0 !important; background: white !important; width: 100% !important; }
+    .letter-page {
       box-shadow: none !important;
       border-radius: 0 !important;
       margin: 0 !important;
       width: 100% !important;
-      min-height: auto !important;
+      min-height: 100vh !important;
+      padding: 4mm 6mm !important;
       page-break-after: always;
+      page-break-inside: avoid;
     }
-    .a4-page:last-child { page-break-after: auto; }
+    .letter-page:last-child { page-break-after: auto; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   }
 </style>
@@ -363,104 +384,113 @@
 <!-- BARRA DE HERRAMIENTAS -->
 <div id="toolbar">
   <div class="brand">
+    <img src="/logo%20skel%202.png" alt="SKEL" style="height:28px; width:auto;" onerror="this.style.display='none'" />
     <span>SKEL 360°</span>
-    <span style="background:transparent; color:rgba(255,255,255,0.75); font-size:0.9rem; font-weight:500; letter-spacing:normal;">Informe Ejecutivo de Desempeño — ${nombre}</span>
+    <span style="background:transparent; color:rgba(255,255,255,0.75); font-size:0.88rem; font-weight:500; letter-spacing:normal;">Informe Ejecutivo de Desempeño — ${nombre}</span>
   </div>
   <div class="actions">
-    <button class="tbtn tbtn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+    <button class="tbtn tbtn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF (Carta)</button>
     <button class="tbtn tbtn-close" onclick="window.close()">✕ Cerrar</button>
   </div>
 </div>
 
-<!-- DOCUMENTO -->
+<!-- DOCUMENTO TAMAÑO CARTA -->
 <div id="doc-wrapper">
 
-  <!-- ══════ PÁGINA 1 ══════ -->
-  <div class="a4-page">
-    <!-- Encabezado -->
-    <div class="doc-header">
-      <div class="doc-header-left">
-        <div class="skel-badge">SKEL 360°</div>
-        <div>
-          <div style="font-size:1.1rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Informe Ejecutivo de Desempeño 360°</div>
-          <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
+  <!-- ══════ PÁGINA 1 (TAMAÑO CARTA) ══════ -->
+  <div class="letter-page">
+    <div>
+      <!-- Encabezado -->
+      <div class="doc-header">
+        <div class="doc-header-left">
+          <div class="skel-badge">SKEL 360°</div>
+          <div>
+            <div style="font-size:1.05rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Informe Ejecutivo de Desempeño 360°</div>
+            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
+          </div>
+        </div>
+        <div class="doc-header-right">
+          ${logoEmpresaHTML}
+          <div style="font-size:0.88rem; font-weight:800; color:#0f172a; text-transform:uppercase;">${empresa}</div>
+          <div style="font-size:0.70rem; color:#64748b; margin-top:1px;">${fecha}</div>
+          <span class="confidencial">DOCUMENTO CONFIDENCIAL</span>
         </div>
       </div>
-      <div class="doc-header-right">
-        <div style="font-size:0.92rem; font-weight:800; color:#0f172a; text-transform:uppercase;">${empresa}</div>
-        <div style="font-size:0.72rem; color:#64748b; margin-top:2px;">${fecha}</div>
-        <span class="confidencial">DOCUMENTO CONFIDENCIAL</span>
-      </div>
-    </div>
 
-    <!-- Ficha técnica -->
-    <div class="ficha">
-      <div>
-        <div class="ficha-label">Colaborador Evaluado</div>
-        <div class="ficha-value">${nombre}</div>
+      <!-- Ficha técnica -->
+      <div class="ficha">
+        <div>
+          <div class="ficha-label">Colaborador Evaluado</div>
+          <div class="ficha-value">${nombre}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="ficha-label">Cargo / Posición</div>
+          <div class="ficha-value-sm">${cargo}</div>
+        </div>
       </div>
-      <div style="text-align:right;">
-        <div class="ficha-label">Cargo / Posición</div>
-        <div class="ficha-value-sm">${cargo}</div>
-      </div>
-    </div>
 
-    <!-- Radar + Tabla -->
-    <div class="two-col">
-      <div class="card" style="text-align:center;">
-        <div class="card-title">Mapa Radar 360°</div>
-        ${radarImg ? '<img src="' + radarImg + '" style="width:100%; max-width:260px; height:auto; display:block; margin:auto;" />' : '<p style="color:#94a3b8; font-size:0.8rem;">Gráfica no disponible</p>'}
+      <!-- Radar + Tabla -->
+      <div class="two-col">
+        <div class="card" style="text-align:center;">
+          <div class="card-title">Mapa Radar 360°</div>
+          ${radarImg ? '<img src="' + radarImg + '" style="width:100%; max-width:250px; height:auto; display:block; margin:auto;" />' : '<p style="color:#94a3b8; font-size:0.8rem;">Gráfica no disponible</p>'}
+        </div>
+        <div class="card">
+          <div class="card-title">Consolidado de Brechas</div>
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f8fafc;">
+                <th style="padding:5px 7px; border-bottom:2px solid #e2e8f0; font-size:0.75rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
+                <th style="padding:5px 7px; border-bottom:2px solid #e2e8f0; font-size:0.75rem; font-weight:700; color:#475569; text-align:center;">Esp.</th>
+                <th style="padding:5px 7px; border-bottom:2px solid #e2e8f0; font-size:0.75rem; font-weight:700; color:#475569; text-align:center;">Obt.</th>
+                <th style="padding:5px 7px; border-bottom:2px solid #e2e8f0; font-size:0.75rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
+              </tr>
+            </thead>
+            <tbody>${filasBrechas}</tbody>
+          </table>
+        </div>
       </div>
-      <div class="card">
-        <div class="card-title">Consolidado de Brechas</div>
-        <table style="width:100%; border-collapse:collapse;">
-          <thead>
-            <tr style="background:#f8fafc;">
-              <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.78rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
-              <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.78rem; font-weight:700; color:#475569; text-align:center;">Esp.</th>
-              <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.78rem; font-weight:700; color:#475569; text-align:center;">Obt.</th>
-              <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.78rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
-            </tr>
-          </thead>
-          <tbody>${filasBrechas}</tbody>
-        </table>
-      </div>
-    </div>
 
-    <!-- Sesgos -->
-    <div class="bias-box">
-      <div class="bias-title">🎯 Diagnóstico de Sesgos y Percepción 360°</div>
-      <div style="font-size:0.83rem; color:#1e293b; line-height:1.55;">${biasHTML}</div>
+      <!-- Sesgos -->
+      <div class="bias-box">
+        <div class="bias-title">🎯 Diagnóstico de Sesgos y Percepción 360°</div>
+        <div style="font-size:0.82rem; color:#1e293b; line-height:1.5;">${biasHTML}</div>
+      </div>
     </div>
 
     <!-- Pie -->
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página 1 de 2</span>
+      <span>Plataforma SKEL Human Capital 360° • Página 1 de 2 (Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>
 
-  <!-- ══════ PÁGINA 2 ══════ -->
-  <div class="a4-page">
-    <!-- Encabezado pág 2 -->
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #1e3a8a; padding-bottom:10px; margin-bottom:20px;">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <div class="skel-badge" style="font-size:0.92rem; padding:4px 10px;">SKEL 360°</div>
-        <div style="font-size:1rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Plan Estratégico y Diagnóstico Experto</div>
+  <!-- ══════ PÁGINA 2 (TAMAÑO CARTA) ══════ -->
+  <div class="letter-page">
+    <div>
+      <!-- Encabezado pág 2 -->
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #1e3a8a; padding-bottom:10px; margin-bottom:18px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="skel-badge" style="font-size:0.9rem; padding:4px 10px;">SKEL 360°</div>
+          <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Plan Estratégico y Diagnóstico Experto</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          ${empresaLogo ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height:30px; max-width:110px; object-fit:contain;" />` : ''}
+          <div style="font-size:0.72rem; color:#64748b; text-align:right;">${fecha}</div>
+        </div>
       </div>
-      <div style="font-size:0.75rem; color:#64748b;">${fecha}</div>
-    </div>
 
-    <!-- Plan de Acción -->
-    <div class="plan-box">
-      <div class="plan-title">✍️ Plan de Acción Estratégico (30, 60 y 90 Días)</div>
-      <div class="plan-text">${plan}</div>
-      ${obsHTML}
+      <!-- Plan de Acción -->
+      <div class="plan-box">
+        <div class="plan-title">✍️ Plan de Acción Estratégico (30, 60 y 90 Días)</div>
+        <div class="plan-text">${plan}</div>
+        ${obsHTML}
+      </div>
     </div>
 
     <!-- Pie -->
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página 2 de 2</span>
+      <span>Plataforma SKEL Human Capital 360° • Página 2 de 2 (Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>
