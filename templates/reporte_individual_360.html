@@ -244,18 +244,35 @@
 
         /* ─── VISOR INFORME GERENCIAL (Paginación Dinámica Multi-Sección sin Cortes) ─── */
         function abrirVisorInforme() {
-            const nombre  = document.getElementById('colaborador-nombre').innerText || '';
-            const cargo   = document.getElementById('colaborador-cargo').innerText   || '';
-            const empresa = document.getElementById('web-empresa-nombre').innerText  || '';
-            const empresaLogo = empresaLogoGlobal || '';
-            const fecha   = new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' });
-            const rawPlan = document.getElementById('texto-compromisos').value || 'Sin compromisos registrados.';
-            const obs     = document.getElementById('texto-comentarios').value || '';
-            const biasHTML = document.getElementById('bias-text').innerHTML || '';
+            try {
+                const nombreEl  = document.getElementById('colaborador-nombre');
+                const cargoEl   = document.getElementById('colaborador-cargo');
+                const empresaEl = document.getElementById('web-empresa-nombre');
+                const planEl    = document.getElementById('texto-compromisos');
+                const obsEl     = document.getElementById('texto-comentarios');
+                const biasEl    = document.getElementById('bias-text');
 
-            // Capturar radar como imagen
-            const canvas = document.getElementById('radarChart');
-            const radarImg = canvas ? canvas.toDataURL('image/png') : '';
+                const nombre      = nombreEl  ? (nombreEl.innerText  || '') : 'Colaborador';
+                const cargo       = cargoEl   ? (cargoEl.innerText   || '') : 'N/A';
+                const empresa     = empresaEl ? (empresaEl.innerText || '') : 'Empresa';
+                const rawPlan     = planEl    ? (planEl.value        || 'Sin compromisos registrados.') : 'Sin compromisos registrados.';
+                const obs         = obsEl     ? (obsEl.value         || '') : '';
+                const biasHTML    = biasEl    ? (biasEl.innerHTML    || '') : '';
+                const empresaLogo = empresaLogoGlobal || '';
+                const fecha       = new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' });
+
+                // Capturar radar como imagen con try/catch seguro por si acaso
+                let radarImg = '';
+                try {
+                    const canvas = document.getElementById('radarChart');
+                    if (canvas && typeof canvas.toDataURL === 'function') {
+                        radarImg = canvas.toDataURL('image/png');
+                    }
+                } catch (cErr) {
+                    console.warn("No se pudo exportar la imagen del radar:", cErr);
+                }
+
+                if (!resultadosGlobal) resultadosGlobal = [];
 
             // Parser multi-sección ultra-robusto
             let secDiagnostico = biasHTML;
@@ -678,6 +695,10 @@
 </html>`;
 
             mostrarVisorHTML(htmlVisor);
+            } catch (err) {
+                console.error("Error abriendo el visor:", err);
+                alert("Error al abrir el informe: " + err.message);
+            }
         }
 
         function mostrarVisorHTML(htmlVisor) {
