@@ -127,8 +127,8 @@
             <textarea id="texto-comentarios" style="min-height:80px;" placeholder="Observaciones adicionales o compromisos de la sesión..."></textarea>
             <div style="text-align:center; margin-top:30px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
                 <button class="btn btn-secondary" onclick="window.history.back()" style="padding:12px 20px; font-size:1rem;">⬅ Volver a Resultados</button>
-                <button class="btn btn-primary" onclick="guardarPlanAccion()" style="padding:12px 20px; font-size:1rem; background:#3b82f6;">💾 Guardar Plan</button>
-                <button class="btn-ver-informe" onclick="abrirVisorInforme()" style="padding:12px 22px; font-size:1rem;">📋 Ver Informe Gerencial</button>
+                <button class="btn btn-primary" onclick="guardarPlanAccion()" style="padding:12px 22px; font-size:1rem; background:#2563eb; font-weight:700;">📂 Guardar Informe en HV del Empleado</button>
+                <button class="btn-ver-informe" onclick="abrirVisorInforme()" style="padding:12px 22px; font-size:1rem;">📋 Ver Informe Gerencial (Carta)</button>
             </div>
         </div>
     </div>
@@ -721,10 +721,12 @@
                     body: JSON.stringify({ plan, comentarios: obs })
                 });
                 const data = await res.json();
-                data.status === 'success' ? alert('✅ ' + data.message) : alert('Error: ' + data.message);
+                data.status === 'success'
+                    ? alert('✅ Informe, Plan y Diagnóstico 360° guardados exitosamente en la Hoja de Vida (HV) del colaborador.')
+                    : alert('Error: ' + data.message);
             } catch(e) {
                 console.error(e);
-                alert('Error de conexión al guardar');
+                alert('Error de conexión al guardar en la Hoja de Vida');
             }
         }
 
