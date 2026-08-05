@@ -373,38 +373,50 @@
                     </table>`;
                 }
 
-                // Parser multi-sección ultra-robusto
+                // Parser multi-sección inteligente que jamás corta texto
                 let secDiagnostico = biasHTML;
                 let secFortalezas  = '';
+                let secCriticas    = '';
                 let secPlanAccion  = '';
 
-            if (rawPlan && rawPlan.trim() !== '' && rawPlan !== 'Sin compromisos registrados.') {
-                const p2 = rawPlan.search(/(?:2\.\s*FORTALEZAS|FORTALEZAS Y COMPETENCIAS|FORTALEZAS ESTRATÉGICAS)/i);
-                const p3 = rawPlan.search(/(?:3\.\s*PLAN|PLAN DE ACCIÓN|PLAN ESTRATÉGICO)/i);
+                if (rawPlan && rawPlan.trim() !== '' && rawPlan !== 'Sin compromisos registrados.') {
+                    let txt1 = '', txt2 = '', txt3 = '';
+                    const p2Idx = rawPlan.search(/(?:2\.\s*FORTALEZAS|FORTALEZAS Y COMPETENCIAS|FORTALEZAS ESTRATÉGICAS)/i);
+                    const p3Idx = rawPlan.search(/(?:3\.\s*PLAN|PLAN DE ACCIÓN|PLAN ESTRATÉGICO)/i);
 
-                if (p2 !== -1 && p3 !== -1 && p3 > p2) {
-                    secDiagnostico = `<div style="white-space:pre-wrap; line-height:1.6; font-size:0.84rem; color:#334155;">${rawPlan.substring(0, p2).trim()}</div>`;
-                    secFortalezas  = rawPlan.substring(p2, p3).trim();
-                    secPlanAccion  = rawPlan.substring(p3).trim();
-                } else if (p2 !== -1) {
-                    secDiagnostico = `<div style="white-space:pre-wrap; line-height:1.6; font-size:0.84rem; color:#334155;">${rawPlan.substring(0, p2).trim()}</div>`;
-                    secFortalezas  = rawPlan.substring(p2).trim();
-                } else if (p3 !== -1) {
-                    secDiagnostico = `<div style="white-space:pre-wrap; line-height:1.6; font-size:0.84rem; color:#334155;">${rawPlan.substring(0, p3).trim()}</div>`;
-                    secPlanAccion  = rawPlan.substring(p3).trim();
-                } else {
-                    const mitad = Math.floor(rawPlan.length / 2);
-                    const breakIdx = rawPlan.indexOf('\n\n', mitad);
-                    if (breakIdx !== -1) {
-                        secFortalezas = rawPlan.substring(0, breakIdx).trim();
-                        secPlanAccion = rawPlan.substring(breakIdx).trim();
+                    if (p2Idx !== -1 && p3Idx !== -1 && p3Idx > p2Idx) {
+                        txt1 = rawPlan.substring(0, p2Idx).trim();
+                        txt2 = rawPlan.substring(p2Idx, p3Idx).trim();
+                        txt3 = rawPlan.substring(p3Idx).trim();
+                    } else if (p2Idx !== -1) {
+                        txt1 = rawPlan.substring(0, p2Idx).trim();
+                        txt2 = rawPlan.substring(p2Idx).trim();
+                    } else if (p3Idx !== -1) {
+                        txt1 = rawPlan.substring(0, p3Idx).trim();
+                        txt3 = rawPlan.substring(p3Idx).trim();
                     } else {
-                        secFortalezas = rawPlan.trim();
+                        txt2 = rawPlan.trim();
+                    }
+
+                    if (txt1) secDiagnostico = `<div style="white-space:pre-wrap; line-height:1.65; font-size:0.86rem; color:#334155;">${txt1}</div>`;
+                    
+                    if (txt2) {
+                        // Intentar separar Fortalezas de Competencias Críticas
+                        const cIdx = txt2.search(/(?:Competencias Críticas|Competencias a Intervenir|Brechas Críticas)/i);
+                        if (cIdx !== -1 && cIdx > 40) {
+                            secFortalezas = txt2.substring(0, cIdx).trim();
+                            secCriticas   = txt2.substring(cIdx).trim();
+                        } else {
+                            secFortalezas = txt2;
+                        }
+                    }
+
+                    if (txt3) {
+                        secPlanAccion = txt3;
                     }
                 }
-            }
 
-            // Construcción de Páginas 3, 4, 5 y 6
+            // Construcción de Páginas 3, 4, 5, 6 y 7
             let paginasAnalisisHTML = '';
             let totalPaginas = 2; // Pág 1 y Pág 2
 
@@ -443,19 +455,19 @@
     </div>
   </div>`;
 
-            // PÁGINA 4: Fortalezas y Competencias Críticas
+            // PÁGINA 4: Fortalezas Estratégicas
             if (secFortalezas) {
                 totalPaginas++;
                 const p4Num = totalPaginas;
                 paginasAnalisisHTML += `
-  <!-- PÁGINA ${p4Num}: FORTALEZAS Y COMPETENCIAS CRÍTICAS -->
+  <!-- PÁGINA ${p4Num}: FORTALEZAS ESTRATÉGICAS -->
   <div class="letter-page">
     <div>
       <div class="doc-header">
         <div class="doc-header-left">
           <div class="skel-badge">SKEL 360°</div>
           <div>
-            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Fortalezas y Competencias Críticas</div>
+            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Fortalezas Estratégicas y Apalancamiento</div>
             <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
           </div>
         </div>
@@ -468,9 +480,9 @@
       </div>
       <div class="plan-container">
         <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
-          ⭐ Fortalezas Estratégicas y Competencias a Intervenir
+          ⭐ Fortalezas Estratégicas y Referencia de Liderazgo
         </div>
-        <div style="font-size:0.83rem; color:#334155; line-height:1.6; white-space:pre-wrap;">${secFortalezas}</div>
+        <div style="font-size:0.84rem; color:#334155; line-height:1.65; white-space:pre-wrap;">${secFortalezas}</div>
       </div>
     </div>
     <div class="page-footer">
@@ -480,12 +492,49 @@
   </div>`;
             }
 
-            // PÁGINA 5: Plan de Acción Estratégico (30, 60 y 90 Días)
-            if (secPlanAccion) {
+            // PÁGINA 5: Competencias Críticas a Intervenir
+            if (secCriticas) {
                 totalPaginas++;
                 const p5Num = totalPaginas;
                 paginasAnalisisHTML += `
-  <!-- PÁGINA ${p5Num}: PLAN DE ACCIÓN ESTRATÉGICO -->
+  <!-- PÁGINA ${p5Num}: COMPETENCIAS CRÍTICAS -->
+  <div class="letter-page">
+    <div>
+      <div class="doc-header">
+        <div class="doc-header-left">
+          <div class="skel-badge">SKEL 360°</div>
+          <div>
+            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Competencias Críticas a Intervenir</div>
+            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
+          </div>
+        </div>
+        <div class="doc-header-right">
+          ${logoEmpresaHTML}
+          <div style="font-size:0.88rem; font-weight:800; color:#0f172a; text-transform:uppercase;">${empresa}</div>
+          <div style="font-size:0.70rem; color:#64748b; margin-top:1px;">${fecha}</div>
+          <span class="confidencial">DOCUMENTO CONFIDENCIAL</span>
+        </div>
+      </div>
+      <div class="plan-container" style="border-left:5px solid #ef4444;">
+        <div style="font-size:0.98rem; font-weight:800; color:#b91c1c; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
+          🚨 Competencias Críticas a Intervenir e Impacto en el Rol
+        </div>
+        <div style="font-size:0.84rem; color:#334155; line-height:1.65; white-space:pre-wrap;">${secCriticas}</div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span>Plataforma SKEL Human Capital 360° • Página ${p5Num} de __TOTAL__ (Tamaño Carta)</span>
+      <span>Documento Oficial Confidencial</span>
+    </div>
+  </div>`;
+            }
+
+            // PÁGINA 6: Plan de Acción Estratégico (30, 60 y 90 Días)
+            if (secPlanAccion) {
+                totalPaginas++;
+                const p6Num = totalPaginas;
+                paginasAnalisisHTML += `
+  <!-- PÁGINA ${p6Num}: PLAN DE ACCIÓN ESTRATÉGICO -->
   <div class="letter-page">
     <div>
       <div class="doc-header">
@@ -507,22 +556,22 @@
         <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
           ✍️ Plan de Acción Estratégico a 30, 60 y 90 Días
         </div>
-        <div style="font-size:0.83rem; color:#334155; line-height:1.6; white-space:pre-wrap;">${secPlanAccion}</div>
+        <div style="font-size:0.84rem; color:#334155; line-height:1.65; white-space:pre-wrap;">${secPlanAccion}</div>
       </div>
     </div>
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página ${p5Num} de __TOTAL__ (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página ${p6Num} de __TOTAL__ (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>`;
             }
 
-            // PÁGINA 6: Observaciones y Compromisos Directivos (si existen)
+            // PÁGINA 7: Observaciones y Compromisos Directivos (si existen)
             if (obs.trim()) {
                 totalPaginas++;
-                const p6Num = totalPaginas;
+                const p7Num = totalPaginas;
                 paginasAnalisisHTML += `
-  <!-- PÁGINA ${p6Num}: OBSERVACIONES Y RETROALIMENTACIÓN -->
+  <!-- PÁGINA ${p7Num}: OBSERVACIONES Y RETROALIMENTACIÓN -->
   <div class="letter-page">
     <div>
       <div class="doc-header">
@@ -548,7 +597,7 @@
       </div>
     </div>
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página ${p6Num} de __TOTAL__ (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página ${p7Num} de __TOTAL__ (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>`;
