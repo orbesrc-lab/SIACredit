@@ -57,6 +57,23 @@ def create_empresa():
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@skel_hc_bp.route('/empresas/<empresa_id>', methods=['PUT', 'POST'])
+def update_empresa(empresa_id):
+    try:
+        data = request.json
+        sb = get_supabase()
+        update_fields = {}
+        for k in ['nombre', 'nit', 'sector', 'pais', 'ciudad', 'contacto_email', 'contacto_telefono',
+                  'num_empleados', 'num_departamentos', 'mision', 'vision', 'logo_url', 'logo_institucion_evaluadora', 'estado']:
+            if k in data:
+                update_fields[k] = data[k]
+                
+        res = sb.table('skel_empresas').update(update_fields).eq('id', empresa_id).execute()
+        return jsonify({"status": "success", "data": res.data})
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # ==============================================================================
 # Módulo 02: Gestión Organizacional - Cargos
 # ==============================================================================
