@@ -941,31 +941,54 @@ def generar_plan_ia():
             
         prompt = f"""Genera un Diagnóstico Ejecutivo de Competencias 360° y Análisis de Sesgos de Percepción de alto nivel organizativo para el colaborador.
 
-DATOS CONSOLIDADOS DE LA EVALUACIÓN 360°:
+DATOS CONSOLIDADOS DE LA EVALUACIÓN 360° POR COMPETENCIA:
 """
+        fuentes_detectadas = set()
+
         for r in resultados:
-            auto = r.get('autoevaluacion', 'N/A')
-            jefe = r.get('jefe', 'N/A')
-            pares = r.get('pares', 'N/A')
-            sub = r.get('subordinados', 'N/A')
+            proms = r.get('promedios', {})
+            
+            def val_str(key):
+                v = proms.get(key, r.get(key))
+                if v is not None and v != 'N/A':
+                    try:
+                        num = float(v)
+                        if num > 0:
+                            fuentes_detectadas.add(key)
+                            return f"{num:.2f}"
+                    except (ValueError, TypeError):
+                        pass
+                return "Sin respuesta en este periodo"
+
+            auto_val = val_str('Autoevaluación')
+            jefe_val = val_str('Jefe')
+            pares_val = val_str('Pares')
+            sub_val = val_str('Subordinados')
+
             esp = r.get('nivel_esperado', 4)
             p_360 = r.get('promedio_360', 0)
             brecha = r.get('brecha', 0)
             
             prompt += f"- Competencia: {r.get('nombre')}\n"
-            prompt += f"  Nivel Requerido: {esp} | Promedio 360 Obtenido: {p_360} | Brecha: {brecha:+}\n"
-            prompt += f"  Desglose -> Autoevaluación: {auto} | Jefe: {jefe} | Pares: {pares} | Subordinados: {sub}\n\n"
+            prompt += f"  Nivel Requerido: {esp} | Promedio Obtenido: {p_360} | Brecha: {brecha:+}\n"
+            prompt += f"  Desglose -> Autoevaluación: {auto_val} | Pares: {pares_val} | Jefe: {jefe_val} | Subordinados: {sub_val}\n\n"
 
-        prompt += """INSTRUCCIONES DE ESTRUCTURA Y ANÁLISIS:
-Genera un informe gerencial estructurado en las siguientes 3 secciones en español profesional (NO incluyas frases ni introducciones como 'Como Consultor Senior...', ve DIRECTAMENTE a la sección 1; NO uses asteriscos ni símbolos markdown extraños):
+        fuentes_txt = ", ".join(sorted(list(fuentes_detectadas))) if fuentes_detectadas else "General"
+
+        prompt += f"""INSTRUCCIONES OBLIGATORIAS DE ESTRUCTURA Y ANÁLISIS:
+Fuentes evaluadoras que SÍ enviaron respuestas en este periodo: [{fuentes_txt}].
+
+Genera un informe gerencial estructurado estrictamente en las siguientes 3 secciones en español profesional (NO incluyas introducciones como 'Como Consultor...', ve DIRECTAMENTE a la sección 1; NO uses asteriscos ni símbolos markdown extraños):
 
 1. DIAGNÓSTICO DE SESGOS Y PERCEPCIÓN 360°:
-- Analiza si existe un Sesgo de Sobreestimación (la autoevaluación es marcadamente superior a la mirada externa de pares/jefe) o de Subestimación (el entorno valora al colaborador por encima de su propia autopercepción).
-- Compara la convergencia o divergencia entre la visión del Jefe, los Pares y los Subordinados.
+- REGLA MANDATORIA: Realiza OBLIGATORIAMENTE el análisis comparativo entre las fuentes evaluadoras que SÍ TIENEN RESPUESTAS (ejemplo: Autoevaluación vs Pares).
+- PROHIBIDO ESCRIBIR NINGÚN MENSAJE DE EXCUSA diciendo que 'faltan datos', que 'no es posible realizar el análisis' o que 'la información indica N/A'. Los datos de las fuentes activas [{fuentes_txt}] son totalmente válidos y suficientes para hacer la comparación.
+- Analiza si existe un Sesgo de Sobreestimación (la autoevaluación es superior a la calificación dada por los evaluadores externos) o de Subestimación (el entorno valora al colaborador por encima de su propia autopercepción).
+- Señala las principales coincidencias o diferencias de opinión entre el colaborador y sus evaluadores externos.
 
 2. FORTALEZAS Y COMPETENCIAS CRÍTICAS A INTERVENIR:
 - Detalla las 2 competencias de mayor fortaleza estratégica y cómo apalancarlas.
-- Detalla las 2 competencias con brecha crítica negativa y su impacto específico en los objetivos del rol.
+- Detalla las 2 competencias con brecha crítica o menor puntaje y su impacto específico en los objetivos del rol.
 
 3. PLAN DE ACCIÓN Y COMPROMISOS GERENCIALES:
 - Presenta 3 compromisos prácticos, medibles y concretos organizados con metas a 30, 60 y 90 días para cerrar las brechas identificadas.
