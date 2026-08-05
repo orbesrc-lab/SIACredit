@@ -681,20 +681,6 @@
         }
 
         function mostrarVisorHTML(htmlVisor) {
-            // 1. Intentar abrir en nueva pestaña vía Blob
-            try {
-                const blob = new Blob([htmlVisor], { type: 'text/html;charset=utf-8' });
-                const blobUrl = URL.createObjectURL(blob);
-                const win = window.open(blobUrl, '_blank');
-                if (win) {
-                    win.focus();
-                    return;
-                }
-            } catch (e) {
-                console.warn("window.open o Blob no disponible:", e);
-            }
-
-            // 2. Fallback: Mostrar Modal Integrado si el navegador bloquea ventanas emergentes
             let modal = document.getElementById('visor-modal-overlay');
             if (!modal) {
                 modal = document.createElement('div');
@@ -705,6 +691,7 @@
             modal.innerHTML = htmlVisor;
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
+            modal.scrollTop = 0;
         }
 
         function cerrarVisorModal() {
