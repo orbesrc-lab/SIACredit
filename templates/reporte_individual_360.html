@@ -599,7 +599,7 @@
   .tbtn-close { background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.2); }
   .tbtn-close:hover { background: rgba(255,255,255,0.22); }
 
-  /* ─── HOJAS TAMAÑO CARTA EXACTAS (8.5" x 11" / 816px x 1056px SIMÉTRICAS) ─── */
+  /* ─── HOJAS TAMAÑO CARTA EXACTAS (8.5" x 11" / SIMÉTRICAS) ─── */
   #doc-wrapper { margin-top: 75px; padding: 25px 15px 50px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
   .letter-page {
     background: #ffffff;
@@ -662,43 +662,12 @@
   .page-footer { display:flex; justify-content:space-between; border-top:1px solid #e2e8f0; padding-top:8px; font-size:0.68rem; color:#94a3b8; margin-top:auto; font-weight:500; }
   .confidencial { background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:10px; font-size:0.65rem; font-weight:bold; border:1px solid #c7d2fe; display:inline-block; margin-top:3px; }
 
-  /* ─── IMPRESIÓN IMPERMEABLE CARTA EXACTA DE 5 PÁGINAS ─── */
+  /* ─── REGLAS DE IMPRESIÓN DIRECTA ─── */
   @media print {
-    @page {
-      size: letter portrait;
-      margin: 0;
-    }
-    html, body {
-      background: white !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      height: 100% !important;
-      overflow: visible !important;
-    }
-    #reporte-container {
-      display: none !important;
-    }
-    #visor-modal-overlay {
-      position: static !important;
-      width: 100% !important;
-      height: auto !important;
-      background: white !important;
-      overflow: visible !important;
-      z-index: auto !important;
-      padding: 0 !important;
-      margin: 0 !important;
-    }
-    #toolbar {
-      display: none !important;
-    }
-    #doc-wrapper {
-      margin-top: 0 !important;
-      padding: 0 !important;
-      background: white !important;
-      width: 100% !important;
-      gap: 0 !important;
-      display: block !important;
-    }
+    @page { size: letter portrait; margin: 0; }
+    html, body { background: white !important; margin: 0 !important; padding: 0 !important; }
+    #toolbar { display: none !important; }
+    #doc-wrapper { margin: 0 !important; padding: 0 !important; gap: 0 !important; }
     .letter-page {
       box-shadow: none !important;
       border: none !important;
@@ -712,15 +681,9 @@
       page-break-after: always !important;
       page-break-inside: avoid !important;
       box-sizing: border-box !important;
-      position: relative !important;
     }
-    .letter-page:last-child {
-      page-break-after: auto !important;
-    }
-    * {
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
+    .letter-page:last-child { page-break-after: auto !important; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   }
 </style>
 </head>
@@ -734,7 +697,7 @@
     <span style="background:transparent; color:rgba(255,255,255,0.75); font-size:0.88rem; font-weight:500; letter-spacing:normal;">Visor Ejecutivo de Informe Gerencial — ${nombre}</span>
   </div>
   <div class="actions">
-    <button class="tbtn tbtn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF (Carta)</button>
+    <button class="tbtn tbtn-print" onclick="imprimirDocumentoDirecto()">🖨️ Imprimir / Guardar PDF (Carta)</button>
     <button class="tbtn tbtn-close" onclick="if(typeof cerrarVisorModal==='function')cerrarVisorModal(); if(window.opener)window.close();">✕ Cerrar</button>
   </div>
 </div>
@@ -845,7 +808,10 @@
             }
         }
 
+        let ultimoHTMLVisor = '';
+
         function mostrarVisorHTML(htmlVisor) {
+            ultimoHTMLVisor = htmlVisor;
             let modal = document.getElementById('visor-modal-overlay');
             if (!modal) {
                 modal = document.createElement('div');
@@ -863,6 +829,28 @@
             const modal = document.getElementById('visor-modal-overlay');
             if (modal) modal.style.display = 'none';
             document.body.style.overflow = 'auto';
+        }
+
+        function imprimirDocumentoDirecto() {
+            if (!ultimoHTMLVisor) return alert("Por favor abre primero el visor del informe.");
+            
+            let iframe = document.getElementById('skel-print-frame');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'skel-print-frame';
+                iframe.style.cssText = 'position:fixed; top:-9999px; left:-9999px; width:0; height:0; border:none; visibility:hidden;';
+                document.body.appendChild(iframe);
+            }
+            
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(ultimoHTMLVisor);
+            doc.close();
+
+            setTimeout(() => {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }, 350);
         }
 
         /* ─── IA ─────────────────────────────────────────────────────── */
