@@ -277,10 +277,106 @@
 
                 if (!resultadosGlobal) resultadosGlobal = [];
 
-            // Parser multi-sección ultra-robusto
-            let secDiagnostico = biasHTML;
-            let secFortalezas  = '';
-            let secPlanAccion  = '';
+                // 3. Calcular métricas clave (countComp, avgObt, avgAuto)
+                let countComp = resultadosGlobal.length;
+                let sumAuto = 0;
+                let sumObt = 0;
+                resultadosGlobal.forEach(r => {
+                    sumObt += r.promedio_360;
+                    sumAuto += (r.promedios ? (r.promedios['Autoevaluación'] || r.promedio_360) : r.promedio_360);
+                });
+                const avgObt = countComp > 0 ? (sumObt / countComp).toFixed(2) : '0.00';
+                const avgAuto = countComp > 0 ? (sumAuto / countComp).toFixed(2) : '0.00';
+
+                // 4. Renderizar Tabla de Brechas de Competencia
+                const esMulticol = resultadosGlobal.length > 14;
+                let tablaHTML = '';
+                
+                if (esMulticol) {
+                    let tablaCol1 = '';
+                    let tablaCol2 = '';
+                    const mitad = Math.ceil(resultadosGlobal.length / 2);
+
+                    resultadosGlobal.forEach((r, idx) => {
+                        const color = r.brecha >= 0 ? '#10b981' : '#ef4444';
+                        const sign  = r.brecha > 0 ? '+' : '';
+                        const badgeBg = r.brecha >= 0 ? '#ecfdf5' : '#fef2f2';
+                        const rowHtml =
+                            '<tr>' +
+                            '<td style="padding:4px 6px; border-bottom:1px solid #f1f5f9; font-size:0.75rem; font-weight:600; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">' + r.nombre + '</td>' +
+                            '<td style="padding:4px 6px; border-bottom:1px solid #f1f5f9; text-align:center; font-size:0.75rem; color:#64748b;">' + r.nivel_esperado + '</td>' +
+                            '<td style="padding:4px 6px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.75rem; color:#1e293b;">' + r.promedio_360 + '</td>' +
+                            '<td style="padding:4px 6px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.75rem;">' +
+                            '<span style="background:' + badgeBg + '; color:' + color + '; padding:2px 6px; border-radius:4px; display:inline-block;">' + sign + r.brecha + '</span>' +
+                            '</td>' +
+                            '</tr>';
+                        if (idx < mitad) tablaCol1 += rowHtml;
+                        else tablaCol2 += rowHtml;
+                    });
+
+                    tablaHTML = `
+                    <div style="display:flex; gap:16px; align-items:flex-start;">
+                      <div style="flex:1;">
+                        <table style="width:100%; border-collapse:collapse;">
+                          <thead>
+                            <tr style="background:#f8fafc;">
+                              <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
+                              <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Esp.</th>
+                              <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Obt.</th>
+                              <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
+                            </tr>
+                          </thead>
+                          <tbody>${tablaCol1}</tbody>
+                        </table>
+                      </div>
+                      <div style="flex:1;">
+                        <table style="width:100%; border-collapse:collapse;">
+                          <thead>
+                            <tr style="background:#f8fafc;">
+                              <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
+                              <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Esp.</th>
+                              <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Obt.</th>
+                              <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
+                            </tr>
+                          </thead>
+                          <tbody>${tablaCol2}</tbody>
+                        </table>
+                      </div>
+                    </div>`;
+                } else {
+                    let filas = '';
+                    resultadosGlobal.forEach(r => {
+                        const color = r.brecha >= 0 ? '#10b981' : '#ef4444';
+                        const sign  = r.brecha > 0 ? '+' : '';
+                        const badgeBg = r.brecha >= 0 ? '#ecfdf5' : '#fef2f2';
+                        filas +=
+                            '<tr>' +
+                            '<td style="padding:6px 10px; border-bottom:1px solid #f1f5f9; font-size:0.8rem; font-weight:600; color:#334155;">' + r.nombre + '</td>' +
+                            '<td style="padding:6px 10px; border-bottom:1px solid #f1f5f9; text-align:center; font-size:0.8rem; color:#64748b;">' + r.nivel_esperado + '</td>' +
+                            '<td style="padding:6px 10px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.8rem; color:#1e293b;">' + r.promedio_360 + '</td>' +
+                            '<td style="padding:6px 10px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.8rem;">' +
+                            '<span style="background:' + badgeBg + '; color:' + color + '; padding:2px 6px; border-radius:4px; display:inline-block;">' + sign + r.brecha + '</span>' +
+                            '</td>' +
+                            '</tr>';
+                    });
+                    tablaHTML = `
+                    <table style="width:100%; border-collapse:collapse;">
+                      <thead>
+                        <tr style="background:#f8fafc;">
+                          <th style="padding:6px 10px; border-bottom:2px solid #e2e8f0; font-size:0.75rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
+                          <th style="padding:6px 10px; border-bottom:2px solid #e2e8f0; font-size:0.75rem; font-weight:700; color:#475569; text-align:center;">Nivel Esperado</th>
+                          <th style="padding:6px 10px; border-bottom:2px solid #e2e8f0; font-size:0.75rem; font-weight:700; color:#475569; text-align:center;">Promedio 360°</th>
+                          <th style="padding:6px 10px; border-bottom:2px solid #e2e8f0; font-size:0.75rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
+                        </tr>
+                      </thead>
+                      <tbody>${filas}</tbody>
+                    </table>`;
+                }
+
+                // Parser multi-sección ultra-robusto
+                let secDiagnostico = biasHTML;
+                let secFortalezas  = '';
+                let secPlanAccion  = '';
 
             if (rawPlan && rawPlan.trim() !== '' && rawPlan !== 'Sin compromisos registrados.') {
                 const p2 = rawPlan.search(/(?:2\.\s*FORTALEZAS|FORTALEZAS Y COMPETENCIAS|FORTALEZAS ESTRATÉGICAS)/i);
