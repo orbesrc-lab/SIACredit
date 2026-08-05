@@ -416,8 +416,8 @@
                     }
                 }
 
-            // Función auxiliador para dividir texto largo en fragmentos de máx 850 caracteres por página
-            function fragmentarTexto(texto, maxChars = 850) {
+            // Función auxiliador para optimizar espacio en hojas Carta (máx 2200 caracteres por página)
+            function fragmentarTexto(texto, maxChars = 2200) {
                 if (!texto || texto.length <= maxChars) return [texto];
                 const partes = [];
                 let acumulado = '';
@@ -434,11 +434,11 @@
                 return partes.length > 0 ? partes : [texto];
             }
 
-            // Construcción de Páginas Dinámicas
+            // Construcción de Páginas Dinámicas Optimizadas (5 Páginas Ejecutivas)
             let paginasAnalisisHTML = '';
-            let totalPaginas = 2; // Pág 1 y Pág 2
+            let totalPaginas = 2; // Pág 1 (Portada+Radar) y Pág 2 (Tabla Brechas)
 
-            // PÁGINA 3: Diagnóstico de Sesgos
+            // PÁGINA 3: Diagnóstico de Sesgos y Percepción 360°
             totalPaginas++;
             const p3Num = totalPaginas;
             paginasAnalisisHTML += `
@@ -473,22 +473,23 @@
     </div>
   </div>`;
 
-            // PÁGINAS DE FORTALEZAS ESTRATÉGICAS (Divididas si exceden 850 caracteres)
-            if (secFortalezas) {
-                const fragsFort = fragmentarTexto(secFortalezas, 850);
-                fragsFort.forEach((frag, fIdx) => {
+            // PÁGINA 4: Análisis Estratégico (Fortalezas + Competencias Críticas unificadas)
+            const textoSec2 = (secFortalezas + (secCriticas ? '\n\n' + secCriticas : '')).trim();
+            if (textoSec2) {
+                const fragsSec2 = fragmentarTexto(textoSec2, 2200);
+                fragsSec2.forEach((frag, idx) => {
                     totalPaginas++;
                     const pNum = totalPaginas;
-                    const sufijo = fragsFort.length > 1 ? ` (Parte ${fIdx + 1} de ${fragsFort.length})` : '';
+                    const sufijo = fragsSec2.length > 1 ? ` (Parte ${idx + 1} de ${fragsSec2.length})` : '';
                     paginasAnalisisHTML += `
-  <!-- PÁGINA ${pNum}: FORTALEZAS ESTRATÉGICAS -->
+  <!-- PÁGINA ${pNum}: ANÁLISIS ESTRATÉGICO -->
   <div class="letter-page">
     <div>
       <div class="doc-header">
         <div class="doc-header-left">
           <div class="skel-badge">SKEL 360°</div>
           <div>
-            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Fortalezas Estratégicas y Apalancamiento${sufijo}</div>
+            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Fortalezas Estratégicas y Competencias Críticas${sufijo}</div>
             <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
           </div>
         </div>
@@ -501,9 +502,9 @@
       </div>
       <div class="plan-container">
         <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
-          ⭐ Fortalezas Estratégicas y Referencia de Liderazgo${sufijo}
+          ⭐ Fortalezas Estratégicas y Competencias a Intervenir${sufijo}
         </div>
-        <div style="font-size:0.84rem; color:#334155; line-height:1.65; white-space:pre-wrap;">${frag}</div>
+        <div style="font-size:0.84rem; color:#334155; line-height:1.6; white-space:pre-wrap;">${frag}</div>
       </div>
     </div>
     <div class="page-footer">
@@ -514,63 +515,26 @@
                 });
             }
 
-            // PÁGINAS DE COMPETENCIAS CRÍTICAS (Divididas si exceden 850 caracteres)
-            if (secCriticas) {
-                const fragsCrit = fragmentarTexto(secCriticas, 850);
-                fragsCrit.forEach((frag, cIdx) => {
-                    totalPaginas++;
-                    const pNum = totalPaginas;
-                    const sufijo = fragsCrit.length > 1 ? ` (Parte ${cIdx + 1} de ${fragsCrit.length})` : '';
-                    paginasAnalisisHTML += `
-  <!-- PÁGINA ${pNum}: COMPETENCIAS CRÍTICAS -->
-  <div class="letter-page">
-    <div>
-      <div class="doc-header">
-        <div class="doc-header-left">
-          <div class="skel-badge">SKEL 360°</div>
-          <div>
-            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Competencias Críticas a Intervenir${sufijo}</div>
-            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
-          </div>
-        </div>
-        <div class="doc-header-right">
-          ${logoEmpresaHTML}
-          <div style="font-size:0.88rem; font-weight:800; color:#0f172a; text-transform:uppercase;">${empresa}</div>
-          <div style="font-size:0.70rem; color:#64748b; margin-top:1px;">${fecha}</div>
-          <span class="confidencial">DOCUMENTO CONFIDENCIAL</span>
-        </div>
-      </div>
-      <div class="plan-container" style="border-left:5px solid #ef4444;">
-        <div style="font-size:0.98rem; font-weight:800; color:#b91c1c; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
-          🚨 Competencias Críticas a Intervenir e Impacto en el Rol${sufijo}
-        </div>
-        <div style="font-size:0.84rem; color:#334155; line-height:1.65; white-space:pre-wrap;">${frag}</div>
-      </div>
-    </div>
-    <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página ${pNum} de __TOTAL__ (Tamaño Carta)</span>
-      <span>Documento Oficial Confidencial</span>
-    </div>
-  </div>`;
-                });
-            }
+            // PÁGINA 5: Plan de Acción 30-60-90 Días & Observaciones Directivas
+            const obsBlock = obs.trim() ? `<div style="margin-top:18px; padding-top:14px; border-top:2px dashed #cbd5e1;"><div style="font-size:0.92rem; font-weight:800; color:#1e3a8a; margin-bottom:8px;">💬 Observaciones y Retroalimentación Directiva</div><div style="font-size:0.84rem; color:#334155; font-style:italic; background:#f8fafc; padding:14px; border-radius:6px; border-left:4px solid #2563eb; white-space:pre-wrap; line-height:1.55;">${obs}</div></div>` : '';
 
-            // PÁGINAS DE PLAN DE ACCIÓN ESTRATÉGICO (30, 60 y 90 Días)
-            if (secPlanAccion) {
-                const fragsPlan = fragmentarTexto(secPlanAccion, 850);
-                fragsPlan.forEach((frag, plIdx) => {
+            const textoSec3 = (secPlanAccion.trim() ? secPlanAccion.trim() : '');
+            if (textoSec3 || obsBlock) {
+                const fragsSec3 = fragmentarTexto(textoSec3, 2200);
+                fragsSec3.forEach((frag, idx) => {
                     totalPaginas++;
                     const pNum = totalPaginas;
-                    const sufijo = fragsPlan.length > 1 ? ` (Parte ${plIdx + 1} de ${fragsPlan.length})` : '';
+                    const sufijo = fragsSec3.length > 1 ? ` (Parte ${idx + 1} de ${fragsSec3.length})` : '';
+                    const esUltima = (idx === fragsSec3.length - 1);
                     paginasAnalisisHTML += `
-  <!-- PÁGINA ${pNum}: PLAN DE ACCIÓN ESTRATÉGICO -->
+  <!-- PÁGINA ${pNum}: PLAN DE ACCIÓN Y RETROALIMENTACIÓN -->
   <div class="letter-page">
     <div>
       <div class="doc-header">
         <div class="doc-header-left">
           <div class="skel-badge">SKEL 360°</div>
           <div>
-            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Plan Estratégico de Desarrollo Gerencial${sufijo}</div>
+            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Plan Estratégico de Acción y Retroalimentación${sufijo}</div>
             <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
           </div>
         </div>
@@ -583,9 +547,10 @@
       </div>
       <div class="plan-container">
         <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
-          ✍️ Plan de Acción Estratégico a 30, 60 y 90 Días${sufijo}
+          ✍️ Plan Estratégico a 30, 60 y 90 Días${sufijo}
         </div>
-        <div style="font-size:0.84rem; color:#334155; line-height:1.65; white-space:pre-wrap;">${frag}</div>
+        <div style="font-size:0.84rem; color:#334155; line-height:1.6; white-space:pre-wrap;">${frag}</div>
+        ${esUltima ? obsBlock : ''}
       </div>
     </div>
     <div class="page-footer">
@@ -594,43 +559,6 @@
     </div>
   </div>`;
                 });
-            }
-
-            // PÁGINA FINAL: Observaciones y Retroalimentación Directiva
-            if (obs.trim()) {
-                totalPaginas++;
-                const pObsNum = totalPaginas;
-                paginasAnalisisHTML += `
-  <!-- PÁGINA ${pObsNum}: OBSERVACIONES Y RETROALIMENTACIÓN -->
-  <div class="letter-page">
-    <div>
-      <div class="doc-header">
-        <div class="doc-header-left">
-          <div class="skel-badge">SKEL 360°</div>
-          <div>
-            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Observaciones y Retroalimentación de la Sesión</div>
-            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
-          </div>
-        </div>
-        <div class="doc-header-right">
-          ${logoEmpresaHTML}
-          <div style="font-size:0.88rem; font-weight:800; color:#0f172a; text-transform:uppercase;">${empresa}</div>
-          <div style="font-size:0.70rem; color:#64748b; margin-top:1px;">${fecha}</div>
-          <span class="confidencial">DOCUMENTO CONFIDENCIAL</span>
-        </div>
-      </div>
-      <div class="plan-container">
-        <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
-          💬 Observaciones y Compromisos Directivos de Retroalimentación
-        </div>
-        <div style="font-size:0.85rem; color:#334155; font-style:italic; background:#f8fafc; padding:18px; border-radius:8px; border-left:5px solid #2563eb; white-space:pre-wrap; line-height:1.6;">${obs}</div>
-      </div>
-    </div>
-    <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página ${pObsNum} de __TOTAL__ (Tamaño Carta)</span>
-      <span>Documento Oficial Confidencial</span>
-    </div>
-  </div>`;
             }
 
             // Reemplazar __TOTAL__ con el total final de páginas generadas
