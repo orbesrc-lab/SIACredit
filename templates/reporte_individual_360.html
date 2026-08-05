@@ -662,27 +662,65 @@
   .page-footer { display:flex; justify-content:space-between; border-top:1px solid #e2e8f0; padding-top:8px; font-size:0.68rem; color:#94a3b8; margin-top:auto; font-weight:500; }
   .confidencial { background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:10px; font-size:0.65rem; font-weight:bold; border:1px solid #c7d2fe; display:inline-block; margin-top:3px; }
 
-  /* ─── IMPRESIÓN IMPERMEABLE CARTA EXACTA ─── */
+  /* ─── IMPRESIÓN IMPERMEABLE CARTA EXACTA DE 5 PÁGINAS ─── */
   @media print {
     @page {
       size: letter portrait;
-      margin: 8mm 10mm;
+      margin: 0;
     }
-    body { background: white !important; }
-    #toolbar { display: none !important; }
-    #doc-wrapper { margin-top: 0 !important; padding: 0 !important; background: white !important; width: 100% !important; gap: 0 !important; }
+    html, body {
+      background: white !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      height: 100% !important;
+      overflow: visible !important;
+    }
+    #reporte-container {
+      display: none !important;
+    }
+    #visor-modal-overlay {
+      position: static !important;
+      width: 100% !important;
+      height: auto !important;
+      background: white !important;
+      overflow: visible !important;
+      z-index: auto !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    #toolbar {
+      display: none !important;
+    }
+    #doc-wrapper {
+      margin-top: 0 !important;
+      padding: 0 !important;
+      background: white !important;
+      width: 100% !important;
+      gap: 0 !important;
+      display: block !important;
+    }
     .letter-page {
       box-shadow: none !important;
+      border: none !important;
       border-radius: 0 !important;
       margin: 0 !important;
       width: 8.5in !important;
-      min-height: 100vh !important;
-      padding: 8mm 10mm !important;
-      page-break-after: always;
-      page-break-inside: avoid;
+      height: 11in !important;
+      min-height: 11in !important;
+      max-height: 11in !important;
+      padding: 10mm 12mm !important;
+      page-break-after: always !important;
+      page-break-inside: avoid !important;
+      box-sizing: border-box !important;
+      position: relative !important;
     }
-    .letter-page:last-child { page-break-after: auto; }
-    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .letter-page:last-child {
+      page-break-after: auto !important;
+    }
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
   }
 </style>
 </head>
