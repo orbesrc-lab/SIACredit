@@ -992,12 +992,14 @@ Genera un informe gerencial estructurado estrictamente en las siguientes 3 secci
 
 3. PLAN DE ACCIÓN Y COMPROMISOS GERENCIALES:
 - Presenta 3 compromisos prácticos, medibles y concretos organizados con metas a 30, 60 y 90 días para cerrar las brechas identificadas.
+
+REGLA MANDATORIA DE FINALIZACIÓN: Completa ÍNTEGRAMENTE todas las 3 secciones con conclusiones profesionales. NO cortes la respuesta ni dejes frases a la mitad.
 """
         
-        # Llamar a AI
+        # Llamar a AI con max_tokens ampliado
         try:
             from routes.ai_generator import generar_informe_ia_base
-            texto_ia = generar_informe_ia_base(prompt)
+            texto_ia = generar_informe_ia_base(prompt, max_tokens=4500)
         except Exception as ai_e:
             print("Error IA:", ai_e)
             texto_ia = "⚠️ Análisis IA no disponible. Por favor, verifica la llave de Inteligencia Artificial en la configuración."
