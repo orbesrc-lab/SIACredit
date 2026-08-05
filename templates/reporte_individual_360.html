@@ -260,6 +260,9 @@
                 const biasHTML    = biasEl    ? (biasEl.innerHTML    || '') : '';
                 const empresaLogo = empresaLogoGlobal || '';
                 const fecha       = new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' });
+                const logoEmpresaHTML = empresaLogo
+                    ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height: 48px; max-width: 170px; object-fit: contain; display: block; margin-left: auto; margin-bottom: 4px;" />`
+                    : '';
 
                 // Capturar radar como imagen con try/catch seguro por si acaso
                 let radarImg = '';
