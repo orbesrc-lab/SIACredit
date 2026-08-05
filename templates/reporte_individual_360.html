@@ -401,9 +401,9 @@
                     if (txt1) secDiagnostico = `<div style="white-space:pre-wrap; line-height:1.65; font-size:0.86rem; color:#334155;">${txt1}</div>`;
                     
                     if (txt2) {
-                        // Intentar separar Fortalezas de Competencias Críticas
-                        const cIdx = txt2.search(/(?:Competencias Críticas|Competencias a Intervenir|Brechas Críticas)/i);
-                        if (cIdx !== -1 && cIdx > 40) {
+                        // Buscar el inicio de Competencias Críticas precedido por salto de línea
+                        const cIdx = txt2.search(/\n\s*(?:Competencias Críticas|Competencias a Intervenir|Brechas Críticas)/i);
+                        if (cIdx !== -1) {
                             secFortalezas = txt2.substring(0, cIdx).trim();
                             secCriticas   = txt2.substring(cIdx).trim();
                         } else {
@@ -416,7 +416,25 @@
                     }
                 }
 
-            // Construcción de Páginas 3, 4, 5, 6 y 7
+            // Función auxiliador para dividir texto largo en fragmentos de máx 850 caracteres por página
+            function fragmentarTexto(texto, maxChars = 850) {
+                if (!texto || texto.length <= maxChars) return [texto];
+                const partes = [];
+                let acumulado = '';
+                const párrafos = texto.split(/\n\s*\n/);
+                for (let p of párrafos) {
+                    if ((acumulado + '\n\n' + p).length > maxChars && acumulado.trim() !== '') {
+                        partes.push(acumulado.trim());
+                        acumulado = p;
+                    } else {
+                        acumulado = acumulado ? (acumulado + '\n\n' + p) : p;
+                    }
+                }
+                if (acumulado.trim()) partes.push(acumulado.trim());
+                return partes.length > 0 ? partes : [texto];
+            }
+
+            // Construcción de Páginas Dinámicas
             let paginasAnalisisHTML = '';
             let totalPaginas = 2; // Pág 1 y Pág 2
 
@@ -455,19 +473,22 @@
     </div>
   </div>`;
 
-            // PÁGINA 4: Fortalezas Estratégicas
+            // PÁGINAS DE FORTALEZAS ESTRATÉGICAS (Divididas si exceden 850 caracteres)
             if (secFortalezas) {
-                totalPaginas++;
-                const p4Num = totalPaginas;
-                paginasAnalisisHTML += `
-  <!-- PÁGINA ${p4Num}: FORTALEZAS ESTRATÉGICAS -->
+                const fragsFort = fragmentarTexto(secFortalezas, 850);
+                fragsFort.forEach((frag, fIdx) => {
+                    totalPaginas++;
+                    const pNum = totalPaginas;
+                    const sufijo = fragsFort.length > 1 ? ` (Parte ${fIdx + 1} de ${fragsFort.length})` : '';
+                    paginasAnalisisHTML += `
+  <!-- PÁGINA ${pNum}: FORTALEZAS ESTRATÉGICAS -->
   <div class="letter-page">
     <div>
       <div class="doc-header">
         <div class="doc-header-left">
           <div class="skel-badge">SKEL 360°</div>
           <div>
-            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Fortalezas Estratégicas y Apalancamiento</div>
+            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Fortalezas Estratégicas y Apalancamiento${sufijo}</div>
             <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
           </div>
         </div>
@@ -480,31 +501,35 @@
       </div>
       <div class="plan-container">
         <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
-          ⭐ Fortalezas Estratégicas y Referencia de Liderazgo
+          ⭐ Fortalezas Estratégicas y Referencia de Liderazgo${sufijo}
         </div>
-        <div style="font-size:0.84rem; color:#334155; line-height:1.65; white-space:pre-wrap;">${secFortalezas}</div>
+        <div style="font-size:0.84rem; color:#334155; line-height:1.65; white-space:pre-wrap;">${frag}</div>
       </div>
     </div>
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página ${p4Num} de __TOTAL__ (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página ${pNum} de __TOTAL__ (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>`;
+                });
             }
 
-            // PÁGINA 5: Competencias Críticas a Intervenir
+            // PÁGINAS DE COMPETENCIAS CRÍTICAS (Divididas si exceden 850 caracteres)
             if (secCriticas) {
-                totalPaginas++;
-                const p5Num = totalPaginas;
-                paginasAnalisisHTML += `
-  <!-- PÁGINA ${p5Num}: COMPETENCIAS CRÍTICAS -->
+                const fragsCrit = fragmentarTexto(secCriticas, 850);
+                fragsCrit.forEach((frag, cIdx) => {
+                    totalPaginas++;
+                    const pNum = totalPaginas;
+                    const sufijo = fragsCrit.length > 1 ? ` (Parte ${cIdx + 1} de ${fragsCrit.length})` : '';
+                    paginasAnalisisHTML += `
+  <!-- PÁGINA ${pNum}: COMPETENCIAS CRÍTICAS -->
   <div class="letter-page">
     <div>
       <div class="doc-header">
         <div class="doc-header-left">
           <div class="skel-badge">SKEL 360°</div>
           <div>
-            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Competencias Críticas a Intervenir</div>
+            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Competencias Críticas a Intervenir${sufijo}</div>
             <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
           </div>
         </div>
@@ -517,31 +542,35 @@
       </div>
       <div class="plan-container" style="border-left:5px solid #ef4444;">
         <div style="font-size:0.98rem; font-weight:800; color:#b91c1c; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
-          🚨 Competencias Críticas a Intervenir e Impacto en el Rol
+          🚨 Competencias Críticas a Intervenir e Impacto en el Rol${sufijo}
         </div>
-        <div style="font-size:0.84rem; color:#334155; line-height:1.65; white-space:pre-wrap;">${secCriticas}</div>
+        <div style="font-size:0.84rem; color:#334155; line-height:1.65; white-space:pre-wrap;">${frag}</div>
       </div>
     </div>
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página ${p5Num} de __TOTAL__ (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página ${pNum} de __TOTAL__ (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>`;
+                });
             }
 
-            // PÁGINA 6: Plan de Acción Estratégico (30, 60 y 90 Días)
+            // PÁGINAS DE PLAN DE ACCIÓN ESTRATÉGICO (30, 60 y 90 Días)
             if (secPlanAccion) {
-                totalPaginas++;
-                const p6Num = totalPaginas;
-                paginasAnalisisHTML += `
-  <!-- PÁGINA ${p6Num}: PLAN DE ACCIÓN ESTRATÉGICO -->
+                const fragsPlan = fragmentarTexto(secPlanAccion, 850);
+                fragsPlan.forEach((frag, plIdx) => {
+                    totalPaginas++;
+                    const pNum = totalPaginas;
+                    const sufijo = fragsPlan.length > 1 ? ` (Parte ${plIdx + 1} de ${fragsPlan.length})` : '';
+                    paginasAnalisisHTML += `
+  <!-- PÁGINA ${pNum}: PLAN DE ACCIÓN ESTRATÉGICO -->
   <div class="letter-page">
     <div>
       <div class="doc-header">
         <div class="doc-header-left">
           <div class="skel-badge">SKEL 360°</div>
           <div>
-            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Plan Estratégico de Desarrollo Gerencial</div>
+            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Plan Estratégico de Desarrollo Gerencial${sufijo}</div>
             <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
           </div>
         </div>
@@ -554,24 +583,25 @@
       </div>
       <div class="plan-container">
         <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
-          ✍️ Plan de Acción Estratégico a 30, 60 y 90 Días
+          ✍️ Plan de Acción Estratégico a 30, 60 y 90 Días${sufijo}
         </div>
-        <div style="font-size:0.84rem; color:#334155; line-height:1.65; white-space:pre-wrap;">${secPlanAccion}</div>
+        <div style="font-size:0.84rem; color:#334155; line-height:1.65; white-space:pre-wrap;">${frag}</div>
       </div>
     </div>
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página ${p6Num} de __TOTAL__ (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página ${pNum} de __TOTAL__ (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>`;
+                });
             }
 
-            // PÁGINA 7: Observaciones y Compromisos Directivos (si existen)
+            // PÁGINA FINAL: Observaciones y Retroalimentación Directiva
             if (obs.trim()) {
                 totalPaginas++;
-                const p7Num = totalPaginas;
+                const pObsNum = totalPaginas;
                 paginasAnalisisHTML += `
-  <!-- PÁGINA ${p7Num}: OBSERVACIONES Y RETROALIMENTACIÓN -->
+  <!-- PÁGINA ${pObsNum}: OBSERVACIONES Y RETROALIMENTACIÓN -->
   <div class="letter-page">
     <div>
       <div class="doc-header">
@@ -597,7 +627,7 @@
       </div>
     </div>
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página ${p7Num} de __TOTAL__ (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página ${pObsNum} de __TOTAL__ (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>`;
