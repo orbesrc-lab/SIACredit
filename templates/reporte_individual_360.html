@@ -257,141 +257,46 @@
             const canvas = document.getElementById('radarChart');
             const radarImg = canvas ? canvas.toDataURL('image/png') : '';
 
-            // Parser multi-sección para que NUNCA se corte el texto
-            let sec1 = biasHTML;
-            let sec2 = '';
-            let sec3 = rawPlan;
+            // Parser multi-sección ultra-robusto
+            let secDiagnostico = biasHTML;
+            let secFortalezas  = '';
+            let secPlanAccion  = '';
 
-            if (rawPlan && (rawPlan.includes('DIAGNÓSTICO') || rawPlan.includes('1.'))) {
-                const idx2 = rawPlan.search(/(2\.\s*FORTALEZAS|FORTALEZAS Y COMPETENCIAS)/i);
-                const idx3 = rawPlan.search(/(3\.\s*PLAN|PLAN DE ACCIÓN)/i);
+            if (rawPlan && rawPlan.trim() !== '' && rawPlan !== 'Sin compromisos registrados.') {
+                const p2 = rawPlan.search(/(?:2\.\s*FORTALEZAS|FORTALEZAS Y COMPETENCIAS|FORTALEZAS ESTRATÉGICAS)/i);
+                const p3 = rawPlan.search(/(?:3\.\s*PLAN|PLAN DE ACCIÓN|PLAN ESTRATÉGICO)/i);
 
-                if (idx2 !== -1) {
-                    sec1 = `<div style="white-space:pre-wrap; line-height:1.55; font-size:0.83rem; color:#334155;">${rawPlan.substring(0, idx2).trim()}</div>`;
-                    if (idx3 !== -1 && idx3 > idx2) {
-                        sec2 = rawPlan.substring(idx2, idx3).trim();
-                        sec3 = rawPlan.substring(idx3).trim();
+                if (p2 !== -1 && p3 !== -1 && p3 > p2) {
+                    secDiagnostico = `<div style="white-space:pre-wrap; line-height:1.6; font-size:0.84rem; color:#334155;">${rawPlan.substring(0, p2).trim()}</div>`;
+                    secFortalezas  = rawPlan.substring(p2, p3).trim();
+                    secPlanAccion  = rawPlan.substring(p3).trim();
+                } else if (p2 !== -1) {
+                    secDiagnostico = `<div style="white-space:pre-wrap; line-height:1.6; font-size:0.84rem; color:#334155;">${rawPlan.substring(0, p2).trim()}</div>`;
+                    secFortalezas  = rawPlan.substring(p2).trim();
+                } else if (p3 !== -1) {
+                    secDiagnostico = `<div style="white-space:pre-wrap; line-height:1.6; font-size:0.84rem; color:#334155;">${rawPlan.substring(0, p3).trim()}</div>`;
+                    secPlanAccion  = rawPlan.substring(p3).trim();
+                } else {
+                    const mitad = Math.floor(rawPlan.length / 2);
+                    const breakIdx = rawPlan.indexOf('\n\n', mitad);
+                    if (breakIdx !== -1) {
+                        secFortalezas = rawPlan.substring(0, breakIdx).trim();
+                        secPlanAccion = rawPlan.substring(breakIdx).trim();
                     } else {
-                        sec2 = rawPlan.substring(idx2).trim();
-                        sec3 = '';
+                        secFortalezas = rawPlan.trim();
                     }
-                } else if (idx3 !== -1) {
-                    sec1 = `<div style="white-space:pre-wrap; line-height:1.55; font-size:0.83rem; color:#334155;">${rawPlan.substring(0, idx3).trim()}</div>`;
-                    sec3 = rawPlan.substring(idx3).trim();
                 }
             }
 
-            // Calcular métricas clave
-            let countComp = resultadosGlobal.length;
-            let sumAuto = 0;
-            let sumObt = 0;
-            resultadosGlobal.forEach(r => {
-                sumObt += r.promedio_360;
-                sumAuto += (r.promedios ? (r.promedios['Autoevaluación'] || r.promedio_360) : r.promedio_360);
-            });
-            const avgObt = countComp > 0 ? (sumObt / countComp).toFixed(2) : '0.00';
-            const avgAuto = countComp > 0 ? (sumAuto / countComp).toFixed(2) : '0.00';
+            // Construcción de Páginas 3, 4, 5 y 6
+            let paginasAnalisisHTML = '';
+            let totalPaginas = 2; // Pág 1 y Pág 2
 
-            // Dividir la tabla según la cantidad de competencias (si > 14, 2 columnas)
-            const esMulticol = resultadosGlobal.length > 14;
-            let tablaHTML = '';
-            
-            if (esMulticol) {
-                let tablaCol1 = '';
-                let tablaCol2 = '';
-                const mitad = Math.ceil(resultadosGlobal.length / 2);
-
-                resultadosGlobal.forEach((r, idx) => {
-                    const color = r.brecha >= 0 ? '#10b981' : '#ef4444';
-                    const sign  = r.brecha > 0 ? '+' : '';
-                    const badgeBg = r.brecha >= 0 ? '#ecfdf5' : '#fef2f2';
-                    const rowHtml =
-                        '<tr>' +
-                        '<td style="padding:4px 6px; border-bottom:1px solid #f1f5f9; font-size:0.75rem; font-weight:600; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">' + r.nombre + '</td>' +
-                        '<td style="padding:4px 6px; border-bottom:1px solid #f1f5f9; text-align:center; font-size:0.75rem; color:#64748b;">' + r.nivel_esperado + '</td>' +
-                        '<td style="padding:4px 6px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.75rem; color:#1e293b;">' + r.promedio_360 + '</td>' +
-                        '<td style="padding:4px 6px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.75rem;">' +
-                        '<span style="background:' + badgeBg + '; color:' + color + '; padding:2px 6px; border-radius:4px; display:inline-block;">' + sign + r.brecha + '</span>' +
-                        '</td>' +
-                        '</tr>';
-                    if (idx < mitad) tablaCol1 += rowHtml;
-                    else tablaCol2 += rowHtml;
-                });
-
-                tablaHTML = `
-                <div style="display:flex; gap:16px; align-items:flex-start;">
-                  <div style="flex:1;">
-                    <table style="width:100%; border-collapse:collapse;">
-                      <thead>
-                        <tr style="background:#f8fafc;">
-                          <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
-                          <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Esp.</th>
-                          <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Obt.</th>
-                          <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
-                        </tr>
-                      </thead>
-                      <tbody>${tablaCol1}</tbody>
-                    </table>
-                  </div>
-                  <div style="flex:1;">
-                    <table style="width:100%; border-collapse:collapse;">
-                      <thead>
-                        <tr style="background:#f8fafc;">
-                          <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
-                          <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Esp.</th>
-                          <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Obt.</th>
-                          <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
-                        </tr>
-                      </thead>
-                      <tbody>${tablaCol2}</tbody>
-                    </table>
-                  </div>
-                </div>`;
-            } else {
-                let filas = '';
-                resultadosGlobal.forEach(r => {
-                    const color = r.brecha >= 0 ? '#10b981' : '#ef4444';
-                    const sign  = r.brecha > 0 ? '+' : '';
-                    const badgeBg = r.brecha >= 0 ? '#ecfdf5' : '#fef2f2';
-                    filas +=
-                        '<tr>' +
-                        '<td style="padding:6px 10px; border-bottom:1px solid #f1f5f9; font-size:0.8rem; font-weight:600; color:#334155;">' + r.nombre + '</td>' +
-                        '<td style="padding:6px 10px; border-bottom:1px solid #f1f5f9; text-align:center; font-size:0.8rem; color:#64748b;">' + r.nivel_esperado + '</td>' +
-                        '<td style="padding:6px 10px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.8rem; color:#1e293b;">' + r.promedio_360 + '</td>' +
-                        '<td style="padding:6px 10px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.8rem;">' +
-                        '<span style="background:' + badgeBg + '; color:' + color + '; padding:2px 6px; border-radius:4px; display:inline-block;">' + sign + r.brecha + '</span>' +
-                        '</td>' +
-                        '</tr>';
-                });
-                tablaHTML = `
-                <table style="width:100%; border-collapse:collapse;">
-                  <thead>
-                    <tr style="background:#f8fafc;">
-                      <th style="padding:6px 10px; border-bottom:2px solid #e2e8f0; font-size:0.75rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
-                      <th style="padding:6px 10px; border-bottom:2px solid #e2e8f0; font-size:0.75rem; font-weight:700; color:#475569; text-align:center;">Nivel Esperado</th>
-                      <th style="padding:6px 10px; border-bottom:2px solid #e2e8f0; font-size:0.75rem; font-weight:700; color:#475569; text-align:center;">Promedio 360°</th>
-                      <th style="padding:6px 10px; border-bottom:2px solid #e2e8f0; font-size:0.75rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
-                    </tr>
-                  </thead>
-                  <tbody>${filas}</tbody>
-                </table>`;
-            }
-
-            const obsHTML = obs.trim()
-                ? '<div style="margin-top:16px; padding-top:12px; border-top:1px solid #e2e8f0;">' +
-                  '<p style="font-size:0.83rem; font-weight:700; color:#1e3a8a; margin:0 0 6px 0;">💬 Observaciones y Compromisos de Retroalimentación:</p>' +
-                  '<div style="font-size:0.8rem; color:#475569; font-style:italic; background:#f8fafc; padding:12px; border-radius:6px; border-left:4px solid #3b82f6; white-space:pre-wrap; line-height:1.5;">' + obs + '</div>' +
-                  '</div>'
-                : '';
-
-            const logoEmpresaHTML = empresaLogo
-                ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height: 48px; max-width: 170px; object-fit: contain; display: block; margin-left: auto; margin-bottom: 4px;" />`
-                : '';
-
-            const totalPaginas = sec2 ? 5 : 4;
-
-            let paginasAnalisisHTML = `
-  <!-- ══════ PÁGINA 3: DIAGNÓSTICO EXPERTO DE SESGOS Y PERCEPCIÓN ══════ -->
+            // PÁGINA 3: Diagnóstico de Sesgos
+            totalPaginas++;
+            const p3Num = totalPaginas;
+            paginasAnalisisHTML += `
+  <!-- PÁGINA ${p3Num}: DIAGNÓSTICO DE SESGOS -->
   <div class="letter-page">
     <div>
       <div class="doc-header">
@@ -413,18 +318,21 @@
         <div style="font-size:0.98rem; font-weight:800; color:#1d4ed8; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
           <span>🎯 Diagnóstico Cualitativo de Percepción y Convergencia</span>
         </div>
-        ${sec1}
+        ${secDiagnostico}
       </div>
     </div>
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página 3 de ${totalPaginas} (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página ${p3Num} de __TOTAL__ (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>`;
 
-            if (sec2) {
+            // PÁGINA 4: Fortalezas y Competencias Críticas
+            if (secFortalezas) {
+                totalPaginas++;
+                const p4Num = totalPaginas;
                 paginasAnalisisHTML += `
-  <!-- ══════ PÁGINA 4: FORTALEZAS Y COMPETENCIAS CRÍTICAS ══════ -->
+  <!-- PÁGINA ${p4Num}: FORTALEZAS Y COMPETENCIAS CRÍTICAS -->
   <div class="letter-page">
     <div>
       <div class="doc-header">
@@ -446,21 +354,22 @@
         <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
           ⭐ Fortalezas Estratégicas y Competencias a Intervenir
         </div>
-        <div style="font-size:0.83rem; color:#334155; line-height:1.55; white-space:pre-wrap;">${sec2}</div>
+        <div style="font-size:0.83rem; color:#334155; line-height:1.6; white-space:pre-wrap;">${secFortalezas}</div>
       </div>
     </div>
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página 4 de 5 (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página ${p4Num} de __TOTAL__ (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>`;
             }
 
-            const numPaginaPlan = sec2 ? 5 : 4;
-            const textPlanFinal = sec3 || rawPlan;
-
-            paginasAnalisisHTML += `
-  <!-- ══════ PÁGINA ${numPaginaPlan}: PLAN ESTRATÉGICO Y COMPROMISOS ══════ -->
+            // PÁGINA 5: Plan de Acción Estratégico (30, 60 y 90 Días)
+            if (secPlanAccion) {
+                totalPaginas++;
+                const p5Num = totalPaginas;
+                paginasAnalisisHTML += `
+  <!-- PÁGINA ${p5Num}: PLAN DE ACCIÓN ESTRATÉGICO -->
   <div class="letter-page">
     <div>
       <div class="doc-header">
@@ -482,15 +391,55 @@
         <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
           ✍️ Plan de Acción Estratégico a 30, 60 y 90 Días
         </div>
-        <div style="font-size:0.83rem; color:#334155; line-height:1.55; white-space:pre-wrap;">${textPlanFinal}</div>
-        ${obsHTML}
+        <div style="font-size:0.83rem; color:#334155; line-height:1.6; white-space:pre-wrap;">${secPlanAccion}</div>
       </div>
     </div>
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página ${numPaginaPlan} de ${totalPaginas} (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página ${p5Num} de __TOTAL__ (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>`;
+            }
+
+            // PÁGINA 6: Observaciones y Compromisos Directivos (si existen)
+            if (obs.trim()) {
+                totalPaginas++;
+                const p6Num = totalPaginas;
+                paginasAnalisisHTML += `
+  <!-- PÁGINA ${p6Num}: OBSERVACIONES Y RETROALIMENTACIÓN -->
+  <div class="letter-page">
+    <div>
+      <div class="doc-header">
+        <div class="doc-header-left">
+          <div class="skel-badge">SKEL 360°</div>
+          <div>
+            <div style="font-size:1.05rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Observaciones y Retroalimentación de la Sesión</div>
+            <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
+          </div>
+        </div>
+        <div class="doc-header-right">
+          ${logoEmpresaHTML}
+          <div style="font-size:0.88rem; font-weight:800; color:#0f172a; text-transform:uppercase;">${empresa}</div>
+          <div style="font-size:0.70rem; color:#64748b; margin-top:1px;">${fecha}</div>
+          <span class="confidencial">DOCUMENTO CONFIDENCIAL</span>
+        </div>
+      </div>
+      <div class="plan-container">
+        <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:2px solid #f1f5f9; padding-bottom:6px;">
+          💬 Observaciones y Compromisos Directivos de Retroalimentación
+        </div>
+        <div style="font-size:0.85rem; color:#334155; font-style:italic; background:#f8fafc; padding:18px; border-radius:8px; border-left:5px solid #2563eb; white-space:pre-wrap; line-height:1.6;">${obs}</div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span>Plataforma SKEL Human Capital 360° • Página ${p6Num} de __TOTAL__ (Tamaño Carta)</span>
+      <span>Documento Oficial Confidencial</span>
+    </div>
+  </div>`;
+            }
+
+            // Reemplazar __TOTAL__ con el total final de páginas generadas
+            paginasAnalisisHTML = paginasAnalisisHTML.replace(/__TOTAL__/g, totalPaginas.toString());
 
             const htmlVisor = `<!DOCTYPE html>
 <html lang="es">
