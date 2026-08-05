@@ -242,7 +242,7 @@
             textEl.innerHTML = msg;
         }
 
-        /* ─── VISOR INFORME GERENCIAL (3 PÁGINAS CARTA EXACTAS) ────────────────── */
+        /* ─── VISOR INFORME GERENCIAL (DISEÑO MODERNO FLUIDO TAMAÑO CARTA) ──────── */
         function abrirVisorInforme() {
             const nombre  = document.getElementById('colaborador-nombre').innerText || '';
             const cargo   = document.getElementById('colaborador-cargo').innerText   || '';
@@ -257,37 +257,111 @@
             const canvas = document.getElementById('radarChart');
             const radarImg = canvas ? canvas.toDataURL('image/png') : '';
 
-            // Dividir las brechas en 2 columnas paralelas para la Página 2
-            let tablaCol1 = '';
-            let tablaCol2 = '';
-            const mitad = Math.ceil(resultadosGlobal.length / 2);
-
-            resultadosGlobal.forEach((r, idx) => {
-                const color = r.brecha >= 0 ? '#10b981' : '#ef4444';
-                const sign  = r.brecha > 0 ? '+' : '';
-                const rowHtml =
-                    '<tr>' +
-                    '<td style="padding:4px 6px; border-bottom:1px solid #f1f5f9; font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">' + r.nombre + '</td>' +
-                    '<td style="padding:4px 6px; border-bottom:1px solid #f1f5f9; text-align:center; font-size:0.75rem;">' + r.nivel_esperado + '</td>' +
-                    '<td style="padding:4px 6px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.75rem;">' + r.promedio_360 + '</td>' +
-                    '<td style="padding:4px 6px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; color:' + color + '; font-size:0.75rem;">' + sign + r.brecha + '</td>' +
-                    '</tr>';
-                if (idx < mitad) {
-                    tablaCol1 += rowHtml;
-                } else {
-                    tablaCol2 += rowHtml;
-                }
+            // Calcular métricas clave
+            let countComp = resultadosGlobal.length;
+            let sumAuto = 0;
+            let sumObt = 0;
+            resultadosGlobal.forEach(r => {
+                sumObt += r.promedio_360;
+                sumAuto += (r.promedios ? (r.promedios['Autoevaluación'] || r.promedio_360) : r.promedio_360);
             });
+            const avgObt = countComp > 0 ? (sumObt / countComp).toFixed(2) : '0.00';
+            const avgAuto = countComp > 0 ? (sumAuto / countComp).toFixed(2) : '0.00';
+
+            // Dividir la tabla según la cantidad de competencias (si > 14, 2 columnas)
+            const esMulticol = resultadosGlobal.length > 14;
+            let tablaHTML = '';
+            
+            if (esMulticol) {
+                let tablaCol1 = '';
+                let tablaCol2 = '';
+                const mitad = Math.ceil(resultadosGlobal.length / 2);
+
+                resultadosGlobal.forEach((r, idx) => {
+                    const color = r.brecha >= 0 ? '#10b981' : '#ef4444';
+                    const sign  = r.brecha > 0 ? '+' : '';
+                    const badgeBg = r.brecha >= 0 ? '#ecfdf5' : '#fef2f2';
+                    const rowHtml =
+                        '<tr>' +
+                        '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; font-size:0.76rem; font-weight:600; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">' + r.nombre + '</td>' +
+                        '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; text-align:center; font-size:0.76rem; color:#64748b;">' + r.nivel_esperado + '</td>' +
+                        '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.76rem; color:#1e293b;">' + r.promedio_360 + '</td>' +
+                        '<td style="padding:6px 8px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.76rem;">' +
+                        '<span style="background:' + badgeBg + '; color:' + color + '; padding:2px 6px; border-radius:4px; display:inline-block;">' + sign + r.brecha + '</span>' +
+                        '</td>' +
+                        '</tr>';
+                    if (idx < mitad) tablaCol1 += rowHtml;
+                    else tablaCol2 += rowHtml;
+                });
+
+                tablaHTML = `
+                <div style="display:flex; gap:16px; align-items:flex-start;">
+                  <div style="flex:1;">
+                    <table style="width:100%; border-collapse:collapse;">
+                      <thead>
+                        <tr style="background:#f8fafc;">
+                          <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
+                          <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Esp.</th>
+                          <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Obt.</th>
+                          <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
+                        </tr>
+                      </thead>
+                      <tbody>${tablaCol1}</tbody>
+                    </table>
+                  </div>
+                  <div style="flex:1;">
+                    <table style="width:100%; border-collapse:collapse;">
+                      <thead>
+                        <tr style="background:#f8fafc;">
+                          <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
+                          <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Esp.</th>
+                          <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Obt.</th>
+                          <th style="padding:6px 8px; border-bottom:2px solid #e2e8f0; font-size:0.72rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
+                        </tr>
+                      </thead>
+                      <tbody>${tablaCol2}</tbody>
+                    </table>
+                  </div>
+                </div>`;
+            } else {
+                let filas = '';
+                resultadosGlobal.forEach(r => {
+                    const color = r.brecha >= 0 ? '#10b981' : '#ef4444';
+                    const sign  = r.brecha > 0 ? '+' : '';
+                    const badgeBg = r.brecha >= 0 ? '#ecfdf5' : '#fef2f2';
+                    filas +=
+                        '<tr>' +
+                        '<td style="padding:8px 12px; border-bottom:1px solid #f1f5f9; font-size:0.82rem; font-weight:600; color:#334155;">' + r.nombre + '</td>' +
+                        '<td style="padding:8px 12px; border-bottom:1px solid #f1f5f9; text-align:center; font-size:0.82rem; color:#64748b;">' + r.nivel_esperado + '</td>' +
+                        '<td style="padding:8px 12px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.82rem; color:#1e293b;">' + r.promedio_360 + '</td>' +
+                        '<td style="padding:8px 12px; border-bottom:1px solid #f1f5f9; text-align:center; font-weight:700; font-size:0.82rem;">' +
+                        '<span style="background:' + badgeBg + '; color:' + color + '; padding:3px 8px; border-radius:6px; display:inline-block;">' + sign + r.brecha + '</span>' +
+                        '</td>' +
+                        '</tr>';
+                });
+                tablaHTML = `
+                <table style="width:100%; border-collapse:collapse;">
+                  <thead>
+                    <tr style="background:#f8fafc;">
+                      <th style="padding:8px 12px; border-bottom:2px solid #e2e8f0; font-size:0.78rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
+                      <th style="padding:8px 12px; border-bottom:2px solid #e2e8f0; font-size:0.78rem; font-weight:700; color:#475569; text-align:center;">Nivel Esperado</th>
+                      <th style="padding:8px 12px; border-bottom:2px solid #e2e8f0; font-size:0.78rem; font-weight:700; color:#475569; text-align:center;">Promedio 360°</th>
+                      <th style="padding:8px 12px; border-bottom:2px solid #e2e8f0; font-size:0.78rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
+                    </tr>
+                  </thead>
+                  <tbody>${filas}</tbody>
+                </table>`;
+            }
 
             const obsHTML = obs.trim()
-                ? '<div style="margin-top:16px; padding-top:14px; border-top:1px solid #e2e8f0;">' +
-                  '<p style="font-size:0.82rem; font-weight:700; color:#475569; margin:0 0 6px 0;">Observaciones y Compromisos de Retroalimentación:</p>' +
-                  '<div style="font-size:0.82rem; color:#64748b; font-style:italic; background:#f8fafc; padding:12px; border-radius:6px; border-left:3px solid #cbd5e1; white-space:pre-wrap;">' + obs + '</div>' +
+                ? '<div style="margin-top:20px; padding-top:16px; border-top:1px solid #e2e8f0;">' +
+                  '<p style="font-size:0.88rem; font-weight:700; color:#1e3a8a; margin:0 0 8px 0;">💬 Observaciones y Compromisos de Retroalimentación:</p>' +
+                  '<div style="font-size:0.85rem; color:#475569; font-style:italic; background:#f8fafc; padding:14px; border-radius:8px; border-left:4px solid #3b82f6; white-space:pre-wrap; line-height:1.6;">' + obs + '</div>' +
                   '</div>'
                 : '';
 
             const logoEmpresaHTML = empresaLogo
-                ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height: 48px; max-width: 170px; object-fit: contain; display: block; margin-left: auto; margin-bottom: 4px;" />`
+                ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height: 52px; max-width: 190px; object-fit: contain; display: block; margin-left: auto; margin-bottom: 4px;" />`
                 : '';
 
             const htmlVisor = `<!DOCTYPE html>
@@ -298,93 +372,114 @@
 <style>
   @page {
     size: letter portrait;
-    margin: 8mm 10mm;
+    margin: 10mm 12mm;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #1e1e2e; font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; }
+  body { background: #0f172a; font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; }
 
-  /* ─── BARRA DE HERRAMIENTAS ─── */
+  /* ─── BARRA DE HERRAMIENTAS MODERNA ─── */
   #toolbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
-    background: linear-gradient(135deg, #1e3a8a, #312e81);
-    padding: 12px 30px;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 12px 32px;
     display: flex; align-items: center; justify-content: space-between;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
   }
-  #toolbar .brand { color: white; font-weight: 800; font-size: 1.05rem; display:flex; align-items:center; gap:10px; }
-  #toolbar .brand span { background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 6px; letter-spacing:1px; }
-  #toolbar .actions { display: flex; gap: 10px; }
+  #toolbar .brand { color: white; font-weight: 800; font-size: 1.05rem; display:flex; align-items:center; gap:12px; }
+  #toolbar .brand span { background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 5px 14px; border-radius: 6px; letter-spacing:1px; font-size:0.9rem; }
+  #toolbar .actions { display: flex; gap: 12px; }
   .tbtn {
-    padding: 9px 20px; border-radius: 8px; font-weight: 700; font-size: 0.92rem;
-    cursor: pointer; border: none; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+    padding: 9px 22px; border-radius: 8px; font-weight: 700; font-size: 0.9rem;
+    cursor: pointer; border: none; transition: all 0.2s; display: flex; align-items: center; gap: 8px;
   }
-  .tbtn-print { background: #10b981; color: white; }
-  .tbtn-print:hover { background: #059669; }
-  .tbtn-close { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
-  .tbtn-close:hover { background: rgba(255,255,255,0.25); }
+  .tbtn-print { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+  .tbtn-print:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16,185,129,0.4); }
+  .tbtn-close { background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.2); }
+  .tbtn-close:hover { background: rgba(255,255,255,0.22); }
 
-  /* ─── HOJAS TAMAÑO CARTA ─── */
-  #doc-wrapper { margin-top: 70px; padding: 25px 15px 40px; display: flex; flex-direction: column; align-items: center; }
+  /* ─── HOJAS TAMAÑO CARTA MODERNAS (SIN CORTES) ─── */
+  #doc-wrapper { margin-top: 75px; padding: 30px 15px 60px; display: flex; flex-direction: column; align-items: center; gap: 30px; }
   .letter-page {
-    background: white;
+    background: #ffffff;
     width: 816px; /* 8.5 in */
-    height: 1056px; /* 11 in */
-    max-height: 1056px;
-    padding: 34px 40px 28px;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.35);
-    border-radius: 4px;
-    margin-bottom: 24px;
+    min-height: 1056px; /* 11 in */
+    padding: 40px 48px 36px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     box-sizing: border-box;
-    overflow: hidden;
+    position: relative;
   }
 
-  /* ─── ESTILOS INTERNOS ─── */
+  /* ─── ENCABEZADOS Y TARJETAS ─── */
   .doc-header {
     display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 3px solid #1e3a8a; padding-bottom: 12px; margin-bottom: 16px;
+    border-bottom: 3px solid #1e3a8a; padding-bottom: 14px; margin-bottom: 20px;
   }
-  .doc-header-left { display: flex; align-items: center; gap: 12px; }
-  .skel-badge { background: #1e3a8a; color: white; font-weight: 900; font-size: 1.05rem; padding: 6px 12px; border-radius: 8px; letter-spacing: 1px; }
-  .doc-header-right { text-align: right; border-left: 2px solid #e2e8f0; padding-left: 14px; }
-  .ficha { background:#f8fafc; border:1px solid #e2e8f0; border-left:5px solid #1e3a8a; padding:10px 16px; border-radius:8px; margin-bottom:16px; display:flex; justify-content:space-between; }
-  .ficha-label { font-size:0.68rem; color:#64748b; text-transform:uppercase; font-weight:bold; }
-  .ficha-value { font-size:1.02rem; font-weight:800; color:#0f172a; margin-top:2px; }
-  .ficha-value-sm { font-size:0.92rem; font-weight:600; color:#334155; margin-top:2px; }
-  .two-col { display: flex; gap: 16px; margin-bottom: 16px; }
-  .two-col > div { flex: 1; }
-  .card { border:1px solid #e2e8f0; border-radius:8px; padding:12px; background:#fff; }
-  .card-title { font-size:0.85rem; font-weight:700; color:#1e3a8a; margin-bottom:8px; border-bottom:1px solid #f1f5f9; padding-bottom:6px; }
-  .bias-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:14px; margin-bottom:16px; }
-  .bias-title { font-size:0.88rem; font-weight:700; color:#1e40af; margin-bottom:6px; }
-  .plan-box { border:1px solid #e2e8f0; border-radius:8px; padding:18px; background:#fff; margin-bottom:16px; flex: 1; overflow-y:auto; }
-  .plan-title { font-size:0.92rem; font-weight:700; color:#1e3a8a; margin-bottom:10px; border-bottom:1px solid #f1f5f9; padding-bottom:6px; }
-  .plan-text { font-size:0.84rem; color:#334155; line-height:1.55; white-space:pre-wrap; }
-  .page-footer { display:flex; justify-content:space-between; border-top:1px solid #e2e8f0; padding-top:8px; font-size:0.68rem; color:#94a3b8; margin-top:auto; }
-  .confidencial { background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:10px; font-size:0.65rem; font-weight:bold; border:1px solid #c7d2fe; display:inline-block; margin-top:3px; }
+  .doc-header-left { display: flex; align-items: center; gap: 14px; }
+  .skel-badge { background: linear-gradient(135deg, #1e3a8a, #1e40af); color: white; font-weight: 900; font-size: 1.1rem; padding: 7px 14px; border-radius: 8px; letter-spacing: 1px; }
+  .doc-header-right { text-align: right; border-left: 2px solid #e2e8f0; padding-left: 16px; }
+  
+  .ficha { background:#f8fafc; border:1px solid #e2e8f0; border-left:6px solid #1e3a8a; padding:14px 20px; border-radius:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; }
+  .ficha-label { font-size:0.68rem; color:#64748b; text-transform:uppercase; font-weight:bold; letter-spacing:0.5px; }
+  .ficha-value { font-size:1.15rem; font-weight:800; color:#0f172a; margin-top:2px; }
+  .ficha-value-sm { font-size:0.98rem; font-weight:600; color:#334155; margin-top:2px; }
+
+  /* ─── TARJETAS METRICAS (KPIs) ─── */
+  .kpi-grid { display: flex; gap: 14px; margin-bottom: 20px; }
+  .kpi-card { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; text-align: center; }
+  .kpi-num { font-size: 1.4rem; font-weight: 900; color: #1e3a8a; margin-top: 3px; }
+  .kpi-title { font-size: 0.68rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+
+  .card { border:1px solid #e2e8f0; border-radius:10px; padding:16px; background:#fff; margin-bottom:20px; }
+  .card-title { font-size:0.9rem; font-weight:800; color:#1e3a8a; margin-bottom:12px; border-bottom:1px solid #f1f5f9; padding-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; }
+
+  /* ─── CONTENEDOR DE DIAGNÓSTICO FLUIDO (SIN CORTES) ─── */
+  .bias-container {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-left: 6px solid #2563eb;
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin-bottom: 20px;
+  }
+  .bias-container p { font-size: 0.88rem; color: #334155; line-height: 1.65; margin-bottom: 12px; }
+  .bias-container strong { color: #1e293b; font-weight: 700; }
+
+  .plan-container {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin-bottom: 20px;
+  }
+  .plan-container p { font-size: 0.88rem; color: #334155; line-height: 1.65; white-space: pre-wrap; }
+
+  .page-footer { display:flex; justify-content:space-between; border-top:1px solid #e2e8f0; padding-top:10px; font-size:0.7rem; color:#94a3b8; margin-top:auto; font-weight:500; }
+  .confidencial { background:#e0e7ff; color:#3730a3; padding:3px 10px; border-radius:12px; font-size:0.65rem; font-weight:bold; border:1px solid #c7d2fe; display:inline-block; margin-top:3px; }
 
   /* ─── IMPRESIÓN IMPERMEABLE CARTA ─── */
   @media print {
     @page {
       size: letter portrait;
-      margin: 8mm 10mm;
+      margin: 10mm 12mm;
     }
     body { background: white !important; }
     #toolbar { display: none !important; }
-    #doc-wrapper { margin-top: 0 !important; padding: 0 !important; background: white !important; width: 100% !important; }
+    #doc-wrapper { margin-top: 0 !important; padding: 0 !important; background: white !important; width: 100% !important; gap: 0 !important; }
     .letter-page {
       box-shadow: none !important;
       border-radius: 0 !important;
       margin: 0 !important;
-      width: 8.5in !important;
-      height: 11in !important;
-      max-height: 11in !important;
-      padding: 8mm 10mm !important;
+      width: 100% !important;
+      min-height: 100vh !important;
+      padding: 0 !important;
       page-break-after: always;
       page-break-inside: avoid;
-      overflow: hidden !important;
     }
     .letter-page:last-child { page-break-after: auto; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -398,7 +493,7 @@
   <div class="brand">
     <img src="/logo%20skel%202.png" alt="SKEL" style="height:28px; width:auto;" onerror="this.style.display='none'" />
     <span>SKEL 360°</span>
-    <span style="background:transparent; color:rgba(255,255,255,0.75); font-size:0.88rem; font-weight:500; letter-spacing:normal;">Informe Ejecutivo de Desempeño — ${nombre}</span>
+    <span style="background:transparent; color:rgba(255,255,255,0.75); font-size:0.88rem; font-weight:500; letter-spacing:normal;">Visor Ejecutivo de Informe Gerencial — ${nombre}</span>
   </div>
   <div class="actions">
     <button class="tbtn tbtn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF (Carta)</button>
@@ -406,18 +501,18 @@
   </div>
 </div>
 
-<!-- DOCUMENTO TAMAÑO CARTA -->
+<!-- DOCUMENTO TAMAÑO CARTA FLUIDO -->
 <div id="doc-wrapper">
 
-  <!-- ══════ PÁGINA 1: RESUMEN EJECUTIVO & DIAGNÓSTICO (CARTA) ══════ -->
+  <!-- ══════ PÁGINA 1: PORTADA EJECUTIVA Y MAPA RADAR ══════ -->
   <div class="letter-page">
     <div>
-      <!-- Encabezado -->
+      <!-- Encabezado corporativo -->
       <div class="doc-header">
         <div class="doc-header-left">
           <div class="skel-badge">SKEL 360°</div>
           <div>
-            <div style="font-size:1.05rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Informe Ejecutivo de Desempeño 360°</div>
+            <div style="font-size:1.1rem; font-weight:900; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.5px;">Informe Ejecutivo de Desempeño 360°</div>
             <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plataforma SKEL Human Capital</div>
           </div>
         </div>
@@ -429,7 +524,7 @@
         </div>
       </div>
 
-      <!-- Ficha técnica -->
+      <!-- Ficha Técnica -->
       <div class="ficha">
         <div>
           <div class="ficha-label">Colaborador Evaluado</div>
@@ -441,105 +536,123 @@
         </div>
       </div>
 
-      <!-- Radar visual amplio -->
-      <div class="card" style="text-align:center; margin-bottom:16px; padding:16px;">
-        <div class="card-title" style="font-size:0.9rem; margin-bottom:10px;">Mapa Radar de Desempeño 360°</div>
-        ${radarImg ? '<img src="' + radarImg + '" style="width:100%; max-width:380px; height:auto; display:block; margin:auto;" />' : '<p style="color:#94a3b8; font-size:0.8rem;">Gráfica no disponible</p>'}
+      <!-- Tarjetas KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">Promedio 360° Global</div>
+          <div class="kpi-num">${avgObt}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Autoevaluación</div>
+          <div class="kpi-num" style="color:#2563eb;">${avgAuto}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Competencias Evaluadas</div>
+          <div class="kpi-num" style="color:#059669;">${countComp}</div>
+        </div>
       </div>
 
-      <!-- Diagnóstico de Sesgos y Percepción -->
-      <div class="bias-box">
-        <div class="bias-title">🎯 Diagnóstico de Sesgos y Percepción 360°</div>
-        <div style="font-size:0.84rem; color:#1e293b; line-height:1.55;">${biasHTML}</div>
+      <!-- Mapa Radar Gráfico -->
+      <div class="card" style="text-align:center; padding:20px;">
+        <div class="card-title">Mapa Radar de Desempeño 360°</div>
+        ${radarImg ? '<img src="' + radarImg + '" style="width:100%; max-width:400px; height:auto; display:block; margin:10px auto;" />' : '<p style="color:#94a3b8; font-size:0.85rem;">Gráfica no disponible</p>'}
       </div>
     </div>
 
     <!-- Pie Página 1 -->
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página 1 de 3 (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página 1 de 4 (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>
 
-  <!-- ══════ PÁGINA 2: CONSOLIDADO GENERAL DE COMPETENCIAS (CARTA) ══════ -->
+  <!-- ══════ PÁGINA 2: CONSOLIDADO GENERAL DE COMPETENCIAS ══════ -->
   <div class="letter-page">
     <div>
       <!-- Encabezado pág 2 -->
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #1e3a8a; padding-bottom:10px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #1e3a8a; padding-bottom:10px; margin-bottom:18px;">
         <div style="display:flex; align-items:center; gap:10px;">
           <div class="skel-badge" style="font-size:0.9rem; padding:4px 10px;">SKEL 360°</div>
-          <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Consolidado General de Brechas (${resultadosGlobal.length} Competencias)</div>
+          <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Consolidado de Brechas por Competencia (${countComp} Evaluadas)</div>
         </div>
         <div style="display:flex; align-items:center; gap:10px;">
-          ${empresaLogo ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height:30px; max-width:110px; object-fit:contain;" />` : ''}
+          ${empresaLogo ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height:32px; max-width:120px; object-fit:contain;" />` : ''}
           <div style="font-size:0.72rem; color:#64748b; text-align:right;">${fecha}</div>
         </div>
       </div>
 
-      <!-- Tabla a 2 columnas paralelas para optimizar la hoja Carta -->
-      <div style="display:flex; gap:14px; align-items:flex-start;">
-        <div style="flex:1;">
-          <table style="width:100%; border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f8fafc;">
-                <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.73rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
-                <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.73rem; font-weight:700; color:#475569; text-align:center;">Esp.</th>
-                <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.73rem; font-weight:700; color:#475569; text-align:center;">Obt.</th>
-                <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.73rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
-              </tr>
-            </thead>
-            <tbody>${tablaCol1}</tbody>
-          </table>
-        </div>
-        <div style="flex:1;">
-          <table style="width:100%; border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f8fafc;">
-                <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.73rem; font-weight:700; color:#475569; text-align:left;">Competencia</th>
-                <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.73rem; font-weight:700; color:#475569; text-align:center;">Esp.</th>
-                <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.73rem; font-weight:700; color:#475569; text-align:center;">Obt.</th>
-                <th style="padding:5px 6px; border-bottom:2px solid #e2e8f0; font-size:0.73rem; font-weight:700; color:#475569; text-align:center;">Brecha</th>
-              </tr>
-            </thead>
-            <tbody>${tablaCol2}</tbody>
-          </table>
-        </div>
+      <!-- Tabla de Competencias -->
+      <div class="card" style="padding:14px;">
+        ${tablaHTML}
       </div>
     </div>
 
     <!-- Pie Página 2 -->
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página 2 de 3 (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página 2 de 4 (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>
 
-  <!-- ══════ PÁGINA 3: PLAN DE ACCIÓN Y COMPROMISOS (CARTA) ══════ -->
+  <!-- ══════ PÁGINA 3: DIAGNÓSTICO EXPERTO DE SESGOS Y PERCEPCIÓN ══════ -->
   <div class="letter-page">
     <div>
       <!-- Encabezado pág 3 -->
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #1e3a8a; padding-bottom:10px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #1e3a8a; padding-bottom:10px; margin-bottom:18px;">
         <div style="display:flex; align-items:center; gap:10px;">
           <div class="skel-badge" style="font-size:0.9rem; padding:4px 10px;">SKEL 360°</div>
-          <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Plan Estratégico y Diagnóstico Experto</div>
+          <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Diagnóstico Experto de Sesgos y Percepción 360°</div>
         </div>
         <div style="display:flex; align-items:center; gap:10px;">
-          ${empresaLogo ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height:30px; max-width:110px; object-fit:contain;" />` : ''}
+          ${empresaLogo ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height:32px; max-width:120px; object-fit:contain;" />` : ''}
           <div style="font-size:0.72rem; color:#64748b; text-align:right;">${fecha}</div>
         </div>
       </div>
 
-      <!-- Plan de Acción -->
-      <div class="plan-box">
-        <div class="plan-title">✍️ Plan de Acción Estratégico (30, 60 y 90 Días)</div>
-        <div class="plan-text">${plan}</div>
-        ${obsHTML}
+      <!-- Bloque de Diagnóstico Completo sin Cortes -->
+      <div class="bias-container">
+        <div style="font-size:1.05rem; font-weight:800; color:#1d4ed8; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+          <span>🎯 Diagnóstico Cualitativo de Percepción y Convergencia</span>
+        </div>
+        ${biasHTML}
       </div>
     </div>
 
     <!-- Pie Página 3 -->
     <div class="page-footer">
-      <span>Plataforma SKEL Human Capital 360° • Página 3 de 3 (Tamaño Carta)</span>
+      <span>Plataforma SKEL Human Capital 360° • Página 3 de 4 (Tamaño Carta)</span>
+      <span>Documento Oficial Confidencial</span>
+    </div>
+  </div>
+
+  <!-- ══════ PÁGINA 4: PLAN ESTRATÉGICO Y COMPROMISOS ══════ -->
+  <div class="letter-page">
+    <div>
+      <!-- Encabezado pág 4 -->
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #1e3a8a; padding-bottom:10px; margin-bottom:18px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="skel-badge" style="font-size:0.9rem; padding:4px 10px;">SKEL 360°</div>
+          <div style="font-size:0.98rem; font-weight:800; color:#1e3a8a; text-transform:uppercase;">Plan Estratégico de Desarrollo Gerencial</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          ${empresaLogo ? `<img src="${empresaLogo}" alt="${empresa}" style="max-height:32px; max-width:120px; object-fit:contain;" />` : ''}
+          <div style="font-size:0.72rem; color:#64748b; text-align:right;">${fecha}</div>
+        </div>
+      </div>
+
+      <!-- Plan de Acción -->
+      <div class="plan-container">
+        <div style="font-size:1.02rem; font-weight:800; color:#1e3a8a; margin-bottom:14px; border-bottom:2px solid #f1f5f9; padding-bottom:8px;">
+          ✍️ Plan de Acción Estratégico a 30, 60 y 90 Días
+        </div>
+        <div style="font-size:0.86rem; color:#334155; line-height:1.65; white-space:pre-wrap;">${plan}</div>
+        ${obsHTML}
+      </div>
+    </div>
+
+    <!-- Pie Página 4 -->
+    <div class="page-footer">
+      <span>Plataforma SKEL Human Capital 360° • Página 4 de 4 (Tamaño Carta)</span>
       <span>Documento Oficial Confidencial</span>
     </div>
   </div>
@@ -548,7 +661,7 @@
 </body>
 </html>`;
 
-            const visor = window.open('', '_blank', 'width=900,height=800,scrollbars=yes,resizable=yes');
+            const visor = window.open('', '_blank', 'width=950,height=850,scrollbars=yes,resizable=yes');
             if (!visor) {
                 alert('El navegador bloqueó la ventana emergente. Por favor permite las ventanas emergentes para este sitio.');
                 return;
