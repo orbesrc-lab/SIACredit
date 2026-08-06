@@ -24,6 +24,23 @@ function getProgramId() {
     }
 }
 
+// Helper interno para fetch autenticado
+function _doFetch(url, options) {
+    if (typeof authFetch === 'function') {
+        return authFetch(url, options);
+    }
+    const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const method = (options?.method || 'GET').toUpperCase();
+    const headers = {
+        ...(method !== 'GET' ? {'Content-Type': 'application/json'} : {}),
+        ...(options?.headers || {}),
+    };
+    if (user && user.id) {
+        headers['X-User-Id'] = user.id;
+    }
+    return fetch(url, { ...options, headers });
+}
+
 // Cargar todos los datos desde la API del backend
 async function loadDataFromAPI() {
     const instId = getInstId();
@@ -39,17 +56,21 @@ async function loadDataFromAPI() {
     }
 
     try {
-        const resM = await fetch(`/api/model?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
-        localModelCache = await resM.json();
+        const resM = await _doFetch(`/api/model?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
+        const dataM = await resM.json();
+        localModelCache = Array.isArray(dataM) ? dataM : [];
 
-        const resEv = await fetch(`/api/evidences?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
-        localEvidencesCache = await resEv.json();
+        const resEv = await _doFetch(`/api/evidences?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
+        const dataEv = await resEv.json();
+        localEvidencesCache = (dataEv && typeof dataEv === 'object' && !dataEv.status) ? dataEv : {};
 
-        const resEval = await fetch(`/api/evaluations?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
-        localEvaluationsCache = await resEval.json();
+        const resEval = await _doFetch(`/api/evaluations?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
+        const dataEval = await resEval.json();
+        localEvaluationsCache = (dataEval && typeof dataEval === 'object' && !dataEval.status) ? dataEval : {};
 
-        const resStat = await fetch(`/api/estadisticas?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
-        localStatsCache = await resStat.json();
+        const resStat = await _doFetch(`/api/estadisticas?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
+        const dataStat = await resStat.json();
+        localStatsCache = (dataStat && typeof dataStat === 'object' && !dataStat.status) ? dataStat : {};
     } catch (err) {
         console.error("Error cargando datos del servidor:", err);
     }
@@ -68,7 +89,7 @@ function saveDataModel(data) {
         return;
     }
     localModelCache = data;
-    fetch(`/api/model?inst_id=${getInstId()}&program_id=${progId}`, {
+    _doFetch(`/api/model?inst_id=${getInstId()}&program_id=${progId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -85,7 +106,7 @@ function getEvaluations() {
 
 function saveEvaluations(data) {
     localEvaluationsCache = data;
-    fetch(`/api/evaluations?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+    _doFetch(`/api/evaluations?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -98,7 +119,7 @@ function getStatistics() {
 
 function saveStatistics(data) {
     localStatsCache = data;
-    return fetch(`/api/estadisticas?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+    return _doFetch(`/api/estadisticas?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
