@@ -108,6 +108,10 @@ def formacion():
 def biblioteca():
     return render_template('biblioteca.html')
 
+@frontend_bp.route('/normatividad.html')
+def normatividad():
+    return render_template('normatividad.html')
+
 @frontend_bp.route('/skel360.html')
 def skel360():
     return render_template('skel360.html')

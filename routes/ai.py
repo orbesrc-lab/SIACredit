@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request, Response
 from utils.db import supabase, get_active_inst_id
+from utils.auth import require_permission
 import json
 import os
 from openai import OpenAI
@@ -174,6 +175,7 @@ def analyze_stats():
         return jsonify({"analysis": f"Error procesando análisis: {str(e)}"})
 
 @ai_bp.route('/api/direct_upload/url', methods=['POST'])
+@require_permission('herramientas')
 def library_upload_url():
     try:
         data = request.json
@@ -220,6 +222,7 @@ def library_upload_url():
         return jsonify({"error": str(e)})
 
 @ai_bp.route('/api/library/confirm_upload', methods=['POST'])
+@require_permission('herramientas')
 def library_confirm_upload():
     try:
         data = request.json
@@ -464,6 +467,7 @@ def get_evidences():
     return jsonify(res.data)
 
 @ai_bp.route('/api/library', methods=['GET'])
+@require_permission('herramientas')
 def get_library():
     inst_id = request.args.get('inst_id', 1, type=int)
     try:
@@ -492,6 +496,7 @@ def get_library():
         return jsonify({"global": [], "institucional": []})
 
 @ai_bp.route('/api/library/<aspect_id>/<int:doc_id>', methods=['DELETE'])
+@require_permission('herramientas')
 def delete_library_doc(aspect_id, doc_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     # Global puede no tener inst_id, pero para buscar en statistics usamos inst_id si no es global
@@ -519,6 +524,7 @@ import urllib.error
 import json
 
 @ai_bp.route('/api/library/search', methods=['GET'])
+@require_permission('herramientas')
 def library_search():
     q = request.args.get('q', '')
     limit = request.args.get('limit', 20)
@@ -641,6 +647,7 @@ def library_search():
         return jsonify({'error': str(e)})
 
 @ai_bp.route('/api/library/translate', methods=['POST'])
+@require_permission('herramientas')
 def library_translate():
     try:
         data = request.json
@@ -663,6 +670,7 @@ def library_translate():
 
 
 @ai_bp.route('/api/library/ovas', methods=['GET'])
+@require_permission('herramientas')
 def get_ovas():
     try:
         url = "https://phet.colorado.edu/services/metadata/1.2/simulations?format=json&type=html&locale=es"
@@ -695,6 +703,7 @@ def get_ovas():
         return jsonify({'status': 'error', 'message': str(e)})
 
 @ai_bp.route('/api/library/saved', methods=['GET', 'POST'])
+@require_permission('herramientas')
 
 
 def handle_saved_resources():
@@ -731,6 +740,7 @@ def handle_saved_resources():
         return jsonify([])
 
 @ai_bp.route('/api/library/saved/<int:id>', methods=['DELETE'])
+@require_permission('herramientas')
 def delete_saved_resource(id):
     try:
         supabase.table('saved_resources').delete().eq('id', id).execute()
@@ -1700,4 +1710,3 @@ def handle_rrc_report():
     except Exception as e:
         print("Error fetching RRC report:", e)
         return jsonify({})
-

@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request, render_template
 from utils.db import supabase, get_active_inst_id
+from utils.auth import require_permission
 import traceback
 import json
 import os
@@ -12,10 +13,12 @@ prospects_bp = Blueprint('prospects', __name__)
 # --- CRM / PROSPECTOS RUTAS ---
 
 @prospects_bp.route('/crm.html')
+@require_permission('herramientas')
 def crm_view():
     return render_template('crm.html')
 
 @prospects_bp.route('/api/crm/prospects', methods=['GET', 'POST'])
+@require_permission('herramientas')
 def handle_prospects():
     if request.method == 'GET':
         try:
@@ -46,6 +49,7 @@ def handle_prospects():
             return jsonify({"status": "error", "message": str(e)})
 
 @prospects_bp.route('/api/crm/prospects/<int:pid>', methods=['PUT', 'DELETE'])
+@require_permission('herramientas')
 def update_delete_prospect(pid):
     if request.method == 'DELETE':
         try:
@@ -65,6 +69,7 @@ import csv
 import io
 
 @prospects_bp.route('/api/crm/upload_prospects', methods=['POST'])
+@require_permission('herramientas')
 def upload_prospects():
     if 'file' not in request.files:
         return jsonify({"status": "error", "message": "No file part"})
@@ -121,6 +126,7 @@ def upload_prospects():
 
 
 @prospects_bp.route('/api/crm/prospects/bulk_delete', methods=['POST'])
+@require_permission('herramientas')
 def bulk_delete_prospects():
     data = request.json
     if not data or 'ids' not in data:
@@ -140,6 +146,7 @@ def bulk_delete_prospects():
         return jsonify({'status': 'error', 'message': str(e)})
 
 @prospects_bp.route('/api/crm/send_email', methods=['POST'])
+@require_permission('herramientas')
 def send_email_route():
     data = request.json
     if not data or 'email' not in data or 'subject' not in data or 'body' not in data:
@@ -178,4 +185,3 @@ def send_email_route():
     except Exception as e:
         print(f"Error sending email: {e}")
         return jsonify({'status': 'error', 'message': f"Failed to send email: {str(e)}"})
-

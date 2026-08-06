@@ -71,7 +71,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         'skel360_portal.html': 'skel_hc360',
         
         // Configuración - Usualmente solo admin/superadmin, pero lo manejamos
-        'configuracion.html': 'configuracion'
+        'configuracion.html': 'configuracion',
+        'normatividad.html': 'autoevaluacion'
     };
 
     // 3. Obtener página actual
@@ -92,25 +93,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 4. VERIFICAR ACCESO A LA PÁGINA ACTUAL
             const requiredModule = pageToModuleMap[currentPage];
             
-            // Regla estricta: Configuración solo para superadmin (admin) y administrador institucional (inst_admin)
-            if (currentPage === 'configuracion.html' || requiredModule === 'configuracion') {
+            // Regla estricta: Configuración y Herramientas Gerenciales solo para superadmin (admin) y administrador institucional (inst_admin)
+            if (['configuracion.html', 'biblioteca.html', 'crm.html', 'backup.html'].includes(currentPage) || requiredModule === 'configuracion' || requiredModule === 'herramientas') {
                 if (!['admin', 'superadmin', 'super_admin', 'inst_admin'].includes(mappedRole)) {
+                    const moduleName = (currentPage === 'configuracion.html' || requiredModule === 'configuracion') ? 'Configuración' : 'Herramientas Gerenciales';
                     if (typeof Swal !== 'undefined') {
                         await Swal.fire({
                             icon: 'error',
                             title: 'Acceso Denegado',
-                            text: 'El módulo de Configuración es de uso exclusivo para Administradores de la plataforma.',
+                            text: `El módulo de ${moduleName} es de uso exclusivo para Administradores de la plataforma.`,
                             confirmButtonColor: '#3b82f6'
                         });
                     } else {
-                        alert('Acceso Denegado: El módulo de Configuración es de uso exclusivo para Administradores de la plataforma.');
+                        alert(`Acceso Denegado: El módulo de ${moduleName} es de uso exclusivo para Administradores de la plataforma.`);
                     }
                     window.location.href = 'dashboard.html';
                     return;
                 }
             }
 
-            if (requiredModule && requiredModule !== 'configuracion' && perms[requiredModule]) {
+            if (requiredModule && !['configuracion', 'herramientas'].includes(requiredModule) && perms[requiredModule]) {
                 if (!perms[requiredModule].includes(mappedRole)) {
                     // BLOQUEADO - Redirigir al dashboard si no es dashboard, sino alertar.
                     if (currentPage !== 'dashboard.html') {
@@ -130,17 +132,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
             
-            // 5. OCULTAR ENLACES EN EL MENÚ LATERAL (SIDEBAR)
-            // Recorrer todos los enlaces del sidebar
-            const sidebarLinks = document.querySelectorAll('.sidebar-menu a, .sidebar-item, a[href="configuracion.html"]');
+            // 5. OCULTAR ENLACES Y MÓDULOS EN EL MENÚ LATERAL (SIDEBAR)
+            const isAdmin = ['admin', 'superadmin', 'super_admin', 'inst_admin'].includes(mappedRole);
+            
+            const sidebarLinks = document.querySelectorAll('.sidebar-menu a, .sidebar-item, a[href="configuracion.html"], a[href="backup.html"], a[href="crm.html"], a[href="biblioteca.html"]');
             sidebarLinks.forEach(link => {
                 const href = link.getAttribute('href');
                 if (href) {
                     const linkPage = href.split('/').pop();
                     const linkModule = pageToModuleMap[linkPage];
                     
-                    if (linkPage === 'configuracion.html') {
-                        if (!['admin', 'superadmin', 'super_admin', 'inst_admin'].includes(mappedRole)) {
+                    if (['configuracion.html', 'biblioteca.html', 'crm.html', 'backup.html'].includes(linkPage) || linkModule === 'configuracion' || linkModule === 'herramientas') {
+                        if (!isAdmin) {
                             link.style.display = 'none';
                             link.classList.add('permission-hidden');
                         }
