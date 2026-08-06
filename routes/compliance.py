@@ -68,9 +68,13 @@ def compute_compliance_stats(inst_id, program_id=None):
     # 6. Compute per-factor compliance (maps to "por normativa" sections)
     # Group factors by their name/number as a proxy for normativa sections
     factor_stats = []
-    COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f97316', '#ef4444', '#06b6d4', '#f59e0b']
+    COLORS = [
+        '#10b981', '#3b82f6', '#8b5cf6', '#f97316', '#ef4444',
+        '#06b6d4', '#f59e0b', '#ec4899', '#14b8a6', '#a855f7',
+        '#84cc16', '#f43f5e', '#0ea5e9'
+    ]
 
-    for i, factor in enumerate(factors[:7]):  # limit to first 7 factors for display
+    for i, factor in enumerate(factors):  # show all factors
         fid = factor['id']
         # Get chars for this factor
         f_char_ids = [c['id'] for c in chars if c['factor_id'] == fid]
