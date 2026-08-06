@@ -38,6 +38,7 @@
         }
         #printSection { display: none; }
     </style>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -151,7 +152,6 @@
         </main>
     </div>
 
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script>
         let commsList = [];
 

@@ -92,6 +92,7 @@
             white-space: nowrap;
         }
     </style>
+    <script src="{{ url_for('static', filename='app.js') }}?v=3.3"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -1108,7 +1109,6 @@
         }
 
     </script>
-    <script src="{{ url_for('static', filename='app.js') }}?v=3.3"></script>
 <script>
         document.addEventListener("DOMContentLoaded", () => {
             const user = JSON.parse(localStorage.getItem('siac_user') || '{}');

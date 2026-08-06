@@ -459,6 +459,7 @@
         .notif-empty { padding: 30px 15px; text-align: center; color: #94a3b8; font-size: 0.85rem; }
     </style>
 
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -2373,7 +2374,6 @@
             window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
         }
     </script>
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
 
 <script>
 (function(){

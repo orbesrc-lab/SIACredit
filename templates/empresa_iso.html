@@ -70,6 +70,7 @@
         .sipoc-table td { padding: 8px; border: 1px solid #cbd5e1; vertical-align: top; }
         .sipoc-table textarea { width: 100%; height: 75px; border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px; resize: vertical; font-family: inherit; font-size: 0.85rem; box-sizing: border-box; }
     </style>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -296,7 +297,6 @@
     <!-- Print Container -->
     <div id="printSection"></div>
 
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script>
         
         let planningTreeData = [];

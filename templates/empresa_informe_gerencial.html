@@ -84,6 +84,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
     <!-- End Frappe Gantt -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -256,7 +257,6 @@
         </main>
     </div>
 
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script>
                 async function init() {
             Swal.fire({ 
