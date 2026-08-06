@@ -289,13 +289,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <iframe id="skel-module-iframe" src="about:blank"></iframe>
                 </div>
             </div>`;
-            const mainContent = document.querySelector('.main-content');
-        if (mainContent) {
-            mainContent.style.position = 'relative'; // Ensure positioning context
-            mainContent.insertAdjacentHTML('beforeend', modalHTML);
-        } else {
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-        }
+            const mainContent = document.querySelector('.main-content') || document.querySelector('.dashboard-container');
+            if (mainContent) {
+                mainContent.style.position = 'relative'; // Ensure positioning context
+                mainContent.insertAdjacentHTML('beforeend', modalHTML);
+            }
         }
         
         // Intercept sidebar links
