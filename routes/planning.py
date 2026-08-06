@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, render_template
+from utils.auth import require_permission
 
 def safe_int(val, default=1):
     try:
@@ -17,6 +18,7 @@ def planificacion_page():
     return render_template('planificacion.html')
 
 @planning_bp.route('/api/dofa/suggest_axes', methods=['POST'])
+@require_permission('planificacion')
 def suggest_dofa_axes():
     try:
         data = request.json
@@ -77,6 +79,7 @@ def suggest_dofa_axes():
 
 
 @planning_bp.route('/api/planning/migrate_dofa', methods=['POST'])
+@require_permission('planificacion')
 def migrate_dofa():
     import re
     try:
@@ -165,6 +168,7 @@ def migrate_dofa():
         return jsonify({'status': 'error', 'message': str(e)})
 
 @planning_bp.route('/api/planning/tree', methods=['GET'])
+@require_permission('planificacion')
 def get_planning_tree():
     try:
         inst_id = request.args.get('inst_id')
@@ -235,6 +239,7 @@ def get_planning_tree():
         return jsonify({'status': 'error', 'message': str(e)})
 
 @planning_bp.route('/api/planning/node', methods=['POST'])
+@require_permission('planificacion')
 def add_planning_node():
     try:
         data = request.json
@@ -293,6 +298,7 @@ def add_planning_node():
         return jsonify({'status': 'error', 'message': str(e)})
 
 @planning_bp.route('/api/planning/node/edit', methods=['POST'])
+@require_permission('planificacion')
 def edit_planning_node():
     try:
         data = request.json
@@ -334,6 +340,7 @@ def edit_planning_node():
         return jsonify({'status': 'error', 'message': str(e)})
 
 @planning_bp.route('/api/planning/node/delete', methods=['POST'])
+@require_permission('planificacion')
 def delete_planning_node():
     try:
         data = request.json
@@ -362,6 +369,7 @@ def delete_planning_node():
         return jsonify({'status': 'error', 'message': str(e)})
 
 @planning_bp.route('/api/planning/suggest', methods=['POST'])
+@require_permission('planificacion')
 def suggest_planning_node():
     try:
         data = request.json
@@ -421,6 +429,7 @@ def suggest_planning_node():
         return jsonify({'status': 'error', 'message': str(e)})
 
 @planning_bp.route('/api/planning/users', methods=['GET'])
+@require_permission('planificacion')
 def get_planning_users():
     """Returns list of users in the institution for assignment dropdowns."""
     try:
@@ -450,6 +459,7 @@ import json
 from datetime import datetime
 
 @planning_bp.route('/api/planning/activity/alert/<int:act_id>', methods=['POST'])
+@require_permission('planificacion')
 def add_activity_alert(act_id):
     try:
         data = request.json
@@ -504,6 +514,7 @@ def add_activity_alert(act_id):
 
 
 @planning_bp.route('/api/planning/activity/finance/<int:act_id>', methods=['POST'])
+@require_permission('planificacion')
 def update_activity_finance(act_id):
     try:
         data = request.json
@@ -539,6 +550,7 @@ def update_activity_finance(act_id):
 
 
 @planning_bp.route('/api/planning/activity/evidence/<int:act_id>', methods=['POST'])
+@require_permission('planificacion')
 def add_activity_evidence(act_id):
     try:
         inst_id = safe_int(request.form.get('inst_id'), 1)
@@ -595,6 +607,7 @@ def add_activity_evidence(act_id):
         return jsonify({'status': 'error', 'message': str(e)})
 
 @planning_bp.route('/api/planning/activity/evidence/<int:act_id>', methods=['DELETE'])
+@require_permission('planificacion')
 def delete_activity_evidence(act_id):
     try:
         data = request.json
@@ -695,6 +708,7 @@ def cron_planning_alerts():
         return jsonify({'status': 'error', 'message': str(e)})
 
 @planning_bp.route('/api/planning/reports/finance', methods=['GET'])
+@require_permission('planificacion')
 def report_finance():
     try:
         inst_id = request.args.get('inst_id', 1, type=int)
@@ -804,6 +818,7 @@ def report_finance():
 
 
 @planning_bp.route('/api/planning/activity/evidences/<int:act_id>', methods=['GET'])
+@require_permission('planificacion')
 def get_activity_evidences(act_id):
     try:
         table_id = f"PLANNING_ACT_EVID_{act_id}"

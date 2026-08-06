@@ -20,6 +20,30 @@ function getProgramId() {
     return user ? (user.program_id || 0) : 0;
 }
 
+/**
+ * authFetch — Wrapper autenticado sobre fetch().
+ * Agrega automáticamente el header X-User-Id para que el servidor
+ * pueda validar permisos por rol (server-side).
+ *
+ * Uso: reemplazar fetch(...) por authFetch(...) en endpoints protegidos.
+ *
+ * @param {string} url - URL del endpoint
+ * @param {object} options - Opciones de fetch (method, body, headers, etc.)
+ * @returns {Promise<Response>}
+ */
+function authFetch(url, options = {}) {
+    const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+    };
+    if (user && user.id) {
+        headers['X-User-Id'] = user.id;
+    }
+    return fetch(url, { ...options, headers });
+}
+
+
 // Redirección de Accesos y Roles
 (function() {
     try {

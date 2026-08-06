@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, session, render_template
+from utils.auth import require_permission, invalidate_permissions_cache
 from utils.db import supabase
 from utils.mail import send_email
 from utils.db import get_active_inst_id
@@ -13,6 +14,7 @@ core_bp = Blueprint('core', __name__)
 # --- API Endpoints con Supabase (Multi-tenant) ---
 
 @core_bp.route('/api/model', methods=['GET', 'POST'])
+@require_permission('autoevaluacion')
 def handle_model():
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
@@ -128,6 +130,7 @@ def handle_model():
         return jsonify([])
 
 @core_bp.route('/api/evaluations', methods=['GET', 'POST'])
+@require_permission('autoevaluacion')
 def handle_evaluations():
     raw_inst_id = request.args.get('inst_id', 1, type=int)
     inst_id = get_active_inst_id(raw_inst_id)
@@ -188,6 +191,7 @@ def handle_evaluations():
         return jsonify({})
 
 @core_bp.route('/api/evaluations/<char_id>', methods=['DELETE'])
+@require_permission('autoevaluacion')
 def delete_evaluation(char_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
@@ -267,6 +271,7 @@ def calculate_plan_avance(plan, inst_id, program_id):
         return 0
 
 @core_bp.route('/api/planes_mejora', methods=['GET', 'POST'])
+@require_permission('planificacion')
 def handle_planes_mejora():
     raw_inst_id = request.args.get('inst_id', 1, type=int)
     inst_id = get_active_inst_id(raw_inst_id)
@@ -392,6 +397,7 @@ def handle_planes_mejora():
         return jsonify([])
 
 @core_bp.route('/api/planes_mejora/<int:plan_id>', methods=['PUT', 'DELETE'])
+@require_permission('planificacion')
 def update_delete_plan_mejora(plan_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
@@ -463,6 +469,7 @@ def update_delete_plan_mejora(plan_id):
         return jsonify({"status": "error", "message": str(e)})
 
 @core_bp.route('/api/planes_mejora/upload_soporte', methods=['POST'])
+@require_permission('planificacion')
 def upload_soporte_plan():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"})
@@ -540,6 +547,7 @@ def read_all_notificaciones():
         return jsonify({"status": "error", "message": str(e)})
 
 @core_bp.route('/api/estadisticas', methods=['GET', 'POST'])
+@require_permission('autoevaluacion')
 def handle_stats():
     if request.method == 'POST':
         data = request.json
@@ -1331,6 +1339,7 @@ def get_form_permissions():
 
 @core_bp.route('/api/permissions/form', methods=['POST'])
 def save_form_permissions():
+    invalidate_permissions_cache()
     import json
     try:
         payload = request.json

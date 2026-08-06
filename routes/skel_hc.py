@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, current_app
 import traceback
 import json
+from utils.auth import require_permission
 
 # Para este proyecto, app.py inicializa supabase globalmente.
 # Usaremos un intento de import local o fallback
@@ -23,6 +24,7 @@ def get_supabase():
 # ==============================================================================
 
 @skel_hc_bp.route('/empresas', methods=['GET'])
+@require_permission('skel_hc360')
 def get_empresas():
     try:
         sb = get_supabase()
@@ -33,6 +35,7 @@ def get_empresas():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/empresas', methods=['POST'])
+@require_permission('skel_hc360')
 def create_empresa():
     try:
         data = request.json
@@ -58,6 +61,7 @@ def create_empresa():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/empresas/<empresa_id>', methods=['PUT', 'POST'])
+@require_permission('skel_hc360')
 def update_empresa(empresa_id):
     try:
         data = request.json
@@ -79,6 +83,7 @@ def update_empresa(empresa_id):
 # ==============================================================================
 
 @skel_hc_bp.route('/empresas/<empresa_id>/cargos', methods=['GET'])
+@require_permission('skel_hc360')
 def get_cargos(empresa_id):
     try:
         sb = get_supabase()
@@ -89,6 +94,7 @@ def get_cargos(empresa_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/empresas/<empresa_id>/cargos', methods=['POST'])
+@require_permission('skel_hc360')
 def create_cargo(empresa_id):
     try:
         data = request.json
@@ -109,6 +115,7 @@ def create_cargo(empresa_id):
 # ==============================================================================
 
 @skel_hc_bp.route('/diccionario', methods=['GET'])
+@require_permission('skel_hc360')
 def get_diccionario():
     try:
         sb = get_supabase()
@@ -127,6 +134,7 @@ def get_diccionario():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/diccionario/seed', methods=['POST'])
+@require_permission('skel_hc360')
 def seed_diccionario():
     try:
         sb = get_supabase()
@@ -159,6 +167,7 @@ def seed_diccionario():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/diccionario', methods=['POST'])
+@require_permission('skel_hc360')
 def create_competencia_manual():
     try:
         data = request.json
@@ -244,6 +253,7 @@ def deduplicate_cargos_empresa(sb, empresa_id):
         print(f"Error deduplicando cargos: {e}")
 
 @skel_hc_bp.route('/empresa/<empresa_id>/carga-masiva', methods=['POST'])
+@require_permission('skel_hc360')
 def carga_masiva_colaboradores(empresa_id):
     try:
         if 'file' not in request.files:
@@ -338,6 +348,7 @@ def carga_masiva_colaboradores(empresa_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/empresa/<empresa_id>/colaboradores', methods=['GET', 'POST'])
+@require_permission('skel_hc360')
 def get_colaboradores(empresa_id):
     try:
         sb = get_supabase()
@@ -376,6 +387,7 @@ def get_colaboradores(empresa_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/colaborador/<colab_id>', methods=['PUT', 'DELETE'])
+@require_permission('skel_hc360')
 def manage_colaborador(colab_id):
     try:
         sb = get_supabase()
@@ -437,6 +449,7 @@ def manage_colaborador(colab_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/empresa/<empresa_id>/perfiles/matriz', methods=['POST'])
+@require_permission('skel_hc360')
 def gestionar_perfiles_matriz(empresa_id):
     try:
         sb = get_supabase()
@@ -475,6 +488,7 @@ def gestionar_perfiles_matriz(empresa_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/empresa/<empresa_id>/perfiles', methods=['GET', 'POST'])
+@require_permission('skel_hc360')
 def gestionar_perfiles(empresa_id):
     try:
         sb = get_supabase()
@@ -512,6 +526,7 @@ def gestionar_perfiles(empresa_id):
 import uuid
 
 @skel_hc_bp.route('/empresa/<empresa_id>/resultados', methods=['GET'])
+@require_permission('skel_hc360')
 def get_resultados_empresa(empresa_id):
     try:
         sb = get_supabase()
@@ -576,6 +591,7 @@ def get_resultados_empresa(empresa_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/empresa/<empresa_id>/lanzar', methods=['POST'])
+@require_permission('skel_hc360')
 def lanzar_encuestas(empresa_id):
     try:
         sb = get_supabase()
@@ -660,6 +676,7 @@ def lanzar_encuestas(empresa_id):
 # Módulo 06: Formulario Público de Evaluación
 # ==============================================================================
 @skel_hc_bp.route('/empresa/<empresa_id>/red360', methods=['GET', 'POST'])
+@require_permission('skel_hc360')
 def gestionar_red360(empresa_id):
     try:
         sb = get_supabase()
@@ -802,6 +819,7 @@ def submit_evaluacion(token):
 # ==============================================================================
 
 @skel_hc_bp.route('/reporte/individual/<evaluado_id>', methods=['GET'])
+@require_permission('skel_hc360')
 def get_reporte_individual(evaluado_id):
     try:
         sb = get_supabase()
@@ -948,6 +966,7 @@ def save_plan_accion_individual(evaluado_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/reporte/ia', methods=['POST'])
+@require_permission('skel_hc360')
 def generar_plan_ia():
     try:
         data = request.json
@@ -1032,6 +1051,7 @@ REGLA MANDATORIA DE FINALIZACIÓN: Completa ÍNTEGRAMENTE todas las 3 secciones 
 # ==============================================================================
 
 @skel_hc_bp.route('/empresa/<empresa_id>/plan_formacion', methods=['GET'])
+@require_permission('skel_hc360')
 def get_plan_formacion_empresa(empresa_id):
     try:
         sb = get_supabase()
@@ -1164,6 +1184,7 @@ def generar_plan_formacion_ia(empresa_id):
 
 
 @skel_hc_bp.route('/empresas/<empresa_id>', methods=['DELETE'])
+@require_permission('skel_hc360')
 def delete_empresa(empresa_id):
     try:
         sb = get_supabase()
@@ -1209,6 +1230,7 @@ def toggle_estado_empresa(empresa_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/empresa/<empresa_id>/enviar-correo', methods=['POST'])
+@require_permission('skel_hc360')
 def enviar_correo_evaluacion(empresa_id):
     try:
         from utils.mail import send_email

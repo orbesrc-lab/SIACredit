@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, send_from_directory, render_template, Response
+from utils.auth import require_permission
 from utils.db import supabase, get_active_inst_id
 import json
 import os
@@ -17,6 +18,7 @@ def encuesta_publica_page():
     return render_template('encuesta_publica.html')
 
 @surveys_bp.route('/api/surveys', methods=['GET', 'POST'])
+@require_permission('autoevaluacion')
 def handle_surveys():
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
@@ -52,6 +54,7 @@ def handle_surveys():
     return jsonify(surveys)
 
 @surveys_bp.route('/api/surveys/<survey_id>', methods=['GET', 'DELETE'])
+@require_permission('autoevaluacion')
 def handle_survey_specific(survey_id):
     if request.method == 'DELETE':
         inst_id = request.args.get('inst_id', 1, type=int)
@@ -154,6 +157,7 @@ def respond_survey(survey_id):
     return jsonify({"status": "error", "message": "Error al registrar la respuesta"})
 
 @surveys_bp.route('/api/surveys/<survey_id>/responses', methods=['GET'])
+@require_permission('autoevaluacion')
 def get_survey_responses(survey_id):
     use_cloud = request.args.get('use_cloud', 'false').lower() == 'true' or survey_storage.IS_VERCEL
     
@@ -192,6 +196,7 @@ def get_survey_responses(survey_id):
     return jsonify(responses)
 
 @surveys_bp.route('/api/surveys/sync', methods=['POST'])
+@require_permission('autoevaluacion')
 def sync_surveys():
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
@@ -211,6 +216,7 @@ def sync_surveys():
 # === API ENDPOINTS FOR LMS (FORMACION) ===
 
 @surveys_bp.route('/api/teachers', methods=['GET', 'POST'])
+@require_permission('capacitacion')
 def handle_api_teachers():
     inst_id = request.args.get('inst_id', 1, type=int)
     if request.method == 'POST':
@@ -227,6 +233,7 @@ def handle_api_teachers():
         return Response(json.dumps([]), mimetype='application/json')
 
 @surveys_bp.route('/api/teachers/<teacher_id>', methods=['DELETE'])
+@require_permission('capacitacion')
 def delete_api_teacher(teacher_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     success = formacion_storage.delete_teacher(inst_id, teacher_id)
@@ -235,6 +242,7 @@ def delete_api_teacher(teacher_id):
     return jsonify({"status": "error", "message": "No se pudo eliminar el docente."})
 
 @surveys_bp.route('/api/courses', methods=['GET', 'POST'])
+@require_permission('capacitacion')
 def handle_api_courses():
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
@@ -270,6 +278,7 @@ def handle_api_public_courses():
 
 
 @surveys_bp.route('/api/courses/<course_id>/forum', methods=['GET', 'POST'])
+@require_permission('capacitacion')
 def handle_course_forum(course_id):
     inst_id = int(request.args.get('inst_id', 1))
     program_id = int(request.args.get('program_id', 0))
@@ -305,6 +314,7 @@ def handle_course_forum(course_id):
             return jsonify({"status": "error", "message": str(e)})
 
 @surveys_bp.route('/api/courses/<course_id>', methods=['GET', 'PUT', 'DELETE'])
+@require_permission('capacitacion')
 def handle_api_course_specific(course_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
@@ -346,6 +356,7 @@ def get_public_courses_catalog():
     return jsonify(public_catalog)
 
 @surveys_bp.route('/api/courses/<course_id>/analytics', methods=['GET'])
+@require_permission('capacitacion')
 def get_course_analytics(course_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
@@ -402,6 +413,7 @@ def get_course_analytics(course_id):
     return jsonify({"course_id": course_id, "total_activities": total_activities, "students": analytics_data})
 
 @surveys_bp.route('/api/lms_upload', methods=['POST'])
+@require_permission('capacitacion')
 def api_upload_lms_file():
     if 'file' not in request.files:
         return jsonify({"status": "error", "message": "No file part"})
@@ -441,6 +453,7 @@ def get_course_report(course_id):
     return render_template('curso_reporte.html', course=course)
 
 @surveys_bp.route('/api/students', methods=['GET', 'POST'])
+@require_permission('capacitacion')
 def handle_api_students():
     inst_id = request.args.get('inst_id', 1, type=int)
     if request.method == 'POST':
@@ -482,6 +495,7 @@ def handle_api_submissions():
     return jsonify(subs)
 
 @surveys_bp.route('/api/submissions/<submission_id>/grade', methods=['PUT'])
+@require_permission('capacitacion')
 def handle_api_grade_submission(submission_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
@@ -492,6 +506,7 @@ def handle_api_grade_submission(submission_id):
     return jsonify({"status": "error", "message": "No se pudo registrar la calificación."})
 
 @surveys_bp.route('/api/students/<student_id>', methods=['DELETE'])
+@require_permission('capacitacion')
 def delete_api_student(student_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     success = formacion_storage.delete_student(inst_id, student_id)
@@ -500,6 +515,7 @@ def delete_api_student(student_id):
     return jsonify({"status": "error", "message": "No se pudo eliminar el estudiante."})
 
 @surveys_bp.route('/api/students/<student_id>/enroll', methods=['POST'])
+@require_permission('capacitacion')
 def enroll_student_api(student_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     course_id = request.json.get('course_id')
@@ -511,6 +527,7 @@ def enroll_student_api(student_id):
     return jsonify({"status": "error", "message": "No se pudo matricular al estudiante."})
 
 @surveys_bp.route('/api/students/<student_id>/unenroll', methods=['POST'])
+@require_permission('capacitacion')
 def unenroll_student_api(student_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     course_id = request.json.get('course_id')
@@ -522,6 +539,7 @@ def unenroll_student_api(student_id):
     return jsonify({"status": "error", "message": "No se pudo cancelar la matrícula."})
 
 @surveys_bp.route('/api/courses/<course_id>/students', methods=['GET'])
+@require_permission('capacitacion')
 def get_course_enrolled_students(course_id):
     inst_id = request.args.get('inst_id', 1, type=int)
     all_students = formacion_storage.load_students(inst_id)

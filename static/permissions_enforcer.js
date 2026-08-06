@@ -59,6 +59,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         'biblioteca.html': 'herramientas',
         'crm.html': 'herramientas',
         'backup.html': 'herramientas',
+
+        // SKEL HC 360 - Evaluación de Capital Humano
+        'skel360.html': 'skel_hc360',
+        'skel_empresa_dashboard.html': 'skel_hc360',
+        'skel_diccionario.html': 'skel_hc360',
+        'skel_evaluar.html': 'skel_hc360',
+        'skel_empresa_plan_formacion.html': 'skel_hc360',
+        'skel_empresa_resultados.html': 'skel_hc360',
+        'reporte_individual_360.html': 'skel_hc360',
+        'skel360_portal.html': 'skel_hc360',
         
         // Configuración - Usualmente solo admin/superadmin, pero lo manejamos
         'configuracion.html': 'configuracion'

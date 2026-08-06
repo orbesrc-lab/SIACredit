@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, send_file, Response, render_template
+from utils.auth import require_permission
 from utils.db import supabase
 import io
 import csv
@@ -77,6 +78,7 @@ def backup_page():
     return render_template('backup.html')
 
 @backup_bp.route('/api/backup/stats', methods=['GET'])
+@require_permission('herramientas')
 def backup_stats():
     try:
         inst_id = request.args.get('inst_id', 1, type=int)
@@ -301,6 +303,7 @@ def _build_full_zip(inst_id, scope, modules, year, program_id, password=None):
 
 
 @backup_bp.route('/api/backup/generate', methods=['POST'])
+@require_permission('herramientas')
 def backup_generate():
     """Generate the full ZIP backup and stream it."""
     try:
@@ -333,6 +336,7 @@ def backup_generate():
 
 
 @backup_bp.route('/api/backup/factor', methods=['POST'])
+@require_permission('herramientas')
 def backup_factor():
     """ZIP backup of a single factor."""
     try:
@@ -399,6 +403,7 @@ def backup_factor():
 
 
 @backup_bp.route('/api/backup/evidencias', methods=['POST'])
+@require_permission('herramientas')
 def backup_evidencias():
     """ZIP of evidences organized in folders."""
     try:
@@ -475,6 +480,7 @@ def backup_evidencias():
 
 
 @backup_bp.route('/api/backup/csv/<tipo>', methods=['POST'])
+@require_permission('herramientas')
 def backup_csv_single(tipo):
     """Export a single module as CSV."""
     try:
@@ -516,6 +522,7 @@ def backup_csv_single(tipo):
 
 
 @backup_bp.route('/api/backup/csv/all', methods=['POST'])
+@require_permission('herramientas')
 def backup_csv_all():
     """ZIP of ALL tables as CSV files."""
     try:
@@ -568,6 +575,7 @@ def backup_csv_all():
 
 
 @backup_bp.route('/api/backup/logs', methods=['POST'])
+@require_permission('herramientas')
 def get_backup_logs():
     data = request.json or {}
     user_id = data.get('user_id')
