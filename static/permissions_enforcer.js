@@ -92,6 +92,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 4. VERIFICAR ACCESO A LA PÁGINA ACTUAL
             const requiredModule = pageToModuleMap[currentPage];
             
+            // Regla estricta: Configuración solo para superadmin (admin) y administrador institucional (inst_admin)
+            if (currentPage === 'configuracion.html' || requiredModule === 'configuracion') {
+                if (!['admin', 'superadmin', 'super_admin', 'inst_admin'].includes(mappedRole)) {
+                    if (typeof Swal !== 'undefined') {
+                        await Swal.fire({
+                            icon: 'error',
+                            title: 'Acceso Denegado',
+                            text: 'El módulo de Configuración es de uso exclusivo para Administradores de la plataforma.',
+                            confirmButtonColor: '#3b82f6'
+                        });
+                    } else {
+                        alert('Acceso Denegado: El módulo de Configuración es de uso exclusivo para Administradores de la plataforma.');
+                    }
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+            }
+
             if (requiredModule && requiredModule !== 'configuracion' && perms[requiredModule]) {
                 if (!perms[requiredModule].includes(mappedRole)) {
                     // BLOQUEADO - Redirigir al dashboard si no es dashboard, sino alertar.
@@ -114,14 +132,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // 5. OCULTAR ENLACES EN EL MENÚ LATERAL (SIDEBAR)
             // Recorrer todos los enlaces del sidebar
-            const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+            const sidebarLinks = document.querySelectorAll('.sidebar-menu a, .sidebar-item, a[href="configuracion.html"]');
             sidebarLinks.forEach(link => {
                 const href = link.getAttribute('href');
                 if (href) {
                     const linkPage = href.split('/').pop();
                     const linkModule = pageToModuleMap[linkPage];
                     
-                    if (linkModule && perms[linkModule]) {
+                    if (linkPage === 'configuracion.html') {
+                        if (!['admin', 'superadmin', 'super_admin', 'inst_admin'].includes(mappedRole)) {
+                            link.style.display = 'none';
+                            link.classList.add('permission-hidden');
+                        }
+                    } else if (linkModule && perms[linkModule]) {
                         if (!perms[linkModule].includes(mappedRole)) {
                             // Ocultar el enlace (display: none)
                             link.style.display = 'none';

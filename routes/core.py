@@ -973,6 +973,7 @@ def init_admin():
 # --- Gestión de Usuarios por Institución ---
 
 @core_bp.route('/api/users', methods=['GET', 'POST'])
+@require_permission('configuracion')
 def handle_users():
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
@@ -1338,6 +1339,7 @@ def get_form_permissions():
         return jsonify({"status": "error", "message": str(e)})
 
 @core_bp.route('/api/permissions/form', methods=['POST'])
+@require_permission('configuracion')
 def save_form_permissions():
     invalidate_permissions_cache()
     import json

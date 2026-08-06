@@ -9,6 +9,19 @@
     <meta http-equiv="Expires" content="0">
     <title>SKEL - Expertos en Proyectos de Educación Superior</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+    (function() {
+        try {
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            const role = (user.role || '').toLowerCase();
+            const allowed = ['admin', 'superadmin', 'super-admin', 'inst_admin'];
+            if (!user.role || !allowed.includes(role)) {
+                alert('Acceso Denegado: El módulo de Configuración es de uso exclusivo para Administradores de la plataforma.');
+                window.location.href = 'dashboard.html';
+            }
+        } catch(e) {}
+    })();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>

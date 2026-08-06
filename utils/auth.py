@@ -182,7 +182,16 @@ def require_permission(module_key):
             if role == 'admin':
                 return f(*args, **kwargs)
 
-            # 4. Leer permisos de la institucion
+            # 4. El módulo de configuración es de uso exclusivo para Administradores (admin e inst_admin)
+            if module_key == 'configuracion':
+                if role not in ['admin', 'inst_admin']:
+                    return jsonify({
+                        "status": "error",
+                        "message": "Acceso denegado: El módulo de Configuración es de uso exclusivo para Administradores."
+                    }), 403
+                return f(*args, **kwargs)
+
+            # 5. Leer permisos de la institucion
             perms = get_permissions_for_inst(inst_id)
 
             # 5. Si el modulo no tiene configuracion de permisos, permitir por defecto
