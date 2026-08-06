@@ -143,6 +143,8 @@
             opacity: 0.95;
         }
     </style>
+    <script src="{{ url_for('static', filename='app.js') }}?v=2.2"></script>
+    <script src="{{ url_for('static', filename='data.js') }}?v=2.2"></script>
 </head>
 
 <body>
@@ -1038,7 +1040,8 @@
             const saveBtn = document.querySelector('[onclick="syncModelWithBackend()"]');
             if (saveBtn) { saveBtn.disabled = false; saveBtn.style.opacity = ''; saveBtn.style.cursor = ''; }
 
-            const data = getDataModel();
+            let data = getDataModel();
+            if (!Array.isArray(data)) { data = []; }
             let html = '';
 
             if (data.length === 0) {
@@ -3349,7 +3352,7 @@
             }, 800);
         });
     </script>
-    <script src="{{ url_for('static', filename='app.js') }}?v=2.2"></script>
+    
 
 
 <script>
