@@ -219,7 +219,7 @@ async function saveFactor5Data() {
     const btn = document.querySelector('button[onclick="saveFactor5Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -227,7 +227,7 @@ async function saveFactor5Data() {
 
 async function fetchFactor5Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor5_curricular&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor5_curricular&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -444,7 +444,7 @@ async function saveFactor7Data() {
     const btn = document.querySelector('button[onclick="saveFactor7Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -452,7 +452,7 @@ async function saveFactor7Data() {
 
 async function fetchFactor7Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor7_extension&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor7_extension&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -686,7 +686,7 @@ async function saveFactor8Data() {
     const btn = document.querySelector('button[onclick="saveFactor8Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -694,7 +694,7 @@ async function saveFactor8Data() {
 
 async function fetchFactor8Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor8_investigacion&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor8_investigacion&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -917,7 +917,7 @@ async function saveFactor10Data() {
     const btn = document.querySelector('button[onclick="saveFactor10Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -925,7 +925,7 @@ async function saveFactor10Data() {
 
 async function fetchFactor10Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor10_recursos&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor10_recursos&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -1264,7 +1264,7 @@ async function saveFactor5Data() {
     const btn = document.querySelector('button[onclick="saveFactor5Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -1272,7 +1272,7 @@ async function saveFactor5Data() {
 
 async function fetchFactor5Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor5_curricular&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor5_curricular&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -1489,7 +1489,7 @@ async function saveFactor7Data() {
     const btn = document.querySelector('button[onclick="saveFactor7Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -1497,7 +1497,7 @@ async function saveFactor7Data() {
 
 async function fetchFactor7Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor7_extension&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor7_extension&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -1731,7 +1731,7 @@ async function saveFactor8Data() {
     const btn = document.querySelector('button[onclick="saveFactor8Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -1739,7 +1739,7 @@ async function saveFactor8Data() {
 
 async function fetchFactor8Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor8_investigacion&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor8_investigacion&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -1962,7 +1962,7 @@ async function saveFactor10Data() {
     const btn = document.querySelector('button[onclick="saveFactor10Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -1970,7 +1970,7 @@ async function saveFactor10Data() {
 
 async function fetchFactor10Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor10_recursos&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor10_recursos&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -2017,7 +2017,7 @@ function updateFactor10Charts() {
 
         async function fetchActiveProgramPeriod() {
             try {
-                const response = await fetch(`/api/programs?inst_id=${getInstId()}&t=` + Date.now());
+                const response = await authFetch(`/api/programs?inst_id=${getInstId()}&t=` + Date.now());
                 if (response.ok) {
                     const programs = await response.json();
                     const progId = getProgramId();
@@ -2141,7 +2141,7 @@ function updateFactor10Charts() {
 
             const container = document.getElementById('aspectsContainer');
             const model = getDataModel();
-            const response = await fetch(`/api/evidences?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+            const response = await authFetch(`/api/evidences?inst_id=${getInstId()}&program_id=${getProgramId()}`);
             const evidences = await response.json();
             
             let characteristic = null;
@@ -2427,7 +2427,7 @@ function updateFactor10Charts() {
             btn.textContent = 'Guardando...';
             
             try {
-                const response = await fetch('/api/estadisticas', {
+                const response = await authFetch('/api/estadisticas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -2446,7 +2446,7 @@ function updateFactor10Charts() {
 
         async function fetchFactor4Data() {
             try {
-                const res = await fetch(`/api/estadisticas?table_id=factor4_profesores&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const res = await authFetch(`/api/estadisticas?table_id=factor4_profesores&inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 if (res.ok) {
                     const json = await res.json();
                     if (json && json.data) {
@@ -2560,7 +2560,7 @@ function updateFactor10Charts() {
             
             try {
                 // Paso 1: Solicitar Signed URL al backend
-                const urlRes = await fetch('/api/direct_upload/url', {
+                const urlRes = await authFetch('/api/direct_upload/url', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -2593,7 +2593,7 @@ function updateFactor10Charts() {
                 }
                 
                 // Paso 3: Confirmar subida al backend
-                const confirmRes = await fetch('/api/evidences/confirm_upload', {
+                const confirmRes = await authFetch('/api/evidences/confirm_upload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -2622,7 +2622,7 @@ function updateFactor10Charts() {
         }
 
         async function updateStatus(id, status) {
-            await fetch(`/api/evidences/status?inst_id=${getInstId()}`, {
+            await authFetch(`/api/evidences/status?inst_id=${getInstId()}`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id, status })
             });
@@ -2631,7 +2631,7 @@ function updateFactor10Charts() {
 
         async function deleteEvidence(id) {
             if(!confirm('¿Eliminar esta evidencia?')) return;
-            const resp = await fetch(`/api/evidences/${id}?inst_id=${getInstId()}`, { method: 'DELETE' });
+            const resp = await authFetch(`/api/evidences/${id}?inst_id=${getInstId()}`, { method: 'DELETE' });
             if(resp.ok) loadAspects(document.querySelector('.char-item.active').id.replace('char_tab_', ''));
         }
 
@@ -2826,7 +2826,7 @@ async function saveFactor5Data() {
     const btn = document.querySelector('button[onclick="saveFactor5Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -2834,7 +2834,7 @@ async function saveFactor5Data() {
 
 async function fetchFactor5Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor5_curricular&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor5_curricular&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -3051,7 +3051,7 @@ async function saveFactor7Data() {
     const btn = document.querySelector('button[onclick="saveFactor7Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3059,7 +3059,7 @@ async function saveFactor7Data() {
 
 async function fetchFactor7Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor7_extension&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor7_extension&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -3293,7 +3293,7 @@ async function saveFactor8Data() {
     const btn = document.querySelector('button[onclick="saveFactor8Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3301,7 +3301,7 @@ async function saveFactor8Data() {
 
 async function fetchFactor8Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor8_investigacion&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor8_investigacion&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -3524,7 +3524,7 @@ async function saveFactor10Data() {
     const btn = document.querySelector('button[onclick="saveFactor10Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3532,7 +3532,7 @@ async function saveFactor10Data() {
 
 async function fetchFactor10Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor10_recursos&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor10_recursos&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -3754,7 +3754,7 @@ async function saveFactor5Data() {
     const btn = document.querySelector('button[onclick="saveFactor5Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3762,7 +3762,7 @@ async function saveFactor5Data() {
 
 async function fetchFactor5Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor5_curricular&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor5_curricular&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -3979,7 +3979,7 @@ async function saveFactor7Data() {
     const btn = document.querySelector('button[onclick="saveFactor7Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -3987,7 +3987,7 @@ async function saveFactor7Data() {
 
 async function fetchFactor7Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor7_extension&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor7_extension&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -4221,7 +4221,7 @@ async function saveFactor8Data() {
     const btn = document.querySelector('button[onclick="saveFactor8Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -4229,7 +4229,7 @@ async function saveFactor8Data() {
 
 async function fetchFactor8Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor8_investigacion&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor8_investigacion&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -4452,7 +4452,7 @@ async function saveFactor10Data() {
     const btn = document.querySelector('button[onclick="saveFactor10Data()"]');
     btn.textContent = 'Guardando...';
     try {
-        const res = await fetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await authFetch('/api/estadisticas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if(res.ok) alert('Datos guardados correctamente.'); else alert('Error al guardar datos.');
     } catch (err) { alert('Error de conexión.'); }
     btn.textContent = '💾 Guardar Todos los Cuadros';
@@ -4460,7 +4460,7 @@ async function saveFactor10Data() {
 
 async function fetchFactor10Data() {
     try {
-        const res = await fetch(`/api/estadisticas?table_id=factor10_recursos&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+        const res = await authFetch(`/api/estadisticas?table_id=factor10_recursos&inst_id=${getInstId()}&program_id=${getProgramId()}`);
         if (res.ok) {
             const json = await res.json();
             if (json && json.data) {
@@ -4528,7 +4528,7 @@ async function uploadGridEvidence(fileInput, tableId) {
     td.innerHTML = '<span style="color:var(--primary-color); font-size:0.8rem;">⏳ Subiendo...</span>';
 
     try {
-        const res = await fetch('/api/upload', {
+        const res = await authFetch('/api/upload', {
             method: 'POST',
             body: formData
         });

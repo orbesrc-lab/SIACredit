@@ -303,7 +303,7 @@
 
         async function loadPlanningTree() {
             try {
-                const resp = await fetch(`/api/planning/tree?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const resp = await authFetch(`/api/planning/tree?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 if (resp.ok) {
                     const data = await resp.json();
                     if (data.status === 'success' && data.tree) {
@@ -342,7 +342,7 @@
 
         async function initHeader() {
             try {
-                const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+                const resp = await authFetch(`/api/institution?inst_id=${getInstId()}`);
                 if (resp.ok) {
                     const data = await resp.json();
                     document.getElementById('inst_name_display').textContent = data.name || 'INSTITUCIÓN EDUCATIVA';
@@ -607,7 +607,7 @@
 
         async function loadSGC() {
             try {
-                const res = await fetch(`/api/business/matrix/ISO9001?inst_id=${getInstId()}`);
+                const res = await authFetch(`/api/business/matrix/ISO9001?inst_id=${getInstId()}`);
                 if (res.ok) {
                     const data = await res.json();
                     let dbData = data.data;
@@ -629,7 +629,7 @@
             sgcData.eval_date = document.getElementById('eval_date').value;
 
             try {
-                const res = await fetch('/api/business/matrix/ISO9001', {
+                const res = await authFetch('/api/business/matrix/ISO9001', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
@@ -648,7 +648,7 @@
         async function generatePolicyAI() {
             Swal.fire({ title: 'Generando Política de Calidad...', text: 'Analizando contexto estratégico...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             try {
-                const resp = await fetch('/api/business/iso9001_generate', {
+                const resp = await authFetch('/api/business/iso9001_generate', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ inst_id: getInstId(), action_type: 'policy' })
@@ -673,7 +673,7 @@
             Swal.fire({ title: 'Auditor Virtual Analizando PHVA...', text: 'Evaluando cumplimiento ISO 9001...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
             try {
-                const resp = await fetch('/api/business/iso9001_generate', {
+                const resp = await authFetch('/api/business/iso9001_generate', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({

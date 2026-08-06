@@ -114,7 +114,7 @@
             
             try {
                 // Evaluacion ID harcodeada por ahora, en la vida real viene en la URL del QR
-                const response = await fetch('/api/skel360/kiosco/login', {
+                const response = await authFetch('/api/skel360/kiosco/login', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({

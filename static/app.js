@@ -33,8 +33,9 @@ function getProgramId() {
  */
 function authFetch(url, options = {}) {
     const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const method = (options.method || 'GET').toUpperCase();
     const headers = {
-        'Content-Type': 'application/json',
+        ...(method !== 'GET' ? {'Content-Type': 'application/json'} : {}),
         ...(options.headers || {}),
     };
     if (user && user.id) {

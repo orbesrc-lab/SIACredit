@@ -912,12 +912,12 @@
                 if (file) {
                     const formData = new FormData();
                     formData.append('file', file);
-                    const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+                    const uploadRes = await authFetch('/api/upload', { method: 'POST', body: formData });
                     const uploadData = await uploadRes.json();
                     fileUrl = uploadData.url || uploadData.file_url;
                 }
 
-                const res = await fetch('/api/ai/chat', {
+                const res = await authFetch('/api/ai/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ question: text, file_url: fileUrl })
@@ -1300,7 +1300,7 @@
             try {
                 const instId = getInstId();
                 if (!instId) { document.getElementById('inst_name_display').textContent = 'Mi Organización'; return; }
-                const resp = await fetch(`/api/institution?inst_id=${instId}`);
+                const resp = await authFetch(`/api/institution?inst_id=${instId}`);
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const data = await resp.json();
                 document.getElementById('inst_name_display').textContent = data.name || 'Mi Organización';
@@ -1323,7 +1323,7 @@
             if (!user || !user.email) return;
             
             try {
-                const resp = await fetch(`/api/notificaciones?inst_id=${getInstId()}&program_id=${getProgramId()}&email=${user.email}`);
+                const resp = await authFetch(`/api/notificaciones?inst_id=${getInstId()}&program_id=${getProgramId()}&email=${user.email}`);
                 const notifications = await resp.json();
                 
                 const bell = document.getElementById('notifBell');
@@ -1364,7 +1364,7 @@
         
         async function markAsRead(id) {
             try {
-                const resp = await fetch(`/api/notificaciones/${id}/read`, { method: 'POST' });
+                const resp = await authFetch(`/api/notificaciones/${id}/read`, { method: 'POST' });
                 if (resp.ok) {
                     loadNotifications();
                 }
@@ -1376,7 +1376,7 @@
             if (!user || !user.email) return;
             
             try {
-                const resp = await fetch(`/api/notificaciones/read-all?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                const resp = await authFetch(`/api/notificaciones/read-all?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: user.email })
@@ -1467,8 +1467,8 @@
 
             try {
                 const [instResp, progResp] = await Promise.all([
-                    fetch('/api/institutions?t=' + Date.now()),
-                    fetch(`/api/programs?inst_id=${instId}&t=` + Date.now())
+                    authFetch('/api/institutions?t=' + Date.now()),
+                    authFetch(`/api/programs?inst_id=${instId}&t=` + Date.now())
                 ]);
                 const institutions = await instResp.json();
                 const programs = await progResp.json();
@@ -1502,18 +1502,18 @@
             document.getElementById('btnImprimir').style.display = 'none';
 
             try {
-                const res = await fetch(`/api/informe_dinamico?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const res = await authFetch(`/api/informe_dinamico?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const data = await res.json();
                 
                 // Fetch Planes de Mejora
-                const pmResp = await fetch(`/api/planes_mejora?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const pmResp = await authFetch(`/api/planes_mejora?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const planes = await pmResp.json();
                 data.planes_mejora = planes;
                 
                 // Fetch users to resolve names
                 let users = [];
                 try {
-                    const uResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    const uResp = await authFetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                     users = await uResp.json();
                 } catch(e) {
                     console.error("Error loading users:", e);
@@ -1924,7 +1924,7 @@
             if (typeof initHeader === 'function') await initHeader();
             else {
                 try {
-                    const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+                    const resp = await authFetch(`/api/institution?inst_id=${getInstId()}`);
                     if (resp.ok) {
                         const data = await resp.json();
                         document.getElementById('inst_name_display').textContent = data.name || 'INSTITUCIÓN EDUCATIVA';
@@ -1954,10 +1954,10 @@
 
             try {
                 // Fetch context data first
-                const res = await fetch(`/api/informe_dinamico?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const res = await authFetch(`/api/informe_dinamico?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const data = await res.json();
                 
-                const aiRes = await fetch('/api/ai/generate_report', {
+                const aiRes = await authFetch('/api/ai/generate_report', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ report_data: data })
@@ -2020,7 +2020,7 @@
             abrirModalDOFA();
 
             try {
-                const aiRes = await fetch('/api/ai/generate_dofa', {
+                const aiRes = await authFetch('/api/ai/generate_dofa', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ report_text: window.currentAiReport })
@@ -2032,7 +2032,7 @@
                     renderDOFA(aiData.dofa);
                     
                     // Auto-guardar factores DOFA internamente para uso futuro
-                    await fetch('/api/estadisticas', {
+                    await authFetch('/api/estadisticas', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -2072,7 +2072,7 @@
                 let ctxE = prompt("Ingresa el contexto espacial de evaluación (Ej. Colombia, Internacional, Valle del Cauca...)", "Colombia");
                 if(!ctxE) { cerrarModalPESTA(); return; } // Si cancela
 
-                const aiRes = await fetch('/api/ai/generate_pesta', {
+                const aiRes = await authFetch('/api/ai/generate_pesta', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -2090,7 +2090,7 @@
                     let accumulatedAmenazas = aiData.pesta.amenazas || [];
                     
                     try {
-                        const getRes = await fetch(`/api/estadisticas?table_id=DOFA_EXTERNAL&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                        const getRes = await authFetch(`/api/estadisticas?table_id=DOFA_EXTERNAL&inst_id=${getInstId()}&program_id=${getProgramId()}`);
                         const getResData = await getRes.json();
                         if (getResData && getResData.data) {
                             if (getResData.data.oportunidades) {
@@ -2114,7 +2114,7 @@
                     renderPESTA(aiData.pesta);
                     
                     // Auto-guardar factores externos acumulados
-                    await fetch('/api/estadisticas', {
+                    await authFetch('/api/estadisticas', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -2200,7 +2200,7 @@
         try {
             const instId = getInstId();
             const progId = getProgramId();
-            const res = await fetch(`/api/permissions/form?inst_id=${instId}&program_id=${progId}`);
+            const res = await authFetch(`/api/permissions/form?inst_id=${instId}&program_id=${progId}`);
             const data = await res.json();
             if(data.status === 'success') {
                 _globalPermissions = data.permissions || {};
@@ -2300,7 +2300,7 @@
         try {
             const instId = getInstId();
             const progId = getProgramId();
-            await fetch('/api/permissions/form', {
+            await authFetch('/api/permissions/form', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ inst_id: instId, program_id: progId, permissions: _globalPermissions })

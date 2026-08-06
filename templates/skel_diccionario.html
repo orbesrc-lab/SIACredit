@@ -23,6 +23,7 @@
         .btn-primary { background: var(--primary-gradient); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
         .content-wrapper { overflow-y: auto; flex: 1; padding: 20px; }
     </style>
+<script src="/static/app.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -247,7 +248,7 @@
             };
             
             try {
-                const res = await fetch('/api/skel360/diccionario', {
+                const res = await authFetch('/api/skel360/diccionario', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
@@ -267,7 +268,7 @@
 
         async function loadDiccionario() {
             try {
-                const res = await fetch('/api/skel360/diccionario');
+                const res = await authFetch('/api/skel360/diccionario');
                 const data = await res.json();
                 
                 const tbody = document.getElementById('diccionario-list');
@@ -305,7 +306,7 @@
         
         async function seedDiccionario() {
             try {
-                await fetch('/api/skel360/diccionario/seed', {method: 'POST'});
+                await authFetch('/api/skel360/diccionario/seed', {method: 'POST'});
                 loadDiccionario();
             } catch(e) { console.error(e); }
         }

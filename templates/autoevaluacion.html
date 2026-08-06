@@ -386,13 +386,13 @@
 
                 const pId = getProgramId();
 
-                const resp = await fetch(`/api/model?inst_id=${iId}&program_id=${pId}`);
+                const resp = await authFetch(`/api/model?inst_id=${iId}&program_id=${pId}`);
 
                 const factors = await resp.json();
 
                 
 
-                const evalsResp = await fetch(`/api/reports/summary?inst_id=${iId}&program_id=${pId}`);
+                const evalsResp = await authFetch(`/api/reports/summary?inst_id=${iId}&program_id=${pId}`);
 
                 const summaryData = await evalsResp.json();
 
@@ -480,7 +480,7 @@
 
             try {
 
-                const resp = await fetch(`/api/model?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const resp = await authFetch(`/api/model?inst_id=${getInstId()}&program_id=${getProgramId()}`);
 
                 const factors = await resp.json();
 
@@ -490,7 +490,7 @@
 
 
 
-                const evalsResp = await fetch(`/api/evaluations?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const evalsResp = await authFetch(`/api/evaluations?inst_id=${getInstId()}&program_id=${getProgramId()}`);
 
                 const allEvals = await evalsResp.json();
 
@@ -720,7 +720,7 @@
 
                 try {
 
-                    const uResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    const uResp = await authFetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
 
                     window.systemUsers = await uResp.json();
 
@@ -872,7 +872,7 @@
 
                 try {
 
-                    const sResp = await fetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    const sResp = await authFetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}`);
 
                     window.programSurveys = await sResp.json();
 
@@ -890,7 +890,7 @@
 
                 try {
 
-                    const uResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    const uResp = await authFetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
 
                     window.systemUsers = await uResp.json();
 
@@ -906,7 +906,7 @@
 
             try {
 
-                const resp = await fetch(`/api/planes_mejora?inst_id=${getInstId()}&program_id=${getProgramId()}&char_id=${cId}`);
+                const resp = await authFetch(`/api/planes_mejora?inst_id=${getInstId()}&program_id=${getProgramId()}&char_id=${cId}`);
 
                 const planes = await resp.json();
 
@@ -1616,7 +1616,7 @@
 
             try {
 
-                const resp = await fetch(`/api/planes_mejora?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                const resp = await authFetch(`/api/planes_mejora?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
 
                     method: 'POST',
 
@@ -1818,7 +1818,7 @@
 
             try {
 
-                const resp = await fetch(`/api/planes_mejora/${planId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                const resp = await authFetch(`/api/planes_mejora/${planId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
 
                     method: 'PUT',
 
@@ -1892,7 +1892,7 @@
 
             try {
 
-                const resp = await fetch(`/api/planes_mejora/${planId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                const resp = await authFetch(`/api/planes_mejora/${planId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
 
                     method: 'PUT',
 
@@ -1956,7 +1956,7 @@
 
                 
 
-                const uploadResp = await fetch('/api/planes_mejora/upload_soporte', {
+                const uploadResp = await authFetch('/api/planes_mejora/upload_soporte', {
 
                     method: 'POST',
 
@@ -1980,7 +1980,7 @@
 
                 
 
-                const updateResp = await fetch(`/api/planes_mejora/${planId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                const updateResp = await authFetch(`/api/planes_mejora/${planId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
 
                     method: 'PUT',
 
@@ -2028,7 +2028,7 @@
 
             try {
 
-                const resp = await fetch(`/api/planes_mejora/${planId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                const resp = await authFetch(`/api/planes_mejora/${planId}?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
 
                     method: 'DELETE'
 
@@ -2062,7 +2062,7 @@
 
             try {
 
-                const resp = await fetch(`/api/notificaciones?inst_id=${getInstId()}&program_id=${getProgramId()}&email=${user.email}`);
+                const resp = await authFetch(`/api/notificaciones?inst_id=${getInstId()}&program_id=${getProgramId()}&email=${user.email}`);
 
                 const notifications = await resp.json();
 
@@ -2144,7 +2144,7 @@
 
             try {
 
-                const resp = await fetch(`/api/notificaciones/${id}/read`, { method: 'POST' });
+                const resp = await authFetch(`/api/notificaciones/${id}/read`, { method: 'POST' });
 
                 if (resp.ok) {
 
@@ -2168,7 +2168,7 @@
 
             try {
 
-                const resp = await fetch(`/api/notificaciones/read-all?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                const resp = await authFetch(`/api/notificaciones/read-all?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
 
                     method: 'POST',
 
@@ -2234,7 +2234,7 @@
 
                 const useCloud = localStorage.getItem('siac_use_cloud') === 'true';
 
-                const surveysResp = await fetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}&use_cloud=${useCloud}`);
+                const surveysResp = await authFetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}&use_cloud=${useCloud}`);
 
                 const surveys = await surveysResp.json();
 
@@ -2280,7 +2280,7 @@
 
                     fetchPromises.push(
 
-                        fetch(`/api/surveys/${survey.id}/responses?use_cloud=${useCloud}&inst_id=${getInstId()}&program_id=${getProgramId()}`).then(r => r.json())
+                        authFetch(`/api/surveys/${survey.id}/responses?use_cloud=${useCloud}&inst_id=${getInstId()}&program_id=${getProgramId()}`).then(r => r.json())
 
                     );
 
@@ -2514,7 +2514,7 @@
 
             const pId = getProgramId();
 
-            const resp = await fetch(`/api/evaluations?inst_id=${iId}&program_id=${pId}`, {
+            const resp = await authFetch(`/api/evaluations?inst_id=${iId}&program_id=${pId}`, {
 
                 method: 'POST',
 
@@ -2562,7 +2562,7 @@
 
             try {
 
-                const resp = await fetch(`/api/evaluations/${cId}?inst_id=${iId}&program_id=${pId}`, {
+                const resp = await authFetch(`/api/evaluations/${cId}?inst_id=${iId}&program_id=${pId}`, {
 
                     method: 'DELETE'
 
@@ -2610,7 +2610,7 @@
 
         async function init() {
 
-            const instResp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+            const instResp = await authFetch(`/api/institution?inst_id=${getInstId()}`);
 
             const inst = await instResp.json();
 

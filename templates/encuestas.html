@@ -373,7 +373,7 @@
 
         async function loadModelData() {
             try {
-                const resp = await fetch(`/api/model?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const resp = await authFetch(`/api/model?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 modelData = await resp.json();
             } catch(e) {
                 console.error("Error loading model data:", e);
@@ -479,7 +479,7 @@
             syncBtn.disabled = true;
             syncBtn.textContent = "⏳ Sincronizando...";
             try {
-                const resp = await fetch(`/api/surveys/sync?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                const resp = await authFetch(`/api/surveys/sync?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'push' })
@@ -504,7 +504,7 @@
             updateStorageBanner();
             try {
                 // Cargar datos de la institución
-                const instResp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+                const instResp = await authFetch(`/api/institution?inst_id=${getInstId()}`);
                 const instData = await instResp.json();
                 document.getElementById('inst_name').textContent = instData.name;
                 if(instData.logo_url) {
@@ -514,7 +514,7 @@
                 }
 
                 // Cargar datos del programa
-                const progResp = await fetch(`/api/programs?inst_id=${getInstId()}`);
+                const progResp = await authFetch(`/api/programs?inst_id=${getInstId()}`);
                 const progs = await progResp.json();
                 const currentProg = progs.find(p => p.id == getProgramId());
                 const programName = currentProg ? currentProg.name : 'Programa';
@@ -527,7 +527,7 @@
 
         async function loadSurveys() {
             try {
-                const resp = await fetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}&use_cloud=${useCloud}`);
+                const resp = await authFetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}&use_cloud=${useCloud}`);
                 surveysData = await resp.json();
                 renderSurveys();
             } catch (e) {
@@ -810,7 +810,7 @@
             }
 
             try {
-                const resp = await fetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}&use_cloud=${useCloud}`, {
+                const resp = await authFetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}&use_cloud=${useCloud}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(updatedList)
@@ -831,7 +831,7 @@
         async function deleteSurvey(surveyId) {
             if (!confirm("¿Está seguro de eliminar esta encuesta y todas sus respuestas?")) return;
             try {
-                const resp = await fetch(`/api/surveys/${surveyId}?inst_id=${getInstId()}&program_id=${getProgramId()}&use_cloud=${useCloud}`, {
+                const resp = await authFetch(`/api/surveys/${surveyId}?inst_id=${getInstId()}&program_id=${getProgramId()}&use_cloud=${useCloud}`, {
                     method: 'DELETE'
                 });
                 const res = await resp.json();
@@ -865,7 +865,7 @@
             resultsContent.innerHTML = `<div style="text-align:center; padding:30px;">Cargando respuestas...</div>`;
 
             try {
-                const resp = await fetch(`/api/surveys/${surveyId}/responses?use_cloud=${useCloud}`);
+                const resp = await authFetch(`/api/surveys/${surveyId}/responses?use_cloud=${useCloud}`);
                 activeSurveyResponses = await resp.json();
                 renderAnalytics(survey);
             } catch (e) {

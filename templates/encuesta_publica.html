@@ -431,7 +431,7 @@
             }
 
             try {
-                const resp = await fetch(`/api/surveys/${surveyId}`);
+                const resp = await authFetch(`/api/surveys/${surveyId}`);
                 if (!resp.ok) {
                     throw new Error("Encuesta no encontrada");
                 }
@@ -446,7 +446,7 @@
                 targetBadge.className = `badge target-${surveyData.target}`;
 
                 // Cargar institución
-                const instResp = await fetch(`/api/institution?inst_id=${surveyData.inst_id || 1}`);
+                const instResp = await authFetch(`/api/institution?inst_id=${surveyData.inst_id || 1}`);
                 const instData = await instResp.json();
                 document.getElementById('inst_name').textContent = instData.name;
                 if(instData.logo_url) {
@@ -623,7 +623,7 @@
                     }
                 }, 150);
 
-                const resp = await fetch('/api/surveys/upload', {
+                const resp = await authFetch('/api/surveys/upload', {
                     method: 'POST',
                     body: formData
                 });
@@ -725,7 +725,7 @@
             const useCloudQuery = localStorage.getItem('siac_use_cloud') === 'true' ? 'true' : 'false';
 
             try {
-                const resp = await fetch(`/api/surveys/${surveyId}/respond?use_cloud=${useCloudQuery}`, {
+                const resp = await authFetch(`/api/surveys/${surveyId}/respond?use_cloud=${useCloudQuery}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(answers)

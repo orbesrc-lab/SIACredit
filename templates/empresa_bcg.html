@@ -235,7 +235,7 @@
         function logout() { localStorage.removeItem('siac_user'); window.top.location.href = 'login.html'; }
 
         async function initPage() {
-            const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+            const resp = await authFetch(`/api/institution?inst_id=${getInstId()}`);
             const data = await resp.json();
             document.getElementById('inst_name_display').textContent = data.name || 'Empresa';
             if (data.logo_url) {
@@ -319,7 +319,7 @@
 
         async function loadBCG() {
             try {
-                const resp = await fetch(`/api/business/matrix/bcg?inst_id=${getInstId()}`);
+                const resp = await authFetch(`/api/business/matrix/bcg?inst_id=${getInstId()}`);
                 if(resp.ok) {
                     const res = await resp.json();
                     if(res.data && res.data.products && res.data.products.length > 0) {
@@ -359,7 +359,7 @@
             };
             
             try {
-                const resp = await fetch(`/api/business/matrix/bcg`, {
+                const resp = await authFetch(`/api/business/matrix/bcg`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
@@ -389,7 +389,7 @@
         let currentMatrix = null;
 
         async function initPage() {
-            const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+            const resp = await authFetch(`/api/institution?inst_id=${getInstId()}`);
             const data = await resp.json();
             document.getElementById('inst_name_display').textContent = data.name;
             if (data.logo_url) {
@@ -412,7 +412,7 @@
         // --- INTERNOS ---
         async function loadInternos(isManualReload = false) {
             try {
-                const res = await fetch(`/api/estadisticas?table_id=DOFA_INTERNAL&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const res = await authFetch(`/api/estadisticas?table_id=DOFA_INTERNAL&inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const responseData = await res.json();
                 if(responseData && responseData.data) {
                     internalFactors = responseData.data;
@@ -450,7 +450,7 @@
         // --- EXTERNOS ---
         async function loadExternos() {
             try {
-                const res = await fetch(`/api/estadisticas?table_id=DOFA_EXTERNAL&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const res = await authFetch(`/api/estadisticas?table_id=DOFA_EXTERNAL&inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const responseData = await res.json();
                 if(responseData && responseData.data) {
                     externalFactors = responseData.data;
@@ -506,7 +506,7 @@
 
         async function saveExternos() {
             try {
-                await fetch('/api/estadisticas', {
+                await authFetch('/api/estadisticas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -605,7 +605,7 @@
         // --- MATRIZ ---
         async function loadMatriz() {
             try {
-                const res = await fetch(`/api/estadisticas?table_id=DOFA_MATRIX&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const res = await authFetch(`/api/estadisticas?table_id=DOFA_MATRIX&inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const responseData = await res.json();
                 if(responseData && responseData.data) {
                     currentMatrix = responseData.data;
@@ -671,7 +671,7 @@
             document.getElementById('matrizResult').style.display = 'none';
 
             try {
-                const aiRes = await fetch('/api/ai/cruce_dofa', {
+                const aiRes = await authFetch('/api/ai/cruce_dofa', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -728,7 +728,7 @@
 
             try {
                 // 1. Pedir a la IA sugerencias de ejes
-                const res = await fetch('/api/dofa/suggest_axes', {
+                const res = await authFetch('/api/dofa/suggest_axes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ dofa_data: currentMatrix })
@@ -787,7 +787,7 @@
 
             try {
                 // 1. Guardar Snapshot histórico
-                await fetch('/api/estadisticas', {
+                await authFetch('/api/estadisticas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -799,7 +799,7 @@
                 });
 
                 // 2. Disparar migración a Planificación con ejes estructurados
-                const migRes = await fetch('/api/planning/migrate_dofa', {
+                const migRes = await authFetch('/api/planning/migrate_dofa', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -826,7 +826,7 @@
 
         async function directMigration() {
             try {
-                await fetch('/api/estadisticas', {
+                await authFetch('/api/estadisticas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -836,7 +836,7 @@
                         data: currentMatrix
                     })
                 });
-                const migRes = await fetch('/api/planning/migrate_dofa', {
+                const migRes = await authFetch('/api/planning/migrate_dofa', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

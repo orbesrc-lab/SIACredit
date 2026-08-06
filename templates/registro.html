@@ -250,7 +250,7 @@
         // Cargar instituciones al cargar la página
         window.addEventListener('DOMContentLoaded', async () => {
             try {
-                const resp = await fetch('/api/institutions');
+                const resp = await authFetch('/api/institutions');
                 const institutions = await resp.json();
                 const select = document.getElementById('instSelect');
                 if (institutions && institutions.length > 0) {
@@ -284,7 +284,7 @@
             
             try {
                 const pendingName = `[PENDING:${requestedProfile}] ` + name;
-                const userResp = await fetch(`/api/users?inst_id=${instId}&program_id=0`, {
+                const userResp = await authFetch(`/api/users?inst_id=${instId}&program_id=0`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: pendingName, email: email, role: 'operativo', password: password })

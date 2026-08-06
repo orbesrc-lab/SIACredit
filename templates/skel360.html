@@ -22,6 +22,7 @@
         .admin-table th { font-weight: 600; color: var(--text-muted); }
         .btn-primary { background: var(--primary-gradient); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
     </style>
+<script src="/static/app.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -343,7 +344,7 @@
 
         async function loadEmpresas() {
             try {
-                const response = await fetch('/api/skel360/empresas');
+                const response = await authFetch('/api/skel360/empresas');
                 const result = await response.json();
                 const tbody = document.getElementById('empresas-list');
                 tbody.innerHTML = '';
@@ -391,7 +392,7 @@
         async function generarInformeIA(empresaId) {
             alert('Calculando Índice de Prioridad de Formación y conectando con Inteligencia Artificial. Esto tomará unos segundos...');
             try {
-                const response = await fetch(`/api/skel360/evaluaciones/empresa/${empresaId}/informe-ia`);
+                const response = await authFetch(`/api/skel360/evaluaciones/empresa/${empresaId}/informe-ia`);
                 const result = await response.json();
                 
                 if (result.status === 'success') {
@@ -473,7 +474,7 @@
             alert('Generando Tokens Únicos (Magic Links) para todos los colaboradores de la empresa...');
             try {
                 // En la vida real, enviamos evaluacion_id
-                const response = await fetch(`/api/skel360/empresa/${empresaId}/evaluacion/UUID_MOCK/lanzar`, {method: 'POST'});
+                const response = await authFetch(`/api/skel360/empresa/${empresaId}/evaluacion/UUID_MOCK/lanzar`, {method: 'POST'});
                 const result = await response.json();
                 if(result.status === 'success') {
                     alert(result.message);
@@ -489,7 +490,7 @@
         async function toggleEstadoEmpresa(id, estadoActual) {
             if(!confirm(`¿Estás seguro de que deseas ${estadoActual === 'Activa' ? 'desactivar' : 'activar'} esta empresa?`)) return;
             try {
-                const response = await fetch(`/api/skel360/empresas/${id}/estado`, {
+                const response = await authFetch(`/api/skel360/empresas/${id}/estado`, {
                     method: 'PATCH',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({estado: estadoActual === 'Activa' ? 'Inactiva' : 'Activa'})
@@ -509,7 +510,7 @@
         async function eliminarEmpresa(id) {
             if(!confirm('¿Estás seguro de que deseas BORRAR TOTALMENTE esta empresa? ¡Esta acción eliminará todos los colaboradores, cargos y evaluaciones asociadas!')) return;
             try {
-                const response = await fetch(`/api/skel360/empresas/${id}`, {
+                const response = await authFetch(`/api/skel360/empresas/${id}`, {
                     method: 'DELETE'
                 });
                 const result = await response.json();

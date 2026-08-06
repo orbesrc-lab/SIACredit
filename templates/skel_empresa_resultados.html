@@ -170,6 +170,7 @@
         
         .print-title { display: none; }
     </style>
+<script src="/static/app.js"></script>
 </head>
 <body>
     <div class="container">
@@ -206,7 +207,7 @@
 
         async function loadResultados() {
             try {
-                const res = await fetch(`/api/skel360/empresa/${empresaId}/resultados`);
+                const res = await authFetch(`/api/skel360/empresa/${empresaId}/resultados`);
                 const data = await res.json();
                 
                 document.getElementById('loader').style.display = 'none';

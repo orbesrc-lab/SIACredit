@@ -534,7 +534,7 @@
     // Carga de Cursos Dinámicos para el Catálogo
     async function loadDynamicCatalog() {
         try {
-            const resp = await fetch('/api/public/courses');
+            const resp = await authFetch('/api/public/courses');
             if (!resp.ok) return;
             const courses = await resp.json();
             if (courses && courses.length > 0) {
@@ -623,7 +623,7 @@
         };
 
         try {
-            const resp = await fetch('/api/public/enroll_course', {
+            const resp = await authFetch('/api/public/enroll_course', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

@@ -1462,7 +1462,7 @@
 
             const model = getDataModel();
             try {
-                const resp = await fetch(`/api/model?inst_id=${getInstId()}&program_id=${progId}`, {
+                const resp = await authFetch(`/api/model?inst_id=${getInstId()}&program_id=${progId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(model)
@@ -1802,8 +1802,8 @@
 
             try {
                 const [instResp, progResp] = await Promise.all([
-                    fetch('/api/institutions?t=' + Date.now()),
-                    fetch(`/api/programs?inst_id=${instId}&t=` + Date.now())
+                    authFetch('/api/institutions?t=' + Date.now()),
+                    authFetch(`/api/programs?inst_id=${instId}&t=` + Date.now())
                 ]);
                 const institutions = await instResp.json();
                 const programs = await progResp.json();
@@ -1837,7 +1837,7 @@
             grid.innerHTML = '<div style="grid-column: 1/-1; color: var(--text-muted);">Cargando líderes...</div>';
             
             try {
-                const resp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const resp = await authFetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const users = await resp.json();
                 
                 const leaders = users.filter(u => u.role === 'lider' || u.role === 'admin' || u.role === 'inst_admin');
@@ -1881,7 +1881,7 @@
 
 
         async function loadInstitution() {
-            const resp = await fetch(`/api/institution?inst_id=${getInstId()}&t=` + Date.now());
+            const resp = await authFetch(`/api/institution?inst_id=${getInstId()}&t=` + Date.now());
             const data = await resp.json();
             if(document.getElementById('inst_name')) document.getElementById('inst_name').value = data.name || '';
             if(document.getElementById('inst_logo')) document.getElementById('inst_logo').value = data.logo_url || '';
@@ -1891,7 +1891,7 @@
             const name = document.getElementById('inst_name').value;
             const logo = document.getElementById('inst_logo').value;
 
-            const resp = await fetch(`/api/institution?inst_id=${getInstId()}`, {
+            const resp = await authFetch(`/api/institution?inst_id=${getInstId()}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: name, logo_url: logo })
@@ -1928,8 +1928,8 @@
         window.loadChatbotTraining = async function() {
             try {
                 const [chatRes, botRes] = await Promise.all([
-                    fetch('/api/chat-logs').catch(() => null),
-                    fetch('/api/bot/unanswered').catch(() => null)
+                    authFetch('/api/chat-logs').catch(() => null),
+                    authFetch('/api/bot/unanswered').catch(() => null)
                 ]);
                 
                 let combined = [];
@@ -2019,7 +2019,7 @@
         window.deleteChatbotLog = async function(id) {
             if(!confirm("¿Estás seguro de que deseas eliminar este registro de entrenamiento? Esta acción no se puede deshacer.")) return;
             try {
-                const res = await fetch('/api/chat-logs/' + id, { method: 'DELETE' });
+                const res = await authFetch('/api/chat-logs/' + id, { method: 'DELETE' });
                 if(res.ok) {
                     const data = await res.json();
                     if(data.status === 'success') {
@@ -2036,7 +2036,7 @@
             if(reply === null) return; // cancelled
             try {
                 const reqBody = reply.trim() !== "" ? { response: reply.trim() } : {};
-                const res = await fetch(`/api/bot/unanswered/${id}/resolve`, { 
+                const res = await authFetch(`/api/bot/unanswered/${id}/resolve`, { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(reqBody)
@@ -2052,7 +2052,7 @@
 
         window.dismissBotMessage = async function(id) {
             try {
-                const res = await fetch(`/api/bot/unanswered/${id}/resolve`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({}) });
+                const res = await authFetch(`/api/bot/unanswered/${id}/resolve`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({}) });
                 if(res.ok) {
                     window.loadChatbotTraining();
                 }
@@ -2075,7 +2075,7 @@
             var canManage = true; // Habilitado para todos los usuarios por petición
 
             try {
-                var resp = await fetch('/api/users?inst_id=' + instId + '&program_id=' + programId + '&t=' + Date.now());
+                var resp = await authFetch('/api/users?inst_id=' + instId + '&program_id=' + programId + '&t=' + Date.now());
                 var users = await resp.json();
 
                 if (!Array.isArray(users) || users.length === 0) {
@@ -2191,7 +2191,7 @@
 
             try {
                 // Usar el endpoint /role dedicado para usuarios activos
-                var resp = await fetch('/api/users/' + uid + '/role', {
+                var resp = await authFetch('/api/users/' + uid + '/role', {
                     method: 'POST', headers: {'Content-Type':'application/json'},
                     body: JSON.stringify(payload)
                 });
@@ -2216,7 +2216,7 @@
                 // Cargar lista de instituciones si aún no está cargada
                 if (instSelect.options.length === 0) {
                     try {
-                        var resp = await fetch('/api/institutions');
+                        var resp = await authFetch('/api/institutions');
                         var insts = await resp.json();
                         instSelect.innerHTML = '';
                         insts.forEach(function(inst) {
@@ -2239,7 +2239,7 @@
         async function submitDeleteUser() {
             var uid = document.getElementById('deleteUserId').value;
             try {
-                var resp = await fetch('/api/users/' + uid, { method: 'DELETE' });
+                var resp = await authFetch('/api/users/' + uid, { method: 'DELETE' });
                 document.getElementById('deleteUserModal').style.display = 'none';
                 if (resp.ok) { alert('✅ Usuario eliminado.'); loadUsersFromAPI(); }
                 else { var d = await resp.json(); alert('❌ ' + (d.message || 'Error al eliminar.')); }
@@ -2249,7 +2249,7 @@
         async function submitResetPass() {
             var uid = document.getElementById('resetPassUserId').value;
             try {
-                var resp = await fetch('/api/users/' + uid + '/reset-password', {
+                var resp = await authFetch('/api/users/' + uid + '/reset-password', {
                     method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({})
                 });
                 var result = await resp.json();
@@ -2283,7 +2283,7 @@
             var password = document.getElementById('inv_password').value.trim();
             if (!email) { alert('El correo es obligatorio.'); return; }
             try {
-                var resp = await fetch('/api/users?inst_id=' + getInstId() + '&program_id=' + getProgramId(), {
+                var resp = await authFetch('/api/users?inst_id=' + getInstId() + '&program_id=' + getProgramId(), {
                     method: 'POST', headers: {'Content-Type':'application/json'},
                     body: JSON.stringify({ name: name, email: email, role: role, password: password })
                 });
@@ -2324,7 +2324,7 @@
             let list = null;
             for (let intento = 1; intento <= 3; intento++) {
                 try {
-                    const resp = await fetch('/api/institutions?t=' + Date.now());
+                    const resp = await authFetch('/api/institutions?t=' + Date.now());
                     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                     const data = await resp.json();
                     if (Array.isArray(data)) {
@@ -2384,7 +2384,7 @@
             
             // Auto-seleccionar el primer programa de la nueva institución para evitar inconsistencias
             try {
-                const resp = await fetch(`/api/programs?inst_id=${newId}&t=` + Date.now());
+                const resp = await authFetch(`/api/programs?inst_id=${newId}&t=` + Date.now());
                 const list = await resp.json();
                 if (list && list.length > 0) {
                     userData.program_id = list[0].id;
@@ -2501,7 +2501,7 @@
 
             try {
                 const uniqueCode = 'ORG-' + Date.now().toString(36);
-                const resp = await fetch('/api/institutions', {
+                const resp = await authFetch('/api/institutions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: name, program: program, period: uniqueCode })
@@ -2533,7 +2533,7 @@
         async function loadAllPrograms() {
             if (true) { // Habilitado para todos los usuarios por petición
                 document.getElementById('progSelectorCard').style.display = 'block';
-                const resp = await fetch(`/api/programs?inst_id=${getInstId()}&t=` + Date.now());
+                const resp = await authFetch(`/api/programs?inst_id=${getInstId()}&t=` + Date.now());
                 const list = await resp.json();
                 const select = document.getElementById('progSelect');
                 select.innerHTML = '<option value="0">-- Seleccione un Programa --</option>';
@@ -2547,7 +2547,7 @@
                         document.getElementById('prog_name').value = prog.name || '';
                         document.getElementById('prog_period').value = prog.period || '';
                         // Fetch and populate metadata
-                        fetch(`/api/programs/metadata?inst_id=${getInstId()}&program_id=${prog.id}`)
+                        authFetch(`/api/programs/metadata?inst_id=${getInstId()}&program_id=${prog.id}`)
                             .then(r => r.json())
                             .then(meta => {
                                 if(meta.nivel_formacion) document.getElementById('prog_nivel').value = meta.nivel_formacion;
@@ -2608,7 +2608,7 @@
             const selectedProgId = sel ? sel.value : '0';
             
             const saveMetadata = async (prog_id) => {
-                await fetch(`/api/programs/metadata?inst_id=${getInstId()}&program_id=${prog_id}`, {
+                await authFetch(`/api/programs/metadata?inst_id=${getInstId()}&program_id=${prog_id}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nivel_formacion: nivel, metodologia: metodologia, area_conocimiento: area })
@@ -2618,7 +2618,7 @@
             if(!selectedProgId || selectedProgId == '0') {
                 // Crear nuevo programa
                 try {
-                    const resp = await fetch(`/api/programs?inst_id=${getInstId()}`, {
+                    const resp = await authFetch(`/api/programs?inst_id=${getInstId()}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ name, period })
@@ -2640,7 +2640,7 @@
             } else {
                 // Actualizar programa existente
                 try {
-                    const resp = await fetch(`/api/programs/${selectedProgId}`, {
+                    const resp = await authFetch(`/api/programs/${selectedProgId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ name: name, period: period })
@@ -2690,7 +2690,7 @@
                 isDanger: true,
                 onConfirm: async () => {
                     try {
-                        const resp = await fetch(`/api/programs/${progId}`, { method: 'DELETE' });
+                        const resp = await authFetch(`/api/programs/${progId}`, { method: 'DELETE' });
                         let result = {};
                         try { result = await resp.json(); } catch(je) {}
                         if (resp.ok && result.status === 'success') {
@@ -2719,7 +2719,7 @@
                 return;
             }
             try {
-                const response = await fetch(`/api/change-password?inst_id=${getInstId()}`, {
+                const response = await authFetch(`/api/change-password?inst_id=${getInstId()}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -2761,12 +2761,12 @@
                 isDanger: true,
                 onConfirm: async () => {
                     try {
-                        const resp = await fetch(`/api/institutions/${instId}`, { method: 'DELETE' });
+                        const resp = await authFetch(`/api/institutions/${instId}`, { method: 'DELETE' });
                         let result = {};
                         try { result = await resp.json(); } catch(je) {}
                         if (resp.ok && result.status === 'success') {
                             alert('Institución eliminada correctamente.');
-                            const remaining = await fetch('/api/institutions').then(r => r.json());
+                            const remaining = await authFetch('/api/institutions').then(r => r.json());
                             const userData = JSON.parse(localStorage.getItem('siac_user'));
                             if (Array.isArray(remaining) && remaining.length > 0) {
                                 userData.inst_id = remaining[0].id;
@@ -2799,7 +2799,7 @@
                 isDanger: false,
                 onConfirm: async () => {
                     try {
-                        const resp = await fetch(`/api/institutions/${instId}/suspend`, { method: 'POST' });
+                        const resp = await authFetch(`/api/institutions/${instId}/suspend`, { method: 'POST' });
                         let result = {};
                         try { result = await resp.json(); } catch(je) {}
                         if (resp.ok && result.status === 'success') {
@@ -2820,7 +2820,7 @@
 
         async function loadRolePermissions() {
             try {
-                const res = await fetch(`/api/permissions/form?inst_id=${getInstId()}&program_id=0`);
+                const res = await authFetch(`/api/permissions/form?inst_id=${getInstId()}&program_id=0`);
                 if (res.ok) {
                     const data = await res.json();
                     if (data.status === 'success' && data.permissions) {
@@ -2849,7 +2849,7 @@
             });
 
             try {
-                const res = await fetch('/api/permissions/form', {
+                const res = await authFetch('/api/permissions/form', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
@@ -2904,7 +2904,7 @@
         async function loadGlobalSettings() {
             try {
                 // Fetch the stats table for GLOBAL_CONFIG via global load endpoint (we will create a dedicated GET in backend or we can just fetch all and filter, but better to add a GET endpoint or use /api/global-settings)
-                const res = await fetch('/api/global-settings?t=' + Date.now());
+                const res = await authFetch('/api/global-settings?t=' + Date.now());
                 if (res.ok) {
                     const data = await res.json();
                     if (data.theme) document.getElementById('globalThemeSelect').value = data.theme;
@@ -2966,7 +2966,7 @@
             document.getElementById('carouselUploadLoading').style.display = 'block';
             
             try {
-                const res = await fetch('/api/global-settings/carousel-upload', {
+                const res = await authFetch('/api/global-settings/carousel-upload', {
                     method: 'POST',
                     body: formData
                 });
@@ -3086,7 +3086,7 @@
             }
 
             try {
-                const res = await fetch('/api/global-settings', {
+                const res = await authFetch('/api/global-settings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -3122,7 +3122,7 @@
             const instId = getInstId();
             if (!instId) return;
             try {
-                const res = await fetch(`/api/inst-ai-settings?inst_id=${instId}&t=` + Date.now());
+                const res = await authFetch(`/api/inst-ai-settings?inst_id=${instId}&t=` + Date.now());
                 const data = await res.json();
                 const statusEl = document.getElementById('instAiStatus');
                 if (data.has_api_key) {
@@ -3151,7 +3151,7 @@
                 payload.ai_api_key = instAiKey;
             }
             try {
-                const res = await fetch('/api/inst-ai-settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+                const res = await authFetch('/api/inst-ai-settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
                 const data = await res.json();
                 if (data.status === 'success') {
                     alert('Configuracion guardada exitosamente.');
@@ -3165,7 +3165,7 @@
             if (!confirm('Esto eliminara tu configuracion propia y tu institucion usara la llave global del sistema. Continuar?')) return;
             const instId = getInstId();
             try {
-                const res = await fetch('/api/inst-ai-settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ inst_id: instId, clear_key: true }) });
+                const res = await authFetch('/api/inst-ai-settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ inst_id: instId, clear_key: true }) });
                 const data = await res.json();
                 if (data.status === 'success') { alert('Configuracion propia eliminada. Ahora usas la llave global.'); loadInstAiSettings(); }
             } catch(e) { alert('Error de conexion.'); }
@@ -3177,7 +3177,7 @@
             const list = document.getElementById('aiAccessList');
             if (!list) return;
             try {
-                const res = await fetch('/api/inst-ai-status?t=' + Date.now());
+                const res = await authFetch('/api/inst-ai-status?t=' + Date.now());
                 const data = await res.json();
                 if (data.status !== 'success' || !data.data.length) {
                     list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">No hay instituciones registradas.</div>';
@@ -3213,7 +3213,7 @@
             const action = block ? 'bloquear' : 'habilitar';
             if (!confirm(`Deseas ${action} el acceso a la llave global de IA para esta institucion?`)) return;
             try {
-                const res = await fetch('/api/inst-ai-block', {
+                const res = await authFetch('/api/inst-ai-block', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ inst_id: instId, blocked: block })
@@ -3228,7 +3228,7 @@
 
         async function loadPartners() {
             try {
-                const res = await fetch('/api/partners?t=' + Date.now());
+                const res = await authFetch('/api/partners?t=' + Date.now());
                 const data = await res.json();
                 const list = document.getElementById('partnersList');
                 if(data.status === 'success') {
@@ -3272,7 +3272,7 @@
             reader.onload = async function(e) {
                 const base64 = e.target.result;
                 try {
-                    const res = await fetch('/api/partners', {
+                    const res = await authFetch('/api/partners', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({name: name, url: url, logo_base64: base64})
@@ -3302,7 +3302,7 @@
                 isDanger: true,
                 onConfirm: async () => {
                     try {
-                        const res = await fetch('/api/partners/' + id, { method: 'DELETE' });
+                        const res = await authFetch('/api/partners/' + id, { method: 'DELETE' });
                         const data = await res.json();
                         if(data.status === 'success') {
                             loadPartners();

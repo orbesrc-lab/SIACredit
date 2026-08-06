@@ -562,7 +562,7 @@
     async function loadSecurityLogs() {
         try {
             const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
-            const res = await fetch('/api/backup/logs', {
+            const res = await authFetch('/api/backup/logs', {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({ user_id: user.id, inst_id: currentInstId })
@@ -615,7 +615,7 @@
 
     async function loadStats() {
         try {
-            const r = await fetch('/api/backup/stats?inst_id=' + getIid());
+            const r = await authFetch('/api/backup/stats?inst_id=' + getIid());
             const d = await r.json();
             document.getElementById('statEvidencias').textContent = (d.evidencias||0).toLocaleString('es-CO');
             document.getElementById('statFactores').textContent = (d.factores||0).toLocaleString('es-CO');
@@ -636,7 +636,7 @@
 
     async function loadPrograms() {
         try {
-            const r = await fetch('/api/programs?inst_id=' + currentInstId);
+            const r = await authFetch('/api/programs?inst_id=' + currentInstId);
             const d = await r.json();
             const sel = document.getElementById('programFilter');
             (d||[]).forEach(p => {
@@ -648,7 +648,7 @@
 
     async function loadFactors() {
         try {
-            const r = await fetch('/api/model?inst_id=' + currentInstId + '&program_id=' + (localStorage.getItem('current_program_id') || 47));
+            const r = await authFetch('/api/model?inst_id=' + currentInstId + '&program_id=' + (localStorage.getItem('current_program_id') || 47));
             const d = await r.json();
             factoresData = d || [];
             ['factorFilter','evidFactorFilter'].forEach(id => {

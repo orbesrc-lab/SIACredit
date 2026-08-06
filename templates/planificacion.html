@@ -714,7 +714,7 @@
         // ─── Carga de datos ─────────────────────────────────────────
         async function loadPlanningData() {
             try {
-                const res = await fetch(`/api/planning/tree?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const res = await authFetch(`/api/planning/tree?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const data = await res.json();
                 if(data.status === 'success') {
                     if(expandedNodes.size === 0 && data.tree) {
@@ -741,7 +741,7 @@
         let institutionUsers = [];
         async function loadInstitutionUsers() {
             try {
-                const res = await fetch(`/api/planning/users?inst_id=${getInstId()}`);
+                const res = await authFetch(`/api/planning/users?inst_id=${getInstId()}`);
                 const data = await res.json();
                 if(data.status === 'success') institutionUsers = data.users;
             } catch(e) { console.warn('Could not load users list', e); }
@@ -1196,7 +1196,7 @@
             if(event) event.stopPropagation();
             if(!confirm('¿Estás seguro de que deseas eliminar este elemento? Todos los elementos hijos también se eliminarán de forma irreversible.')) return;
             try {
-                const res = await fetch('/api/planning/node/delete', {
+                const res = await authFetch('/api/planning/node/delete', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: type, id: id })
@@ -1367,7 +1367,7 @@
                 const descField = document.getElementById('f_desc');
                 descField.value = 'Generando sugerencia con Inteligencia Artificial...';
                 descField.disabled = true;
-                const res = await fetch('/api/planning/suggest', {
+                const res = await authFetch('/api/planning/suggest', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'gen_obj', target_id: strategyId, inst_id: getInstId() })
@@ -1387,7 +1387,7 @@
                 const descField = document.getElementById('f_desc');
                 descField.value = 'Generando sugerencia con Inteligencia Artificial...';
                 descField.disabled = true;
-                const res = await fetch('/api/planning/suggest', {
+                const res = await authFetch('/api/planning/suggest', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'spec_obj', target_id: genId, inst_id: getInstId() })
@@ -1407,7 +1407,7 @@
                 const descField = document.getElementById('f_desc');
                 descField.value = 'Generando actividad con Inteligencia Artificial...';
                 descField.disabled = true;
-                const res = await fetch('/api/planning/suggest', {
+                const res = await authFetch('/api/planning/suggest', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'activity', target_id: specId, inst_id: getInstId() })
@@ -1447,7 +1447,7 @@
             if(!msg) return alert('Escribe un mensaje');
             const node = nodeDataMap['activity-' + currentActivityId];
             try {
-                const res = await fetch('/api/planning/activity/alert/' + currentActivityId, {
+                const res = await authFetch('/api/planning/activity/alert/' + currentActivityId, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
@@ -1476,7 +1476,7 @@
             document.getElementById('evidencesBody').innerHTML = '<div style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando evidencias...</div>';
             document.getElementById('evidencesModal').classList.add('open');
             try {
-                const res = await fetch('/api/planning/activity/evidences/' + actId);
+                const res = await authFetch('/api/planning/activity/evidences/' + actId);
                 const data = await res.json();
                 const evs = data.evidences || [];
                 let html = evs.length === 0 ? '<div style="text-align:center;color:#64748b;">No hay evidencias subidas.</div>' : '';
@@ -1501,7 +1501,7 @@
         async function deleteEvidence(url) {
             if(!confirm('¿Estás seguro de eliminar esta evidencia?')) return;
             try {
-                const res = await fetch('/api/planning/activity/evidence/' + currentActivityId, {
+                const res = await authFetch('/api/planning/activity/evidence/' + currentActivityId, {
                     method: 'DELETE',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ url: url })
@@ -1525,7 +1525,7 @@
             fd.append('uploader', JSON.parse(localStorage.getItem('siac_user')||'{}').email);
             
             try {
-                const res = await fetch('/api/planning/activity/evidence/' + currentActivityId, {
+                const res = await authFetch('/api/planning/activity/evidence/' + currentActivityId, {
                     method: 'POST',
                     body: fd
                 });
@@ -1551,7 +1551,7 @@
 
         async function saveFinance() {
             try {
-                const res = await fetch('/api/planning/activity/finance/' + currentActivityId, {
+                const res = await authFetch('/api/planning/activity/finance/' + currentActivityId, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
@@ -1602,7 +1602,7 @@
             if(type === 'finance') {
                 if(!currentReportData) {
                     try {
-                        const res = await fetch(`/api/planning/reports/finance?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                        const res = await authFetch(`/api/planning/reports/finance?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                         const data = await res.json();
                         if(data.status === 'success') { currentReportData = data; renderFinancialReport(data); }
                         else { container.innerHTML = '<p style="color:red;padding:20px;">Error: ' + (data.message||'desconocido') + '</p>'; }

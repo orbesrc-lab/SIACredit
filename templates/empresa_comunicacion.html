@@ -164,7 +164,7 @@
 
         async function initHeader() {
             try {
-                const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+                const resp = await authFetch(`/api/institution?inst_id=${getInstId()}`);
                 if (resp.ok) {
                     const data = await resp.json();
                     document.getElementById('inst_name_display').textContent = data.name || 'INSTITUCIÓN';
@@ -264,7 +264,7 @@
 
         async function loadComms() {
             try {
-                const res = await fetch(`/api/business/matrix/COMUNICACION?inst_id=${getInstId()}`);
+                const res = await authFetch(`/api/business/matrix/COMUNICACION?inst_id=${getInstId()}`);
                 if (res.ok) {
                     const data = await res.json();
                     let dbData = data.data;
@@ -284,7 +284,7 @@
         async function saveAllComms() {
             const evalDate = document.getElementById('eval_date').value;
             try {
-                const res = await fetch('/api/business/matrix/COMUNICACION', {
+                const res = await authFetch('/api/business/matrix/COMUNICACION', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({

@@ -49,6 +49,7 @@
         }
         .btn-ver-informe:hover { opacity: 0.9; transform: translateY(-1px); }
     </style>
+<script src="/static/app.js"></script>
 </head>
 <body>
     <div class="report-container" id="reporte-container">
@@ -145,7 +146,7 @@
                 return;
             }
             try {
-                const res = await fetch(`/api/skel360/reporte/individual/${evaluadoId}`);
+                const res = await authFetch(`/api/skel360/reporte/individual/${evaluadoId}`);
                 const data = await res.json();
                 if (data.status === 'success') {
                     const nombre  = `${data.colaborador.nombres} ${data.colaborador.apellidos}`;
@@ -864,7 +865,7 @@
             spinner.style.display = 'inline-block';
             if (typeWriterTimeout) { clearTimeout(typeWriterTimeout); typeWriterTimeout = null; }
             try {
-                const res  = await fetch('/api/skel360/reporte/ia', {
+                const res  = await authFetch('/api/skel360/reporte/ia', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ resultados: resultadosGlobal })
@@ -898,7 +899,7 @@
             const plan = document.getElementById('texto-compromisos').value;
             const obs  = document.getElementById('texto-comentarios').value;
             try {
-                const res  = await fetch(`/api/skel360/reporte/individual/${evaluadoId}/plan_accion`, {
+                const res  = await authFetch(`/api/skel360/reporte/individual/${evaluadoId}/plan_accion`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ plan, comentarios: obs })

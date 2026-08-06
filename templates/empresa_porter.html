@@ -139,7 +139,7 @@
 
         async function initHeader() {
             try {
-                const resp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+                const resp = await authFetch(`/api/institution?inst_id=${getInstId()}`);
                 if (resp.ok) {
                     const data = await resp.json();
                     document.getElementById('inst_name_display').textContent = data.name || 'INSTITUCIÓN';
@@ -177,7 +177,7 @@
 
         async function loadMatriz() {
             try {
-                const res = await fetch(`/api/business/matrix/PORTER?inst_id=${getInstId()}`);
+                const res = await authFetch(`/api/business/matrix/PORTER?inst_id=${getInstId()}`);
                 if (res.ok) {
                     const data = await res.json();
                     let dbData = data.data;
@@ -214,7 +214,7 @@
             const evalDate = document.getElementById('eval_date').value;
 
             try {
-                const res = await fetch('/api/business/matrix/PORTER', {
+                const res = await authFetch('/api/business/matrix/PORTER', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
@@ -243,7 +243,7 @@
             Swal.fire({ title: 'Analizando Industria con IA...', text: 'Por favor espere unos segundos', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
             try {
-                const resp = await fetch('/api/business/ai_porter', {
+                const resp = await authFetch('/api/business/ai_porter', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ inst_id: getInstId(), forces: inputs })
@@ -259,7 +259,7 @@
 
                     // Auto save with scores
                     const evalDate = document.getElementById('eval_date').value;
-                    await fetch('/api/business/matrix/PORTER', {
+                    await authFetch('/api/business/matrix/PORTER', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({

@@ -196,7 +196,7 @@
         <script>
             async function loadProspects() {
                 try {
-                    const res = await fetch('/api/crm/prospects');
+                    const res = await authFetch('/api/crm/prospects');
                     const data = await res.json();
                     if(data.status === 'success') {
                         const tbody = document.getElementById('prospectsBody');
@@ -255,7 +255,7 @@
                 const body = {};
                 body[field] = value.trim();
                 try {
-                    await fetch('/api/crm/prospects/' + id, {
+                    await authFetch('/api/crm/prospects/' + id, {
                         method: 'PUT',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(body)
@@ -265,7 +265,7 @@
 
             async function updateStatus(id, newStatus) {
                 try {
-                    await fetch('/api/crm/prospects/' + id, {
+                    await authFetch('/api/crm/prospects/' + id, {
                         method: 'PUT',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({status: newStatus})
@@ -276,7 +276,7 @@
             async function deleteProspect(id) {
                 if(!confirm('¿Estás seguro de que quieres eliminar este prospecto?')) return;
                 try {
-                    const res = await fetch('/api/crm/prospects/' + id, { method: 'DELETE' });
+                    const res = await authFetch('/api/crm/prospects/' + id, { method: 'DELETE' });
                     const data = await res.json();
                     if(data.status === 'success') {
                         loadProspects();
@@ -314,7 +314,7 @@
                 const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
                 
                 try {
-                    const res = await fetch('/api/crm/prospects/bulk_delete', {
+                    const res = await authFetch('/api/crm/prospects/bulk_delete', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ids: ids})
@@ -338,7 +338,7 @@
                 const formData = new FormData();
                 formData.append('file', file);
                 try {
-                    const res = await fetch('/api/crm/upload_prospects', {
+                    const res = await authFetch('/api/crm/upload_prospects', {
                         method: 'POST',
                         body: formData
                     });
@@ -355,7 +355,7 @@
 
             async function addEmptyProspect() {
                 try {
-                    const res = await fetch('/api/crm/prospects', {
+                    const res = await authFetch('/api/crm/prospects', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ name: 'Nuevo Contacto', institution: 'Nueva Entidad' })
@@ -451,7 +451,7 @@
                 }
                 
                 try {
-                    const res = await fetch('/api/crm/send_email', {
+                    const res = await authFetch('/api/crm/send_email', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -641,7 +641,7 @@
 
             try {
                 // Paso 1: Solicitar Signed URL al backend
-                const urlRes = await fetch('/api/direct_upload/url', {
+                const urlRes = await authFetch('/api/direct_upload/url', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -754,7 +754,7 @@
             }
 
             try {
-                const response = await fetch('/api/analyze', {
+                const response = await authFetch('/api/analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -772,7 +772,7 @@
                         const key = tableId ? `ai_analysis_${tableId}` : 'ai_analysis_global';
                         const stats = getStatistics();
                         stats[key] = data.analysis;
-                        fetch(`/api/estadisticas?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                        authFetch(`/api/estadisticas?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({

@@ -202,7 +202,7 @@
 
         async function loadLibrary() {
             try {
-                const res = await fetch(`/api/library?inst_id=${getInstId()}`);
+                const res = await authFetch(`/api/library?inst_id=${getInstId()}`);
                 const data = await res.json();
                 
                 renderDocs('listGlobal', data.global, 'No hay documentos globales disponibles.');
@@ -257,7 +257,7 @@
             
             try {
                 // Paso 1: Solicitar Signed URL al backend
-                const urlRes = await fetch('/api/direct_upload/url', {
+                const urlRes = await authFetch('/api/direct_upload/url', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -285,7 +285,7 @@
                 if (!uploadRes.ok) throw new Error('Fallo al enviar archivo a Supabase');
                 
                 // Paso 3: Confirmar subida y guardar en BD
-                const confirmRes = await fetch('/api/library/confirm_upload', {
+                const confirmRes = await authFetch('/api/library/confirm_upload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -314,7 +314,7 @@
         async function deleteDoc(id, aspectId) {
             if (!confirm('¿Estás seguro de eliminar este documento de la biblioteca?')) return;
             try {
-                const res = await fetch(`/api/library/${aspectId}/${id}?inst_id=${getInstId()}`, { method: 'DELETE' });
+                const res = await authFetch(`/api/library/${aspectId}/${id}?inst_id=${getInstId()}`, { method: 'DELETE' });
                 if (!res.ok) {
                     alert('Error del servidor: HTTP ' + res.status);
                     return;

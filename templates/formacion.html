@@ -1871,7 +1871,7 @@
                 // Si es un docente nuevo (sin id previo definido por nosotros), creamos la cuenta en el sistema
                 if (!id) {
                     const userPayload = { name: name, email: email, role: 'profesor', password: 'SIACProfesor2025!' };
-                    const userResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=0`, {
+                    const userResp = await authFetch(`/api/users?inst_id=${getInstId()}&program_id=0`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(userPayload)
@@ -1884,7 +1884,7 @@
                 }
 
                 // Guardar datos en el LMS
-                const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`, {
+                const resp = await authFetch(`/api/teachers?inst_id=${getInstId()}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -1904,7 +1904,7 @@
 
         async function preloadTeacherDropdown() {
             try {
-                const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
+                const resp = await authFetch(`/api/teachers?inst_id=${getInstId()}`);
                 const res = await resp.json();
                 const teachers = Array.isArray(res) ? res : (res.data || []);
                 const selectEdit = document.getElementById('edit_teacher_id');
@@ -1927,7 +1927,7 @@
             const grid = document.getElementById('teachersGrid');
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando docentes...</div>';
             try {
-                const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
+                const resp = await authFetch(`/api/teachers?inst_id=${getInstId()}`);
                 const res = await resp.json();
                 
                 let teachers = Array.isArray(res) ? res : (res.data || []);
@@ -1983,7 +1983,7 @@
         async function deleteTeacher(teacherId) {
             if (!confirm("¿Estás seguro de eliminar este docente?")) return;
             try {
-                const resp = await fetch(`/api/teachers/${teacherId}?inst_id=${getInstId()}`, { method: 'DELETE' });
+                const resp = await authFetch(`/api/teachers/${teacherId}?inst_id=${getInstId()}`, { method: 'DELETE' });
                 if (resp.ok) loadTeachersList();
             } catch(e) { alert("Error de red."); }
         }
@@ -2001,7 +2001,7 @@
             document.getElementById('btnSubmitStudent').textContent = 'Registrar Estudiante';
 
             try {
-                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=0`);
+                const resp = await authFetch(`/api/courses?inst_id=${getInstId()}&program_id=0`);
                 const courses = await resp.json();
                 const sel = document.getElementById('student_course_id');
                 sel.innerHTML = '<option value="">-- No matricular aún --</option>';
@@ -2033,7 +2033,7 @@
             if (courseId) payload.course_id = courseId;
             
             try {
-                const resp = await fetch(`/api/students?inst_id=${getInstId()}`, {
+                const resp = await authFetch(`/api/students?inst_id=${getInstId()}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -2054,7 +2054,7 @@
             const grid = document.getElementById('studentsGrid');
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando estudiantes...</div>';
             try {
-                const resp = await fetch(`/api/students?inst_id=${getInstId()}&program_id=0`);
+                const resp = await authFetch(`/api/students?inst_id=${getInstId()}&program_id=0`);
                 const res = await resp.json();
                 
                 let students = Array.isArray(res) ? res : (res.data || []);
@@ -2180,7 +2180,7 @@
             document.getElementById('activateAspiranteModal').style.display = 'flex';
             
             try {
-                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=0`);
+                const resp = await authFetch(`/api/courses?inst_id=${getInstId()}&program_id=0`);
                 const courses = await resp.json();
                 
                 listDiv.innerHTML = '';
@@ -2208,11 +2208,11 @@
             const checkboxes = document.querySelectorAll('.act-course-checkbox:checked');
             const selectedCourses = Array.from(checkboxes).map(cb => cb.value);
             try {
-                const uResp = await fetch(`/api/users?inst_id=${getInstId()}&program_id=0`);
+                const uResp = await authFetch(`/api/users?inst_id=${getInstId()}&program_id=0`);
                 const users = await uResp.json();
                 const userObj = users.find(u => u.email === email);
                 if (userObj) {
-                    const actResp = await fetch(`/api/users/${userObj.id}/activate`, {
+                    const actResp = await authFetch(`/api/users/${userObj.id}/activate`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ role: role })
@@ -2223,7 +2223,7 @@
                         if (student) {
                             student.enrolled_courses = selectedCourses;
                             if (student.name) student.name = student.name.replace(/\[ASPIRANTE\]\s*/g, '').replace(/\[PENDING[^\]]*\]\s*/g, '').trim();
-                            await fetch(`/api/students?inst_id=${getInstId()}`, {
+                            await authFetch(`/api/students?inst_id=${getInstId()}`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(student)
@@ -2256,7 +2256,7 @@
         async function deleteStudent(studentId) {
             if (!confirm("¿Deseas eliminar este participante de forma permanente?")) return;
             try {
-                const resp = await fetch(`/api/students/${studentId}?inst_id=${getInstId()}`, { method: 'DELETE' });
+                const resp = await authFetch(`/api/students/${studentId}?inst_id=${getInstId()}`, { method: 'DELETE' });
                 if (resp.ok) loadStudentsList();
             } catch(e) { alert("Error de red."); }
         }
@@ -2264,7 +2264,7 @@
         async function enrollStudent(studentId, courseId) {
             if (!courseId) return;
             try {
-                const resp = await fetch(`/api/students/${studentId}/enroll?inst_id=${getInstId()}`, {
+                const resp = await authFetch(`/api/students/${studentId}/enroll?inst_id=${getInstId()}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ course_id: courseId })
@@ -2280,7 +2280,7 @@
         async function unenrollStudent(studentId, courseId) {
             if (!confirm("¿Cancelar matrícula de este estudiante en este curso?")) return;
             try {
-                const resp = await fetch(`/api/students/${studentId}/unenroll?inst_id=${getInstId()}`, {
+                const resp = await authFetch(`/api/students/${studentId}/unenroll?inst_id=${getInstId()}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ course_id: courseId })
@@ -2318,7 +2318,7 @@
 
         async function preloadTeacherDropdownForm(selectId = 'course_teacher_email', selectedEmail = '') {
             try {
-                const resp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
+                const resp = await authFetch(`/api/teachers?inst_id=${getInstId()}`);
                 const res = await resp.json();
                 const teachers = Array.isArray(res) ? res : (res.data || []);
                 const select = document.getElementById(selectId);
@@ -2361,7 +2361,7 @@
             };
             
             try {
-                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=0`, {
+                const resp = await authFetch(`/api/courses?inst_id=${getInstId()}&program_id=0`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -2380,7 +2380,7 @@
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px;">⏳ Cargando cursos...</div>';
             
             try {
-                const resp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=0&_t=${Date.now()}`);
+                const resp = await authFetch(`/api/courses?inst_id=${getInstId()}&program_id=0&_t=${Date.now()}`);
                 let courses = await resp.json();
                 
                 const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
@@ -2457,7 +2457,7 @@
             const btn = document.querySelector(`button.btn-danger[onclick*="${courseId}"]`);
             if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
             try {
-                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=0`, { method: 'DELETE' });
+                const resp = await authFetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=0`, { method: 'DELETE' });
                 let result = {};
                 try { result = await resp.json(); } catch(je) {}
                 if (resp.ok && result.status === 'success') {
@@ -2474,7 +2474,7 @@
 
         async function openEditor(courseId) {
             try {
-                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=0&_t=${Date.now()}`);
+                const resp = await authFetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=0&_t=${Date.now()}`);
                 const course = await resp.json();
                 if (course.status === 'error') { alert("No se pudo abrir el curso."); return; }
                 
@@ -2482,7 +2482,7 @@
                 
                 // Cargar todas las entregas para este curso
                 try {
-                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=0`);
+                    const subResp = await authFetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=0`);
                     activeCourseSubmissions = await subResp.json();
                 } catch (e) {
                     console.error("Error al cargar entregas del curso:", e);
@@ -2542,7 +2542,7 @@
         async function updateCourseOnServer() {
             if (!activeCourse) return;
             try {
-                await fetch(`/api/courses/${activeCourse.id}?inst_id=${getInstId()}&program_id=0`, {
+                await authFetch(`/api/courses/${activeCourse.id}?inst_id=${getInstId()}&program_id=0`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(activeCourse)
@@ -2554,7 +2554,7 @@
             const listDiv = document.getElementById('courseStudentsList');
             listDiv.innerHTML = '<span style="color:var(--text-muted)">Cargando participantes...</span>';
             try {
-                const resp = await fetch(`/api/courses/${courseId}/students?inst_id=${getInstId()}`);
+                const resp = await authFetch(`/api/courses/${courseId}/students?inst_id=${getInstId()}`);
                 const students = await resp.json();
                 
                 if (students.length === 0) {
@@ -2975,7 +2975,7 @@
             formData.append('file', file);
             
             try {
-                const uploadResp = await fetch('/api/lms_upload', {
+                const uploadResp = await authFetch('/api/lms_upload', {
                     method: 'POST',
                     body: formData
                 });
@@ -3230,7 +3230,7 @@
             
             try {
                 // Obtener perfil del estudiante
-                const studResp = await fetch(`/api/students?inst_id=${getInstId()}`);
+                const studResp = await authFetch(`/api/students?inst_id=${getInstId()}`);
                 const students = await studResp.json();
                 const student = students.find(s => s.email === user.email);
                 
@@ -3240,7 +3240,7 @@
                 }
                 
                 // Obtener todos los cursos
-                const courseResp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=0&_t=${Date.now()}`);
+                const courseResp = await authFetch(`/api/courses?inst_id=${getInstId()}&program_id=0&_t=${Date.now()}`);
                 const courses = await courseResp.json();
                 
                 const enrolledIds = student.enrolled_courses || [];
@@ -3292,7 +3292,7 @@
                 const selectorBox = document.getElementById('studentCourseSelectorBox');
                 if (selectorBox) selectorBox.style.display = 'none';
 
-                const resp = await fetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=0&_t=${Date.now()}`);
+                const resp = await authFetch(`/api/courses/${courseId}?inst_id=${getInstId()}&program_id=0&_t=${Date.now()}`);
                 const course = await resp.json();
                 
                 // Assign global variable for use in quizzes
@@ -3301,7 +3301,7 @@
                 // Cargar entregas de este estudiante para este curso
                 let studentSubmissions = [];
                 try {
-                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&inst_id=${getInstId()}&program_id=0`);
+                    const subResp = await authFetch(`/api/submissions?course_id=${courseId}&student_email=${user.email}&inst_id=${getInstId()}&program_id=0`);
                     studentSubmissions = await subResp.json();
                 } catch (e) {
                     console.error("Error al cargar entregas:", e);
@@ -3326,7 +3326,7 @@
                 const teacherProfileDiv = document.getElementById('studentCourseTeacherProfile');
                 if (course.teacher_id) {
                     try {
-                        const tResp = await fetch(`/api/teachers?inst_id=${getInstId()}`);
+                        const tResp = await authFetch(`/api/teachers?inst_id=${getInstId()}`);
                         const teachers = await tResp.json();
                         const teacher = teachers.find(t => t.id === course.teacher_id);
                         if (teacher) {
@@ -3724,7 +3724,7 @@
             
             // Check if there is an existing submission
             try {
-                const checkResp = await fetch(`/api/submissions?course_id=${encodeURIComponent(courseId)}&student_email=${encodeURIComponent(user.email)}&activity_id=${encodeURIComponent(actId)}&inst_id=${getInstId()}&program_id=0`);
+                const checkResp = await authFetch(`/api/submissions?course_id=${encodeURIComponent(courseId)}&student_email=${encodeURIComponent(user.email)}&activity_id=${encodeURIComponent(actId)}&inst_id=${getInstId()}&program_id=0`);
                 const existingSubs = await checkResp.json();
                 if (existingSubs && existingSubs.length > 0) {
                     document.getElementById('subContent').value = existingSubs[0].content || '';
@@ -3759,7 +3759,7 @@
                     const formData = new FormData();
                     formData.append('file', fileInput.files[0]);
                     
-                    const uploadResp = await fetch('/api/lms_upload', {
+                    const uploadResp = await authFetch('/api/lms_upload', {
                         method: 'POST',
                         body: formData
                     });
@@ -3779,7 +3779,7 @@
                 document.getElementById('submissionModal').style.display = 'none';
                 if (submitBtn) { submitBtn.textContent = originalBtnText; submitBtn.disabled = false; }
 
-                const checkResp = await fetch(`/api/submissions?course_id=${encodeURIComponent(courseId)}&student_email=${encodeURIComponent(user.email)}&activity_id=${encodeURIComponent(actId)}&inst_id=${getInstId()}&program_id=0`);
+                const checkResp = await authFetch(`/api/submissions?course_id=${encodeURIComponent(courseId)}&student_email=${encodeURIComponent(user.email)}&activity_id=${encodeURIComponent(actId)}&inst_id=${getInstId()}&program_id=0`);
                 const existingSubs = await checkResp.json();
                 
                 const subData = {
@@ -3797,7 +3797,7 @@
                     subData.id = existingSubs[0].id;
                 }
                 
-                const response = await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=0`, {
+                const response = await authFetch(`/api/submissions?inst_id=${getInstId()}&program_id=0`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(subData)
@@ -3906,7 +3906,7 @@
                     formData.append('file', file);
                     
                     try {
-                        const uploadResp = await fetch('/api/lms_upload', {
+                        const uploadResp = await authFetch('/api/lms_upload', {
                             method: 'POST',
                             body: formData
                         });
@@ -4396,7 +4396,7 @@
             }
             
             try {
-                const response = await fetch(`/api/submissions/${subId}/grade?inst_id=${getInstId()}&program_id=0`, {
+                const response = await authFetch(`/api/submissions/${subId}/grade?inst_id=${getInstId()}&program_id=0`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -4416,7 +4416,7 @@
                     const actId = document.getElementById('gradeActivityId').value;
                     const courseId = document.getElementById('editCourseId').value;
                     
-                    const subResp = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=0`);
+                    const subResp = await authFetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=0`);
                     activeCourseSubmissions = await subResp.json();
                     
                     renderActivitySubmissionsList(actId);
@@ -4454,7 +4454,7 @@
 
         async function loadForumMessages(courseId, isTeacher = false) {
             try {
-                const resp = await fetch(`/api/courses/${courseId}/forum?inst_id=${getInstId()}&program_id=0`);
+                const resp = await authFetch(`/api/courses/${courseId}/forum?inst_id=${getInstId()}&program_id=0`);
                 const messages = await resp.json();
                 
                 const containerId = isTeacher ? 'teacherForumMessages' : 'studentForumMessages';
@@ -4500,7 +4500,7 @@
         async function sendForumMessage(courseId, content, isTeacher = false) {
             if (!content || !content.trim()) return;
             try {
-                const resp = await fetch(`/api/courses/${courseId}/forum?inst_id=${getInstId()}&program_id=0`, {
+                const resp = await authFetch(`/api/courses/${courseId}/forum?inst_id=${getInstId()}&program_id=0`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -4646,7 +4646,7 @@
 
                 // Cargar nombre del estudiante
                 try {
-                    const studResp = await fetch(`/api/students?inst_id=${getInstId()}`);
+                    const studResp = await authFetch(`/api/students?inst_id=${getInstId()}`);
                     const students = await studResp.json();
                     const student = students.find(s => s.email === user.email);
                     if (student) {
@@ -4689,7 +4689,7 @@
         async function loadCourseAnalytics(courseId) {
             if(!courseId) return;
             try {
-                const res = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=0`);
+                const res = await authFetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=0`);
                 const data = await res.json();
                 const tbody = document.getElementById('analyticsTableBody');
                 tbody.innerHTML = '';
@@ -4735,12 +4735,12 @@
             tbody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 20px; color: var(--text-muted);">Cargando libro de calificaciones...</td></tr>';
             try {
                 // Fetch all submissions for course
-                const subsRes = await fetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=0`);
+                const subsRes = await authFetch(`/api/submissions?course_id=${courseId}&inst_id=${getInstId()}&program_id=0`);
                 if (!subsRes.ok) throw new Error('Error fetching submissions');
                 const courseSubs = await subsRes.json() || [];
                 
                 // Fetch enrolled students via analytics endpoint
-                const analyticsRes = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=0`);
+                const analyticsRes = await authFetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=0`);
                 let enrolled = [];
                 if (analyticsRes.ok) {
                     const analyticsData = await analyticsRes.json();
@@ -4857,7 +4857,7 @@
 
         async function loadStudentGamification(courseId) {
             try {
-                const res = await fetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=0`);
+                const res = await authFetch(`/api/courses/${courseId}/analytics?inst_id=${getInstId()}&program_id=0`);
                 const data = await res.json();
                 
                 const userEmail = user.email; // from global var
@@ -4892,7 +4892,7 @@
             const tbody = document.getElementById('submissionsTableBody');
             tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Cargando entregas...</td></tr>';
             try {
-                const resp = await fetch('/api/submissions?course_id=' + courseId + '&inst_id=' + getInstId() + '&program_id=0');
+                const resp = await authFetch('/api/submissions?course_id=' + courseId + '&inst_id=' + getInstId() + '&program_id=0');
                 const subs = await resp.json();
                 if (!subs || subs.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color:var(--text-muted);">No hay entregas registradas para este curso.</td></tr>';
@@ -4947,7 +4947,7 @@
             
             try {
                 const courseId = document.getElementById('editCourseId').value;
-                const checkResp = await fetch('/api/submissions?course_id=' + courseId + '&inst_id=' + getInstId() + '&program_id=0');
+                const checkResp = await authFetch('/api/submissions?course_id=' + courseId + '&inst_id=' + getInstId() + '&program_id=0');
                 const subs = await checkResp.json();
                 const targetSub = subs.find(s => s.id === subId);
                 
@@ -4956,7 +4956,7 @@
                     targetSub.feedback = feedback.trim();
                     targetSub.status = 'graded';
                     
-                    const response = await fetch('/api/submissions?inst_id=' + getInstId() + '&program_id=0', {
+                    const response = await authFetch('/api/submissions?inst_id=' + getInstId() + '&program_id=0', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(targetSub)
@@ -5294,14 +5294,14 @@
                 status: status
             };
             try {
-                const res = await fetch(`/api/submissions?inst_id=${getInstId()}&program_id=0`, {
+                const res = await authFetch(`/api/submissions?inst_id=${getInstId()}&program_id=0`, {
                     method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
                 });
                 
                 if (res.ok) {
                     const savedData = await res.json();
                     if (status === 'graded' && savedData.data && savedData.data.id) {
-                        await fetch(`/api/submissions/${savedData.data.id}/grade?inst_id=${getInstId()}&program_id=0`, {
+                        await authFetch(`/api/submissions/${savedData.data.id}/grade?inst_id=${getInstId()}&program_id=0`, {
                             method: 'PUT', headers: {'Content-Type':'application/json'},
                             body: JSON.stringify({ grade: finalGrade, feedback: 'Calificado automáticamente por el sistema.' })
                         });
@@ -5781,7 +5781,7 @@
             btnElement.disabled = true;
             
             try {
-                const res = await fetch('/api/library/translate', {
+                const res = await authFetch('/api/library/translate', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({text: originalText, target_lang: targetLang})
@@ -5811,7 +5811,7 @@
                 return;
             }
             try {
-                const res = await fetch('/api/library/saved', {
+                const res = await authFetch('/api/library/saved', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
@@ -5839,7 +5839,7 @@
             const grid = document.getElementById('savedResourcesGrid');
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #6366f1; margin-bottom: 15px;"></i><br>Cargando tus recursos...</div>';
             try {
-                const res = await fetch(`/api/library/saved?email=${encodeURIComponent(user.email)}`);
+                const res = await authFetch(`/api/library/saved?email=${encodeURIComponent(user.email)}`);
                 const data = await res.json();
                 if(data.length === 0) {
                     grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;">No tienes recursos guardados aún.</div>';
@@ -5873,7 +5873,7 @@
         async function deleteSavedResource(id) {
             if(!confirm("¿Seguro que deseas eliminar este recurso de tus favoritos?")) return;
             try {
-                const res = await fetch(`/api/library/saved/${id}`, { method: 'DELETE' });
+                const res = await authFetch(`/api/library/saved/${id}`, { method: 'DELETE' });
                 const data = await res.json();
                 if(data.status === 'success') {
                     loadSavedResources();
@@ -6027,7 +6027,7 @@
             document.getElementById('ovasLoadingIndicator').style.display = 'block';
             document.getElementById('ovasResults').innerHTML = '';
             try {
-                const res = await fetch('/api/library/ovas');
+                const res = await authFetch('/api/library/ovas');
                 const data = await res.json();
                 if(data.status === 'success') {
                     allOvas = data.ovas;
@@ -6142,7 +6142,7 @@
             document.getElementById('miniTranslatorResult').style.display = 'none';
             
             try {
-                const resp = await fetch('/api/library/translate', {
+                const resp = await authFetch('/api/library/translate', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({text: text, target_lang: 'es'})
@@ -6443,7 +6443,7 @@
         btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Preparando Moodle...';
         btn.disabled = true;
 
-        fetch(`/api/courses/${activeCourse.id}/export/moodle`)
+        authFetch(`/api/courses/${activeCourse.id}/export/moodle`)
             .then(res => {
                 if (!res.ok) throw new Error('Error en la exportación');
                 return res.blob();
@@ -6789,7 +6789,7 @@
                 teacher_name: "Generado por IA"
             };
             
-            const saveResp = await fetch(`/api/courses?inst_id=${getInstId()}&program_id=0`, {
+            const saveResp = await authFetch(`/api/courses?inst_id=${getInstId()}&program_id=0`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalCourse)
@@ -6813,7 +6813,7 @@
                 // Publicar foro detonador si fue generado
                 if (courseData.forum_topic && createdAiCourseId) {
                     try {
-                        await fetch(`/api/courses/${createdAiCourseId}/forum?inst_id=${getInstId()}&program_id=0`, {
+                        await authFetch(`/api/courses/${createdAiCourseId}/forum?inst_id=${getInstId()}&program_id=0`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -6856,7 +6856,7 @@
         editorBox.style.opacity = '0.7';
         
         try {
-            const resp = await fetch('/api/ai/course/improve', {
+            const resp = await authFetch('/api/ai/course/improve', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: action, content: targetContent })
@@ -6911,7 +6911,7 @@
             const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
             
             try {
-                const res = await fetch('/api/change-password', {
+                const res = await authFetch('/api/change-password', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({

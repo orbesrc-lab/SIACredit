@@ -84,6 +84,7 @@
             .escala label { flex: 1 1 30%; }
         }
     </style>
+<script src="/static/app.js"></script>
 </head>
 <body>
     <header class="header">
@@ -124,7 +125,7 @@
             }
 
             try {
-                const res = await fetch(`/api/skel360/evaluar/${token}`);
+                const res = await authFetch(`/api/skel360/evaluar/${token}`);
                 const data = await res.json();
                 
                 document.getElementById('loader').style.display = 'none';
@@ -220,7 +221,7 @@
             }
 
             try {
-                const res = await fetch(`/api/skel360/evaluar/${token}/submit`, {
+                const res = await authFetch(`/api/skel360/evaluar/${token}/submit`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ respuestas: payload })

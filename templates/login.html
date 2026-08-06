@@ -297,7 +297,7 @@
             const password = document.getElementById('password').value;
             
             try {
-                const response = await fetch('/api/login', {
+                const response = await authFetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -332,7 +332,7 @@
             btn.textContent = 'Enviando...';
             
             try {
-                const response = await fetch('/api/forgot-password', {
+                const response = await authFetch('/api/forgot-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })

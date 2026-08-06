@@ -429,7 +429,7 @@
 
         async function loadDashboardStats() {
             try {
-                const resp = await fetch(`/api/dashboard/stats?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const resp = await authFetch(`/api/dashboard/stats?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const stats = await resp.json();
                 document.getElementById('stat_progress').textContent = (stats.global_progress || 0) + '%';
                 document.getElementById('stat_evidences').textContent = stats.total_evidences || 0;
@@ -441,7 +441,7 @@
 
         async function loadRecentActivity() {
             try {
-                const resp = await fetch(`/api/evidences?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const resp = await authFetch(`/api/evidences?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const evidences = await resp.json();
                 const list = document.getElementById('activityList');
                 list.innerHTML = evidences.length ? '' : '<div class="activity-item">No hay actividad reciente.</div>';
@@ -470,9 +470,9 @@
                 const pId = getProgramId();
                 
                 const [modelResp, evalsResp, evidencesResp] = await Promise.all([
-                    fetch(`/api/model?inst_id=${iId}&program_id=${pId}`),
-                    fetch(`/api/evaluations?inst_id=${iId}&program_id=${pId}`),
-                    fetch(`/api/evidences?inst_id=${iId}&program_id=${pId}`)
+                    authFetch(`/api/model?inst_id=${iId}&program_id=${pId}`),
+                    authFetch(`/api/evaluations?inst_id=${iId}&program_id=${pId}`),
+                    authFetch(`/api/evidences?inst_id=${iId}&program_id=${pId}`)
                 ]);
 
                 vizModelData = await modelResp.json();
@@ -906,7 +906,7 @@
         async function initDashboard() {
             try {
                 // Cargar datos de la institución
-                const instResp = await fetch(`/api/institution?inst_id=${getInstId()}`);
+                const instResp = await authFetch(`/api/institution?inst_id=${getInstId()}`);
                 const instData = await instResp.json();
                 document.getElementById('inst_name').textContent = instData.name;
                 if(instData.logo_url) {
@@ -916,7 +916,7 @@
                 }
 
                 // Cargar datos del programa
-                const progResp = await fetch(`/api/programs?inst_id=${getInstId()}`);
+                const progResp = await authFetch(`/api/programs?inst_id=${getInstId()}`);
                 const progs = await progResp.json();
                 const currentProg = progs.find(p => p.id == getProgramId());
                 const programName = currentProg ? currentProg.name : 'Programa';
@@ -953,7 +953,7 @@
 
         async function loadStatisticsCharts() {
             try {
-                const res = await fetch(`/api/estadisticas?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const res = await authFetch(`/api/estadisticas?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 if(!res.ok) return;
                 const data = await res.json();
                 

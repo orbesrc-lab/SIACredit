@@ -578,7 +578,7 @@
 
             try {
                 // Paso 1: Solicitar Signed URL al backend
-                const urlRes = await fetch('/api/direct_upload/url', {
+                const urlRes = await authFetch('/api/direct_upload/url', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -691,7 +691,7 @@
             }
 
             try {
-                const response = await fetch('/api/analyze', {
+                const response = await authFetch('/api/analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -709,7 +709,7 @@
                         const key = tableId ? `ai_analysis_${tableId}` : 'ai_analysis_global';
                         const stats = getStatistics();
                         stats[key] = data.analysis;
-                        fetch(`/api/estadisticas?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
+                        authFetch(`/api/estadisticas?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({

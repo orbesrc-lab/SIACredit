@@ -22,6 +22,7 @@
         .admin-table th { font-weight: 600; color: var(--text-muted); }
         .btn-primary { background: var(--primary-gradient); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
     </style>
+<script src="/static/app.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -344,7 +345,7 @@
         
         async function loadEmpresa() {
             try {
-                const response = await fetch('/api/skel360/empresas');
+                const response = await authFetch('/api/skel360/empresas');
                 const result = await response.json();
                 if(result.status === 'success') {
                     const emp = result.data.find(e => e.id === empresaId);
@@ -363,7 +364,7 @@
             document.getElementById('colaboradores-list').innerHTML = '<tr><td colspan="6" style="text-align: center;">Procesando archivo...</td></tr>';
             
             try {
-                const response = await fetch(`/api/skel360/empresa/${empresaId}/carga-masiva`, {
+                const response = await authFetch(`/api/skel360/empresa/${empresaId}/carga-masiva`, {
                     method: 'POST',
                     body: formData
                 });
@@ -435,7 +436,7 @@
         async function eliminarColaborador(id) {
             if(!confirm('¿Eliminar este colaborador? Se borrarán también sus tokens y evaluaciones asociadas.')) return;
             try {
-                const res = await fetch(`/api/skel360/colaborador/${id}`, {method: 'DELETE'});
+                const res = await authFetch(`/api/skel360/colaborador/${id}`, {method: 'DELETE'});
                 const data = await res.json();
                 if(data.status === 'success') {
                     alert('Colaborador eliminado correctamente.');
@@ -458,11 +459,11 @@
             document.getElementById('matriz-tbody').innerHTML = '';
             
             try {
-                const resDicc = await fetch('/api/skel360/diccionario');
+                const resDicc = await authFetch('/api/skel360/diccionario');
                 const dataDicc = await resDicc.json();
                 allCompetencias = dataDicc.data || [];
                 
-                const resPerf = await fetch(`/api/skel360/empresa/${empresaId}/perfiles`);
+                const resPerf = await authFetch(`/api/skel360/empresa/${empresaId}/perfiles`);
                 const dataPerf = await resPerf.json();
                 allCargos = dataPerf.data || [];
                 
@@ -516,7 +517,7 @@
             }));
             
             try {
-                const res = await fetch(`/api/skel360/empresa/${empresaId}/perfiles/matriz`, {
+                const res = await authFetch(`/api/skel360/empresa/${empresaId}/perfiles/matriz`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ asignaciones })
@@ -539,7 +540,7 @@
             
             // Fetch current network
             try {
-                const res = await fetch(`/api/skel360/empresa/${empresaId}/red360`);
+                const res = await authFetch(`/api/skel360/empresa/${empresaId}/red360`);
                 const data = await res.json();
                 red360 = data.data || [];
             } catch(e) { console.error(e); }
@@ -653,7 +654,7 @@
         
         async function guardarRedGlobal() {
             try {
-                const res = await fetch(`/api/skel360/empresa/${empresaId}/red360`, {
+                const res = await authFetch(`/api/skel360/empresa/${empresaId}/red360`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ asignaciones: red360 })
@@ -670,7 +671,7 @@
             if(!confirm('¿Estás seguro de generar las evaluaciones para todos los colaboradores?')) return;
             
             try {
-                const res = await fetch(`/api/skel360/empresa/${empresaId}/lanzar`, {method: 'POST'});
+                const res = await authFetch(`/api/skel360/empresa/${empresaId}/lanzar`, {method: 'POST'});
                 const data = await res.json();
                 if(data.status === 'success') {
                     alert(data.message);
@@ -702,7 +703,7 @@
             }
             if(!confirm(`¿Enviar la invitación de evaluación por correo a: ${correo}?`)) return;
             try {
-                const res = await fetch(`/api/skel360/empresa/${empresaId}/enviar-correo`, {
+                const res = await authFetch(`/api/skel360/empresa/${empresaId}/enviar-correo`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ token_id: tokenId })
@@ -722,7 +723,7 @@
         async function enviarCorreosTodos() {
             if(!confirm('¿Estás seguro de enviar por correo la invitación a TODOS los colaboradores asignados?')) return;
             try {
-                const res = await fetch(`/api/skel360/empresa/${empresaId}/enviar-correo`, {
+                const res = await authFetch(`/api/skel360/empresa/${empresaId}/enviar-correo`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ enviar_todos: true })
@@ -741,7 +742,7 @@
         
         async function loadColaboradores() {
             try {
-                const response = await fetch(`/api/skel360/empresa/${empresaId}/colaboradores`);
+                const response = await authFetch(`/api/skel360/empresa/${empresaId}/colaboradores`);
                 const result = await response.json();
                 if(result.status === 'success') {
                     const tbody = document.getElementById('colaboradores-list');
