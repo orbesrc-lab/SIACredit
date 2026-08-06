@@ -1135,7 +1135,7 @@ def change_user_role(user_id):
         return jsonify({"status": "error", "message": "El campo 'role' es requerido."})
 
     # Roles válidos que se pueden asignar (no se puede asignar 'admin' desde aquí)
-    allowed_roles = {'lider', 'operativo', 'inst_admin', 'estudiante', 'profesor'}
+    allowed_roles = {'lider', 'operativo', 'inst_admin', 'estudiante', 'profesor', 'consultor', 'auditor'}
     if new_role not in allowed_roles:
         return jsonify({"status": "error", "message": f"Rol inválido. Roles permitidos: {', '.join(allowed_roles)}"})
 
