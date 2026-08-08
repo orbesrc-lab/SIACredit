@@ -371,3 +371,22 @@ window.addEventListener('message', (e) => {
         window.location.reload();
     }
 });
+
+
+// Helpers globales para navegación lateral y cierre de sesión
+window.toggleSidebarGroup = function(element) {
+    if (!element) return;
+    const group = element.parentElement;
+    if (!group) return;
+    const allGroups = document.querySelectorAll('.sidebar-group');
+    allGroups.forEach(g => {
+        if (g !== group) g.classList.remove('active');
+    });
+    group.classList.toggle('active');
+};
+
+window.logout = function() {
+    localStorage.removeItem('siac_user');
+    localStorage.removeItem('user_role');
+    window.top.location.href = '/login.html';
+};

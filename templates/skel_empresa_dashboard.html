@@ -772,6 +772,24 @@
             } catch(e) { console.error(e); }
         }
         
+        
+        function toggleSidebarGroup(element) {
+            if (!element) return;
+            const group = element.parentElement;
+            if (!group) return;
+            const allGroups = document.querySelectorAll('.sidebar-group');
+            allGroups.forEach(g => {
+                if (g !== group) g.classList.remove('active');
+            });
+            group.classList.toggle('active');
+        }
+
+        function logout() {
+            localStorage.removeItem('siac_user');
+            localStorage.removeItem('user_role');
+            window.top.location.href = '/login.html';
+        }
+
         loadEmpresa();
         loadColaboradores();
 
