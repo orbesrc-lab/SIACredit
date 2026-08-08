@@ -29,7 +29,17 @@ def get_empresas():
     try:
         sb = get_supabase()
         res = sb.table('skel_empresas').select('*').execute()
-        return jsonify({"status": "success", "data": res.data})
+        empresas = res.data or []
+        for emp in empresas:
+            try:
+                c_res = sb.table('skel_colaboradores').select('id', count='exact').eq('empresa_id', emp['id']).execute()
+                actual_count = c_res.count if c_res.count is not None else len(c_res.data or [])
+                emp['colaboradores_cargados'] = actual_count
+                emp['colaboradores_count'] = actual_count if actual_count > 0 else (emp.get('num_empleados') or 0)
+            except Exception:
+                emp['colaboradores_cargados'] = 0
+                emp['colaboradores_count'] = emp.get('num_empleados') or 0
+        return jsonify({"status": "success", "data": empresas})
     except Exception as e:
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
