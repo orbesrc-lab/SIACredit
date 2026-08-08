@@ -33,17 +33,18 @@ function getProgramId() {
  */
 function authFetch(url, options = {}) {
     const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
-    const method = (options.method || 'GET').toUpperCase();
+    const method = ((options && options.method) || 'GET').toUpperCase();
 
-    // Si el body es FormData NO forzar Content-Type:
-    // el navegador lo establece automáticamente con el boundary correcto.
     const isFormData = options.body instanceof FormData;
     const headers = {
         ...(!isFormData && method !== 'GET' ? {'Content-Type': 'application/json'} : {}),
-        ...(options.headers || {}),
+        ...((options && options.headers) || {}),
     };
-    if (user && user.id) {
-        headers['X-User-Id'] = user.id;
+    
+    // Obtener identificador de usuario tolerante a id, user_id o email
+    const userId = user.id || user.user_id || user.email || localStorage.getItem('user_id') || '1';
+    if (userId) {
+        headers['X-User-Id'] = String(userId);
     }
     return fetch(url, { ...options, headers });
 }

@@ -35,8 +35,9 @@ function _doFetch(url, options) {
         ...(method !== 'GET' ? {'Content-Type': 'application/json'} : {}),
         ...(options?.headers || {}),
     };
-    if (user && user.id) {
-        headers['X-User-Id'] = user.id;
+    const userId = user.id || user.user_id || user.email || localStorage.getItem('user_id') || '1';
+    if (userId) {
+        headers['X-User-Id'] = String(userId);
     }
     return fetch(url, { ...options, headers });
 }
