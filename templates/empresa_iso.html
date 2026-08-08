@@ -101,6 +101,54 @@
         .banco-footer{display:flex;justify-content:space-between;font-size:.75rem;color:#94a3b8;margin-top:10px;padding-top:10px;border-top:1px solid #f1f5f9;}
         .banco-empty{text-align:center;padding:50px 20px;color:#94a3b8;grid-column:1/-1;}
         .banco-empty i{font-size:3rem;display:block;margin-bottom:12px;opacity:.4;}
+        #printSection { display: none; }
+        @media print {
+            @page {
+                size: letter portrait;
+                margin: 12mm 15mm 15mm 15mm;
+            }
+            body {
+                background: white !important;
+                color: #0f172a !important;
+                font-family: Arial, Helvetica, sans-serif !important;
+                font-size: 11px !important;
+            }
+            .dashboard-container, .modal, .swal2-container {
+                display: none !important;
+            }
+            #printSection {
+                display: block !important;
+                width: 100% !important;
+            }
+            .print-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin-bottom: 12px !important;
+                font-size: 10px !important;
+            }
+            .print-table th {
+                background-color: #1e293b !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                padding: 6px 8px !important;
+                text-align: left !important;
+                font-size: 10px !important;
+            }
+            .print-table td {
+                border: 1px solid #cbd5e1 !important;
+                padding: 5px 7px !important;
+            }
+            .print-table tr:nth-child(even) td {
+                background-color: #f8fafc !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .print-chart-card, .print-ind-card {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+        }
     </style>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
@@ -179,7 +227,10 @@
                         <h3 style="margin:0;color:#1e3a8a;font-size:1.1rem;"><i class="fas fa-chart-bar" style="color:#7c3aed;"></i> Banco de Indicadores del SGC <small style="font-weight:normal;color:#64748b;">(Clausula 9.1)</small></h3>
                         <p style="margin:4px 0 0;color:#64748b;font-size:.83rem;">Todos los indicadores con historico de mediciones, semaforo y graficas dinamicas.</p>
                     </div>
-                    <button class="btn-action" id="btn-actualizar-banco" style="background:#0f172a;padding:7px 14px;font-size:.82rem;" onclick="renderBancoIndicadores()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn-action" id="btn-actualizar-banco" style="background:#0f172a;padding:7px 14px;font-size:.82rem;" onclick="renderBancoIndicadores()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+                        <button class="btn-action" id="btn-imprimir-banco" style="background:#2563eb;padding:7px 14px;font-size:.82rem;" onclick="exportBancoIndicadoresPDF()"><i class="fas fa-print"></i> Imprimir Banco</button>
+                    </div>
                 </div>
                 <div class="banco-stats" id="banco_stats">
                     <div class="banco-stat-card stat-total"><div class="banco-stat-num">0</div><div class="banco-stat-label">Total Indicadores</div></div>
@@ -1158,7 +1209,354 @@ function exportPDF(){
     const printHTML=`<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #2563eb;padding-bottom:14px;margin-bottom:18px;"><div>${logoSrc?`<img src="${logoSrc}" style="max-height:55px;max-width:180px;">`:'<div style="font-weight:bold;font-size:1.2rem;color:#2563eb;">SIAC STRATEGIC</div>'}</div><div style="font-size:1.2rem;font-weight:bold;color:#1e3a8a;text-transform:uppercase;">${instName}</div></div><div style="text-align:center;font-size:1.4rem;color:#0f172a;font-weight:bold;">INFORME SGC — ISO 9001:2015</div><div style="text-align:center;font-size:.88rem;color:#64748b;margin-bottom:18px;">Fecha: <strong>${evalDate}</strong> | Indicadores: <strong>${totInds}</strong></div><div style="background:#eff6ff;padding:13px;border-radius:8px;border-left:4px solid #2563eb;margin-bottom:18px;"><h3 style="margin:0 0 5px;color:#1e3a8a;">Politica de Calidad</h3><p style="margin:0;font-size:.88rem;">${policy}</p><h4 style="margin:9px 0 4px;color:#1e3a8a;">Objetivos de Calidad</h4><pre style="margin:0;font-family:inherit;font-size:.85rem;white-space:pre-wrap;">${objectives}</pre></div><h2 style="color:#1e3a8a;border-bottom:1px solid #e2e8f0;padding-bottom:5px;">Fichas de Caracterizacion</h2>${procRows}`;
     document.getElementById('printSection').innerHTML=printHTML;window.print();
 }
+
+async function exportBancoIndicadoresPDF(){
+    Swal.fire({
+        title: 'Generando Reporte del Banco...',
+        html: '<div style="margin-top:10px;"><i class="fas fa-cog fa-spin" style="font-size:2rem;color:#2563eb;"></i><br><p style="margin-top:12px;font-size:.9rem;color:#475569;">Procesando tablas, historial de mediciones y renderizando gráficas en alta resolución...</p></div>',
+        allowOutsideClick: false,
+        showConfirmButton: false
+    });
+
+    try {
+        const logoImg = document.getElementById('inst_logo_img');
+        const logoSrc = (logoImg && logoImg.style.display !== 'none' && logoImg.src) ? logoImg.src : '';
+        const instName = document.getElementById('inst_name_display')?.textContent || 'CORPORACIÓN UNIVERSITARIA CENTRO SUPERIOR';
+        const evalDate = document.getElementById('eval_date')?.value || new Date().toISOString().split('T')[0];
+
+        const fp = document.getElementById('filter_proceso')?.value || '';
+        const ft = document.getElementById('filter_tipo')?.value || '';
+        const fe = document.getElementById('filter_estado')?.value || '';
+
+        let allInds = [];
+        for(const [pName, pData] of Object.entries(sgcData.processes)){
+            (pData.indicadores || []).forEach(ind => {
+                allInds.push({ ...ind, _proceso: pName });
+            });
+        }
+
+        let fil = allInds;
+        if(fp) fil = fil.filter(i => i._proceso === fp);
+        if(ft) fil = fil.filter(i => (i.tipo||'').toLowerCase() === ft);
+        if(fe) fil = fil.filter(i => {
+            const lr = getLastRegistro(i);
+            if(!lr) return false;
+            const s = getSemaforo(lr.valor, i.meta);
+            return fe === 'verde' ? s.label === 'En Meta' : fe === 'amarillo' ? s.label === 'En Riesgo' : fe === 'rojo' ? s.label === 'Fuera de Meta' : true;
+        });
+
+        if(!fil.length){
+            Swal.close();
+            Swal.fire('Atención', 'No hay indicadores registrados para imprimir.', 'warning');
+            return;
+        }
+
+        let tot = fil.length, ve = 0, am = 0, ro = 0;
+        fil.forEach(ind => {
+            const lr = getLastRegistro(ind);
+            if(lr){
+                const s = getSemaforo(lr.valor, ind.meta);
+                if(s.label === 'En Meta') ve++;
+                else if(s.label === 'En Riesgo') am++;
+                else if(s.label === 'Fuera de Meta') ro++;
+            }
+        });
+
+        const chartImages = {};
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '-9999px';
+        tempContainer.style.width = '750px';
+        document.body.appendChild(tempContainer);
+
+        for(const ind of fil){
+            if(ind.registros && ind.registros.length > 0){
+                const canvas = document.createElement('canvas');
+                canvas.width = 750;
+                canvas.height = 350;
+                tempContainer.appendChild(canvas);
+
+                const regs = ind.registros;
+                const labels = regs.map(r => r.periodo);
+                const vals = regs.map(r => parseFloat(r.valor));
+                const meta = parseFloat(ind.meta) || 0;
+                const tg = ind.tipo_grafica || 'barras';
+                const bgC = vals.map(v => {
+                    const s = getSemaforo(v, meta);
+                    return s.label === 'En Meta' ? '#16a34a' : s.label === 'En Riesgo' ? '#d97706' : s.label === 'Fuera de Meta' ? '#dc2626' : '#94a3b8';
+                });
+                const PAL = ['#2563eb','#10b981','#7c3aed','#f59e0b','#ef4444','#06b6d4','#84cc16','#f97316'];
+
+                let cfg;
+                if(tg === 'torta'){
+                    cfg = {
+                        type: 'pie',
+                        data: { labels, datasets: [{ data: vals, backgroundColor: PAL.slice(0, vals.length), borderWidth: 2, borderColor: 'white' }] },
+                        options: { animation: false, responsive: false, plugins: { legend: { position: 'right', labels: { font: { size: 12, weight: 'bold' } } } } }
+                    };
+                } else {
+                    const isL = tg === 'linea' || tg === 'area';
+                    const ds = [{
+                        label: `${ind.nombre} (${ind.unidad||''})`,
+                        data: vals,
+                        backgroundColor: isL ? 'rgba(37,99,235,0.15)' : bgC,
+                        borderColor: '#2563eb',
+                        borderWidth: isL ? 3 : 1.5,
+                        fill: tg === 'area',
+                        tension: 0.35,
+                        pointBackgroundColor: bgC,
+                        pointRadius: isL ? 6 : 0,
+                        borderRadius: isL ? 0 : 6
+                    }];
+                    if(meta > 0){
+                        ds.push({
+                            label: `Meta (${meta} ${ind.unidad||''})`,
+                            data: new Array(vals.length).fill(meta),
+                            borderColor: '#dc2626',
+                            borderWidth: 2,
+                            borderDash: [6, 4],
+                            pointRadius: 0,
+                            type: 'line',
+                            fill: false
+                        });
+                    }
+                    cfg = {
+                        type: isL ? 'line' : 'bar',
+                        data: { labels, datasets: ds },
+                        options: {
+                            animation: false,
+                            responsive: false,
+                            plugins: { legend: { display: true, position: 'top', labels: { font: { size: 11, weight: 'bold' } } } },
+                            scales: {
+                                y: { beginAtZero: false, ticks: { font: { size: 11 } }, grid: { color: '#e2e8f0' } },
+                                x: { ticks: { font: { size: 11, weight: 'bold' } }, grid: { display: false } }
+                            }
+                        }
+                    };
+                }
+
+                try {
+                    const chart = new Chart(canvas.getContext('2d'), cfg);
+                    chartImages[ind.id] = canvas.toDataURL('image/png', 1.0);
+                    chart.destroy();
+                } catch(e) {
+                    console.error('Error rendering print chart:', ind.id, e);
+                }
+            }
+        }
+
+        document.body.removeChild(tempContainer);
+
+        let indConsolidatedTableRows = '';
+        let indDetailTablesHTML = '';
+
+        fil.forEach((ind, idx) => {
+            const lr = getLastRegistro(ind);
+            const sem = lr ? getSemaforo(lr.valor, ind.meta) : { icon: '⚪', label: 'Sin datos', color: '#64748b' };
+            const pctStr = lr ? `${Math.round(sem.pct)}%` : '—';
+
+            indConsolidatedTableRows += `
+                <tr>
+                    <td style="font-family:monospace;font-weight:bold;color:#475569;">${ind.codigo || `IND-${idx+1}`}</td>
+                    <td style="font-weight:bold;color:#0f172a;">${ind.nombre}</td>
+                    <td style="color:#1e3a8a;font-weight:600;">${ind._proceso}</td>
+                    <td style="text-transform:capitalize;">${ind.tipo || 'Eficacia'}</td>
+                    <td style="font-family:monospace;font-size:10px;">${ind.formula || '—'}</td>
+                    <td style="font-weight:bold;">${ind.meta || '—'} ${ind.unidad||''}</td>
+                    <td style="font-weight:bold;color:#1e3a8a;">${lr ? `${lr.valor} ${ind.unidad||''}` : '—'}</td>
+                    <td style="font-weight:bold;color:${sem.color};">${pctStr}</td>
+                    <td style="font-weight:bold;color:${sem.color};">${sem.icon} ${sem.label}</td>
+                </tr>`;
+
+            let measurementRows = '';
+            (ind.registros || []).forEach(r => {
+                const s = getSemaforo(r.valor, ind.meta);
+                let varsFormatted = '—';
+                if(r.variables && Object.keys(r.variables).length > 0){
+                    varsFormatted = Object.entries(r.variables).map(([k,v]) => `<strong>${k}:</strong> ${v}`).join(' | ');
+                }
+                measurementRows += `
+                    <tr>
+                        <td style="font-weight:bold;color:#1e293b;">${r.periodo}</td>
+                        <td style="color:#64748b;">${r.fecha || '-'}</td>
+                        <td style="font-weight:bold;color:#1e3a8a;font-size:11px;">${r.valor} ${ind.unidad||''}</td>
+                        <td style="font-size:10px;color:#334155;">${varsFormatted}</td>
+                        <td style="font-weight:bold;color:${s.color};">${s.icon} ${s.label}</td>
+                        <td style="color:#475569;font-size:10px;">${r.observaciones || '-'}</td>
+                    </tr>`;
+            });
+
+            if(!measurementRows){
+                measurementRows = `<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:8px;">No hay mediciones registradas aún.</td></tr>`;
+            }
+
+            indDetailTablesHTML += `
+                <div class="print-ind-card" style="page-break-inside:avoid;margin-bottom:18px;border:1px solid #cbd5e1;border-radius:6px;padding:12px;background:#ffffff;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1e3a8a;padding-bottom:5px;margin-bottom:8px;">
+                        <h4 style="margin:0;color:#1e3a8a;font-size:12px;">📊 ${ind.codigo || `IND-${idx+1}`}: ${ind.nombre}</h4>
+                        <span style="font-size:10px;background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:4px;font-weight:bold;">Proceso: ${ind._proceso}</span>
+                    </div>
+                    <table style="width:100%;margin-bottom:8px;font-size:10px;border-collapse:collapse;">
+                        <tr style="background:#f8fafc;">
+                            <td style="padding:4px 6px;border:1px solid #cbd5e1;"><strong>Tipo:</strong> ${ind.tipo||'Eficacia'}</td>
+                            <td style="padding:4px 6px;border:1px solid #cbd5e1;"><strong>Frecuencia:</strong> ${ind.frecuencia||'—'}</td>
+                            <td style="padding:4px 6px;border:1px solid #cbd5e1;"><strong>Responsable:</strong> ${ind.responsable||'Sin asignar'}</td>
+                            <td style="padding:4px 6px;border:1px solid #cbd5e1;"><strong>Meta:</strong> ${ind.meta||'—'} ${ind.unidad||''}</td>
+                        </tr>
+                        <tr style="background:#f8fafc;">
+                            <td style="padding:4px 6px;border:1px solid #cbd5e1;" colspan="2"><strong>Fórmula:</strong> <code>${ind.formula||'—'}</code></td>
+                            <td style="padding:4px 6px;border:1px solid #cbd5e1;" colspan="2"><strong>Fuente de Datos:</strong> ${ind.fuente||'—'}</td>
+                        </tr>
+                    </table>
+                    <div style="font-size:10px;font-weight:bold;color:#0f172a;margin-bottom:4px;">Histórico de Mediciones:</div>
+                    <table class="print-table" style="margin:0;font-size:10px;">
+                        <thead>
+                            <tr>
+                                <th style="width:14%;">Período</th>
+                                <th style="width:12%;">Fecha</th>
+                                <th style="width:15%;">Resultado</th>
+                                <th style="width:25%;">Trazabilidad Variables</th>
+                                <th style="width:14%;">Estado</th>
+                                <th style="width:20%;">Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>${measurementRows}</tbody>
+                    </table>
+                </div>`;
+        });
+
+        let indChartsHTML = '';
+        fil.forEach(ind => {
+            const chartImg = chartImages[ind.id];
+            const lr = getLastRegistro(ind);
+            const sem = lr ? getSemaforo(lr.valor, ind.meta) : { icon: '⚪', label: 'Sin datos', color: '#64748b' };
+            if(chartImg){
+                indChartsHTML += `
+                    <div class="print-chart-card" style="page-break-inside:avoid;margin-bottom:22px;border:1px solid #cbd5e1;border-radius:8px;padding:14px;background:#ffffff;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1.5px solid #2563eb;padding-bottom:6px;margin-bottom:10px;">
+                            <div>
+                                <strong style="font-size:13px;color:#1e3a8a;">📈 ${ind.nombre}</strong>
+                                <span style="font-size:10px;color:#64748b;margin-left:8px;">(${ind.codigo||'IND'})</span>
+                            </div>
+                            <div style="font-size:10px;color:#475569;font-weight:bold;">
+                                Proceso: <span style="color:#1d4ed8;">${ind._proceso}</span> | Tipo: <span style="text-transform:capitalize;">${ind.tipo||'Eficacia'}</span>
+                            </div>
+                        </div>
+                        <div style="text-align:center;padding:5px 0;">
+                            <img src="${chartImg}" style="max-width:100%;max-height:290px;object-fit:contain;display:block;margin:0 auto;" />
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;background:#f8fafc;padding:7px 12px;border-radius:6px;margin-top:10px;font-size:10px;border:1px solid #e2e8f0;">
+                            <span><strong>Meta:</strong> ${ind.meta||'—'} ${ind.unidad||''}</span>
+                            <span><strong>Frecuencia:</strong> ${ind.frecuencia||'—'}</span>
+                            <span><strong>Último Registro:</strong> ${lr ? `<strong>${lr.valor} ${ind.unidad||''}</strong> (${lr.periodo})` : 'Sin registros'}</span>
+                            <span><strong>Estado:</strong> <span style="color:${sem.color};font-weight:bold;">${sem.icon} ${sem.label}</span></span>
+                        </div>
+                    </div>`;
+            }
+        });
+
+        if(!indChartsHTML){
+            indChartsHTML = `<div style="text-align:center;padding:30px;color:#94a3b8;font-size:12px;">No se registraron mediciones históricas para generar gráficos de tendencia.</div>`;
+        }
+
+        const printHTML = `
+        <div class="print-document">
+            <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1e3a8a;padding-bottom:10px;margin-bottom:14px;">
+                <div>
+                    ${logoSrc ? `<img src="${logoSrc}" style="max-height:48px;max-width:180px;object-fit:contain;">` : '<div style="font-weight:bold;font-size:1.2rem;color:#1e3a8a;">SKEL STRATEGIC</div>'}
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:1.05rem;font-weight:bold;color:#1e3a8a;text-transform:uppercase;">${instName}</div>
+                    <div style="font-size:.78rem;color:#64748b;font-weight:600;margin-top:2px;">SISTEMA DE GESTIÓN DE LA CALIDAD — ISO 9001:2015</div>
+                </div>
+            </div>
+
+            <div style="text-align:center;margin-bottom:16px;background:#f8fafc;padding:10px;border-radius:6px;border:1px solid #e2e8f0;">
+                <h2 style="margin:0;color:#0f172a;font-size:1.2rem;text-transform:uppercase;letter-spacing:0.5px;">INFORME GENERAL DE BANCO DE INDICADORES</h2>
+                <div style="font-size:.78rem;color:#475569;margin-top:4px;display:flex;justify-content:center;gap:18px;">
+                    <span>Fecha de Emisión: <strong>${evalDate}</strong></span>
+                    <span>Total Indicadores: <strong>${tot}</strong></span>
+                    <span>Formato: <strong>Carta (Letter)</strong></span>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px;">
+                <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:6px;text-align:center;">
+                    <div style="font-size:1.3rem;font-weight:800;color:#1d4ed8;">${tot}</div>
+                    <div style="font-size:9px;color:#1e40af;font-weight:bold;text-transform:uppercase;">Total Indicadores</div>
+                </div>
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:6px;text-align:center;">
+                    <div style="font-size:1.3rem;font-weight:800;color:#16a34a;">${ve}</div>
+                    <div style="font-size:9px;color:#15803d;font-weight:bold;text-transform:uppercase;">🟢 En Meta</div>
+                </div>
+                <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:6px;text-align:center;">
+                    <div style="font-size:1.3rem;font-weight:800;color:#d97706;">${am}</div>
+                    <div style="font-size:9px;color:#b45309;font-weight:bold;text-transform:uppercase;">🟡 En Riesgo</div>
+                </div>
+                <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:6px;text-align:center;">
+                    <div style="font-size:1.3rem;font-weight:800;color:#dc2626;">${ro}</div>
+                    <div style="font-size:9px;color:#b91c1c;font-weight:bold;text-transform:uppercase;">🔴 Fuera de Meta</div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 1: DATOS Y TABLAS -->
+            <div style="margin-bottom:20px;">
+                <div style="background:#1e293b;color:white;padding:7px 12px;border-radius:5px;font-weight:bold;font-size:12px;margin-bottom:12px;">
+                    1. SECCIÓN DE DATOS Y TABLAS RESUMEN
+                </div>
+
+                <h4 style="color:#1e3a8a;margin:0 0 6px;font-size:11px;">1.1 Matriz Consolidada de Indicadores</h4>
+                <table class="print-table" style="width:100%;margin-bottom:18px;font-size:10px;">
+                    <thead>
+                        <tr>
+                            <th style="width:8%;">Código</th>
+                            <th style="width:20%;">Nombre Indicador</th>
+                            <th style="width:15%;">Proceso</th>
+                            <th style="width:10%;">Tipo</th>
+                            <th style="width:17%;">Fórmula</th>
+                            <th style="width:9%;">Meta</th>
+                            <th style="width:9%;">Último</th>
+                            <th style="width:6%;">% Cumpl.</th>
+                            <th style="width:6%;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>${indConsolidatedTableRows}</tbody>
+                </table>
+
+                <h4 style="color:#1e3a8a;margin:16px 0 8px;font-size:11px;">1.2 Fichas Técnicas e Histórico Detallado de Mediciones</h4>
+                ${indDetailTablesHTML}
+            </div>
+
+            <!-- PAGE BREAK FOR SECTION 2 -->
+            <div style="page-break-before: always; break-before: page;"></div>
+
+            <!-- SECCIÓN 2: DIAGRAMAS Y COMPORTAMIENTO -->
+            <div style="margin-top:10px;">
+                <div style="background:#1e293b;color:white;padding:7px 12px;border-radius:5px;font-weight:bold;font-size:12px;margin-bottom:12px;">
+                    2. SECCIÓN DE DIAGRAMAS Y COMPORTAMIENTO GRÁFICO
+                </div>
+                <p style="font-size:10px;color:#475569;margin-top:-4px;margin-bottom:14px;">
+                    Comportamiento histórico y tendencias de medición de los indicadores del Sistema de Gestión de Calidad ISO 9001.
+                </p>
+                ${indChartsHTML}
+            </div>
+        </div>`;
+
+        Swal.close();
+        document.getElementById('printSection').innerHTML = printHTML;
+        setTimeout(() => {
+            window.print();
+        }, 300);
+
+    } catch(e) {
+        console.error('Error exporting Banco PDF:', e);
+        Swal.close();
+        Swal.fire('Error', 'No se pudo generar la vista de impresión.', 'error');
+    }
+}
 </script>
 <script src="{{ url_for('static', filename='permissions_enforcer.js') }}"></script>
+<div id="printSection"></div>
 </body>
 </html>
