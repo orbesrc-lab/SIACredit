@@ -500,7 +500,7 @@
             try {
                 const url = empId ? `/api/skel360/empresas/${empId}` : '/api/skel360/empresas';
                 const method = empId ? 'PUT' : 'POST';
-                const response = await fetch(url, {
+                const response = await authFetch(url, {
                     method: method,
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
