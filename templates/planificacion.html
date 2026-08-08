@@ -1172,7 +1172,7 @@
             try {
                 if(currentNodeId) payload.id = currentNodeId;
                 const endpoint = currentNodeId ? '/api/planning/node/edit' : '/api/planning/node';
-                const res = await fetch(endpoint, {
+                const res = await authFetch(endpoint, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
