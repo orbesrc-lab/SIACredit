@@ -351,6 +351,7 @@ def delete_planning_node():
             return jsonify({'status': 'error', 'message': 'Faltan parámetros'})
 
         table_map = {
+            'axis': 'planning_axes',
             'strategy': 'planning_strategies',
             'gen_obj': 'planning_general_objectives',
             'spec_obj': 'planning_specific_objectives',

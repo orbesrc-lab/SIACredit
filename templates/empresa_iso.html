@@ -226,7 +226,7 @@
                     <div class="proc-id-group"><label>Tipo de Proceso</label><input type="text" id="proc_tipo_display" readonly style="background:#f8fafc;cursor:default;"></div>
                     <div class="proc-id-group"><label>Fecha de Creacion</label><input type="date" id="proc_fecha_creacion"></div>
                     <div class="proc-id-group"><label>Fecha Ultima Revision</label><input type="date" id="proc_fecha_revision"></div>
-                    <div class="proc-id-group"><label>Lider / Responsable</label><input type="text" id="proc_leader" placeholder="Cargo o nombre"></div>
+                    <div class="proc-id-group"><label>Lider / Responsable</label><div id="proc_leader_container"><input type="text" id="proc_leader" placeholder="Cargo o nombre"></div></div>
                     <div class="proc-id-group span3"><label>Objetivo del Proceso</label><input type="text" id="proc_objective" placeholder="Garantizar la excelencia en..."></div>
                     <div class="proc-id-group span3"><label>Alcance (inicio y fin del proceso)</label><input type="text" id="proc_alcance" placeholder="Desde: ... Hasta: ... Incluye: ... Excluye: ..."></div>
                     <div class="proc-id-group span3"><label>Normativa / Marco Legal Aplicable</label><input type="text" id="proc_normativa" placeholder="ISO 9001:2015 Clausula 8.1, Ley 30 de 1992..."></div>
@@ -263,15 +263,17 @@
         </div>
         <!-- PLANEAR -->
         <div class="phva-panel" id="tabPlanear">
-            <h4 style="color:#1e3a8a;margin-top:0;">🎯 P - Planear: Insumos Estrategicos</h4>
-            <textarea id="phva_planear" style="width:100%;height:130px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-family:inherit;box-sizing:border-box;" placeholder="Ej. Fortaleza F1 de la MEFI incorporada al plan. Riesgo R1 mitigado con procedimiento POE-002..."></textarea>
+            <h4 style="color:#1e3a8a;margin-top:0;">🎯 P - Planear: Objetivos e Insumos Estratégicos</h4>
+            <div id="planPlanearContainer" style="margin-bottom:15px;"></div>
+            <label style="font-weight:bold;color:#334155;font-size:.87rem;display:block;margin-bottom:5px;">Notas y Actividades de Planeación Adicionales:</label>
+            <textarea id="phva_planear" style="width:100%;height:100px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-family:inherit;box-sizing:border-box;" placeholder="Ej. Fortaleza F1 de la MEFI incorporada al plan. Riesgo R1 mitigado con procedimiento POE-002..."></textarea>
         </div>
         <!-- HACER -->
         <div class="phva-panel" id="tabHacer">
-            <h4 style="color:#1e3a8a;margin-top:0;"><i class="fas fa-cogs" style="color:#2563eb;"></i> H - Hacer: Ejecucion Operativa <small style="font-weight:normal;color:#64748b;">(ISO 9001 Clausula 8)</small></h4>
+            <h4 style="color:#1e3a8a;margin-top:0;"><i class="fas fa-cogs" style="color:#2563eb;"></i> H - Hacer: Ejecución Operativa <small style="font-weight:normal;color:#64748b;">(ISO 9001 Cláusula 8)</small></h4>
             <div id="planExecContainer" style="margin-bottom:15px;"></div>
-            <label style="font-weight:bold;color:#334155;font-size:.87rem;display:block;margin-bottom:5px;">Notas de Ejecucion:</label>
-            <textarea id="phva_hacer" style="width:100%;height:90px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-family:inherit;box-sizing:border-box;" placeholder="Ej. Ejecucion de talleres de capacitacion..."></textarea>
+            <label style="font-weight:bold;color:#334155;font-size:.87rem;display:block;margin-bottom:5px;">Notas y Actividades de Ejecución Adicionales:</label>
+            <textarea id="phva_hacer" style="width:100%;height:90px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-family:inherit;box-sizing:border-box;" placeholder="Ej. Ejecución de talleres de capacitación, implementación de guías..."></textarea>
         </div>
         <!-- VERIFICAR -->
         <div class="phva-panel" id="tabVerificar">
@@ -302,15 +304,29 @@
 /* ============================================================
    GLOBAL STATE
    ============================================================ */
-let planningTreeData=[];let currentActiveProcess=null;let chartInstances={};
+let planningTreeData=[];let currentActiveProcess=null;let chartInstances={};let sgcUsers=[];
 
 function makeDefaultProcess(type,leader,objective){return{type,leader,objective,codigo:'',version:'1.0',fecha_creacion:'',fecha_revision:'',alcance:'',normativa:'',recursos:'',documentos:'',riesgos_proceso:'',s:'',i:'',p:'',o:'',c:'',planear:'',hacer:'',verificar:'',actuar:'',indicadores:[],cambios:[]};}
-function ensureProcessFields(p){if(!p.indicadores)p.indicadores=[];if(!p.cambios)p.cambios=[];if(p.codigo===undefined)p.codigo='';if(p.version===undefined)p.version='1.0';if(!p.fecha_creacion)p.fecha_creacion='';if(!p.fecha_revision)p.fecha_revision='';if(!p.alcance)p.alcance='';if(!p.normativa)p.normativa='';if(!p.recursos)p.recursos='';if(!p.documentos)p.documentos='';if(!p.riesgos_proceso)p.riesgos_proceso='';return p;}
+function ensureProcessFields(p){
+    if(!p.indicadores)p.indicadores=[];
+    if(!p.cambios)p.cambios=[];
+    if(p.codigo===undefined)p.codigo='';
+    if(p.version===undefined)p.version='1.0';
+    if(!p.fecha_creacion)p.fecha_creacion='';
+    if(!p.fecha_revision)p.fecha_revision='';
+    if(!p.alcance)p.alcance='';
+    if(!p.normativa)p.normativa='';
+    if(!p.recursos)p.recursos='';
+    if(!p.documentos)p.documentos='';
+    if(!p.riesgos_proceso)p.riesgos_proceso='';
+    if(p.type==='Estratégico')p.type='Estrategico';
+    return p;
+}
 
-let sgcData={policy:'',objectives:'',eval_date:'',processes:{"Gestion de la Direccion":makeDefaultProcess("Estrategico","Rectoria / Direccion","Liderar la estrategia organizacional"),"Aseguramiento de Calidad y Riesgos":makeDefaultProcess("Estrategico","Comite de Calidad","Garantizar el cumplimiento normativo ISO 9001:2015"),"Gestion Academica y Docencia":makeDefaultProcess("Misional","Vicerrectoria Academica","Garantizar la calidad en la ensenanza"),"Investigacion e Innovacion":makeDefaultProcess("Misional","Direccion de Investigacion","Fomentar la produccion cientifica"),"Proyeccion Social y Extension":makeDefaultProcess("Misional","Direccion de Extension","Gestionar el impacto con el entorno"),"Gestion del Talento Humano":makeDefaultProcess("Apoyo","Direccion de Gestion Humana","Asegurar la competencia del personal"),"Tecnologia y Sistemas (TI)":makeDefaultProcess("Apoyo","Direccion de Tecnologia","Mantener la infraestructura tecnologica"),"Gestion Financiera":makeDefaultProcess("Apoyo","Direccion Administrativa y Financiera","Asegurar la sostenibilidad financiera")}};
+let sgcData={policy:'',objectives:'',eval_date:'',processes:{"Gestión de la Dirección":makeDefaultProcess("Estrategico","Rectoría / Dirección","Liderar la estrategia organizacional"),"Aseguramiento de Calidad y Riesgos":makeDefaultProcess("Estrategico","Comité de Calidad","Garantizar el cumplimiento normativo ISO 9001:2015"),"Gestión Académica y Docencia":makeDefaultProcess("Misional","Vicerrectoría Académica","Garantizar la calidad en la enseñanza"),"Investigación e Innovación":makeDefaultProcess("Misional","Dirección de Investigación","Fomentar la producción científica"),"Proyección Social y Extensión":makeDefaultProcess("Misional","Dirección de Extensión","Gestionar el impacto con el entorno"),"Gestión del Talento Humano":makeDefaultProcess("Apoyo","Dirección de Gestión Humana","Asegurar la competencia del personal"),"Tecnología y Sistemas (TI)":makeDefaultProcess("Apoyo","Dirección de Tecnología","Mantener la infraestructura tecnológica"),"Gestión Financiera":makeDefaultProcess("Apoyo","Dirección Administrativa y Financiera","Asegurar la sostenibilidad financiera")}};
 
 /* ============================================================
-   UTILITIES
+   UTILITIES & USER MANAGEMENT
    ============================================================ */
 function generateId(){return Date.now().toString(36)+Math.random().toString(36).substr(2);}
 function getSemaforo(valor,meta){const n=parseFloat(valor),m=parseFloat(meta);if(isNaN(n)||isNaN(m)||m===0)return{icon:'⚪',cls:'',label:'Sin datos',color:'#94a3b8',pct:0};const pct=(n/m)*100;if(pct>=100)return{icon:'🟢',cls:'semaforo-verde',label:'En Meta',color:'#16a34a',pct};if(pct>=80)return{icon:'🟡',cls:'semaforo-amarillo',label:'En Riesgo',color:'#d97706',pct};return{icon:'🔴',cls:'semaforo-rojo',label:'Fuera de Meta',color:'#dc2626',pct};}
@@ -318,10 +334,50 @@ function getLastRegistro(ind){if(!ind||!ind.registros||!ind.registros.length)ret
 function escQ(s){return(s||'').replace(/'/g,"\\'");}
 function logout(){localStorage.removeItem('siac_user');window.top.location.href='login.html';}
 
+async function loadSystemUsers(){
+    try{
+        const r=await authFetch(`/api/planning/users?inst_id=${getInstId()}`);
+        if(r.ok){
+            const d=await r.json();
+            if(d.status==='success' && d.users) sgcUsers=d.users;
+        }
+    }catch(e){console.error('Error loading users:',e);}
+}
+
+function buildUserSelect(selectId, currentValue, placeholder='Seleccionar responsable...'){
+    const roleLabels = { 'admin': 'Administrador', 'inst_admin': 'Admin Institucional', 'lider': 'Líder de Proceso', 'operativo': 'Personal Operativo' };
+    const grouped = {};
+    (sgcUsers||[]).forEach(u => {
+        const r = u.role || 'operativo';
+        if(!grouped[r]) grouped[r] = [];
+        grouped[r].push(u);
+    });
+
+    let opts = `<option value="">${placeholder}</option>`;
+    for(const [role, uList] of Object.entries(grouped)){
+        const groupLabel = roleLabels[role] || role.toUpperCase();
+        opts += `<optgroup label="${groupLabel}">`;
+        uList.forEach(u => {
+            const val = u.name || u.email;
+            const sel = (val === currentValue || u.email === currentValue || u.name === currentValue) ? 'selected' : '';
+            opts += `<option value="${val}" ${sel}>${u.name} (${u.email})</option>`;
+        });
+        opts += `</optgroup>`;
+    }
+    if(currentValue && currentValue !== 'Por asignar' && currentValue !== 'Sin asignar'){
+        const exists = (sgcUsers||[]).some(u => u.name === currentValue || u.email === currentValue);
+        if(!exists){
+            opts += `<optgroup label="Valor Actual"><option value="${currentValue}" selected>${currentValue}</option></optgroup>`;
+        }
+    }
+
+    return `<select id="${selectId}" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;width:100%;box-sizing:border-box;">${opts}</select>`;
+}
+
 /* ============================================================
    INIT
    ============================================================ */
-document.addEventListener('DOMContentLoaded',async()=>{await initHeader();await loadSGC();await loadPlanningTree();renderProcessMap();renderBancoIndicadores();});
+document.addEventListener('DOMContentLoaded',async()=>{await initHeader();await loadSGC();await loadPlanningTree();await loadSystemUsers();renderProcessMap();renderBancoIndicadores();});
 async function initHeader(){try{const r=await authFetch(`/api/institution?inst_id=${getInstId()}`);if(r.ok){const d=await r.json();document.getElementById('inst_name_display').textContent=d.name||'ORGANIZACION';if(d.logo_url){const img=document.getElementById('inst_logo_img');img.src=d.logo_url;img.style.display='block';}}}catch(e){console.error(e);}}
 async function loadPlanningTree(){try{const r=await authFetch(`/api/planning/tree?inst_id=${getInstId()}&program_id=${getProgramId()}`);if(r.ok){const d=await r.json();if(d.status==='success'&&d.tree)planningTreeData=d.tree;}}catch(e){console.error(e);}}
 
@@ -350,10 +406,87 @@ function openAddProcessModal(defaultTier='Misional'){
     preConfirm:()=>{const n=document.getElementById('swal_pname').value.trim();if(!n){Swal.showValidationMessage('Nombre obligatorio.');return false;}if(sgcData.processes[n]){Swal.showValidationMessage('Ya existe un proceso con ese nombre.');return false;}return{pname:n,ptier:document.getElementById('swal_ptier').value,pleader:document.getElementById('swal_pleader').value.trim()};}
     }).then(r=>{if(!r.isConfirmed)return;const{pname,ptier,pleader}=r.value;sgcData.processes[pname]=makeDefaultProcess(ptier,pleader||'Por asignar','');renderProcessMap();openProcessModal(pname);});
 }
-function quickDeleteProcess(pName){Swal.fire({title:`Eliminar "${pName}"?`,text:'Se eliminara el proceso con toda su Caracterizacion, Indicadores y Cambios.',icon:'warning',showCancelButton:true,confirmButtonText:'Si, eliminar',cancelButtonText:'Cancelar',confirmButtonColor:'#ef4444'}).then(r=>{if(!r.isConfirmed)return;delete sgcData.processes[pName];renderProcessMap();renderBancoIndicadores();Swal.fire('Eliminado','El proceso fue removido del mapa.','success');});}
+function quickDeleteProcess(pName){
+    Swal.fire({
+        title:`¿Eliminar "${pName}"?`,
+        text:'Se eliminará el proceso con toda su Caracterización, Indicadores y Cambios.',
+        icon:'warning',
+        showCancelButton:true,
+        confirmButtonText:'Sí, eliminar',
+        cancelButtonText:'Cancelar',
+        confirmButtonColor:'#ef4444'
+    }).then(async r=>{
+        if(!r.isConfirmed)return;
+        delete sgcData.processes[pName];
+        renderProcessMap();
+        renderBancoIndicadores();
+        sgcData.policy=document.getElementById('sgc_policy').value.trim();
+        sgcData.objectives=document.getElementById('sgc_objectives').value.trim();
+        sgcData.eval_date=document.getElementById('eval_date').value;
+        await saveSGCData(sgcData);
+        Swal.fire({title:'Eliminado',text:'El proceso fue removido del mapa y guardado.',icon:'success',timer:2000,showConfirmButton:false});
+    });
+}
 function deleteCurrentProcess(){if(!currentActiveProcess)return;quickDeleteProcess(currentActiveProcess);closeModal();}
 function countLinkedObjs(pName){let c=0;(planningTreeData||[]).forEach(ax=>(ax.strategies||[]).forEach(st=>(st.general_objectives||[]).forEach(go=>{if(go.alignment_pdi&&go.alignment_pdi.includes(`[ISO: ${pName}]`))c++;})));return c;}
-function populateHacerFromPlanning(pName){let lo=[];(planningTreeData||[]).forEach(ax=>(ax.strategies||[]).forEach(st=>(st.general_objectives||[]).forEach(go=>{if(go.alignment_pdi&&go.alignment_pdi.includes(`[ISO: ${pName}]`))lo.push({axisName:ax.name,stratDesc:st.description,genObj:go});})));if(!lo.length)return`<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:13px;font-size:.86rem;color:#64748b;"><i class="fas fa-info-circle" style="color:#3b82f6;"></i> No hay Objetivos de Planificacion articulados a este proceso aun.</div>`;let h=`<div style="margin-bottom:12px;"><strong style="color:#1e3a8a;">Objetivos articulados (${lo.length}):</strong></div>`;lo.forEach(it=>{const go=it.genObj;h+=`<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:11px;margin-bottom:10px;"><div style="font-weight:bold;color:#1e3a8a;font-size:.89rem;"><i class="fas fa-bullseye" style="color:#2563eb;"></i> ${go.description}</div><div style="font-size:.77rem;color:#64748b;margin-top:2px;">Eje: ${it.axisName} | Estrategia: ${it.stratDesc}</div></div>`;});return h;}
+
+function populatePlanearFromPlanning(pName){
+    let lo=[];
+    (planningTreeData||[]).forEach(ax=>(ax.strategies||[]).forEach(st=>(st.general_objectives||[]).forEach(go=>{
+        if(go.alignment_pdi&&go.alignment_pdi.includes(`[ISO: ${pName}]`))
+            lo.push({axisName:ax.name,stratDesc:st.description,genObj:go});
+    })));
+    if(!lo.length)return `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-size:.85rem;color:#64748b;margin-bottom:12px;"><i class="fas fa-info-circle" style="color:#3b82f6;"></i> No hay Objetivos de Planificación articulados a este proceso aún en el Mapa Estratégico.</div>`;
+
+    let h = `<div style="margin-bottom:10px;"><strong style="color:#1e3a8a;font-size:.88rem;"><i class="fas fa-bullseye" style="color:#2563eb;"></i> Objetivos Estratégicos Articulados (P - Planear):</strong></div>`;
+    lo.forEach(it=>{
+        const go = it.genObj;
+        const metaStr = go.target ? ` &bull; <strong>Meta:</strong> ${go.target} ${go.unit||''}` : '';
+        const indStr = go.indicator_name ? ` &bull; <strong>Indicador:</strong> ${go.indicator_name}` : '';
+        h += `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+            <div style="font-weight:bold;color:#1e3a8a;font-size:.87rem;"><i class="fas fa-crosshairs" style="color:#3b82f6;"></i> ${go.description||'Sin descripción'}</div>
+            <div style="font-size:.76rem;color:#475569;margin-top:3px;"><strong>Eje:</strong> ${it.axisName} | <strong>Estrategia:</strong> ${it.stratDesc}${indStr}${metaStr}</div>
+        </div>`;
+    });
+    return h;
+}
+
+function populateHacerFromPlanning(pName){
+    let acts = [];
+    (planningTreeData||[]).forEach(ax=>(ax.strategies||[]).forEach(st=>(st.general_objectives||[]).forEach(go=>{
+        if(go.alignment_pdi&&go.alignment_pdi.includes(`[ISO: ${pName}]`)){
+            (go.specific_objectives||[]).forEach(so=>{
+                (so.activities||[]).forEach(act=>{
+                    acts.push({
+                        genObjDesc: go.description,
+                        specObjDesc: so.description,
+                        actName: act.name || act.description,
+                        responsible: act.responsible || 'Sin asignar',
+                        status: act.status || 'Pendiente',
+                        startDate: act.start_date || '-',
+                        endDate: act.end_date || '-'
+                    });
+                });
+            });
+        }
+    })));
+
+    if(!acts.length) return `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-size:.85rem;color:#64748b;margin-bottom:12px;"><i class="fas fa-info-circle" style="color:#3b82f6;"></i> No hay Actividades de ejecución registradas aún desde Planificación para los objetivos de este proceso.</div>`;
+
+    let h = `<div style="margin-bottom:10px;"><strong style="color:#1e3a8a;font-size:.88rem;"><i class="fas fa-tasks" style="color:#2563eb;"></i> Actividades de Ejecución desde Planificación (${acts.length}):</strong></div>`;
+    h += `<div style="max-height:220px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px;"><table class="registros-table" style="width:100%;margin:0;font-size:.81rem;">
+        <thead><tr style="background:#f1f5f9;"><th>Actividad (Hacer)</th><th>Objetivo Específico</th><th>Responsable</th><th>Fechas</th></tr></thead><tbody>`;
+    acts.forEach(a => {
+        h += `<tr>
+            <td style="font-weight:600;color:#1e293b;">${a.actName}</td>
+            <td style="color:#475569;font-size:.76rem;">${a.specObjDesc || a.genObjDesc}</td>
+            <td style="color:#2563eb;font-weight:bold;font-size:.76rem;"><i class="fas fa-user-tag"></i> ${a.responsible}</td>
+            <td style="color:#64748b;font-size:.74rem;">${a.startDate} a ${a.endDate}</td>
+        </tr>`;
+    });
+    h += `</tbody></table></div>`;
+    return h;
+}
 
 /* ============================================================
    MODAL
@@ -362,10 +495,20 @@ function openProcessModal(pName){
     currentActiveProcess=pName;const p=sgcData.processes[pName];if(!p)return;ensureProcessFields(p);
     document.getElementById('modalProcessTitle').textContent=pName;
     document.getElementById('modalProcessTier').textContent=`Proceso ${p.type}`;
-    ['proc_tipo_display','proc_codigo','proc_version','proc_fecha_creacion','proc_fecha_revision','proc_leader','proc_objective','proc_alcance','proc_normativa','proc_recursos','proc_documentos','proc_riesgos_proceso'].forEach(id=>{const map={proc_tipo_display:'type',proc_codigo:'codigo',proc_version:'version',proc_fecha_creacion:'fecha_creacion',proc_fecha_revision:'fecha_revision',proc_leader:'leader',proc_objective:'objective',proc_alcance:'alcance',proc_normativa:'normativa',proc_recursos:'recursos',proc_documentos:'documentos',proc_riesgos_proceso:'riesgos_proceso'};document.getElementById(id).value=p[map[id]]||'';});
+    ['proc_tipo_display','proc_codigo','proc_version','proc_fecha_creacion','proc_fecha_revision','proc_objective','proc_alcance','proc_normativa','proc_recursos','proc_documentos','proc_riesgos_proceso'].forEach(id=>{
+        const map={proc_tipo_display:'type',proc_codigo:'codigo',proc_version:'version',proc_fecha_creacion:'fecha_creacion',proc_fecha_revision:'fecha_revision',proc_objective:'objective',proc_alcance:'alcance',proc_normativa:'normativa',proc_recursos:'recursos',proc_documentos:'documentos',proc_riesgos_proceso:'riesgos_proceso'};
+        const el = document.getElementById(id);
+        if(el) el.value=p[map[id]]||'';
+    });
+
+    if(document.getElementById('proc_leader_container')){
+        document.getElementById('proc_leader_container').innerHTML = buildUserSelect('proc_leader', p.leader, 'Seleccionar Líder del Proceso...');
+    }
+
     ['s','i','p','o','c'].forEach(k=>document.getElementById(`sipoc_${k}`).value=p[k]||'');
     document.getElementById('phva_planear').value=p.planear||'';document.getElementById('phva_hacer').value=p.hacer||'';document.getElementById('phva_verificar').value=p.verificar||'';
     document.getElementById('aiActResults').innerHTML=p.actuar||'<em>Haga clic en "Evaluar con IA".</em>';
+    if(document.getElementById('planPlanearContainer'))document.getElementById('planPlanearContainer').innerHTML=populatePlanearFromPlanning(pName);
     if(document.getElementById('planExecContainer'))document.getElementById('planExecContainer').innerHTML=populateHacerFromPlanning(pName);
     renderCambiosTable(p.cambios||[]);renderIndicadoresList(pName);
     switchPHVATab('tabSipoc',document.getElementById('tab-btn-sipoc'));
@@ -422,7 +565,7 @@ function renderIndicadoresList(pName){
         </div>`;
     }).join('');
 }
-function toggleIndExpand(indId){const el=document.getElementById(`ind_exp_${indId}`);if(!el)return;const open=el.classList.toggle('open');if(open){const p=sgcData.processes[currentActiveProcess];const ind=(p.indicadores||[]).find(i=>i.id===indId);if(ind&&ind.registros&&ind.registros.length)setTimeout(()=>buildChart(`modal_chart_${ind.id}`,ind),60);}else{const k=`modal_chart_${indId}`;if(chartInstances[k]){try{chartInstances[k].destroy();}catch(e){}delete chartInstances[k];}}}
+function toggleIndExpand(indId){const el=document.getElementById(`ind_exp_${indId}`);if(!el)return;const open=el.classList.toggle('open');if(open){const p=sgcData.processes[currentActiveProcess];const ind=(p.indicadores||[]).find(i=>i.id===indId);if(ind)setTimeout(()=>buildChart(`modal_chart_${ind.id}`,ind),150);}else{const k=`modal_chart_${indId}`;if(chartInstances[k]){try{chartInstances[k].destroy();}catch(e){}delete chartInstances[k];}}}
 
 /* ============================================================
    ADD/EDIT INDICADOR
@@ -431,22 +574,189 @@ function openAddIndicadorModal(){showIndicadorForm(null);}
 function editIndicadorModal(pName,indId){const p=sgcData.processes[pName];const ind=(p.indicadores||[]).find(i=>i.id===indId);if(ind)showIndicadorForm(ind);}
 function showIndicadorForm(ex){
     const isEdit=!!ex;
-    Swal.fire({title:isEdit?'Editar Indicador':'Nuevo Indicador de Gestion',width:'680px',html:`<div style="text-align:left;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 0;"><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Codigo *</label><input id="ind_codigo" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="IND-001" value="${ex?.codigo||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Nombre *</label><input id="ind_nombre" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="Tasa de satisfaccion" value="${ex?.nombre||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Tipo</label><select id="ind_tipo" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;"><option value="eficacia" ${ex?.tipo==='eficacia'?'selected':''}>Eficacia</option><option value="eficiencia" ${ex?.tipo==='eficiencia'?'selected':''}>Eficiencia</option><option value="efectividad" ${ex?.tipo==='efectividad'?'selected':''}>Efectividad</option></select></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Frecuencia</label><select id="ind_frecuencia" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;"><option value="Mensual" ${ex?.frecuencia==='Mensual'?'selected':''}>Mensual</option><option value="Bimestral" ${ex?.frecuencia==='Bimestral'?'selected':''}>Bimestral</option><option value="Trimestral" ${ex?.frecuencia==='Trimestral'?'selected':''}>Trimestral</option><option value="Semestral" ${ex?.frecuencia==='Semestral'?'selected':''}>Semestral</option><option value="Anual" ${ex?.frecuencia==='Anual'?'selected':''}>Anual</option></select></div><div style="grid-column:1/-1;"><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Formula de Calculo</label><input id="ind_formula" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="(Valor obtenido / Valor esperado) x 100" value="${ex?.formula||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Unidad</label><input id="ind_unidad" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="%, $, dias" value="${ex?.unidad||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Meta</label><input id="ind_meta" type="number" step="0.01" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="90" value="${ex?.meta||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Responsable</label><input id="ind_responsable" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="Cargo o nombre" value="${ex?.responsable||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Fuente de Datos</label><input id="ind_fuente" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="Sistema, encuesta..." value="${ex?.fuente||''}"></div><div style="grid-column:1/-1;"><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Tipo de Grafica</label><select id="ind_tipo_grafica" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;"><option value="barras" ${ex?.tipo_grafica==='barras'?'selected':''}>Barras</option><option value="linea" ${ex?.tipo_grafica==='linea'?'selected':''}>Linea</option><option value="area" ${ex?.tipo_grafica==='area'?'selected':''}>Area</option><option value="torta" ${ex?.tipo_grafica==='torta'?'selected':''}>Torta / Pie</option></select></div></div>`,
+    const respSelect = buildUserSelect('ind_responsable', ex?.responsable||'', 'Seleccionar responsable...');
+    Swal.fire({title:isEdit?'Editar Indicador':'Nuevo Indicador de Gestión',width:'680px',html:`<div style="text-align:left;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 0;"><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Código *</label><input id="ind_codigo" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="IND-001" value="${ex?.codigo||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Nombre *</label><input id="ind_nombre" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="Tasa de satisfacción" value="${ex?.nombre||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Tipo</label><select id="ind_tipo" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;"><option value="eficacia" ${ex?.tipo==='eficacia'?'selected':''}>Eficacia</option><option value="eficiencia" ${ex?.tipo==='eficiencia'?'selected':''}>Eficiencia</option><option value="efectividad" ${ex?.tipo==='efectividad'?'selected':''}>Efectividad</option></select></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Frecuencia</label><select id="ind_frecuencia" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;"><option value="Mensual" ${ex?.frecuencia==='Mensual'?'selected':''}>Mensual</option><option value="Bimestral" ${ex?.frecuencia==='Bimestral'?'selected':''}>Bimestral</option><option value="Trimestral" ${ex?.frecuencia==='Trimestral'?'selected':''}>Trimestral</option><option value="Semestral" ${ex?.frecuencia==='Semestral'?'selected':''}>Semestral</option><option value="Anual" ${ex?.frecuencia==='Anual'?'selected':''}>Anual</option></select></div><div style="grid-column:1/-1;"><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Fórmula de Cálculo</label><input id="ind_formula" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="(Valor obtenido / Valor esperado) x 100" value="${ex?.formula||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Unidad</label><input id="ind_unidad" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="%, $, días" value="${ex?.unidad||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Meta</label><input id="ind_meta" type="number" step="0.01" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="90" value="${ex?.meta||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Responsable *</label>${respSelect}</div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Fuente de Datos</label><input id="ind_fuente" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="Sistema, encuesta..." value="${ex?.fuente||''}"></div><div style="grid-column:1/-1;"><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Tipo de Gráfica</label><select id="ind_tipo_grafica" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;"><option value="barras" ${ex?.tipo_grafica==='barras'?'selected':''}>Barras</option><option value="linea" ${ex?.tipo_grafica==='linea'?'selected':''}>Línea</option><option value="area" ${ex?.tipo_grafica==='area'?'selected':''}>Área</option><option value="torta" ${ex?.tipo_grafica==='torta'?'selected':''}>Torta / Pie</option></select></div></div>`,
     showCancelButton:true,confirmButtonText:isEdit?'Actualizar':'Crear Indicador',cancelButtonText:'Cancelar',
     preConfirm:()=>{const n=document.getElementById('ind_nombre').value.trim();if(!n){Swal.showValidationMessage('Nombre obligatorio.');return false;}return{codigo:document.getElementById('ind_codigo').value.trim(),nombre:n,tipo:document.getElementById('ind_tipo').value,frecuencia:document.getElementById('ind_frecuencia').value,formula:document.getElementById('ind_formula').value.trim(),unidad:document.getElementById('ind_unidad').value.trim(),meta:document.getElementById('ind_meta').value,responsable:document.getElementById('ind_responsable').value.trim(),fuente:document.getElementById('ind_fuente').value.trim(),tipo_grafica:document.getElementById('ind_tipo_grafica').value};}
     }).then(r=>{if(!r.isConfirmed)return;const p=sgcData.processes[currentActiveProcess];if(!p.indicadores)p.indicadores=[];if(isEdit){const idx=p.indicadores.findIndex(i=>i.id===ex.id);if(idx>=0)p.indicadores[idx]={...p.indicadores[idx],...r.value};}else p.indicadores.push({id:generateId(),registros:[],...r.value});renderIndicadoresList(currentActiveProcess);renderBancoIndicadores();});
 }
-function deleteIndicador(pName,indId){Swal.fire({title:'Eliminar Indicador?',text:'Se eliminara el indicador y todo su historico.',icon:'warning',showCancelButton:true,confirmButtonText:'Si, eliminar',cancelButtonText:'Cancelar',confirmButtonColor:'#ef4444'}).then(r=>{if(!r.isConfirmed)return;const p=sgcData.processes[pName];if(p&&p.indicadores){p.indicadores=p.indicadores.filter(i=>i.id!==indId);renderIndicadoresList(pName);renderBancoIndicadores();}});}
+function deleteIndicador(pName,indId){Swal.fire({title:'¿Eliminar Indicador?',text:'Se eliminará el indicador y todo su histórico.',icon:'warning',showCancelButton:true,confirmButtonText:'Sí, eliminar',cancelButtonText:'Cancelar',confirmButtonColor:'#ef4444'}).then(r=>{if(!r.isConfirmed)return;const p=sgcData.processes[pName];if(p&&p.indicadores){p.indicadores=p.indicadores.filter(i=>i.id!==indId);renderIndicadoresList(pName);renderBancoIndicadores();}});}
+
+/* ============================================================
+   FORMULA UTILITIES
+   ============================================================ */
+function extractFormulaVars(formula){
+    if(!formula)return[];
+    // Extract word tokens (variable names): letters, numbers, underscores — not operators or numbers alone
+    const tokens = formula.match(/[A-Za-zÁÉÍÓÚáéíóúÑñ_][A-Za-z0-9ÁÉÍÓÚáéíóúÑñ_]*/g) || [];
+    // Deduplicate
+    return [...new Set(tokens)];
+}
+
+function evaluateFormula(formula, varValues){
+    if(!formula)return null;
+    let expr = formula;
+    // Replace each variable name with its numeric value
+    for(const [varName, val] of Object.entries(varValues)){
+        const escaped = varName.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        expr = expr.replace(new RegExp(`\\b${escaped}\\b`,'g'), val);
+    }
+    // Replace 'x' used as multiplication with '*'
+    expr = expr.replace(/\bx\b/gi, '*');
+    // Only allow safe math characters
+    if(!/^[\d\s\+\-\*\/\(\)\.\^%]+$/.test(expr))return null;
+    try{
+        // Use Function for safe math evaluation (no DOM access)
+        // eslint-disable-next-line no-new-func
+        const result = Function('"use strict"; return (' + expr + ')')();
+        return isFinite(result) ? Math.round(result * 10000) / 10000 : null;
+    }catch(e){ return null; }
+}
+
+function buildMedicionVarHTML(formula, unidad){
+    const vars = extractFormulaVars(formula);
+    if(!vars.length) return `
+        <div>
+            <label style="font-weight:600;font-size:.79rem;">VALOR * (${unidad||'u.'})</label>
+            <input id="med_valor" type="number" step="0.01" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="87.5" oninput="updateMedResult()">
+        </div>`;
+
+    const varInputs = vars.map(v => `
+        <div>
+            <label style="font-weight:600;font-size:.79rem;color:#475569;">${v}</label>
+            <input id="med_var_${v}" type="number" step="0.01" class="swal2-input"
+                style="margin:4px 0 0;font-size:.86rem;" placeholder="0"
+                oninput="updateMedResult()">
+        </div>`).join('');
+
+    return `
+        <div style="grid-column:1/-1;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 13px;margin-bottom:4px;">
+            <div style="font-size:.78rem;color:#0369a1;font-weight:600;margin-bottom:8px;">
+                <i class="fas fa-calculator"></i> Ingrese los valores de cada variable:
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;">
+                ${varInputs}
+            </div>
+        </div>
+        <div style="grid-column:1/-1;">
+            <label style="font-weight:700;font-size:.79rem;color:#1e3a8a;">RESULTADO CALCULADO (${unidad||'u.'})</label>
+            <input id="med_valor" type="number" step="0.01" class="swal2-input"
+                style="margin:4px 0 0;font-size:.95rem;font-weight:bold;background:#f0fdf4;border-color:#86efac;color:#15803d;"
+                placeholder="Calculando..." readonly>
+            <div id="med_calc_error" style="color:#ef4444;font-size:.75rem;margin-top:3px;display:none;">
+                No se pudo calcular. Verifique que todos los valores estén completos.
+            </div>
+        </div>`;
+}
+
+window._medFormulaCtx = {formula:'', vars:[]};
+
+function updateMedResult(){
+    const {formula, vars} = window._medFormulaCtx;
+    if(!vars.length) return;
+    const varValues = {};
+    let allFilled = true;
+    for(const v of vars){
+        const el = document.getElementById(`med_var_${v}`);
+        if(!el || el.value === ''){ allFilled = false; break; }
+        varValues[v] = parseFloat(el.value);
+    }
+    const resultEl = document.getElementById('med_valor');
+    const errEl = document.getElementById('med_calc_error');
+    if(!allFilled){ resultEl.value=''; return; }
+    const result = evaluateFormula(formula, varValues);
+    if(result === null){
+        resultEl.value = '';
+        if(errEl) errEl.style.display='block';
+    } else {
+        resultEl.value = result;
+        if(errEl) errEl.style.display='none';
+    }
+}
 
 /* ============================================================
    REGISTRAR MEDICION
    ============================================================ */
 function openRegistrarMedicionModal(pName,indId){
-    const p=sgcData.processes[pName];const ind=(p.indicadores||[]).find(i=>i.id===indId);if(!ind)return;const lr=getLastRegistro(ind);
-    Swal.fire({title:'Registrar Medicion',html:`<div style="text-align:left;"><div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 13px;margin-bottom:13px;font-size:.84rem;"><strong style="color:#1e3a8a;">${ind.nombre}</strong><br><span style="color:#475569;">Formula: <em>${ind.formula||'—'}</em></span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div><label style="font-weight:600;font-size:.79rem;">PERIODO *</label><input id="med_periodo" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="Q1-2025 / Enero 2025"></div><div><label style="font-weight:600;font-size:.79rem;">VALOR * (${ind.unidad||'u.'})</label><input id="med_valor" type="number" step="0.01" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="87.5"></div><div><label style="font-weight:600;font-size:.79rem;">FECHA</label><input id="med_fecha" type="date" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" value="${new Date().toISOString().split('T')[0]}"></div><div><label style="font-weight:600;font-size:.79rem;">OBSERVACIONES</label><input id="med_obs" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="Opcional..."></div></div><div style="margin-top:12px;padding:9px 13px;background:#f8fafc;border-radius:8px;font-size:.82rem;color:#475569;"><strong>Meta:</strong> ${ind.meta||'—'} ${ind.unidad||''} &bull; <strong>Ultimo:</strong> ${lr?`${lr.valor} ${ind.unidad||''} (${lr.periodo})`:'Sin datos'}</div></div>`,
-    showCancelButton:true,confirmButtonText:'Registrar Medicion',cancelButtonText:'Cancelar',
-    preConfirm:()=>{const periodo=document.getElementById('med_periodo').value.trim();const valor=document.getElementById('med_valor').value.trim();if(!periodo||!valor){Swal.showValidationMessage('Periodo y Valor son obligatorios.');return false;}return{periodo,valor:parseFloat(valor),fecha:document.getElementById('med_fecha').value,observaciones:document.getElementById('med_obs').value.trim()};}
-    }).then(r=>{if(!r.isConfirmed)return;if(!ind.registros)ind.registros=[];ind.registros.push(r.value);renderIndicadoresList(currentActiveProcess);renderBancoIndicadores();const sem=getSemaforo(r.value.valor,ind.meta);Swal.fire({title:'Medicion Registrada!',html:`${sem.icon} <strong>${r.value.valor} ${ind.unidad||''}</strong> — ${sem.label}<br><small>Periodo: ${r.value.periodo}</small>`,icon:'success',timer:2500,showConfirmButton:false});});
+    const p=sgcData.processes[pName];
+    const ind=(p.indicadores||[]).find(i=>i.id===indId);
+    if(!ind)return;
+    const lr=getLastRegistro(ind);
+
+    const vars = extractFormulaVars(ind.formula);
+    window._medFormulaCtx = { formula: ind.formula||'', vars };
+
+    const varSection = buildMedicionVarHTML(ind.formula, ind.unidad);
+
+    Swal.fire({
+        title:'Registrar Medición',
+        width:'640px',
+        html:`
+        <div style="text-align:left;">
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 13px;margin-bottom:13px;font-size:.84rem;">
+                <strong style="color:#1e3a8a;">${ind.nombre}</strong><br>
+                <span style="color:#475569;">Fórmula: <em><code>${ind.formula||'—'}</code></em></span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div>
+                    <label style="font-weight:600;font-size:.79rem;">PERIODO *</label>
+                    <input id="med_periodo" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="Q1-2025 / Enero 2025">
+                </div>
+                <div>
+                    <label style="font-weight:600;font-size:.79rem;">FECHA</label>
+                    <input id="med_fecha" type="date" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" value="${new Date().toISOString().split('T')[0]}">
+                </div>
+                ${varSection}
+                <div style="grid-column:1/-1;">
+                    <label style="font-weight:600;font-size:.79rem;">OBSERVACIONES</label>
+                    <input id="med_obs" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="Opcional...">
+                </div>
+            </div>
+            <div style="margin-top:12px;padding:9px 13px;background:#f8fafc;border-radius:8px;font-size:.82rem;color:#475569;">
+                <strong>Meta:</strong> ${ind.meta||'—'} ${ind.unidad||''} &bull;
+                <strong>Último:</strong> ${lr?`${lr.valor} ${ind.unidad||''} (${lr.periodo})`:'Sin datos'}
+            </div>
+        </div>`,
+        showCancelButton:true,
+        confirmButtonText:'Registrar Medición',
+        cancelButtonText:'Cancelar',
+        didOpen:()=>{
+            // Bind live calculation
+            const varEls = (window._medFormulaCtx.vars||[]).map(v=>document.getElementById(`med_var_${v}`));
+            varEls.forEach(el=>{ if(el) el.addEventListener('input', updateMedResult); });
+        },
+        preConfirm:()=>{
+            const periodo = document.getElementById('med_periodo').value.trim();
+            const valor   = document.getElementById('med_valor').value.trim();
+            if(!periodo){ Swal.showValidationMessage('El Período es obligatorio.'); return false; }
+            if(!valor)  { Swal.showValidationMessage('El Resultado no puede estar vacío. Complete los valores de las variables.'); return false; }
+            // Collect variable values for traceability
+            const varData = {};
+            for(const v of (window._medFormulaCtx.vars||[])){
+                const el = document.getElementById(`med_var_${v}`);
+                if(el) varData[v] = parseFloat(el.value)||0;
+            }
+            return {
+                periodo,
+                valor: parseFloat(valor),
+                fecha: document.getElementById('med_fecha').value,
+                observaciones: document.getElementById('med_obs').value.trim(),
+                variables: varData   // stored for audit trail
+            };
+        }
+    }).then(r=>{
+        if(!r.isConfirmed)return;
+        if(!ind.registros)ind.registros=[];
+        ind.registros.push(r.value);
+        renderIndicadoresList(currentActiveProcess);
+        renderBancoIndicadores();
+        const sem=getSemaforo(r.value.valor,ind.meta);
+        Swal.fire({
+            title:'¡Medición Registrada!',
+            html:`${sem.icon} <strong>${r.value.valor} ${ind.unidad||''}</strong> — ${sem.label}<br><small>Período: ${r.value.periodo}</small>`,
+            icon:'success',timer:2500,showConfirmButton:false
+        });
+    });
 }
 
 /* ============================================================
@@ -487,7 +797,13 @@ function populateBancoFilters(){const sel=document.getElementById('filter_proces
 function buildChart(canvasId,ind){
     const cv=document.getElementById(canvasId);if(!cv)return null;
     if(chartInstances[canvasId]){try{chartInstances[canvasId].destroy();}catch(e){}delete chartInstances[canvasId];}
-    const regs=ind.registros||[];const labels=regs.map(r=>r.periodo);const vals=regs.map(r=>parseFloat(r.valor));
+    const regs=ind.registros||[];
+    if(!regs.length){
+        const parent = cv.parentElement;
+        if(parent) parent.innerHTML = `<div style="height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94a3b8;font-size:.82rem;"><i class="fas fa-chart-line" style="font-size:1.8rem;margin-bottom:6px;opacity:.5;"></i>Sin mediciones registradas para graficar</div>`;
+        return null;
+    }
+    const labels=regs.map(r=>r.periodo);const vals=regs.map(r=>parseFloat(r.valor));
     const meta=parseFloat(ind.meta)||0;const tg=ind.tipo_grafica||'barras';
     const bgC=vals.map(v=>{const s=getSemaforo(v,meta);return s.label==='En Meta'?'rgba(22,163,74,.75)':s.label==='En Riesgo'?'rgba(217,119,6,.75)':s.label==='Fuera de Meta'?'rgba(220,38,38,.75)':'rgba(148,163,184,.5)';});
     const PAL=['#2563eb','#10b981','#7c3aed','#f59e0b','#ef4444','#06b6d4','#84cc16','#f97316'];
@@ -496,22 +812,93 @@ function buildChart(canvasId,ind){
     else{const isL=tg==='linea'||tg==='area';const ds=[{label:ind.nombre,data:vals,backgroundColor:isL?'rgba(37,99,235,.12)':bgC,borderColor:'#2563eb',borderWidth:isL?2:1.5,fill:tg==='area',tension:0.4,pointBackgroundColor:bgC,pointRadius:isL?4:0,pointHoverRadius:5,borderRadius:isL?0:5,borderSkipped:false}];if(meta>0)ds.push({label:'Meta',data:new Array(vals.length).fill(meta),borderColor:'rgba(239,68,68,.7)',borderWidth:1.5,borderDash:[5,4],pointRadius:0,type:'line',fill:false,tension:0});cfg={type:isL?'line':'bar',data:{labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:meta>0,position:'bottom',labels:{font:{size:9},padding:5,boxWidth:11}}},scales:{y:{beginAtZero:false,ticks:{font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}};}
     try{chartInstances[canvasId]=new Chart(cv,cfg);return chartInstances[canvasId];}catch(e){console.error('Chart error:',canvasId,e);return null;}
 }
-
-/* ============================================================
-   LOAD / SAVE SGC
-   ============================================================ */
 async function loadSGC(){
-    try{const r=await authFetch(`/api/business/matrix/ISO9001?inst_id=${getInstId()}`);if(r.ok){let d=(await r.json()).data;if(typeof d==='string'){try{d=JSON.parse(d);}catch(e){}}if(d){if(d.policy)document.getElementById('sgc_policy').value=d.policy;if(d.objectives)document.getElementById('sgc_objectives').value=d.objectives;if(d.eval_date)document.getElementById('eval_date').value=d.eval_date;if(d.processes){for(const pv of Object.values(d.processes))ensureProcessFields(pv);sgcData.processes={...sgcData.processes,...d.processes};}}}}catch(e){console.error('Error loading SGC:',e);}
+    try{
+        const r=await authFetch(`/api/business/matrix/ISO9001?inst_id=${getInstId()}`);
+        if(r.ok){
+            let d=(await r.json()).data;
+            if(typeof d==='string'){try{d=JSON.parse(d);}catch(e){}}
+            if(d){
+                if(d.policy)document.getElementById('sgc_policy').value=d.policy;
+                if(d.objectives)document.getElementById('sgc_objectives').value=d.objectives;
+                if(d.eval_date)document.getElementById('eval_date').value=d.eval_date;
+                if(d.processes && Object.keys(d.processes).length > 0){
+                    const stripAccents = str => (str || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+                    const getProcessScore = (p, name) => {
+                        let score = 0;
+                        if (name.normalize("NFD") !== name) score += 1;
+                        if (typeof countLinkedObjs === 'function') score += countLinkedObjs(name) * 100;
+                        if (p.indicadores && p.indicadores.length > 0) score += p.indicadores.length * 10;
+                        if (p.cambios && p.cambios.length > 0) score += p.cambios.length * 10;
+                        if (p.s) score += 5;
+                        if (p.p) score += 5;
+                        if (p.o) score += 5;
+                        if (p.leader && p.leader !== 'Por asignar') score += 2;
+                        if (p.objective) score += 2;
+                        return score;
+                    };
+
+                    const originalCount = Object.keys(d.processes).length;
+                    const cleaned = {};
+                    for (const [pName, pData] of Object.entries(d.processes)) {
+                        const norm = stripAccents(pName);
+                        if (!cleaned[norm]) {
+                            cleaned[norm] = { name: pName, data: pData };
+                        } else {
+                            const existing = cleaned[norm];
+                            const currentScore = getProcessScore(pData, pName);
+                            const existingScore = getProcessScore(existing.data, existing.name);
+                            if (currentScore > existingScore) {
+                                cleaned[norm] = { name: pName, data: pData };
+                            }
+                        }
+                    }
+
+                    const dedupedProcesses = {};
+                    for (const item of Object.values(cleaned)) {
+                        dedupedProcesses[item.name] = ensureProcessFields(item.data);
+                    }
+                    sgcData.processes = dedupedProcesses;
+
+                    // If duplicates were found, auto-persist the cleaned version to DB silently
+                    const dedupedCount = Object.keys(dedupedProcesses).length;
+                    if (dedupedCount < originalCount) {
+                        console.log(`SGC auto-clean: ${originalCount} → ${dedupedCount} processes. Persisting to DB...`);
+                        sgcData.policy = document.getElementById('sgc_policy').value.trim();
+                        sgcData.objectives = document.getElementById('sgc_objectives').value.trim();
+                        sgcData.eval_date = document.getElementById('eval_date').value;
+                        await saveSGCData(sgcData);
+                    }
+                }
+            }
+        }
+    }catch(e){console.error('Error loading SGC:',e);}
 }
+
+// Silent save — used internally for auto-cleanup (no user alert)
+async function saveSGCData(data){
+    try{
+        await authFetch('/api/business/matrix/ISO9001',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({inst_id:getInstId(),data:data})
+        });
+    }catch(e){console.error('Error auto-saving SGC:',e);}
+}
+
 async function saveSGC(){
-    sgcData.policy=document.getElementById('sgc_policy').value.trim();sgcData.objectives=document.getElementById('sgc_objectives').value.trim();sgcData.eval_date=document.getElementById('eval_date').value;
-    try{const r=await authFetch('/api/business/matrix/ISO9001',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({inst_id:getInstId(),data:sgcData})});if(r.ok)Swal.fire({title:'Exito!',text:'SGC ISO 9001 guardado correctamente.',icon:'success',timer:2500,showConfirmButton:false});else Swal.fire('Error','No se pudo guardar el SGC.','error');}catch(e){Swal.fire('Error de red','No se pudo conectar al servidor.','error');}
+    sgcData.policy=document.getElementById('sgc_policy').value.trim();
+    sgcData.objectives=document.getElementById('sgc_objectives').value.trim();
+    sgcData.eval_date=document.getElementById('eval_date').value;
+    try{
+        const r=await authFetch('/api/business/matrix/ISO9001',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({inst_id:getInstId(),data:sgcData})});
+        if(r.ok)Swal.fire({title:'Éxito!',text:'SGC ISO 9001 guardado correctamente.',icon:'success',timer:2500,showConfirmButton:false});
+        else Swal.fire('Error','No se pudo guardar el SGC.','error');
+    }catch(e){Swal.fire('Error de red','No se pudo conectar al servidor.','error');}
 }
 
 /* ============================================================
    AI
-   ============================================================ */
-async function generatePolicyAI(){Swal.fire({title:'Generando Politica de Calidad...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});try{const r=await authFetch('/api/business/iso9001_generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({inst_id:getInstId(),action_type:'policy'})});const d=await r.json();Swal.close();if(d.status==='success'&&d.data){document.getElementById('sgc_policy').value=d.data.politica||'';document.getElementById('sgc_objectives').value=(d.data.objetivos||[]).join('\n');Swal.fire('Politica Generada!','Politica y Objetivos redactados con IA.','success');}}catch(e){Swal.close();Swal.fire('Error','No se pudo generar con IA.','error');}}
 async function generateSGCAI(){await generatePolicyAI();}
 async function evalProcessAI(){if(!currentActiveProcess)return;Swal.fire({title:'Auditor Virtual ISO 9001...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});try{const r=await authFetch('/api/business/iso9001_generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({inst_id:getInstId(),action_type:'act',process_name:currentActiveProcess,process_data:sgcData.processes[currentActiveProcess]})});const d=await r.json();Swal.close();if(d.status==='success'&&d.data){let h=`<p><strong>Evaluacion de Auditoria:</strong> ${d.data.evaluacion_auditor}</p><h5 style="color:#1e3a8a;margin-top:10px;">Acciones de Mejora (Clausula 10):</h5><ul>`;(d.data.acciones_mejora||[]).forEach(a=>{h+=`<li><strong>${a.accion}</strong><br><small><strong>Causa Raiz:</strong> ${a.causa_raiz} | <strong>Responsable:</strong> ${a.responsable} | <strong>Plazo:</strong> ${a.plazo||'—'}</small></li>`;});h+=`</ul>`;document.getElementById('aiActResults').innerHTML=h;sgcData.processes[currentActiveProcess].actuar=h;}}catch(e){Swal.close();Swal.fire('Error','No se pudo evaluar con la IA.','error');}}
 

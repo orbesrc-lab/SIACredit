@@ -331,6 +331,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script src="{{ url_for('static', filename='downloader.js') }}"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -643,19 +644,67 @@
         // SIAC - Planificación Estratégica - JavaScript principal
         // ============================================================
         
+        const DEFAULT_ISO_PROCESSES = [
+            { name: "Gestión de la Dirección", type: "Estratégico" },
+            { name: "Aseguramiento de Calidad y Riesgos", type: "Estratégico" },
+            { name: "Gestión Académica y Docencia", type: "Misional" },
+            { name: "Investigación e Innovación", type: "Misional" },
+            { name: "Proyección Social y Extensión", type: "Misional" },
+            { name: "Gestión del Talento Humano", type: "Apoyo" },
+            { name: "Tecnología y Sistemas (TI)", type: "Apoyo" },
+            { name: "Gestión Financiera", type: "Apoyo" }
+        ];
+        window.isoProcesses = [...DEFAULT_ISO_PROCESSES];
+
+        async function loadISOProcesses() {
+            try {
+                const instId = getInstId();
+                const res = await authFetch(`/api/business/matrix/ISO9001?inst_id=${instId}`);
+                if (res.ok) {
+                    const result = await res.json();
+                    let data = result.data;
+                    if (typeof data === 'string') {
+                        try { data = JSON.parse(data); } catch(e) {}
+                    }
+                    if (data && data.processes) {
+                        const procs = [];
+                        for (const [pName, pData] of Object.entries(data.processes)) {
+                            procs.push({ name: pName, type: pData.type || 'Misional' });
+                        }
+                        if (procs.length > 0) {
+                            window.isoProcesses = procs;
+                        }
+                    }
+                }
+            } catch(e) {
+                console.warn("Could not load ISO 9001 processes, using defaults:", e);
+            }
+        }
+
+        function buildISOProcessSelect(selectedVal = '') {
+            let optionsHtml = '<option value="">-- Seleccionar Proceso ISO 9001 --</option>';
+            const procs = window.isoProcesses || DEFAULT_ISO_PROCESSES;
+            procs.forEach(p => {
+                const isSelected = p.name === selectedVal ? 'selected' : '';
+                optionsHtml += `<option value="${escHtml(p.name)}" ${isSelected}>${escHtml(p.name)} (${escHtml(p.type)})</option>`;
+            });
+            return `<select id="f_iso_process" class="form-control" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">${optionsHtml}</select>`;
+        }
+
         let currentNodeType = '';
         let currentParentId = 0;
         let currentNodeId = null;
         let ganttChart = null;
         let expandedNodes = new Set();
 
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
             const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
             document.getElementById('userInfo').textContent = user.email || 'Usuario';
             if(user.role === 'admin') {
                 const crmLink = document.getElementById('menuCrm');
                 if(crmLink) crmLink.style.display = 'block';
             }
+            await loadISOProcesses();
             loadPlanningData();
             loadInstitutionUsers();
         });
@@ -1030,17 +1079,7 @@
                     <div class="form-group"><label>Descripción del Objetivo General</label><textarea id="f_desc" rows="3">${escHtml(data.description || '')}</textarea></div>
                     <div class="form-group">
                         <label><i class="fas fa-sitemap" style="color:#2563eb;"></i> 📍 Articular a Proceso del Mapa ISO 9001</label>
-                        <select id="f_iso_process" class="form-control" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
-                            <option value="">-- Seleccionar Proceso ISO 9001 --</option>
-                            <option value="Gestión de la Dirección" ${isoProc === 'Gestión de la Dirección' ? 'selected' : ''}>Gestión de la Dirección (Estratégico)</option>
-                            <option value="Aseguramiento de Calidad y Riesgos" ${isoProc === 'Aseguramiento de Calidad y Riesgos' ? 'selected' : ''}>Aseguramiento de Calidad y Riesgos (Estratégico)</option>
-                            <option value="Gestión Académica y Docencia" ${isoProc === 'Gestión Académica y Docencia' ? 'selected' : ''}>Gestión Académica y Docencia (Misional)</option>
-                            <option value="Investigación e Innovación" ${isoProc === 'Investigación e Innovación' ? 'selected' : ''}>Investigación e Innovación (Misional)</option>
-                            <option value="Proyección Social y Extensión" ${isoProc === 'Proyección Social y Extensión' ? 'selected' : ''}>Proyección Social y Extensión (Misional)</option>
-                            <option value="Gestión del Talento Humano" ${isoProc === 'Gestión del Talento Humano' ? 'selected' : ''}>Gestión del Talento Humano (Apoyo)</option>
-                            <option value="Tecnología y Sistemas (TI)" ${isoProc === 'Tecnología y Sistemas (TI)' ? 'selected' : ''}>Tecnología y Sistemas (TI) (Apoyo)</option>
-                            <option value="Gestión Financiera" ${isoProc === 'Gestión Financiera' ? 'selected' : ''}>Gestión Financiera (Apoyo)</option>
-                        </select>
+                        ${buildISOProcessSelect(isoProc)}
                     </div>
                     <div class="form-group"><label>Alineación (PDI / Plan)</label><input type="text" id="f_align" value="${escHtml(alignVal)}"></div>
                 `;
@@ -1091,17 +1130,7 @@
                     <div class="form-group"><label>Descripción del Objetivo General</label><textarea id="f_desc" rows="3" placeholder="Ej: Fortalecer la calidad docente mediante..."></textarea></div>
                     <div class="form-group">
                         <label><i class="fas fa-sitemap" style="color:#2563eb;"></i> 📍 Articular a Proceso del Mapa ISO 9001</label>
-                        <select id="f_iso_process" class="form-control" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">
-                            <option value="">-- Seleccionar Proceso ISO 9001 --</option>
-                            <option value="Gestión de la Dirección">Gestión de la Dirección (Estratégico)</option>
-                            <option value="Aseguramiento de Calidad y Riesgos">Aseguramiento de Calidad y Riesgos (Estratégico)</option>
-                            <option value="Gestión Académica y Docencia">Gestión Académica y Docencia (Misional)</option>
-                            <option value="Investigación e Innovación">Investigación e Innovación (Misional)</option>
-                            <option value="Proyección Social y Extensión">Proyección Social y Extensión (Misional)</option>
-                            <option value="Gestión del Talento Humano">Gestión del Talento Humano (Apoyo)</option>
-                            <option value="Tecnología y Sistemas (TI)">Tecnología y Sistemas (TI) (Apoyo)</option>
-                            <option value="Gestión Financiera">Gestión Financiera (Apoyo)</option>
-                        </select>
+                        ${buildISOProcessSelect()}
                     </div>
                     <div class="form-group"><label>Alineación (PDI / Plan)</label><input type="text" id="f_align" placeholder="Opcional"></div>
                 `;
@@ -1488,7 +1517,7 @@
                             <div style="font-size:0.7rem; color:#64748b;">Subido por: ${escHtml(ev.uploader)} el ${new Date(ev.date).toLocaleDateString()}</div>
                         </div>
                         <div style="display:flex; gap:5px;">
-                            <a href="${ev.public_url || '#'}" target="_blank" class="btn-action-primary" style="text-decoration:none; padding:4px 8px; font-size:0.75rem;"><i class="fas fa-download"></i> Descargar</a>
+                            <button onclick="forceDownload('${ev.public_url}', '${ev.name}')" class="btn-action-primary" style="padding:4px 8px; font-size:0.75rem; border:none; cursor:pointer;"><i class="fas fa-download"></i> Descargar</button>
                             <button onclick="deleteEvidence('${ev.url}')" class="btn-action-del" style="padding:4px 8px; font-size:0.75rem; border:none; border-radius:4px; cursor:pointer; background:#ef4444; color:white;"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>`;
