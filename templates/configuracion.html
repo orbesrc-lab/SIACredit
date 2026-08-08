@@ -247,14 +247,21 @@
         }
 
         .config-hub-card-icon {
-            width: 50px;
-            height: 50px;
+            width: 52px;
+            height: 52px;
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.65rem;
             margin-bottom: 16px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+            transition: all 0.25s ease;
+        }
+
+        .config-hub-card:hover .config-hub-card-icon {
+            transform: scale(1.1) rotate(-3deg);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.18);
         }
 
         .config-hub-card-title {
@@ -570,9 +577,7 @@
                 <!-- Tarjeta 1: Inteligencia Artificial -->
                 <div class="config-hub-card" onclick="showConfigCategory('ia')" data-keywords="ia inteligencia artificial gemini openai claude api key margy voz chatbot entrenamiento">
                     <div>
-                        <div class="config-hub-card-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
-                            <i class="fas fa-robot"></i>
-                        </div>
+                        <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); color: #ffffff;">🤖</div>
                         <div class="config-hub-card-title">
                             <span>Inteligencia Artificial & Margy</span>
                             <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
@@ -590,9 +595,7 @@
                 <!-- Tarjeta 2: Permisos & Roles -->
                 <div class="config-hub-card" onclick="showConfigCategory('permisos')" data-keywords="permisos matriz roles superadmin admin lider operativo consultor auditor acceso modulos">
                     <div>
-                        <div class="config-hub-card-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
-                            <i class="fas fa-user-shield"></i>
-                        </div>
+                        <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #ffffff;">🛡️</div>
                         <div class="config-hub-card-title">
                             <span>Matriz de Permisos por Rol</span>
                             <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
@@ -610,9 +613,7 @@
                 <!-- Tarjeta 3: Organización & Institución -->
                 <div class="config-hub-card" onclick="showConfigCategory('organizacion')" data-keywords="organizacion institucion universidad logo sedes partners aliados multi-tenant">
                     <div>
-                        <div class="config-hub-card-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
-                            <i class="fas fa-university"></i>
-                        </div>
+                        <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: #ffffff;">🏛️</div>
                         <div class="config-hub-card-title">
                             <span>Organización & Aliados</span>
                             <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
@@ -630,9 +631,7 @@
                 <!-- Tarjeta 4: Programas Académicos -->
                 <div class="config-hub-card" onclick="showConfigCategory('programas')" data-keywords="programas academicos carreras pregrado posgrado autoevaluacion metodologia">
                     <div>
-                        <div class="config-hub-card-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
-                            <i class="fas fa-graduation-cap"></i>
-                        </div>
+                        <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); color: #ffffff;">🎓</div>
                         <div class="config-hub-card-title">
                             <span>Programas Académicos</span>
                             <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
@@ -650,9 +649,7 @@
                 <!-- Tarjeta 5: Gestión de Usuarios -->
                 <div class="config-hub-card" onclick="showConfigCategory('usuarios')" data-keywords="usuarios invitar usuario roles cambiar rol resetear clave eliminar usuarios personal">
                     <div>
-                        <div class="config-hub-card-icon" style="background: rgba(6, 182, 212, 0.1); color: #06b6d4;">
-                            <i class="fas fa-users-cog"></i>
-                        </div>
+                        <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #06b6d4 0%, #0e7490 100%); color: #ffffff;">👥</div>
                         <div class="config-hub-card-title">
                             <span>Gestión de Usuarios</span>
                             <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
@@ -670,9 +667,7 @@
                 <!-- Tarjeta 6: Modelo de Evaluación -->
                 <div class="config-hub-card" onclick="showConfigCategory('modelo')" data-keywords="modelo evaluacion factores caracteristicas aspectos inyeccion csv json indicadores">
                     <div>
-                        <div class="config-hub-card-icon" style="background: rgba(236, 72, 153, 0.1); color: #ec4899;">
-                            <i class="fas fa-cubes"></i>
-                        </div>
+                        <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); color: #ffffff;">📐</div>
                         <div class="config-hub-card-title">
                             <span>Modelo de Evaluación</span>
                             <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
@@ -690,9 +685,7 @@
                 <!-- Tarjeta 7: Apariencia & Landing Page -->
                 <div class="config-hub-card" onclick="showConfigCategory('apariencia')" data-keywords="apariencia tema oscuro claro esmeralda oceano landing page carrusel fotos imagenes">
                     <div>
-                        <div class="config-hub-card-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
-                            <i class="fas fa-palette"></i>
-                        </div>
+                        <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff;">🎨</div>
                         <div class="config-hub-card-title">
                             <span>Apariencia & Landing Page</span>
                             <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
@@ -710,9 +703,7 @@
                 <!-- Tarjeta 8: Seguridad & Mi Cuenta -->
                 <div class="config-hub-card" onclick="showConfigCategory('seguridad')" data-keywords="seguridad clave contraseña password mi cuenta perfil actualizar clave">
                     <div>
-                        <div class="config-hub-card-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
-                            <i class="fas fa-lock"></i>
-                        </div>
+                        <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #ffffff;">🔐</div>
                         <div class="config-hub-card-title">
                             <span>Mi Seguridad & Contraseña</span>
                             <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
