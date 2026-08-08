@@ -461,7 +461,7 @@ function buildUserSelect(selectId, currentValue, placeholder='Seleccionar respon
    INIT
    ============================================================ */
 document.addEventListener('DOMContentLoaded',async()=>{await initHeader();await loadSGC();await loadPlanningTree();await loadSystemUsers();renderProcessMap();renderBancoIndicadores();});
-async function initHeader(){try{const r=await authFetch(`/api/institution?inst_id=${getInstId()}`);if(r.ok){const d=await r.json();document.getElementById('inst_name_display').textContent=d.name||'ORGANIZACION';if(d.logo_url){const img=document.getElementById('inst_logo_img');img.src=d.logo_url;img.style.display='block';}}}catch(e){console.error(e);}}
+async function initHeader(){try{const r=await authFetch(`/api/institution?inst_id=${getInstId()}`);if(r.ok){const d=await r.json();document.getElementById('inst_name_display').textContent=d.name||'ORGANIZACION';if(d.logo_url){const img=document.getElementById('inst_logo_img');img.src=d.logo_url;img.style.display='block';window._instLogoUrl=d.logo_url;}}}catch(e){console.error(e);}}
 async function loadPlanningTree(){try{const r=await authFetch(`/api/planning/tree?inst_id=${getInstId()}&program_id=${getProgramId()}`);if(r.ok){const d=await r.json();if(d.status==='success'&&d.tree)planningTreeData=d.tree;}}catch(e){console.error(e);}}
 
 /* ============================================================
@@ -1196,7 +1196,7 @@ async function evalProcessAI(){if(!currentActiveProcess)return;Swal.fire({title:
    PDF EXPORT
    ============================================================ */
 function exportPDF(){
-    const logoImg=document.getElementById('inst_logo_img');const logoSrc=(logoImg&&logoImg.style.display!=='none'&&logoImg.src)?logoImg.src:'';
+    const logoImg=document.getElementById('inst_logo_img');const logoSrc=(logoImg&&logoImg.src&&logoImg.style.display!=='none'&&!logoImg.src.endsWith('/'))?logoImg.src:(window._instLogoUrl||'');
     const instName=document.getElementById('inst_name_display').textContent||'ORGANIZACION';const evalDate=document.getElementById('eval_date').value||'No especificada';
     const policy=document.getElementById('sgc_policy').value||'Sin definir';const objectives=document.getElementById('sgc_objectives').value||'Sin definir';
     let procRows='',totInds=0;
@@ -1220,7 +1220,7 @@ async function exportBancoIndicadoresPDF(){
 
     try {
         const logoImg = document.getElementById('inst_logo_img');
-        const logoSrc = (logoImg && logoImg.style.display !== 'none' && logoImg.src) ? logoImg.src : '';
+        const logoSrc = (logoImg && logoImg.src && logoImg.style.display !== 'none' && !logoImg.src.endsWith('/')) ? logoImg.src : (window._instLogoUrl || '');
         const instName = document.getElementById('inst_name_display')?.textContent || 'CORPORACIÓN UNIVERSITARIA CENTRO SUPERIOR';
         const evalDate = document.getElementById('eval_date')?.value || new Date().toISOString().split('T')[0];
 
@@ -1463,8 +1463,9 @@ async function exportBancoIndicadoresPDF(){
         const printHTML = `
         <div class="print-document">
             <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1e3a8a;padding-bottom:10px;margin-bottom:14px;">
-                <div>
-                    ${logoSrc ? `<img src="${logoSrc}" style="max-height:48px;max-width:180px;object-fit:contain;">` : '<div style="font-weight:bold;font-size:1.2rem;color:#1e3a8a;">SKEL STRATEGIC</div>'}
+                <div style="display:flex;align-items:center;gap:12px;">
+                    ${logoSrc ? `<img src="${logoSrc}" style="max-height:55px;max-width:200px;object-fit:contain;" alt="Logo Institución">` : ''}
+                    <img src="{{ url_for('static', filename='logo_skel.png') }}" style="max-height:42px;object-fit:contain;" alt="SKEL SGC">
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:1.05rem;font-weight:bold;color:#1e3a8a;text-transform:uppercase;">${instName}</div>
