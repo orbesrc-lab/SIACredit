@@ -627,7 +627,7 @@ function openCustomActivityModal(stage, actId=null){
                 notes: document.getElementById('act_custom_notes').value.trim()
             };
         }
-    }).then(r=>{
+    }).then(async r=>{
         if(!r.isConfirmed) return;
         if(isEdit){
             const idx = list.findIndex(a=>a.id===ex.id);
@@ -637,6 +637,7 @@ function openCustomActivityModal(stage, actId=null){
         }
         p[key] = list;
         renderCustomActivities(currentActiveProcess, stage);
+        await saveSGCData(sgcData);
     });
 }
 
@@ -649,13 +650,14 @@ function deleteCustomActivity(stage, actId){
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar',
         confirmButtonColor: '#ef4444'
-    }).then(r=>{
+    }).then(async r=>{
         if(!r.isConfirmed) return;
         const p = sgcData.processes[currentActiveProcess];
         if(!p) return;
         const key = `custom_${stage}`;
         p[key] = (p[key]||[]).filter(a=>a.id!==actId);
         renderCustomActivities(currentActiveProcess, stage);
+        await saveSGCData(sgcData);
     });
 }
 
@@ -703,7 +705,7 @@ function renderCustomActivities(pName, stage){
 /* ============================================================
    SAVE PROCESS
    ============================================================ */
-function saveProcessData(){
+async function saveProcessData(){
     if(!currentActiveProcess)return;const p=sgcData.processes[currentActiveProcess];
     p.codigo=document.getElementById('proc_codigo').value.trim();p.version=document.getElementById('proc_version').value.trim();
     p.fecha_creacion=document.getElementById('proc_fecha_creacion').value;p.fecha_revision=document.getElementById('proc_fecha_revision').value;
@@ -714,8 +716,12 @@ function saveProcessData(){
     ['s','i','p','o','c'].forEach(k=>p[k]=document.getElementById(`sipoc_${k}`).value.trim());
     p.planear=document.getElementById('phva_planear').value.trim();p.hacer=document.getElementById('phva_hacer').value.trim();p.verificar=document.getElementById('phva_verificar').value.trim();
     p.actuar=document.getElementById('aiActResults').innerHTML;p.cambios=getCambiosData();
+    sgcData.policy=document.getElementById('sgc_policy')?.value?.trim()||sgcData.policy;
+    sgcData.objectives=document.getElementById('sgc_objectives')?.value?.trim()||sgcData.objectives;
+    sgcData.eval_date=document.getElementById('eval_date')?.value||sgcData.eval_date;
+    await saveSGCData(sgcData);
     renderProcessMap();renderBancoIndicadores();closeModal();
-    Swal.fire({title:'Ficha Guardada!',text:`Caracterizacion de "${currentActiveProcess}" actualizada.`,icon:'success',timer:2000,showConfirmButton:false});
+    Swal.fire({title:'¡Ficha Guardada!',text:`Caracterización de "${currentActiveProcess}" guardada.`,icon:'success',timer:2000,showConfirmButton:false});
 }
 
 /* ============================================================
@@ -761,9 +767,9 @@ function showIndicadorForm(ex){
     Swal.fire({title:isEdit?'Editar Indicador':'Nuevo Indicador de Gestión',width:'680px',html:`<div style="text-align:left;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 0;"><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Código *</label><input id="ind_codigo" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="IND-001" value="${ex?.codigo||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Nombre *</label><input id="ind_nombre" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="Tasa de satisfacción" value="${ex?.nombre||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Tipo</label><select id="ind_tipo" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;"><option value="eficacia" ${ex?.tipo==='eficacia'?'selected':''}>Eficacia</option><option value="eficiencia" ${ex?.tipo==='eficiencia'?'selected':''}>Eficiencia</option><option value="efectividad" ${ex?.tipo==='efectividad'?'selected':''}>Efectividad</option></select></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Frecuencia</label><select id="ind_frecuencia" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;"><option value="Mensual" ${ex?.frecuencia==='Mensual'?'selected':''}>Mensual</option><option value="Bimestral" ${ex?.frecuencia==='Bimestral'?'selected':''}>Bimestral</option><option value="Trimestral" ${ex?.frecuencia==='Trimestral'?'selected':''}>Trimestral</option><option value="Semestral" ${ex?.frecuencia==='Semestral'?'selected':''}>Semestral</option><option value="Anual" ${ex?.frecuencia==='Anual'?'selected':''}>Anual</option></select></div><div style="grid-column:1/-1;"><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Fórmula de Cálculo</label><input id="ind_formula" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="(Valor obtenido / Valor esperado) x 100" value="${ex?.formula||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Unidad</label><input id="ind_unidad" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="%, $, días" value="${ex?.unidad||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Meta</label><input id="ind_meta" type="number" step="0.01" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="90" value="${ex?.meta||''}"></div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Responsable *</label>${respSelect}</div><div><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Fuente de Datos</label><input id="ind_fuente" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;" placeholder="Sistema, encuesta..." value="${ex?.fuente||''}"></div><div style="grid-column:1/-1;"><label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Tipo de Gráfica</label><select id="ind_tipo_grafica" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;"><option value="barras" ${ex?.tipo_grafica==='barras'?'selected':''}>Barras</option><option value="linea" ${ex?.tipo_grafica==='linea'?'selected':''}>Línea</option><option value="area" ${ex?.tipo_grafica==='area'?'selected':''}>Área</option><option value="torta" ${ex?.tipo_grafica==='torta'?'selected':''}>Torta / Pie</option></select></div></div>`,
     showCancelButton:true,confirmButtonText:isEdit?'Actualizar':'Crear Indicador',cancelButtonText:'Cancelar',
     preConfirm:()=>{const n=document.getElementById('ind_nombre').value.trim();if(!n){Swal.showValidationMessage('Nombre obligatorio.');return false;}return{codigo:document.getElementById('ind_codigo').value.trim(),nombre:n,tipo:document.getElementById('ind_tipo').value,frecuencia:document.getElementById('ind_frecuencia').value,formula:document.getElementById('ind_formula').value.trim(),unidad:document.getElementById('ind_unidad').value.trim(),meta:document.getElementById('ind_meta').value,responsable:document.getElementById('ind_responsable').value.trim(),fuente:document.getElementById('ind_fuente').value.trim(),tipo_grafica:document.getElementById('ind_tipo_grafica').value};}
-    }).then(r=>{if(!r.isConfirmed)return;const p=sgcData.processes[currentActiveProcess];if(!p.indicadores)p.indicadores=[];if(isEdit){const idx=p.indicadores.findIndex(i=>i.id===ex.id);if(idx>=0)p.indicadores[idx]={...p.indicadores[idx],...r.value};}else p.indicadores.push({id:generateId(),registros:[],...r.value});renderIndicadoresList(currentActiveProcess);renderBancoIndicadores();});
+    }).then(async r=>{if(!r.isConfirmed)return;const p=sgcData.processes[currentActiveProcess];if(!p.indicadores)p.indicadores=[];if(isEdit){const idx=p.indicadores.findIndex(i=>i.id===ex.id);if(idx>=0)p.indicadores[idx]={...p.indicadores[idx],...r.value};}else p.indicadores.push({id:generateId(),registros:[],...r.value});renderIndicadoresList(currentActiveProcess);renderBancoIndicadores();await saveSGCData(sgcData);});
 }
-function deleteIndicador(pName,indId){Swal.fire({title:'¿Eliminar Indicador?',text:'Se eliminará el indicador y todo su histórico.',icon:'warning',showCancelButton:true,confirmButtonText:'Sí, eliminar',cancelButtonText:'Cancelar',confirmButtonColor:'#ef4444'}).then(r=>{if(!r.isConfirmed)return;const p=sgcData.processes[pName];if(p&&p.indicadores){p.indicadores=p.indicadores.filter(i=>i.id!==indId);renderIndicadoresList(pName);renderBancoIndicadores();}});}
+function deleteIndicador(pName,indId){Swal.fire({title:'¿Eliminar Indicador?',text:'Se eliminará el indicador y todo su histórico.',icon:'warning',showCancelButton:true,confirmButtonText:'Sí, eliminar',cancelButtonText:'Cancelar',confirmButtonColor:'#ef4444'}).then(async r=>{if(!r.isConfirmed)return;const p=sgcData.processes[pName];if(p&&p.indicadores){p.indicadores=p.indicadores.filter(i=>i.id!==indId);renderIndicadoresList(pName);renderBancoIndicadores();await saveSGCData(sgcData);}});}
 
 /* ============================================================
    FORMULA UTILITIES
@@ -936,12 +942,13 @@ function openRegistrarMedicionModal(pName,indId){
                 variables: varData   // stored for audit trail
             };
         }
-    }).then(r=>{
+    }).then(async r=>{
         if(!r.isConfirmed)return;
         if(!ind.registros)ind.registros=[];
         ind.registros.push(r.value);
         renderIndicadoresList(currentActiveProcess);
         renderBancoIndicadores();
+        await saveSGCData(sgcData);
         const sem=getSemaforo(r.value.valor,ind.meta);
         Swal.fire({
             title:'¡Medición Registrada!',
@@ -1016,18 +1023,60 @@ async function loadSGC(){
                 if(d.eval_date)document.getElementById('eval_date').value=d.eval_date;
                 if(d.processes && Object.keys(d.processes).length > 0){
                     const stripAccents = str => (str || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-                    const getProcessScore = (p, name) => {
-                        let score = 0;
-                        if (name.normalize("NFD") !== name) score += 1;
-                        if (typeof countLinkedObjs === 'function') score += countLinkedObjs(name) * 100;
-                        if (p.indicadores && p.indicadores.length > 0) score += p.indicadores.length * 10;
-                        if (p.cambios && p.cambios.length > 0) score += p.cambios.length * 10;
-                        if (p.s) score += 5;
-                        if (p.p) score += 5;
-                        if (p.o) score += 5;
-                        if (p.leader && p.leader !== 'Por asignar') score += 2;
-                        if (p.objective) score += 2;
-                        return score;
+                    const mergeProcesses = (p1, p2) => {
+                        if(!p1) return p2;
+                        if(!p2) return p1;
+                        const merged = { ...p1, ...p2 };
+
+                        ['type','leader','objective','codigo','version','fecha_creacion','fecha_revision','alcance','normativa','recursos','documentos','riesgos_proceso','s','i','p','o','c','planear','hacer','verificar','actuar'].forEach(k => {
+                            const v1 = p1[k] || '';
+                            const v2 = p2[k] || '';
+                            if(v1 && v1 !== 'Por asignar' && v1 !== 'Sin Lider') merged[k] = v1;
+                            else if(v2 && v2 !== 'Por asignar' && v2 !== 'Sin Lider') merged[k] = v2;
+                            else merged[k] = v1 || v2 || '';
+                        });
+
+                        const indMap = {};
+                        (p1.indicadores || []).concat(p2.indicadores || []).forEach(ind => {
+                            if(!ind) return;
+                            const key = ind.id || ind.codigo || ind.nombre;
+                            if(!indMap[key]) {
+                                indMap[key] = { ...ind };
+                            } else {
+                                const regMap = {};
+                                (indMap[key].registros || []).concat(ind.registros || []).forEach(r => {
+                                    if(!r) return;
+                                    const rKey = (r.periodo || '') + '_' + (r.valor || '');
+                                    regMap[rKey] = r;
+                                });
+                                indMap[key].registros = Object.values(regMap);
+                                ['formula','unidad','meta','responsable','fuente','tipo_grafica','tipo','codigo','nombre'].forEach(f => {
+                                    if(!indMap[key][f] && ind[f]) indMap[key][f] = ind[f];
+                                });
+                            }
+                        });
+                        merged.indicadores = Object.values(indMap);
+
+                        const cambioMap = {};
+                        (p1.cambios || []).concat(p2.cambios || []).forEach(c => {
+                            if(!c) return;
+                            const key = (c.version || '') + '_' + (c.fecha || '') + '_' + (c.descripcion || '');
+                            cambioMap[key] = c;
+                        });
+                        merged.cambios = Object.values(cambioMap);
+
+                        ['planear','hacer','verificar','actuar'].forEach(stage => {
+                            const key = `custom_${stage}`;
+                            const actMap = {};
+                            (p1[key] || []).concat(p2[key] || []).forEach(a => {
+                                if(!a) return;
+                                const aKey = a.id || a.title;
+                                actMap[aKey] = a;
+                            });
+                            merged[key] = Object.values(actMap);
+                        });
+
+                        return merged;
                     };
 
                     const originalCount = Object.keys(d.processes).length;
@@ -1038,11 +1087,9 @@ async function loadSGC(){
                             cleaned[norm] = { name: pName, data: pData };
                         } else {
                             const existing = cleaned[norm];
-                            const currentScore = getProcessScore(pData, pName);
-                            const existingScore = getProcessScore(existing.data, existing.name);
-                            if (currentScore > existingScore) {
-                                cleaned[norm] = { name: pName, data: pData };
-                            }
+                            const bestName = (pName.normalize("NFD") !== pName) ? pName : existing.name;
+                            const mergedData = mergeProcesses(existing.data, pData);
+                            cleaned[norm] = { name: bestName, data: mergedData };
                         }
                     }
 
@@ -1052,13 +1099,12 @@ async function loadSGC(){
                     }
                     sgcData.processes = dedupedProcesses;
 
-                    // If duplicates were found, auto-persist the cleaned version to DB silently
                     const dedupedCount = Object.keys(dedupedProcesses).length;
                     if (dedupedCount < originalCount) {
-                        console.log(`SGC auto-clean: ${originalCount} → ${dedupedCount} processes. Persisting to DB...`);
-                        sgcData.policy = document.getElementById('sgc_policy').value.trim();
-                        sgcData.objectives = document.getElementById('sgc_objectives').value.trim();
-                        sgcData.eval_date = document.getElementById('eval_date').value;
+                        console.log(`SGC auto-clean & merge: ${originalCount} → ${dedupedCount} processes. Persisting to DB...`);
+                        sgcData.policy = document.getElementById('sgc_policy')?.value?.trim()||sgcData.policy;
+                        sgcData.objectives = document.getElementById('sgc_objectives')?.value?.trim()||sgcData.objectives;
+                        sgcData.eval_date = document.getElementById('eval_date')?.value||sgcData.eval_date;
                         await saveSGCData(sgcData);
                     }
                 }
