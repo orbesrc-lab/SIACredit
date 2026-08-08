@@ -776,7 +776,7 @@ function extractFormulaVars(formula){
     return [...new Set(tokens)];
 }
 
-function evaluateFormula(formula, varValues){
+function evaluateFormula(formula, varValues, unidad=''){
     if(!formula)return null;
     let expr = formula;
     // Replace each variable name with its numeric value
@@ -791,8 +791,17 @@ function evaluateFormula(formula, varValues){
     try{
         // Use Function for safe math evaluation (no DOM access)
         // eslint-disable-next-line no-new-func
-        const result = Function('"use strict"; return (' + expr + ')')();
-        return isFinite(result) ? Math.round(result * 10000) / 10000 : null;
+        let result = Function('"use strict"; return (' + expr + ')')();
+        if(!isFinite(result)) return null;
+
+        // If unit is '%' or contains '%' and formula doesn't explicitly multiply by 100, and ratio <= 1.0 (e.g. 50/100 = 0.5), convert ratio to percentage (0.5 -> 50)
+        const isPercent = (unidad || '').includes('%');
+        const has100InFormula = /[*x]\s*100\b/i.test(formula);
+        if(isPercent && !has100InFormula && Math.abs(result) <= 1.0){
+            result = result * 100;
+        }
+
+        return Math.round(result * 10000) / 10000;
     }catch(e){ return null; }
 }
 
@@ -832,10 +841,10 @@ function buildMedicionVarHTML(formula, unidad){
         </div>`;
 }
 
-window._medFormulaCtx = {formula:'', vars:[]};
+window._medFormulaCtx = {formula:'', vars:[], unidad:''};
 
 function updateMedResult(){
-    const {formula, vars} = window._medFormulaCtx;
+    const {formula, vars, unidad} = window._medFormulaCtx;
     if(!vars.length) return;
     const varValues = {};
     let allFilled = true;
@@ -847,7 +856,7 @@ function updateMedResult(){
     const resultEl = document.getElementById('med_valor');
     const errEl = document.getElementById('med_calc_error');
     if(!allFilled){ resultEl.value=''; return; }
-    const result = evaluateFormula(formula, varValues);
+    const result = evaluateFormula(formula, varValues, unidad);
     if(result === null){
         resultEl.value = '';
         if(errEl) errEl.style.display='block';
@@ -867,7 +876,7 @@ function openRegistrarMedicionModal(pName,indId){
     const lr=getLastRegistro(ind);
 
     const vars = extractFormulaVars(ind.formula);
-    window._medFormulaCtx = { formula: ind.formula||'', vars };
+    window._medFormulaCtx = { formula: ind.formula||'', vars, unidad: ind.unidad||'' };
 
     const varSection = buildMedicionVarHTML(ind.formula, ind.unidad);
 
