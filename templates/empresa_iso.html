@@ -265,28 +265,56 @@
         <div class="phva-panel" id="tabPlanear">
             <h4 style="color:#1e3a8a;margin-top:0;">🎯 P - Planear: Objetivos e Insumos Estratégicos</h4>
             <div id="planPlanearContainer" style="margin-bottom:15px;"></div>
-            <label style="font-weight:bold;color:#334155;font-size:.87rem;display:block;margin-bottom:5px;">Notas y Actividades de Planeación Adicionales:</label>
-            <textarea id="phva_planear" style="width:100%;height:100px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-family:inherit;box-sizing:border-box;" placeholder="Ej. Fortaleza F1 de la MEFI incorporada al plan. Riesgo R1 mitigado con procedimiento POE-002..."></textarea>
+            
+            <div style="display:flex;justify-content:space-between;align-items:center;margin:15px 0 10px;padding-top:12px;border-top:1px solid #e2e8f0;">
+                <strong style="color:#1e3a8a;font-size:.88rem;"><i class="fas fa-tasks" style="color:#2563eb;"></i> Actividades Específicas de Planeación del Proceso:</strong>
+                <button class="btn-action" style="background:#2563eb;padding:5px 12px;font-size:.78rem;" onclick="openCustomActivityModal('planear')"><i class="fas fa-plus"></i> Añadir Actividad de Planear</button>
+            </div>
+            <div id="custom_planear_container" style="margin-bottom:15px;"></div>
+
+            <label style="font-weight:bold;color:#334155;font-size:.87rem;display:block;margin-bottom:5px;">Notas y Diagnóstico de Planeación Adicionales:</label>
+            <textarea id="phva_planear" style="width:100%;height:80px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-family:inherit;box-sizing:border-box;" placeholder="Ej. Fortaleza F1 de la MEFI incorporada al plan. Riesgo R1 mitigado con procedimiento POE-002..."></textarea>
         </div>
         <!-- HACER -->
         <div class="phva-panel" id="tabHacer">
             <h4 style="color:#1e3a8a;margin-top:0;"><i class="fas fa-cogs" style="color:#2563eb;"></i> H - Hacer: Ejecución Operativa <small style="font-weight:normal;color:#64748b;">(ISO 9001 Cláusula 8)</small></h4>
             <div id="planExecContainer" style="margin-bottom:15px;"></div>
-            <label style="font-weight:bold;color:#334155;font-size:.87rem;display:block;margin-bottom:5px;">Notas y Actividades de Ejecución Adicionales:</label>
-            <textarea id="phva_hacer" style="width:100%;height:90px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-family:inherit;box-sizing:border-box;" placeholder="Ej. Ejecución de talleres de capacitación, implementación de guías..."></textarea>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin:15px 0 10px;padding-top:12px;border-top:1px solid #e2e8f0;">
+                <strong style="color:#1e3a8a;font-size:.88rem;"><i class="fas fa-cogs" style="color:#2563eb;"></i> Actividades Específicas de Ejecución del Proceso:</strong>
+                <button class="btn-action" style="background:#2563eb;padding:5px 12px;font-size:.78rem;" onclick="openCustomActivityModal('hacer')"><i class="fas fa-plus"></i> Añadir Actividad de Hacer</button>
+            </div>
+            <div id="custom_hacer_container" style="margin-bottom:15px;"></div>
+
+            <label style="font-weight:bold;color:#334155;font-size:.87rem;display:block;margin-bottom:5px;">Notas y Bitácora de Ejecución Adicionales:</label>
+            <textarea id="phva_hacer" style="width:100%;height:80px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-family:inherit;box-sizing:border-box;" placeholder="Ej. Ejecución de talleres de capacitación, implementación de guías..."></textarea>
         </div>
         <!-- VERIFICAR -->
         <div class="phva-panel" id="tabVerificar">
-            <h4 style="color:#1e3a8a;margin-top:0;">🔍 V - Verificar: Evidencias de Cumplimiento</h4>
-            <textarea id="phva_verificar" style="width:100%;height:110px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-family:inherit;box-sizing:border-box;" placeholder="Evidencia 1: Acta de reunion No.4 (https://...). Evidencia 2: Reporte Q2..."></textarea>
+            <h4 style="color:#1e3a8a;margin-top:0;">🔍 V - Verificar: Evidencias y Controles de Cumplimiento</h4>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0 10px;">
+                <strong style="color:#1e3a8a;font-size:.88rem;"><i class="fas fa-clipboard-check" style="color:#2563eb;"></i> Controles y Evaluaciones de Verificación del Proceso:</strong>
+                <button class="btn-action" style="background:#2563eb;padding:5px 12px;font-size:.78rem;" onclick="openCustomActivityModal('verificar')"><i class="fas fa-plus"></i> Añadir Control de Verificar</button>
+            </div>
+            <div id="custom_verificar_container" style="margin-bottom:15px;"></div>
+
+            <label style="font-weight:bold;color:#334155;font-size:.87rem;display:block;margin-bottom:5px;">Notas y Enlaces a Evidencias Adicionales:</label>
+            <textarea id="phva_verificar" style="width:100%;height:80px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-family:inherit;box-sizing:border-box;" placeholder="Evidencia 1: Acta de reunión No.4 (https://...). Evidencia 2: Reporte Q2..."></textarea>
         </div>
         <!-- ACTUAR -->
         <div class="phva-panel" id="tabActuar">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                <h4 style="color:#1e3a8a;margin:0;">🤖 A - Actuar: Auditoria IA <small style="font-weight:normal;color:#64748b;">(ISO 9001 Clausula 10)</small></h4>
+                <h4 style="color:#1e3a8a;margin:0;">🤖 A - Actuar: Auditoría IA y Acciones de Mejora <small style="font-weight:normal;color:#64748b;">(ISO 9001 Cláusula 10)</small></h4>
                 <button class="btn-action btn-ai" style="padding:7px 14px;font-size:.81rem;" id="btn-evaluar-ia" onclick="evalProcessAI()"><i class="fas fa-robot"></i> Evaluar con IA</button>
             </div>
-            <div id="aiActResults" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;font-size:.88rem;min-height:110px;color:#475569;"><em>Haga clic en "Evaluar con IA".</em></div>
+            <div id="aiActResults" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;font-size:.88rem;min-height:100px;color:#475569;margin-bottom:15px;"><em>Haga clic en "Evaluar con IA".</em></div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin:15px 0 10px;padding-top:12px;border-top:1px solid #e2e8f0;">
+                <strong style="color:#1e3a8a;font-size:.88rem;"><i class="fas fa-wrench" style="color:#2563eb;"></i> Acciones Correctivas y de Mejora Propias:</strong>
+                <button class="btn-action" style="background:#2563eb;padding:5px 12px;font-size:.78rem;" onclick="openCustomActivityModal('actuar')"><i class="fas fa-plus"></i> Añadir Acción de Actuar</button>
+            </div>
+            <div id="custom_actuar_container" style="margin-bottom:15px;"></div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:16px;">
             <button class="btn-action" style="background:#ef4444;" id="btn-eliminar-proceso" onclick="deleteCurrentProcess()"><i class="fas fa-trash"></i> Eliminar Proceso</button>
@@ -306,10 +334,14 @@
    ============================================================ */
 let planningTreeData=[];let currentActiveProcess=null;let chartInstances={};let sgcUsers=[];
 
-function makeDefaultProcess(type,leader,objective){return{type,leader,objective,codigo:'',version:'1.0',fecha_creacion:'',fecha_revision:'',alcance:'',normativa:'',recursos:'',documentos:'',riesgos_proceso:'',s:'',i:'',p:'',o:'',c:'',planear:'',hacer:'',verificar:'',actuar:'',indicadores:[],cambios:[]};}
+function makeDefaultProcess(type,leader,objective){return{type,leader,objective,codigo:'',version:'1.0',fecha_creacion:'',fecha_revision:'',alcance:'',normativa:'',recursos:'',documentos:'',riesgos_proceso:'',s:'',i:'',p:'',o:'',c:'',planear:'',hacer:'',verificar:'',actuar:'',indicadores:[],cambios:[],custom_planear:[],custom_hacer:[],custom_verificar:[],custom_actuar:[]};}
 function ensureProcessFields(p){
     if(!p.indicadores)p.indicadores=[];
     if(!p.cambios)p.cambios=[];
+    if(!p.custom_planear)p.custom_planear=[];
+    if(!p.custom_hacer)p.custom_hacer=[];
+    if(!p.custom_verificar)p.custom_verificar=[];
+    if(!p.custom_actuar)p.custom_actuar=[];
     if(p.codigo===undefined)p.codigo='';
     if(p.version===undefined)p.version='1.0';
     if(!p.fecha_creacion)p.fecha_creacion='';
@@ -508,14 +540,165 @@ function openProcessModal(pName){
     ['s','i','p','o','c'].forEach(k=>document.getElementById(`sipoc_${k}`).value=p[k]||'');
     document.getElementById('phva_planear').value=p.planear||'';document.getElementById('phva_hacer').value=p.hacer||'';document.getElementById('phva_verificar').value=p.verificar||'';
     document.getElementById('aiActResults').innerHTML=p.actuar||'<em>Haga clic en "Evaluar con IA".</em>';
-    if(document.getElementById('planPlanearContainer'))document.getElementById('planPlanearContainer').innerHTML=populatePlanearFromPlanning(pName);
-    if(document.getElementById('planExecContainer'))document.getElementById('planExecContainer').innerHTML=populateHacerFromPlanning(pName);
+    ['planPlanearContainer','planExecContainer'].forEach(id=>{
+        const el = document.getElementById(id);
+        if(el) el.innerHTML = id==='planPlanearContainer' ? populatePlanearFromPlanning(pName) : populateHacerFromPlanning(pName);
+    });
+    ['planear','hacer','verificar','actuar'].forEach(s => renderCustomActivities(pName, s));
     renderCambiosTable(p.cambios||[]);renderIndicadoresList(pName);
     switchPHVATab('tabSipoc',document.getElementById('tab-btn-sipoc'));
     document.getElementById('processModal').style.display='flex';
 }
 function closeModal(){document.getElementById('processModal').style.display='none';Object.keys(chartInstances).filter(k=>k.startsWith('modal_')).forEach(k=>{try{chartInstances[k].destroy();}catch(e){}delete chartInstances[k];});}
 function switchPHVATab(tabId,btn){document.querySelectorAll('.phva-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.phva-panel').forEach(p=>p.classList.remove('active'));if(btn)btn.classList.add('active');const panel=document.getElementById(tabId);if(panel)panel.classList.add('active');}
+
+/* ============================================================
+   CUSTOM PHVA ACTIVITIES (LOCAL TO PROCESS)
+   ============================================================ */
+function openCustomActivityModal(stage, actId=null){
+    const p = sgcData.processes[currentActiveProcess];
+    if(!p) return;
+    ensureProcessFields(p);
+    const key = `custom_${stage}`;
+    const list = p[key] || [];
+    const ex = actId ? list.find(a=>a.id===actId) : null;
+    const isEdit = !!ex;
+
+    const stageTitles = {
+        planear: 'Actividad de Planeación (P)',
+        hacer: 'Actividad de Ejecución (H)',
+        verificar: 'Control de Verificación (V)',
+        actuar: 'Acción de Mejora (A)'
+    };
+
+    const respSelect = buildUserSelect('act_custom_resp', ex?.responsable||'', 'Seleccionar responsable...');
+
+    Swal.fire({
+        title: isEdit ? `Editar ${stageTitles[stage]||''}` : `Nueva ${stageTitles[stage]||''}`,
+        width: '580px',
+        html: `
+        <div style="text-align:left;display:flex;flex-direction:column;gap:10px;padding:4px 0;">
+            <div>
+                <label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Título / Descripción de la Actividad *</label>
+                <input id="act_custom_title" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;width:100%;box-sizing:border-box;" placeholder="Ej. Realizar inducción docente para el nuevo programa..." value="${ex?.title||''}">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div>
+                    <label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Responsable</label>
+                    ${respSelect}
+                </div>
+                <div>
+                    <label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Estado</label>
+                    <select id="act_custom_status" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;width:100%;box-sizing:border-box;">
+                        <option value="Pendiente" ${ex?.status==='Pendiente'?'selected':''}>Pendiente</option>
+                        <option value="En Proceso" ${ex?.status==='En Proceso'?'selected':''}>En Proceso</option>
+                        <option value="Completado" ${ex?.status==='Completado'?'selected':''}>Completado</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div>
+                    <label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Fecha / Plazo</label>
+                    <input id="act_custom_fecha" type="date" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;width:100%;box-sizing:border-box;" value="${ex?.fecha||new Date().toISOString().split('T')[0]}">
+                </div>
+                <div>
+                    <label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Programa / Ámbito</label>
+                    <input id="act_custom_scope" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;width:100%;box-sizing:border-box;" placeholder="Ej. Contaduría / General" value="${ex?.scope||''}">
+                </div>
+            </div>
+            <div>
+                <label style="font-weight:600;font-size:.79rem;text-transform:uppercase;">Notas / Observaciones</label>
+                <textarea id="act_custom_notes" class="swal2-input" style="margin:4px 0 0;font-size:.84rem;width:100%;height:65px;box-sizing:border-box;resize:vertical;" placeholder="Detalles adicionales...">${ex?.notes||''}</textarea>
+            </div>
+        </div>`,
+        showCancelButton: true,
+        confirmButtonText: isEdit ? 'Guardar Cambios' : 'Añadir Actividad',
+        cancelButtonText: 'Cancelar',
+        preConfirm: () => {
+            const title = document.getElementById('act_custom_title').value.trim();
+            if(!title){ Swal.showValidationMessage('El título es obligatorio.'); return false; }
+            return {
+                id: ex?.id || generateId(),
+                title,
+                responsable: document.getElementById('act_custom_resp').value.trim(),
+                status: document.getElementById('act_custom_status').value,
+                fecha: document.getElementById('act_custom_fecha').value,
+                scope: document.getElementById('act_custom_scope').value.trim(),
+                notes: document.getElementById('act_custom_notes').value.trim()
+            };
+        }
+    }).then(r=>{
+        if(!r.isConfirmed) return;
+        if(isEdit){
+            const idx = list.findIndex(a=>a.id===ex.id);
+            if(idx>=0) list[idx] = r.value;
+        } else {
+            list.push(r.value);
+        }
+        p[key] = list;
+        renderCustomActivities(currentActiveProcess, stage);
+    });
+}
+
+function deleteCustomActivity(stage, actId){
+    Swal.fire({
+        title: '¿Eliminar actividad?',
+        text: 'Se eliminará esta actividad propia de la ficha del proceso.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#ef4444'
+    }).then(r=>{
+        if(!r.isConfirmed) return;
+        const p = sgcData.processes[currentActiveProcess];
+        if(!p) return;
+        const key = `custom_${stage}`;
+        p[key] = (p[key]||[]).filter(a=>a.id!==actId);
+        renderCustomActivities(currentActiveProcess, stage);
+    });
+}
+
+function renderCustomActivities(pName, stage){
+    const container = document.getElementById(`custom_${stage}_container`);
+    if(!container) return;
+    const p = sgcData.processes[pName];
+    if(!p) return;
+    ensureProcessFields(p);
+    const list = p[`custom_${stage}`] || [];
+
+    if(!list.length){
+        container.innerHTML = `<div style="background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px;padding:10px 12px;text-align:center;font-size:.82rem;color:#94a3b8;"><i class="fas fa-plus-circle" style="margin-right:5px;"></i> No hay actividades específicas registradas para esta etapa. Haga clic en "+ Añadir".</div>`;
+        return;
+    }
+
+    const statusBadge = s => {
+        if(s==='Completado') return `<span style="background:#dcfce7;color:#15803d;padding:2px 7px;border-radius:8px;font-size:.72rem;font-weight:bold;"><i class="fas fa-check"></i> Completado</span>`;
+        if(s==='En Proceso') return `<span style="background:#fef3c7;color:#b45309;padding:2px 7px;border-radius:8px;font-size:.72rem;font-weight:bold;"><i class="fas fa-spinner"></i> En Proceso</span>`;
+        return `<span style="background:#f1f5f9;color:#475569;padding:2px 7px;border-radius:8px;font-size:.72rem;font-weight:bold;"><i class="fas fa-clock"></i> Pendiente</span>`;
+    };
+
+    container.innerHTML = list.map(a=>`
+        <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #3b82f6;border-radius:8px;padding:10px 12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.03);display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+            <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <strong style="color:#1e293b;font-size:.87rem;">${a.title}</strong>
+                    ${statusBadge(a.status)}
+                    ${a.scope ? `<span style="font-size:.72rem;color:#6d28d9;background:#f3e8ff;padding:1px 6px;border-radius:6px;font-weight:600;">${a.scope}</span>` : ''}
+                </div>
+                ${a.notes ? `<div style="font-size:.78rem;color:#64748b;margin-top:3px;">${a.notes}</div>` : ''}
+                <div style="font-size:.74rem;color:#475569;margin-top:4px;display:flex;gap:12px;flex-wrap:wrap;">
+                    <span><i class="fas fa-user-tag" style="color:#3b82f6;"></i> ${a.responsable||'Sin asignar'}</span>
+                    <span><i class="fas fa-calendar-alt" style="color:#94a3b8;"></i> ${a.fecha||'-'}</span>
+                </div>
+            </div>
+            <div style="display:flex;gap:4px;flex-shrink:0;">
+                <button class="btn-action" style="background:#7c3aed;padding:4px 8px;font-size:.74rem;" onclick="openCustomActivityModal('${stage}','${a.id}')"><i class="fas fa-edit"></i></button>
+                <button class="btn-action" style="background:#ef4444;padding:4px 8px;font-size:.74rem;" onclick="deleteCustomActivity('${stage}','${a.id}')"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+    `).join('');
+}
 
 /* ============================================================
    SAVE PROCESS
