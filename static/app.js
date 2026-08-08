@@ -34,8 +34,12 @@ function getProgramId() {
 function authFetch(url, options = {}) {
     const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
     const method = (options.method || 'GET').toUpperCase();
+
+    // Si el body es FormData NO forzar Content-Type:
+    // el navegador lo establece automáticamente con el boundary correcto.
+    const isFormData = options.body instanceof FormData;
     const headers = {
-        ...(method !== 'GET' ? {'Content-Type': 'application/json'} : {}),
+        ...(!isFormData && method !== 'GET' ? {'Content-Type': 'application/json'} : {}),
         ...(options.headers || {}),
     };
     if (user && user.id) {
