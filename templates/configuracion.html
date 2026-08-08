@@ -545,7 +545,7 @@
                 <!-- Buscador Rápido -->
                 <div class="config-search-wrapper">
                     <i class="fas fa-search config-search-icon"></i>
-                    <input type="text" id="configSearchInput" class="config-search-input" placeholder="🔍 Buscar ajuste o parámetro (ej: IA, contraseñas, permisos, temas...)" onkeyup="filterConfigHub(this.value)">
+                    <input type="search" id="configSearchInput" name="config_hub_search_field_no_autofill" autocomplete="off" aria-autocomplete="none" class="config-search-input" placeholder="🔍 Buscar ajuste o parámetro (ej: IA, contraseñas, permisos, temas...)" onkeyup="filterConfigHub(this.value)" onchange="filterConfigHub(this.value)">
                 </div>
             </div>
 
@@ -2739,13 +2739,21 @@
 
         async function loadAllInstitutions() {
             const currentUser = JSON.parse(localStorage.getItem('siac_user') || '{}');
-            if (currentUser.role !== 'admin') {
-                document.getElementById('instSelectorCard').style.display = 'none';
-                return;
+            const role = (currentUser.role || '').toLowerCase();
+            const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(role);
+            const isInstAdmin = (role === 'inst_admin');
+
+            const instCard = document.getElementById('instSelectorCard');
+            if (instCard) {
+                instCard.style.display = (isSuperAdmin || isInstAdmin) ? 'block' : 'none';
             }
 
-            document.getElementById('instSelectorCard').style.display = 'block';
-            if (document.getElementById('globalSettingsCard')) {
+            const superBtns = document.querySelectorAll('.superadmin-inst-btn');
+            superBtns.forEach(btn => btn.style.display = isSuperAdmin ? 'inline-block' : 'none');
+
+            if (!isSuperAdmin && !isInstAdmin) return;
+
+            if (document.getElementById('globalSettingsCard') && isSuperAdmin) {
                 document.getElementById('globalSettingsCard').style.display = 'block';
                 loadGlobalSettings();
             }
@@ -3854,6 +3862,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 c.style.display = isSuperAdmin ? 'block' : 'none';
             });
 
+            // Organización card: visible para SuperAdmin e InstAdmin
+            const instSelectorCard = document.getElementById('instSelectorCard');
+            if (instSelectorCard) {
+                instSelectorCard.style.display = (isSuperAdmin || isInstAdmin) ? 'block' : 'none';
+            }
+
             // 2. IA de Institución: Visible para inst_admin y superadmin
             const instAiCard = document.getElementById('instAiCard');
             if (instAiCard) {
@@ -3880,6 +3894,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const searchWrapper = document.querySelector('.config-search-wrapper');
             const catPanels = document.querySelectorAll('.config-cat-panel');
             const tabBtns = document.querySelectorAll('.config-subnav-btn');
+            const searchInput = document.getElementById('configSearchInput');
+
+            // Limpiar buscador para evitar autocompletado del navegador
+            if (searchInput && (searchInput.value.includes('@') || catId === 'hub')) {
+                searchInput.value = '';
+            }
 
             catPanels.forEach(p => p.style.display = 'none');
             applyRoleScoping();
@@ -3889,6 +3909,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if(hubGrid) hubGrid.style.display = 'grid';
                 if(subnav) subnav.style.display = 'none';
                 if(searchWrapper) searchWrapper.style.display = 'block';
+                filterConfigHub('');
                 history.replaceState(null, null, ' ');
             } else {
                 if(hubGrid) hubGrid.style.display = 'none';
@@ -3897,6 +3918,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const targetPanel = document.getElementById('cat-panel-' + catId);
                 if (targetPanel) {
+                    if (catId === 'organizacion' && typeof loadPartners === 'function') {
+                        loadPartners();
+                    }
                     targetPanel.style.display = 'block';
                     const childCards = targetPanel.querySelectorAll('.settings-card');
                     childCards.forEach(c => {
@@ -3917,9 +3941,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         function filterConfigHub(query) {
-            const term = (query || '').toLowerCase().trim();
+            const searchInput = document.getElementById('configSearchInput');
+            let term = (query || '').toLowerCase().trim();
+
+            // Si el navegador autocompletó un correo electrónico (ej: orbesrc@gmail.com), limpiarlo automáticamente
+            if (term.includes('@') || term.includes('.com') || term.includes('.edu') || term.includes('.co')) {
+                if (searchInput) searchInput.value = '';
+                term = '';
+            }
+
+            const userStr = localStorage.getItem('siac_user') || '{}';
+            const user = JSON.parse(userStr);
+            const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes((user.role || '').toLowerCase());
+
             const cards = document.querySelectorAll('.config-hub-card');
             cards.forEach(card => {
+                const isPermisosCard = card.getAttribute('onclick') && card.getAttribute('onclick').includes('permisos');
+                if (isPermisosCard && !isSuperAdmin) {
+                    card.style.display = 'none';
+                    return;
+                }
+
                 const keywords = card.getAttribute('data-keywords') || '';
                 const text = card.textContent.toLowerCase();
                 if (!term || keywords.includes(term) || text.includes(term)) {
