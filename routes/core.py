@@ -1349,7 +1349,7 @@ def save_form_permissions():
         program_id = payload.get('program_id', 0)
         permissions = payload.get('permissions', {})
         
-        res = supabase.table('statistics').select("id").eq("table_id", "FORM_PERMISSIONS").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
+        res = supabase.table('statistics').select("id").eq("table_id", "FORM_PERMISSIONS").order("id", desc=True).limit(1).execute()
         
         if res.data:
             db_id = res.data[0]['id']

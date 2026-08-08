@@ -46,7 +46,6 @@ async function loadDataFromAPI() {
     const instId = getInstId();
     const progId = getProgramId();
     
-    // TRAZABILIDAD: Sin programa activo, no hay modelo que cargar
     if (!progId || progId == 0) {
         localModelCache = [];
         localEvidencesCache = {};
@@ -56,20 +55,24 @@ async function loadDataFromAPI() {
     }
 
     try {
-        const resM = await _doFetch(`/api/model?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
-        const dataM = await resM.json();
+        const timestamp = Date.now();
+        const [resM, resEv, resEval, resStat] = await Promise.all([
+            _doFetch(`/api/model?inst_id=${instId}&program_id=${progId}&t=${timestamp}`),
+            _doFetch(`/api/evidences?inst_id=${instId}&program_id=${progId}&t=${timestamp}`),
+            _doFetch(`/api/evaluations?inst_id=${instId}&program_id=${progId}&t=${timestamp}`),
+            _doFetch(`/api/estadisticas?inst_id=${instId}&program_id=${progId}&t=${timestamp}`)
+        ]);
+
+        const [dataM, dataEv, dataEval, dataStat] = await Promise.all([
+            resM.json(),
+            resEv.json(),
+            resEval.json(),
+            resStat.json()
+        ]);
+
         localModelCache = Array.isArray(dataM) ? dataM : [];
-
-        const resEv = await _doFetch(`/api/evidences?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
-        const dataEv = await resEv.json();
         localEvidencesCache = (dataEv && typeof dataEv === 'object' && !dataEv.status) ? dataEv : {};
-
-        const resEval = await _doFetch(`/api/evaluations?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
-        const dataEval = await resEval.json();
         localEvaluationsCache = (dataEval && typeof dataEval === 'object' && !dataEval.status) ? dataEval : {};
-
-        const resStat = await _doFetch(`/api/estadisticas?inst_id=${instId}&program_id=${progId}&t=` + Date.now());
-        const dataStat = await resStat.json();
         localStatsCache = (dataStat && typeof dataStat === 'object' && !dataStat.status) ? dataStat : {};
     } catch (err) {
         console.error("Error cargando datos del servidor:", err);
