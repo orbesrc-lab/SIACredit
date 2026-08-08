@@ -457,6 +457,52 @@
         .notif-desc { color: #64748b; line-height: 1.4; }
         .notif-time { font-size: 0.65rem; color: #94a3b8; margin-top: 4px; display: block; }
         .notif-empty { padding: 30px 15px; text-align: center; color: #94a3b8; font-size: 0.85rem; }
+    
+        .reports-hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 22px;
+            margin-top: 25px;
+            margin-bottom: 35px;
+        }
+
+        .report-hub-card {
+            background: var(--card-bg, #ffffff);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-color, #e2e8f0);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .report-hub-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.09), 0 6px 12px -4px rgba(0, 0, 0, 0.04);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .report-card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.65rem;
+            margin-bottom: 16px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+            transition: all 0.25s ease;
+        }
+
+        .report-hub-card:hover .report-card-icon {
+            transform: scale(1.1) rotate(-3deg);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+        }
+
     </style>
 
     <script src="{{ url_for('static', filename='app.js') }}"></script>
@@ -617,10 +663,140 @@
                 </div>
             </div>
 
+            
+            <!-- HUB DE CENTRO DE INFORMES & REPORTES ESTRATÉGICOS -->
+            <div id="reportsHubGrid" class="reports-hub-grid">
+                
+                <!-- Tarjeta 1: Informe Parcial -->
+                <div class="report-hub-card" onclick="generarInforme('parcial')">
+                    <div>
+                        <div class="report-card-icon" style="background: linear-gradient(135deg, #64748b 0%, #334155 100%); color: #ffffff;">
+                            📄
+                        </div>
+                        <div style="font-size: 1.08rem; font-weight: 700; color: var(--text-main, #0f172a); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                            <span>Informe Parcial</span>
+                            <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
+                        </div>
+                        <div style="font-size: 0.86rem; color: var(--text-muted, #64748b); line-height: 1.5; margin-bottom: 20px;">
+                            Vista previa del avance actual de la autoevaluación por factores, ponderación y grado de avance.
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 15px; border-top: 1px solid var(--border-color, #f1f5f9);">
+                        <span style="background: #f1f5f9; color: #475569; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 20px;">📄 Borrador / Avance</span>
+                        <span style="font-weight: 600; font-size: 0.82rem; color: #475569;">Generar →</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 2: Informe Final -->
+                <div class="report-hub-card" onclick="generarInforme('final')">
+                    <div>
+                        <div class="report-card-icon" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff;">
+                            🏆
+                        </div>
+                        <div style="font-size: 1.08rem; font-weight: 700; color: var(--text-main, #0f172a); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                            <span>Informe Final Integral</span>
+                            <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
+                        </div>
+                        <div style="font-size: 0.86rem; color: var(--text-muted, #64748b); line-height: 1.5; margin-bottom: 20px;">
+                            Consolida la evaluación cuantitativa ponderada, tablas de cumplimiento y dictamen final de acreditación.
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 15px; border-top: 1px solid var(--border-color, #f1f5f9);">
+                        <span style="background: #dbeafe; color: #1e40af; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 20px;">🏆 Reporte Oficial</span>
+                        <span style="font-weight: 600; font-size: 0.82rem; color: #2563eb;">Generar →</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 3: Redacción con IA -->
+                <div class="report-hub-card" onclick="generarInformeIA()">
+                    <div>
+                        <div class="report-card-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #ffffff;">
+                            ✨
+                        </div>
+                        <div style="font-size: 1.08rem; font-weight: 700; color: var(--text-main, #0f172a); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                            <span>Generación con IA</span>
+                            <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
+                        </div>
+                        <div style="font-size: 0.86rem; color: var(--text-muted, #64748b); line-height: 1.5; margin-bottom: 20px;">
+                            Redacción asistida por Margy IA con síntesis narrativa de juicios de calidad y recomendaciones.
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 15px; border-top: 1px solid var(--border-color, #f1f5f9);">
+                        <span style="background: #f3e8ff; color: #7e22ce; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 20px;">🤖 Asistente Margy</span>
+                        <span style="font-weight: 600; font-size: 0.82rem; color: #8b5cf6;">Generar →</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 4: Factores DOFA -->
+                <div class="report-hub-card" onclick="generarDOFAInterno()">
+                    <div>
+                        <div class="report-card-icon" style="background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: #ffffff;">
+                            🛡️
+                        </div>
+                        <div style="font-size: 1.08rem; font-weight: 700; color: var(--text-main, #0f172a); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                            <span>Factores DOFA</span>
+                            <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
+                        </div>
+                        <div style="font-size: 0.86rem; color: var(--text-muted, #64748b); line-height: 1.5; margin-bottom: 20px;">
+                            Extracción automática de Fortalezas, Debilidades, Oportunidades y Amenazas de la autoevaluación.
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 15px; border-top: 1px solid var(--border-color, #f1f5f9);">
+                        <span style="background: #dcfce7; color: #15803d; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 20px;">🛡️ Análisis Interno</span>
+                        <span style="font-weight: 600; font-size: 0.82rem; color: #10b981;">Ver DOFA →</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 5: Factores PESTA -->
+                <div class="report-hub-card" onclick="generarDOFAExterno()">
+                    <div>
+                        <div class="report-card-icon" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: #ffffff;">
+                            🌍
+                        </div>
+                        <div style="font-size: 1.08rem; font-weight: 700; color: var(--text-main, #0f172a); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                            <span>Factores PESTA</span>
+                            <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
+                        </div>
+                        <div style="font-size: 0.86rem; color: var(--text-muted, #64748b); line-height: 1.5; margin-bottom: 20px;">
+                            Diagnóstico del entorno Político, Económico, Social, Tecnológico y Ambiental del programa.
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 15px; border-top: 1px solid var(--border-color, #f1f5f9);">
+                        <span style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 20px;">🌍 Macroentorno</span>
+                        <span style="font-weight: 600; font-size: 0.82rem; color: #0ea5e9;">Ver PESTA →</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 6: Soporte Registro Calificado -->
+                <div class="report-hub-card" onclick="abrirModalRRC()">
+                    <div>
+                        <div class="report-card-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); color: #ffffff;">
+                            💼
+                        </div>
+                        <div style="font-size: 1.08rem; font-weight: 700; color: var(--text-main, #0f172a); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                            <span>Renovación Reg. Calificado</span>
+                            <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
+                        </div>
+                        <div style="font-size: 0.86rem; color: var(--text-muted, #64748b); line-height: 1.5; margin-bottom: 20px;">
+                            Soporte documental estructurado de las 9 Condiciones Institucionales y del Programa para el MEN.
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 15px; border-top: 1px solid var(--border-color, #f1f5f9);">
+                        <span style="background: #fef3c7; color: #b45309; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 20px;">💼 Soporte MEN</span>
+                        <span style="font-weight: 600; font-size: 0.82rem; color: #f59e0b;">Abrir Soporte →</span>
+                    </div>
+                </div>
+
+            </div>
+
             <div class="spinner" id="loadingSpinner"></div>
 
             <div id="informeContainer" class="report-card">
                 <!-- Resumen Ejecutivo -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px;">
+                    <button class="btn-secondary" onclick="returnToReportsHub()" style="background: #0f172a; color: white; border: none; font-weight: 600; padding: 8px 16px; border-radius: 8px;">← Volver al Centro de Informes</button>
+                    <button class="btn-secondary" onclick="imprimirInformeCompleto()" style="font-weight: 600; padding: 8px 16px; border-radius: 8px;">🖨️ Imprimir / Guardar PDF</button>
+                </div>
                 <div style="text-align:center; margin-bottom: 40px;">
                     <h2 id="informeTitulo" style="text-transform:uppercase; font-size: 2rem;">INFORME DE AUTOEVALUACIÓN</h2>
                     <h3 id="informeFecha" style="color:var(--text-muted);"></h3>
@@ -774,7 +950,53 @@
                     #pestaMarkdownReport p { margin-bottom: 1rem; color: #334155; }
                     #pestaMarkdownReport ul, #pestaMarkdownReport ol { margin-left: 1.5rem; margin-bottom: 1rem; color: #334155; }
                     #pestaMarkdownReport li { margin-bottom: 0.3rem; }
-                </style>
+                
+        .reports-hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 22px;
+            margin-top: 25px;
+            margin-bottom: 35px;
+        }
+
+        .report-hub-card {
+            background: var(--card-bg, #ffffff);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-color, #e2e8f0);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .report-hub-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.09), 0 6px 12px -4px rgba(0, 0, 0, 0.04);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .report-card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.65rem;
+            margin-bottom: 16px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+            transition: all 0.25s ease;
+        }
+
+        .report-hub-card:hover .report-card-icon {
+            transform: scale(1.1) rotate(-3deg);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+        }
+
+    </style>
                 <div id="pestaMarkdownReport" style="line-height: 1.6; font-size: 1rem; padding: 30px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 20px;"></div>
                 
                 <div style="display: flex; gap: 20px; flex-wrap: wrap;">
@@ -1407,7 +1629,53 @@
                 alert("Primero genere el informe para cargar los planes de mejora.");
                 return;
             }
-            const styles = `<style>table{border-collapse:collapse;width:100%;font-family:'Segoe UI',sans-serif}th{background:#d97706;color:#fff;font-weight:bold;text-align:left;padding:12px;border:1px solid #e2e8f0}td{padding:10px;border:1px solid #e2e8f0}tr:nth-child(even){background:#f9fafb}.badge-completado{background:#dcfce7;color:#166534;font-weight:bold;border-radius:4px;padding:2px 6px}.badge-vencido{background:#fee2e2;color:#991b1b;font-weight:bold;border-radius:4px;padding:2px 6px}.badge-proceso{background:#dbeafe;color:#1e40af;font-weight:bold;border-radius:4px;padding:2px 6px}.badge-pendiente{background:#fef3c7;color:#92400e;font-weight:bold;border-radius:4px;padding:2px 6px}</style>`;
+            const styles = `<style>table{border-collapse:collapse;width:100%;font-family:'Segoe UI',sans-serif}th{background:#d97706;color:#fff;font-weight:bold;text-align:left;padding:12px;border:1px solid #e2e8f0}td{padding:10px;border:1px solid #e2e8f0}tr:nth-child(even){background:#f9fafb}.badge-completado{background:#dcfce7;color:#166534;font-weight:bold;border-radius:4px;padding:2px 6px}.badge-vencido{background:#fee2e2;color:#991b1b;font-weight:bold;border-radius:4px;padding:2px 6px}.badge-proceso{background:#dbeafe;color:#1e40af;font-weight:bold;border-radius:4px;padding:2px 6px}.badge-pendiente{background:#fef3c7;color:#92400e;font-weight:bold;border-radius:4px;padding:2px 6px}
+        .reports-hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 22px;
+            margin-top: 25px;
+            margin-bottom: 35px;
+        }
+
+        .report-hub-card {
+            background: var(--card-bg, #ffffff);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-color, #e2e8f0);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .report-hub-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.09), 0 6px 12px -4px rgba(0, 0, 0, 0.04);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .report-card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.65rem;
+            margin-bottom: 16px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+            transition: all 0.25s ease;
+        }
+
+        .report-hub-card:hover .report-card-icon {
+            transform: scale(1.1) rotate(-3deg);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+        }
+
+    </style>`;
             const tempTable = table.cloneNode(true);
             const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}</head><body><h2>Plan de Mejoramiento Consolidado &mdash; ${document.getElementById('inst_name_display').textContent}</h2><br>${tempTable.outerHTML}</body></html>`;
             const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
@@ -1498,7 +1766,16 @@
             return '';
         }
 
-        async function generarInforme(tipo) {
+        async 
+        function returnToReportsHub() {
+            const hub = document.getElementById('reportsHubGrid');
+            const container = document.getElementById('informeContainer');
+            if (hub) hub.style.display = 'grid';
+            if (container) container.style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function generarInforme(tipo) {
             document.getElementById('loadingSpinner').style.display = 'block';
             document.getElementById('informeContainer').style.display = 'none';
             document.getElementById('btnImprimir').style.display = 'none';
@@ -2184,7 +2461,53 @@
         function imprimirPESTA() {
             const contenido = document.getElementById('pestaMarkdownReport').innerHTML;
             const win = window.open('', '_blank', 'width=900,height=700');
-            win.document.write(`<!DOCTYPE html><html><head><title>Informe PESTA</title><style>body{font-family:Inter,sans-serif;padding:40px;color:#333;line-height:1.6}h1,h2,h3{color:#0284c7}</style></head><body>${contenido}</body></html>`);
+            win.document.write(`<!DOCTYPE html><html><head><title>Informe PESTA</title><style>body{font-family:Inter,sans-serif;padding:40px;color:#333;line-height:1.6}h1,h2,h3{color:#0284c7}
+        .reports-hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 22px;
+            margin-top: 25px;
+            margin-bottom: 35px;
+        }
+
+        .report-hub-card {
+            background: var(--card-bg, #ffffff);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-color, #e2e8f0);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .report-hub-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.09), 0 6px 12px -4px rgba(0, 0, 0, 0.04);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .report-card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.65rem;
+            margin-bottom: 16px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+            transition: all 0.25s ease;
+        }
+
+        .report-hub-card:hover .report-card-icon {
+            transform: scale(1.1) rotate(-3deg);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+        }
+
+    </style></head><body>${contenido}</body></html>`);
             win.document.close();
             win.focus();
             setTimeout(() => win.print(), 500);
