@@ -390,3 +390,50 @@ window.logout = function() {
     localStorage.removeItem('user_role');
     window.top.location.href = '/login.html';
 };
+
+
+// ==============================================================================
+// Gestor Universal de Modales y Cortinas Oscuras (Backdrops)
+// Evita que las superposiciones queden colgadas al navegar o cambiar de opción.
+// ==============================================================================
+function closeAllModals() {
+    try {
+        const modals = document.querySelectorAll('[id*="modal"], [id*="Modal"], .modal, .modal-backdrop');
+        modals.forEach(m => {
+            if (m.style && m.style.display !== 'none') {
+                m.style.display = 'none';
+            }
+            if (m.classList && m.classList.contains('modal-backdrop')) {
+                m.remove();
+            }
+        });
+        document.body.style.overflow = '';
+    } catch(err) {
+        console.error("Error cerrando modales:", err);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Cerrar modales al presionar la tecla Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeAllModals();
+        }
+    });
+
+    // 2. Cerrar modal al hacer clic en el fondo oscuro ("cortina")
+    document.addEventListener('click', (e) => {
+        if (e.target && e.target.id && (e.target.id.toLowerCase().includes('modal') || e.target.classList.contains('modal'))) {
+            e.target.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    });
+
+    // 3. Cerrar modales activos al hacer clic en cualquier enlace del menú lateral
+    const navLinks = document.querySelectorAll('.sidebar-menu a, .sidebar-item, a[href]');
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            closeAllModals();
+        });
+    });
+});
