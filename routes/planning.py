@@ -431,7 +431,13 @@ def suggest_planning_node():
 @planning_bp.route('/api/planning/users', methods=['GET'])
 @require_permission('planificacion')
 def get_planning_users():
-    """Returns list of users in the institution for assignment dropdowns."""
+    """Returns list of users in the institution for assignment dropdowns.
+    Only returns users with roles allowed as activity responsibles:
+    admin, inst_admin, lider, operativo.
+    Excludes: estudiante, profesor, auditor, consultor.
+    """
+    # Roles autorizados para ser responsables de actividades
+    ALLOWED_ROLES = {'admin', 'inst_admin', 'lider', 'operativo'}
     try:
         inst_id = request.args.get('inst_id')
         try:
@@ -442,9 +448,11 @@ def get_planning_users():
             return jsonify({'status': 'error', 'message': 'inst_id required'})
         res = supabase.table('users').select('id, name, email, role').eq('inst_id', inst_id).execute()
         users = res.data or []
-        # Sort by role priority
-        role_order = {'admin': 0, 'lider': 1, 'operador': 2, 'docente': 3, 'estudiante': 4}
-        users.sort(key=lambda u: role_order.get(u.get('role', 'estudiante'), 99))
+        # Filtrar solo roles permitidos como responsables
+        users = [u for u in users if u.get('role') in ALLOWED_ROLES]
+        # Ordenar por prioridad de rol
+        role_order = {'admin': 0, 'inst_admin': 1, 'lider': 2, 'operativo': 3}
+        users.sort(key=lambda u: role_order.get(u.get('role', ''), 99))
         return jsonify({'status': 'success', 'users': users})
     except Exception as e:
         print(f"Error in get_planning_users: {e}")
