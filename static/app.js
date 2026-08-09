@@ -301,16 +301,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // Intercept sidebar links
+        // Navegación nativa limpia para todos los enlaces del menú lateral
         const sidebarLinks = document.querySelectorAll('.sidebar-item');
         sidebarLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 const href = link.getAttribute('href');
-                // Don't intercept logout or hash links
-                if (href && href !== '#' && !href.startsWith('javascript:') && !href.includes('empresa_')) {
-                    e.preventDefault();
-                    // Keep the emoji out of the title guess if possible, or just pass the text
-                    openModuleModal(href, link.textContent.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9 ]/g, '').trim()); 
+                if (href && href !== '#' && !href.startsWith('javascript:')) {
+                    // Permitir navegación nativa fluida sin capturar iframe
+                    window.location.href = href;
                 }
             });
         });
@@ -319,25 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Global functions for the Host
 window.openModuleModal = function(url, titleGuess) {
-    const modal = document.getElementById('skel-module-modal');
-    const iframe = document.getElementById('skel-module-iframe');
-    
-    if (modal && iframe) {
-        iframe.src = url;
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-        
-        const chatWidget = document.querySelector('.ai-chat-widget');
-        if (chatWidget) chatWidget.style.display = 'none';
-        
-        // Push state for SPA feel
-        const targetUrl = url.startsWith('/') ? url : '/' + url;
-        if (window.location.pathname !== targetUrl) {
-            history.pushState(null, titleGuess, targetUrl);
-        }
-    } else {
-        window.location.href = url;
-    }
+    window.location.href = url;
 };
 
 window.addEventListener('popstate', (e) => {
