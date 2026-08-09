@@ -2194,6 +2194,8 @@
             document.getElementById('btnImprimir').style.display = 'inline-block';
         }
 
+        // ============================================================
+
         const RRC_CONDICIONES = [
             {
                 num: 1, nombre: "Denominaci├│n",
@@ -3185,434 +3187,18 @@
     ${condicionesHtml}
   </div>
 
+
+
+</body>
+
 </html>`;
 
             abrirVentanaImpresion(htmlDoc, `Soporte RRC ÔÇö ${progName}`);
         }
 
         // ===================================================================
-        // FIN L├ôGICA RRC
-        // ===================================================================
-
-        // --- L├│gica Generaci├│n Informe Maestro IA ---
-        async function generarInformeIA() {
-            document.getElementById('loadingSpinner').style.display = 'block';
-            document.getElementById('informeContainer').style.display = 'none';
-            document.getElementById('btnImprimir').style.display = 'none';
-
-            try {
-                // Fetch context data first
-                const res = await fetch(`/api/informe_dinamico?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                const data = await res.json();
-                
-                const aiRes = await fetch('/api/ai/generate_report', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ report_data: data })
-                });
-                const aiData = await aiRes.json();
-                
-                if (aiData.status === 'success') {
-                    renderInformeIA(aiData.report);
-                } else {
-                    alert("Error en la IA: " + (aiData.error || "No se pudo generar el informe."));
-                    document.getElementById('loadingSpinner').style.display = 'none';
-                }
-            } catch (err) {
-                alert("Error contactando el generador IA: " + err);
-                document.getElementById('loadingSpinner').style.display = 'none';
-            }
-        }
-
-        function renderInformeIA(markdownText) {
-            const container = document.getElementById('informeContainer');
-            document.getElementById('informeTitulo').textContent = `INFORME MAESTRO (GENERADO POR IA)`;
-            document.getElementById('informeFecha').textContent = `Generado el: ${new Date().toLocaleDateString()}`;
-            
-            const tbody = document.querySelector('#tablaResumen tbody');
-            tbody.innerHTML = '<tr><td colspan="3"><i>Este informe ejecutivo ha sido redactado, analizado y estructurado autom├íticamente por Inteligencia Artificial en base a los registros de evaluaci├│n cualitativa y cuantitativa.</i></td></tr>';
-            
-            if (window.myRadar) {
-                window.myRadar.destroy();
-                const canvas = document.getElementById('radarChart');
-                if(canvas) canvas.style.display = 'none';
-            }
-
-            const detalleDiv = document.getElementById('detalleFactores');
-            const htmlParsed = marked.parse(markdownText);
-            detalleDiv.innerHTML = `<div style="line-height: 1.6; font-size: 1.05rem; padding: 30px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1;">${htmlParsed}</div>`;
-            
-            container.style.display = 'block';
-            document.getElementById('btnImprimir').style.display = 'inline-block';
-            document.getElementById('loadingSpinner').style.display = 'none';
-            window.currentAiReport = markdownText; // Guardar reporte en memoria para DOFA
-        }
-
-        // --- L├│gica Generaci├│n DOFA Interno ---
-        function abrirModalDOFA() {
-            document.getElementById('dofaOverlay').classList.add('open');
-            document.getElementById('dofaLoading').style.display = 'flex';
-            document.getElementById('dofaContent').style.display = 'none';
-        }
         
-        function cerrarModalDOFA() {
-            document.getElementById('dofaOverlay').classList.remove('open');
-        }
 
-        async function generarDOFAInterno() {
-            if (!window.currentAiReport) {
-                alert("ÔÜá´©Å Primero debes generar un informe usando el bot├│n '* Generar con IA'. El an├ílisis DOFA requiere evaluar ese texto maestro para poder extraer las fortalezas y debilidades reales.");
-                return;
-            }
-
-            abrirModalDOFA();
-
-            try {
-                const aiRes = await fetch('/api/ai/generate_dofa', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ report_text: window.currentAiReport })
-                });
-                
-                const aiData = await aiRes.json();
-                
-                if (aiData.status === 'success' && aiData.dofa && !aiData.dofa.error_parseo) {
-                    renderDOFA(aiData.dofa);
-                    
-                    // Auto-guardar factores DOFA internamente para uso futuro
-                    await fetch('/api/estadisticas', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            table_id: 'DOFA_INTERNAL',
-                            inst_id: getInstId(),
-                            program_id: getProgramId(),
-                            data: aiData.dofa
-                        })
-                    });
-                    
-                } else {
-                    alert("Error en la IA al extraer el DOFA: " + (aiData.error || aiData.dofa?.error_parseo || "Formato de respuesta inv├ílido."));
-                    cerrarModalDOFA();
-                }
-            } catch (err) {
-                alert("Error contactando el generador de Factores DOFA: " + err);
-                cerrarModalDOFA();
-            }
-        }
-
-        // --- L├│gica Generaci├│n PESTA / DOFA Externo ---
-        function abrirModalPESTA() {
-            document.getElementById('pestaOverlay').classList.add('open');
-            document.getElementById('pestaLoading').style.display = 'flex';
-            document.getElementById('pestaContent').style.display = 'none';
-        }
-        
-        function cerrarModalPESTA() {
-            document.getElementById('pestaOverlay').classList.remove('open');
-        }
-
-        async function generarDOFAExterno() {
-            abrirModalPESTA();
-            try {
-                // Obtenemos el contexto (p.ej. Colombia o departamento)
-                // Se podr├¡a agregar un prompt din├ímico para que el usuario escriba el contexto espacial deseado
-                let ctxE = prompt("Ingresa el contexto espacial de evaluaci├│n (Ej. Colombia, Internacional, Valle del Cauca...)", "Colombia");
-                if(!ctxE) { cerrarModalPESTA(); return; } // Si cancela
-
-                const aiRes = await fetch('/api/ai/generate_pesta', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        inst_id: getInstId(),
-                        program_id: getProgramId(),
-                        contexto: ctxE 
-                    })
-                });
-                
-                const aiData = await aiRes.json();
-                
-                if (aiData.status === 'success' && aiData.pesta && !aiData.pesta.error_parseo) {
-                    // Recuperar factores externos existentes para acumular
-                    let accumulatedOportunidades = aiData.pesta.oportunidades || [];
-                    let accumulatedAmenazas = aiData.pesta.amenazas || [];
-                    
-                    try {
-                        const getRes = await fetch(`/api/estadisticas?table_id=DOFA_EXTERNAL&inst_id=${getInstId()}&program_id=${getProgramId()}`);
-                        const getResData = await getRes.json();
-                        if (getResData && getResData.data) {
-                            if (getResData.data.oportunidades) {
-                                accumulatedOportunidades = getResData.data.oportunidades.concat(accumulatedOportunidades);
-                            }
-                            if (getResData.data.amenazas) {
-                                accumulatedAmenazas = getResData.data.amenazas.concat(accumulatedAmenazas);
-                            }
-                        }
-                    } catch(e) {
-                        console.warn("No se pudieron obtener factores anteriores para acumular", e);
-                    }
-                    
-                    // Reenumerar para mantener consistencia
-                    accumulatedOportunidades.forEach((o, idx) => o.id = `O${idx+1}`);
-                    accumulatedAmenazas.forEach((a, idx) => a.id = `A${idx+1}`);
-                    
-                    aiData.pesta.oportunidades = accumulatedOportunidades;
-                    aiData.pesta.amenazas = accumulatedAmenazas;
-
-                    renderPESTA(aiData.pesta);
-                    
-                    // Auto-guardar factores externos acumulados
-                    await fetch('/api/estadisticas', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            table_id: 'DOFA_EXTERNAL',
-                            inst_id: getInstId(),
-                            program_id: getProgramId(),
-                            data: {
-                                oportunidades: accumulatedOportunidades,
-                                amenazas: accumulatedAmenazas
-                            }
-                        })
-                    });
-                } else {
-                    alert("Error en la IA al generar PESTA: " + (aiData.error || aiData.pesta?.error_parseo || "Formato de respuesta inv├ílido."));
-                    cerrarModalPESTA();
-                }
-            } catch (err) {
-                alert("Error contactando el generador PESTA: " + err);
-                cerrarModalPESTA();
-            }
-        }
-
-        function renderPESTA(pestaData) {
-            document.getElementById('pestaLoading').style.display = 'none';
-            document.getElementById('pestaContent').style.display = 'block';
-            
-            // Renderizar informe PESTA markdown
-            const mdDiv = document.getElementById('pestaMarkdownReport');
-            const logoSrc = document.getElementById('inst_logo_img')?.src || '';
-            const instName = document.getElementById('inst_name_display')?.innerText || '';
-            
-            let headerHtml = '';
-            if (logoSrc && !logoSrc.endsWith('/informes.html')) {
-                headerHtml = `<div style="text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0;">
-                                <img src="${logoSrc}" alt="Logo Instituci├│n" style="max-height: 90px; object-fit: contain;">
-                                <h3 style="color: #64748b; margin-top: 10px; font-size: 1.1rem; text-transform: uppercase;">${instName}</h3>
-                              </div>`;
-            }
-
-            if(pestaData.informe_pesta) {
-                let rawText = pestaData.informe_pesta.replace(/\\n/g, '\n'); // Reemplazar saltos literales
-                mdDiv.innerHTML = headerHtml + marked.parse(rawText);
-            } else {
-                mdDiv.innerHTML = headerHtml + "<i>No se gener├│ informe detallado.</i>";
-            }
-            
-            // Renderizar listas O y A
-            const oList = document.getElementById('pestaOportunidadesList');
-            const aList = document.getElementById('pestaAmenazasList');
-            oList.innerHTML = ''; aList.innerHTML = '';
-            
-            if(pestaData.oportunidades && pestaData.oportunidades.length > 0) {
-                pestaData.oportunidades.forEach(o => {
-                    oList.innerHTML += `<div style="background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #0ea5e9; border-radius: 4px;"><strong>${o.id}</strong>: ${o.descripcion}</div>`;
-                });
-            } else { oList.innerHTML = '<i>No se identificaron oportunidades.</i>'; }
-            
-            if(pestaData.amenazas && pestaData.amenazas.length > 0) {
-                pestaData.amenazas.forEach(a => {
-                    aList.innerHTML += `<div style="background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #f59e0b; border-radius: 4px;"><strong>${a.id}</strong>: ${a.descripcion}</div>`;
-                });
-            } else { aList.innerHTML = '<i>No se identificaron amenazas.</i>'; }
-        }
-
-        function imprimirPESTA() {
-            const contenido = document.getElementById('pestaMarkdownReport').innerHTML;
-            const win = window.open('', '_blank', 'width=900,height=700');
-            win.document.write(`
-                <html><head>
-                <title>Informe PESTA</title>
-                <style>
-                    body { font-family: 'Inter', sans-serif; padding: 40px; color: #333; line-height:1.6; }
-                    h1, h2, h3 { color: #0284c7; }
-                </style>
-                </head><body>
-                ${contenido}
-                <script>window.onload = function() { setTimeout(()=> { window.print(); }, 500); }<\/script>
-                `);
-            win.document.close();
-        }
-
-<!-- MODAL PERMISOS -->
-<div class="modal-overlay" id="permisosOverlay">
-    <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">
-            <h3>Configurar Permisos de Rol</h3>
-            <button class="close-btn" onclick="cerrarModalPermisos()">├ù</button>
-        </div>
-        <div class="modal-body">
-            <p style="margin-bottom: 15px; font-size: 0.9rem; color: #64748b;">Selecciona qu├® roles pueden ver y usar este elemento:</p>
-            <input type="hidden" id="currentPermNodeId">
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <label><input type="checkbox" class="perm-role-cb" value="super_admin"> Super Admin</label>
-                <label><input type="checkbox" class="perm-role-cb" value="admin"> Administrador</label>
-                <label><input type="checkbox" class="perm-role-cb" value="lider"> L├¡der</label>
-                <label><input type="checkbox" class="perm-role-cb" value="operador"> Operador</label>
-                <label><input type="checkbox" class="perm-role-cb" value="docente"> Docente</label>
-                <label><input type="checkbox" class="perm-role-cb" value="estudiante"> Estudiante</label>
-                <label><input type="checkbox" class="perm-role-cb" value="empresa_admin"> Empresa Admin</label>
-            </div>
-            <div style="margin-top: 20px; text-align: right;">
-                <button class="btn-primary" onclick="guardarPermisosNodo()">Guardar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    let _globalPermissions = {};
-    let _permEditMode = false;
-    let _userRole = '';
-
-    document.addEventListener('DOMContentLoaded', async () => {
-        const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
-        _userRole = user.role || '';
-        
-        // Cargar permisos globales desde la DB
-        try {
-            const instId = getInstId();
-            const progId = getProgramId();
-            const res = await fetch(`/api/permissions/form?inst_id=${instId}&program_id=${progId}`);
-            const data = await res.json();
-            if(data.status === 'success') {
-                _globalPermissions = data.permissions || {};
-            }
-        } catch(e) {
-            console.error("Error al cargar permisos:", e);
-        }
-
-        // Aplicar permisos
-        aplicarPermisosEnUI();
-
-        // Agregar bot├│n de "Modo Edici├│n Permisos" si es super_admin
-        if(_userRole === 'super_admin' || _userRole === 'admin') {
-            const btnPerm = document.createElement('button');
-            btnPerm.className = 'btn-secondary';
-            btnPerm.innerText = 'ÔÜÖ´©Å Configurar Permisos';
-            btnPerm.style.position = 'fixed';
-            btnPerm.style.bottom = '20px';
-            btnPerm.style.right = '20px';
-            btnPerm.style.zIndex = '9999';
-            btnPerm.onclick = togglePermEditMode;
-            document.body.appendChild(btnPerm);
-        }
-    });
-
-    function aplicarPermisosEnUI() {
-        const nodes = document.querySelectorAll('[data-permission-node]');
-        nodes.forEach(node => {
-            const nodeId = node.getAttribute('data-permission-node');
-            const allowedRoles = _globalPermissions[nodeId];
-            
-            // Si no hay roles restrictivos configurados, todos los botones permanecen 100% visibles y funcionales
-            if(allowedRoles && Array.isArray(allowedRoles) && allowedRoles.length > 0) {
-                if(!allowedRoles.includes(_userRole) && _userRole !== 'super_admin' && _userRole !== 'admin') {
-                    node.style.display = 'none';
-                } else {
-                    node.style.display = 'inline-flex';
-                }
-            } else {
-                // Habilitado por defecto para todos
-                if (node.id === 'btnImprimir') node.style.display = 'inline-flex';
-                else node.style.display = '';
-            }
-        });
-    }
-
-    function togglePermEditMode() {
-        _permEditMode = !_permEditMode;
-        const nodes = document.querySelectorAll('[data-permission-node]');
-        
-        if(_permEditMode) {
-            Swal.fire('Modo Permisos', 'Haz click sobre cualquier bot├│n/elemento marcado con borde punteado para configurar sus permisos.', 'info');
-            nodes.forEach(node => {
-                node.dataset.originalBorder = node.style.border || '';
-                node.dataset.originalOnclick = node.getAttribute('onclick') || '';
-                node.style.border = '2px dashed #f59e0b';
-                
-                // Override click
-                node.removeAttribute('onclick');
-                node.addEventListener('click', onNodeClickForPerm);
-            });
-        } else {
-            nodes.forEach(node => {
-                node.style.border = node.dataset.originalBorder || '';
-                node.removeEventListener('click', onNodeClickForPerm);
-                if(node.dataset.originalOnclick) {
-                    node.setAttribute('onclick', node.dataset.originalOnclick);
-                }
-            });
-            aplicarPermisosEnUI();
-        }
-    }
-
-    function onNodeClickForPerm(e) {
-        if(!_permEditMode) return;
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const nodeId = e.currentTarget.getAttribute('data-permission-node');
-        abrirModalPermisos(nodeId);
-    }
-
-    function abrirModalPermisos(nodeId) {
-        document.getElementById('currentPermNodeId').value = nodeId;
-        const allowedRoles = _globalPermissions[nodeId] || [];
-        
-        document.querySelectorAll('.perm-role-cb').forEach(cb => {
-            cb.checked = allowedRoles.includes(cb.value);
-        });
-        
-        document.getElementById('permisosOverlay').classList.add('open');
-    }
-
-    function cerrarModalPermisos() {
-        document.getElementById('permisosOverlay').classList.remove('open');
-    }
-
-    async function guardarPermisosNodo() {
-        const nodeId = document.getElementById('currentPermNodeId').value;
-        const selected = [];
-        document.querySelectorAll('.perm-role-cb:checked').forEach(cb => {
-            selected.push(cb.value);
-        });
-        
-        _globalPermissions[nodeId] = selected;
-        
-        try {
-            const instId = getInstId();
-            const progId = getProgramId();
-            await fetch('/api/permissions/form', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ inst_id: instId, program_id: progId, permissions: _globalPermissions })
-            });
-            Swal.fire('Guardado', 'Permisos actualizados para este elemento.', 'success');
-            cerrarModalPermisos();
-        } catch(e) {
-            Swal.fire('Error', 'No se pudieron guardar los permisos', 'error');
-        }
-    }
-</script>
-
-</body>
-</html>
-            `);
-            win.document.close();
-        }
-
-                // ============================================================
         // GENERACIÓN PDF — VENTANA DEDICADA (Informe Autoevaluación)
         // ============================================================
         
@@ -4167,7 +3753,7 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
     <script src="{{ url_for('static', filename='permissions_enforcer.js') }}"></script>
 
-    <!-- ===== MODAL RENOVACI├ôN REGISTRO CALIFICADO ===== -->
+<!-- ===== MODAL RENOVACI├ôN REGISTRO CALIFICADO ===== -->
     <div id="rrcOverlay" class="rrc-overlay" onclick="cerrarModalRRCSiClick(event)">
         <div class="rrc-modal" id="rrcModal">
             <!-- Header -->
@@ -4325,5 +3911,33 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
     </div>
 
+<!-- MODAL PERMISOS -->
+<div class="modal-overlay" id="permisosOverlay">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3>Configurar Permisos de Rol</h3>
+            <button class="close-btn" onclick="cerrarModalPermisos()">├ù</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 15px; font-size: 0.9rem; color: #64748b;">Selecciona qu├® roles pueden ver y usar este elemento:</p>
+            <input type="hidden" id="currentPermNodeId">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <label><input type="checkbox" class="perm-role-cb" value="super_admin"> Super Admin</label>
+                <label><input type="checkbox" class="perm-role-cb" value="admin"> Administrador</label>
+                <label><input type="checkbox" class="perm-role-cb" value="lider"> L├¡der</label>
+                <label><input type="checkbox" class="perm-role-cb" value="operador"> Operador</label>
+                <label><input type="checkbox" class="perm-role-cb" value="docente"> Docente</label>
+                <label><input type="checkbox" class="perm-role-cb" value="estudiante"> Estudiante</label>
+                <label><input type="checkbox" class="perm-role-cb" value="empresa_admin"> Empresa Admin</label>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn-primary" onclick="guardarPermisosNodo()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
+
 </html>
+
