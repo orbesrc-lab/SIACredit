@@ -1766,7 +1766,6 @@
             return '';
         }
 
-        async 
         function returnToReportsHub() {
             const hub = document.getElementById('reportsHubGrid');
             const container = document.getElementById('informeContainer');
@@ -1775,7 +1774,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function generarInforme(tipo) {
+        async function generarInforme(tipo) {
             document.getElementById('loadingSpinner').style.display = 'block';
             document.getElementById('informeContainer').style.display = 'none';
             document.getElementById('btnImprimir').style.display = 'none';
