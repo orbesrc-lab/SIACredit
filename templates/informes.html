@@ -2220,6 +2220,1596 @@
             window.print();
         }
 
+        const RRC_CONDICIONES = [
+            {
+                num: 1, nombre: "Denominaci├│n",
+                norma: "Art. 2.5.3.2.2.1 Dec. 1330 - Num. 1 Res. 0529",
+                descripcion: "La denominaci├│n del programa corresponde con su contenido curricular, nivel de formaci├│n, metodolog├¡a y ├írea del conocimiento.",
+                indicadores: [
+                    { texto: "Denominaci├│n registrada en el SNIES", campo: "snies" },
+                    { texto: "Correspondencia nombre-contenido curricular", campo: "denominacion_contenido" },
+                    { texto: "Nivel de formaci├│n declarado (pregrado/posgrado)", campo: "nivel_formacion" },
+                    { texto: "Metodolog├¡a (presencial/distancia/virtual)", campo: "metodologia" },
+                    { texto: "├ürea de conocimiento y n├║cleo b├ísico", campo: "area_conocimiento" },
+                    { texto: "Cr├®ditos acad├®micos totales del programa", campo: "total_creditos" }
+                ],
+                palabrasClave: ["denominaci", "nombre del programa", "snies", "registro", "calificado"]
+            },
+            {
+                num: 2, nombre: "Justificaci├│n",
+                norma: "Art. 2.5.3.2.2.2 Dec. 1330 - Num. 2 Res. 0529",
+                descripcion: "El programa demuestra pertinencia social y acad├®mica a trav├®s de an├ílisis del entorno, necesidades del sector y referentes internacionales.",
+                indicadores: [
+                    { texto: "An├ílisis de necesidades del sector productivo y social", campo: "analisis_sector" },
+                    { texto: "Estad├¡sticas de empleabilidad y ocupaci├│n", campo: "estadisticas_empleo" },
+                    { texto: "Referentes nacionales e internacionales comparables", campo: "referentes" },
+                    { texto: "Estudio de la oferta acad├®mica similar en la regi├│n", campo: "oferta_similar" },
+                    { texto: "Pertinencia con el Proyecto Educativo Institucional (PEI)", campo: "pei" },
+                    { texto: "Tendencias y proyecciones de la disciplina", campo: "tendencias" }
+                ],
+                palabrasClave: ["justificaci", "pertinencia", "relevancia", "contexto", "entorno", "sector"]
+            },
+            {
+                num: 3, nombre: "Aspectos Curriculares",
+                norma: "Art. 2.5.3.2.2.3 Dec. 1330 - Num. 3 Res. 0529",
+                descripcion: "El plan de estudios garantiza la formaci├│n integral con coherencia, flexibilidad e integraci├│n de componentes.",
+                indicadores: [
+                    { texto: "Plan de estudios vigente con cr├®ditos por asignatura", campo: "plan_estudios" },
+                    { texto: "Total cr├®ditos acad├®micos (m├¡nimo legal seg├║n nivel)", campo: "creditos_total" },
+                    { texto: "Componentes de formaci├│n: b├ísico, profesional, electivo", campo: "componentes" },
+                    { texto: "Flexibilidad curricular y movilidad estudiantil", campo: "flexibilidad" },
+                    { texto: "Interdisciplinariedad y secuencia l├│gica", campo: "interdisciplinariedad" },
+                    { texto: "Trabajo de grado o proyecto integrador", campo: "trabajo_grado" },
+                    { texto: "Lineamientos pedag├│gicos y did├ícticos del programa", campo: "pedagogia" }
+                ],
+                palabrasClave: ["curricular", "plan de estudios", "asignatura", "cr├®dito", "credito", "componente", "n├║cleo", "nucleo", "syllabus"]
+            },
+            {
+                num: 4, nombre: "Actividades de Formaci├│n",
+                norma: "Art. 2.5.3.2.2.4 Dec. 1330 - Num. 4 Res. 0529",
+                descripcion: "Las estrategias y m├®todos de ense├▒anza-aprendizaje garantizan el logro de los resultados de aprendizaje.",
+                indicadores: [
+                    { texto: "Estrategias y m├®todos pedag├│gicos por asignatura", campo: "metodos_pedagogicos" },
+                    { texto: "Relaci├│n horas presenciales / trabajo independiente", campo: "distribucion_horas" },
+                    { texto: "Pr├ícticas formativas y actividades de campo", campo: "practicas_formativas" },
+                    { texto: "Resultados de aprendizaje definidos y evaluados", campo: "resultados_aprendizaje" },
+                    { texto: "Sistemas de evaluaci├│n de estudiantes", campo: "evaluacion_estudiantes" },
+                    { texto: "Estrategias de seguimiento acad├®mico", campo: "seguimiento_academico" }
+                ],
+                palabrasClave: ["actividad", "formaci", "pedagog", "estrateg", "m├®todo", "metodo", "ense├▒anza", "aprendizaje", "did├íct"]
+            },
+            {
+                num: 5, nombre: "Relaciones con el Sector Externo",
+                norma: "Art. 2.5.3.2.2.5 Dec. 1330 - Num. 5 Res. 0529",
+                descripcion: "El programa mantiene v├¡nculos activos con el sector externo que enriquecen la formaci├│n y garantizan la pertinencia.",
+                indicadores: [
+                    { texto: "Convenios vigentes con empresas y organizaciones", campo: "convenios" },
+                    { texto: "Pr├ícticas empresariales activas", campo: "practicas_empresariales" },
+                    { texto: "Seguimiento a egresados y tasa de empleabilidad", campo: "egresados" },
+                    { texto: "Participaci├│n del sector externo en el curr├¡culo", campo: "sector_curriculo" },
+                    { texto: "Consultas y encuestas al sector productivo", campo: "consultas_sector" },
+                    { texto: "Proyecci├│n social y extensi├│n universitaria", campo: "extension" }
+                ],
+                palabrasClave: ["sector externo", "extensi", "convenio", "egresado", "pr├íctica", "practica", "empresa", "proyecci", "comunidad"]
+            },
+            {
+                num: 6, nombre: "Investigaci├│n, Innovaci├│n y Creaci├│n Art├¡stica",
+                norma: "Art. 2.5.3.2.2.6 Dec. 1330 - Num. 6 Res. 0529",
+                descripcion: "El programa fomenta la investigaci├│n formativa y tiene v├¡nculos con grupos y l├¡neas de investigaci├│n reconocidos.",
+                indicadores: [
+                    { texto: "Grupos de investigaci├│n reconocidos por Minciencias", campo: "grupos_minciencias" },
+                    { texto: "L├¡neas de investigaci├│n articuladas al programa", campo: "lineas_investigacion" },
+                    { texto: "Proyectos de investigaci├│n vigentes", campo: "proyectos_investigacion" },
+                    { texto: "Producci├│n cient├¡fica (art├¡culos, libros, ponencias)", campo: "produccion_cientifica" },
+                    { texto: "Investigaci├│n formativa en el curr├¡culo", campo: "investigacion_formativa" },
+                    { texto: "Semilleros de investigaci├│n activos", campo: "semilleros" }
+                ],
+                palabrasClave: ["investigaci", "innovaci", "cient├¡fic", "cientifico", "grupo", "l├¡nea", "linea", "semillero", "proyecto", "publicaci"]
+            },
+            {
+                num: 7, nombre: "Profesores",
+                norma: "Art. 2.5.3.2.2.7 Dec. 1330 - Num. 7 Res. 0529",
+                descripcion: "El programa cuenta con una planta docente suficiente, cualificada y con experiencia pertinente.",
+                indicadores: [
+                    { texto: "N├║mero de profesores por tipo de dedicaci├│n (TC/MT/HC)", campo: "profesores_dedicacion" },
+                    { texto: "Porcentaje con formaci├│n posgradual (especializaci├│n/maestr├¡a/doctorado)", campo: "formacion_posgradual" },
+                    { texto: "Hoja de vida CNA registrada y actualizada", campo: "hv_cna" },
+                    { texto: "Experiencia profesional y acad├®mica pertinente", campo: "experiencia" },
+                    { texto: "Estatuto docente vigente y reglamento", campo: "estatuto_docente" },
+                    { texto: "Pol├¡ticas de evaluaci├│n y desarrollo docente", campo: "eval_docente" }
+                ],
+                palabrasClave: ["profesor", "docente", "planta", "dedicaci", "formaci", "maestr├¡a", "maestria", "doctorado", "experiencia"]
+            },
+            {
+                num: 8, nombre: "Medios Educativos",
+                norma: "Art. 2.5.3.2.2.8 Dec. 1330 - Num. 8 Res. 0529",
+                descripcion: "El programa dispone de recursos bibliogr├íficos, tecnol├│gicos y de apoyo a la formaci├│n suficientes y actualizados.",
+                indicadores: [
+                    { texto: "Bibliograf├¡a b├ísica por asignatura (m├¡nimo 5 a├▒os)", campo: "bibliografia" },
+                    { texto: "Suscripci├│n a bases de datos especializadas", campo: "bases_datos" },
+                    { texto: "Laboratorios, talleres o espacios especializados", campo: "laboratorios" },
+                    { texto: "Recursos tecnol├│gicos y software especializado", campo: "software" },
+                    { texto: "Acceso a plataformas virtuales (LMS)", campo: "lms" },
+                    { texto: "Pol├¡tica de actualizaci├│n de recursos bibliogr├íficos", campo: "politica_bibliog" }
+                ],
+                palabrasClave: ["medio", "recurso", "biblioteca", "bibliogr", "base de datos", "laboratorio", "tecnolog", "software", "plataforma"]
+            },
+            {
+                num: 9, nombre: "Infraestructura F├¡sica y Tecnol├│gica",
+                norma: "Art. 2.5.3.2.2.9 Dec. 1330 - Num. 9 Res. 0529",
+                descripcion: "Las instalaciones f├¡sicas y la infraestructura tecnol├│gica garantizan el desarrollo adecuado del programa.",
+                indicadores: [
+                    { texto: "Aulas de clase suficientes (m┬▓ por estudiante)", campo: "aulas" },
+                    { texto: "Espacios de bienestar estudiantil", campo: "bienestar" },
+                    { texto: "Conectividad y acceso a internet en campus", campo: "conectividad" },
+                    { texto: "Plataforma LMS institucional y aula virtual", campo: "plataforma_lms" },
+                    { texto: "Plan de mantenimiento de infraestructura", campo: "mantenimiento" },
+                    { texto: "Accesibilidad para personas con discapacidad", campo: "accesibilidad" }
+                ],
+                palabrasClave: ["infraestructura", "f├¡sica", "fisica", "aula", "espacio", "instalaci", "campus", "conectividad", "tecnol├│gica", "tecnologica"]
+            }
+        ];
+
+        // ---------------------------------------------------------------
+        // Variables de estado RRC
+        // ---------------------------------------------------------------
+        let _rrcInformeData   = null;   // datos del informe din├ímico
+        let _rrcCondData      = null;   // condiciones ya mapeadas
+        let _rrcIAReport      = null;   // texto devuelto por IA
+        let _rrcInstName      = '';
+        let _rrcProgName      = '';
+        let _rrcTabActivo     = 0;
+
+        // ---------------------------------------------------------------
+        // Abrir modal y disparar generaci├│n
+        // ---------------------------------------------------------------
+        async function abrirModalRRC() {
+            const overlay = document.getElementById('rrcOverlay');
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+
+            // Reset UI
+            document.getElementById('rrcLoading').classList.add('active');
+            document.getElementById('rrcContent').style.display = 'none';
+            document.getElementById('rrcTabs').innerHTML = '';
+            document.getElementById('rrcPanels').innerHTML = '';
+
+            await generarSoporteRRC();
+        }
+
+        function cerrarModalRRC() {
+            document.getElementById('rrcOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        function cerrarModalRRCSiClick(e) {
+            if (e.target === document.getElementById('rrcOverlay')) cerrarModalRRC();
+        }
+        function regenerarRRC() {
+            document.getElementById('rrcLoading').classList.add('active');
+            document.getElementById('rrcContent').style.display = 'none';
+            _rrcIAReport = null;
+            _rrcManualEditObj = null;
+            generarSoporteRRC(true);
+        }
+
+        // ---------------------------------------------------------------
+        // Flujo principal
+        // ---------------------------------------------------------------
+        let _rrcManualEditObj = null;
+
+        
+
+        async function analizarSoporteCondicion() {
+            const justFile = document.getElementById('justificationFileRRC').files[0];
+            if (!justFile) {
+                alert('Por favor selecciona un archivo primero.');
+                return;
+            }
+            
+            // Buscar tab activo
+            let activeCond = '1';
+            document.querySelectorAll('.rrc-tab').forEach(t => {
+                if(t.classList.contains('active')) {
+                    activeCond = t.id.replace('rrc-tab-', '');
+                }
+            });
+
+            const btn = document.getElementById('btnAnalizarSoporte');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analizando...';
+            btn.disabled = true;
+
+            try {
+                // Subir archivo
+                const formData = new FormData();
+                formData.append('file', justFile);
+                formData.append('plan_id', 'RRC_JUSTIFICATION_COND_' + activeCond);
+                
+                const upRes = await fetch('/api/planes_mejora/upload_soporte', { method: 'POST', body: formData });
+                const upData = await upRes.json();
+                
+                if (!upData.url) throw new Error('Error al subir el archivo.');
+                
+                const instId = getInstId();
+                const programId = getProgramId();
+                
+                const condicion_data = _rrcCondData[activeCond] || {};
+
+                // Llamar IA para condici├│n espec├¡fica
+                const aiRes = await fetch('/api/ai/generar_rrc_condicion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        inst_id: instId,
+                        program_id: programId,
+                        condicion_num: activeCond,
+                        condicion_data: condicion_data,
+                        program_name: _rrcProgName,
+                        inst_name: _rrcInstName,
+                        justification_url: upData.url
+                    })
+                });
+                
+                const aiData = await aiRes.json();
+                if (aiData.status !== 'success') throw new Error(aiData.message || 'Error en an├ílisis IA');
+                
+                // Actualizar panel activo
+                const contentDiv = document.getElementById(`rrc-edit-content-${activeCond}`);
+                if (contentDiv) {
+                    contentDiv.innerHTML = marked.parse(aiData.report);
+                    alert('Condici├│n ' + activeCond + ' actualizada con el an├ílisis del archivo.');
+                    guardarReporteRRC(); // Auto-guardar
+                }
+                
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+            btn.innerHTML = ogText;
+            btn.disabled = false;
+        }
+
+        async function generarSoporteRRC(forceRegenerate = false) {
+            try {
+                const instId    = getInstId();
+                const programId = getProgramId();
+
+                // Intentar cargar reporte persistido si no es regeneraci├│n forzada
+                if (!forceRegenerate && !_rrcIAReport && !_rrcManualEditObj) {
+                    try {
+                        const savedRes = await fetch(`/api/rrc/report?inst_id=${instId}&program_id=${programId}`);
+                        const savedData = await savedRes.json();
+                        if (savedData.report) {
+                            if (typeof savedData.report === 'string' && savedData.report.trim() !== '') {
+                                _rrcIAReport = savedData.report;
+                            } else if (typeof savedData.report === 'object' && Object.keys(savedData.report).length > 0) {
+                                _rrcManualEditObj = savedData.report;
+                            }
+                        }
+                    } catch(e) { console.error("Error cargando reporte persistido", e); }
+                }
+
+                // 1. Cargar datos instituci├│n y programa
+                const [instResp, progResp] = await Promise.all([
+                    fetch(`/api/institution?inst_id=${instId}`),
+                    fetch(`/api/programs?inst_id=${instId}`)
+                ]);
+                const instData  = await instResp.json();
+                const programs  = await progResp.json();
+
+                const programaActivo = programs.find(p => p.id == programId);
+                _rrcInstName = instData.name || 'Instituci├│n';
+                _rrcProgName = programaActivo ? programaActivo.name : (instData.program || 'Programa Acad├®mico');
+
+                document.getElementById('rrcProgramaTitle').textContent =
+                    `${_rrcProgName} ┬À ${_rrcInstName}`;
+
+                const informeRes = await fetch(`/api/informe_dinamico?inst_id=${instId}&program_id=${programId}`);
+                _rrcInformeData  = await informeRes.json();
+
+                _rrcCondData = mapearCondicionesRRC(_rrcInformeData, instData, programaActivo);
+
+                if (!_rrcIAReport && !_rrcManualEditObj) {
+                    // Subir archivo de justificaci├│n si existe
+                    const justFile = document.getElementById('justificationFileRRC').files[0];
+                    let justification_url = '';
+                    if (justFile) {
+                        document.getElementById('rrcLoading').innerHTML = '<div class="rrc-loader"></div><div style="text-align:center;"><strong>Subiendo archivo y analizando con IA...</strong></div>';
+                        const formData = new FormData();
+                        formData.append('file', justFile);
+                        formData.append('plan_id', 'RRC_JUSTIFICATION');
+                        try {
+                            const upRes = await fetch('/api/planes_mejora/upload_soporte', { method: 'POST', body: formData });
+                            const upData = await upRes.json();
+                            if (upData.url) justification_url = upData.url;
+                        } catch (e) { console.error("Error upload justificacion", e); }
+                    } else {
+                        document.getElementById('rrcLoading').innerHTML = '<div class="rrc-loader"></div><div style="text-align:center;"><strong>Generando soporte documental con IA...</strong><p>Procesando metadatos y cuadros estad├¡sticos...</p></div>';
+                    }
+
+                    // 4. Llamar a IA para an├ílisis
+                    const aiRes = await fetch('/api/ai/generar_rrc', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            inst_id:      instId,
+                            program_id:   programId,
+                            program_name: _rrcProgName,
+                            inst_name:    _rrcInstName,
+                            condiciones:  _rrcCondData,
+                            justification_url: justification_url
+                        })
+                    });
+                    const aiData = await aiRes.json();
+                    _rrcIAReport = (aiData.status === 'success') ? aiData.report : null;
+                    
+                    if (_rrcIAReport) {
+                        await fetch(`/api/rrc/report?inst_id=${instId}&program_id=${programId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ report: _rrcIAReport })
+                        });
+                    }
+                }
+
+                // 5. Parsear el reporte IA por condici├│n
+                const analisisIA = _rrcManualEditObj ? _rrcManualEditObj : (_rrcIAReport ? parsearReporteIA(_rrcIAReport) : {});
+
+                // 6. Renderizar
+                renderizarRRC(_rrcCondData, analisisIA);
+
+            } catch (err) {
+                console.error('Error RRC:', err);
+                document.getElementById('rrcLoading').innerHTML =
+                    `<p style="color:#ef4444; text-align:center;">ÔØî Error generando soporte: ${err.message}</p>`;
+            }
+        }
+
+        async function guardarReporteRRC() {
+            const instId = getInstId();
+            const programId = getProgramId();
+            
+            let objAGuardar = {};
+            RRC_CONDICIONES.forEach(cond => {
+                const el = document.getElementById(`rrc-edit-content-${cond.num}`);
+                if (el) {
+                    objAGuardar[cond.num] = el.innerHTML;
+                }
+            });
+            
+            _rrcManualEditObj = objAGuardar;
+            _rrcIAReport = null;
+
+            try {
+                const res = await fetch(`/api/rrc/report?inst_id=${instId}&program_id=${programId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ report: objAGuardar })
+                });
+                if (res.ok) alert('Ô£à Informe guardado correctamente. Los cambios no se perder├ín.');
+                else alert('ÔØî Error al guardar el informe.');
+            } catch(e) {
+                alert('ÔØî Error de conexi├│n al guardar.');
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // Mapeo factores autoevaluaci├│n ÔåÆ 9 condiciones
+        // ---------------------------------------------------------------
+        function mapearCondicionesRRC(informeData, instData, programaData) {
+            const condiciones = {};
+
+            RRC_CONDICIONES.forEach(cond => {
+                condiciones[cond.num] = {
+                    factoresRelacionados: [],
+                    indicadoresCubiertos: [],
+                    indicadoresPendientes: [],
+                    promedio: 0,
+                    justificaciones: [],
+                    evidencias: [],
+                    cuadrosDatos: {}
+                };
+            });
+
+            if (!informeData || !informeData.factores) return condiciones;
+
+            // Cuadros estad├¡sticos disponibles
+            const cuadros = informeData.cuadros || {};
+
+            // --- Asignar cuadros de datos a condiciones ---
+            // Profesores ÔåÆ Condici├│n 7
+            if (cuadros.factor4_profesores || cuadros.factor3_profesores) {
+                condiciones[7].cuadrosDatos.profesores = cuadros.factor4_profesores || cuadros.factor3_profesores;
+            }
+            // Curricular ÔåÆ Condici├│n 3
+            if (cuadros.factor5_curricular) {
+                condiciones[3].cuadrosDatos.curricular = cuadros.factor5_curricular;
+            }
+            // Extensi├│n / Sector Externo ÔåÆ Condici├│n 5
+            if (cuadros.factor7_extension) {
+                condiciones[5].cuadrosDatos.extension = cuadros.factor7_extension;
+            }
+            // Investigaci├│n ÔåÆ Condici├│n 6
+            if (cuadros.factor8_investigacion) {
+                condiciones[6].cuadrosDatos.investigacion = cuadros.factor8_investigacion;
+            }
+            // Recursos / Medios ÔåÆ Condici├│n 8 y 9
+            if (cuadros.factor10_recursos) {
+                condiciones[8].cuadrosDatos.recursos = cuadros.factor10_recursos;
+                condiciones[9].cuadrosDatos.aulas    = cuadros.factor10_recursos;
+            }
+
+            // --- Asignar factores a condiciones por palabras clave ---
+            informeData.factores.forEach(factor => {
+                const nombreF = (factor.name || '').toLowerCase();
+                const numF    = parseInt(factor.number);
+
+                RRC_CONDICIONES.forEach(cond => {
+                    const coincide = cond.palabrasClave.some(kw => nombreF.includes(kw));
+
+                    // Mapeo expl├¡cito por n├║mero de factor (modelo CNA t├¡pico)
+                    const mapaNumerico = {
+                        1: [2, 3],   // Factor 1 Misi├│n ÔåÆ Justificaci├│n, Denominaci├│n
+                        2: [2],      // Factor 2 Proyecto ÔåÆ Justificaci├│n
+                        3: [3, 4],   // Factor 3 Curr├¡culo ÔåÆ Aspectos curriculares, Actividades
+                        4: [4],      // Factor 4 ÔåÆ Actividades formaci├│n
+                        5: [3],      // Factor 5 ÔåÆ Aspectos curriculares
+                        6: [6],      // Factor 6 ÔåÆ Investigaci├│n
+                        7: [5],      // Factor 7 ÔåÆ Sector externo
+                        8: [6],      // Factor 8 ÔåÆ Investigaci├│n
+                        9: [7],      // Factor 9 ÔåÆ Profesores
+                        10: [8, 9],  // Factor 10 ÔåÆ Medios e infraestructura
+                        11: [8],     // Factor 11 ÔåÆ Medios educativos
+                        12: [9]      // Factor 12 ÔåÆ Infraestructura
+                    };
+
+                    const condsPorNum = mapaNumerico[numF] || [];
+                    const perteneceAEsta = coincide || condsPorNum.includes(cond.num);
+
+                    if (perteneceAEsta) {
+                        // Solo agregar si no est├í ya
+                        if (!condiciones[cond.num].factoresRelacionados.find(f => f.id === factor.id)) {
+                            const promF = factor.nota_promedio || 0;
+                            condiciones[cond.num].factoresRelacionados.push({
+                                id:       factor.id,
+                                numero:   factor.number,
+                                nombre:   factor.name,
+                                promedio: promF,
+                                cualitativo: factor.cualitativo || '',
+                                caracteristicas: (factor.caracteristicas || []).map(c => ({
+                                    nombre:   c.name,
+                                    promedio: c.nota_promedio || 0
+                                }))
+                            });
+
+                            // Acumular justificaciones y evidencias
+                            if (factor.justificacion_general) {
+                                condiciones[cond.num].justificaciones.push(factor.justificacion_general);
+                            }
+                            (factor.caracteristicas || []).forEach(c => {
+                                (c.aspectos || []).forEach(a => {
+                                    (a.evidencias || []).forEach(ev => {
+                                        condiciones[cond.num].evidencias.push({
+                                            nombre: ev.name,
+                                            url:    ev.file_path
+                                        });
+                                    });
+                                });
+                            });
+                        }
+                    }
+                });
+            });
+
+            // --- Calcular promedios y clasificar indicadores ---
+            RRC_CONDICIONES.forEach(cond => {
+                const cd = condiciones[cond.num];
+                const proms = cd.factoresRelacionados.map(f => f.promedio).filter(p => p > 0);
+                cd.promedio = proms.length > 0 ? (proms.reduce((a,b) => a+b, 0) / proms.length) : 0;
+
+                // Clasificar indicadores normativos
+                cond.indicadores.forEach(ind => {
+                    const tieneData = cd.factoresRelacionados.length > 0 ||
+                                     Object.keys(cd.cuadrosDatos).length > 0;
+                    if (tieneData && cd.promedio >= 3.0) {
+                        cd.indicadoresCubiertos.push(ind.texto);
+                    } else {
+                        cd.indicadoresPendientes.push(ind.texto);
+                    }
+                });
+            });
+
+            // Enriquecer Denominaci├│n (Cond. 1) con datos del programa e instituci├│n
+            if (programaData) {
+                condiciones[1].programaInfo = {
+                    nombre:  programaData.name || '',
+                    periodo: programaData.period || ''
+                };
+            }
+            condiciones[1].instNombre = instData.name || '';
+
+            return condiciones;
+        }
+
+        // ---------------------------------------------------------------
+        // Generar texto de soporte local (alternativa sin tokens / IA)
+        // ---------------------------------------------------------------
+        function obtenerTextoSoporteLocal(cond, cd) {
+            let texto = "### Soporte Documental para la Condici├│n " + cond.num + ": " + cond.nombre + "\n\n";
+            texto += "Este documento presenta el soporte normativo y an├ílisis de autoevaluaci├│n correspondiente a la condici├│n de calidad de **" + cond.nombre + "** para el programa de **" + (_rrcProgName || 'Contadur├¡a P├║blica') + "** de la **" + (_rrcInstName || 'CORPORACI├ôN UNIVERSITARIA CENTRO SUPERIOR') + "**.\n\n";
+            
+            if (cond.num === 1) {
+                texto += "### Informaci├│n del Programa Evaluado\n";
+                texto += "- **Denominaci├│n del Programa:** " + (_rrcProgName || 'Contadur├¡a P├║blica') + "\n";
+                texto += "- **Instituci├│n de Educaci├│n Superior:** " + (_rrcInstName || 'CORPORACI├ôN UNIVERSITARIA CENTRO SUPERIOR') + "\n";
+                if (cd.programaInfo && cd.programaInfo.period) {
+                    texto += "- **Per├¡odo de Autoevaluaci├│n:** " + cd.programaInfo.period + "\n";
+                } else if (_rrcInformeData && _rrcInformeData.programa) {
+                    texto += "- **Per├¡odo de Autoevaluaci├│n:** " + (_rrcInformeData.programa.period || '2019-2026') + "\n";
+                }
+                texto += "\n";
+            }
+
+            if (cd.factoresRelacionados && cd.factoresRelacionados.length > 0) {
+                texto += "### Factores de Autoevaluaci├│n Relacionados\n";
+                cd.factoresRelacionados.forEach(f => {
+                    texto += "- **Factor " + f.numero + ": " + f.nombre + "** (Calificaci├│n: " + f.promedio.toFixed(1) + " - " + f.cualitativo + ")\n";
+                    if (f.caracteristicas && f.caracteristicas.length > 0) {
+                        f.caracteristicas.forEach(c => {
+                            texto += "  - Caracter├¡stica: " + c.nombre + " (Calificaci├│n: " + c.promedio.toFixed(1) + ")\n";
+                        });
+                    }
+                });
+                texto += "\n";
+            } else {
+                texto += "*Nota: No se hallaron factores del modelo de autoevaluaci├│n directamente relacionados con esta condici├│n.*\n\n";
+            }
+
+            if (cd.justificaciones && cd.justificaciones.length > 0) {
+                texto += "### Justificaci├│n y An├ílisis del Equipo\n";
+                cd.justificaciones.forEach(j => {
+                    texto += j + "\n\n";
+                });
+            }
+
+            if (cd.evidencias && cd.evidencias.length > 0) {
+                texto += "### Evidencias Documentales Mapeadas\n";
+                cd.evidencias.forEach(ev => {
+                    texto += "- " + ev.nombre + "\n";
+                });
+                texto += "\n";
+            }
+
+            texto += "### Propuesta de Cumplimiento Normativo\n";
+            texto += "El programa cumple de manera satisfactoria con los lineamientos del Decreto 1330 de 2019 y la Resoluci├│n 0529 del MEN. Se recomienda ratificar la informaci├│n expuesta y mantener actualizadas las evidencias anexas.";
+            
+            return texto;
+        }
+
+        // ---------------------------------------------------------------
+        // Parsear reporte IA por condici├│n
+        // ---------------------------------------------------------------
+        function parsearReporteIA(texto) {
+            const resultado = {};
+            if (!texto) return resultado;
+
+            // Separar por secciones ## Condici├│n N:
+            const secciones = texto.split(/\n## /g);
+            secciones.forEach(sec => {
+                const match = sec.match(/^Condici[o├│]n\s*(\d+)/i);
+                if (match) {
+                    resultado[parseInt(match[1])] = sec.trim();
+                } else if (sec.toLowerCase().includes('resumen ejecutivo')) {
+                    resultado[0] = sec.trim(); // resumen general
+                }
+            });
+            return resultado;
+        }
+
+        // ---------------------------------------------------------------
+        // Renderizar el modal con tabs y paneles
+        // ---------------------------------------------------------------
+        function renderizarRRC(condiciones, analisisIA) {
+            const tabsEl   = document.getElementById('rrcTabs');
+            const panelsEl = document.getElementById('rrcPanels');
+            tabsEl.innerHTML = '';
+            panelsEl.innerHTML = '';
+
+            RRC_CONDICIONES.forEach((cond, idx) => {
+                const cd      = condiciones[cond.num];
+                const promedio = cd.promedio;
+                const tieneFactores = cd.factoresRelacionados.length > 0;
+
+                // Semaforizaci├│n
+                let semClass = 'sem-gris';   let semText = 'Sin datos';
+                let tabStatus = '';
+                if (tieneFactores) {
+                    if      (promedio >= 4.5) { semClass = 'sem-verde';    semText = 'Cumple plenamente';      tabStatus = 'status-verde'; }
+                    else if (promedio >= 4.0) { semClass = 'sem-verde';    semText = 'Cumple en alto grado';   tabStatus = 'status-verde'; }
+                    else if (promedio >= 3.0) { semClass = 'sem-amarillo'; semText = 'Cumple aceptablemente'; tabStatus = 'status-amarillo'; }
+                    else if (promedio > 0)    { semClass = 'sem-rojo';     semText = 'En proceso';             tabStatus = 'status-rojo'; }
+                    else                     { semClass = 'sem-amarillo'; semText = 'Revisar';                tabStatus = 'status-amarillo'; }
+                }
+
+                // --- TAB ---
+                const tabEl = document.createElement('button');
+                tabEl.className = `rrc-tab ${tabStatus} ${idx === 0 ? 'active' : ''}`;
+                tabEl.id = `rrc-tab-${cond.num}`;
+                tabEl.onclick = () => cambiarTabRRC(cond.num);
+                tabEl.innerHTML = `<span>${cond.num}. ${cond.nombre}</span>`;
+                tabsEl.appendChild(tabEl);
+
+                // --- PANEL ---
+                const factoresChips = cd.factoresRelacionados.map(f =>
+                    `<span class="rrc-factor-chip">F${f.numero}: ${f.nombre} (${f.promedio.toFixed(1)})</span>`
+                ).join('');
+
+                // Indicadores cubiertos
+                let indHtml = '<div class="rrc-indicators-grid">';
+                cond.indicadores.forEach(ind => {
+                    const cubierto = cd.indicadoresCubiertos.includes(ind.texto);
+                    const clsItem  = cubierto ? 'ok' : (tieneFactores ? 'warn' : 'miss');
+                    const icon     = cubierto ? 'Ô£à' : (tieneFactores ? 'ÔÜá´©Å' : 'ÔØî');
+                    indHtml += `
+                        <div class="rrc-indicator-item ${clsItem}">
+                            <span class="rrc-ind-icon">${icon}</span>
+                            <div class="rrc-ind-text"><strong>${ind.texto}</strong></div>
+                        </div>`;
+                });
+                indHtml += '</div>';
+
+                // An├ílisis IA de esta condici├│n
+                let textoIA = analisisIA[cond.num] || '';
+                
+                // Si no hay texto de IA, generar texto de soporte por defecto a partir de los datos locales
+                if (!textoIA) {
+                    textoIA = obtenerTextoSoporteLocal(cond, cd);
+                }
+
+                let htmlIA = textoIA;
+                if (!textoIA.includes('<p>') && !textoIA.includes('<br>') && !textoIA.includes('<strong>')) {
+                    htmlIA = textoIA
+                        .replace(/###\s*(.*)/g, '<strong style="color:#4c1d95;display:block;margin:10px 0 4px;">$1</strong>')
+                        .replace(/##\s*(.*)/g, '')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/^[-ÔÇó]\s+(.+)$/gm, '<li>$1</li>')
+                        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+                        .replace(/\n\n/g, '</p><p>')
+                        .replace(/\n/g, '<br>');
+                }
+
+                const iaHtml = `
+                    <div class="rrc-ai-analysis" style="border: 2px dashed #93c5fd; background: #f0f7ff; margin-top: 18px; border-radius: 12px; padding: 20px;">
+                        <h4 style="color:#1d4ed8; display:flex; justify-content:space-between; align-items:center; margin:0 0 12px; font-size:0.95rem;">
+                            <span>Ô£ì´©Å Soporte Documental Diligenciable (Edita directamente abajo)</span>
+                            <span style="font-size:0.75rem; background:#dbeafe; color:#1e40af; padding:3px 8px; border-radius:12px; font-weight:700;">Habilitado para edici├│n</span>
+                        </h4>
+                        <div class="ai-content" id="rrc-edit-content-${cond.num}" contenteditable="true" style="padding:15px; background:white; border:1px solid #bfdbfe; border-radius:8px; outline:none; min-height:180px; font-family:inherit; font-size:0.9rem; line-height:1.7; color:#374151;" placeholder="Escribe el soporte documental aqu├¡...">
+                            ${htmlIA ? htmlIA : '<p>Escribe o modifica la informaci├│n para esta condici├│n aqu├¡...</p>'}
+                        </div>
+                    </div>`;
+
+                // Evidencias
+                let evidHtml = '';
+                if (cd.evidencias.length > 0) {
+                    evidHtml = `<div style="margin-top:14px;">
+                        <p style="font-weight:700; color:#1e293b; font-size:0.88rem; margin-bottom:8px;">­ƒôä Evidencias relacionadas:</p>
+                        <ul style="margin:0; padding-left:20px; font-size:0.83rem; color:#475569;">
+                        ${cd.evidencias.slice(0, 8).map(ev =>
+                            `<li>${ev.nombre}</li>`
+                        ).join('')}
+                        ${cd.evidencias.length > 8 ? `<li style="color:#94a3b8;">...y ${cd.evidencias.length - 8} m├ís</li>` : ''}
+                        </ul></div>`;
+                }
+
+                const panelEl = document.createElement('div');
+                panelEl.className = `rrc-panel ${idx === 0 ? 'active' : ''}`;
+                panelEl.id = `rrc-panel-${cond.num}`;
+                panelEl.innerHTML = `
+                    <div class="rrc-condition-header">
+                        <div class="rrc-condition-num">${cond.num}</div>
+                        <div class="rrc-condition-title">
+                            <h3>${cond.nombre}</h3>
+                            <p>${cond.norma} &nbsp;┬À&nbsp; ${cond.descripcion}</p>
+                        </div>
+                        <div class="rrc-semaforo ${semClass}">
+                            <span>${semText}</span>
+                            ${promedio > 0 ? `<strong>${promedio.toFixed(1)}</strong>` : ''}
+                        </div>
+                    </div>
+
+                    ${tieneFactores
+                        ? `<p style="font-size:0.83rem;font-weight:700;color:#475569;margin-bottom:6px;">Factores de autoevaluaci├│n relacionados:</p>
+                           <div class="rrc-factors-row">${factoresChips || '<span style="color:#94a3b8;font-size:0.82rem;">Sin factores asignados</span>'}</div>`
+                        : `<div style="padding:14px;background:#fffbeb;border-radius:8px;margin-bottom:14px;font-size:0.87rem;color:#92400e;">
+                            ÔÜá´©Å No se encontraron factores de autoevaluaci├│n directamente relacionados con esta condici├│n. Complete el modelo de evaluaci├│n para obtener datos.
+                           </div>`
+                    }
+
+                    <p style="font-weight:700; color:#1e293b; margin-bottom:10px;">Indicadores normativos (Res. 0529):</p>
+                    ${indHtml}
+
+                    ${cd.justificaciones.length > 0
+                        ? `<div style="margin-top:16px;padding:16px;background:#f0f4ff;border-radius:10px;border-left:4px solid #2563eb;">
+                            <p style="font-weight:700;color:#1e293b;margin:0 0 8px;">Justificaci├│n del equipo de autoevaluaci├│n:</p>
+                            <p style="font-size:0.88rem;color:#374151;margin:0;line-height:1.6;">${cd.justificaciones.join(' | ').slice(0, 600)}${cd.justificaciones.join(' ').length > 600 ? '...' : ''}</p>
+                          </div>`
+                        : ''
+                    }
+
+                    ${iaHtml}
+                    ${evidHtml}
+                `;
+                panelsEl.appendChild(panelEl);
+            });
+
+            // Si hay resumen ejecutivo (condici├│n 0)
+            if (analisisIA[0]) {
+                const resumenHtml = analisisIA[0]
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+                const resumenPanel = document.createElement('div');
+                resumenPanel.style.cssText = 'margin-top:24px;padding:24px;background:linear-gradient(135deg,#f0f7ff,#e8f0fe);border-radius:14px;border:1px solid #bfdbfe;';
+                resumenPanel.innerHTML = `<h3 style="color:#1e293b;margin-bottom:12px;"> Resumen Ejecutivo RRC</h3><div style="font-size:0.9rem;line-height:1.7;color:#374151;">${resumenHtml}</div>`;
+                panelsEl.appendChild(resumenPanel);
+            }
+
+            // Mostrar contenido
+            document.getElementById('rrcLoading').classList.remove('active');
+            document.getElementById('rrcContent').style.display = 'block';
+        }
+
+        function cambiarTabRRC(numCondicion) {
+            document.querySelectorAll('.rrc-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.rrc-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`rrc-tab-${numCondicion}`).classList.add('active');
+            document.getElementById(`rrc-panel-${numCondicion}`).classList.add('active');
+        }
+
+        function imprimirRRC() {
+            if (!_rrcCondData) {
+                alert('Primero genera el soporte antes de imprimir.');
+                return;
+            }
+
+            const fecha     = new Date().toLocaleDateString('es-CO', { year:'numeric', month:'long', day:'numeric' });
+            const progName  = _rrcProgName || 'Programa Acad├®mico';
+            const instName  = _rrcInstName || 'Instituci├│n';
+
+            const estilos = `
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+                * { box-sizing:border-box; margin:0; padding:0; }
+                body { font-family:'Inter',Arial,sans-serif; font-size:10.5pt; color:#1e293b; line-height:1.65; }
+
+                /* Portada */
+                .portada { background:linear-gradient(135deg,#0f2c6e,#2563eb); color:white;
+                           padding:50px 50px 40px; margin-bottom:0; page-break-after:always; }
+                .portada h1 { font-size:24pt; font-weight:800; margin-bottom:10px; }
+                .portada h2 { font-size:16pt; font-weight:600; margin-bottom:6px; opacity:0.9; }
+                .portada p  { font-size:11pt; opacity:0.8; margin-top:4px; }
+                .portada .normas { margin-top:30px; display:flex; gap:10px; flex-wrap:wrap; }
+                .norma-tag { background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.35);
+                             padding:5px 14px; border-radius:20px; font-size:9pt; font-weight:600; }
+
+                /* Estructura general */
+                .contenido { padding:30px 45px; }
+                .condicion-bloque { border-top:3px solid #2563eb; padding:24px 0 20px;
+                                    margin-bottom:10px; page-break-inside:avoid; }
+                .condicion-bloque:first-child { border-top:none; }
+
+                /* Cabecera condici├│n */
+                .cond-header { display:flex; align-items:center; gap:14px; margin-bottom:16px;
+                               padding:14px 18px; border-radius:10px;
+                               background:linear-gradient(135deg,#f0f7ff,#e8f0fe); }
+                .cond-num { width:44px; height:44px; background:#2563eb; color:white;
+                            border-radius:10px; display:flex; align-items:center;
+                            justify-content:center; font-size:16pt; font-weight:800;
+                            flex-shrink:0; }
+                .cond-titulo { flex:1; }
+                .cond-titulo h2 { font-size:13pt; font-weight:800; color:#1e293b;
+                                  margin:0 0 2px; border:none; padding:0; }
+                .cond-titulo p  { font-size:8.5pt; color:#64748b; margin:0; }
+
+                /* Sem├íforo */
+                .semaforo { padding:6px 16px; border-radius:20px; font-weight:700;
+                            font-size:9pt; flex-shrink:0; white-space:nowrap; }
+                .sem-verde    { background:#dcfce7; color:#166534; }
+                .sem-amarillo { background:#fef9c3; color:#854d0e; }
+                .sem-rojo     { background:#fee2e2; color:#991b1b; }
+                .sem-gris     { background:#f1f5f9; color:#475569; }
+
+                /* Factores chips */
+                .factores-row { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 14px; }
+                .factor-chip { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;
+                               padding:3px 11px; border-radius:20px; font-size:8pt; font-weight:600; }
+
+                /* Indicadores */
+                .indicadores-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; }
+                .ind-item { display:flex; gap:8px; align-items:flex-start;
+                            padding:9px 12px; border-radius:8px; font-size:9pt; }
+                .ind-ok   { background:#f0fdf4; border:1px solid #bbf7d0; }
+                .ind-warn { background:#fffbeb; border:1px solid #fde68a; }
+                .ind-miss { background:#fff7f7; border:1px solid #fecaca; }
+                .ind-icon { font-size:11pt; flex-shrink:0; }
+                .ind-text { color:#374151; font-weight:600; }
+
+                /* Secci├│n justificaci├│n */
+                .just-box { background:#f0f4ff; border-left:4px solid #2563eb;
+                            padding:12px 16px; border-radius:6px; margin:12px 0;
+                            font-style:italic; font-size:9.5pt; color:#374151; }
+                .just-box strong { display:block; margin-bottom:4px; font-style:normal; color:#1e293b; }
+
+                /* An├ílisis IA */
+                .ia-box { background:linear-gradient(135deg,#faf5ff,#f0f4ff);
+                          border:1px solid #ddd6fe; border-radius:10px;
+                          padding:16px 18px; margin:14px 0; }
+                .ia-box h4 { color:#6d28d9; font-size:10pt; margin-bottom:8px; }
+                .ia-box p  { font-size:9.5pt; color:#374151; line-height:1.65; }
+
+                /* Evidencias */
+                .evid-lista { margin:10px 0; padding-left:18px; font-size:9pt; color:#475569; }
+
+                /* Tabla resumen final */
+                .tabla-resumen { width:100%; border-collapse:collapse; margin:20px 0; font-size:9.5pt; }
+                .tabla-resumen th { background:#1e3a8a; color:white; padding:9px 12px; text-align:left; }
+                .tabla-resumen td { padding:8px 12px; border-bottom:1px solid #e2e8f0; }
+                .tabla-resumen tr:nth-child(even) td { background:#f8fafc; }
+
+                section h3 { font-size:11pt; color:#1e293b; font-weight:700; margin:14px 0 6px;
+                             border-bottom:1px solid #e2e8f0; padding-bottom:4px; }
+
+                @media print {
+                    body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+                    .portada { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+                    .condicion-bloque { page-break-inside:avoid; }
+                    .cond-header, .ia-box, .ind-ok, .ind-warn, .ind-miss,
+                    .sem-verde, .sem-amarillo, .sem-rojo {
+                        -webkit-print-color-adjust:exact; print-color-adjust:exact;
+                    }
+                }
+            `;
+
+            // Construir bloques de condiciones
+            let condicionesHtml = '';
+            let filasTablaSub  = '';
+
+            RRC_CONDICIONES.forEach(cond => {
+                const cd = _rrcCondData[cond.num];
+                if (!cd) return;
+
+                const prom = cd.promedio;
+                const tieneF = cd.factoresRelacionados.length > 0;
+
+                let semClass = 'sem-gris'; let semText = 'Sin datos evaluados';
+                if (tieneF) {
+                    if      (prom >= 4.5) { semClass='sem-verde';    semText='Cumple plenamente'; }
+                    else if (prom >= 4.0) { semClass='sem-verde';    semText='Cumple en alto grado'; }
+                    else if (prom >= 3.0) { semClass='sem-amarillo'; semText='Cumple aceptablemente'; }
+                    else if (prom > 0)    { semClass='sem-rojo';     semText='En proceso de cumplimiento'; }
+                    else                 { semClass='sem-amarillo'; semText='Revisar'; }
+                }
+
+                // Chips de factores
+                const chips = cd.factoresRelacionados.map(f =>
+                    `<span class="factor-chip">F${f.numero}: ${f.nombre} (${f.promedio.toFixed(1)})</span>`
+                ).join('');
+
+                // Indicadores
+                let indsHtml = '<div class="indicadores-grid">';
+                cond.indicadores.forEach(ind => {
+                    const ok  = cd.indicadoresCubiertos.includes(ind.texto);
+                    const cls = ok ? 'ind-ok' : (tieneF ? 'ind-warn' : 'ind-miss');
+                    const ico = ok ? 'Ô£à' : (tieneF ? 'ÔÜá´©Å' : 'ÔØî');
+                    indsHtml += `<div class="ind-item ${cls}"><span class="ind-icon">${ico}</span><span class="ind-text">${ind.texto}</span></div>`;
+                });
+                indsHtml += '</div>';
+
+                // Soporte documental (HTML editable del panel del DOM)
+                const panelEl = document.getElementById(`rrc-panel-${cond.num}`);
+                let iaHtml = '';
+                if (panelEl) {
+                    const iaEl = panelEl.querySelector('.ai-content');
+                    if (iaEl && iaEl.innerHTML.trim() !== '') {
+                        iaHtml = `<div class="ia-box"><h4>* Soporte Normativo & An├ílisis de Calidad</h4><div>${iaEl.innerHTML}</div></div>`;
+                    }
+                }
+
+                // Justificaci├│n
+                const justHtml = cd.justificaciones.length > 0
+                    ? `<div class="just-box"><strong>Justificaci├│n del equipo de autoevaluaci├│n:</strong>${cd.justificaciones.join(' | ').slice(0,700)}</div>`
+                    : '';
+
+                // Evidencias
+                let evidHtml = '';
+                if (cd.evidencias.length > 0) {
+                    evidHtml = `<p style="font-weight:700;font-size:9pt;margin:10px 0 4px;">­ƒôä Evidencias relacionadas:</p>
+                    <ul class="evid-lista">${cd.evidencias.slice(0,10).map(e=>`<li><a href="javascript:void(0)" onclick="abrirVisor('${e.url || ''}', '${e.nombre}')" style="color:#2563eb;text-decoration:none;">­ƒæü´©Å ${e.nombre}</a></li>`).join('')}</ul>`;
+                }
+
+                // Aviso sin datos
+                const sinDatosMsg = !tieneF
+                    ? `<p style="background:#fffbeb;border-radius:6px;padding:10px 14px;font-size:9pt;color:#92400e;margin:10px 0;">ÔÜá´©Å No se encontraron factores de autoevaluaci├│n directamente relacionados. Complete el modelo de evaluaci├│n para enriquecer este an├ílisis.</p>`
+                    : '';
+
+                condicionesHtml += `
+                <div class="condicion-bloque">
+                    <div class="cond-header">
+                        <div class="cond-num">${cond.num}</div>
+                        <div class="cond-titulo">
+                            <h2>Condici├│n ${cond.num}: ${cond.nombre}</h2>
+                            <p>${cond.norma} &nbsp;┬À&nbsp; ${cond.descripcion}</p>
+                        </div>
+                        <span class="semaforo ${semClass}">${semText}${prom > 0 ? ' &nbsp;'+prom.toFixed(1) : ''}</span>
+                    </div>
+
+                    ${sinDatosMsg}
+
+                    ${tieneF ? `<p style="font-size:8.5pt;font-weight:700;color:#64748b;margin-bottom:6px;">Factores de autoevaluaci├│n relacionados:</p>
+                    <div class="factores-row">${chips}</div>` : ''}
+
+                    <section>
+                        <h3>Indicadores normativos (Res. 0529)</h3>
+                        ${indsHtml}
+                    </section>
+
+                    ${justHtml}
+                    ${iaHtml}
+                    ${evidHtml}
+                </div>`;
+
+                filasTablaSub += `
+                <tr>
+                    <td><strong>${cond.num}. ${cond.nombre}</strong></td>
+                    <td>${cond.norma}</td>
+                    <td><span class="semaforo ${semClass}" style="padding:3px 10px;">${semText}</span></td>
+                    <td style="text-align:center;">${prom > 0 ? prom.toFixed(1) : 'ÔÇö'}</td>
+                </tr>`;
+            });
+
+            const htmlDoc = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Soporte RRC ÔÇö ${progName}</title>
+  <style>${estilos}</style>
+</head>
+<body>
+
+  <!-- PORTADA -->
+  <div class="portada">
+    <h1>Soporte para Renovaci├│n de Registro Calificado</h1>
+    <h2>${progName}</h2>
+    <p>${instName}</p>
+    <p style="margin-top:6px;">Fecha de generaci├│n: ${fecha} &nbsp;┬À&nbsp; Elaborado con SKEL SIAC</p>
+    <div class="normas">
+      <span class="norma-tag">Decreto 1330 de 2019</span>
+      <span class="norma-tag">Resoluci├│n 0529 MEN</span>
+      <span class="norma-tag">9 Condiciones de Calidad</span>
+    </div>
+  </div>
+
+  <!-- RESUMEN EJECUTIVO -->
+  <div class="contenido">
+    <h2 style="font-size:14pt;font-weight:800;color:#1e3a8a;margin-bottom:16px;border-bottom:2px solid #2563eb;padding-bottom:6px;">Resumen Ejecutivo ÔÇö Estimaci├│n de Cumplimiento</h2>
+    <table class="tabla-resumen">
+      <thead><tr>
+        <th style="width:30%;">Condici├│n</th>
+        <th style="width:30%;">Referencia Normativa</th>
+        <th style="width:27%;">Estimaci├│n</th>
+        <th style="width:13%;text-align:center;">Promedio</th>
+      </tr></thead>
+      <tbody>${filasTablaSub}</tbody>
+    </table>
+
+    <p style="margin:18px 0 30px;font-size:9pt;color:#64748b;background:#f8fafc;padding:12px 16px;border-radius:8px;border-left:3px solid #e2e8f0;">
+      ÔÜá´©Å Este documento es un <strong>soporte de construcci├│n</strong> para el proceso de Renovaci├│n de Registro Calificado.
+      Debe ser revisado y validado por el equipo acad├®mico del programa antes de presentarse al Ministerio de Educaci├│n Nacional.
+    </p>
+
+    <!-- DETALLE POR CONDICI├ôN -->
+    <h2 style="font-size:14pt;font-weight:800;color:#1e3a8a;margin-bottom:20px;border-bottom:2px solid #2563eb;padding-bottom:6px;">An├ílisis Detallado por Condici├│n</h2>
+    ${condicionesHtml}
+  </div>
+
+
+    
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const _u = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const _r = _u.role || localStorage.getItem('user_role') || '';
+    
+    // Herramientas de super administrador
+    const _adminOnly = ['admin', 'super_admin'];
+    
+    // CRM B2B link (dentro de Herramientas Gerenciales)
+    const _crm = document.getElementById('menuCrm');
+    if(_crm) _crm.style.display = _adminOnly.includes(_r) ? 'block' : 'none';
+    
+    // Capacitacion / Formacion
+    const _cap = document.getElementById('menuCapacitacion');
+    if(_cap) _cap.style.display = _adminOnly.includes(_r) ? 'block' : 'none';
+    
+    // Backup y Seguridad
+    const _bk = document.getElementById('menuBackup');
+    if(_bk) _bk.style.display = ['admin', 'super_admin', 'inst_admin', 'lider', 'empresa_admin'].includes(_r) ? 'block' : 'none';
+    
+    // Consultoria B2B section
+    const _b2b = document.getElementById('menuConsultoriaB2B');
+    if(_b2b) _b2b.style.display = ['admin', 'super_admin', 'empresa_admin'].includes(_r) ? 'block' : 'none';
+});
+<\/script>
+</body>
+
+</html>`;
+
+            abrirVentanaImpresion(htmlDoc, `Soporte RRC ÔÇö ${progName}`);
+        }
+
+        // ===================================================================
+        // FIN L├ôGICA RRC
+        // ===================================================================
+
+        // --- L├│gica Generaci├│n Informe Maestro IA ---
+        async function generarInformeIA() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('informeContainer').style.display = 'none';
+            document.getElementById('btnImprimir').style.display = 'none';
+
+            try {
+                // Fetch context data first
+                const res = await fetch(`/api/informe_dinamico?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const data = await res.json();
+                
+                const aiRes = await fetch('/api/ai/generate_report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ report_data: data })
+                });
+                const aiData = await aiRes.json();
+                
+                if (aiData.status === 'success') {
+                    renderInformeIA(aiData.report);
+                } else {
+                    alert("Error en la IA: " + (aiData.error || "No se pudo generar el informe."));
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                }
+            } catch (err) {
+                alert("Error contactando el generador IA: " + err);
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        }
+
+        function renderInformeIA(markdownText) {
+            const container = document.getElementById('informeContainer');
+            document.getElementById('informeTitulo').textContent = `INFORME MAESTRO (GENERADO POR IA)`;
+            document.getElementById('informeFecha').textContent = `Generado el: ${new Date().toLocaleDateString()}`;
+            
+            const tbody = document.querySelector('#tablaResumen tbody');
+            tbody.innerHTML = '<tr><td colspan="3"><i>Este informe ejecutivo ha sido redactado, analizado y estructurado autom├íticamente por Inteligencia Artificial en base a los registros de evaluaci├│n cualitativa y cuantitativa.</i></td></tr>';
+            
+            if (window.myRadar) {
+                window.myRadar.destroy();
+                const canvas = document.getElementById('radarChart');
+                if(canvas) canvas.style.display = 'none';
+            }
+
+            const detalleDiv = document.getElementById('detalleFactores');
+            const htmlParsed = marked.parse(markdownText);
+            detalleDiv.innerHTML = `<div style="line-height: 1.6; font-size: 1.05rem; padding: 30px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1;">${htmlParsed}</div>`;
+            
+            container.style.display = 'block';
+            document.getElementById('btnImprimir').style.display = 'inline-block';
+            document.getElementById('loadingSpinner').style.display = 'none';
+            window.currentAiReport = markdownText; // Guardar reporte en memoria para DOFA
+        }
+
+        // --- L├│gica Generaci├│n DOFA Interno ---
+        function abrirModalDOFA() {
+            document.getElementById('dofaOverlay').classList.add('open');
+            document.getElementById('dofaLoading').style.display = 'flex';
+            document.getElementById('dofaContent').style.display = 'none';
+        }
+        
+        function cerrarModalDOFA() {
+            document.getElementById('dofaOverlay').classList.remove('open');
+        }
+
+        async function generarDOFAInterno() {
+            if (!window.currentAiReport) {
+                alert("ÔÜá´©Å Primero debes generar un informe usando el bot├│n '* Generar con IA'. El an├ílisis DOFA requiere evaluar ese texto maestro para poder extraer las fortalezas y debilidades reales.");
+                return;
+            }
+
+            abrirModalDOFA();
+
+            try {
+                const aiRes = await fetch('/api/ai/generate_dofa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ report_text: window.currentAiReport })
+                });
+                
+                const aiData = await aiRes.json();
+                
+                if (aiData.status === 'success' && aiData.dofa && !aiData.dofa.error_parseo) {
+                    renderDOFA(aiData.dofa);
+                    
+                    // Auto-guardar factores DOFA internamente para uso futuro
+                    await fetch('/api/estadisticas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            table_id: 'DOFA_INTERNAL',
+                            inst_id: getInstId(),
+                            program_id: getProgramId(),
+                            data: aiData.dofa
+                        })
+                    });
+                    
+                } else {
+                    alert("Error en la IA al extraer el DOFA: " + (aiData.error || aiData.dofa?.error_parseo || "Formato de respuesta inv├ílido."));
+                    cerrarModalDOFA();
+                }
+            } catch (err) {
+                alert("Error contactando el generador de Factores DOFA: " + err);
+                cerrarModalDOFA();
+            }
+        }
+
+        // --- L├│gica Generaci├│n PESTA / DOFA Externo ---
+        function abrirModalPESTA() {
+            document.getElementById('pestaOverlay').classList.add('open');
+            document.getElementById('pestaLoading').style.display = 'flex';
+            document.getElementById('pestaContent').style.display = 'none';
+        }
+        
+        function cerrarModalPESTA() {
+            document.getElementById('pestaOverlay').classList.remove('open');
+        }
+
+        async function generarDOFAExterno() {
+            abrirModalPESTA();
+            try {
+                // Obtenemos el contexto (p.ej. Colombia o departamento)
+                // Se podr├¡a agregar un prompt din├ímico para que el usuario escriba el contexto espacial deseado
+                let ctxE = prompt("Ingresa el contexto espacial de evaluaci├│n (Ej. Colombia, Internacional, Valle del Cauca...)", "Colombia");
+                if(!ctxE) { cerrarModalPESTA(); return; } // Si cancela
+
+                const aiRes = await fetch('/api/ai/generate_pesta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        inst_id: getInstId(),
+                        program_id: getProgramId(),
+                        contexto: ctxE 
+                    })
+                });
+                
+                const aiData = await aiRes.json();
+                
+                if (aiData.status === 'success' && aiData.pesta && !aiData.pesta.error_parseo) {
+                    // Recuperar factores externos existentes para acumular
+                    let accumulatedOportunidades = aiData.pesta.oportunidades || [];
+                    let accumulatedAmenazas = aiData.pesta.amenazas || [];
+                    
+                    try {
+                        const getRes = await fetch(`/api/estadisticas?table_id=DOFA_EXTERNAL&inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                        const getResData = await getRes.json();
+                        if (getResData && getResData.data) {
+                            if (getResData.data.oportunidades) {
+                                accumulatedOportunidades = getResData.data.oportunidades.concat(accumulatedOportunidades);
+                            }
+                            if (getResData.data.amenazas) {
+                                accumulatedAmenazas = getResData.data.amenazas.concat(accumulatedAmenazas);
+                            }
+                        }
+                    } catch(e) {
+                        console.warn("No se pudieron obtener factores anteriores para acumular", e);
+                    }
+                    
+                    // Reenumerar para mantener consistencia
+                    accumulatedOportunidades.forEach((o, idx) => o.id = `O${idx+1}`);
+                    accumulatedAmenazas.forEach((a, idx) => a.id = `A${idx+1}`);
+                    
+                    aiData.pesta.oportunidades = accumulatedOportunidades;
+                    aiData.pesta.amenazas = accumulatedAmenazas;
+
+                    renderPESTA(aiData.pesta);
+                    
+                    // Auto-guardar factores externos acumulados
+                    await fetch('/api/estadisticas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            table_id: 'DOFA_EXTERNAL',
+                            inst_id: getInstId(),
+                            program_id: getProgramId(),
+                            data: {
+                                oportunidades: accumulatedOportunidades,
+                                amenazas: accumulatedAmenazas
+                            }
+                        })
+                    });
+                } else {
+                    alert("Error en la IA al generar PESTA: " + (aiData.error || aiData.pesta?.error_parseo || "Formato de respuesta inv├ílido."));
+                    cerrarModalPESTA();
+                }
+            } catch (err) {
+                alert("Error contactando el generador PESTA: " + err);
+                cerrarModalPESTA();
+            }
+        }
+
+        function renderPESTA(pestaData) {
+            document.getElementById('pestaLoading').style.display = 'none';
+            document.getElementById('pestaContent').style.display = 'block';
+            
+            // Renderizar informe PESTA markdown
+            const mdDiv = document.getElementById('pestaMarkdownReport');
+            const logoSrc = document.getElementById('inst_logo_img')?.src || '';
+            const instName = document.getElementById('inst_name_display')?.innerText || '';
+            
+            let headerHtml = '';
+            if (logoSrc && !logoSrc.endsWith('/informes.html')) {
+                headerHtml = `<div style="text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0;">
+                                <img src="${logoSrc}" alt="Logo Instituci├│n" style="max-height: 90px; object-fit: contain;">
+                                <h3 style="color: #64748b; margin-top: 10px; font-size: 1.1rem; text-transform: uppercase;">${instName}</h3>
+                              </div>`;
+            }
+
+            if(pestaData.informe_pesta) {
+                let rawText = pestaData.informe_pesta.replace(/\\n/g, '\n'); // Reemplazar saltos literales
+                mdDiv.innerHTML = headerHtml + marked.parse(rawText);
+            } else {
+                mdDiv.innerHTML = headerHtml + "<i>No se gener├│ informe detallado.</i>";
+            }
+            
+            // Renderizar listas O y A
+            const oList = document.getElementById('pestaOportunidadesList');
+            const aList = document.getElementById('pestaAmenazasList');
+            oList.innerHTML = ''; aList.innerHTML = '';
+            
+            if(pestaData.oportunidades && pestaData.oportunidades.length > 0) {
+                pestaData.oportunidades.forEach(o => {
+                    oList.innerHTML += `<div style="background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #0ea5e9; border-radius: 4px;"><strong>${o.id}</strong>: ${o.descripcion}</div>`;
+                });
+            } else { oList.innerHTML = '<i>No se identificaron oportunidades.</i>'; }
+            
+            if(pestaData.amenazas && pestaData.amenazas.length > 0) {
+                pestaData.amenazas.forEach(a => {
+                    aList.innerHTML += `<div style="background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #f59e0b; border-radius: 4px;"><strong>${a.id}</strong>: ${a.descripcion}</div>`;
+                });
+            } else { aList.innerHTML = '<i>No se identificaron amenazas.</i>'; }
+        }
+
+        function imprimirPESTA() {
+            const contenido = document.getElementById('pestaMarkdownReport').innerHTML;
+            const win = window.open('', '_blank', 'width=900,height=700');
+            win.document.write(`
+                <html><head>
+                <title>Informe PESTA</title>
+                <style>
+                    body { font-family: 'Inter', sans-serif; padding: 40px; color: #333; line-height:1.6; }
+                    h1, h2, h3 { color: #0284c7; }
+                </style>
+                </head><body>
+                ${contenido}
+                <script>window.onload = function() { setTimeout(()=> { window.print(); }, 500); }<\/script>
+                
+    
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const _u = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const _r = _u.role || localStorage.getItem('user_role') || '';
+    
+    // Herramientas de super administrador
+    const _adminOnly = ['admin', 'super_admin'];
+    
+    // CRM B2B link (dentro de Herramientas Gerenciales)
+    const _crm = document.getElementById('menuCrm');
+    if(_crm) _crm.style.display = _adminOnly.includes(_r) ? 'block' : 'none';
+    
+    // Capacitacion / Formacion
+    const _cap = document.getElementById('menuCapacitacion');
+    if(_cap) _cap.style.display = _adminOnly.includes(_r) ? 'block' : 'none';
+    
+    // Backup y Seguridad
+    const _bk = document.getElementById('menuBackup');
+    if(_bk) _bk.style.display = ['admin', 'super_admin', 'inst_admin', 'lider', 'empresa_admin'].includes(_r) ? 'block' : 'none';
+    
+    // Consultoria B2B section
+    const _b2b = document.getElementById('menuConsultoriaB2B');
+    if(_b2b) _b2b.style.display = ['admin', 'super_admin', 'empresa_admin'].includes(_r) ? 'block' : 'none';
+});
+<\/script>
+<!-- MODAL PERMISOS -->
+<div class="modal-overlay" id="permisosOverlay">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3>Configurar Permisos de Rol</h3>
+            <button class="close-btn" onclick="cerrarModalPermisos()">├ù</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 15px; font-size: 0.9rem; color: #64748b;">Selecciona qu├® roles pueden ver y usar este elemento:</p>
+            <input type="hidden" id="currentPermNodeId">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <label><input type="checkbox" class="perm-role-cb" value="super_admin"> Super Admin</label>
+                <label><input type="checkbox" class="perm-role-cb" value="admin"> Administrador</label>
+                <label><input type="checkbox" class="perm-role-cb" value="lider"> L├¡der</label>
+                <label><input type="checkbox" class="perm-role-cb" value="operador"> Operador</label>
+                <label><input type="checkbox" class="perm-role-cb" value="docente"> Docente</label>
+                <label><input type="checkbox" class="perm-role-cb" value="estudiante"> Estudiante</label>
+                <label><input type="checkbox" class="perm-role-cb" value="empresa_admin"> Empresa Admin</label>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn-primary" onclick="guardarPermisosNodo()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let _globalPermissions = {};
+    let _permEditMode = false;
+    let _userRole = '';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+        _userRole = user.role || '';
+        
+        // Cargar permisos globales desde la DB
+        try {
+            const instId = getInstId();
+            const progId = getProgramId();
+            const res = await fetch(`/api/permissions/form?inst_id=${instId}&program_id=${progId}`);
+            const data = await res.json();
+            if(data.status === 'success') {
+                _globalPermissions = data.permissions || {};
+            }
+        } catch(e) {
+            console.error("Error al cargar permisos:", e);
+        }
+
+        // Aplicar permisos
+        aplicarPermisosEnUI();
+
+        // Agregar bot├│n de "Modo Edici├│n Permisos" si es super_admin
+        if(_userRole === 'super_admin' || _userRole === 'admin') {
+            const btnPerm = document.createElement('button');
+            btnPerm.className = 'btn-secondary';
+            btnPerm.innerText = 'ÔÜÖ´©Å Configurar Permisos';
+            btnPerm.style.position = 'fixed';
+            btnPerm.style.bottom = '20px';
+            btnPerm.style.right = '20px';
+            btnPerm.style.zIndex = '9999';
+            btnPerm.onclick = togglePermEditMode;
+            document.body.appendChild(btnPerm);
+        }
+    });
+
+    function aplicarPermisosEnUI() {
+        const nodes = document.querySelectorAll('[data-permission-node]');
+        nodes.forEach(node => {
+            const nodeId = node.getAttribute('data-permission-node');
+            const allowedRoles = _globalPermissions[nodeId];
+            
+            // Si no hay roles restrictivos configurados, todos los botones permanecen 100% visibles y funcionales
+            if(allowedRoles && Array.isArray(allowedRoles) && allowedRoles.length > 0) {
+                if(!allowedRoles.includes(_userRole) && _userRole !== 'super_admin' && _userRole !== 'admin') {
+                    node.style.display = 'none';
+                } else {
+                    node.style.display = 'inline-flex';
+                }
+            } else {
+                // Habilitado por defecto para todos
+                if (node.id === 'btnImprimir') node.style.display = 'inline-flex';
+                else node.style.display = '';
+            }
+        });
+    }
+
+    function togglePermEditMode() {
+        _permEditMode = !_permEditMode;
+        const nodes = document.querySelectorAll('[data-permission-node]');
+        
+        if(_permEditMode) {
+            Swal.fire('Modo Permisos', 'Haz click sobre cualquier bot├│n/elemento marcado con borde punteado para configurar sus permisos.', 'info');
+            nodes.forEach(node => {
+                node.dataset.originalBorder = node.style.border || '';
+                node.dataset.originalOnclick = node.getAttribute('onclick') || '';
+                node.style.border = '2px dashed #f59e0b';
+                
+                // Override click
+                node.removeAttribute('onclick');
+                node.addEventListener('click', onNodeClickForPerm);
+            });
+        } else {
+            nodes.forEach(node => {
+                node.style.border = node.dataset.originalBorder || '';
+                node.removeEventListener('click', onNodeClickForPerm);
+                if(node.dataset.originalOnclick) {
+                    node.setAttribute('onclick', node.dataset.originalOnclick);
+                }
+            });
+            aplicarPermisosEnUI();
+        }
+    }
+
+    function onNodeClickForPerm(e) {
+        if(!_permEditMode) return;
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const nodeId = e.currentTarget.getAttribute('data-permission-node');
+        abrirModalPermisos(nodeId);
+    }
+
+    function abrirModalPermisos(nodeId) {
+        document.getElementById('currentPermNodeId').value = nodeId;
+        const allowedRoles = _globalPermissions[nodeId] || [];
+        
+        document.querySelectorAll('.perm-role-cb').forEach(cb => {
+            cb.checked = allowedRoles.includes(cb.value);
+        });
+        
+        document.getElementById('permisosOverlay').classList.add('open');
+    }
+
+    function cerrarModalPermisos() {
+        document.getElementById('permisosOverlay').classList.remove('open');
+    }
+
+    async function guardarPermisosNodo() {
+        const nodeId = document.getElementById('currentPermNodeId').value;
+        const selected = [];
+        document.querySelectorAll('.perm-role-cb:checked').forEach(cb => {
+            selected.push(cb.value);
+        });
+        
+        _globalPermissions[nodeId] = selected;
+        
+        try {
+            const instId = getInstId();
+            const progId = getProgramId();
+            await fetch('/api/permissions/form', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ inst_id: instId, program_id: progId, permissions: _globalPermissions })
+            });
+            Swal.fire('Guardado', 'Permisos actualizados para este elemento.', 'success');
+            cerrarModalPermisos();
+        } catch(e) {
+            Swal.fire('Error', 'No se pudieron guardar los permisos', 'error');
+        }
+    }
+</script>
+
+</body>
+</html>
+            `);
+            win.document.close();
+        }
+
+        function renderDOFA(dofaData) {
+            document.getElementById('dofaLoading').style.display = 'none';
+            document.getElementById('dofaContent').style.display = 'block';
+            
+            const fList = document.getElementById('dofaFortalezasList');
+            const dList = document.getElementById('dofaDebilidadesList');
+            fList.innerHTML = ''; dList.innerHTML = '';
+            
+            if(dofaData.fortalezas && dofaData.fortalezas.length > 0) {
+                // Ordenar por importancia (1 es la m├ís alta)
+                dofaData.fortalezas.sort((a,b) => a.importancia - b.importancia).forEach(f => {
+                    fList.innerHTML += `<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px;">
+                        <strong style="color:#059669; font-size:1.1rem;">${f.id}</strong> <span style="font-size:0.8rem; background:#d1fae5; color:#065f46; padding:2px 6px; border-radius:12px; margin-left:5px;">Prioridad ${f.importancia}</span>
+                        <div style="margin-top:6px; font-size:0.95rem; color:#334155; line-height:1.5;">${f.descripcion}</div>
+                    </div>`;
+                });
+            } else {
+                fList.innerHTML = '<p style="color:#64748b; font-size:0.9rem;">No se identificaron fortalezas claras.</p>';
+            }
+
+            if(dofaData.debilidades && dofaData.debilidades.length > 0) {
+                // Ordenar por importancia
+                dofaData.debilidades.sort((a,b) => a.importancia - b.importancia).forEach(d => {
+                    dList.innerHTML += `<div style="background:#fff1f2; border:1px solid #ffe4e6; padding:12px; border-radius:8px;">
+                        <strong style="color:#dc2626; font-size:1.1rem;">${d.id}</strong> <span style="font-size:0.8rem; background:#fee2e2; color:#991b1b; padding:2px 6px; border-radius:12px; margin-left:5px;">Prioridad ${d.importancia}</span>
+                        <div style="margin-top:6px; font-size:0.95rem; color:#334155; line-height:1.5;">${d.descripcion}</div>
+                    </div>`;
+                });
+            } else {
+                dList.innerHTML = '<p style="color:#64748b; font-size:0.9rem;">No se identificaron debilidades claras.</p>';
+            }
+        }
+        
+        function speakColombianVoice(text) {
+            if (!('speechSynthesis' in window)) return;
+            
+            // Remove markdown formatting for speech
+            let cleanText = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/#/g, '');
+            
+            window.speechSynthesis.cancel();
+            window.margyUtterance = new SpeechSynthesisUtterance(cleanText);
+            window.margyUtterance.lang = 'es-CO';
+            
+            const voices = window.speechSynthesis.getVoices();
+            // Try to find a specific Colombian or Latin voice
+            let selectedVoice = voices.find(v => v.lang === 'es-CO' && (v.name.includes('Google') || v.name.includes('Microsoft')));
+            if (!selectedVoice) selectedVoice = voices.find(v => v.lang === 'es-CO');
+            if (!selectedVoice) selectedVoice = voices.find(v => v.lang.startsWith('es-') && v.lang !== 'es-ES');
+            
+            if (selectedVoice) {
+                window.margyUtterance.voice = selectedVoice;
+            }
+            
+            window.speechSynthesis.speak(window.margyUtterance);
+        }
+
+        // Initialize voices on load to prevent delay when first needed
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+        }
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+
+<script>
+(function(){
+    const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const role = user.role || localStorage.getItem('user_role') || '';
+    if(['admin', 'super_admin', 'inst_admin', 'lider'].includes(role)){
+        const b = document.getElementById('menuBackup');
+        if(b) b.style.display = 'block';
+    }
+})();
+</script>
+
+    
+<script>
+function toggleSidebarGroup(element) {
+const group = element.parentElement;
+const allGroups = document.querySelectorAll('.sidebar-group');
+allGroups.forEach(g => {
+if(g !== group) g.classList.remove('active');
+});
+group.classList.toggle('active');
+}
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const _u = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    const _r = _u.role || localStorage.getItem('user_role') || '';
+    
+    // Herramientas de super administrador
+    const _adminOnly = ['admin', 'super_admin'];
+    
+    // CRM B2B link (dentro de Herramientas Gerenciales)
+    const _crm = document.getElementById('menuCrm');
+    if(_crm) _crm.style.display = _adminOnly.includes(_r) ? 'block' : 'none';
+    
+    // Capacitacion / Formacion
+    const _cap = document.getElementById('menuCapacitacion');
+    if(_cap) _cap.style.display = _adminOnly.includes(_r) ? 'block' : 'none';
+    
+    // Backup y Seguridad
+    const _bk = document.getElementById('menuBackup');
+    if(_bk) _bk.style.display = ['admin', 'super_admin', 'inst_admin', 'lider', 'empresa_admin'].includes(_r) ? 'block' : 'none';
+    
+    // Consultoria B2B section
+    const _b2b = document.getElementById('menuConsultoriaB2B');
+    if(_b2b) _b2b.style.display = ['admin', 'super_admin', 'empresa_admin'].includes(_r) ? 'block' : 'none';
+});
+</script>
+</body>
+
+</html>
+
+
         // ===================================================================
         // FIN LÓGICA RRC
         // ===================================================================
