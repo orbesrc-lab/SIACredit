@@ -13,11 +13,8 @@
     (function() {
         try {
             const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
-            const role = (user.role || '').toLowerCase();
-            const allowed = ['admin', 'superadmin', 'super-admin', 'inst_admin'];
-            if (!user.role || !allowed.includes(role)) {
-                alert('Acceso Denegado: El módulo de Configuración es de uso exclusivo para Administradores de la plataforma.');
-                window.location.href = 'dashboard.html';
+            if (!user || !user.email) {
+                window.location.href = '/login.html';
             }
         } catch(e) {}
     })();

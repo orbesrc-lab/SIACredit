@@ -93,19 +93,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 4. VERIFICAR ACCESO A LA PÁGINA ACTUAL
             const requiredModule = pageToModuleMap[currentPage];
             
-            // Regla estricta: Configuración y Herramientas Gerenciales solo para superadmin (admin) y administrador institucional (inst_admin)
-            if (['configuracion.html', 'biblioteca.html', 'crm.html', 'backup.html'].includes(currentPage) || requiredModule === 'configuracion' || requiredModule === 'herramientas') {
-                if (!['admin', 'superadmin', 'super_admin', 'inst_admin'].includes(mappedRole)) {
-                    const moduleName = (currentPage === 'configuracion.html' || requiredModule === 'configuracion') ? 'Configuración' : 'Herramientas Gerenciales';
+            // Configuración se gestiona internamente por applyRoleScoping en configuracion.html
+            if (currentPage === 'configuracion.html' || requiredModule === 'configuracion') {
+                return;
+            }
+
+            // Regla para Herramientas Gerenciales
+            if (['biblioteca.html', 'crm.html', 'backup.html'].includes(currentPage) || requiredModule === 'herramientas') {
+                if (!['admin', 'superadmin', 'super_admin', 'inst_admin', 'lider', 'consultor'].includes(mappedRole)) {
                     if (typeof Swal !== 'undefined') {
                         await Swal.fire({
                             icon: 'error',
                             title: 'Acceso Denegado',
-                            text: `El módulo de ${moduleName} es de uso exclusivo para Administradores de la plataforma.`,
+                            text: 'El módulo de Herramientas Gerenciales es de uso exclusivo para Administradores.',
                             confirmButtonColor: '#3b82f6'
                         });
                     } else {
-                        alert(`Acceso Denegado: El módulo de ${moduleName} es de uso exclusivo para Administradores de la plataforma.`);
+                        alert('Acceso Denegado: El módulo de Herramientas Gerenciales es de uso exclusivo para Administradores.');
                     }
                     window.location.href = 'dashboard.html';
                     return;
