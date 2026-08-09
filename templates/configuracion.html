@@ -607,16 +607,16 @@
                     </div>
                 </div>
 
-                <!-- Tarjeta 3: Organización & Institución -->
-                <div class="config-hub-card" onclick="showConfigCategory('organizacion')" data-keywords="organizacion institucion universidad logo sedes partners aliados multi-tenant">
+                <!-- Tarjeta 3: Organización & Datos Institucionales -->
+                <div class="config-hub-card" onclick="showConfigCategory('organizacion')" data-keywords="organizacion institucion universidad logo sedes datos representante multi-tenant">
                     <div>
                         <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: #ffffff;">🏛️</div>
                         <div class="config-hub-card-title">
-                            <span>Organización & Aliados</span>
+                            <span>Organización & Datos</span>
                             <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
                         </div>
                         <div class="config-hub-card-desc">
-                            Administra datos de tu institución, logos para reportes, sedes activas e instituciones aliadas en la plataforma.
+                            Administra datos de tu institución, NIT, logo institucional para reportes, sedes activas y representantes.
                         </div>
                     </div>
                     <div class="config-hub-card-footer">
@@ -680,7 +680,7 @@
                 </div>
 
                 <!-- Tarjeta 7: Apariencia & Landing Page -->
-                <div class="config-hub-card" onclick="showConfigCategory('apariencia')" data-keywords="apariencia tema oscuro claro esmeralda oceano landing page carrusel fotos imagenes">
+                <div class="config-hub-card" onclick="showConfigCategory('apariencia')" data-keywords="apariencia tema oscuro claro esmeralda oceano landing page carrusel fotos imagenes aliados partners instituciones aliadas">
                     <div>
                         <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff;">🎨</div>
                         <div class="config-hub-card-title">
@@ -688,7 +688,7 @@
                             <i class="fas fa-chevron-right" style="font-size: 0.8rem; color: #94a3b8;"></i>
                         </div>
                         <div class="config-hub-card-desc">
-                            Personaliza los colores de la landing page (Oscuro, Claro, Esmeralda, Océano) y administra el carrusel de imágenes.
+                            Personaliza colores de la landing page, carrusel de fotos y gestión de Instituciones Aliadas (Partners).
                         </div>
                     </div>
                     <div class="config-hub-card-footer">
@@ -1009,32 +1009,7 @@
                     <button class="btn-primary" onclick="saveInstitution()" style="margin-top: 10px;">Guardar Institución</button>
                 </div>
 
-                <!-- Gestión de Aliados/Partners (Solo para Superadmins) -->
-                <div id="partnersCard" class="settings-card" data-role-restricted="admin-only" style="display: block; border-left: 5px solid #8b5cf6;">
-                    <h3>Gestión de Instituciones Aliadas (Partners)</h3>
-                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Agrega logos y enlaces de aliados para mostrar en el carrusel de la página principal.</p>
-                    
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Nombre del Aliado</label>
-                            <input type="text" id="partner_name" placeholder="Ej: Universidad de Ejemplo">
-                        </div>
-                        <div class="form-group">
-                            <label>URL (Enlace)</label>
-                            <input type="url" id="partner_url" placeholder="https://...">
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Logo del Aliado (Imagen)</label>
-                            <input type="file" id="partner_logo_file" accept="image/*" style="padding: 10px; background: white; border-radius: 8px; width: 100%;">
-                        </div>
-                    </div>
-                    <button class="btn-primary" onclick="addPartner()" style="margin-top: 10px;">Guardar Aliado</button>
-                    
-                    <h4 style="margin-top: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">Aliados Actuales</h4>
-                    <div class="user-list" id="partnersList">
-                        <div style="padding: 20px; text-align: center; color: var(--text-muted);">Cargando aliados...</div>
-                    </div>
-                </div>
+
             </div>
 
             <!-- CATEGORÍA 4: PROGRAMAS ACADÉMICOS -->
@@ -1304,6 +1279,33 @@
                         </div>
                     </div>
                     <button class="btn-primary" onclick="saveGlobalSettings()" style="margin-top: 15px;">Guardar Configuración Global</button>
+                </div>
+
+                <!-- Gestión de Aliados/Partners (Solo para Superadmins) -->
+                <div id="partnersCard" class="settings-card" data-role-restricted="admin-only" style="display: block; border-left: 5px solid #8b5cf6;">
+                    <h3>Gestión de Instituciones Aliadas (Partners)</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Agrega logos y enlaces de aliados para mostrar en el carrusel de la página principal.</p>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre del Aliado</label>
+                            <input type="text" id="partner_name" placeholder="Ej: Universidad de Ejemplo">
+                        </div>
+                        <div class="form-group">
+                            <label>URL (Enlace)</label>
+                            <input type="url" id="partner_url" placeholder="https://...">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Logo del Aliado (Imagen)</label>
+                            <input type="file" id="partner_logo_file" accept="image/*" style="padding: 10px; background: white; border-radius: 8px; width: 100%;">
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="addPartner()" style="margin-top: 10px;">Guardar Aliado</button>
+                    
+                    <h4 style="margin-top: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">Aliados Actuales</h4>
+                    <div class="user-list" id="partnersList">
+                        <div style="padding: 20px; text-align: center; color: var(--text-muted);">Cargando aliados...</div>
+                    </div>
                 </div>
 
                 <!-- Apariencia y Temas de la Interfaz -->
