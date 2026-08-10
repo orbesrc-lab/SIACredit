@@ -1,8 +1,8 @@
-let localModelCache = [];
-let localEvidencesCache = {};
-let localEvaluationsCache = {};
-let localReportsCache = {};
-let localStatsCache = {};
+var localModelCache = window.localModelCache || [];
+var localEvidencesCache = window.localEvidencesCache || {};
+var localEvaluationsCache = window.localEvaluationsCache || {};
+var localReportsCache = window.localReportsCache || {};
+var localStatsCache = window.localStatsCache || {};
 
 function getInstId() {
     try {
