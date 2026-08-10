@@ -970,6 +970,10 @@
         let currentNodeId = null;
         let ganttChart = null;
         let expandedNodes = new Set();
+        
+        // --- NEW DRILL-DOWN STATE ---
+        let currentPath = []; // Array of { type, id, name }
+        let fullTreeData = []; // Store the full tree here
 
         document.addEventListener("DOMContentLoaded", async () => {
             const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
