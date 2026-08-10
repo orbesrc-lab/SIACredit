@@ -6,7 +6,6 @@ crm_bp = Blueprint('crm', __name__)
 
 # --- RUTAS DE PARTNERS ---
 @crm_bp.route('/api/partners', methods=['GET'])
-@require_permission('herramientas')
 def get_partners():
     try:
         res = supabase.table('partners').select("*").order("created_at", desc=False).execute()

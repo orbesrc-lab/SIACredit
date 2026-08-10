@@ -1162,7 +1162,19 @@
             renderView();
         }
 
-        function goToNode(type, id, name) {
+        function goToNode(type, id, givenName) {
+            let name = givenName || '';
+            if (!name) {
+                const key = type + '-' + id;
+                if (nodeDataMap[key] && nodeDataMap[key].data) {
+                    const d = nodeDataMap[key].data;
+                    if (type === 'axis') name = d.name || 'Eje';
+                    else if (type === 'strategy') name = 'Estrategia';
+                    else if (type === 'gen_obj') name = 'Obj. General';
+                    else if (type === 'spec_obj') name = 'Obj. Específico';
+                }
+            }
+            if (!name) name = 'Detalle';
             currentPath.push({ type, id, name });
             renderView();
         }
@@ -1202,230 +1214,239 @@
 
         function renderView() {
             const container = document.getElementById('planningTree');
-            const data = findCurrentChildren();
-            let html = renderBreadcrumbs();
+            try {
+                const data = findCurrentChildren();
+                let html = renderBreadcrumbs();
 
-            // Determine level
-            const level = currentPath.length === 0 ? 'axes' : currentPath[currentPath.length-1].type;
-            
-            if (level === 'axes') {
-                html += `<div class="toolbar-actions">
-                            <button class="btn-action-primary" onclick="addNode('axis', 0)"><i class="fas fa-plus"></i> Añadir Eje Estratégico</button>
-                         </div>`;
-                if (!data || data.length === 0) {
-                    html += `<div class="empty-state">
-                                <i class="fas fa-seedling fa-3x" style="font-size:3rem; margin-bottom:15px; color:#94a3b8;"></i>
-                                <p>No hay Ejes Estratégicos. Ve al módulo DOFA y guarda la matriz para generarlos, o crea uno manualmente.</p>
+                // Determine level
+                const level = currentPath.length === 0 ? 'axes' : currentPath[currentPath.length-1].type;
+                
+                if (level === 'axes') {
+                    html += `<div class="toolbar-actions">
+                                <button class="btn-action-primary" onclick="addNode('axis', 0)"><i class="fas fa-plus"></i> Añadir Eje Estratégico</button>
                              </div>`;
-                } else {
-                    html += `<div class="config-hub-grid">`;
-                    data.forEach(axis => {
-                        html += `
-                        <div class="config-hub-card" onclick="goToNode('axis', ${axis.id}, '${escHtml(axis.name || 'Eje')}')">
-                            <div class="card-actions" onclick="event.stopPropagation();">
-                                <button onclick="editNodeById('axis-${axis.id}', event)" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-                                <button class="del-btn" onclick="deleteNode('axis', ${axis.id}, event)" title="Eliminar"><i class="fas fa-trash"></i></button>
-                            </div>
-                            <div>
-                                <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff; font-size:1.6rem; box-shadow: 0 4px 12px rgba(59,130,246,0.4);">
-                                    🗂️
+                    if (!data || data.length === 0) {
+                        html += `<div class="empty-state">
+                                    <i class="fas fa-seedling fa-3x" style="font-size:3rem; margin-bottom:15px; color:#94a3b8;"></i>
+                                    <p>No hay Ejes Estratégicos. Ve al módulo DOFA y guarda la matriz para generarlos, o crea uno manualmente.</p>
+                                 </div>`;
+                    } else {
+                        html += `<div class="config-hub-grid">`;
+                        data.forEach(axis => {
+                            html += `
+                            <div class="config-hub-card" onclick="goToNode('axis', ${axis.id})">
+                                <div class="card-actions" onclick="event.stopPropagation();">
+                                    <button onclick="editNodeById('axis-${axis.id}', event)" title="Editar"><i class="fas fa-pencil-alt"></i> Editar</button>
+                                    <button class="del-btn" onclick="deleteNode('axis', ${axis.id}, event)" title="Eliminar"><i class="fas fa-trash"></i> Eliminar</button>
                                 </div>
-                                <div class="config-hub-card-title">
-                                    <span>${escHtml(axis.name || 'Eje Sin Nombre')}</span>
+                                <div>
+                                    <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff; font-size:1.6rem; box-shadow: 0 4px 12px rgba(59,130,246,0.4);">
+                                        🗂️
+                                    </div>
+                                    <div class="config-hub-card-title">
+                                        <span>${escHtml(axis.name || 'Eje Sin Nombre')}</span>
+                                    </div>
+                                    <div class="config-hub-card-desc">
+                                        ${escHtml((axis.description || 'Sin descripción').substring(0, 100))}${axis.description && axis.description.length > 100 ? '...' : ''}
+                                    </div>
                                 </div>
-                                <div class="config-hub-card-desc">
-                                    ${escHtml((axis.description || 'Sin descripción').substring(0, 100))}${axis.description && axis.description.length > 100 ? '...' : ''}
+                                <div class="config-hub-card-footer">
+                                    <span class="config-badge" style="background: #e0f2fe; color: #0369a1;">Eje Estratégico</span>
+                                    <span style="font-weight: 600; font-size: 0.82rem; color: #3b82f6;">Ver Estrategias →</span>
                                 </div>
-                            </div>
-                            <div class="config-hub-card-footer">
-                                <span class="config-badge" style="background: #e0f2fe; color: #0369a1;">Eje Estratégico</span>
-                                <span style="font-weight: 600; font-size: 0.82rem; color: #3b82f6;">Ver Estrategias →</span>
-                            </div>
-                        </div>`;
-                    });
-                    html += `</div>`;
+                            </div>`;
+                        });
+                        html += `</div>`;
+                    }
+                } 
+                else if (level === 'axis') {
+                    const parentId = currentPath[currentPath.length-1].id;
+                    html += `<div class="toolbar-actions">
+                                <button class="btn-action-primary" onclick="addNode('strategy', ${parentId})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
+                             </div>`;
+                    if (!data || data.length === 0) {
+                        html += `<div class="empty-state">Sin estrategias aún. Añade una para comenzar.</div>`;
+                    } else {
+                        html += `<div class="config-hub-grid">`;
+                        data.forEach(strat => {
+                            html += `
+                            <div class="config-hub-card" onclick="goToNode('strategy', ${strat.id})">
+                                <div class="card-actions" onclick="event.stopPropagation();">
+                                    <button onclick="editNodeById('strategy-${strat.id}', event)" title="Editar"><i class="fas fa-pencil-alt"></i> Editar</button>
+                                    <button class="del-btn" onclick="deleteNode('strategy', ${strat.id}, event)" title="Eliminar"><i class="fas fa-trash"></i> Eliminar</button>
+                                </div>
+                                <div>
+                                    <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #ffffff; font-size:1.6rem; box-shadow: 0 4px 12px rgba(139,92,246,0.4);">
+                                        🎯
+                                    </div>
+                                    <div class="config-hub-card-title">
+                                        <span>Estrategia (Peso: ${strat.weight_percentage}%)</span>
+                                    </div>
+                                    <div class="config-hub-card-desc">
+                                        ${escHtml(strat.description || 'Sin descripción')}
+                                    </div>
+                                </div>
+                                <div class="config-hub-card-footer">
+                                    <span class="config-badge" style="background: #f3e8ff; color: #7e22ce;">${strat.quadrant || 'MANUAL'}</span>
+                                    <span style="font-weight: 600; font-size: 0.82rem; color: #8b5cf6;">Ver Obj. Generales →</span>
+                                </div>
+                            </div>`;
+                        });
+                        html += `</div>`;
+                    }
                 }
-            } 
-            else if (level === 'axis') {
-                const parentId = currentPath[currentPath.length-1].id;
-                html += `<div class="toolbar-actions">
-                            <button class="btn-action-primary" onclick="addNode('strategy', ${parentId})"><i class="fas fa-plus"></i> Añadir Estrategia</button>
-                         </div>`;
-                if (!data || data.length === 0) {
-                    html += `<div class="empty-state">Sin estrategias aún. Añade una para comenzar.</div>`;
-                } else {
-                    html += `<div class="config-hub-grid">`;
-                    data.forEach(strat => {
-                        html += `
-                        <div class="config-hub-card" onclick="goToNode('strategy', ${strat.id}, 'Estrategia')">
-                            <div class="card-actions" onclick="event.stopPropagation();">
-                                <button onclick="editNodeById('strategy-${strat.id}', event)" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-                                <button class="del-btn" onclick="deleteNode('strategy', ${strat.id}, event)" title="Eliminar"><i class="fas fa-trash"></i></button>
-                            </div>
-                            <div>
-                                <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #ffffff; font-size:1.6rem; box-shadow: 0 4px 12px rgba(139,92,246,0.4);">
-                                    🎯
+                else if (level === 'strategy') {
+                    const parentId = currentPath[currentPath.length-1].id;
+                    html += `<div class="toolbar-actions">
+                                <button class="btn-action-primary" onclick="addNode('gen_obj', ${parentId})"><i class="fas fa-plus"></i> Añadir Obj. General</button>
+                             </div>`;
+                    if (!data || data.length === 0) {
+                        html += `<div class="empty-state">Sin objetivos generales aún.</div>`;
+                    } else {
+                        html += `<div class="config-hub-grid">`;
+                        data.forEach(gen => {
+                            html += `
+                            <div class="config-hub-card" onclick="goToNode('gen_obj', ${gen.id})">
+                                <div class="card-actions" onclick="event.stopPropagation();">
+                                    <button onclick="editNodeById('gen_obj-${gen.id}', event)" title="Editar"><i class="fas fa-pencil-alt"></i> Editar</button>
+                                    <button class="del-btn" onclick="deleteNode('gen_obj', ${gen.id}, event)" title="Eliminar"><i class="fas fa-trash"></i> Eliminar</button>
                                 </div>
-                                <div class="config-hub-card-title">
-                                    <span>Estrategia (Peso: ${strat.weight_percentage}%)</span>
-                                </div>
-                                <div class="config-hub-card-desc">
-                                    ${escHtml(strat.description || 'Sin descripción')}
-                                </div>
-                            </div>
-                            <div class="config-hub-card-footer">
-                                <span class="config-badge" style="background: #f3e8ff; color: #7e22ce;">${strat.quadrant || 'MANUAL'}</span>
-                                <span style="font-weight: 600; font-size: 0.82rem; color: #8b5cf6;">Ver Obj. Generales →</span>
-                            </div>
-                        </div>`;
-                    });
-                    html += `</div>`;
-                }
-            }
-            else if (level === 'strategy') {
-                const parentId = currentPath[currentPath.length-1].id;
-                html += `<div class="toolbar-actions">
-                            <button class="btn-action-primary" onclick="addNode('gen_obj', ${parentId})"><i class="fas fa-plus"></i> Añadir Obj. General</button>
-                         </div>`;
-                if (!data || data.length === 0) {
-                    html += `<div class="empty-state">Sin objetivos generales aún.</div>`;
-                } else {
-                    html += `<div class="config-hub-grid">`;
-                    data.forEach(gen => {
-                        html += `
-                        <div class="config-hub-card" onclick="goToNode('gen_obj', ${gen.id}, 'Obj. General')">
-                            <div class="card-actions" onclick="event.stopPropagation();">
-                                <button onclick="editNodeById('gen_obj-${gen.id}', event)" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-                                <button class="del-btn" onclick="deleteNode('gen_obj', ${gen.id}, event)" title="Eliminar"><i class="fas fa-trash"></i></button>
-                            </div>
-                            <div>
-                                <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: #ffffff; font-size:1.6rem; box-shadow: 0 4px 12px rgba(16,185,129,0.4);">
-                                    🚀
-                                </div>
-                                <div class="config-hub-card-title">
-                                    <span>Objetivo General</span>
-                                </div>
-                                <div class="config-hub-card-desc">
-                                    ${escHtml(gen.description || 'Sin descripción')}
-                                </div>
-                                ${(() => {
-                                    let alignVal = gen.alignment_pdi || '';
-                                    let isoProc = '';
-                                    let pdiText = alignVal;
-                                    if(alignVal.startsWith('[ISO: ')) {
-                                        const endIdx = alignVal.indexOf(']');
-                                        if(endIdx !== -1) {
-                                            isoProc = alignVal.substring(6, endIdx);
-                                            pdiText = alignVal.substring(endIdx + 1).trim();
+                                <div>
+                                    <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: #ffffff; font-size:1.6rem; box-shadow: 0 4px 12px rgba(16,185,129,0.4);">
+                                        🚀
+                                    </div>
+                                    <div class="config-hub-card-title">
+                                        <span>Objetivo General</span>
+                                    </div>
+                                    <div class="config-hub-card-desc">
+                                        ${escHtml(gen.description || 'Sin descripción')}
+                                    </div>
+                                    ${(() => {
+                                        let alignVal = gen.alignment_pdi || '';
+                                        let isoProc = '';
+                                        let pdiText = alignVal;
+                                        if(alignVal.startsWith('[ISO: ')) {
+                                            const endIdx = alignVal.indexOf(']');
+                                            if(endIdx !== -1) {
+                                                isoProc = alignVal.substring(6, endIdx);
+                                                pdiText = alignVal.substring(endIdx + 1).trim();
+                                            }
                                         }
-                                    }
-                                    let badges = '';
-                                    if(isoProc) {
-                                        badges += `<span style="display:inline-flex; align-items:center; gap:5px; background:linear-gradient(135deg,#2563eb,#1e40af); color:white; padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; margin-bottom:6px; margin-right:5px;"><i class="fas fa-sitemap"></i> ${escHtml(isoProc)}</span>`;
-                                    }
-                                    if(pdiText) {
-                                        badges += `<span style="display:inline-flex; align-items:center; gap:5px; background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:600; margin-bottom:6px;"><i class="fas fa-link"></i> ${escHtml(pdiText)}</span>`;
-                                    }
-                                    return badges ? `<div style="margin-bottom:10px; flex-wrap:wrap; display:flex;">${badges}</div>` : '';
-                                })()}
-                            </div>
-                            <div class="config-hub-card-footer">
-                                <span class="config-badge" style="background: #dcfce7; color: #15803d;"><i class="fas fa-project-diagram"></i> Mapa ISO 9001</span>
-                                <span style="font-weight: 600; font-size: 0.82rem; color: #10b981;">Ver Obj. Específicos →</span>
-                            </div>
-                        </div>`;
-                    });
-                    html += `</div>`;
+                                        let badges = '';
+                                        if(isoProc) {
+                                            badges += `<span style="display:inline-flex; align-items:center; gap:5px; background:linear-gradient(135deg,#2563eb,#1e40af); color:white; padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; margin-bottom:6px; margin-right:5px;"><i class="fas fa-sitemap"></i> ${escHtml(isoProc)}</span>`;
+                                        }
+                                        if(pdiText) {
+                                            badges += `<span style="display:inline-flex; align-items:center; gap:5px; background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:600; margin-bottom:6px;"><i class="fas fa-link"></i> ${escHtml(pdiText)}</span>`;
+                                        }
+                                        return badges ? `<div style="margin-bottom:10px; flex-wrap:wrap; display:flex;">${badges}</div>` : '';
+                                    })()}
+                                </div>
+                                <div class="config-hub-card-footer">
+                                    <span class="config-badge" style="background: #dcfce7; color: #15803d;"><i class="fas fa-project-diagram"></i> Mapa ISO 9001</span>
+                                    <span style="font-weight: 600; font-size: 0.82rem; color: #10b981;">Ver Obj. Específicos →</span>
+                                </div>
+                            </div>`;
+                        });
+                        html += `</div>`;
+                    }
                 }
-            }
-            else if (level === 'gen_obj') {
-                const parentId = currentPath[currentPath.length-1].id;
-                html += `<div class="toolbar-actions">
-                            <button class="btn-action-primary" onclick="addNode('spec_obj', ${parentId})"><i class="fas fa-plus"></i> Añadir Obj. Específico</button>
-                            <button class="btn-action btn-action-ai" onclick="suggestSpecObjAI(${parentId})"><i class="fas fa-robot"></i> Sugerir con IA</button>
-                         </div>`;
-                if (!data || data.length === 0) {
-                    html += `<div class="empty-state">Sin objetivos específicos aún.</div>`;
-                } else {
-                    html += `<div class="config-hub-grid">`;
-                    data.forEach(spec => {
-                        html += `
-                        <div class="config-hub-card" onclick="goToNode('spec_obj', ${spec.id}, 'Obj. Específico')">
-                            <div class="card-actions" onclick="event.stopPropagation();">
-                                <button onclick="editNodeById('spec_obj-${spec.id}', event)" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-                                <button class="del-btn" onclick="deleteNode('spec_obj', ${spec.id}, event)" title="Eliminar"><i class="fas fa-trash"></i></button>
-                            </div>
-                            <div>
-                                <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); color: #ffffff; font-size:1.6rem; box-shadow: 0 4px 12px rgba(245,158,11,0.4);">
-                                    📋
+                else if (level === 'gen_obj') {
+                    const parentId = currentPath[currentPath.length-1].id;
+                    html += `<div class="toolbar-actions">
+                                <button class="btn-action-primary" onclick="addNode('spec_obj', ${parentId})"><i class="fas fa-plus"></i> Añadir Obj. Específico</button>
+                                <button class="btn-action btn-action-ai" onclick="suggestSpecObjAI(${parentId})"><i class="fas fa-robot"></i> Sugerir con IA</button>
+                             </div>`;
+                    if (!data || data.length === 0) {
+                        html += `<div class="empty-state">Sin objetivos específicos aún.</div>`;
+                    } else {
+                        html += `<div class="config-hub-grid">`;
+                        data.forEach(spec => {
+                            html += `
+                            <div class="config-hub-card" onclick="goToNode('spec_obj', ${spec.id})">
+                                <div class="card-actions" onclick="event.stopPropagation();">
+                                    <button onclick="editNodeById('spec_obj-${spec.id}', event)" title="Editar"><i class="fas fa-pencil-alt"></i> Editar</button>
+                                    <button class="del-btn" onclick="deleteNode('spec_obj', ${spec.id}, event)" title="Eliminar"><i class="fas fa-trash"></i> Eliminar</button>
                                 </div>
-                                <div class="config-hub-card-title">
-                                    <span>Obj. Específico (Peso: ${spec.weight_percentage}%)</span>
+                                <div>
+                                    <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); color: #ffffff; font-size:1.6rem; box-shadow: 0 4px 12px rgba(245,158,11,0.4);">
+                                        📋
+                                    </div>
+                                    <div class="config-hub-card-title">
+                                        <span>Obj. Específico (Peso: ${spec.weight_percentage}%)</span>
+                                    </div>
+                                    <div class="config-hub-card-desc">
+                                        ${escHtml(spec.description || 'Sin descripción')}
+                                    </div>
                                 </div>
-                                <div class="config-hub-card-desc">
-                                    ${escHtml(spec.description || 'Sin descripción')}
+                                <div class="config-hub-card-footer">
+                                    <span class="config-badge" style="background: #fef3c7; color: #b45309;">Ind: ${escHtml(spec.indicator_type || 'N/A')}</span>
+                                    <span style="font-weight: 600; font-size: 0.82rem; color: #f59e0b;">Ver Actividades →</span>
                                 </div>
-                            </div>
-                            <div class="config-hub-card-footer">
-                                <span class="config-badge" style="background: #fef3c7; color: #b45309;">Ind: ${escHtml(spec.indicator_type || 'N/A')}</span>
-                                <span style="font-weight: 600; font-size: 0.82rem; color: #f59e0b;">Ver Actividades →</span>
-                            </div>
-                        </div>`;
-                    });
-                    html += `</div>`;
+                            </div>`;
+                        });
+                        html += `</div>`;
+                    }
                 }
-            }
-            else if (level === 'spec_obj') {
-                const parentId = currentPath[currentPath.length-1].id;
-                html += `<div class="toolbar-actions">
-                            <button class="btn-action-primary" onclick="addNode('activity', ${parentId})"><i class="fas fa-plus"></i> Añadir Actividad</button>
-                            <button class="btn-action btn-action-ai" onclick="suggestActivitiesAI(${parentId})"><i class="fas fa-robot"></i> Sugerir con IA</button>
-                         </div>`;
-                if (!data || data.length === 0) {
-                    html += `<div class="empty-state">Sin actividades registradas aún.</div>`;
-                } else {
-                    html += `<div class="config-hub-grid">`;
-                    data.forEach(a => {
-                        const aKey = 'activity-' + a.id;
-                        let statusClass = 'status-pending';
-                        if(a.status === 'En Progreso') statusClass = 'status-progress';
-                        if(a.status === 'Completado') statusClass = 'status-done';
-                        
-                        html += `
-                        <div class="config-hub-card" style="cursor: default;">
-                            <div>
-                                <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); color: #ffffff; font-size:1.6rem; box-shadow: 0 4px 12px rgba(244,63,94,0.4);">
-                                    ⚡
+                else if (level === 'spec_obj') {
+                    const parentId = currentPath[currentPath.length-1].id;
+                    html += `<div class="toolbar-actions">
+                                <button class="btn-action-primary" onclick="addNode('activity', ${parentId})"><i class="fas fa-plus"></i> Añadir Actividad</button>
+                                <button class="btn-action btn-action-ai" onclick="suggestActivitiesAI(${parentId})"><i class="fas fa-robot"></i> Sugerir con IA</button>
+                             </div>`;
+                    if (!data || data.length === 0) {
+                        html += `<div class="empty-state">Sin actividades registradas aún.</div>`;
+                    } else {
+                        html += `<div class="config-hub-grid">`;
+                        data.forEach(a => {
+                            const aKey = 'activity-' + a.id;
+                            let statusClass = 'status-pending';
+                            if(a.status === 'En Progreso') statusClass = 'status-progress';
+                            if(a.status === 'Completado') statusClass = 'status-done';
+                            
+                            html += `
+                            <div class="config-hub-card" style="cursor: default;">
+                                <div>
+                                    <div class="config-hub-card-icon" style="background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); color: #ffffff; font-size:1.6rem; box-shadow: 0 4px 12px rgba(244,63,94,0.4);">
+                                        ⚡
+                                    </div>
+                                    <div class="config-hub-card-title" style="margin-top:5px; font-size: 0.95rem; line-height:1.4; padding-right:0;">
+                                        ${escHtml(a.description || 'Actividad')}
+                                    </div>
+                                    <div class="config-hub-card-desc" style="margin-bottom:10px;">
+                                        <div style="margin-bottom:4px; color:#475569;"><i class="fas fa-user" style="width:16px;"></i> ${escHtml(a.responsible || 'Sin asignar')}</div>
+                                        <div style="margin-bottom:4px; color:#475569;"><i class="far fa-calendar-alt" style="width:16px;"></i> ${a.start_date ? a.start_date.substring(0,10) : 'N/A'} → ${a.end_date ? a.end_date.substring(0,10) : 'N/A'}</div>
+                                        ${a.financial_budget ? `<div style="margin-bottom:4px; color:#10b981;"><i class="fas fa-coins" style="width:16px;"></i> $${Number(a.financial_budget).toLocaleString('es-CO')}</div>` : ''}
+                                    </div>
+                                    <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;">
+                                        <button class="btn-action" style="color:#0ea5e9; border: 1px solid #bae6fd; font-size:0.75rem; padding:5px 9px; border-radius:6px; background:#f0f9ff;" onclick="openAlertsModal(${a.id})" title="Control y Alertas">🔔 Alertas</button>
+                                        <button class="btn-action" style="color:#d97706; border: 1px solid #fde68a; font-size:0.75rem; padding:5px 9px; border-radius:6px; background:#fffbeb;" onclick="openEvidencesModal(${a.id})" title="Evidencias">📎 Evidencias</button>
+                                        <button class="btn-action" style="color:#059669; border: 1px solid #a7f3d0; font-size:0.75rem; padding:5px 9px; border-radius:6px; background:#ecfdf5;" onclick="openFinanceModal(${a.id})" title="Hoja Financiera">💰 Financiero</button>
+                                    </div>
+                                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                        <button style="background:#eff6ff; color:#1d4ed8; border: 1.5px solid #bfdbfe; font-size:0.78rem; padding:6px 12px; border-radius:7px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;" onclick="editNodeById('${aKey}', event)"><i class="fas fa-pencil-alt"></i> Editar</button>
+                                        <button style="background:#fee2e2; color:#dc2626; border: 1.5px solid #fecaca; font-size:0.78rem; padding:6px 12px; border-radius:7px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;" onclick="deleteNode('activity', ${a.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
+                                    </div>
                                 </div>
-                                <div class="config-hub-card-title" style="margin-top:5px; font-size: 0.95rem; line-height:1.4; padding-right:0;">
-                                    ${escHtml(a.description || 'Actividad')}
+                                <div class="config-hub-card-footer" style="margin-top:15px;">
+                                    <span class="badge-status ${statusClass}" style="font-size:0.75rem; padding:4px 10px; border-radius:20px;">${a.status || 'Pendiente'}</span>
+                                    <span style="font-weight: 600; font-size: 0.82rem; color: #64748b;">${a.goal ? `<i class="fas fa-bullseye"></i> ${escHtml(a.goal)}` : ''}</span>
                                 </div>
-                                <div class="config-hub-card-desc" style="margin-bottom:10px;">
-                                    <div style="margin-bottom:4px; color:#475569;"><i class="fas fa-user" style="width:16px;"></i> ${escHtml(a.responsible || 'Sin asignar')}</div>
-                                    <div style="margin-bottom:4px; color:#475569;"><i class="far fa-calendar-alt" style="width:16px;"></i> ${a.start_date ? a.start_date.substring(0,10) : 'N/A'} → ${a.end_date ? a.end_date.substring(0,10) : 'N/A'}</div>
-                                    ${a.financial_budget ? `<div style="margin-bottom:4px; color:#10b981;"><i class="fas fa-coins" style="width:16px;"></i> $${Number(a.financial_budget).toLocaleString('es-CO')}</div>` : ''}
-                                </div>
-                                <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;">
-                                    <button class="btn-action" style="color:#0ea5e9; border: 1px solid #bae6fd; font-size:0.75rem; padding:5px 9px; border-radius:6px; background:#f0f9ff;" onclick="openAlertsModal(${a.id})" title="Control y Alertas">🔔 Alertas</button>
-                                    <button class="btn-action" style="color:#d97706; border: 1px solid #fde68a; font-size:0.75rem; padding:5px 9px; border-radius:6px; background:#fffbeb;" onclick="openEvidencesModal(${a.id})" title="Evidencias">📎 Evidencias</button>
-                                    <button class="btn-action" style="color:#059669; border: 1px solid #a7f3d0; font-size:0.75rem; padding:5px 9px; border-radius:6px; background:#ecfdf5;" onclick="openFinanceModal(${a.id})" title="Hoja Financiera">💰 Financiero</button>
-                                </div>
-                                <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                                    <button style="background:#eff6ff; color:#1d4ed8; border: 1.5px solid #bfdbfe; font-size:0.78rem; padding:6px 12px; border-radius:7px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;" onclick="editNodeById('${aKey}', event)"><i class="fas fa-pencil-alt"></i> Editar</button>
-                                    <button style="background:#fee2e2; color:#dc2626; border: 1.5px solid #fecaca; font-size:0.78rem; padding:6px 12px; border-radius:7px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;" onclick="deleteNode('activity', ${a.id}, event)"><i class="fas fa-trash"></i> Eliminar</button>
-                                </div>
-                            </div>
-                            <div class="config-hub-card-footer" style="margin-top:15px;">
-                                <span class="badge-status ${statusClass}" style="font-size:0.75rem; padding:4px 10px; border-radius:20px;">${a.status || 'Pendiente'}</span>
-                                <span style="font-weight: 600; font-size: 0.82rem; color: #64748b;">${a.goal ? `<i class="fas fa-bullseye"></i> ${escHtml(a.goal)}` : ''}</span>
-                            </div>
-                        </div>`;
-                    });
-                    html += `</div>`;
+                            </div>`;
+                        });
+                        html += `</div>`;
+                    }
                 }
-            }
 
-            container.innerHTML = html;
+                container.innerHTML = html;
+            } catch(err) {
+                console.error("Error en renderView:", err);
+                container.innerHTML = `<div style="padding:30px; color:#dc2626; background:#fef2f2; border:1px solid #fecaca; border-radius:12px;">
+                    <i class="fas fa-exclamation-triangle fa-2x" style="margin-bottom:10px;"></i>
+                    <p style="font-weight:700; margin-bottom:5px;">Error al mostrar la información de planificación</p>
+                    <p style="font-size:0.85rem; color:#7f1d1d;">${escHtml(String(err))}</p>
+                </div>`;
+            }
         }
 
 // ─── Modales ─────────────────────────────────────────────────

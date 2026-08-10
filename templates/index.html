@@ -158,7 +158,7 @@
 <script>
     document.addEventListener("DOMContentLoaded", async () => {
         try {
-            const res = await authFetch('/api/partners?t=' + Date.now());
+            const res = await fetch('/api/partners?t=' + Date.now());
             const data = await res.json();
             const track = document.getElementById('publicPartnersTrack');
             
