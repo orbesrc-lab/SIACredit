@@ -713,7 +713,26 @@
                     </div>
                 </div>`;
             });
+            html += `
+            <button onclick="addManualAxis()" style="background:#3b82f6; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; width:100%; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px;">
+                <i class="fas fa-plus"></i> Añadir Eje Manualmente
+            </button>
+            `;
             list.innerHTML = html;
+        }
+
+        function addManualAxis() {
+            // Guardar nombres actuales antes de re-renderizar
+            suggestedAxesData.forEach((axis, index) => {
+                const input = document.getElementById(`axis_name_${index}`);
+                if(input) axis.name = input.value;
+            });
+            suggestedAxesData.push({
+                name: 'Nuevo Eje Manual',
+                description: 'Eje creado manualmente. (Las estrategias se pueden asignar en Planificación)',
+                strategies: []
+            });
+            renderAxesModal();
         }
 
         async function confirmMigration() {

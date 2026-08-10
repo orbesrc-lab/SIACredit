@@ -10,6 +10,7 @@ from utils.db import supabase, get_active_inst_id
 import traceback
 
 planning_bp = Blueprint('planning', __name__)
+from routes.ai import call_ai
 
 # --- MÓDULO PLANIFICACIÓN Y CONTROL ---
 

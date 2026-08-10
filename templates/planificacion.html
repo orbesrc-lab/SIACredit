@@ -822,7 +822,10 @@
             if(!tree || tree.length === 0) {
                 container.innerHTML = `<div class="empty-state">
                     <i class="fas fa-seedling fa-3x" style="font-size:3rem; margin-bottom:15px;"></i>
-                    <p>No hay Ejes Estratégicos. Ve al módulo DOFA y guarda la matriz para generarlos.</p>
+                    <p>No hay Ejes Estratégicos. Ve al módulo DOFA y guarda la matriz para generarlos, o crea uno manualmente.</p>
+                    <button class="btn-gantt" style="background:#3b82f6; margin-top:15px; margin-left:auto; margin-right:auto;" onclick="addNode('axis', 0)">
+                        <i class="fas fa-plus"></i> Añadir Nuevo Eje Estratégico
+                    </button>
                 </div>`;
                 return;
             }
@@ -855,7 +858,11 @@
                     </div>
                 </div>`;
             });
-            html += '</div>';
+            html += `</div><div class="actions-row" style="margin-top:15px; margin-bottom:20px;">
+                <button class="btn-gantt" style="background:#3b82f6;" onclick="addNode('axis', 0)">
+                    <i class="fas fa-plus"></i> Añadir Nuevo Eje Estratégico
+                </button>
+            </div>`;
             container.innerHTML = html;
         }
 
