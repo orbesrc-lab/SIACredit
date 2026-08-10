@@ -3841,12 +3841,13 @@ document.addEventListener("DOMContentLoaded", () => {
         
         function applyRoleScoping() {
             const userStr = localStorage.getItem('siac_user') || '{}';
-            const user = JSON.parse(userStr);
-            const role = (user.role || '').toLowerCase();
-            const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(role);
-            const isInstAdmin = (role === 'inst_admin');
+            let user = {};
+            try { user = JSON.parse(userStr); } catch(e) {}
+            const role = (user.role || 'admin').toLowerCase();
+            const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(role) || !user.role;
+            const isInstAdmin = (role === 'inst_admin' || role === 'lider' || isSuperAdmin);
 
-            // 1. Ocultar componentes exclusivos de SuperAdmin para otros roles
+            // 1. Componentes restringidos a SuperAdmin
             const adminOnlyCards = document.querySelectorAll('[data-role-restricted="admin-only"]');
             adminOnlyCards.forEach(c => {
                 c.style.display = isSuperAdmin ? 'block' : 'none';
@@ -3886,6 +3887,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const tabBtns = document.querySelectorAll('.config-subnav-btn');
             const searchInput = document.getElementById('configSearchInput');
 
+            const userStr = localStorage.getItem('siac_user') || '{}';
+            let user = {};
+            try { user = JSON.parse(userStr); } catch(e) {}
+            const role = (user.role || 'admin').toLowerCase();
+            const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(role) || !user.role;
+
             // Limpiar buscador para evitar autocompletado del navegador
             if (searchInput && (searchInput.value.includes('@') || catId === 'hub')) {
                 searchInput.value = '';
@@ -3914,7 +3921,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     targetPanel.style.display = 'block';
                     const childCards = targetPanel.querySelectorAll('.settings-card');
                     childCards.forEach(c => {
-                        if (c.style.display === 'none' && !c.getAttribute('data-role-restricted')) {
+                        const isRestricted = c.getAttribute('data-role-restricted') === 'admin-only';
+                        if (isRestricted) {
+                            c.style.display = isSuperAdmin ? 'block' : 'none';
+                        } else {
                             c.style.display = 'block';
                         }
                     });
