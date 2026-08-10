@@ -1304,9 +1304,29 @@
                                 <div class="config-hub-card-desc">
                                     ${escHtml(gen.description || 'Sin descripción')}
                                 </div>
+                                ${(() => {
+                                    let alignVal = gen.alignment_pdi || '';
+                                    let isoProc = '';
+                                    let pdiText = alignVal;
+                                    if(alignVal.startsWith('[ISO: ')) {
+                                        const endIdx = alignVal.indexOf(']');
+                                        if(endIdx !== -1) {
+                                            isoProc = alignVal.substring(6, endIdx);
+                                            pdiText = alignVal.substring(endIdx + 1).trim();
+                                        }
+                                    }
+                                    let badges = '';
+                                    if(isoProc) {
+                                        badges += `<span style="display:inline-flex; align-items:center; gap:5px; background:linear-gradient(135deg,#2563eb,#1e40af); color:white; padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; margin-bottom:6px; margin-right:5px;"><i class="fas fa-sitemap"></i> ${escHtml(isoProc)}</span>`;
+                                    }
+                                    if(pdiText) {
+                                        badges += `<span style="display:inline-flex; align-items:center; gap:5px; background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:600; margin-bottom:6px;"><i class="fas fa-link"></i> ${escHtml(pdiText)}</span>`;
+                                    }
+                                    return badges ? `<div style="margin-bottom:10px; flex-wrap:wrap; display:flex;">${badges}</div>` : '';
+                                })()}
                             </div>
                             <div class="config-hub-card-footer">
-                                <span class="config-badge" style="background: #dcfce7; color: #15803d;">Alineación PDI</span>
+                                <span class="config-badge" style="background: #dcfce7; color: #15803d;"><i class="fas fa-project-diagram"></i> Mapa ISO 9001</span>
                                 <span style="font-weight: 600; font-size: 0.82rem; color: #10b981;">Ver Obj. Específicos →</span>
                             </div>
                         </div>`;
