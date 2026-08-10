@@ -1004,21 +1004,28 @@
         let currentPath = []; // Array of { type, id, name }
         let fullTreeData = []; // Store the full tree here
 
-        document.addEventListener("DOMContentLoaded", async () => {
-            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
-            document.getElementById('userInfo').textContent = user.email || 'Usuario';
-            if(user.role === 'admin') {
-                const crmLink = document.getElementById('menuCrm');
-                if(crmLink) crmLink.style.display = 'block';
-            }
-            await loadISOProcesses();
+        document.addEventListener("DOMContentLoaded", () => {
+            try {
+                const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+                const uInfo = document.getElementById('userInfo');
+                if (uInfo) uInfo.textContent = user.email || 'Usuario';
+                if (user.role === 'admin') {
+                    const crmLink = document.getElementById('menuCrm');
+                    if (crmLink) crmLink.style.display = 'block';
+                }
+            } catch(e) { console.warn("User info warning:", e); }
+
+            // Launch planning data load FIRST (non-blocking)
             loadPlanningData();
-            loadInstitutionUsers();
+
+            // Load ISO processes & users asynchronously in background
+            loadISOProcesses().catch(e => console.warn("ISO processes warning:", e));
+            loadInstitutionUsers().catch(e => console.warn("Users load warning:", e));
         });
 
         function getInstId() {
             const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
-            return user.inst_id || user.id || '';
+            return user.inst_id || user.id || 1;
         }
 
         // ─── Toggle acordeón ────────────────────────────────────────
@@ -1072,7 +1079,9 @@
         // ─── Carga de datos ─────────────────────────────────────────
         async function loadPlanningData() {
             try {
-                const res = await authFetch(`/api/planning/tree?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const iId = getInstId();
+                const pId = typeof getProgramId === 'function' ? getProgramId() : 0;
+                const res = await authFetch(`/api/planning/tree?inst_id=${iId}&program_id=${pId}`);
                 const data = await res.json();
                 if(data.status === 'success') {
                     if(expandedNodes.size === 0 && data.tree) {
@@ -1081,10 +1090,11 @@
                     window.treeData = data.tree;
                     renderTree(data.tree);
                 } else {
-                    document.getElementById('planningTree').innerHTML = `<p style="color:red">Error: ${data.message}</p>`;
+                    document.getElementById('planningTree').innerHTML = `<div style="padding:30px; color:#dc2626; background:#fef2f2; border:1px solid #fecaca; border-radius:12px;"><i class="fas fa-exclamation-circle"></i> Error al cargar datos: ${escHtml(data.message || 'Desconocido')}</div>`;
                 }
             } catch(e) {
-                document.getElementById('planningTree').innerHTML = `<p style="color:red">Error de red: ${e}</p>`;
+                console.error("Error en loadPlanningData:", e);
+                document.getElementById('planningTree').innerHTML = `<div style="padding:30px; color:#dc2626; background:#fef2f2; border:1px solid #fecaca; border-radius:12px;"><i class="fas fa-wifi"></i> Error de conexión: ${escHtml(String(e))}</div>`;
             }
         }
 
