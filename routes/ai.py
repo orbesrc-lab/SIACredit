@@ -524,7 +524,7 @@ import urllib.error
 import json
 
 @ai_bp.route('/api/library/search', methods=['GET'])
-@require_permission('formacion')
+@require_permission('capacitacion')
 def library_search():
     q = request.args.get('q', '').strip()
     limit = request.args.get('limit', '20')
@@ -653,7 +653,7 @@ def library_search():
         return jsonify({'error': 'La red académica global está experimentando alta demanda en este momento. Por favor, intenta de nuevo en unos minutos.'}), 503
 
 @ai_bp.route('/api/library/translate', methods=['POST'])
-@require_permission('formacion')
+@require_permission('capacitacion')
 def library_translate():
     try:
         data = request.json
@@ -676,7 +676,7 @@ def library_translate():
 
 
 @ai_bp.route('/api/library/ovas', methods=['GET'])
-@require_permission('formacion')
+@require_permission('capacitacion')
 def get_ovas():
     try:
         url = "https://phet.colorado.edu/services/metadata/1.2/simulations?format=json&type=html&locale=es"
@@ -709,7 +709,7 @@ def get_ovas():
         return jsonify({'status': 'error', 'message': str(e)})
 
 @ai_bp.route('/api/library/saved', methods=['GET', 'POST'])
-@require_permission('formacion')
+@require_permission('capacitacion')
 
 
 def handle_saved_resources():
@@ -746,7 +746,7 @@ def handle_saved_resources():
         return jsonify([])
 
 @ai_bp.route('/api/library/saved/<int:id>', methods=['DELETE'])
-@require_permission('formacion')
+@require_permission('capacitacion')
 def delete_saved_resource(id):
     try:
         supabase.table('saved_resources').delete().eq('id', id).execute()
