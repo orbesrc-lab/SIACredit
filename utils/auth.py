@@ -112,7 +112,7 @@ def get_permissions_for_inst(inst_id):
 
 def _get_user(user_id):
     """
-    Obtiene el usuario de Supabase por su ID.
+    Obtiene el usuario de Supabase por su ID (UUID) o por Email.
     Usa cache con TTL corto para reducir consultas.
     """
     now = time.time()
@@ -122,13 +122,23 @@ def _get_user(user_id):
         if now - ts < _USER_CACHE_TTL:
             return cached_user
 
+    user = None
     try:
         sb = _get_supabase()
-        res = sb.table('users').select("id, role, inst_id").eq("id", user_id).execute()
+        if '@' in str(user_id):
+            res = sb.table('users').select("id, role, inst_id, email").eq("email", user_id).execute()
+        else:
+            res = sb.table('users').select("id, role, inst_id, email").eq("id", user_id).execute()
         user = res.data[0] if res.data else None
     except Exception as e:
-        print(f"[auth] Error buscando usuario {user_id}: {e}")
-        user = None
+        # Fallback por si la busqueda directa falla
+        try:
+            sb = _get_supabase()
+            res = sb.table('users').select("id, role, inst_id, email").eq("email", user_id).execute()
+            user = res.data[0] if res.data else None
+        except Exception as e2:
+            print(f"[auth] Error buscando usuario {user_id}: {e2}")
+            user = None
 
     if user:
         _user_cache[user_id] = (now, user)

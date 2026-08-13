@@ -524,18 +524,25 @@ import urllib.error
 import json
 
 @ai_bp.route('/api/library/search', methods=['GET'])
-@require_permission('herramientas')
+@require_permission('formacion')
 def library_search():
-    q = request.args.get('q', '')
-    limit = request.args.get('limit', 20)
-    
+    q = request.args.get('q', '').strip()
+    limit = request.args.get('limit', '20')
+    if not limit.isdigit():
+        limit = '20'
+    if int(limit) > 100:
+        limit = '100'
+        
+    if not q:
+        return jsonify({'results': []})
+
     if 'filetype:pdf' in q.lower():
         try:
             print(f"Searching Europe PMC for: {q}")
             clean_q = q.lower().replace('filetype:pdf', '').strip()
             epmc_url = f"https://www.ebi.ac.uk/europepmc/webservices/rest/search?query={urllib.parse.quote(clean_q)}+HAS_PDF:y&format=json&resultType=core&pageSize={limit}"
             epmc_req = urllib.request.Request(epmc_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
-            with urllib.request.urlopen(epmc_req) as response:
+            with urllib.request.urlopen(epmc_req, timeout=10) as response:
                 epmc_data = json.loads(response.read().decode('utf-8'))
                 results = []
                 for item in epmc_data.get('resultList', {}).get('result', []):
@@ -559,95 +566,94 @@ def library_search():
                         'publication_year': year,
                         'authorships': authorships,
                         'primary_location': {'source': {'display_name': item.get('journalTitle', 'Europe PMC')}},
-                        'doi': f"https://doi.org/{doi}" if doi else '',
+                        'doi': f"https://doi.org/{doi}" if doi and not doi.startswith('http') else doi,
                         'open_access': {'oa_url': pdf_url},
                         'type': 'pdf'
                     })
                 return jsonify({'results': results, 'meta': {'source': 'europepmc'}})
         except Exception as e:
             print(f"Europe PMC scrape error: {e}")
-            return jsonify({'error': 'Error al buscar PDFs en Europe PMC.'})
+            return jsonify({'error': 'Error al buscar PDFs en Europe PMC.'}), 500
 
+    mailto = os.environ.get('OPENALEX_MAILTO', 'orbesrc@gmail.com')
+    api_key = os.environ.get('OPENALEX_API_KEY')
+
+    # Intento 1: OpenAlex con is_oa:true y has_pdf_url:true
     try:
-        q = request.args.get('q', '')
-        limit = request.args.get('limit', '20')
-        if not limit.isdigit():
-            limit = '20'
-        if int(limit) > 100:
-            limit = '100'
-            
-        if not q:
-            return jsonify({'results': []})
-        
-        # Prepare the OpenAlex API URL with has_pdf_url:true and user limit
-        url = f"https://api.openalex.org/works?search={urllib.parse.quote(q)}&filter=is_oa:true,has_pdf_url:true&per-page={limit}"
-        
-        mailto = os.environ.get('OPENALEX_MAILTO', 'orbesrc@gmail.com')
-        api_key = os.environ.get('OPENALEX_API_KEY')
-        url += f"&mailto={urllib.parse.quote(mailto)}"
+        url = f"https://api.openalex.org/works?search={urllib.parse.quote(q)}&filter=is_oa:true,has_pdf_url:true&per-page={limit}&mailto={urllib.parse.quote(mailto)}"
         if api_key:
             url += f"&api_key={api_key}"
             
         req = urllib.request.Request(url, headers={'User-Agent': f'SIACredit/1.0 (mailto:{mailto})'})
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req, timeout=10) as response:
             data = json.loads(response.read().decode('utf-8'))
-            return jsonify(data)
-    except urllib.error.HTTPError as e:
-        print(f"OpenAlex HTTP Error: {e.code} - {e.reason}")
-        if e.code in [429, 503]:
-            try:
-                print("Falling back to Crossref API...")
-                cr_url = f"https://api.crossref.org/works?query={urllib.parse.quote(q)}&select=title,author,URL,published-print,published-online,DOI,container-title,type,link&rows={limit}"
-                cr_req = urllib.request.Request(cr_url, headers={'User-Agent': f'SIACredit/1.0 (mailto:{mailto})'})
-                with urllib.request.urlopen(cr_req) as cr_res:
-                    cr_data = json.loads(cr_res.read().decode('utf-8'))
+            if data.get('results') and len(data['results']) > 0:
+                return jsonify(data)
+                
+        # Intento 2: OpenAlex con is_oa:true (ampliar búsqueda si no hay con pdf directo)
+        url_broad = f"https://api.openalex.org/works?search={urllib.parse.quote(q)}&filter=is_oa:true&per-page={limit}&mailto={urllib.parse.quote(mailto)}"
+        if api_key:
+            url_broad += f"&api_key={api_key}"
+            
+        req_broad = urllib.request.Request(url_broad, headers={'User-Agent': f'SIACredit/1.0 (mailto:{mailto})'})
+        with urllib.request.urlopen(req_broad, timeout=10) as response_broad:
+            data_broad = json.loads(response_broad.read().decode('utf-8'))
+            if data_broad.get('results') and len(data_broad['results']) > 0:
+                return jsonify(data_broad)
+    except Exception as openalex_err:
+        print(f"OpenAlex Error, intentando fallback Crossref: {openalex_err}")
+
+    # Fallback: Crossref API
+    try:
+        print("Falling back to Crossref API...")
+        cr_url = f"https://api.crossref.org/works?query={urllib.parse.quote(q)}&select=title,author,URL,published-print,published-online,DOI,container-title,type,link&rows={limit}"
+        cr_req = urllib.request.Request(cr_url, headers={'User-Agent': f'SIACredit/1.0 (mailto:{mailto})'})
+        with urllib.request.urlopen(cr_req, timeout=10) as cr_res:
+            cr_data = json.loads(cr_res.read().decode('utf-8'))
+            
+        results = []
+        for item in cr_data.get('message', {}).get('items', []):
+            title = item.get('title', ['Sin título'])[0]
+            year = None
+            for date_field in ['published-print', 'published-online']:
+                if date_field in item and 'date-parts' in item[date_field] and item[date_field]['date-parts']:
+                    year = item[date_field]['date-parts'][0][0]
+                    break
+            
+            authorships = []
+            for a in item.get('author', []):
+                display_name = f"{a.get('given', '')} {a.get('family', '')}".strip()
+                if display_name:
+                    authorships.append({'author': {'display_name': display_name}})
                     
-                results = []
-                for item in cr_data.get('message', {}).get('items', []):
-                    title = item.get('title', ['Sin título'])[0]
-                    year = None
-                    for date_field in ['published-print', 'published-online']:
-                        if date_field in item and 'date-parts' in item[date_field] and item[date_field]['date-parts']:
-                            year = item[date_field]['date-parts'][0][0]
-                            break
+            source_name = item.get('container-title', [''])[0]
+            if not source_name:
+                source_name = item.get('publisher', 'Publicación Independiente')
+                
+            doi = item.get('URL', '') or item.get('DOI', '')
+            pdf_url = ""
+            for link in item.get('link', []):
+                if link.get('content-type') == 'application/pdf':
+                    pdf_url = link.get('URL')
+                    break
                     
-                    authorships = []
-                    for a in item.get('author', []):
-                        display_name = f"{a.get('given', '')} {a.get('family', '')}".strip()
-                        if display_name:
-                            authorships.append({'author': {'display_name': display_name}})
-                            
-                    source_name = item.get('container-title', [''])[0]
-                    if not source_name:
-                        source_name = item.get('publisher', 'Publicación Independiente')
-                        
-                    doi = item.get('URL', '')
-                    pdf_url = ""
-                    for link in item.get('link', []):
-                        if link.get('content-type') == 'application/pdf':
-                            pdf_url = link.get('URL')
-                            break
-                            
-                    results.append({
-                        'title': title,
-                        'publication_year': year,
-                        'authorships': authorships,
-                        'primary_location': {'source': {'display_name': source_name}},
-                        'doi': doi,
-                        'open_access': {'oa_url': pdf_url} if pdf_url else {},
-                        'type': item.get('type', 'article')
-                    })
-                return jsonify({'results': results, 'fallback': 'crossref'})
-            except Exception as cr_err:
-                print(f"Crossref fallback failed: {cr_err}")
-                return jsonify({'error': 'La red académica global está experimentando alta demanda en este momento. Por favor, intenta de nuevo en unos minutos.'}), 503
-        return jsonify({'error': str(e)}), e.code
-    except Exception as e:
-        print(f"Error fetching OpenAlex: {e}")
-        return jsonify({'error': str(e)})
+            results.append({
+                'id': item.get('DOI', f"cr_{len(results)}"),
+                'title': title,
+                'publication_year': year,
+                'authorships': authorships,
+                'primary_location': {'source': {'display_name': source_name}},
+                'doi': doi,
+                'open_access': {'oa_url': pdf_url} if pdf_url else {},
+                'type': item.get('type', 'article')
+            })
+        return jsonify({'results': results, 'fallback': 'crossref'})
+    except Exception as cr_err:
+        print(f"Crossref fallback failed: {cr_err}")
+        return jsonify({'error': 'La red académica global está experimentando alta demanda en este momento. Por favor, intenta de nuevo en unos minutos.'}), 503
 
 @ai_bp.route('/api/library/translate', methods=['POST'])
-@require_permission('herramientas')
+@require_permission('formacion')
 def library_translate():
     try:
         data = request.json
@@ -670,7 +676,7 @@ def library_translate():
 
 
 @ai_bp.route('/api/library/ovas', methods=['GET'])
-@require_permission('herramientas')
+@require_permission('formacion')
 def get_ovas():
     try:
         url = "https://phet.colorado.edu/services/metadata/1.2/simulations?format=json&type=html&locale=es"
@@ -703,7 +709,7 @@ def get_ovas():
         return jsonify({'status': 'error', 'message': str(e)})
 
 @ai_bp.route('/api/library/saved', methods=['GET', 'POST'])
-@require_permission('herramientas')
+@require_permission('formacion')
 
 
 def handle_saved_resources():
@@ -740,7 +746,7 @@ def handle_saved_resources():
         return jsonify([])
 
 @ai_bp.route('/api/library/saved/<int:id>', methods=['DELETE'])
-@require_permission('herramientas')
+@require_permission('formacion')
 def delete_saved_resource(id):
     try:
         supabase.table('saved_resources').delete().eq('id', id).execute()

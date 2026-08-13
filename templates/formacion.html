@@ -5683,9 +5683,20 @@
             
             try {
                 const url = `/api/library/search?q=${encodeURIComponent(query)}&limit=${limit}`;
-                const response = await fetch(url);
+                const response = await authFetch(url);
+                
+                if (!response.ok) {
+                    let errorMsg = `Error HTTP ${response.status}`;
+                    try {
+                        const errData = await response.json();
+                        errorMsg = errData.message || errData.error || errorMsg;
+                    } catch(e) {}
+                    throw new Error(errorMsg);
+                }
+                
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
+                if (data.status === 'error') throw new Error(data.message || 'Error al buscar recursos');
                 
                 if(!data.results || data.results.length === 0) {
                     resultsDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;">No se encontraron resultados de acceso abierto. Intenta usar otros términos.</div>';
@@ -5709,6 +5720,12 @@
                     const doi = work.doi || '';
                     const pdfUrl = (work.open_access && work.open_access.oa_url) ? work.open_access.oa_url : '';
                     
+                    // Normalizar URL de destino (PDF o DOI)
+                    let targetUrl = pdfUrl;
+                    if (!targetUrl && doi) {
+                        targetUrl = (doi.startsWith('http://') || doi.startsWith('https://')) ? doi : `https://doi.org/${doi}`;
+                    }
+                    
                     // APA 7
                     let apaCitation = '';
                     if(validAuthors.length > 0) {
@@ -5725,8 +5742,11 @@
                     card.onmouseover = () => { card.style.transform = 'translateY(-4px)'; card.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)'; };
                     card.onmouseout = () => { card.style.transform = 'translateY(0)'; card.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; };
                     
+                    const safeWorkId = String(work.id || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;");
                     const safeTitle = title.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
                     const safeAuthors = authorsStr.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                    const safeTargetUrl = (targetUrl || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                    const safePdfUrl = (pdfUrl || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;");
                     const safeApa = apaCitation.replace(/'/g, "&#39;").replace(/"/g, "&quot;").replace(/<[^>]*>?/gm, '');
 
                     card.innerHTML = `
@@ -5742,8 +5762,8 @@
                             </div>
                         </div>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            ${pdfUrl ? `<button class="btn-primary" onclick="openPdfViewer('${pdfUrl}', '${safeTitle}', true)" style="flex: 1; padding: 8px; font-size: 0.85rem; background: #10b981; border: none; box-shadow: 0 2px 4px rgba(16,185,129,0.3);"><i class="fas fa-external-link-alt"></i> Leer/PDF</button>` : `<button class="btn-primary" onclick="openPdfViewer('https://doi.org/${doi}', '${safeTitle}', false)" style="flex: 1; padding: 8px; font-size: 0.85rem; background: #64748b; border: none;"><i class="fas fa-link"></i> Ver Fuente</button>`}
-                            <button class="btn-secondary" onclick="saveResource('${work.id}', '${safeTitle}', '${safeAuthors}', ${year}, '${pdfUrl || doi}', '${safeApa}')" style="flex: 1; padding: 8px; font-size: 0.85rem; border: 1px solid #cbd5e1; background: white;"><i class="far fa-star"></i> Guardar</button>
+                            ${pdfUrl ? `<button class="btn-primary" onclick="openPdfViewer('${safePdfUrl}', '${safeTitle}', true)" style="flex: 1; padding: 8px; font-size: 0.85rem; background: #10b981; border: none; box-shadow: 0 2px 4px rgba(16,185,129,0.3);"><i class="fas fa-external-link-alt"></i> Leer/PDF</button>` : `<button class="btn-primary" onclick="openPdfViewer('${safeTargetUrl}', '${safeTitle}', false)" style="flex: 1; padding: 8px; font-size: 0.85rem; background: #64748b; border: none;"><i class="fas fa-link"></i> Ver Fuente</button>`}
+                            <button class="btn-secondary" onclick="saveResource('${safeWorkId}', '${safeTitle}', '${safeAuthors}', ${year}, '${safeTargetUrl}', '${safeApa}')" style="flex: 1; padding: 8px; font-size: 0.85rem; border: 1px solid #cbd5e1; background: white;"><i class="far fa-star"></i> Guardar</button>
                         </div>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; justify-content: flex-end;">
                             <button class="btn-ghost" onclick="translateCard(this, 'es')" style="font-size: 0.75rem; padding: 4px 8px; color: #64748b; border: 1px solid #e2e8f0; border-radius: 4px; background: white; transition: all 0.2s;"><i class="fas fa-language"></i> Traducir 🇪🇸</button>
