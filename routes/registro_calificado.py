@@ -807,16 +807,60 @@ REGLAS DE SALIDA:
 5. Finaliza el capítulo con la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
 """
 
+        # Pase 1: Generación inicial
         response_text = call_ai(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            max_tokens=4000,
-            temperature=0.4,
+            max_tokens=8192,
+            temperature=0.35,
             inst_id=proj.get('inst_id')
         )
         
+        # Bucle de Auto-Continuación de IA para garantizar completitud total y bibliografía APA 7.0
+        max_continuation_passes = 3
+        current_pass = 0
+        
+        while current_pass < max_continuation_passes:
+            text_trim = response_text.strip()
+            
+            # Verificar si el documento ya cuenta con la sección final de referencias APA 7.0 y no está cortado mid-sentence
+            has_references = '### Referencias' in text_trim or 'Referencias Bibliográficas' in text_trim or 'REFERENCIAS BIBLIOGRÁFICAS' in text_trim
+            ends_cleanly = text_trim and text_trim[-1] in ['.', ']', ')', '"', '`', '}']
+            
+            if has_references and ends_cleanly:
+                break
+                
+            # Si el texto está truncado o le faltan las referencias, preparar prompt de continuación exacta
+            last_snippet = text_trim[-400:] if len(text_trim) > 400 else text_trim
+            
+            continuation_prompt = f"""ATENCIÓN: Tu respuesta anterior fue exhaustiva pero se interrumpió o aún no ha concluido con la sección final de bibliografía en APA 7.0.
+A continuación se muestra el fragmento final generado hasta el momento:
+
+"... {last_snippet}"
+
+POR FAVOR CONTINÚA LA REDACCIÓN EXACTAMENTE DESDE EL PUNTO DONDE QUEDÓ EL TEXTO (continúa desde la última palabra sin repetir el texto previo).
+Sigue desarrollando los sub-numerales pendientes con máxima profundidad académica, datos estadísticos reales (DANE, SPADIES, UNESCO 2024-2026), citas APA 7.0, prompts de tablas/figuras con datos concretos completos y concluye obligatoriamente con la sección:
+`### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
+
+            continuation_text = call_ai(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": continuation_prompt}
+                ],
+                max_tokens=8192,
+                temperature=0.35,
+                inst_id=proj.get('inst_id')
+            )
+            
+            if not continuation_text or not continuation_text.strip():
+                break
+                
+            # Unir limpiamente la continuación
+            response_text = response_text.rstrip() + "\n\n" + continuation_text.lstrip()
+            current_pass += 1
+
         response_text = sanitize_markdown_tables(response_text)
         
         # Guardar en el proyecto
