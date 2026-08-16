@@ -680,6 +680,7 @@ def generate_condition_ai():
         project_id = data.get('project_id')
         cond_key = data.get('cond_key') # cond_intro, cond_1, ..., cond_9
         user_instructions = data.get('user_instructions', '').strip()
+        force_regenerate = data.get('force_regenerate', False)
         
         if not project_id or not cond_key:
             return jsonify({'status': 'error', 'message': 'Faltan parámetros requeridos'}), 400
@@ -693,78 +694,118 @@ def generate_condition_ai():
             'title': 'Condición de Calidad',
             'focus': 'Decreto 1330 de 2019 y Decreto 0529 de 2024'
         })
+
+        # ==========================================
+        # REUTILIZACIÓN INTELIGENTE DE CONDICIONES INSTITUCIONALES TRANSVERSALES
+        # (Investigación, Sector Externo, Profesores, Medios, Infraestructura, Introducción)
+        # ==========================================
+        institutional_keys = ['cond_intro', 'cond_5', 'cond_6', 'cond_7', 'cond_8', 'cond_9']
+        
+        if cond_key in institutional_keys and not force_regenerate:
+            all_projects = load_local_projects()
+            reusable_content = None
+            source_prog_name = ""
+            
+            for other_id, other_proj in all_projects.items():
+                if other_id != project_id and (other_proj.get('inst_name') == proj.get('inst_name') or not proj.get('inst_name')):
+                    other_conds = other_proj.get('conditions', {})
+                    if cond_key in other_conds and other_conds[cond_key].get('content', '').strip():
+                        raw_source = other_conds[cond_key]['content']
+                        old_prog = other_proj.get('program_name', '')
+                        new_prog = proj.get('program_name', '')
+                        old_title = other_proj.get('target_title', '')
+                        new_title = proj.get('target_title', '')
+                        
+                        adapted = raw_source
+                        if old_prog and old_prog in adapted:
+                            adapted = adapted.replace(old_prog, new_prog)
+                        if old_title and old_title in adapted:
+                            adapted = adapted.replace(old_title, new_title)
+                            
+                        reusable_content = adapted
+                        source_prog_name = old_prog
+                        break
+                        
+            if reusable_content:
+                if 'conditions' not in proj:
+                    proj['conditions'] = {}
+                proj['conditions'][cond_key] = {
+                    'content': reusable_content,
+                    'updated_at': datetime.datetime.now().isoformat(),
+                    'status': 'reused'
+                }
+                save_project(proj)
+                
+                return jsonify({
+                    'status': 'success',
+                    'reused': True,
+                    'cond_key': cond_key,
+                    'title': meta.get('title'),
+                    'content': reusable_content,
+                    'message': f"Condición institucional reutilizada y adaptada desde el proyecto '{source_prog_name}' (Ahorro del 100% de tokens)."
+                })
         
         # Compilar contexto de evidencias cargadas
         evidences_context = []
         for ev in proj.get('evidences', []):
             ev_text = ev.get('full_text', '')
             if ev_text:
-                # Tomar un extracto representativo por evidencia
                 sample = ev_text[:3500] if len(ev_text) > 3500 else ev_text
                 evidences_context.append(f"--- [DOCUMENTO FUENTE: {ev.get('name')} | TIPO: {ev.get('doc_type')}] ---\n{sample}\n")
                 
         evidences_str = "\n".join(evidences_context) if evidences_context else "No se adjuntaron documentos adicionales. Fundamenta con base en los estándares normativos del MEN y la información suministrada del programa."
         
-        # Modalidades y ciclos propedéuticos
         modalities_str = ", ".join(proj.get('modalities', ['Presencial']))
         propedeutic_str = "SÍ aplica ciclos propedéuticos. Niveles articulados: " + ", ".join(proj.get('propedeutic_levels', [])) if proj.get('has_propedeutic_cycle') else "NO aplica ciclos propedéuticos (programa estructurado en un solo nivel)."
         
-        # Trámite (Renovación vs Nuevo)
         procedure_type = proj.get('procedure_type', 'nuevo')
         procedure_instructions = ""
         if procedure_type == 'renovacion':
             procedure_instructions = """
 ATENCIÓN ESPECIAL - TRÁMITE DE RENOVACIÓN DE REGISTRO CALIFICADO:
-Este documento corresponde a una RENOVACIÓN de Registro Calificado. Debes enfatizar:
-1. La trayectoria, evolución y madurez demostrada por el programa durante sus 7 años de vigencia.
-2. Los resultados concretos de los procesos de autoevaluación institucional (incorporando los datos del Informe de Autoevaluación adjunto si está presente).
-3. El cumplimiento y efectividad de los Planes de Mejoramiento implementados para superar brechas históricas.
-4. Las actualizaciones curriculares e innovaciones pedagógicas adoptadas para responder a los nuevos desafíos del contexto."""
+Este documento corresponde a una RENOVACIÓN de Registro Calificado. Debes enfatizar la evolución institucional, autoevaluaciones y planes de mejoramiento."""
         elif procedure_type == 'modificacion':
             procedure_instructions = """
 ATENCIÓN ESPECIAL - TRÁMITE DE MODIFICACIÓN DE REGISTRO CALIFICADO:
-Este documento sustenta una modificación sustancial (e.g. ampliación de modalidades para Registro Único o ajuste curricular). Argumenta con solidez la pertinencia, coherencia académica y viabilidad institucional del cambio propuesto."""
+Este documento sustenta una modificación sustancial (e.g. ampliación de modalidades para Registro Único). Sustenta la pertinencia y coherencia del cambio."""
 
-        system_prompt = f"""Eres un Evaluador Senior de la Sala de CONACES (Comisión Nacional Intersectorial de Aseguramiento de la Calidad de la Educación Superior), Par Académico del CNA y Consultor Senior de Alto Nivel en Investigación Académica y Diseño Curricular para el Ministerio de Educación Nacional de Colombia (MEN).
+        system_prompt = f"""Eres un Evaluador Senior de la Sala de CONACES, Par Académico del CNA y Consultor Senior para el Ministerio de Educación Nacional de Colombia (MEN).
 
 Tu misión es redactar capítulos técnicos de máxima profundidad, rigor conceptual, riqueza argumentativa, citas fidedignas y datos estadísticos reales para un DOCUMENTO MAESTRO DE REGISTRO CALIFICADO institucional (diseñado para un expediente integral que sobrepasa las 350 páginas en su totalidad).
 
 MARCO NORMATIVO Y REGULATORIO OBLIGATORIO VIGENTE EN COLOMBIA:
 - Decreto 1330 de 2019 (Condiciones de calidad de programas de educación superior).
 - Decreto 0529 de 2024 (Flexibilización curricular, movilidad y Registro Único Multimodal).
-- Parámetros técnicos de la Resolución 021795 de 2020 (Rigor conceptual, evidencias verificables e indicadores).
-- TAXONOMÍA SOLO (Structure of Observed Learning Outcomes) y Bloom revisada para la formulación de Resultados de Aprendizaje (RA) en la Condición 3.
-- Marco Nacional de Cualificaciones (MNC), Clasificación Única de Ocupaciones (CUO Colombia - Res. 1658/2023) y CINE-F 2013 A.C.
-- Objetivos de Desarrollo Sostenible (ODS - Agenda 2030 de las Naciones Unidas).
+- Parámetros técnicos de la Resolución 021795 de 2020.
+- TAXONOMÍA SOLO (Structure of Observed Learning Outcomes) y Bloom revisada.
+- Marco Nacional de Cualificaciones (MNC), CUO Colombia (Res. 1658/2023) y CINE-F 2013 A.C.
+- Objetivos de Desarrollo Sostenible (ODS - Agenda 2030).
 
-DIRECTRICES DE INVESTIGACIÓN EXTERNA Y CITACIÓN (ESTILO NOTEBOOK LM):
-1. INCORPORACIÓN OBLIGATORIA DE FUENTES EXTERNAS Y DATOS ESTADÍSTICOS REALES (2024-2026):
-   No te limites a los documentos institucionales adjuntos. DEBES incorporar activamente datos estadísticos externos fidedignos y citas científicas/normativas en español, incluyendo:
-   - Indicadores del DANE (2024-2026) sobre empleabilidad sectorial, mercado laboral y ocupaciones tecnológicas/profesionales.
-   - Estadísticas del SPADIES y SNIES (2024) sobre absorción laboral, ingresos base de cotización (PILA) y tasas de permanencia/deserción.
-   - Informes sectoriales de la UNESCO (2024), OIT (2024), CEPAL (2024), MinTIC / Fedesoft (2024-2025) y Banco de la República (2024-2025).
-   - Referentes pedagógicos y curriculares reconocidos (Biggs & Tang, Tobón, Zabalza, Díaz-Barriga, Coll).
+DIRECTRICES DE INVESTIGACIÓN EXTERNA Y ESTRUCTURA DE EVIDENCIAS:
+1. INCORPORACIÓN DE FUENTES EXTERNAS Y DATOS ESTADÍSTICOS REALES (2024-2026):
+   Incorpora activamente datos estadísticos externos fidedignos (DANE 2024-2026, SPADIES 2024, SNIES, UNESCO 2024, OIT 2024, MinTIC/Fedesoft 2024-2025).
 
 2. CITACIÓN EN TEXTO Y BIBLIOGRAFÍA EN FORMATO APA 7.0:
-   - Toda afirmación, dato estadístico o referencia teórica debe estar debidamente citada en el texto con formato APA 7.0: ej. `(DANE, 2024)`, `(Ministerio de Educación Nacional [MEN], 2024)`, `(UNESCO, 2024)`, `(Tobón, 2024, p. 45)`.
-   - Al finalizar el desarrollo de la condición, DEBES incluir obligatoriamente la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` con mínimo 6 a 10 referencias bibliográficas completas en formato APA 7.0 (Autor, Año, Título, Fuente/Editorial, URL o DOI).
+   - Citas en texto formato APA 7.0: ej. `(DANE, 2024)`, `(MEN, 2024)`, `(UNESCO, 2024)`.
+   - Concluye obligatoriamente con `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
 
-3. PROMPTS DE TABLAS E IMÁGENES CON DATOS CONCRETOS Y COMPLETOS (COPIABLES PARA CUALQUIER IA):
-   En lugar de tablas brutas desformadas, incluye dentro del texto bloques explicativos seguidos de PROMPTS DE GENERACIÓN EN BLOQUE.
-   CRÍTICO: El prompt DEBE INCLUIR TODOS LOS DATOS CONCRETOS (Resultados de Aprendizaje exactos, nombres de asignaturas, créditos, datos estadísticos del DANE, matriz de competencias, columnas y filas de datos reales del programa). NUNCA dejes corchetes vacíos o marcadores genéricos.
-   Formato obligatorio:
+3. ESPACIOS Y MARCADORES DE POSICIÓN PARA INSERTAR FOTOGRAFÍAS Y EVIDENCIAS GRÁFICAS (CONDICIONES 5, 6, 7, 8 Y 9):
+   Para las condiciones institucionales (Investigación, Sector Externo, Profesores, Medios Educativos e Infraestructura), DEBES insertar en el texto cajas de espacio para evidencia gráfica:
    
-   > 🤖 **[PROMPT IA PARA GENERACIÓN DE TABLA X.Y EN EXCEL/MARKDOWN]**:
-   > *"Genera una tabla estructurada en Markdown/Excel titulada '[Nombre del Programa] - Matriz de...' con las columnas [Columna 1 | Columna 2 | Columna 3 | Columna 4]. Datos específicos a estructurar: Row 1: ..., Row 2: ..., Row 3: ..."*
+   > 🖼️ **[ESPACIO PARA EVIDENCIA FOTOGRÁFICA / CAPTURA DE PANTALLA]**:
+   > *"Pegar aquí fotografía o evidencia visual de: [Aulas, Laboratorios Físicos / LMS / Firma de Convenios / Medios Educativos]. Pie de foto recomendado: Figura X.Y - Infraestructura y Recursos Institucionales para el programa {proj.get('program_name')}."*
+
+4. PROMPTS DE TABLAS PARA DILIGENCIAR EN PLANTA DOCENTE Y MEDIOS (CONDICIÓN 7 Y CONDICIÓN 8):
+   En Profesores (Condición 7) y Medios Educativos (Condición 8), donde la institución debe ingresar la nómina real de docentes o licencias, incluye el prompt estructurado para diligenciar sin inventar nombres ficticios:
    
-   > 🎨 **[PROMPT IA PARA GENERACIÓN DE INFOGRAFÍA / DIAGRAMA MERMAID X.Y]**:
-   > *"Genera el código Mermaid.js (`graph TD`) completo para visualización del programa [Nombre del Programa], incluyendo los nodos con sus textos específicos: Nodos [A: Nivel Formativo] --> [B: Competencias] --> [C: Perfil de Egreso]..."*
+   > 🤖 **[PROMPT IA DE TABLA DE PLANTA DOCENTE / MEDIOS PARA DILIGENCIAR EN EXCEL/MARKDOWN]**:
+   > *"Genera la plantilla estructurada en Markdown/Excel para la planta docente / inventario de software del programa '{proj.get('program_name')}' con las columnas: [Nombre del Docente | Máximo Nivel de Formación (Lic/Esp/MSc/PhD) | Área de Conocimiento | Tipo de Vinculación (TC/MT/Cátedra) | Asignaturas Asignadas | Horas Semanales Docencia | Horas Investigación/Extensión]. Dejar filas con la plantilla lista para que la institución ingrese los datos reales."*
 
-4. EXTENSIÓN Y DENSIDAD ACADÉMICA EXHAUSTIVA:
-   Desarrolla cada sub-numeral con múltiples párrafos extensos y rigurosos. Redacta sustentaciones teóricas, normativas y pedagógicas completas listas para ser presentadas ante los pares académicos de CONACES y el Ministerio de Educación Nacional.
+5. PROPOSICIÓN DE PROMPTS DE TABLAS/FIGURAS CON DATOS CONCRETOS EN OTRAS SECCIONES:
+   Para tablas curriculares o comparativas de mercado, incluye el bloque `> 🤖 [PROMPT IA PARA GENERACIÓN DE TABLA X.Y EN EXCEL/MARKDOWN]` con todos los datos concretos e indicadores incluidos.
 
-5. PROHIBICIÓN DE ENUMERACIÓN REPETITIVA DE ARTÍCULOS:
-   Jamás generes secuencias interminables de números de artículos (ejemplo: NO escribas 'artículos 2.5.3.2.3.2.1, 2.5.3.2.3.2.2...'). Cita la norma de forma concisa (ej. 'Decreto 1330 de 2019 / Decreto 0529 de 2024, art. 2.5.3.2.3.2.1 y ss.').
+6. PROHIBICIÓN DE ENUMERACIÓN REPETITIVA DE ARTÍCULOS:
+   Jamás generes secuencias interminables de números de artículos (ejemplo: NO escribas 'artículos 2.5.3.2.3.2.1, 2.5.3.2.3.2.2...'). Cita la norma de forma concisa (ej. 'Decreto 1330 de 2019, art. 2.5.3.2.3.2.1 y ss.').
 """
 
         user_prompt = f"""DESCRIPCIÓN DEL PROYECTO DE REGISTRO CALIFICADO:
