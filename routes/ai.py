@@ -17,7 +17,7 @@ DEFAULT_STATIC_GEMINI_KEY = os.getenv("GEMINI_API_KEY", "")
 def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
     import json
     provider = "gemini"
-    api_key = DEFAULT_STATIC_GEMINI_KEY
+    api_key = None
     model = "gemini-2.5-flash"
     
     db_error = None
@@ -74,23 +74,23 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
         # Sanitize api_key to prevent httpx ascii encode errors in headers
         api_key = str(api_key).encode('ascii', 'ignore').decode('ascii').strip()
 
-    # Fallback to static system Gemini key if key is empty or masked placeholder
-    if not api_key or set(api_key) <= {'•', '*', '\u2022'}:
-        api_key = DEFAULT_STATIC_GEMINI_KEY
-
-        if provider:
-            provider = str(provider).strip().lower()
-        if model:
-            model = str(model).encode('ascii', 'ignore').decode('ascii').strip()
-
-        # Prevent using deprecated Gemini models saved previously in DB
-        if provider == 'gemini' and model in ['gemini-1.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
-            model = 'gemini-2.5-flash'
-
-        if not api_key:
-            api_key = DEFAULT_STATIC_GEMINI_KEY
-
-
+    # Fallback to system environment keys if key is empty or invalid
+    if not api_key or not isinstance(api_key, str) or set(api_key) <= {'•', '*', '\u2022'} or len(api_key) < 10:
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        openai_key = os.getenv("OPENAI_API_KEY")
+        
+        if openai_key and (openai_key.startswith("f199") or "." in openai_key):
+            api_key = openai_key
+            provider = "bigmodel"
+            model = "glm-4-flash"
+        elif gemini_key and len(gemini_key) > 20 and not gemini_key.startswith("AIzaSyCUz"):
+            api_key = gemini_key
+            provider = "gemini"
+            model = "gemini-2.5-flash"
+        elif openai_key:
+            api_key = openai_key
+            provider = "openai"
+            model = "gpt-4o-mini"
 
     if provider == 'anthropic':
         import urllib.request
@@ -127,6 +127,8 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
             base_url = "https://api.openai.com/v1/"
         elif provider == 'gemini':
             base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+        elif provider in ['bigmodel', 'glm', 'zhipu']:
+            base_url = "https://open.bigmodel.cn/api/paas/v4/"
         else:
             base_url = "https://open.bigmodel.cn/api/paas/v4/"
         
