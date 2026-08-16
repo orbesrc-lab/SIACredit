@@ -414,8 +414,8 @@
 
         /* Content Body */
         .rc-stage-body {
-            padding: 24px;
-            min-height: 520px;
+            padding: 24px 24px 40px 24px;
+            min-height: 560px;
             display: flex;
             flex-direction: column;
         }
@@ -423,27 +423,28 @@
         .rc-editor-textarea {
             width: 100%;
             flex: 1;
-            min-height: 480px;
+            min-height: 520px;
             border: 1px solid #cbd5e1;
             border-radius: 10px;
-            padding: 16px;
+            padding: 18px 18px 60px 18px;
             font-family: 'Fira Code', Consolas, monospace;
-            font-size: 0.88rem;
-            line-height: 1.6;
+            font-size: 0.9rem;
+            line-height: 1.65;
             color: #1e293b;
             background: #fdfdfd;
             resize: vertical;
             box-sizing: border-box;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
             white-space: pre-wrap;
             word-break: break-word;
             overflow-x: auto;
+            margin-bottom: 12px;
         }
 
         .rc-editor-textarea:focus {
             border-color: var(--rc-primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
         /* Rendered Markdown Preview Style */
@@ -451,7 +452,7 @@
             font-size: 0.95rem;
             line-height: 1.7;
             color: #334155;
-            padding: 10px;
+            padding: 10px 10px 50px 10px;
         }
 
         .rc-preview-content h1, .rc-preview-content h2, .rc-preview-content h3 {
