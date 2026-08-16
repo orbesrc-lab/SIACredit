@@ -150,6 +150,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Control específico para Registro Calificado (Exclusivo SuperAdmin)
+        const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(role);
+        const rcLinks = document.querySelectorAll('.superadmin-rc-link, #menuRegistroCalificado');
+        rcLinks.forEach(el => {
+            el.style.display = isSuperAdmin ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
+        });
+
         // Ocultar los grupos del acordeón que se quedaron vacíos (sin items visibles)
         const groups = document.querySelectorAll('.sidebar-group');
         groups.forEach(group => {

@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Calificado - Documento Maestro IA | SIAC</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+
+        :root {
+            --rc-primary: #2563eb;
+            --rc-primary-dark: #1d4ed8;
+            --rc-accent: #0ea5e9;
+            --rc-success: #10b981;
+            --rc-warning: #f59e0b;
+            --rc-danger: #ef4444;
+            --rc-bg: #f8fafc;
+            --rc-card-bg: #ffffff;
+            --rc-border: #e2e8f0;
+            --rc-text-main: #0f172a;
+            --rc-text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--rc-bg);
+            color: var(--rc-text-main);
+            margin: 0;
+            padding: 0;
+        }
+
+        .rc-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Main Workspace */
+        .rc-main {
+            flex: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Top Hero Card */
+        .rc-hero-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 24px 30px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .rc-hero-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .rc-hero-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.35);
+        }
+
+        .rc-hero-info h1 {
+            margin: 0 0 4px 0;
+            font-size: 1.55rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .rc-hero-info p {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 0.88rem;
+        }
+
+        .rc-hero-badges {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .rc-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .rc-badge-superadmin { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .rc-badge-norma { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+        .rc-badge-tramite { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+        .rc-hero-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn-rc {
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-rc-primary {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .btn-rc-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-rc-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .btn-rc-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-rc-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-rc-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-rc-outline {
+            background: white;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+        }
+        .btn-rc-outline:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        /* Top Controls: Project Picker Bar */
+        .rc-toolbar {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--rc-border);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .rc-project-select-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .rc-select {
+            padding: 9px 14px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background-color: #f8fafc;
+            color: #0f172a;
+            font-size: 0.9rem;
+            font-weight: 500;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            max-width: 450px;
+        }
+        .rc-select:focus {
+            border-color: var(--rc-primary);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        /* Workspace Grid */
+        .rc-workspace {
+            display: grid;
+            grid-template-columns: 310px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1100px) {
+            .rc-workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar Navigation of Conditions */
+        .rc-conditions-nav {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid var(--rc-border);
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .rc-nav-header {
+            padding: 6px 8px 12px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rc-nav-header h3 {
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .rc-cond-item {
+            padding: 12px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #334155;
+            border: 1px solid transparent;
+        }
+
+        .rc-cond-item:hover {
+            background-color: #f1f5f9;
+            color: var(--rc-primary);
+        }
+
+        .rc-cond-item.active {
+            background: #eff6ff;
+            color: var(--rc-primary);
+            border-color: #bfdbfe;
+            font-weight: 600;
+        }
+
+        .rc-cond-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .rc-cond-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 7px;
+            background: #e2e8f0;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .rc-cond-item.active .rc-cond-num {
+            background: var(--rc-primary);
+            color: white;
+        }
+
+        .rc-cond-title {
+            font-size: 0.86rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rc-cond-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #cbd5e1;
+        }
+        .rc-cond-status-dot.generated { background-color: #10b981; }
+        .rc-cond-status-dot.audited { background-color: #3b82f6; }
+
+        /* Main Working Stage */
+        .rc-stage {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid var(--rc-border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .rc-stage-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--rc-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+            background: #fafafa;
+        }
+
+        .rc-stage-header-info h2 {
+            margin: 0 0 6px 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .rc-stage-header-info p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #64748b;
+            max-width: 800px;
+            line-height: 1.45;
+        }
+
+        .rc-stage-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Tab Switcher: Editor vs Vista Previa vs Auditoría */
+        .rc-view-switcher {
+            display: flex;
+            padding: 8px 24px;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--rc-border);
+            gap: 8px;
+        }
+
+        .rc-tab-btn {
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .rc-tab-btn:hover {
+            color: #0f172a;
+            background: #e2e8f0;
+        }
+
+        .rc-tab-btn.active {
+            background: white;
+            color: var(--rc-primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid #cbd5e1;
+        }
+
+        /* Content Body */
+        .rc-stage-body {
+            padding: 24px;
+            min-height: 520px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .rc-editor-textarea {
+            width: 100%;
+            flex: 1;
+            min-height: 480px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 16px;
+            font-family: 'Fira Code', Consolas, monospace;
+            font-size: 0.88rem;
+            line-height: 1.6;
+            color: #1e293b;
+            background: #fdfdfd;
+            resize: vertical;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .rc-editor-textarea:focus {
+            border-color: var(--rc-primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Rendered Markdown Preview Style */
+        .rc-preview-content {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #334155;
+            padding: 10px;
+        }
+
+        .rc-preview-content h1, .rc-preview-content h2, .rc-preview-content h3 {
+            color: #0f172a;
+            font-weight: 700;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+        .rc-preview-content h1 { font-size: 1.4rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; }
+        .rc-preview-content h2 { font-size: 1.2rem; color: #1e3a8a; }
+        .rc-preview-content h3 { font-size: 1.05rem; color: #334155; }
+
+        .rc-preview-content p {
+            margin-bottom: 16px;
+            text-align: justify;
+        }
+
+        .rc-preview-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.88rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .rc-preview-content th, .rc-preview-content td {
+            border: 1px solid #e2e8f0;
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        .rc-preview-content th {
+            background-color: #1e293b;
+            color: white;
+            font-weight: 600;
+        }
+
+        .rc-preview-content tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .rc-preview-content blockquote {
+            border-left: 4px solid var(--rc-primary);
+            margin: 16px 0;
+            padding: 10px 18px;
+            background-color: #eff6ff;
+            color: #1e40af;
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Audit Panel */
+        .rc-audit-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            margin-top: 16px;
+        }
+
+        .rc-audit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .rc-audit-score {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--rc-primary);
+        }
+
+        .rc-verdict-tag {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .rc-verdict-tag.green { background: #dcfce7; color: #166534; }
+        .rc-verdict-tag.yellow { background: #fef3c7; color: #92400e; }
+        .rc-verdict-tag.red { background: #fee2e2; color: #991b1b; }
+
+        /* Modal Styles */
+        .rc-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .rc-modal-container {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--rc-border);
+        }
+
+        .rc-modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--rc-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+        }
+
+        .rc-modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .rc-modal-body {
+            padding: 24px;
+        }
+
+        .rc-modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--rc-border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #f8fafc;
+        }
+
+        .rc-form-group {
+            margin-bottom: 16px;
+        }
+
+        .rc-form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .rc-input, .rc-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.9rem;
+            outline: none;
+            box-sizing: border-box;
+            background: white;
+        }
+        .rc-input:focus, .rc-textarea:focus {
+            border-color: var(--rc-primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .rc-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .rc-checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .rc-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.86rem;
+            color: #334155;
+            cursor: pointer;
+            background: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 8px;
+            user-select: none;
+        }
+
+        .rc-checkbox-label:hover {
+            background: #e2e8f0;
+        }
+
+        /* Evidence Cards */
+        .rc-evidence-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .rc-evidence-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .rc-evidence-card-title {
+            font-size: 0.86rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rc-evidence-card-meta {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        /* Spinner */
+        .rc-spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    <script src="{{ url_for('static', filename='permissions_enforcer.js') }}"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<body>
+    <div class="rc-container">
+        <!-- Sidebar Navigation (Matching SIAC layout) -->
+        <aside class="sidebar">
+            <div class="sidebar-header" style="justify-content: center; padding: 20px 15px;">
+                <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
+            </div>
+            <div class="sidebar-menu" id="accordionSidebar">
+                <!-- Autoevaluación global -->
+                <div class="sidebar-group">
+                    <div class="sidebar-group-title" onclick="toggleSidebarGroup(this)">
+                        <div class="group-icon">
+                            <span>📂</span>
+                            <span>Autoevaluación global</span>
+                        </div>
+                        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                    <div class="sidebar-submenu">
+                        <div class="sidebar-submenu-inner">
+                            <a href="/dashboard.html" class="sidebar-item">📊 Dashboard Global</a>
+                            <a href="/normatividad.html" class="sidebar-item">⚖️ Normatividad</a>
+                            <a href="/autoevaluacion.html" class="sidebar-item">📝 Autoevaluación</a>
+                            <a href="/evidencias.html" class="sidebar-item">📁 Evidencias</a>
+                            <a href="/encuestas.html" class="sidebar-item">📋 Encuestas</a>
+                            <a href="/estadisticas.html" class="sidebar-item">📈 Estadísticas</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Análisis Institucional -->
+                <div class="sidebar-group">
+                    <div class="sidebar-group-title" onclick="toggleSidebarGroup(this)">
+                        <div class="group-icon">
+                            <span>📊</span>
+                            <span>Análisis Institucional</span>
+                        </div>
+                        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                    <div class="sidebar-submenu">
+                        <div class="sidebar-submenu-inner">
+                            <a href="/informes.html" class="sidebar-item">📄 Informes</a>
+                            <a href="/dofa.html" class="sidebar-item">🎯 Diagnóstico DOFA</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Autorregulación -->
+                <div class="sidebar-group">
+                    <div class="sidebar-group-title" onclick="toggleSidebarGroup(this)">
+                        <div class="group-icon">
+                            <span>⚖️</span>
+                            <span>Autorregulación</span>
+                        </div>
+                        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                    <div class="sidebar-submenu">
+                        <div class="sidebar-submenu-inner">
+                            <a href="/planificacion.html" class="sidebar-item">🗓️ Planificación</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <a id="menuCapacitacion" href="/formacion.html" class="sidebar-item" style="display:none;" style="margin-top: 5px;">🎓 Capacitación</a>
+
+                <!-- Herramientas Gerenciales -->
+                <div class="sidebar-group" active">
+                    <div class="sidebar-group-title" onclick="toggleSidebarGroup(this)">
+                        <div class="group-icon">
+                            <span>🛠️</span>
+                            <span>Herramientas Gerenciales</span>
+                        </div>
+                        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                    <div class="sidebar-submenu">
+                        <div class="sidebar-submenu-inner">
+                            <a href="/biblioteca.html" class="sidebar-item">📚 Biblioteca</a>
+                            <a href="/crm.html" class="sidebar-item" id="menuCrm" style="display:none; color: #10b981;">🚀 B2B CRM</a>
+                            <a href="/backup" class="sidebar-item" id="menuBackup" style="display:none;">🛡️ Backup y Seguridad</a>
+                            <a href="/registro_calificado.html" class="sidebar-item active superadmin-rc-link" id="menuRegistroCalificado" style="color: #38bdf8; font-weight: 600;">📜 Registro Calificado</a>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="/configuracion.html" class="sidebar-item">⚙️ Configuración</a>
+            </div>
+            <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <a href="javascript:void(0)" onclick="logout()" class="sidebar-item" style="color: #ef4444;">🚪 Cerrar Sesión</a>
+            </div>
+        </aside>
+        
+        <main class="rc-main">
+            <!-- HERO HEADER -->
+            <div class="rc-hero-card">
+                <div class="rc-hero-title">
+                    <div class="rc-hero-icon">
+                        <i class="fa-solid fa-scroll"></i>
+                    </div>
+                    <div class="rc-hero-info">
+                        <h1>Registro Calificado • Generador de Documento Maestro</h1>
+                        <p>Plataforma Experta de Redacción y Auditoría de Condiciones de Calidad (Decreto 1330/2019, Decreto 0529/2024, Res. 021795 & Taxonomía SOLO)</p>
+                        <div class="rc-hero-badges">
+                            <span class="rc-badge rc-badge-superadmin"><i class="fa-solid fa-shield-halved"></i> Superadministrador</span>
+                            <span class="rc-badge rc-badge-norma"><i class="fa-solid fa-scale-balanced"></i> Decreto 1330 / 0529</span>
+                            <span class="rc-badge rc-badge-tramite" id="heroTramiteBadge"><i class="fa-solid fa-file-signature"></i> Trámite: <span id="heroTramiteText">Nuevo</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="rc-hero-actions">
+                    <button class="btn-rc btn-rc-secondary" onclick="openEvidenceHubModal()"><i class="fa-solid fa-folder-open"></i> Evidencias & Fuentes (<span id="evidenceCountBadge">0</span>)</button>
+                    <button class="btn-rc btn-rc-secondary" onclick="openProjectSettingsModal()"><i class="fa-solid fa-sliders"></i> Configurar Programa</button>
+                    <button class="btn-rc btn-rc-success" onclick="exportFullDocx()"><i class="fa-solid fa-file-word"></i> Exportar Documento Maestro (.docx)</button>
+                </div>
+            </div>
+
+            <!-- TOOLBAR: PROJECT SELECTOR -->
+            <div class="rc-toolbar">
+                <div class="rc-project-select-group">
+                    <label for="projectSelector" style="font-size: 0.85rem; font-weight: 700; color: #475569; white-space: nowrap;"><i class="fa-solid fa-graduation-cap"></i> Proyecto Activo:</label>
+                    <select id="projectSelector" class="rc-select" onchange="switchProject(this.value)">
+                        <option value="">Cargando proyectos...</option>
+                    </select>
+                    <button class="btn-rc btn-rc-primary" onclick="openCreateProjectModal()"><i class="fa-solid fa-plus"></i> Nuevo Proyecto</button>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 0.82rem; color: #64748b;" id="projectSummaryLine">Cargando datos...</span>
+                    <button class="btn-rc btn-rc-outline" onclick="deleteCurrentProject()" style="color: #ef4444; border-color: #fca5a5;" title="Eliminar proyecto"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+
+            <!-- MAIN WORKSPACE: SIDEBAR + EDITOR STAGE -->
+            <div class="rc-workspace">
+                <!-- CONDITIONS NAVIGATION -->
+                <div class="rc-conditions-nav" id="conditionsNavList">
+                    <div class="rc-nav-header">
+                        <h3>Estructura del Documento</h3>
+                        <span id="navProgressBadge" style="font-size: 0.75rem; font-weight: 700; color: var(--rc-primary);">0/10 Listas</span>
+                    </div>
+
+                    <a href="javascript:void(0)" class="rc-cond-item active" onclick="selectCondition('cond_intro', this)">
+                        <div class="rc-cond-info">
+                            <span class="rc-cond-num">0</span>
+                            <span class="rc-cond-title">Introducción y Contexto</span>
+                        </div>
+                        <span class="rc-cond-status-dot" id="dot_cond_intro"></span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="rc-cond-item" onclick="selectCondition('cond_1', this)">
+                        <div class="rc-cond-info">
+                            <span class="rc-cond-num">1</span>
+                            <span class="rc-cond-title">Denominación del Programa</span>
+                        </div>
+                        <span class="rc-cond-status-dot" id="dot_cond_1"></span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="rc-cond-item" onclick="selectCondition('cond_2', this)">
+                        <div class="rc-cond-info">
+                            <span class="rc-cond-num">2</span>
+                            <span class="rc-cond-title">Justificación del Programa</span>
+                        </div>
+                        <span class="rc-cond-status-dot" id="dot_cond_2"></span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="rc-cond-item" onclick="selectCondition('cond_3', this)">
+                        <div class="rc-cond-info">
+                            <span class="rc-cond-num">3</span>
+                            <span class="rc-cond-title">Aspectos Curriculares</span>
+                        </div>
+                        <span class="rc-cond-status-dot" id="dot_cond_3"></span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="rc-cond-item" onclick="selectCondition('cond_4', this)">
+                        <div class="rc-cond-info">
+                            <span class="rc-cond-num">4</span>
+                            <span class="rc-cond-title">Org. Actividades & Modalidad</span>
+                        </div>
+                        <span class="rc-cond-status-dot" id="dot_cond_4"></span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="rc-cond-item" onclick="selectCondition('cond_5', this)">
+                        <div class="rc-cond-info">
+                            <span class="rc-cond-num">5</span>
+                            <span class="rc-cond-title">Investigación e Innovación</span>
+                        </div>
+                        <span class="rc-cond-status-dot" id="dot_cond_5"></span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="rc-cond-item" onclick="selectCondition('cond_6', this)">
+                        <div class="rc-cond-info">
+                            <span class="rc-cond-num">6</span>
+                            <span class="rc-cond-title">Relación con Sector Externo</span>
+                        </div>
+                        <span class="rc-cond-status-dot" id="dot_cond_6"></span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="rc-cond-item" onclick="selectCondition('cond_7', this)">
+                        <div class="rc-cond-info">
+                            <span class="rc-cond-num">7</span>
+                            <span class="rc-cond-title">Profesores y Cualificación</span>
+                        </div>
+                        <span class="rc-cond-status-dot" id="dot_cond_7"></span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="rc-cond-item" onclick="selectCondition('cond_8', this)">
+                        <div class="rc-cond-info">
+                            <span class="rc-cond-num">8</span>
+                            <span class="rc-cond-title">Medios Educativos & LMS</span>
+                        </div>
+                        <span class="rc-cond-status-dot" id="dot_cond_8"></span>
+                    </a>
+
+                    <a href="javascript:void(0)" class="rc-cond-item" onclick="selectCondition('cond_9', this)">
+                        <div class="rc-cond-info">
+                            <span class="rc-cond-num">9</span>
+                            <span class="rc-cond-title">Infraestructura Física/Tech</span>
+                        </div>
+                        <span class="rc-cond-status-dot" id="dot_cond_9"></span>
+                    </a>
+                </div>
+
+                <!-- STAGE & EDITOR -->
+                <div class="rc-stage">
+                    <div class="rc-stage-header">
+                        <div class="rc-stage-header-info">
+                            <h2 id="stageCondTitle">Condición 1: Denominación del Programa</h2>
+                            <p id="stageCondFocus">Decreto 1330 de 2019 & Decreto 0529 de 2024. Criterios de coherencia de la denominación...</p>
+                        </div>
+                        <div class="rc-stage-actions">
+                            <button class="btn-rc btn-rc-primary" id="btnGenerateAI" onclick="generateCurrentConditionAI()"><i class="fa-solid fa-wand-magic-sparkles"></i> Redactar con IA CONACES</button>
+                            <button class="btn-rc btn-rc-outline" id="btnAuditAI" onclick="auditCurrentConditionAI()"><i class="fa-solid fa-gavel"></i> Dictamen Par IA</button>
+                            <button class="btn-rc btn-rc-outline" onclick="saveCurrentConditionContent()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+                            <button class="btn-rc btn-rc-outline" onclick="exportCurrentConditionDocx()" title="Descargar esta condición en Word"><i class="fa-solid fa-download"></i> DOCX</button>
+                        </div>
+                    </div>
+
+                    <!-- VIEW SWITCHER (Tabs: Editor / Vista Previa / Dictamen) -->
+                    <div class="rc-view-switcher">
+                        <button class="rc-tab-btn active" id="tabBtnEditor" onclick="switchStageTab('editor')"><i class="fa-solid fa-pen-to-square"></i> Editor Markdown</button>
+                        <button class="rc-tab-btn" id="tabBtnPreview" onclick="switchStageTab('preview')"><i class="fa-solid fa-eye"></i> Vista Previa Documento</button>
+                        <button class="rc-tab-btn" id="tabBtnAudit" onclick="switchStageTab('audit')"><i class="fa-solid fa-clipboard-check"></i> Dictamen de Calidad CONACES</button>
+                    </div>
+
+                    <!-- STAGE BODY -->
+                    <div class="rc-stage-body">
+                        <!-- PANE: EDITOR -->
+                        <div id="paneEditor" style="display: flex; flex-direction: column; flex: 1; gap: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.8rem; color: #64748b;"><i class="fa-solid fa-circle-info"></i> Puedes redactar o ajustar el texto directamente en Markdown con tablas, viñetas y títulos.</span>
+                                <span id="charCountBadge" style="font-size: 0.75rem; color: #94a3b8;">0 caracteres</span>
+                            </div>
+                            <textarea id="stageTextarea" class="rc-editor-textarea" placeholder="El contenido de esta condición aparecerá aquí. Haz clic en 'Redactar con IA CONACES' para generar una propuesta sólida fundamentada en la normativa y tus evidencias cargadas..." oninput="onEditorInput()"></textarea>
+                        </div>
+
+                        <!-- PANE: PREVIEW -->
+                        <div id="panePreview" style="display: none;">
+                            <div id="previewContainer" class="rc-preview-content"></div>
+                        </div>
+
+                        <!-- PANE: AUDIT -->
+                        <div id="paneAudit" style="display: none;">
+                            <div id="auditContainer">
+                                <div style="text-align: center; padding: 40px; color: #64748b;">
+                                    <i class="fa-solid fa-gavel" style="font-size: 2.5rem; margin-bottom: 12px; color: #94a3b8;"></i>
+                                    <p>Aún no has ejecutado el dictamen de Par Académico de CONACES para esta condición.</p>
+                                    <button class="btn-rc btn-rc-primary" onclick="auditCurrentConditionAI()"><i class="fa-solid fa-magnifying-glass-chart"></i> Ejecutar Auditoría Previa</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- =======================================================
+         MODAL: CONFIGURACIÓN DEL PROGRAMA / PROYECTO
+         ======================================================= -->
+    <div id="modalProjectSettings" class="rc-modal-overlay" style="display: none;">
+        <div class="rc-modal-container">
+            <div class="rc-modal-header">
+                <h3><i class="fa-solid fa-sliders"></i> Configuración Técnica del Programa (Registro Calificado)</h3>
+                <button onclick="closeModal('modalProjectSettings')" style="border:none; background:none; cursor:pointer; font-size:1.2rem; color:#64748b;">&times;</button>
+            </div>
+            <div class="rc-modal-body">
+                <div class="rc-form-group">
+                    <label>Institución de Educación Superior (IES)</label>
+                    <input type="text" id="cfgInstName" class="rc-input" placeholder="Ej: Fundación Tecnológica Autónoma del Pacífico (UTAP)">
+                </div>
+                <div class="rc-form-row">
+                    <div class="rc-form-group">
+                        <label>Denominación del Programa Académico</label>
+                        <input type="text" id="cfgProgName" class="rc-input" placeholder="Ej: Tecnología en Gestión de Soluciones de Datos con IA">
+                    </div>
+                    <div class="rc-form-group">
+                        <label>Título a Otorgar</label>
+                        <input type="text" id="cfgTargetTitle" class="rc-input" placeholder="Ej: Tecnólogo/a en Gestión de Soluciones de Datos con Inteligencia Artificial">
+                    </div>
+                </div>
+
+                <div class="rc-form-row">
+                    <div class="rc-form-group">
+                        <label>Tipo de Trámite</label>
+                        <select id="cfgProcedureType" class="rc-select" style="width: 100%; max-width: none;" onchange="onProcedureTypeChange()">
+                            <option value="nuevo">Otorgamiento por Primera Vez (Nuevo)</option>
+                            <option value="renovacion">Renovación de Registro Calificado</option>
+                            <option value="modificacion">Modificación de Registro Calificado</option>
+                        </select>
+                    </div>
+                    <div class="rc-form-group">
+                        <label>Nivel de Formación</label>
+                        <select id="cfgLevel" class="rc-select" style="width: 100%; max-width: none;">
+                            <option value="Tecnológico">Tecnológico</option>
+                            <option value="Profesional Universitario">Profesional Universitario</option>
+                            <option value="Técnico Profesional">Técnico Profesional</option>
+                            <option value="Especialización Tecnológica">Especialización Tecnológica</option>
+                            <option value="Especialización Universitaria">Especialización Universitaria</option>
+                            <option value="Maestría">Maestría</option>
+                            <option value="Doctorado">Doctorado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN ESPECIAL RENOVACIÓN CON AUTOEVALUACIÓN SIAC -->
+                <div id="cfgRenovacionSection" style="display: none; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 700; color: #166534; font-size: 0.88rem;"><i class="fa-solid fa-arrows-rotate"></i> Sincronización con Autoevaluación del SIAC</span>
+                        <button class="btn-rc btn-rc-success" style="padding: 6px 12px; font-size: 0.8rem;" onclick="syncSiacAutoeval()"><i class="fa-solid fa-cloud-arrow-down"></i> Sincronizar Autoevaluación</button>
+                    </div>
+                    <p style="font-size: 0.8rem; color: #15803d; margin: 0 0 8px 0;">Al ser renovación, puedes jalar las calificaciones de características, justificaciones y el Informe Total de Autoevaluación registrado en el SIAC para enriquecer el Documento Maestro.</p>
+                    <select id="cfgSiacProgSelect" class="rc-select" style="width: 100%; max-width: none;">
+                        <option value="">Seleccionar programa del SIAC...</option>
+                    </select>
+                </div>
+
+                <!-- REGISTRO ÚNICO: MODALIDADES -->
+                <div class="rc-form-group">
+                    <label>Modalidades Solicitadas (Registro Único - Decreto 1330 / 0529)</label>
+                    <div class="rc-checkbox-group">
+                        <label class="rc-checkbox-label"><input type="checkbox" id="modPresencial" value="Presencial"> Presencial</label>
+                        <label class="rc-checkbox-label"><input type="checkbox" id="modVirtual" value="Virtual"> Virtual</label>
+                        <label class="rc-checkbox-label"><input type="checkbox" id="modDistancia" value="A Distancia Tradicional"> A Distancia Tradicional</label>
+                        <label class="rc-checkbox-label"><input type="checkbox" id="modHibrida" value="Híbrida"> Híbrida</label>
+                        <label class="rc-checkbox-label"><input type="checkbox" id="modDual" value="Dual"> Dual</label>
+                    </div>
+                </div>
+
+                <!-- CICLOS PROPEDÉUTICOS -->
+                <div class="rc-form-group" style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="cfgHasPropedeutic" onchange="togglePropedeuticInputs()">
+                        <strong>El programa está estructurado por Ciclos Propedéuticos (Soportado en un único documento maestro)</strong>
+                    </label>
+                    <div id="propedeuticInputs" style="display: none; margin-top: 10px;">
+                        <label style="font-size: 0.8rem;">Niveles y Títulos Articulados (separados por coma)</label>
+                        <input type="text" id="cfgPropedeuticLevels" class="rc-input" placeholder="Ej: Técnico Profesional en Procesamiento de Datos, Tecnología en Soluciones de Datos con IA, Ingeniería de Datos">
+                    </div>
+                </div>
+
+                <div class="rc-form-row">
+                    <div class="rc-form-group">
+                        <label>Créditos Académicos Totales</label>
+                        <input type="number" id="cfgTotalCredits" class="rc-input" value="96">
+                    </div>
+                    <div class="rc-form-group">
+                        <label>Duración Estimada</label>
+                        <input type="text" id="cfgTotalDuration" class="rc-input" placeholder="Ej: 6 semestres">
+                    </div>
+                </div>
+
+                <div class="rc-form-row">
+                    <div class="rc-form-group">
+                        <label>Cupo Anual Proyectado</label>
+                        <input type="text" id="cfgAnnualQuota" class="rc-input" placeholder="Ej: 60 estudiantes por cohorte">
+                    </div>
+                    <div class="rc-form-group">
+                        <label>Lugares de Desarrollo / Sedes</label>
+                        <input type="text" id="cfgPlaces" class="rc-input" placeholder="Ej: Cali - Valle del Cauca, Sede Principal">
+                    </div>
+                </div>
+
+                <div class="rc-form-row">
+                    <div class="rc-form-group">
+                        <label>Clasificación CINE-F 2013 A.C.</label>
+                        <input type="text" id="cfgCineF" class="rc-input" placeholder="Ej: 0612 - Diseño y administración de bases de datos y redes">
+                    </div>
+                    <div class="rc-form-group">
+                        <label>Clasificación CIUO-08</label>
+                        <input type="text" id="cfgCiuo08" class="rc-input" placeholder="Ej: 2511 - Analistas de sistemas / 2521 - Diseñadores de bases de datos">
+                    </div>
+                </div>
+
+                <div class="rc-form-group">
+                    <label>Alineación con Objetivos de Desarrollo Sostenible (ODS)</label>
+                    <input type="text" id="cfgOds" class="rc-input" placeholder="Ej: ODS 4 (Educación de Calidad), ODS 8 (Trabajo Decente), ODS 9 (Industria e Innovación)">
+                </div>
+            </div>
+            <div class="rc-modal-footer">
+                <button class="btn-rc btn-rc-outline" onclick="closeModal('modalProjectSettings')">Cancelar</button>
+                <button class="btn-rc btn-rc-primary" onclick="saveProjectSettings()"><i class="fa-solid fa-floppy-disk"></i> Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =======================================================
+         MODAL: CENTRO DE EVIDENCIAS Y DOCUMENTOS
+         ======================================================= -->
+    <div id="modalEvidenceHub" class="rc-modal-overlay" style="display: none;">
+        <div class="rc-modal-container">
+            <div class="rc-modal-header">
+                <h3><i class="fa-solid fa-folder-open"></i> Repositorio Documental y Evidencias Reales del Proyecto</h3>
+                <button onclick="closeModal('modalEvidenceHub')" style="border:none; background:none; cursor:pointer; font-size:1.2rem; color:#64748b;">&times;</button>
+            </div>
+            <div class="rc-modal-body">
+                <p style="font-size: 0.88rem; color: #475569; margin-top:0;">Sube los documentos institucionales de soporte (PEI, PDI, Reglamentos, Malla curricular, Estudios de Mercado, etc.). El sistema extraerá el texto automáticamente para que la IA cite y fundamente las condiciones con evidencia real.</p>
+                
+                <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
+                    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px;">
+                        <input type="text" id="uploadCustomName" class="rc-input" style="max-width: 250px;" placeholder="Nombre / Alias del documento">
+                        <select id="uploadDocType" class="rc-select" style="max-width: 220px;">
+                            <option value="PEI">PEI (Proyecto Educativo)</option>
+                            <option value="PDI">PDI (Plan de Desarrollo)</option>
+                            <option value="Reglamento">Reglamento / Estatuto</option>
+                            <option value="Politica">Política Institucional</option>
+                            <option value="Estudio_Mercado">Estudio de Mercado / DANE</option>
+                            <option value="Malla_Curricular">Malla y Plan de Estudios</option>
+                            <option value="General">Otro Soporte</option>
+                        </select>
+                        <input type="file" id="evidenceFileInput" style="display: none;" onchange="onFileSelected(this)">
+                        <button class="btn-rc btn-rc-primary" onclick="document.getElementById('evidenceFileInput').click()"><i class="fa-solid fa-cloud-arrow-up"></i> Seleccionar Archivo (PDF/DOCX/XLSX)</button>
+                    </div>
+                    <span style="font-size: 0.78rem; color: #94a3b8;" id="uploadSelectedFileName">Formatos soportados: PDF, Word (.docx), Excel (.xlsx), Texto (.txt)</span>
+                </div>
+
+                <h4 style="margin: 16px 0 8px 0; font-size: 0.95rem; color: #0f172a;"><i class="fa-solid fa-layer-group"></i> Documentos Indexados en este Proyecto (<span id="evidencesListCount">0</span>)</h4>
+                <div class="rc-evidence-grid" id="evidencesContainer">
+                    <p style="color: #94a3b8; font-size: 0.85rem;">No hay documentos cargados aún en este proyecto.</p>
+                </div>
+            </div>
+            <div class="rc-modal-footer">
+                <button class="btn-rc btn-rc-primary" onclick="closeModal('modalEvidenceHub')">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE LÓGICA DE NEGOCIO Y RENDERIZADO -->
+    <script>
+        let currentProject = null;
+        let currentCondKey = 'cond_intro';
+        let allProjects = [];
+
+        const CONDITIONS_METADATA = {
+            'cond_intro': {
+                title: 'Introducción y Contextualización Institucional',
+                focus: 'Presentación formal de la institución, misión, visión, modelo pedagógico, propósito del trámite (Otorgamiento/Renovación), pertinencia y articulación con el PDI.'
+            },
+            'cond_1': {
+                title: 'Condición 1: Denominación del Programa',
+                focus: 'Decreto 1330/2019 Art. 2.5.3.2.3.2.1 & Decreto 0529/2024. Coherencia de la denominación con el nivel de formación, campo amplio/específico CINE-F 2013 A.C., clasificación CIUO-08, objetivos de desarrollo sostenible (ODS) y perfil de egreso.'
+            },
+            'cond_2': {
+                title: 'Condición 2: Justificación del Programa',
+                focus: 'Decreto 1330/2019 Art. 2.5.3.2.3.2.2. Pertinencia en los contextos internacional, nacional y regional; estudio de demanda laboral y tendencias ocupacionales; estado de la oferta académica (SNIES, SPADIES, DANE); atributos diferenciadores del programa y articulación con el Plan de Desarrollo Institucional.'
+            },
+            'cond_3': {
+                title: 'Condición 3: Aspectos Curriculares',
+                focus: 'Decreto 1330/2019 Art. 2.5.3.2.3.2.3 & Res. 021795. Conceptualización teórica y epistemológica, diseño curricular basado en Resultados de Aprendizaje (RA) formulados rigurosamente bajo la TAXONOMÍA SOLO (Preestructural, Uniestructural, Multiestructural, Relacional, Abstracto Ampliado), plan de estudios detallado con créditos (horas de acompañamiento docente vs. trabajo independiente), áreas y componentes de formación, interdisciplinariedad, flexibilidad curricular, estrategias de evaluación del aprendizaje y COMPONENTE PROPEDÉUTICO articulado (si aplica ciclos propedéuticos).'
+            },
+            'cond_4': {
+                title: 'Condición 4: Organización de las Actividades Académicas y del Proceso Formativo',
+                focus: 'Decreto 1330/2019 Art. 2.5.3.2.3.2.4 & Registro Único Multimodal. Estrategias pedagógicas y didácticas discriminadas por cada modalidad solicitada (Presencial, Virtual, A Distancia Tradicional, Híbrida, Dual); mediaciones tecnológicas, equivalencia académica y de créditos entre modalidades, interacciones sincrónicas/asincrónicas y aseguramiento del aprendizaje.'
+            },
+            'cond_5': {
+                title: 'Condición 5: Investigación, Innovación y/o Creación Artística y Cultural',
+                focus: 'Decreto 1330/2019 Art. 2.5.3.2.3.2.5. Articulación de la formación investigativa en el plan de estudios, líneas y sublíneas de investigación, semilleros y grupos de investigación institucionales, proyectos, producción científica/tecnológica y proyección de sostenibilidad a los 7 años de vigencia.'
+            },
+            'cond_6': {
+                title: 'Condición 6: Relación con el Sector Externo',
+                focus: 'Decreto 1330/2019 Art. 2.5.3.2.3.2.6. Proyección social, extensión, vinculación con el sector productivo y comunitario, internacionalización del currículo, convenios de prácticas, seguimiento a egresados y programas de responsabilidad social.'
+            },
+            'cond_7': {
+                title: 'Condición 7: Profesores',
+                focus: 'Decreto 1330/2019 Art. 2.5.3.2.3.2.7. Planta docente proyectada, perfiles académicos y de experiencia requeridos acordes a las modalidades, plan de formación y cualificación pedagógica/disciplinar, estatuto docente, dedicación horaria (docencia, investigación, extensión) y sistema de evaluación docente.'
+            },
+            'cond_8': {
+                title: 'Condición 8: Medios Educativos',
+                focus: 'Decreto 1330/2019 Art. 2.5.3.2.3.2.8. Recursos bibliográficos físicos y digitales (bases de datos científicas), plataformas virtuales de aprendizaje (LMS), software especializado, simuladores, laboratorios virtuales, políticas de accesibilidad e inclusión y programas de capacitación a usuarios.'
+            },
+            'cond_9': {
+                title: 'Condición 9: Infraestructura Física y Tecnológica',
+                focus: 'Decreto 1330/2019 Art. 2.5.3.2.3.2.9. Aulas, laboratorios físicos y talleres especializados, conectividad y ancho de banda, espacios de bienestar universitario, condiciones de bioseguridad, accesibilidad física, plan de mantenimiento y sostenibilidad presupuestal.'
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadProjects();
+            await loadLinkableSiacPrograms();
+        });
+
+        // 1. CARGA DE PROYECTOS
+        async function loadProjects() {
+            try {
+                const res = await fetch('/api/rc/projects');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    allProjects = data.projects || [];
+                    renderProjectSelect();
+                    if (allProjects.length > 0) {
+                        switchProject(allProjects[0].id);
+                    } else {
+                        // Crear uno por defecto
+                        await createDefaultProject();
+                    }
+                }
+            } catch (e) {
+                console.error("Error cargando proyectos:", e);
+            }
+        }
+
+        function renderProjectSelect() {
+            const sel = document.getElementById('projectSelector');
+            sel.innerHTML = '';
+            allProjects.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = `${p.program_name} (${p.level}) - ${p.inst_name}`;
+                sel.appendChild(opt);
+            });
+        }
+
+        async function createDefaultProject() {
+            const payload = {
+                inst_name: "Fundación Tecnológica Autónoma del Pacífico (UTAP)",
+                program_name: "Tecnología en Gestión de Soluciones de Datos con Inteligencia Artificial",
+                target_title: "Tecnólogo/a en Gestión de Soluciones de Datos con Inteligencia Artificial",
+                procedure_type: "nuevo",
+                level: "Tecnológico",
+                modalities: ["Virtual", "Presencial", "Híbrida"],
+                places_of_development: ["Cali - Valle del Cauca"],
+                has_propedeutic_cycle: false,
+                total_credits: 96,
+                total_duration: "6 semestres",
+                annual_quota: "60 estudiantes por cohorte",
+                cine_f_code: "0612 - Diseño y administración de bases de datos y redes",
+                ciuo_08_code: "2511 - Analistas de sistemas / 2521 - Diseñadores de bases de datos",
+                ods_alignment: "ODS 4 (Educación de Calidad), ODS 8 (Trabajo Decente), ODS 9 (Industria e Innovación)"
+            };
+            const res = await fetch('/api/rc/projects', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                allProjects = [data.project];
+                renderProjectSelect();
+                switchProject(data.project.id);
+            }
+        }
+
+        function switchProject(projectId) {
+            currentProject = allProjects.find(p => p.id === projectId);
+            if (!currentProject) return;
+
+            document.getElementById('projectSelector').value = projectId;
+            
+            // Actualizar UI del Hero
+            document.getElementById('heroTramiteText').textContent = (currentProject.procedure_type || 'nuevo').toUpperCase();
+            document.getElementById('projectSummaryLine').textContent = `${currentProject.inst_name} | ${currentProject.level} | ${(currentProject.modalities || []).join(', ')}`;
+            
+            // Actualizar badges de evidencias
+            const evCount = (currentProject.evidences || []).length;
+            document.getElementById('evidenceCountBadge').textContent = evCount;
+            document.getElementById('evidencesListCount').textContent = evCount;
+
+            updateNavDots();
+            selectCondition(currentCondKey);
+            renderEvidencesList();
+        }
+
+        // 2. SELECCIÓN DE CONDICIÓN Y GESTIÓN DE PESTAÑAS
+        function selectCondition(condKey, el) {
+            currentCondKey = condKey;
+            
+            // Actualizar active en nav
+            document.querySelectorAll('.rc-cond-item').forEach(item => item.classList.remove('active'));
+            if (el) {
+                el.classList.add('active');
+            } else {
+                const target = Array.from(document.querySelectorAll('.rc-cond-item')).find(a => a.getAttribute('onclick')?.includes(condKey));
+                if (target) target.classList.add('active');
+            }
+
+            const meta = CONDITIONS_METADATA[condKey] || { title: 'Condición', focus: '' };
+            document.getElementById('stageCondTitle').textContent = meta.title;
+            document.getElementById('stageCondFocus').textContent = meta.focus;
+
+            // Cargar contenido en el editor
+            const condData = (currentProject.conditions || {})[condKey] || {};
+            const content = condData.content || '';
+            document.getElementById('stageTextarea').value = content;
+            document.getElementById('charCountBadge').textContent = `${content.length} caracteres`;
+
+            // Actualizar vista previa
+            renderMarkdownPreview(content);
+
+            // Actualizar panel de auditoría
+            const auditData = (currentProject.audit_results || {})[condKey];
+            renderAuditView(auditData);
+
+            switchStageTab('editor');
+        }
+
+        function onEditorInput() {
+            const content = document.getElementById('stageTextarea').value;
+            document.getElementById('charCountBadge').textContent = `${content.length} caracteres`;
+            renderMarkdownPreview(content);
+        }
+
+        function renderMarkdownPreview(content) {
+            const container = document.getElementById('previewContainer');
+            if (!content || !content.trim()) {
+                container.innerHTML = '<p style="color: #94a3b8; font-style: italic;">(Sin contenido para previsualizar. Redacta o genera la condición con la IA).</p>';
+                return;
+            }
+            container.innerHTML = marked.parse(content);
+        }
+
+        function switchStageTab(tab) {
+            document.getElementById('tabBtnEditor').classList.toggle('active', tab === 'editor');
+            document.getElementById('tabBtnPreview').classList.toggle('active', tab === 'preview');
+            document.getElementById('tabBtnAudit').classList.toggle('active', tab === 'audit');
+
+            document.getElementById('paneEditor').style.display = tab === 'editor' ? 'flex' : 'none';
+            document.getElementById('panePreview').style.display = tab === 'preview' ? 'block' : 'none';
+            document.getElementById('paneAudit').style.display = tab === 'audit' ? 'block' : 'none';
+
+            if (tab === 'preview') {
+                renderMarkdownPreview(document.getElementById('stageTextarea').value);
+            }
+        }
+
+        function updateNavDots() {
+            let readyCount = 0;
+            const conditions = currentProject.conditions || {};
+            Object.keys(CONDITIONS_METADATA).forEach(k => {
+                const dot = document.getElementById(`dot_${k}`);
+                if (dot) {
+                    if (conditions[k]?.content?.trim()) {
+                        dot.className = 'rc-cond-status-dot generated';
+                        readyCount++;
+                    } else {
+                        dot.className = 'rc-cond-status-dot';
+                    }
+                }
+            });
+            document.getElementById('navProgressBadge').textContent = `${readyCount}/10 Listas`;
+        }
+
+        // 3. GENERADOR DE IA CONACES
+        async function generateCurrentConditionAI() {
+            if (!currentProject) return;
+            const btn = document.getElementById('btnGenerateAI');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="rc-spinner"></span> Redactando Par CONACES...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/rc/generate_condition', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        project_id: currentProject.id,
+                        cond_key: currentCondKey
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    if (!currentProject.conditions) currentProject.conditions = {};
+                    currentProject.conditions[currentCondKey] = {
+                        content: data.content,
+                        status: 'generated'
+                    };
+                    document.getElementById('stageTextarea').value = data.content;
+                    onEditorInput();
+                    updateNavDots();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Condición Redactada con Éxito',
+                        text: 'El texto ha sido estructurado con rigor técnico, tablas y evidencias institucionales.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo generar la condición', 'error');
+                }
+            } catch (e) {
+                Swal.fire('Error', 'Fallo de conexión al generar condición: ' + e.message, 'error');
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        // 4. AUDITORÍA DE PAR ACADÉMICO IA
+        async function auditCurrentConditionAI() {
+            if (!currentProject) return;
+            const content = document.getElementById('stageTextarea').value;
+            if (!content.trim()) {
+                Swal.fire('Atención', 'Primero debes generar o redactar contenido para esta condición antes de auditar.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnAuditAI');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="rc-spinner"></span> Auditando...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/rc/audit_condition', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        project_id: currentProject.id,
+                        cond_key: currentCondKey
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    if (!currentProject.audit_results) currentProject.audit_results = {};
+                    currentProject.audit_results[currentCondKey] = data.audit;
+                    renderAuditView(data.audit);
+                    switchStageTab('audit');
+
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Dictamen de Par Académico Emitido',
+                        text: `Evaluación completada con calificación ${data.audit.score_100}/100.`,
+                        timer: 2200,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire('Error', data.message || 'Error en auditoría', 'error');
+                }
+            } catch (e) {
+                Swal.fire('Error', 'Fallo de conexión al auditar: ' + e.message, 'error');
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        function renderAuditView(audit) {
+            const container = document.getElementById('auditContainer');
+            if (!audit) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #64748b;">
+                        <i class="fa-solid fa-gavel" style="font-size: 2.5rem; margin-bottom: 12px; color: #94a3b8;"></i>
+                        <p>Aún no has ejecutado el dictamen de Par Académico de CONACES para esta condición.</p>
+                        <button class="btn-rc btn-rc-primary" onclick="auditCurrentConditionAI()"><i class="fa-solid fa-magnifying-glass-chart"></i> Ejecutar Auditoría Previa</button>
+                    </div>`;
+                return;
+            }
+
+            let statusClass = 'green';
+            let statusText = 'Cumple Plenamente';
+            if (audit.rating_status === 'CUMPLE_ACEPTABLEMENTE') {
+                statusClass = 'yellow';
+                statusText = 'Cumple Aceptablemente';
+            } else if (audit.rating_status === 'REQUIERE_AJUSTES') {
+                statusClass = 'red';
+                statusText = 'Requiere Ajustes de Fondo';
+            }
+
+            const strengthsList = (audit.strengths || []).map(s => `<li><i class="fa-solid fa-check" style="color:#10b981; margin-right:6px;"></i> ${s}</li>`).join('');
+            const observationsList = (audit.observations || []).map(o => `<li><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b; margin-right:6px;"></i> ${o}</li>`).join('');
+            const recommendationsList = (audit.recommendations || []).map(r => `<li><i class="fa-solid fa-arrow-right" style="color:#3b82f6; margin-right:6px;"></i> ${r}</li>`).join('');
+
+            container.innerHTML = `
+                <div class="rc-audit-card">
+                    <div class="rc-audit-header">
+                        <div>
+                            <span class="rc-verdict-tag ${statusClass}">${statusText}</span>
+                            <span style="font-size: 0.85rem; color: #64748b; margin-left: 10px;">Dictamen de Sala de Evaluación CONACES</span>
+                        </div>
+                        <div class="rc-audit-score">${audit.score_100 || 90} <span style="font-size: 1rem; color: #94a3b8;">/ 100</span></div>
+                    </div>
+
+                    <div style="background: white; border-radius: 8px; padding: 14px; margin-bottom: 16px; border: 1px solid #e2e8f0;">
+                        <h4 style="margin: 0 0 6px 0; font-size: 0.9rem; color: #0f172a;"><i class="fa-solid fa-quote-left" style="color: var(--rc-primary);"></i> Concepto del Evaluador:</h4>
+                        <p style="margin: 0; font-size: 0.88rem; color: #334155; line-height: 1.5;">${audit.conaces_verdict || 'Cumple satisfactoriamente con los requerimientos normativos del Decreto 1330 de 2019.'}</p>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div style="background: white; border-radius: 8px; padding: 14px; border: 1px solid #e2e8f0;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 0.88rem; color: #166534;"><i class="fa-solid fa-circle-check"></i> Fortalezas Identificadas</h4>
+                            <ul style="margin: 0; padding-left: 0; list-style: none; font-size: 0.84rem; color: #334155; display: flex; flex-direction: column; gap: 6px;">
+                                ${strengthsList || '<li>Estructura acorde a la normatividad.</li>'}
+                            </ul>
+                        </div>
+                        <div style="background: white; border-radius: 8px; padding: 14px; border: 1px solid #e2e8f0;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 0.88rem; color: #92400e;"><i class="fa-solid fa-triangle-exclamation"></i> Observaciones y Riesgos</h4>
+                            <ul style="margin: 0; padding-left: 0; list-style: none; font-size: 0.84rem; color: #334155; display: flex; flex-direction: column; gap: 6px;">
+                                ${observationsList || '<li>No se detectaron observaciones críticas.</li>'}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div style="background: #eff6ff; border-radius: 8px; padding: 14px; margin-top: 14px; border: 1px solid #bfdbfe;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 0.88rem; color: #1e40af;"><i class="fa-solid fa-lightbulb"></i> Recomendaciones Previas a la Radicación en SACES</h4>
+                        <ul style="margin: 0; padding-left: 0; list-style: none; font-size: 0.84rem; color: #1e3a8a; display: flex; flex-direction: column; gap: 6px;">
+                            ${recommendationsList || '<li>Revisar coherencia con anexos institucionales.</li>'}
+                        </ul>
+                    </div>
+                </div>`;
+        }
+
+        // 5. GUARDAR CONTENIDO EDITADO
+        async function saveCurrentConditionContent() {
+            if (!currentProject) return;
+            const content = document.getElementById('stageTextarea').value;
+            try {
+                const res = await fetch('/api/rc/save_condition_content', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        project_id: currentProject.id,
+                        cond_key: currentCondKey,
+                        content: content
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    if (!currentProject.conditions) currentProject.conditions = {};
+                    currentProject.conditions[currentCondKey] = {
+                        content: content,
+                        status: 'edited'
+                    };
+                    updateNavDots();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Guardado',
+                        text: 'Contenido actualizado correctamente.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+            } catch (e) {
+                Swal.fire('Error', 'No se pudo guardar el contenido: ' + e.message, 'error');
+            }
+        }
+
+        // 6. EXPORTACIÓN A DOCX
+        function exportFullDocx() {
+            if (!currentProject) return;
+            window.location.href = `/api/rc/export_docx?project_id=${currentProject.id}`;
+        }
+
+        function exportCurrentConditionDocx() {
+            if (!currentProject) return;
+            window.location.href = `/api/rc/export_docx?project_id=${currentProject.id}&cond_key=${currentCondKey}`;
+        }
+
+        // 7. GESTIÓN DE EVIDENCIAS Y SUBIDAS
+        function openEvidenceHubModal() {
+            document.getElementById('modalEvidenceHub').style.display = 'flex';
+            renderEvidencesList();
+        }
+
+        function renderEvidencesList() {
+            const container = document.getElementById('evidencesContainer');
+            const evidences = currentProject?.evidences || [];
+            if (evidences.length === 0) {
+                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem;">No hay documentos cargados aún en este proyecto.</p>';
+                return;
+            }
+
+            container.innerHTML = evidences.map(ev => `
+                <div class="rc-evidence-card">
+                    <div>
+                        <div class="rc-evidence-card-title">
+                            <i class="fa-solid fa-file-lines" style="color: var(--rc-primary);"></i>
+                            <span>${ev.name || ev.original_filename}</span>
+                        </div>
+                        <div class="rc-evidence-card-meta">
+                            Tipo: <strong>${ev.doc_type || 'General'}</strong> | ${Math.round((ev.size_bytes || 0) / 1024)} KB
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 0.75rem; color: #64748b;">
+                        <em>${(ev.text_sample || '').substring(0, 100)}...</em>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function onFileSelected(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            document.getElementById('uploadSelectedFileName').textContent = `Subiendo e indexando: ${file.name}...`;
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('project_id', currentProject.id);
+            formData.append('doc_type', document.getElementById('uploadDocType').value);
+            formData.append('name', document.getElementById('uploadCustomName').value);
+
+            try {
+                const res = await fetch('/api/rc/upload_evidence', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    if (!currentProject.evidences) currentProject.evidences = [];
+                    currentProject.evidences.push(data.evidence);
+                    renderEvidencesList();
+                    
+                    const evCount = currentProject.evidences.length;
+                    document.getElementById('evidenceCountBadge').textContent = evCount;
+                    document.getElementById('evidencesListCount').textContent = evCount;
+
+                    document.getElementById('uploadCustomName').value = '';
+                    input.value = '';
+                    document.getElementById('uploadSelectedFileName').textContent = 'Documento indexado con éxito.';
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Documento Indexado',
+                        text: `${data.evidence.name} ha sido procesado con éxito para fundamentar la IA.`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo subir el archivo', 'error');
+                }
+            } catch (e) {
+                Swal.fire('Error', 'Fallo al subir evidencia: ' + e.message, 'error');
+            }
+        }
+
+        // 8. CONFIGURACIÓN DEL PROYECTO
+        function openProjectSettingsModal() {
+            if (!currentProject) return;
+            document.getElementById('cfgInstName').value = currentProject.inst_name || '';
+            document.getElementById('cfgProgName').value = currentProject.program_name || '';
+            document.getElementById('cfgTargetTitle').value = currentProject.target_title || '';
+            document.getElementById('cfgProcedureType').value = currentProject.procedure_type || 'nuevo';
+            document.getElementById('cfgLevel').value = currentProject.level || 'Tecnológico';
+            
+            // Modalidades
+            const mods = currentProject.modalities || [];
+            document.getElementById('modPresencial').checked = mods.includes('Presencial');
+            document.getElementById('modVirtual').checked = mods.includes('Virtual');
+            document.getElementById('modDistancia').checked = mods.includes('A Distancia Tradicional');
+            document.getElementById('modHibrida').checked = mods.includes('Híbrida');
+            document.getElementById('modDual').checked = mods.includes('Dual');
+
+            // Propedéutica
+            const hasProp = !!currentProject.has_propedeutic_cycle;
+            document.getElementById('cfgHasPropedeutic').checked = hasProp;
+            document.getElementById('cfgPropedeuticLevels').value = (currentProject.propedeutic_levels || []).join(', ');
+            togglePropedeuticInputs();
+
+            document.getElementById('cfgTotalCredits').value = currentProject.total_credits || 96;
+            document.getElementById('cfgTotalDuration').value = currentProject.total_duration || '6 semestres';
+            document.getElementById('cfgAnnualQuota').value = currentProject.annual_quota || '60 estudiantes';
+            document.getElementById('cfgPlaces').value = (currentProject.places_of_development || []).join(', ');
+            document.getElementById('cfgCineF').value = currentProject.cine_f_code || '';
+            document.getElementById('cfgCiuo08').value = currentProject.ciuo_08_code || '';
+            document.getElementById('cfgOds').value = currentProject.ods_alignment || '';
+
+            onProcedureTypeChange();
+            document.getElementById('modalProjectSettings').style.display = 'flex';
+        }
+
+        function onProcedureTypeChange() {
+            const proc = document.getElementById('cfgProcedureType').value;
+            const renovSec = document.getElementById('cfgRenovacionSection');
+            renovSec.style.display = (proc === 'renovacion') ? 'block' : 'none';
+        }
+
+        function togglePropedeuticInputs() {
+            const hasProp = document.getElementById('cfgHasPropedeutic').checked;
+            document.getElementById('propedeuticInputs').style.display = hasProp ? 'block' : 'none';
+        }
+
+        async function saveProjectSettings() {
+            const mods = [];
+            if (document.getElementById('modPresencial').checked) mods.push('Presencial');
+            if (document.getElementById('modVirtual').checked) mods.push('Virtual');
+            if (document.getElementById('modDistancia').checked) mods.push('A Distancia Tradicional');
+            if (document.getElementById('modHibrida').checked) mods.push('Híbrida');
+            if (document.getElementById('modDual').checked) mods.push('Dual');
+            if (mods.length === 0) mods.push('Presencial');
+
+            const hasProp = document.getElementById('cfgHasPropedeutic').checked;
+            const propLevels = document.getElementById('cfgPropedeuticLevels').value.split(',').map(s => s.trim()).filter(Boolean);
+
+            const payload = {
+                id: currentProject.id,
+                inst_name: document.getElementById('cfgInstName').value.trim(),
+                program_name: document.getElementById('cfgProgName').value.trim(),
+                target_title: document.getElementById('cfgTargetTitle').value.trim(),
+                procedure_type: document.getElementById('cfgProcedureType').value,
+                level: document.getElementById('cfgLevel').value,
+                modalities: mods,
+                has_propedeutic_cycle: hasProp,
+                propedeutic_levels: propLevels,
+                total_credits: parseInt(document.getElementById('cfgTotalCredits').value) || 96,
+                total_duration: document.getElementById('cfgTotalDuration').value.trim(),
+                annual_quota: document.getElementById('cfgAnnualQuota').value.trim(),
+                places_of_development: document.getElementById('cfgPlaces').value.split(',').map(s => s.trim()).filter(Boolean),
+                cine_f_code: document.getElementById('cfgCineF').value.trim(),
+                ciuo_08_code: document.getElementById('cfgCiuo08').value.trim(),
+                ods_alignment: document.getElementById('cfgOds').value.trim(),
+                linked_siac_program_id: document.getElementById('cfgSiacProgSelect').value ? parseInt(document.getElementById('cfgSiacProgSelect').value) : null
+            };
+
+            const res = await fetch('/api/rc/projects', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                const idx = allProjects.findIndex(p => p.id === currentProject.id);
+                if (idx !== -1) allProjects[idx] = data.project;
+                currentProject = data.project;
+                renderProjectSelect();
+                switchProject(currentProject.id);
+                closeModal('modalProjectSettings');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Configuración Guardada',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        }
+
+        async function openCreateProjectModal() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Crear Nuevo Proyecto de Registro Calificado',
+                html: `
+                    <input id="swalInstName" class="swal2-input" placeholder="Nombre de la Institución (IES)" value="Fundación Tecnológica Autónoma del Pacífico">
+                    <input id="swalProgName" class="swal2-input" placeholder="Nombre del Programa Académico">
+                    <select id="swalLevel" class="swal2-input">
+                        <option value="Tecnológico">Nivel: Tecnológico</option>
+                        <option value="Profesional Universitario">Nivel: Profesional Universitario</option>
+                        <option value="Técnico Profesional">Nivel: Técnico Profesional</option>
+                        <option value="Especialización">Nivel: Especialización</option>
+                        <option value="Maestría">Nivel: Maestría</option>
+                        <option value="Doctorado">Nivel: Doctorado</option>
+                    </select>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Crear Proyecto',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const inst = document.getElementById('swalInstName').value.trim();
+                    const prog = document.getElementById('swalProgName').value.trim();
+                    const lvl = document.getElementById('swalLevel').value;
+                    if (!prog) {
+                        Swal.showValidationMessage('El nombre del programa es obligatorio');
+                    }
+                    return { inst_name: inst, program_name: prog, level: lvl };
+                }
+            });
+
+            if (formValues) {
+                const payload = {
+                    inst_name: formValues.inst_name,
+                    program_name: formValues.program_name,
+                    target_title: `Graduado en ${formValues.program_name}`,
+                    level: formValues.level,
+                    procedure_type: 'nuevo',
+                    modalities: ['Presencial', 'Virtual'],
+                    total_credits: 96,
+                    total_duration: '6 semestres'
+                };
+
+                const res = await fetch('/api/rc/projects', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    allProjects.unshift(data.project);
+                    renderProjectSelect();
+                    switchProject(data.project.id);
+                    Swal.fire('¡Creado!', 'Proyecto iniciado. Puedes configurar sus parámetros y evidencias.', 'success');
+                }
+            }
+        }
+
+        async function deleteCurrentProject() {
+            if (!currentProject) return;
+            const confirm = await Swal.fire({
+                title: '¿Eliminar este proyecto?',
+                text: `Se borrará el proyecto "${currentProject.program_name}" y sus condiciones generadas.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (confirm.isConfirmed) {
+                await fetch(`/api/rc/projects/${currentProject.id}`, { method: 'DELETE' });
+                allProjects = allProjects.filter(p => p.id !== currentProject.id);
+                renderProjectSelect();
+                if (allProjects.length > 0) {
+                    switchProject(allProjects[0].id);
+                } else {
+                    await createDefaultProject();
+                }
+                Swal.fire('Eliminado', 'Proyecto removido correctamente.', 'success');
+            }
+        }
+
+        // 9. AUTOEVALUACIÓN SIAC LINKING
+        async function loadLinkableSiacPrograms() {
+            try {
+                const res = await fetch('/api/rc/linkable_programs');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const sel = document.getElementById('cfgSiacProgSelect');
+                    sel.innerHTML = '<option value="">-- Seleccionar Programa de Autoevaluación --</option>';
+                    (data.programs || []).forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = `${p.name} (${p.level || 'Programa'}) - [${p.evaluation_count} eval]`;
+                        sel.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                console.error("Error al listar programas linkables:", e);
+            }
+        }
+
+        async function syncSiacAutoeval() {
+            const progId = document.getElementById('cfgSiacProgSelect').value;
+            if (!progId) {
+                Swal.fire('Atención', 'Selecciona primero un programa del SIAC con autoevaluación.', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Sincronizando Autoevaluación...',
+                text: 'Extrayendo calificaciones, justificaciones, evidencias y planes de mejoramiento históricos...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                const res = await fetch('/api/rc/sync_autoevaluacion', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        project_id: currentProject.id,
+                        program_id: parseInt(progId),
+                        inst_id: currentProject.inst_id || 1
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    // Refrescar proyecto
+                    const pRes = await fetch(`/api/rc/projects/${currentProject.id}`);
+                    const pData = await pRes.json();
+                    if (pData.status === 'success') {
+                        currentProject = pData.project;
+                        renderEvidencesList();
+                        document.getElementById('evidenceCountBadge').textContent = (currentProject.evidences || []).length;
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Autoevaluación Sincronizada',
+                        html: `
+                            <p>${data.message}</p>
+                            <ul style="text-align: left; font-size: 0.85rem;">
+                                <li>Características evaluadas: <strong>${data.summary.evaluated_characteristics}</strong></li>
+                                <li>Promedio Ponderado: <strong>${data.summary.avg_score} / 5.0</strong></li>
+                                <li>Evidencias registradas: <strong>${data.summary.evidences_count}</strong></li>
+                            </ul>
+                        `
+                    });
+                } else {
+                    Swal.fire('Error', data.message || 'Error al sincronizar autoevaluación', 'error');
+                }
+            } catch (e) {
+                Swal.fire('Error', 'Fallo de conexión al sincronizar: ' + e.message, 'error');
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+    </script>
+</body>
+</html>

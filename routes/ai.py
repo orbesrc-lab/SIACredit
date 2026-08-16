@@ -528,10 +528,11 @@ import json
 def library_search():
     q = request.args.get('q', '').strip()
     limit = request.args.get('limit', '20')
+    lang = request.args.get('lang', 'all').strip().lower() # 'es', 'en', 'all'
     if not limit.isdigit():
         limit = '20'
-    if int(limit) > 100:
-        limit = '100'
+    limit_num = min(int(limit), 100)
+    limit_str = str(limit_num)
         
     if not q:
         return jsonify({'results': []})
@@ -540,7 +541,7 @@ def library_search():
         try:
             print(f"Searching Europe PMC for: {q}")
             clean_q = q.lower().replace('filetype:pdf', '').strip()
-            epmc_url = f"https://www.ebi.ac.uk/europepmc/webservices/rest/search?query={urllib.parse.quote(clean_q)}+HAS_PDF:y&format=json&resultType=core&pageSize={limit}"
+            epmc_url = f"https://www.ebi.ac.uk/europepmc/webservices/rest/search?query={urllib.parse.quote(clean_q)}+HAS_PDF:y&format=json&resultType=core&pageSize={limit_str}"
             epmc_req = urllib.request.Request(epmc_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
             with urllib.request.urlopen(epmc_req, timeout=10) as response:
                 epmc_data = json.loads(response.read().decode('utf-8'))
@@ -568,7 +569,8 @@ def library_search():
                         'primary_location': {'source': {'display_name': item.get('journalTitle', 'Europe PMC')}},
                         'doi': f"https://doi.org/{doi}" if doi and not doi.startswith('http') else doi,
                         'open_access': {'oa_url': pdf_url},
-                        'type': 'pdf'
+                        'type': 'pdf',
+                        'language_label': 'Internacional 🌐'
                     })
                 return jsonify({'results': results, 'meta': {'source': 'europepmc'}})
         except Exception as e:
@@ -578,37 +580,57 @@ def library_search():
     mailto = os.environ.get('OPENALEX_MAILTO', 'orbesrc@gmail.com')
     api_key = os.environ.get('OPENALEX_API_KEY')
 
-    # Intento 1: OpenAlex con is_oa:true y has_pdf_url:true
-    try:
-        url = f"https://api.openalex.org/works?search={urllib.parse.quote(q)}&filter=is_oa:true,has_pdf_url:true&per-page={limit}&mailto={urllib.parse.quote(mailto)}"
-        if api_key:
-            url += f"&api_key={api_key}"
-            
-        req = urllib.request.Request(url, headers={'User-Agent': f'SIACredit/1.0 (mailto:{mailto})'})
-        with urllib.request.urlopen(req, timeout=10) as response:
-            data = json.loads(response.read().decode('utf-8'))
-            if data.get('results') and len(data['results']) > 0:
-                return jsonify(data)
-                
-        # Intento 2: OpenAlex con is_oa:true (ampliar búsqueda si no hay con pdf directo)
-        url_broad = f"https://api.openalex.org/works?search={urllib.parse.quote(q)}&filter=is_oa:true&per-page={limit}&mailto={urllib.parse.quote(mailto)}"
-        if api_key:
-            url_broad += f"&api_key={api_key}"
-            
-        req_broad = urllib.request.Request(url_broad, headers={'User-Agent': f'SIACredit/1.0 (mailto:{mailto})'})
-        with urllib.request.urlopen(req_broad, timeout=10) as response_broad:
-            data_broad = json.loads(response_broad.read().decode('utf-8'))
-            if data_broad.get('results') and len(data_broad['results']) > 0:
-                return jsonify(data_broad)
-    except Exception as openalex_err:
-        print(f"OpenAlex Error, intentando fallback Crossref: {openalex_err}")
+    import ssl
+    ssl_ctx = ssl.create_default_context()
+    ssl_ctx.check_hostname = False
+    ssl_ctx.verify_mode = ssl.CERT_NONE
+
+    results = []
+    seen_ids = set()
+
+    def fetch_openalex(url_str):
+        try:
+            req = urllib.request.Request(url_str, headers={'User-Agent': f'SIACredit/1.0 (mailto:{mailto})'})
+            with urllib.request.urlopen(req, timeout=10, context=ssl_ctx) as response:
+                return json.loads(response.read().decode('utf-8')).get('results', [])
+        except Exception as e:
+            print(f"Error fetching OpenAlex ({url_str}): {e}")
+            return []
+
+    # 1. Búsqueda en Recursos en Español (SciELO, Redalyc, Dialnet, etc. a través de OpenAlex language:es filter)
+    if lang in ['es', 'all']:
+        url_es = f"https://api.openalex.org/works?search={urllib.parse.quote(q)}&filter=is_oa:true,language:es&per-page={limit_str}&mailto={urllib.parse.quote(mailto)}"
+        if api_key: url_es += f"&api_key={api_key}"
+        res_es = fetch_openalex(url_es)
+        for item in res_es:
+            item_id = item.get('id') or item.get('doi') or item.get('title')
+            if item_id and item_id not in seen_ids:
+                seen_ids.add(item_id)
+                item['language_label'] = 'Español 🇪🇸'
+                results.append(item)
+
+    # 2. Búsqueda General / Internacional (Con PDF directo o Acceso Abierto)
+    if lang in ['en', 'all'] or len(results) < limit_num:
+        url_gen = f"https://api.openalex.org/works?search={urllib.parse.quote(q)}&filter=is_oa:true,has_pdf_url:true&per-page={limit_str}&mailto={urllib.parse.quote(mailto)}"
+        if api_key: url_gen += f"&api_key={api_key}"
+        res_gen = fetch_openalex(url_gen)
+        for item in res_gen:
+            item_id = item.get('id') or item.get('doi') or item.get('title')
+            if item_id and item_id not in seen_ids:
+                seen_ids.add(item_id)
+                item_lang = item.get('language') or 'en'
+                item['language_label'] = 'Español 🇪🇸' if item_lang == 'es' else 'Internacional 🌐'
+                results.append(item)
+
+    if results:
+        return jsonify({'results': results[:limit_num], 'meta': {'total': len(results)}})
 
     # Fallback: Crossref API
     try:
         print("Falling back to Crossref API...")
-        cr_url = f"https://api.crossref.org/works?query={urllib.parse.quote(q)}&select=title,author,URL,published-print,published-online,DOI,container-title,type,link&rows={limit}"
+        cr_url = f"https://api.crossref.org/works?query={urllib.parse.quote(q)}&select=title,author,URL,published-print,published-online,DOI,container-title,type,link&rows={limit_str}"
         cr_req = urllib.request.Request(cr_url, headers={'User-Agent': f'SIACredit/1.0 (mailto:{mailto})'})
-        with urllib.request.urlopen(cr_req, timeout=10) as cr_res:
+        with urllib.request.urlopen(cr_req, timeout=10, context=ssl_ctx) as cr_res:
             cr_data = json.loads(cr_res.read().decode('utf-8'))
             
         results = []
@@ -645,7 +667,8 @@ def library_search():
                 'primary_location': {'source': {'display_name': source_name}},
                 'doi': doi,
                 'open_access': {'oa_url': pdf_url} if pdf_url else {},
-                'type': item.get('type', 'article')
+                'type': item.get('type', 'article'),
+                'language_label': 'Internacional 🌐'
             })
         return jsonify({'results': results, 'fallback': 'crossref'})
     except Exception as cr_err:
@@ -990,30 +1013,100 @@ def update_evidence_status():
 def proxy_external_pdf():
     file_url = request.args.get('url', '')
     if not file_url:
-        return jsonify({'error': 'URL requerida'})
+        return jsonify({'error': 'URL requerida'}), 400
     try:
         import urllib.request
         import urllib.parse
+        import ssl
+        import re
         
-        # Ensure the URL is properly encoded if it contains spaces
         parsed = urllib.parse.urlparse(file_url)
         safe_path = urllib.parse.quote(parsed.path, safe='/:@%')
         safe_url = parsed._replace(path=safe_path).geturl()
         
+        ssl_ctx = ssl.create_default_context()
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = ssl.CERT_NONE
+        
         req = urllib.request.Request(safe_url, headers={
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Accept': 'application/pdf,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/pdf,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
         })
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        
+        with urllib.request.urlopen(req, timeout=12, context=ssl_ctx) as resp:
+            content_type = resp.headers.get('Content-Type', '').lower()
             data = resp.read()
-            return Response(data, mimetype='application/pdf', headers={
-                'Content-Disposition': 'inline; filename="documento.pdf"',
-                'Access-Control-Allow-Origin': '*'
-            })
+            
+            # Si es PDF directo o contiene la firma mágica %PDF
+            if 'application/pdf' in content_type or data.startswith(b'%PDF'):
+                return Response(data, mimetype='application/pdf', headers={
+                    'Content-Disposition': 'inline; filename="documento.pdf"',
+                    'Access-Control-Allow-Origin': '*',
+                    'X-Frame-Options': 'ALLOWALL'
+                })
+                
+            # Si es una página HTML (ej. SciELO / Redalyc landing page), intentar extraer PDF metatag
+            html_text = data.decode('utf-8', errors='ignore')
+            pdf_match = re.search(r'<meta\s+name=["\']citation_pdf_url["\']\s+content=["\']([^"\']+)["\']', html_text, re.IGNORECASE)
+            if not pdf_match:
+                pdf_match = re.search(r'href=["\']([^"\']+\.pdf(?:\?[^"\']*)?)["\']', html_text, re.IGNORECASE)
+                
+            if pdf_match:
+                pdf_target = pdf_match.group(1)
+                if not pdf_target.startswith('http'):
+                    pdf_target = urllib.parse.urljoin(safe_url, pdf_target)
+                
+                try:
+                    req_pdf = urllib.request.Request(pdf_target, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
+                    with urllib.request.urlopen(req_pdf, timeout=10, context=ssl_ctx) as pdf_resp:
+                        pdf_data = pdf_resp.read()
+                        if pdf_data.startswith(b'%PDF') or 'pdf' in pdf_resp.headers.get('Content-Type', '').lower():
+                            return Response(pdf_data, mimetype='application/pdf', headers={
+                                'Content-Disposition': 'inline; filename="documento.pdf"',
+                                'Access-Control-Allow-Origin': '*',
+                                'X-Frame-Options': 'ALLOWALL'
+                            })
+                except Exception as pdf_err:
+                    print(f"Error fetching extracted PDF URL {pdf_target}: {pdf_err}")
+
     except Exception as e:
-        print(f"Error proxying external PDF: {e}")
-        # If it fails, fallback by redirecting to the URL so at least it opens
-        return redirect(file_url)
+        print(f"Error proxying external PDF ({file_url}): {e}")
+
+    # Fallback HTML amigable para iframe
+    safe_escaped_url = file_url.replace('"', '&quot;').replace("'", "&#39;")
+    google_gview_url = f"https://docs.google.com/gview?url={urllib.parse.quote(file_url)}&embedded=true"
+    
+    fallback_html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body {{ font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 30px; display: flex; align-items: center; justify-content: center; min-height: 80vh; text-align: center; }}
+  .card {{ background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 35px; max-width: 550px; width: 100%; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }}
+  .icon {{ font-size: 3rem; color: #6366f1; margin-bottom: 15px; }}
+  h3 {{ margin: 0 0 10px 0; font-size: 1.25rem; color: #0f172a; }}
+  p {{ color: #64748b; font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px; }}
+  .btn-group {{ display: flex; gap: 12px; flex-direction: column; }}
+  .btn {{ display: inline-flex; align-items: center; justify-content: center; padding: 12px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }}
+  .btn-primary {{ background: #10b981; color: white; border: none; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }}
+  .btn-primary:hover {{ background: #059669; }}
+  .btn-secondary {{ background: #6366f1; color: white; border: none; }}
+  .btn-secondary:hover {{ background: #4f46e5; }}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">📑</div>
+  <h3>Visualización de Recursos Académicos</h3>
+  <p>Este portal académico requiere apertura directa o mediante el visor de documentos de Google para garantizar una lectura fluida.</p>
+  <div class="btn-group">
+    <a href="{safe_escaped_url}" target="_blank" class="btn btn-primary">🚀 Abrir Documento Completo en Pestaña Nueva</a>
+    <a href="{google_gview_url}" class="btn btn-secondary">🌐 Cargar mediante Visor Google Docs</a>
+  </div>
+</div>
+</body>
+</html>"""
+    return Response(fallback_html, mimetype='text/html')
 
 @ai_bp.route('/api/download')
 def proxy_download():

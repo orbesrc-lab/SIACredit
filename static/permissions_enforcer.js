@@ -72,12 +72,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Configuración - Usualmente solo admin/superadmin, pero lo manejamos
         'configuracion.html': 'configuracion',
-        'normatividad.html': 'autoevaluacion'
+        'normatividad.html': 'autoevaluacion',
+        'registro_calificado.html': 'registro_calificado'
     };
 
     // 3. Obtener página actual
     let currentPage = window.location.pathname.split('/').pop();
     if (!currentPage || currentPage === '') currentPage = 'dashboard.html';
+
+    // REGLA ESTRICTA SUPERADMIN: Módulo exclusivo de Registro Calificado
+    if (currentPage === 'registro_calificado.html') {
+        const isSuper = ['admin', 'superadmin', 'super_admin'].includes((user.role || '').toLowerCase());
+        if (!isSuper) {
+            if (typeof Swal !== 'undefined') {
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'Acceso Exclusivo',
+                    text: 'El módulo de Registro Calificado está reservado exclusivamente para el Superadministrador.',
+                    confirmButtonColor: '#3b82f6'
+                });
+            } else {
+                alert('Acceso Exclusivo: El módulo de Registro Calificado está reservado exclusivamente para el Superadministrador.');
+            }
+            window.location.href = 'dashboard.html';
+            return;
+        }
+        return; // Superadmin autorizada
+    }
 
     try {
         const instId = user.inst_id || 1;

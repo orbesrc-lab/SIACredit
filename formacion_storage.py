@@ -62,8 +62,26 @@ def get_default_program_id(inst_id):
 
 # ==================== HELPERS ====================
 
+_CACHE_STORE = {}
+
+def invalidate_cache(table=None):
+    global _CACHE_STORE
+    if table:
+        _CACHE_STORE = {k: v for k, v in _CACHE_STORE.items() if not k.startswith(f"{table}_")}
+    else:
+        _CACHE_STORE.clear()
+
 def _sb_load(table, filters=None):
-    """Load rows directly from real table. Returns list of data dicts."""
+    """Load rows directly from real table with in-memory TTL caching."""
+    import time
+    cache_key = f"{table}_{json.dumps(filters, sort_keys=True) if filters else ''}"
+    now = time.time()
+    
+    if cache_key in _CACHE_STORE:
+        cached_data, timestamp = _CACHE_STORE[cache_key]
+        if now - timestamp < 30: # 30 segundos TTL
+            return cached_data
+            
     sb = _get_supabase()
     if not sb: return None
     try:
@@ -73,15 +91,18 @@ def _sb_load(table, filters=None):
                 if k in ['inst_id', 'program_id', 'course_id', 'id']:
                     q = q.eq(k, v)
         res = q.execute()
-        if res.data:
-            return [row['data'] for row in res.data]
-        return []
+        data = [row['data'] for row in res.data] if res.data else []
+        _CACHE_STORE[cache_key] = (data, now)
+        return data
     except Exception as e:
         print(f"[supabase] Error loading {table}: {e}")
+        if cache_key in _CACHE_STORE:
+            return _CACHE_STORE[cache_key][0]
         return None
 
 def _sb_upsert(table, row):
     """Upsert a row directly to real table. Returns True on success."""
+    invalidate_cache(table)
     sb = _get_supabase()
     if not sb: return False
     try:
@@ -100,6 +121,7 @@ def _sb_upsert(table, row):
 
 def _sb_delete(table, filters):
     """Delete from both the real table and the statistics table mapping. Returns True on success."""
+    invalidate_cache(table)
     sb = _get_supabase()
     if not sb: return False
     

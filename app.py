@@ -61,6 +61,8 @@ app.register_blueprint(reports_bp)
 app.register_blueprint(prospects_bp)
 app.register_blueprint(business_bp)
 app.register_blueprint(compliance_bp)
+from routes.registro_calificado import registro_calificado_bp
+app.register_blueprint(registro_calificado_bp)
 
 
 
@@ -86,10 +88,13 @@ def add_security_headers(response):
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
     
-    # Prevenir cacheo del navegador para forzar actualizaciones (soluciona problemas de Vercel sirviendo versión antigua)
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '-1'
+    # Cache-Control: Permitir cacheo de recursos estáticos para acelerar navegación
+    if request.path.startswith('/static/') or any(request.path.endswith(ext) for ext in ['.css', '.js', '.webp', '.png', '.jpg', '.svg', '.woff2', '.ttf']):
+        response.headers['Cache-Control'] = 'public, max-age=86400, stale-while-revalidate=604800'
+    else:
+        response.headers['Cache-Control'] = 'no-cache, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
     
     return response
 
