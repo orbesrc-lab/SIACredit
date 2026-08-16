@@ -187,6 +187,8 @@ def create_or_update_project():
             'annual_quota': data.get('annual_quota', existing.get('annual_quota', '60 estudiantes')),
             'cine_f_code': data.get('cine_f_code', existing.get('cine_f_code', '')),
             'ciuo_08_code': data.get('ciuo_08_code', existing.get('ciuo_08_code', '')),
+            'mnc_code': data.get('mnc_code', existing.get('mnc_code', '')),
+            'cuo_code': data.get('cuo_code', existing.get('cuo_code', '')),
             'ods_alignment': data.get('ods_alignment', existing.get('ods_alignment', 'ODS 4, ODS 8, ODS 9')),
             'linked_siac_program_id': data.get('linked_siac_program_id', existing.get('linked_siac_program_id', None)),
             'evidences': existing.get('evidences', []),
@@ -292,6 +294,59 @@ def upload_evidence():
         })
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@registro_calificado_bp.route('/api/rc/suggest_classifications', methods=['POST'])
+def suggest_classifications():
+    """Genera las clasificaciones normativas oficiales (CINE-F 2013 A.C., CIUO-08, MNC, CUO y ODS) usando IA."""
+    try:
+        data = request.json or {}
+        prog_name = data.get('program_name', '').strip()
+        target_title = data.get('target_title', '').strip()
+        level = data.get('level', '').strip()
+        
+        if not prog_name:
+            return jsonify({'status': 'error', 'message': 'El nombre del programa es requerido'}), 400
+            
+        prompt = f"""Eres un experto consultor pedagógico y regulatorio del Ministerio de Educación Nacional de Colombia (MEN), DANE y SACES.
+Analiza la siguiente información de un programa académico universitario o tecnológico:
+- Denominación del Programa: "{prog_name}"
+- Nivel de Formación: "{level}"
+- Título a Otorgar: "{target_title}"
+
+Genera las clasificaciones oficiales y normativas vigentes en Colombia según la reglamentación del MEN, DANE y el MNC (Decreto 1330 y Resolución 021795).
+Responde EXCLUSIVAMENTE en formato JSON con la siguiente estructura exacta (sin markdown extra, solo el objeto JSON):
+{{
+  "cine_f_code": "Código CINE-F 2013 A.C. de 4 dígitos y nombre del campo detallado",
+  "ciuo_08_code": "Código CIUO-08 de 4 dígitos y denominación oficial de la ocupación",
+  "mnc_code": "Nivel MNC (ej: Nivel 5 MNC) y denominación de la cualificación del sector",
+  "cuo_code": "Código CUO (Clasificación Única de Ocupaciones para Colombia) y ocupación",
+  "ods_alignment": "ODS principales aplicables (ej: ODS 4, ODS 8, ODS 9 con nombres)"
+}}"""
+
+        ai_response = call_ai([
+            {"role": "system", "content": "Eres un asistente experto en normatividad de educación superior colombiana. Responde únicamente en formato JSON estricto."},
+            {"role": "user", "content": prompt}
+        ], max_tokens=600, temperature=0.3)
+        
+        cleaned = (ai_response or '').strip()
+        if cleaned.startswith("```"):
+            cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
+            cleaned = re.sub(r"\s*```$", "", cleaned)
+            
+        result = json.loads(cleaned)
+        return jsonify({
+            'status': 'success',
+            'suggestions': {
+                'cine_f_code': result.get('cine_f_code', ''),
+                'ciuo_08_code': result.get('ciuo_08_code', ''),
+                'mnc_code': result.get('mnc_code', ''),
+                'cuo_code': result.get('cuo_code', ''),
+                'ods_alignment': result.get('ods_alignment', '')
+            }
+        })
+    except Exception as e:
+        print(f"[RC] Error generando clasificaciones con IA: {e}")
+        return jsonify({'status': 'error', 'message': f"Error al generar sugerencias: {str(e)}"}), 500
 
 @registro_calificado_bp.route('/api/rc/linkable_programs', methods=['GET'])
 def get_linkable_programs():
@@ -595,8 +650,9 @@ DIRECTRICES DE REDACCIÓN:
 - Ciclos Propedéuticos: {propedeutic_str}
 - Créditos Totales: {proj.get('total_credits')} | Duración estimada: {proj.get('total_duration')}
 - Cupo Anual Proyectado: {proj.get('annual_quota')}
-- Clasificación CINE-F: {proj.get('cine_f_code')} | CIUO-08: {proj.get('ciuo_08_code')}
-- Alineación ODS: {proj.get('ods_alignment')}
+- Clasificación CINE-F: {proj.get('cine_f_code', '')} | CIUO-08: {proj.get('ciuo_08_code', '')}
+- Marco Nacional de Cualificaciones (MNC): {proj.get('mnc_code', '')} | CUO Colombia: {proj.get('cuo_code', '')}
+- Alineación ODS: {proj.get('ods_alignment', '')}
 
 {procedure_instructions}
 

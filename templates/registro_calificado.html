@@ -1073,20 +1073,44 @@
                     </div>
                 </div>
 
-                <div class="rc-form-row">
-                    <div class="rc-form-group">
-                        <label>Clasificación CINE-F 2013 A.C.</label>
-                        <input type="text" id="cfgCineF" class="rc-input" placeholder="Ej: 0612 - Diseño y administración de bases de datos y redes">
+                <!-- SECCIÓN DE CLASIFICACIONES NORMATIVAS CON BOTÓN IA -->
+                <div style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; margin-top: 10px; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                        <div>
+                            <span style="font-weight: 700; color: #1e293b; font-size: 0.88rem;"><i class="fa-solid fa-layer-group" style="color: #6366f1;"></i> Clasificaciones Normativas Oficiales</span>
+                            <p style="font-size: 0.76rem; color: #64748b; margin: 2px 0 0 0;">Parámetros CINE-F 2013, CIUO-08, MNC, CUO y ODS exigidos por el MEN y SACES</p>
+                        </div>
+                        <button type="button" class="btn-rc" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none; font-size: 0.8rem; padding: 7px 13px; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 6px rgba(99, 102, 241, 0.25);" onclick="autoSuggestClassifications()">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Sugerir Clasificaciones con IA
+                        </button>
                     </div>
-                    <div class="rc-form-group">
-                        <label>Clasificación CIUO-08</label>
-                        <input type="text" id="cfgCiuo08" class="rc-input" placeholder="Ej: 2511 - Analistas de sistemas / 2521 - Diseñadores de bases de datos">
-                    </div>
-                </div>
 
-                <div class="rc-form-group">
-                    <label>Alineación con Objetivos de Desarrollo Sostenible (ODS)</label>
-                    <input type="text" id="cfgOds" class="rc-input" placeholder="Ej: ODS 4 (Educación de Calidad), ODS 8 (Trabajo Decente), ODS 9 (Industria e Innovación)">
+                    <div class="rc-form-row">
+                        <div class="rc-form-group">
+                            <label>Clasificación CINE-F 2013 A.C.</label>
+                            <input type="text" id="cfgCineF" class="rc-input" placeholder="Ej: 0612 - Diseño y administración de bases de datos y redes">
+                        </div>
+                        <div class="rc-form-group">
+                            <label>Clasificación CIUO-08 (Ocupacional Internacional)</label>
+                            <input type="text" id="cfgCiuo08" class="rc-input" placeholder="Ej: 2511 - Analistas de sistemas / 2521 - Diseñadores de BD">
+                        </div>
+                    </div>
+
+                    <div class="rc-form-row" style="margin-top: 8px;">
+                        <div class="rc-form-group">
+                            <label>Marco Nacional de Cualificaciones (MNC)</label>
+                            <input type="text" id="cfgMnc" class="rc-input" placeholder="Ej: Nivel 5 MNC - Cualificación en Gestión Estratégica de Soluciones Digitales">
+                        </div>
+                        <div class="rc-form-group">
+                            <label>Clasificación Única de Ocupaciones (CUO Colombia)</label>
+                            <input type="text" id="cfgCuo" class="rc-input" placeholder="Ej: 2431 - Especialistas en publicidad y mercadotecnia">
+                        </div>
+                    </div>
+
+                    <div class="rc-form-group" style="margin-top: 8px;">
+                        <label>Alineación con Objetivos de Desarrollo Sostenible (ODS)</label>
+                        <input type="text" id="cfgOds" class="rc-input" placeholder="Ej: ODS 4 (Educación de Calidad), ODS 8 (Trabajo Decente), ODS 9 (Industria e Innovación)">
+                    </div>
                 </div>
             </div>
             <div class="rc-modal-footer">
@@ -1663,10 +1687,63 @@
             document.getElementById('cfgPlaces').value = (currentProject.places_of_development || []).join(', ');
             document.getElementById('cfgCineF').value = currentProject.cine_f_code || '';
             document.getElementById('cfgCiuo08').value = currentProject.ciuo_08_code || '';
+            document.getElementById('cfgMnc').value = currentProject.mnc_code || '';
+            document.getElementById('cfgCuo').value = currentProject.cuo_code || '';
             document.getElementById('cfgOds').value = currentProject.ods_alignment || '';
 
             onProcedureTypeChange();
             document.getElementById('modalProjectSettings').style.display = 'flex';
+        }
+
+        async function autoSuggestClassifications() {
+            const progName = document.getElementById('cfgProgName').value.trim();
+            const targetTitle = document.getElementById('cfgTargetTitle').value.trim();
+            const level = document.getElementById('cfgLevel').value;
+
+            if (!progName) {
+                Swal.fire('Atención', 'Por favor ingresa primero la Denominación del Programa Académico.', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Sugerida por Inteligencia Artificial',
+                html: `Consultando clasificaciones oficiales (CINE-F, CIUO-08, MNC, CUO y ODS) para <strong>"${progName}"</strong>...`,
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                const res = await fetch('/api/rc/suggest_classifications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        program_name: progName,
+                        target_title: targetTitle,
+                        level: level
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success' && data.suggestions) {
+                    const s = data.suggestions;
+                    if (s.cine_f_code) document.getElementById('cfgCineF').value = s.cine_f_code;
+                    if (s.ciuo_08_code) document.getElementById('cfgCiuo08').value = s.ciuo_08_code;
+                    if (s.mnc_code) document.getElementById('cfgMnc').value = s.mnc_code;
+                    if (s.cuo_code) document.getElementById('cfgCuo').value = s.cuo_code;
+                    if (s.ods_alignment) document.getElementById('cfgOds').value = s.ods_alignment;
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: '✨ Clasificaciones Autocompletadas',
+                        text: 'Los códigos oficiales CINE-F, CIUO-08, MNC, CUO y ODS se asignaron automáticamente.',
+                        confirmButtonColor: '#6366f1'
+                    });
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudieron generar las clasificaciones', 'error');
+                }
+            } catch (e) {
+                console.error("Error en autoSuggestClassifications:", e);
+                Swal.fire('Error', 'Ocurrió un error al conectar con el asistente de IA.', 'error');
+            }
         }
 
         function onProcedureTypeChange() {
@@ -1708,6 +1785,8 @@
                 places_of_development: document.getElementById('cfgPlaces').value.split(',').map(s => s.trim()).filter(Boolean),
                 cine_f_code: document.getElementById('cfgCineF').value.trim(),
                 ciuo_08_code: document.getElementById('cfgCiuo08').value.trim(),
+                mnc_code: document.getElementById('cfgMnc').value.trim(),
+                cuo_code: document.getElementById('cfgCuo').value.trim(),
                 ods_alignment: document.getElementById('cfgOds').value.trim(),
                 linked_siac_program_id: document.getElementById('cfgSiacProgSelect').value ? parseInt(document.getElementById('cfgSiacProgSelect').value) : null
             };
