@@ -436,6 +436,9 @@
             box-sizing: border-box;
             outline: none;
             transition: border-color 0.2s;
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-x: auto;
         }
 
         .rc-editor-textarea:focus {
@@ -1296,6 +1299,51 @@
             renderEvidencesList();
         }
 
+        function sanitizeMarkdownTables(text) {
+            if (!text) return text;
+            const lines = text.split('\n');
+            const cleanedLines = [];
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const stripped = line.trim();
+                
+                if (stripped.includes('|') && /-{5,}/.test(stripped)) {
+                    const parts = stripped.split('|');
+                    const newParts = [];
+                    let isDivider = true;
+                    for (let j = 0; j < parts.length; j++) {
+                        const pStrip = parts[j].trim();
+                        if (!pStrip) {
+                            newParts.push('');
+                            continue;
+                        }
+                        if (/^:?-+:?$/.test(pStrip)) {
+                            const starts = pStrip.startsWith(':');
+                            const ends = pStrip.endsWith(':');
+                            if (starts && ends) newParts.push(' :---: ');
+                            else if (starts) newParts.push(' :--- ');
+                            else if (ends) newParts.push(' ---: ');
+                            else newParts.push(' --- ');
+                        } else {
+                            isDivider = false;
+                            break;
+                        }
+                    }
+                    if (isDivider && newParts.length > 1) {
+                        cleanedLines.push(newParts.join('|'));
+                        continue;
+                    }
+                }
+                
+                if (/^-{5,}$/.test(stripped)) {
+                    continue;
+                }
+                
+                cleanedLines.push(line);
+            }
+            return cleanedLines.join('\n');
+        }
+
         // 2. SELECCIÓN DE CONDICIÓN Y GESTIÓN DE PESTAÑAS
         function selectCondition(condKey, el) {
             currentCondKey = condKey;
@@ -1315,7 +1363,7 @@
 
             // Cargar contenido en el editor
             const condData = (currentProject.conditions || {})[condKey] || {};
-            const content = condData.content || '';
+            const content = sanitizeMarkdownTables(condData.content || '');
             document.getElementById('stageTextarea').value = content;
             document.getElementById('charCountBadge').textContent = `${content.length} caracteres`;
 
@@ -1394,12 +1442,13 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
+                    const cleanText = sanitizeMarkdownTables(data.content || '');
                     if (!currentProject.conditions) currentProject.conditions = {};
                     currentProject.conditions[currentCondKey] = {
-                        content: data.content,
+                        content: cleanText,
                         status: 'generated'
                     };
-                    document.getElementById('stageTextarea').value = data.content;
+                    document.getElementById('stageTextarea').value = cleanText;
                     onEditorInput();
                     updateNavDots();
                     

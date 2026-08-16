@@ -511,6 +511,53 @@ PROGRAMA ID: {program_id} | FECHA DE EXTRACCIÓN: {datetime.datetime.now().strft
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+def sanitize_markdown_tables(text):
+    """Limpia guiones excesivos en separadores de tablas Markdown para evitar deformaciones en el editor."""
+    if not text:
+        return text
+        
+    lines = text.split('\n')
+    cleaned_lines = []
+    
+    for line in lines:
+        stripped = line.strip()
+        if '|' in stripped and '-' * 5 in stripped:
+            parts = stripped.split('|')
+            new_parts = []
+            is_table_divider = True
+            
+            for part in parts:
+                p_strip = part.strip()
+                if not p_strip:
+                    new_parts.append('')
+                    continue
+                if re.match(r'^:?-+:?$', p_strip):
+                    starts = p_strip.startswith(':')
+                    ends = p_strip.endswith(':')
+                    if starts and ends:
+                        new_parts.append(' :---: ')
+                    elif starts:
+                        new_parts.append(' :--- ')
+                    elif ends:
+                        new_parts.append(' ---: ')
+                    else:
+                        new_parts.append(' --- ')
+                else:
+                    is_table_divider = False
+                    break
+                    
+            if is_table_divider and len(new_parts) > 1:
+                cleaned_lines.append('|'.join(new_parts))
+                continue
+                
+        if re.match(r'^-{5,}$', stripped):
+            continue
+            
+        cleaned_lines.append(line)
+        
+    return '\n'.join(cleaned_lines)
+
+
 # ==========================================
 # MOTOR DE IA: GENERADOR DE CONDICIONES Y AUDITORÍA
 # ==========================================
@@ -742,6 +789,8 @@ REGLAS STRICTAS:
             inst_id=proj.get('inst_id')
         )
         
+        response_text = sanitize_markdown_tables(response_text)
+        
         # Guardar en el proyecto
         if 'conditions' not in proj:
             proj['conditions'] = {}
@@ -857,7 +906,7 @@ def save_condition_content():
         data = request.json or {}
         project_id = data.get('project_id')
         cond_key = data.get('cond_key')
-        content = data.get('content', '')
+        content = sanitize_markdown_tables(data.get('content', ''))
         
         if not project_id or not cond_key:
             return jsonify({'status': 'error', 'message': 'Faltan parámetros'}), 400
