@@ -137,11 +137,15 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
             
         client = OpenAI(api_key=api_key, base_url=base_url)
         try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=temperature
-            )
+            kwargs = {
+                "model": model,
+                "messages": messages,
+                "temperature": temperature
+            }
+            if max_tokens:
+                kwargs["max_tokens"] = max_tokens
+                
+            response = client.chat.completions.create(**kwargs)
             return response.choices[0].message.content
         except Exception as e:
             raise Exception(f"{str(e)} [DEBUG: provider={provider}, base_url={base_url}, rows={len(check.data) if check else 'unknown'}, db_error={db_error}]")
