@@ -26,24 +26,46 @@
             --rc-text-muted: #64748b;
         }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--rc-bg);
-            color: var(--rc-text-main);
-            margin: 0;
-            padding: 0;
+        html, body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            background-color: var(--rc-bg) !important;
+            color: var(--rc-text-main) !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 100% !important;
+            min-height: 100vh !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            display: block !important;
         }
 
         .rc-container {
-            display: flex;
-            min-height: 100vh;
+            display: flex !important;
+            min-height: 100vh !important;
+            width: 100% !important;
+            align-items: stretch !important;
         }
 
-        /* Main Workspace */
+        /* Sidebar Navigation Layout Fix */
+        .sidebar {
+            position: sticky !important;
+            top: 0 !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            overflow-y: auto !important;
+            flex-shrink: 0 !important;
+            width: 260px !important;
+            z-index: 1000 !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        /* Main Workspace Layout Fix */
         .rc-main {
-            flex: 1;
-            padding: 24px 32px;
-            overflow-y: auto;
+            flex: 1 !important;
+            padding: 24px 32px 80px 32px !important;
+            min-width: 0 !important;
+            overflow: visible !important;
             max-width: 1600px;
             margin: 0 auto;
         }
