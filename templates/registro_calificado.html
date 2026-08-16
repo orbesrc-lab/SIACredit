@@ -1305,6 +1305,11 @@
 
         function sanitizeMarkdownTables(text) {
             if (!text) return text;
+            
+            // Colapsar bucles repetitivos de enumeración de artículos legales (ej. 2.5.3.2.3.2.1, 2.5.3.2.3.2.2...)
+            text = text.replace(/(\b\d+\.\d+\.\d+(?:\.\d+)*(?:,\s*|\s+y\s+)){3,}\b\d+\.\d+\.\d+(?:\.\d+)*/g, '2.5.3.2.3.2.1 y ss.');
+            text = text.replace(/(?:2\.5\.3\.2\.3\.\d+\.\d+(?:,\s*|\s+y\s+)){3,}/g, '2.5.3.2.3.2.1 y ss. ');
+
             const lines = text.split('\n');
             const cleanedLines = [];
             for (let i = 0; i < lines.length; i++) {

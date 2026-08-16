@@ -512,10 +512,14 @@ PROGRAMA ID: {program_id} | FECHA DE EXTRACCIÓN: {datetime.datetime.now().strft
 
 
 def sanitize_markdown_tables(text):
-    """Limpia guiones excesivos en separadores de tablas Markdown para evitar deformaciones en el editor."""
+    """Limpia guiones excesivos en tablas Markdown y colapsa bucles de enumeración repetitiva de artículos legales."""
     if not text:
         return text
         
+    # Colapsar bucles de enumeración repetitiva de artículos legales (ej. 2.5.3.2.3.2.1, 2.5.3.2.3.2.2...)
+    text = re.sub(r'(\b\d+\.\d+\.\d+(?:\.\d+)*(?:,\s*|\s+y\s+)){3,}\b\d+\.\d+\.\d+(?:\.\d+)*', r'2.5.3.2.3.2.1 y ss.', text)
+    text = re.sub(r'(?:2\.5\.3\.2\.3\.\d+\.\d+(?:,\s*|\s+y\s+)){3,}', '2.5.3.2.3.2.1 y ss. ', text)
+    
     lines = text.split('\n')
     cleaned_lines = []
     
@@ -747,6 +751,7 @@ DIRECTRICES DE INVESTIGACIÓN Y FUENTES FIDEDIGNAS (ESTILO NOTEBOOK LM):
    > *"Genera un diagrama de flujo en sintaxis Mermaid.js / mapa conceptual que visualice la articulación entre [Elemento A] y [Elemento B]..."*
 
 4. REFERENCIAS Y CITAS AL FINAL DEL CAPÍTULO: Al concluir el desarrollo de la condición, incluye una sección final titulada `### Referencias Bibliográficas y Documentales (2024-2026)` citando en formato APA 7ma edición todas las normas, estudios sectoriales y autores referenciados.
+5. PROHIBICIÓN ABSOLUTA DE ENUMERACIÓN REPETITIVA DE ARTÍCULOS: Jamás generes listas o secuencias interminables de números de artículos (ejemplo: NUNCA escribas 'artículos 2.5.3.2.3.2.1, 2.5.3.2.3.2.2, 2.5.3.2.3.2.3...'). Cita las normas de forma concisa (ejemplo: 'Decreto 1330 de 2019 / Decreto 0529 de 2024, art. 2.5.3.2.3.2.1 y ss.').
 """
 
         user_prompt = f"""DESCRIPCIÓN DEL PROYECTO DE REGISTRO CALIFICADO:
