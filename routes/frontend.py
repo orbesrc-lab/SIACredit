@@ -144,8 +144,6 @@ def skel360_reporte_individual():
 def skel_empresa_plan_formacion(empresa_id):
     return render_template('skel_empresa_plan_formacion.html', empresa_id=empresa_id)
 
-@frontend_bp.route('/registro_calificado.html')
-def registro_calificado():
-    return render_template('registro_calificado.html')
+
 
 

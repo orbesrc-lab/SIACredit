@@ -13,9 +13,16 @@ registro_calificado_bp = Blueprint('registro_calificado', __name__)
 
 # Directorio local para almacenamiento de archivos y estado offline/rápido
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RC_DATA_DIR = os.path.join(BASE_DIR, 'instance', 'registro_calificado')
+if os.environ.get('VERCEL') or os.environ.get('AWS_EXECUTION_ENV'):
+    RC_DATA_DIR = os.path.join('/tmp', 'registro_calificado')
+else:
+    RC_DATA_DIR = os.path.join(BASE_DIR, 'instance', 'registro_calificado')
+
 RC_UPLOADS_DIR = os.path.join(RC_DATA_DIR, 'uploads')
-os.makedirs(RC_UPLOADS_DIR, exist_ok=True)
+try:
+    os.makedirs(RC_UPLOADS_DIR, exist_ok=True)
+except Exception as e:
+    print(f"[RC] Warning creating dir: {e}")
 
 RC_PROJECTS_FILE = os.path.join(RC_DATA_DIR, 'projects.json')
 
