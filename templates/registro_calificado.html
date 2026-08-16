@@ -942,9 +942,12 @@
                     <div class="rc-stage-body">
                         <!-- PANE: EDITOR -->
                         <div id="paneEditor" style="display: flex; flex-direction: column; flex: 1; gap: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 0.8rem; color: #64748b;"><i class="fa-solid fa-circle-info"></i> Puedes redactar o ajustar el texto directamente en Markdown con tablas, viñetas y títulos.</span>
-                                <span id="charCountBadge" style="font-size: 0.75rem; color: #94a3b8;">0 caracteres</span>
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                                <span style="font-size: 0.8rem; color: #64748b;"><i class="fa-solid fa-circle-info"></i> Texto de alta densidad con referentes (2024-2026) y Prompts IA de Tablas/Figuras copiables.</span>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <button class="btn-rc btn-rc-outline" onclick="copyPromptsFromCondition()" style="font-size: 0.78rem; padding: 4px 10px; color: #2563eb; border-color: #bfdbfe;" title="Copiar todos los prompts de tablas e infografías de esta sección"><i class="fa-solid fa-copy"></i> Copiar Prompts IA (Tablas/Figuras)</button>
+                                    <span id="charCountBadge" style="font-size: 0.75rem; color: #94a3b8;">0 caracteres</span>
+                                </div>
                             </div>
                             <textarea id="stageTextarea" class="rc-editor-textarea" placeholder="El contenido de esta condición aparecerá aquí. Haz clic en 'Redactar con IA CONACES' para generar una propuesta sólida fundamentada en la normativa y tus evidencias cargadas..." oninput="onEditorInput()"></textarea>
                         </div>
@@ -1342,6 +1345,48 @@
                 cleanedLines.push(line);
             }
             return cleanedLines.join('\n');
+        }
+
+        function copyPromptsFromCondition() {
+            const text = document.getElementById('stageTextarea').value || '';
+            const lines = text.split('\n');
+            const promptLines = [];
+            
+            let inPromptBlock = false;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line.startsWith('>') || line.includes('[PROMPT IA')) {
+                    promptLines.push(lines[i]);
+                    inPromptBlock = true;
+                } else if (inPromptBlock && line === '') {
+                    promptLines.push('');
+                    inPromptBlock = false;
+                }
+            }
+            
+            if (promptLines.length === 0) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Sin Prompts IA Detectados',
+                    text: 'No se encontraron bloques de prompts de tablas o figuras en esta sección. Genera la condición con la IA para obtener los prompts copiables.',
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+                return;
+            }
+            
+            const compiledPrompts = promptLines.join('\n');
+            navigator.clipboard.writeText(compiledPrompts).then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Prompts IA Copiados al Portapapeles!',
+                    text: 'Se han copiado los prompts de tablas e infografías. Puedes pegarlos directamente en ChatGPT, Gemini, Claude o NotebookLM.',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            }).catch(err => {
+                Swal.fire('Error', 'No se pudo copiar al portapapeles: ' + err.message, 'error');
+            });
         }
 
         // 2. SELECCIÓN DE CONDICIÓN Y GESTIÓN DE PESTAÑAS

@@ -721,23 +721,32 @@ Este documento corresponde a una RENOVACIÓN de Registro Calificado. Debes enfat
 ATENCIÓN ESPECIAL - TRÁMITE DE MODIFICACIÓN DE REGISTRO CALIFICADO:
 Este documento sustenta una modificación sustancial (e.g. ampliación de modalidades para Registro Único o ajuste curricular). Argumenta con solidez la pertinencia, coherencia académica y viabilidad institucional del cambio propuesto."""
 
-        system_prompt = f"""Eres un Evaluador Senior de la Sala de CONACES (Comisión Nacional Intersectorial de Aseguramiento de la Calidad de la Educación Superior), Par Académico del CNA y Especialista de Alto Nivel en Diseño Curricular y Aseguramiento de la Calidad del Ministerio de Educación Nacional de Colombia.
+        system_prompt = f"""Eres un Evaluador Senior de la Sala de CONACES (Comisión Nacional Intersectorial de Aseguramiento de la Calidad de la Educación Superior), Par Académico del CNA y Consultor Senior de Alto Nivel en Investigación Académica y Diseño Curricular para el Ministerio de Educación Nacional de Colombia (MEN).
 
-Tu misión es redactar el texto técnico, riguroso, explicativo y sólidamente argumentado para el DOCUMENTO MAESTRO DE REGISTRO CALIFICADO de la condición solicitada.
+Tu misión es redactar capítulos técnicos de máxima profundidad, rigor conceptual, riqueza argumentativa y citación fidedigna para un DOCUMENTO MAESTRO DE REGISTRO CALIFICADO institucional (diseñado para un documento integral que sobrepasa las 350 páginas en su totalidad).
 
-MARCO NORMATIVO Y TÉCNICO OBLIGATORIO:
-- Decreto 1330 de 2019 (Condiciones de calidad de programas).
-- Decreto 0529 de 2024 (Lineamientos de registro calificado y flexibilización curricular).
+MARCO NORMATIVO Y REGULATORIO OBLIGATORIO VIGENTE:
+- Decreto 1330 de 2019 (Condiciones de calidad de programas de educación superior).
+- Decreto 0529 de 2024 (Flexibilización curricular, movilidad y Registro Único Multimodal).
 - Parámetros técnicos de la Resolución 021795 de 2020 (Rigor conceptual, evidencias verificables e indicadores).
 - TAXONOMÍA SOLO (Structure of Observed Learning Outcomes) y Bloom revisada para la formulación de Resultados de Aprendizaje (RA) en la Condición 3.
-- Lineamientos de REGISTRO ÚNICO (Articulación y equivalencia entre modalidades: Presencial, Virtual, A Distancia Tradicional, Dual e Híbrida).
-- Articulación de CICLOS PROPEDÉUTICOS en un único documento maestro integral si aplica.
+- Marco Nacional de Cualificaciones (MNC), Clasificación Única de Ocupaciones (CUO Colombia) y CINE-F 2013 A.C.
+- Objetivos de Desarrollo Sostenible (ODS - Agenda 2030).
 
-DIRECTRICES DE REDACCIÓN:
-1. Redacta en tercera persona con tono institucional, académico, persuasivo y de máxima calidad técnica.
-2. Cita expresamente las políticas, reglamentos, acuerdos institucionales y evidencias extraídas de los documentos fuente suministrados.
-3. Incluye tablas estructuradas en formato Markdown (con columnas claras y contenido exhaustivo) cuando la condición lo requiera (por ejemplo: correspondencia CINE-F/CIUO-08, alineación ODS, taxonomía SOLO en resultados de aprendizaje, créditos y horas presenciales/independientes, líneas de investigación, planta docente, medios educativos).
-4. No generes textos genéricos ni respuestas superficiales; redacta párrafos amplios, fundamentados, con cifras, indicadores y justificaciones técnicas completas listas para ser presentadas ante el MEN/CONACES.
+DIRECTRICES DE INVESTIGACIÓN Y FUENTES FIDEDIGNAS (ESTILO NOTEBOOK LM):
+1. REFERENTES ACTUALIZADOS EN ESPAÑOL (MÍNIMO 2024-2026): Incorpora activamente referencias bibliográficas fidedignas, estudios de organismos reconocidos en español (MEN, CNA, DANE 2024-2026, UNESCO en español 2024, OIT 2024, CEPAL 2024, Banco de la República 2024-2025, autores pedagógicos contemporáneos 2024-2026).
+2. EXTENSIÓN Y PROFUNDIDAD ACADÉMICA ULTRA-DETALLADA: Desarrolla cada sub-numeral con múltiples párrafos extensos, articulando conceptualización teórica, justificación normativa, datos estadísticos contextuales y sustentación pedagógica. No resumas; redacta explicaciones completas de nivel profesional y doctoral.
+3. ESTRUCTURA DE PROMPTS ESPECIALIZADOS PARA TABLAS Y FIGURAS (ESTRATEGIA COPIABLE PARA CUALQUIER IA):
+   En lugar de insertar tablas brutas que deformen o recarguen la lectura en texto plano, dispondrás DENTRO DEL TEXTO bloques formales de PROMPTS DE GENERACIÓN DE TABLAS Y FIGURAS listos para ser copiados y pegados en cualquier IA (ChatGPT, Gemini, Claude, NotebookLM, Mermaid.js).
+   Cada prompt debe ser claro, completo y estar encerrado en una cita en bloque como esta:
+   
+   > 🤖 **[PROMPT IA PARA GENERACIÓN DE TABLA X.Y - TITULO]**:
+   > *"Genera una tabla estructurada en formato Markdown/Excel con las columnas [Col 1 | Col 2 | Col 3 | Col 4] detallando los siguientes datos del programa [Nombre del programa]: ..."*
+   
+   > 🎨 **[PROMPT IA PARA GENERACIÓN DE FIGURA/DIAGRAMA X.Y - TITULO]**:
+   > *"Genera un diagrama de flujo en sintaxis Mermaid.js / mapa conceptual que visualice la articulación entre [Elemento A] y [Elemento B]..."*
+
+4. REFERENCIAS Y CITAS AL FINAL DEL CAPÍTULO: Al concluir el desarrollo de la condición, incluye una sección final titulada `### Referencias Bibliográficas y Documentales (2024-2026)` citando en formato APA 7ma edición todas las normas, estudios sectoriales y autores referenciados.
 """
 
         user_prompt = f"""DESCRIPCIÓN DEL PROYECTO DE REGISTRO CALIFICADO:
@@ -760,23 +769,23 @@ DIRECTRICES DE REDACCIÓN:
 SECCIÓN A REDACTAR:
 CONDICIÓN: {meta.get('title')} (Condición {meta.get('num')})
 
-SUB-NUMERALES ESTRUCTURALES OBLIGATORIOS DE ESTA SECCIÓN (UTILIZAR COMO SUBTÍTULOS # # #):
+SUB-NUMERALES ESTRUCTURALES OBLIGATORIOS A DESARROLLAR:
 {chr(10).join([f"- {s}" for s in meta.get('subnumerals', [])])}
 
 ENFOQUE NORMATIVO Y EXIGENCIAS:
 {meta.get('focus')}
 
 INSTRUCCIONES ADICIONALES DEL USUARIO:
-{user_instructions if user_instructions else 'Generar la sección de manera completa, con sus subtítulos numerados, tablas comparativas y argumentación exhaustiva.'}
+{user_instructions if user_instructions else 'Generar la sección con el máximo nivel de profundidad, citando literatura fidedigna actualizada (2024-2026) en español y disponiendo los prompts de generación de tablas y figuras incorporados en la lectura.'}
 
 EVIDENCIAS Y DOCUMENTOS INSTITUCIONALES DISPONIBLES EN EL PROYECTO:
 {evidences_str}
 
-Por favor, genera el desarrollo completo y exhaustivo de esta condición en formato Markdown limpio y profesional.
-REGLAS STRICTAS:
-1. Utiliza obligatoriamente los sub-numerales numerados arriba (ejemplo: {meta.get('num')}.1, {meta.get('num')}.2, {meta.get('num')}.3...) como subtítulos principales de tercer nivel (###). Puedes adicionar otros subnumerales complementarios si lo ves importante.
-2. Incluye tablas estructuradas en Markdown numeradas formalmente (ejemplo: Tabla {meta.get('num')}.1 - Matriz de..., Tabla {meta.get('num')}.2 - ...).
-3. Redacta de manera rigurosa, profunda e institucional sin resúmenes incompletos.
+REGLAS DE SALIDA:
+1. Desarrolla EXCLUSIVAMENTE en formato Markdown profesional y limpio.
+2. Utiliza obligatoriamente los sub-numerales indicados arriba (ejemplo: {meta.get('num')}.1, {meta.get('num')}.2, {meta.get('num')}.3...) como subtítulos principales de tercer nivel (###). Puedes adicionar otros sub-numerales si lo ves importante.
+3. Para cada tabla o figura explicativa, incluye el texto analítico previo y a continuación el bloque formativo `> 🤖 [PROMPT IA PARA GENERACIÓN DE TABLA/FIGURA X.Y]`.
+4. Incluye referentes actualizados en español (2024-2026) y cierra con la sección `### Referencias Bibliográficas y Documentales (2024-2026)` en formato APA 7ma edición.
 """
 
         response_text = call_ai(
@@ -1218,6 +1227,24 @@ def export_docx():
                 elif re.match(r'^\d+\.\s', stripped):
                     p_num = doc.add_paragraph(re.sub(r'^\d+\.\s', '', stripped), style='List Number')
                     p_num.paragraph_format.space_after = Pt(4)
+                elif stripped.startswith('> '):
+                    p_quote = doc.add_paragraph()
+                    p_quote.paragraph_format.left_indent = Inches(0.4)
+                    p_quote.paragraph_format.right_indent = Inches(0.4)
+                    p_quote.paragraph_format.space_before = Pt(4)
+                    p_quote.paragraph_format.space_after = Pt(4)
+                    
+                    quote_text = stripped[2:]
+                    parts = re.split(r'(\*\*.*?\*\*)', quote_text)
+                    for part in parts:
+                        if part.startswith('**') and part.endswith('**'):
+                            r_bold = p_quote.add_run(part[2:-2])
+                            r_bold.font.bold = True
+                            r_bold.font.color.rgb = RGBColor(37, 99, 235)
+                        else:
+                            r_italic = p_quote.add_run(part)
+                            r_italic.font.italic = True
+                            r_italic.font.color.rgb = RGBColor(51, 65, 85)
                 else:
                     p_norm = doc.add_paragraph()
                     p_norm.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
