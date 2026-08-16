@@ -769,43 +769,44 @@ Este documento corresponde a una RENOVACIÓN de Registro Calificado. Debes enfat
 ATENCIÓN ESPECIAL - TRÁMITE DE MODIFICACIÓN DE REGISTRO CALIFICADO:
 Este documento sustenta una modificación sustancial (e.g. ampliación de modalidades para Registro Único). Sustenta la pertinencia y coherencia del cambio."""
 
-        system_prompt = f"""Eres un Evaluador Senior de la Sala de CONACES, Par Académico del CNA y Consultor Senior para el Ministerio de Educación Nacional de Colombia (MEN).
+        system_prompt = f"""Eres un Evaluador Senior de la Sala de CONACES, Par Académico del CNA y Consultor Senior de Alto Nivel para el Ministerio de Educación Nacional de Colombia (MEN).
 
 Tu misión es redactar capítulos técnicos de máxima profundidad, rigor conceptual, riqueza argumentativa, citas fidedignas y datos estadísticos reales para un DOCUMENTO MAESTRO DE REGISTRO CALIFICADO institucional (diseñado para un expediente integral que sobrepasa las 350 páginas en su totalidad).
 
 MARCO NORMATIVO Y REGULATORIO OBLIGATORIO VIGENTE EN COLOMBIA:
 - Decreto 1330 de 2019 (Condiciones de calidad de programas de educación superior).
 - Decreto 0529 de 2024 (Flexibilización curricular, movilidad y Registro Único Multimodal).
-- Parámetros técnicos de la Resolución 021795 de 2020.
-- TAXONOMÍA SOLO (Structure of Observed Learning Outcomes) y Bloom revisada.
+- Resolución 021795 de 2020 (Parámetros técnicos y aspectos obligatorios a evaluar por el MEN/CONACES).
+- TAXONOMÍA SOLO (Structure of Observed Learning Outcomes) y Bloom revisada para Resultados de Aprendizaje (RA).
 - Marco Nacional de Cualificaciones (MNC), CUO Colombia (Res. 1658/2023) y CINE-F 2013 A.C.
 - Objetivos de Desarrollo Sostenible (ODS - Agenda 2030).
 
-DIRECTRICES DE INVESTIGACIÓN EXTERNA Y ESTRUCTURA DE EVIDENCIAS:
-1. INCORPORACIÓN DE FUENTES EXTERNAS Y DATOS ESTADÍSTICOS REALES (2024-2026):
-   Incorpora activamente datos estadísticos externos fidedignos (DANE 2024-2026, SPADIES 2024, SNIES, UNESCO 2024, OIT 2024, MinTIC/Fedesoft 2024-2025).
+DIRECTRICES CRÍTICAS DE ESTRUCTURACIÓN Y REINGENIERÍA:
 
-2. CITACIÓN EN TEXTO Y BIBLIOGRAFÍA EN FORMATO APA 7.0:
-   - Citas en texto formato APA 7.0: ej. `(DANE, 2024)`, `(MEN, 2024)`, `(UNESCO, 2024)`.
-   - Concluye obligatoriamente con `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
+1. LÍMITE STRICTO Y AISLAMIENTO DE LA CONDICIÓN (SIN MEZCLAR OTRAS CONDICIONES):
+   Estás redactando EXCLUSIVAMENTE la Condición {meta.get('num')}: {meta.get('title')}.
+   Tus subtítulos principales (###) deben ser EXCLUSIVAMENTE los sub-numerales correspondientes a esta condición: {', '.join([s.split()[0] for s in meta.get('subnumerals', [])])}.
+   ESTÁ RIGUROSAMENTE PROHIBIDO desviar la redacción o generar subtítulos pertenecientes a otras condiciones (por ejemplo, si estás en Condición 2, NO generes subtítulos de la Condición 3 como ### 3.1, ### 3.2 o ### 3.3).
 
-3. ESPACIOS Y MARCADORES DE POSICIÓN PARA INSERTAR FOTOGRAFÍAS Y EVIDENCIAS GRÁFICAS (CONDICIONES 5, 6, 7, 8 Y 9):
-   Para las condiciones institucionales (Investigación, Sector Externo, Profesores, Medios Educativos e Infraestructura), DEBES insertar en el texto cajas de espacio para evidencia gráfica:
+2. CUMPLIMIENTO DE ASPECTOS A EVALUAR (RESOLUCIÓN 021795 DE 2020):
+   Debes responder de manera exhaustiva a todos los aspectos a evaluar fijados por la Res. 021795 de 2020 para esta condición. Si un parámetro técnico o dato específico no aparece en los adjuntos suministrados por el usuario, DEBES investigarlo / deducirlo con rigor profesional en internet/bases normativas, fundamentándolo de forma completa en el texto sin dejar preguntas o corchetes sin responder.
+
+3. GENERACIÓN DE TABLAS MARKDOWN COMPLETAS Y REALES (ESTILO DOCUMENTO MAESTRO INSTITUCIONAL):
+   DEBES CONSTRUIR LAS TABLAS MARKDOWN COMPLETAS Y RICAS DIRECTAMENTE DENTRO DEL TEXTO.
+   No las reemplaces por meras instrucciones vacías; incluye la tabla completa en sintaxis Markdown (| Columna 1 | Columna 2 |) con todos sus datos cuantitativos, matrices de pertinencia, oferta comparativa SNIES/DANE, matriz de Resultados de Aprendizaje bajo Taxonomía SOLO, plan de estudios con horas presenciales e independientes, o cuadros de equivalencia entre modalidades.
+
+4. MARCADORES DE POSICIÓN PARA EVIDENCIA FOTOGRÁFICA Y PROMPTS DE DOCENTES/MEDIOS PARA DILIGENCIAR:
+   - Para evidencia visual en condiciones 5, 6, 7, 8 y 9, dispone espacios destacados:
+     > 🖼️ **[ESPACIO PARA EVIDENCIA FOTOGRÁFICA / CAPTURA DE PANTALLA]**:
+     > *"Pegar aquí fotografía o evidencia gráfica de: [Aulas, Laboratorios Físicos / LMS / Firma de Convenios / Medios Educativos]. Pie de foto recomendado: Figura X.Y - Recursos para el programa {proj.get('program_name')}."*
    
-   > 🖼️ **[ESPACIO PARA EVIDENCIA FOTOGRÁFICA / CAPTURA DE PANTALLA]**:
-   > *"Pegar aquí fotografía o evidencia visual de: [Aulas, Laboratorios Físicos / LMS / Firma de Convenios / Medios Educativos]. Pie de foto recomendado: Figura X.Y - Infraestructura y Recursos Institucionales para el programa {proj.get('program_name')}."*
+   - Para Planta Docente (Condición 7) y Medios/Software (Condición 8), incluye la tabla estructurada oficial con columnas para ser diligenciada por la institución:
+     > 🤖 **[PROMPT IA DE TABLA DE PLANTA DOCENTE / MEDIOS PARA DILIGENCIAR EN EXCEL/MARKDOWN]**:
+     > *"Genera la plantilla estructurada en Markdown/Excel para la planta docente / inventario de software del programa '{proj.get('program_name')}' con las columnas: [Nombre del Docente | Máximo Nivel de Formación (Lic/Esp/MSc/PhD) | Área de Conocimiento | Tipo de Vinculación (TC/MT/Cátedra) | Asignaturas Asignadas | Horas Semanales Docencia | Horas Investigación/Extensión]. Dejar filas listas para ingresar los datos reales."*
 
-4. PROMPTS DE TABLAS PARA DILIGENCIAR EN PLANTA DOCENTE Y MEDIOS (CONDICIÓN 7 Y CONDICIÓN 8):
-   En Profesores (Condición 7) y Medios Educativos (Condición 8), donde la institución debe ingresar la nómina real de docentes o licencias, incluye el prompt estructurado para diligenciar sin inventar nombres ficticios:
-   
-   > 🤖 **[PROMPT IA DE TABLA DE PLANTA DOCENTE / MEDIOS PARA DILIGENCIAR EN EXCEL/MARKDOWN]**:
-   > *"Genera la plantilla estructurada en Markdown/Excel para la planta docente / inventario de software del programa '{proj.get('program_name')}' con las columnas: [Nombre del Docente | Máximo Nivel de Formación (Lic/Esp/MSc/PhD) | Área de Conocimiento | Tipo de Vinculación (TC/MT/Cátedra) | Asignaturas Asignadas | Horas Semanales Docencia | Horas Investigación/Extensión]. Dejar filas con la plantilla lista para que la institución ingrese los datos reales."*
-
-5. PROPOSICIÓN DE PROMPTS DE TABLAS/FIGURAS CON DATOS CONCRETOS EN OTRAS SECCIONES:
-   Para tablas curriculares o comparativas de mercado, incluye el bloque `> 🤖 [PROMPT IA PARA GENERACIÓN DE TABLA X.Y EN EXCEL/MARKDOWN]` con todos los datos concretos e indicadores incluidos.
-
-6. PROHIBICIÓN DE ENUMERACIÓN REPETITIVA DE ARTÍCULOS:
-   Jamás generes secuencias interminables de números de artículos (ejemplo: NO escribas 'artículos 2.5.3.2.3.2.1, 2.5.3.2.3.2.2...'). Cita la norma de forma concisa (ej. 'Decreto 1330 de 2019, art. 2.5.3.2.3.2.1 y ss.').
+5. CITACIÓN EN TEXTO Y BIBLIOGRAFÍA EN FORMATO APA 7.0:
+   - Citas en texto formato APA 7.0 (DANE, 2024; SPADIES, 2024; UNESCO, 2024; Biggs & Tang, 2020).
+   - Concluye la condición obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
 """
 
         user_prompt = f"""DESCRIPCIÓN DEL PROYECTO DE REGISTRO CALIFICADO:
@@ -825,26 +826,26 @@ DIRECTRICES DE INVESTIGACIÓN EXTERNA Y ESTRUCTURA DE EVIDENCIAS:
 
 {procedure_instructions}
 
-SECCIÓN A REDACTAR:
-CONDICIÓN: {meta.get('title')} (Condición {meta.get('num')})
+SECCIÓN A REDACTAR (LÍMITE STRICTO - MANTENERSE EXCLUSIVAMENTE EN ESTA CONDICIÓN):
+CONDICIÓN {meta.get('num')}: {meta.get('title')}
 
 SUB-NUMERALES ESTRUCTURALES OBLIGATORIOS A DESARROLLAR:
 {chr(10).join([f"- {s}" for s in meta.get('subnumerals', [])])}
 
-ENFOQUE NORMATIVO Y EXIGENCIAS:
+ENFOQUE NORMATIVO Y ASPECTOS A EVALUAR DE LA RES. 021795 DE 2020:
 {meta.get('focus')}
 
 INSTRUCCIONES ADICIONALES DEL USUARIO:
-{user_instructions if user_instructions else 'Generar la sección con la máxima extensión y profundidad académica, incorporando datos estadísticos externos fidedignos (DANE, SPADIES, UNESCO 2024-2026), citas en APA 7.0, y prompts de tablas e imágenes con datos concretos completos para su construcción inmediata.'}
+{user_instructions if user_instructions else 'Generar la sección con la máxima extensión y profundidad académica, respondiendo a todos los aspectos a evaluar de la Res. 021795 de 2020, construyendo las tablas Markdown completas directamente en el texto, e incorporando datos estadísticos externos fidedignos (DANE, SPADIES, UNESCO 2024-2026) y citas en APA 7.0.'}
 
 EVIDENCIAS Y DOCUMENTOS INSTITUCIONALES DISPONIBLES EN EL PROYECTO:
 {evidences_str}
 
-REGLAS DE SALIDA:
-1. Desarrolla EXCLUSIVAMENTE en formato Markdown profesional y ultra-detallado.
+REGLAS STRICTAS DE SALIDA:
+1. Desarrolla EXCLUSIVAMENTE la Condición {meta.get('num')}. ESTÁ PROHIBIDO escribir subtítulos de la Condición {int(meta.get('num'))+1 if meta.get('num').isdigit() else 'siguiente'} (ejemplo: NO generes ### 3.1 si estás en la Condición 2).
 2. Utiliza obligatoriamente los sub-numerales indicados arriba (ejemplo: {meta.get('num')}.1, {meta.get('num')}.2, {meta.get('num')}.3...) como subtítulos principales de tercer nivel (###).
-3. Integra datos externos reales (DANE, SPADIES, MinTIC, UNESCO 2024-2026) y cita en texto según APA 7.0.
-4. Para cada tabla o figura, incluye el análisis cualitativo y el bloque `> 🤖 [PROMPT IA PARA GENERACIÓN DE TABLA/FIGURA X.Y]` CON TODOS LOS DATOS CONCRETOS Y METRICAS INCLUIDOS en la instrucción del prompt.
+3. Construye las TABLAS MARKDOWN COMPLETAS Y REALES con datos numéricos, créditos, matrices comparativas e indicadores dentro del texto.
+4. Si un aspecto de la Res. 021795 de 2020 no aparece en las evidencias adjuntas, investígalo/dedúcelo técnicamente para responderlo completamente.
 5. Finaliza el capítulo con la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
 """
 
@@ -876,14 +877,17 @@ REGLAS DE SALIDA:
             # Si el texto está truncado o le faltan las referencias, preparar prompt de continuación exacta
             last_snippet = text_trim[-400:] if len(text_trim) > 400 else text_trim
             
+            next_cond_num = str(int(meta.get('num')) + 1) if meta.get('num').isdigit() else 'siguiente'
             continuation_prompt = f"""ATENCIÓN: Tu respuesta anterior fue exhaustiva pero se interrumpió o aún no ha concluido con la sección final de bibliografía en APA 7.0.
 A continuación se muestra el fragmento final generado hasta el momento:
 
 "... {last_snippet}"
 
-POR FAVOR CONTINÚA LA REDACCIÓN EXACTAMENTE DESDE EL PUNTO DONDE QUEDÓ EL TEXTO (continúa desde la última palabra sin repetir el texto previo).
-Sigue desarrollando los sub-numerales pendientes con máxima profundidad académica, datos estadísticos reales (DANE, SPADIES, UNESCO 2024-2026), citas APA 7.0, prompts de tablas/figuras con datos concretos completos y concluye obligatoriamente con la sección:
-`### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
+REGLAS RIGUROSAS DE CONTINUACIÓN:
+1. CONTINÚA LA REDACCIÓN EXACTAMENTE DESDE LA ÚLTIMA PALABRA (sin repetir texto previo ni empezar desde el inicio).
+2. MANTÉNTE EXCLUSIVAMENTE DENTRO DE LA CONDICIÓN {meta.get('num')}: {meta.get('title')}. ESTÁ RIGUROSAMENTE PROHIBIDO SALIRSE A LA CONDICIÓN {next_cond_num} (ejemplo: NO generes ningún subtítulo como '### {next_cond_num}.1' ni '### {next_cond_num}.2').
+3. Continúa construyendo las TABLAS MARKDOWN COMPLETAS DIRECTAMENTE EN EL TEXTO con datos numéricos e indicadores reales.
+4. Concluye obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
 
             continuation_text = call_ai(
                 messages=[
