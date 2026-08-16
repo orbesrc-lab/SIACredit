@@ -1415,7 +1415,9 @@
             // Cargar contenido en el editor
             const condData = (currentProject.conditions || {})[condKey] || {};
             const content = sanitizeMarkdownTables(condData.content || '');
-            document.getElementById('stageTextarea').value = content;
+            const stageTextarea = document.getElementById('stageTextarea');
+            stageTextarea.value = content;
+            stageTextarea.scrollTop = 0;
             document.getElementById('charCountBadge').textContent = `${content.length} caracteres`;
 
             // Actualizar vista previa
@@ -1499,7 +1501,9 @@
                         content: cleanText,
                         status: 'generated'
                     };
-                    document.getElementById('stageTextarea').value = cleanText;
+                    const stageTextarea = document.getElementById('stageTextarea');
+                    stageTextarea.value = cleanText;
+                    stageTextarea.scrollTop = 0;
                     onEditorInput();
                     updateNavDots();
                     
