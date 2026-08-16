@@ -10,6 +10,6 @@ openai
 PyPDF2
 docx2txt
 pyzipper
-
+python-docx
 pandas
 openpyxl
