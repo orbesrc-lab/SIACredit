@@ -519,51 +519,105 @@ CONDITIONS_METADATA = {
     'cond_intro': {
         'num': '0',
         'title': 'Introducción y Contextualización Institucional',
+        'subnumerals': [
+            '0.1 Misión, Visión y Proyecto Educativo Institucional (PEI)',
+            '0.2 Propósito de la Solicitud y Articulación con el PDI',
+            '0.3 Marco de Calidad y Compromiso Institucional'
+        ],
         'focus': 'Presentación formal de la institución, misión, visión, modelo pedagógico, propósito del trámite (Otorgamiento/Renovación), pertinencia y articulación con el PDI.'
     },
     'cond_1': {
         'num': '1',
         'title': 'Denominación del Programa',
-        'focus': 'Decreto 1330/2019 Art. 2.5.3.2.3.2.1 & Decreto 0529/2024. Coherencia de la denominación con el nivel de formación, campo amplio/específico CINE-F 2013 A.C., clasificación CIUO-08, objetivos de desarrollo sostenible (ODS) y perfil de egreso.'
+        'subnumerals': [
+            '1.1 Coherencia de la Denominación con el Nivel de Formación y Título a Otorgar',
+            '1.2 Clasificaciones Normativas Oficiales (CINE-F 2013 A.C., CIUO-08, MNC y CUO Colombia)',
+            '1.3 Perfil General de Egreso y Alineación con Objetivos de Desarrollo Sostenible (ODS)'
+        ],
+        'focus': 'Decreto 1330/2019 Art. 2.5.3.2.3.2.1 & Decreto 0529/2024. Coherencia de la denominación con el nivel de formación, campo amplio/específico CINE-F 2013 A.C., clasificación CIUO-08, MNC, CUO, objetivos de desarrollo sostenible (ODS) y perfil de egreso.'
     },
     'cond_2': {
         'num': '2',
         'title': 'Justificación del Programa',
+        'subnumerals': [
+            '2.1 Pertinencia en los Contextos Internacional, Nacional y Regional',
+            '2.2 Estudio de Mercado, Demanda Laboral y Tendencias Ocupacionales',
+            '2.3 Estado de la Oferta Académica Nacional y Regional (SNIES / SPADIES / DANE)',
+            '2.4 Atributos Diferenciadores del Programa y Coherencia con el PDI'
+        ],
         'focus': 'Decreto 1330/2019 Art. 2.5.3.2.3.2.2. Pertinencia en los contextos internacional, nacional y regional; estudio de demanda laboral y tendencias ocupacionales; estado de la oferta académica (SNIES, SPADIES, DANE); atributos diferenciadores del programa y articulación con el Plan de Desarrollo Institucional.'
     },
     'cond_3': {
         'num': '3',
         'title': 'Aspectos Curriculares',
+        'subnumerals': [
+            '3.1 Conceptualización Teórica, Epistemológica y Modelo Pedagógico Institucional',
+            '3.2 Formulación de Resultados de Aprendizaje (RA) bajo la Taxonomía SOLO',
+            '3.3 Plan de Estudios, Distribución de Créditos (Acompañamiento Docente vs. Trabajo Independiente)',
+            '3.4 Áreas y Componentes de Formación, Interdisciplinariedad y Flexibilidad Curricular',
+            '3.5 Estrategias de Evaluación del Aprendizaje y Sistema de Calificación',
+            '3.6 Estructuración por Ciclos Propedéuticos (si aplica)'
+        ],
         'focus': 'Decreto 1330/2019 Art. 2.5.3.2.3.2.3 & Res. 021795. Conceptualización teórica y epistemológica, diseño curricular basado en Resultados de Aprendizaje (RA) formulados rigurosamente bajo la TAXONOMÍA SOLO (Preestructural, Uniestructural, Multiestructural, Relacional, Abstracto Ampliado), plan de estudios detallado con créditos (horas de acompañamiento docente vs. trabajo independiente), áreas y componentes de formación, interdisciplinariedad, flexibilidad curricular, estrategias de evaluación del aprendizaje y COMPONENTE PROPEDÉUTICO articulado (si aplica ciclos propedéuticos).'
     },
     'cond_4': {
         'num': '4',
         'title': 'Organización de las Actividades Académicas y del Proceso Formativo',
+        'subnumerals': [
+            '4.1 Registro Único Multimodal y Estrategias Pedagógicas Discriminadas por Modalidad',
+            '4.2 Mediaciones Tecnológicas, Ambientes de Aprendizaje e Interacciones Sincrónicas/Asincrónicas',
+            '4.3 Equivalencia Académica y Aseguramiento entre Modalidades'
+        ],
         'focus': 'Decreto 1330/2019 Art. 2.5.3.2.3.2.4 & Registro Único Multimodal. Estrategias pedagógicas y didácticas discriminadas por cada modalidad solicitada (Presencial, Virtual, A Distancia Tradicional, Híbrida, Dual); mediaciones tecnológicas, equivalencia académica y de créditos entre modalidades, interacciones sincrónicas/asincrónicas y aseguramiento del aprendizaje.'
     },
     'cond_5': {
         'num': '5',
         'title': 'Investigación, Innovación y/o Creación Artística y Cultural',
+        'subnumerals': [
+            '5.1 Estrategia Institucional y Formación Investigativa en el Currículo',
+            '5.2 Grupos, Semilleros y Líneas de Investigación Institucionales Asociadas',
+            '5.3 Producción Científica/Tecnológica y Proyección de Sostenibilidad a 7 Años'
+        ],
         'focus': 'Decreto 1330/2019 Art. 2.5.3.2.3.2.5. Articulación de la formación investigativa en el plan de estudios, líneas y sublíneas de investigación, semilleros y grupos de investigación institucionales, proyectos, producción científica/tecnológica y proyección de sostenibilidad a los 7 años de vigencia.'
     },
     'cond_6': {
         'num': '6',
         'title': 'Relación con el Sector Externo',
+        'subnumerals': [
+            '6.1 Proyección Social, Extensión y Articulación con el Sector Productivo y Comunitario',
+            '6.2 Internacionalización del Currículo, Bilingüismo y Movilidad Académica',
+            '6.3 Convenios de Prácticas Profesionales y Seguimiento a Egresados'
+        ],
         'focus': 'Decreto 1330/2019 Art. 2.5.3.2.3.2.6. Proyección social, extensión, vinculación con el sector productivo y comunitario, internacionalización del currículo, convenios de prácticas, seguimiento a egresados y programas de responsabilidad social.'
     },
     'cond_7': {
         'num': '7',
         'title': 'Profesores',
+        'subnumerals': [
+            '7.1 Proyección de la Planta Docente y Perfiles Requeridos por Modalidad',
+            '7.2 Estatuto Docente, Plan de Cualificación Pedagógica/Disciplinar y Sistema de Evaluación',
+            '7.3 Distribución Horaria y Dedicación Docente (Docencia, Investigación, Extensión)'
+        ],
         'focus': 'Decreto 1330/2019 Art. 2.5.3.2.3.2.7. Planta docente proyectada, perfiles académicos y de experiencia requeridos acordes a las modalidades, plan de formación y cualificación pedagógica/disciplinar, estatuto docente, dedicación horaria (docencia, investigación, extensión) y sistema de evaluación docente.'
     },
     'cond_8': {
         'num': '8',
         'title': 'Medios Educativos',
+        'subnumerals': [
+            '8.1 Recursos Bibliográficos Físicos y Bases de Datos Científicas Digitales',
+            '8.2 Plataformas Virtuales de Aprendizaje (LMS), Software Especializado y Simuladores',
+            '8.3 Accesibilidad, Inclusión y Capacitación a Usuarios'
+        ],
         'focus': 'Decreto 1330/2019 Art. 2.5.3.2.3.2.8. Recursos bibliográficos físicos y digitales (bases de datos científicas), plataformas virtuales de aprendizaje (LMS), software especializado, simuladores, laboratorios virtuales, políticas de accesibilidad e inclusión y programas de capacitación a usuarios.'
     },
     'cond_9': {
         'num': '9',
         'title': 'Infraestructura Física y Tecnológica',
+        'subnumerals': [
+            '9.1 Aulas, Laboratorios Físicos/Virtuales, Talleres y Conectividad',
+            '9.2 Bioseguridad, Accesibilidad Física y Espacios de Bienestar Universitario',
+            '9.3 Plan de Mantenimiento, Renovación Tecnológica y Sostenibilidad Presupuestal'
+        ],
         'focus': 'Decreto 1330/2019 Art. 2.5.3.2.3.2.9. Aulas, laboratorios físicos y talleres especializados, conectividad y ancho de banda, espacios de bienestar universitario, condiciones de bioseguridad, accesibilidad física, plan de mantenimiento y sostenibilidad presupuestal.'
     }
 }
@@ -658,16 +712,24 @@ DIRECTRICES DE REDACCIÓN:
 
 SECCIÓN A REDACTAR:
 CONDICIÓN: {meta.get('title')} (Condición {meta.get('num')})
+
+SUB-NUMERALES ESTRUCTURALES OBLIGATORIOS DE ESTA SECCIÓN (UTILIZAR COMO SUBTÍTULOS # # #):
+{chr(10).join([f"- {s}" for s in meta.get('subnumerals', [])])}
+
 ENFOQUE NORMATIVO Y EXIGENCIAS:
 {meta.get('focus')}
 
 INSTRUCCIONES ADICIONALES DEL USUARIO:
-{user_instructions if user_instructions else 'Generar la sección de manera completa, con sus subtítulos, tablas comparativas y argumentación exhaustiva.'}
+{user_instructions if user_instructions else 'Generar la sección de manera completa, con sus subtítulos numerados, tablas comparativas y argumentación exhaustiva.'}
 
 EVIDENCIAS Y DOCUMENTOS INSTITUCIONALES DISPONIBLES EN EL PROYECTO:
 {evidences_str}
 
-Por favor, genera el desarrollo completo y exhaustivo de esta condición en formato Markdown limpio y profesional. Asegúrate de incluir subtítulos numerados claros (e.g. 3.1, 3.2, 3.3...), tablas completas y todas las justificaciones pertinentes.
+Por favor, genera el desarrollo completo y exhaustivo de esta condición en formato Markdown limpio y profesional.
+REGLAS STRICTAS:
+1. Utiliza obligatoriamente los sub-numerales numerados arriba (ejemplo: {meta.get('num')}.1, {meta.get('num')}.2, {meta.get('num')}.3...) como subtítulos principales de tercer nivel (###). Puedes adicionar otros subnumerales complementarios si lo ves importante.
+2. Incluye tablas estructuradas en Markdown numeradas formalmente (ejemplo: Tabla {meta.get('num')}.1 - Matriz de..., Tabla {meta.get('num')}.2 - ...).
+3. Redacta de manera rigurosa, profunda e institucional sin resúmenes incompletos.
 """
 
         response_text = call_ai(
@@ -956,6 +1018,94 @@ def export_docx():
             
         doc.add_paragraph().paragraph_format.space_after = Pt(20)
         
+        # ==========================================
+        # TABLA DE CONTENIDO FORMAL (TOC)
+        # ==========================================
+        if not cond_key:
+            doc.add_page_break()
+            toc_h = doc.add_heading("TABLA DE CONTENIDO", level=1)
+            toc_h.style.font.color.rgb = RGBColor(37, 99, 235)
+            toc_h.paragraph_format.space_before = Pt(10)
+            toc_h.paragraph_format.space_after = Pt(15)
+            
+            p_toc_intro = doc.add_paragraph()
+            p_toc_intro.add_run("Estructura técnica y capitulado del Documento Maestro de Registro Calificado:\n").font.italic = True
+            p_toc_intro.paragraph_format.space_after = Pt(10)
+            
+            all_keys = ['cond_intro', 'cond_1', 'cond_2', 'cond_3', 'cond_4', 'cond_5', 'cond_6', 'cond_7', 'cond_8', 'cond_9']
+            for k in all_keys:
+                meta_item = CONDITIONS_METADATA.get(k, {})
+                c_num = meta_item.get('num', '')
+                c_title = meta_item.get('title', '')
+                
+                p_c = doc.add_paragraph()
+                p_c.paragraph_format.space_before = Pt(4)
+                p_c.paragraph_format.space_after = Pt(2)
+                r_c = p_c.add_run(f"Condición {c_num}. {c_title}")
+                r_c.font.bold = True
+                r_c.font.size = Pt(11)
+                r_c.font.color.rgb = RGBColor(15, 23, 42)
+                
+                for sub in meta_item.get('subnumerals', []):
+                    p_sub = doc.add_paragraph()
+                    p_sub.paragraph_format.left_indent = Inches(0.3)
+                    p_sub.paragraph_format.space_before = Pt(0)
+                    p_sub.paragraph_format.space_after = Pt(2)
+                    r_sub = p_sub.add_run(sub)
+                    r_sub.font.size = Pt(10)
+                    r_sub.font.color.rgb = RGBColor(51, 65, 85)
+            
+            # ==========================================
+            # ÍNDICE DE TABLAS DE EVIDENCIAS Y DECRETOS
+            # ==========================================
+            doc.add_page_break()
+            idx_h = doc.add_heading("ÍNDICE DE TABLAS", level=1)
+            idx_h.style.font.color.rgb = RGBColor(37, 99, 235)
+            idx_h.paragraph_format.space_before = Pt(10)
+            idx_h.paragraph_format.space_after = Pt(15)
+            
+            p_idx_intro = doc.add_paragraph()
+            p_idx_intro.add_run("Relación consolidada de matrices, tablas estadísticas y cuadros de evidencia incorporados en el documento:\n").font.italic = True
+            p_idx_intro.paragraph_format.space_after = Pt(10)
+            
+            index_tables = [
+                ("Tabla 1", "Ficha Técnica General del Programa Académico"),
+                ("Tabla 2", "Clasificaciones Normativas Oficiales (CINE-F 2013 A.C., CIUO-08, MNC, CUO y ODS)"),
+                ("Tabla 3", "Matriz de Coherencia Institucional y Articulación con el Plan de Desarrollo (PDI)"),
+                ("Tabla 4", "Análisis Comparativo de la Oferta Académica del Sector (SNIES / DANE)"),
+                ("Tabla 5", "Matriz de Resultados de Aprendizaje (RA) bajo Taxonomía SOLO"),
+                ("Tabla 6", "Malla Curricular, Distribución de Créditos y Horas (Acompañamiento vs. Independiente)"),
+                ("Tabla 7", "Matriz de Equivalencias de Mediaciones y Actividades para Registro Único Multimodal"),
+                ("Tabla 8", "Grupos, Semilleros y Líneas de Investigación Vinculadas al Programa"),
+                ("Tabla 9", "Red Institucional de Convenios Vigentes para Prácticas Profesionales y Proyección Social"),
+                ("Tabla 10", "Planta Docente Proyectada, Perfiles Académicos y Dedicación Horaria"),
+                ("Tabla 11", "Inventario de Recursos Bibliográficos, Bases de Datos Científicas y Licencias de Software"),
+                ("Tabla 12", "Matriz de Infraestructura Física, Laboratorios y Especificaciones Técnicas")
+            ]
+            
+            table_idx = doc.add_table(rows=1, cols=2)
+            table_idx.alignment = WD_TABLE_ALIGNMENT.CENTER
+            table_idx.autofit = False
+            
+            hdr_idx = table_idx.rows[0].cells
+            hdr_idx[0].text = "Identificador de Tabla"
+            hdr_idx[1].text = "Denominación y Contenido Técnico de la Tabla"
+            for c in hdr_idx:
+                shading = parse_xml(r'<w:shd {} w:fill="2563EB"/>'.format(nsdecls('w')))
+                c._tc.get_or_add_tcPr().append(shading)
+                for p in c.paragraphs:
+                    for r in p.runs:
+                        r.font.bold = True
+                        r.font.color.rgb = RGBColor(255, 255, 255)
+                        
+            for t_id, t_desc in index_tables:
+                r_cells = table_idx.add_row().cells
+                r_cells[0].text = t_id
+                r_cells[0].paragraphs[0].runs[0].font.bold = True
+                r_cells[1].text = t_desc
+                
+            doc.add_paragraph().paragraph_format.space_after = Pt(20)
+
         # CONDICIONES SELECCIONADAS O TODAS
         keys_to_export = [cond_key] if (cond_key and cond_key in CONDITIONS_METADATA) else [
             'cond_intro', 'cond_1', 'cond_2', 'cond_3', 'cond_4', 'cond_5', 'cond_6', 'cond_7', 'cond_8', 'cond_9'
