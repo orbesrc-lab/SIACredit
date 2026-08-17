@@ -1284,15 +1284,35 @@
         function renderProjectSelect() {
             const sel = document.getElementById('projectSelector');
             sel.innerHTML = '';
-            const seenIds = new Set();
+            
+            // Deduplicar por nombre normalizado de programa para que nunca se muestren proyectos repetidos
+            const uniqueMap = new Map();
             allProjects.forEach(p => {
-                if (p && p.id && !seenIds.has(p.id)) {
-                    seenIds.add(p.id);
-                    const opt = document.createElement('option');
-                    opt.value = p.id;
-                    opt.textContent = `${p.program_name} (${p.level}) - ${p.inst_name}`;
-                    sel.appendChild(opt);
+                if (p && p.id) {
+                    const normName = (p.program_name || '').trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    const condCount = Object.keys(p.conditions || {}).length;
+                    const charCount = Object.values(p.conditions || {}).reduce((acc, c) => acc + ((c && c.content) ? c.content.length : 0), 0);
+                    
+                    if (!uniqueMap.has(normName)) {
+                        uniqueMap.set(normName, { project: p, score: charCount + condCount * 1000 });
+                    } else {
+                        const existing = uniqueMap.get(normName);
+                        const currentScore = charCount + condCount * 1000;
+                        if (currentScore > existing.score) {
+                            uniqueMap.set(normName, { project: p, score: currentScore });
+                        }
+                    }
                 }
+            });
+
+            // Actualizar allProjects con los únicos
+            allProjects = Array.from(uniqueMap.values()).map(v => v.project);
+
+            allProjects.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = `${p.program_name} (${p.level}) - ${p.inst_name}`;
+                sel.appendChild(opt);
             });
         }
 
