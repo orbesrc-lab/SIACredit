@@ -956,7 +956,7 @@ def continue_condition_ai():
         data = request.json or {}
         project_id = data.get('project_id')
         cond_key = data.get('cond_key')
-        existing_content = sanitize_markdown_tables(data.get('existing_content', '').strip())
+        existing_content = data.get('existing_content', '').strip()
         
         if not project_id or not cond_key or not existing_content:
             return jsonify({'status': 'error', 'message': 'Faltan parámetros requeridos'}), 400
@@ -999,8 +999,8 @@ REGLAS STRICTAS DE CONTINUACIÓN:
         ends_mid_word = not existing_content.endswith((' ', '\n', '.', ',', ';', ':', ')', ']', '}', '`'))
         separator = "" if ends_mid_word else ("\n\n" if existing_content.endswith(('.', ':', ')', ']', '}', '`')) else " ")
         
+        # PRESERVAR 100% DEL TEXTO ANTERIOR Y ANEXAR NUEVO CONTENIDO AL FINAL
         combined_content = existing_content + separator + continuation_text.lstrip()
-        combined_content = sanitize_markdown_tables(combined_content)
         
         if 'conditions' not in proj:
             proj['conditions'] = {}
