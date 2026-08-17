@@ -137,13 +137,26 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
             
         client = OpenAI(api_key=api_key, base_url=base_url)
         try:
+            # Límites máximos reales por modelo/proveedor
+            MODEL_MAX_TOKENS = {
+                'gemini-2.5-flash': 65536,
+                'gemini-2.5-pro': 65536,
+                'gemini-1.5-flash': 8192,
+                'gpt-4o': 16384,
+                'gpt-4o-mini': 16384,
+                'gpt-4-turbo': 4096,
+                'glm-4-flash': 8192,
+                'glm-4': 8192,
+            }
+            model_max = MODEL_MAX_TOKENS.get(model, 8192)
+            effective_max_tokens = min(max_tokens, model_max) if max_tokens else model_max
+            
             kwargs = {
                 "model": model,
                 "messages": messages,
-                "temperature": temperature
+                "temperature": temperature,
+                "max_tokens": effective_max_tokens
             }
-            if max_tokens:
-                kwargs["max_tokens"] = max_tokens
                 
             response = client.chat.completions.create(**kwargs)
             return response.choices[0].message.content

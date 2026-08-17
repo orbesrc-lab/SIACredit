@@ -945,13 +945,13 @@ REGLAS STRICTAS DE SALIDA:
 5. Finaliza el capítulo con la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
 """
 
-        # Pase 1: Generación inicial
+        # Pase 1: Generación inicial (máximo de tokens para contenido extenso)
         response_text = call_ai(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            max_tokens=8192,
+            max_tokens=65536,
             temperature=0.35,
             inst_id=proj.get('inst_id')
         )
@@ -990,7 +990,7 @@ REGLAS RIGUROSAS DE CONTINUACIÓN:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": continuation_prompt}
                 ],
-                max_tokens=8192,
+                max_tokens=65536,
                 temperature=0.35,
                 inst_id=proj.get('inst_id')
             )
@@ -1065,7 +1065,7 @@ REGLAS STRICTAS DE CONTINUACIÓN:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": continuation_prompt}
             ],
-            max_tokens=8192,
+            max_tokens=65536,
             temperature=0.35,
             inst_id=proj.get('inst_id')
         )
