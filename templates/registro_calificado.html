@@ -1385,11 +1385,16 @@
                         cleanedLines.push(newParts.join('|'));
                         continue;
                     }
-                
+                } else {
+                    inTable = false;
+                    tableRowCount = 0;
+                }
+
                 cleanedLines.push(line);
             }
             return cleanedLines.join('\n');
         }
+
 
         function copyPromptsFromCondition() {
             const text = document.getElementById('stageTextarea').value || '';
