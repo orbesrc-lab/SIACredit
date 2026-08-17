@@ -515,7 +515,7 @@ PROGRAMA ID: {program_id} | FECHA DE EXTRACCIÓN: {datetime.datetime.now().strft
 
 
 def sanitize_markdown_tables(text):
-    """Limpia guiones excesivos en tablas Markdown, colapsa bucles de enumeración repetitiva de artículos legales y elimina filas duplicadas consecutivas en tablas."""
+    """Limpia guiones/guiones bajos excesivos en tablas Markdown, colapsa bucles de enumeración repetitiva de artículos legales y elimina filas vacías o duplicadas en tablas."""
     if not text:
         return text
         
@@ -523,19 +523,33 @@ def sanitize_markdown_tables(text):
     text = re.sub(r'(\b\d+\.\d+\.\d+(?:\.\d+)*(?:,\s*|\s+y\s+)){3,}\b\d+\.\d+\.\d+(?:\.\d+)*', r'2.5.3.2.3.2.1 y ss.', text)
     text = re.sub(r'(?:2\.5\.3\.2\.3\.\d+\.\d+(?:,\s*|\s+y\s+)){3,}', '2.5.3.2.3.2.1 y ss. ', text)
     
-    # Colapsar bloques idénticos de filas en tablas Markdown (ej. | Nivel SOLO | Resultado... repetido infinitamente)
+    # Colapsar bloques idénticos de filas en tablas Markdown
     text = re.sub(r'(\|[^\n]+\|\n)(?:\s*\1){2,}', r'\1', text)
     
     lines = text.split('\n')
     cleaned_lines = []
     prev_table_row = None
     dup_count = 0
+    in_table = False
+    table_row_count = 0
     
     for line in lines:
         stripped = line.strip()
         
-        # Eliminar filas duplicadas consecutivas en tablas Markdown
-        if stripped and stripped.startswith('|') and stripped.endswith('|'):
+        if stripped.startswith('|') and stripped.endswith('|'):
+            in_table = True
+            table_row_count += 1
+            
+            # 1. Eliminar filas vacías compuestas solo por guiones bajos, guiones o espacios (|______|______|)
+            inner_content = re.sub(r'[\s|_:\-]', '', stripped)
+            if not inner_content and table_row_count > 1:
+                continue
+                
+            # 2. Truncar tablas desbordadas a máximo 10 filas por tabla
+            if table_row_count > 10:
+                continue
+                
+            # 3. Eliminar filas duplicadas consecutivas
             if stripped == prev_table_row:
                 dup_count += 1
                 if dup_count > 1:
@@ -543,44 +557,24 @@ def sanitize_markdown_tables(text):
             else:
                 dup_count = 0
                 prev_table_row = stripped
-        else:
-            prev_table_row = None
-            dup_count = 0
-            
-        if '|' in stripped and '-' * 5 in stripped:
-            parts = stripped.split('|')
-            new_parts = []
-            is_table_divider = True
-            
-            for part in parts:
-                p_strip = part.strip()
-                if not p_strip:
-                    new_parts.append('')
-                    continue
-                if re.match(r'^:?-+:?$', p_strip):
-                    starts = p_strip.startswith(':')
-                    ends = p_strip.endswith(':')
-                    if starts and ends:
-                        new_parts.append(' :---: ')
-                    elif starts:
-                        new_parts.append(' :--- ')
-                    elif ends:
-                        new_parts.append(' ---: ')
-                    else:
-                        new_parts.append(' --- ')
-                else:
-                    is_table_divider = False
-                    break
-                    
-            if is_table_divider and len(new_parts) > 1:
+                
+            # 4. Sanitizar divisores con guiones o guiones bajos excesivos (|:--------...---|)
+            if re.match(r'^\|[\s|:_\-]+\|$', stripped) and ('---' in stripped or '___' in stripped):
+                parts = stripped.split('|')
+                new_parts = [' :--- ' if p.strip() else '' for p in parts]
                 cleaned_lines.append('|'.join(new_parts))
                 continue
                 
-        if re.match(r'^-{5,}$', stripped):
-            continue
+            cleaned_lines.append(line)
+        else:
+            in_table = False
+            table_row_count = 0
+            prev_table_row = None
+            dup_count = 0
+            if re.match(r'^-{5,}$', stripped) or re.match(r'^_{5,}$', stripped):
+                continue
+            cleaned_lines.append(line)
             
-        cleaned_lines.append(line)
-        
     return '\n'.join(cleaned_lines)
 
 

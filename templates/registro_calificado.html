@@ -1333,20 +1333,29 @@
             text = text.replace(/(\b\d+\.\d+\.\d+(?:\.\d+)*(?:,\s*|\s+y\s+)){3,}\b\d+\.\d+\.\d+(?:\.\d+)*/g, '2.5.3.2.3.2.1 y ss.');
             text = text.replace(/(?:2\.5\.3\.2\.3\.\d+\.\d+(?:,\s*|\s+y\s+)){3,}/g, '2.5.3.2.3.2.1 y ss. ');
 
-            // Colapsar bloques idénticos de filas en tablas Markdown (ej. | Nivel SOLO | Resultado... repetido infinitamente)
-            text = text.replace(/(\|[^\n]+\|\n)(?:\s*\1){2,}/g, '$1');
-
             const lines = text.split('\n');
             const cleanedLines = [];
             let prevTableRow = null;
             let dupCount = 0;
+            let inTable = false;
+            let tableRowCount = 0;
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
                 const stripped = line.trim();
 
-                // Eliminar filas duplicadas consecutivas en tablas Markdown
-                if (stripped && stripped.startsWith('|') && stripped.endsWith('|')) {
+                if (stripped.startsWith('|') && stripped.endsWith('|')) {
+                    inTable = true;
+                    tableRowCount++;
+
+                    // 1. Eliminar filas vacías compuestas solo por guiones bajos, guiones o espacios (|______|______|)
+                    const innerContent = stripped.replace(/[\s|_:\-]/g, '');
+                    if (!innerContent && tableRowCount > 1) continue;
+
+                    // 2. Truncar tablas desbordadas a máximo 10 filas por tabla
+                    if (tableRowCount > 10) continue;
+
+                    // 3. Eliminar filas duplicadas consecutivas
                     if (stripped === prevTableRow) {
                         dupCount++;
                         if (dupCount > 1) continue;
@@ -1354,42 +1363,14 @@
                         dupCount = 0;
                         prevTableRow = stripped;
                     }
-                } else {
-                    prevTableRow = null;
-                    dupCount = 0;
-                }
-                
-                if (stripped.includes('|') && /-{5,}/.test(stripped)) {
-                    const parts = stripped.split('|');
-                    const newParts = [];
-                    let isDivider = true;
-                    for (let j = 0; j < parts.length; j++) {
-                        const pStrip = parts[j].trim();
-                        if (!pStrip) {
-                            newParts.push('');
-                            continue;
-                        }
-                        if (/^:?-+:?$/.test(pStrip)) {
-                            const starts = pStrip.startsWith(':');
-                            const ends = pStrip.endsWith(':');
-                            if (starts && ends) newParts.push(' :---: ');
-                            else if (starts) newParts.push(' :--- ');
-                            else if (ends) newParts.push(' ---: ');
-                            else newParts.push(' --- ');
-                        } else {
-                            isDivider = false;
-                            break;
-                        }
-                    }
-                    if (isDivider && newParts.length > 1) {
+
+                    // 4. Sanitizar divisores con guiones o guiones bajos excesivos (|:--------...---|)
+                    if (/^\|[\s|:_\-]+\|$/.test(stripped) && (stripped.includes('---') || stripped.includes('___'))) {
+                        const parts = stripped.split('|');
+                        const newParts = parts.map(p => p.trim() ? ' :--- ' : '');
                         cleanedLines.push(newParts.join('|'));
                         continue;
                     }
-                }
-                
-                if (/^-{5,}$/.test(stripped)) {
-                    continue;
-                }
                 
                 cleanedLines.push(line);
             }
