@@ -902,8 +902,10 @@ REGLAS RIGUROSAS DE CONTINUACIÓN:
             if not continuation_text or not continuation_text.strip():
                 break
                 
-            # Unir limpiamente la continuación
-            response_text = response_text.rstrip() + "\n\n" + continuation_text.lstrip()
+            # Unir limpiamente la continuación sin romper palabras a la mitad
+            ends_mid_word = not response_text.rstrip().endswith((' ', '\n', '.', ',', ';', ':', ')', ']', '}', '`'))
+            separator = "" if ends_mid_word else ("\n\n" if response_text.rstrip().endswith(('.', ':', ')', ']', '}', '`')) else " ")
+            response_text = response_text.rstrip() + separator + continuation_text.lstrip()
             current_pass += 1
 
         response_text = sanitize_markdown_tables(response_text)
@@ -923,6 +925,79 @@ REGLAS RIGUROSAS DE CONTINUACIÓN:
             'cond_key': cond_key,
             'title': meta.get('title'),
             'content': response_text
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@registro_calificado_bp.route('/api/rc/continue_condition', methods=['POST'])
+def continue_condition_ai():
+    """Continúa la redacción de una condición desde el punto exacto donde se interrumpió el texto."""
+    try:
+        data = request.json or {}
+        project_id = data.get('project_id')
+        cond_key = data.get('cond_key')
+        existing_content = data.get('existing_content', '').strip()
+        
+        if not project_id or not cond_key or not existing_content:
+            return jsonify({'status': 'error', 'message': 'Faltan parámetros requeridos'}), 400
+            
+        proj = get_project(project_id)
+        if not proj:
+            return jsonify({'status': 'error', 'message': 'Proyecto no encontrado'}), 404
+            
+        meta = CONDITIONS_METADATA.get(cond_key, {'num': 'X', 'title': 'Condición'})
+        last_snippet = existing_content[-400:]
+        next_cond_num = str(int(meta.get('num')) + 1) if meta.get('num').isdigit() else 'siguiente'
+        
+        system_prompt = f"""Eres un Evaluador Senior de CONACES, Par Académico del CNA y Consultor Senior del MEN de Colombia.
+Tu tarea es CONTINUAR la redacción técnica del capítulo para la Condición {meta.get('num')}: {meta.get('title')}.
+Mantén el máximo rigor conceptual, investigación externa de fuentes (DANE, SPADIES, UNESCO 2024-2026), citas APA 7.0 y tablas Markdown completas."""
+
+        continuation_prompt = f"""El texto de la Condición {meta.get('num')}: {meta.get('title')} para el programa '{proj.get('program_name')}' finalizó intempestivamente en el siguiente fragmento:
+
+"... {last_snippet}"
+
+REGLAS STRICTAS DE CONTINUACIÓN:
+1. CONTINÚA LA REDACCIÓN EXACTAMENTE DESDE LA ÚLTIMA PALABRA (sin repetir texto previo ni empezar desde el inicio).
+2. MANTÉNTE EXCLUSIVAMENTE DENTRO DE LA CONDICIÓN {meta.get('num')}. ESTÁ RIGUROSAMENTE PROHIBIDO SALIRSE A LA CONDICIÓN {next_cond_num} (ejemplo: NO generes ### {next_cond_num}.1 ni ### {next_cond_num}.2).
+3. Construye las TABLAS MARKDOWN COMPLETAS DIRECTAMENTE EN EL TEXTO con datos numéricos e indicadores reales.
+4. Concluye obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
+
+        continuation_text = call_ai(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": continuation_prompt}
+            ],
+            max_tokens=8192,
+            temperature=0.35,
+            inst_id=proj.get('inst_id')
+        )
+        
+        if not continuation_text or not continuation_text.strip():
+            return jsonify({'status': 'error', 'message': 'La IA no retornó contenido adicional'}), 500
+            
+        ends_mid_word = not existing_content.endswith((' ', '\n', '.', ',', ';', ':', ')', ']', '}', '`'))
+        separator = "" if ends_mid_word else ("\n\n" if existing_content.endswith(('.', ':', ')', ']', '}', '`')) else " ")
+        
+        combined_content = existing_content + separator + continuation_text.lstrip()
+        combined_content = sanitize_markdown_tables(combined_content)
+        
+        if 'conditions' not in proj:
+            proj['conditions'] = {}
+        proj['conditions'][cond_key] = {
+            'content': combined_content,
+            'updated_at': datetime.datetime.now().isoformat(),
+            'status': 'generated'
+        }
+        save_project(proj)
+        
+        return jsonify({
+            'status': 'success',
+            'cond_key': cond_key,
+            'title': meta.get('title'),
+            'content': combined_content,
+            'added_length': len(continuation_text)
         })
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500

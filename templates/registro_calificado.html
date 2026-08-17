@@ -948,6 +948,7 @@
                         </div>
                         <div class="rc-stage-actions">
                             <button class="btn-rc btn-rc-primary" id="btnGenerateAI" onclick="generateCurrentConditionAI()"><i class="fa-solid fa-wand-magic-sparkles"></i> Redactar con IA CONACES</button>
+                            <button class="btn-rc btn-rc-primary" id="btnContinueAI" onclick="continueCurrentConditionAI()" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);" title="Continúa redactando el capítulo si se interrumpió o aún no ha finalizado la bibliografía"><i class="fa-solid fa-forward"></i> Continuar Redacción</button>
                             <button class="btn-rc btn-rc-outline" id="btnAuditAI" onclick="auditCurrentConditionAI()"><i class="fa-solid fa-gavel"></i> Dictamen Par IA</button>
                             <button class="btn-rc btn-rc-outline" onclick="saveCurrentConditionContent()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
                             <button class="btn-rc btn-rc-outline" onclick="exportCurrentConditionDocx()" title="Descargar esta condición en Word"><i class="fa-solid fa-download"></i> DOCX</button>
@@ -1543,6 +1544,61 @@
                 Swal.fire('Error', 'Fallo de conexión al generar condición: ' + e.message, 'error');
             } finally {
                 btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        async function continueCurrentConditionAI() {
+            if (!currentProject || !currentCondKey) return;
+            const existing = document.getElementById('stageTextarea').value;
+            if (!existing.trim()) {
+                Swal.fire('Atención', 'Primero debes generar la condición antes de usar Continuar Redacción.', 'info');
+                return;
+            }
+            
+            const btn = document.getElementById('btnContinueAI');
+            const origHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="rc-spinner"></span> Continuando...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/rc/continue_condition', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        project_id: currentProject.id,
+                        cond_key: currentCondKey,
+                        existing_content: existing
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const cleanText = sanitizeMarkdownTables(data.content || '');
+                    if (!currentProject.conditions) currentProject.conditions = {};
+                    currentProject.conditions[currentCondKey] = {
+                        content: cleanText,
+                        status: 'generated'
+                    };
+                    const stageTextarea = document.getElementById('stageTextarea');
+                    stageTextarea.value = cleanText;
+                    stageTextarea.scrollTop = stageTextarea.scrollHeight;
+                    onEditorInput();
+                    updateNavDots();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Redacción Continuada con Éxito',
+                        text: `Se han añadido ${data.added_length || 0} caracteres adicionales al capítulo.`,
+                        timer: 2500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo continuar la condición', 'error');
+                }
+            } catch (e) {
+                Swal.fire('Error', 'Fallo de conexión al continuar condición: ' + e.message, 'error');
+            } finally {
+                btn.innerHTML = origHTML;
                 btn.disabled = false;
             }
         }
