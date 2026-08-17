@@ -6,7 +6,7 @@ load_dotenv()
 
 url: str = os.getenv("SUPABASE_URL")
 key: str = os.getenv("SUPABASE_KEY")
-options = ClientOptions(postgrest_client_timeout=60)
+options = ClientOptions(postgrest_client_timeout=8)
 supabase: Client = create_client(url, key, options=options)
 
 def get_active_inst_id(requested_id):

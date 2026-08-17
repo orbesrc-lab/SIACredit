@@ -144,7 +144,7 @@ def list_projects():
     try:
         projects = load_local_projects()
         
-        # Consultar Supabase como sincronización/fallback
+        # Consultar Supabase como sincronización/fallback (timeout corto para no bloquear la UI)
         try:
             res = supabase.table('statistics').select('data_json').like('table_id', 'RC_PROJ_%').execute()
             if res.data:
@@ -157,7 +157,7 @@ def list_projects():
                         pass
                 save_local_projects(projects)
         except Exception as e:
-            print(f"[RC] Error fetching all projects from DB: {e}")
+            print(f"[RC] Error fetching all projects from DB (usando datos locales): {e}")
 
         # Retornar lista ordenada por updated_at descendente
         proj_list = list(projects.values())

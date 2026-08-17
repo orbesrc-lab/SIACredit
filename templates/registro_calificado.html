@@ -1249,7 +1249,10 @@
         // 1. CARGA DE PROYECTOS
         async function loadProjects(retryCount = 0) {
             try {
-                const res = await fetch('/api/rc/projects');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout
+                const res = await fetch('/api/rc/projects', { signal: controller.signal });
+                clearTimeout(timeoutId);
                 if (!res.ok) {
                     throw new Error(`HTTP Error ${res.status}`);
                 }
