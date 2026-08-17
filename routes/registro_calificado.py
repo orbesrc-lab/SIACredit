@@ -852,6 +852,9 @@ def generate_condition_ai():
         meta = CONDITIONS_METADATA.get(cond_key, {
             'num': 'X',
             'title': 'Condición de Calidad',
+            'focus': 'Decreto 1330 de 2019 y Decreto 0529 de 2024'
+        })
+        
         # Compilar contexto de TODAS las evidencias cargadas en el proyecto (ordenadas de más reciente a más antigua)
         evidences = proj.get('evidences', [])
         evidences_context = []
