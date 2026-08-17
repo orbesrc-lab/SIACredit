@@ -162,8 +162,26 @@ def list_projects():
         # Retornar lista ordenada por updated_at descendente
         proj_list = list(projects.values())
         proj_list.sort(key=lambda x: x.get('updated_at', ''), reverse=True)
+        
+        # Stripear full_text de las evidencias para optimizar la respuesta JSON
+        light_list = []
+        for p in proj_list:
+            if not isinstance(p, dict):
+                continue
+            p_copy = dict(p)
+            if 'evidences' in p_copy and isinstance(p_copy['evidences'], list):
+                light_evs = []
+                for ev in p_copy['evidences']:
+                    if isinstance(ev, dict):
+                        ev_c = dict(ev)
+                        ev_c.pop('full_text', None)
+                        light_evs.append(ev_c)
+                    else:
+                        light_evs.append(ev)
+                p_copy['evidences'] = light_evs
+            light_list.append(p_copy)
 
-        return jsonify({'status': 'success', 'projects': proj_list})
+        return jsonify({'status': 'success', 'projects': light_list})
     except Exception as e:
         print(f"[RC] Error in list_projects: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
