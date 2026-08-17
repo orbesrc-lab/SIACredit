@@ -968,9 +968,15 @@
                         <!-- PANE: EDITOR -->
                         <div id="paneEditor" style="display: flex; flex-direction: column; flex: 1; gap: 12px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                                <span style="font-size: 0.8rem; color: #64748b;"><i class="fa-solid fa-circle-info"></i> Texto de alta densidad con referentes (2024-2026) y Prompts IA de Tablas/Figuras copiables.</span>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span style="font-size: 0.8rem; color: #64748b;"><i class="fa-solid fa-circle-info"></i> Texto con referentes fidedignos (2024-2026).</span>
+                                    <a href="https://notebooklm.google.com/" target="_blank" class="btn-rc btn-rc-outline" style="font-size: 0.76rem; padding: 3px 9px; color: #0284c7; border-color: #bae6fd; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;" title="Abrir Google NotebookLM para consultar tus fuentes y evidencias">
+                                        <i class="fa-brands fa-google"></i> NotebookLM Google
+                                    </a>
+                                </div>
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <button class="btn-rc btn-rc-outline" onclick="copyPromptsFromCondition()" style="font-size: 0.78rem; padding: 4px 10px; color: #2563eb; border-color: #bfdbfe;" title="Copiar todos los prompts de tablas e infografías de esta sección"><i class="fa-solid fa-copy"></i> Copiar Prompts IA (Tablas/Figuras)</button>
+                                    <button class="btn-rc btn-rc-outline" onclick="openAppendCustomContentModal()" style="font-size: 0.78rem; padding: 4px 10px; color: #16a34a; border-color: #bbf7d0;" title="Pegar o anexar texto de NotebookLM/Gemini directamente al final del editor"><i class="fa-solid fa-file-circle-plus"></i> Anexar Texto de Fuentes/IA</button>
+                                    <button class="btn-rc btn-rc-outline" onclick="copyPromptsFromCondition()" style="font-size: 0.78rem; padding: 4px 10px; color: #2563eb; border-color: #bfdbfe;" title="Copiar todos los prompts de tablas e infografías de esta sección"><i class="fa-solid fa-copy"></i> Copiar Prompts IA</button>
                                     <span id="charCountBadge" style="font-size: 0.75rem; color: #94a3b8;">0 caracteres</span>
                                 </div>
                             </div>
@@ -1861,20 +1867,108 @@
 
             container.innerHTML = evidences.map(ev => `
                 <div class="rc-evidence-card">
-                    <div>
-                        <div class="rc-evidence-card-title">
-                            <i class="fa-solid fa-file-lines" style="color: var(--rc-primary);"></i>
-                            <span>${ev.name || ev.original_filename}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                        <div>
+                            <div class="rc-evidence-card-title">
+                                <i class="fa-solid fa-file-lines" style="color: var(--rc-primary);"></i>
+                                <span>${ev.name || ev.original_filename}</span>
+                            </div>
+                            <div class="rc-evidence-card-meta">
+                                Tipo: <strong>${ev.doc_type || 'General'}</strong> | ${Math.round((ev.size_bytes || 0) / 1024)} KB
+                            </div>
                         </div>
-                        <div class="rc-evidence-card-meta">
-                            Tipo: <strong>${ev.doc_type || 'General'}</strong> | ${Math.round((ev.size_bytes || 0) / 1024)} KB
-                        </div>
+                        <button class="btn-rc btn-rc-outline" onclick="deleteEvidenceItem('${ev.id}', '${(ev.name || ev.original_filename).replace(/'/g, "\\'")}')" style="padding: 4px 8px; font-size: 0.75rem; color: #ef4444; border-color: #fca5a5;" title="Eliminar documento del repositorio"><i class="fa-solid fa-trash"></i></button>
                     </div>
                     <div style="margin-top: 10px; font-size: 0.75rem; color: #64748b;">
                         <em>${(ev.text_sample || '').substring(0, 100)}...</em>
                     </div>
                 </div>
             `).join('');
+        }
+
+        async function deleteEvidenceItem(evidenceId, evidenceName) {
+            if (!currentProject) return;
+            const confirm = await Swal.fire({
+                title: '¿Eliminar documento?',
+                text: `¿Deseas eliminar "${evidenceName}" del repositorio de este proyecto?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (confirm.isConfirmed) {
+                try {
+                    const res = await fetch(`/api/rc/projects/${currentProject.id}/evidences/${evidenceId}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        currentProject.evidences = (currentProject.evidences || []).filter(e => e.id !== evidenceId);
+                        renderEvidencesList();
+                        const evCount = currentProject.evidences.length;
+                        document.getElementById('evidenceCountBadge').textContent = evCount;
+                        document.getElementById('evidencesListCount').textContent = evCount;
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Documento Eliminado',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire('Error', data.message || 'No se pudo eliminar el documento', 'error');
+                    }
+                } catch (e) {
+                    Swal.fire('Error', 'Error de red al eliminar: ' + e.message, 'error');
+                }
+            }
+        }
+
+        async function openAppendCustomContentModal() {
+            const { value: textToAppend } = await Swal.fire({
+                title: '📥 Anexar Texto de NotebookLM o Fuentes Externas',
+                html: `
+                    <p style="font-size: 0.85rem; color: #64748b; text-align: left; margin-bottom: 8px;">
+                        Pega aquí la respuesta generada en <strong>Google NotebookLM</strong>, <strong>Gemini</strong> o tu texto investigado. Se agregará automáticamente al final de la condición activa sin sobrescribir lo existente.
+                    </p>
+                    <textarea id="swalAppendTextarea" class="swal2-textarea" style="min-height: 220px; font-family: monospace; font-size: 0.85rem;" placeholder="Pega el texto aquí..."></textarea>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '➕ Anexar al Editor',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#16a34a',
+                preConfirm: () => {
+                    const text = document.getElementById('swalAppendTextarea').value;
+                    if (!text || !text.trim()) {
+                        Swal.showValidationMessage('Por favor pega el contenido que deseas anexar.');
+                    }
+                    return text;
+                }
+            });
+
+            if (textToAppend && textToAppend.trim()) {
+                const stageTextarea = document.getElementById('stageTextarea');
+                const currentText = stageTextarea.value.trim();
+                const separator = currentText ? "\n\n" : "";
+                const combined = currentText + separator + textToAppend.trim();
+                
+                stageTextarea.value = combined;
+                onEditorInput();
+                saveCurrentConditionContent();
+                
+                setTimeout(() => {
+                    stageTextarea.scrollTop = stageTextarea.scrollHeight;
+                }, 100);
+
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Texto Anexado y Guardado!',
+                    text: `Se añadieron ${textToAppend.trim().length} caracteres a la condición actual.`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
         }
 
         async function onFileSelected(input) {

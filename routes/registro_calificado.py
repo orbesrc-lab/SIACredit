@@ -351,6 +351,39 @@ def upload_evidence():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+@registro_calificado_bp.route('/api/rc/projects/<project_id>/evidences/<evidence_id>', methods=['DELETE'])
+def delete_evidence(project_id, evidence_id):
+    """Elimina un documento o evidencia de un proyecto."""
+    try:
+        proj = get_project(project_id)
+        if not proj:
+            return jsonify({'status': 'error', 'message': 'Proyecto no encontrado'}), 404
+            
+        evidences = proj.get('evidences', [])
+        initial_count = len(evidences)
+        proj['evidences'] = [ev for ev in evidences if ev.get('id') != evidence_id]
+        
+        if len(proj['evidences']) == initial_count:
+            return jsonify({'status': 'error', 'message': 'Documento no encontrado en el proyecto'}), 404
+            
+        save_project(proj)
+        
+        # Eliminar archivo físico si existe
+        try:
+            file_path = os.path.join(RC_UPLOADS_DIR, evidence_id)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception:
+            pass
+            
+        return jsonify({
+            'status': 'success',
+            'message': 'Documento eliminado del repositorio exitosamente',
+            'remaining_count': len(proj['evidences'])
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @registro_calificado_bp.route('/api/rc/suggest_classifications', methods=['POST'])
 def suggest_classifications():
     """Genera las clasificaciones normativas oficiales (CINE-F 2013 A.C., CIUO-08, MNC, CUO y ODS) usando IA."""
@@ -1077,22 +1110,59 @@ def continue_condition_ai():
             return jsonify({'status': 'error', 'message': 'Proyecto no encontrado'}), 404
             
         meta = CONDITIONS_METADATA.get(cond_key, {'num': 'X', 'title': 'Condición'})
-        last_snippet = existing_content[-400:] if len(existing_content) > 400 else existing_content
+        subnumerals_list = meta.get('subnumerals', [])
+        
+        # Identificar qué subnumerales ya están desarrollados en existing_content
+        developed_subs = []
+        pending_subs = []
+        for sub in subnumerals_list:
+            code = sub.split()[0] # e.g. "2.1", "2.2"
+            if f"### {code}" in existing_content or f"{code} " in existing_content:
+                developed_subs.append(sub)
+            else:
+                pending_subs.append(sub)
+                
+        # Compilar contexto de evidencias cargadas
+        evidences_context = []
+        for ev in proj.get('evidences', []):
+            ev_text = ev.get('full_text', '')
+            if ev_text:
+                sample = ev_text[:2500] if len(ev_text) > 2500 else ev_text
+                evidences_context.append(f"--- [DOCUMENTO FUENTE: {ev.get('name')} | TIPO: {ev.get('doc_type')}] ---\n{sample}\n")
+        evidences_str = "\n".join(evidences_context) if evidences_context else "Fundamenta con base en evidencias institucionales, normatividad del MEN y datos de mercado."
+
+        # Tomar los últimos 1500 caracteres para un contexto de enlace mucho más sólido
+        last_snippet = existing_content[-1500:] if len(existing_content) > 1500 else existing_content
         next_cond_num = str(int(meta.get('num')) + 1) if meta.get('num').isdigit() else 'siguiente'
         
-        system_prompt = f"""Eres un Evaluador Senior de CONACES, Par Académico del CNA y Consultor Senior del MEN de Colombia.
-Tu tarea es CONTINUAR la redacción técnica del capítulo para la Condición {meta.get('num')}: {meta.get('title')}.
-Mantén el máximo rigor conceptual, investigación externa de fuentes (DANE, SPADIES, UNESCO 2024-2026), citas APA 7.0 y tablas Markdown completas."""
+        system_prompt = f"""Eres un Evaluador Senior de la Sala de CONACES, Par Académico del CNA y Consultor Senior del MEN de Colombia.
+Tu misión es CONTINUAR la redacción de alta densidad técnica y académica de la CONDICIÓN {meta.get('num')}: {meta.get('title')} para el programa '{proj.get('program_name')}'.
+Mantén el máximo rigor conceptual, investigación externa de fuentes (DANE, SPADIES, UNESCO 2024-2026), citas APA 7.0 y sin repetir numerales ya redactados."""
 
-        continuation_prompt = f"""El texto de la Condición {meta.get('num')}: {meta.get('title')} para el programa '{proj.get('program_name')}' finalizó intempestivamente en el siguiente fragmento:
+        continuation_prompt = f"""DOCUMENTO MAESTRO - CONDICIÓN {meta.get('num')}: {meta.get('title')}
+PROGRAMA: {proj.get('program_name')} | NIVEL: {proj.get('level')} | MODALIDADES: {', '.join(proj.get('modalities', ['Presencial']))}
 
-"... {last_snippet}"
+ESTADO DE LA REDACCIÓN HASTA ESTE MOMENTO:
+- Sub-numerales ya desarrollados previamente:
+{chr(10).join([f"  ✓ {s}" for s in developed_subs]) if developed_subs else "  (Inicio del capítulo)"}
+
+- Sub-numerales PENDIENTES por desarrollar y redactar con profundidad:
+{chr(10).join([f"  👉 {s}" for s in pending_subs]) if pending_subs else "  👉 Conclusión analítica y Referencias Bibliográficas APA 7.0"}
+
+ÚLTIMO FRAGMENTO REDACTADO (PUNTO EXACTO DE INTERRUPCIÓN):
+\"\"\"
+... {last_snippet}
+\"\"\"
+
+EVIDENCIAS Y FUENTES INSTITUCIONALES DISPONIBLES:
+{evidences_str}
 
 REGLAS STRICTAS DE CONTINUACIÓN:
-1. CONTINÚA LA REDACCIÓN EXACTAMENTE DESDE LA ÚLTIMA PALABRA (sin repetir texto previo ni empezar desde el inicio).
-2. MANTÉNTE EXCLUSIVAMENTE DENTRO DE LA CONDICIÓN {meta.get('num')}. ESTÁ RIGUROSAMENTE PROHIBIDO SALIRSE A LA CONDICIÓN {next_cond_num} (ejemplo: NO generes ### {next_cond_num}.1 ni ### {next_cond_num}.2).
-3. NO GENERES TABLAS MARKDOWN NI FIGURAS COMPLETAS DENTRO DEL TEXTO. En su lugar, redacta EXCLUSIVAMENTE el prompt necesario para que el usuario construya la tabla/figura por su cuenta. Estos prompts DEBEN iniciar obligatoriamente con el prefijo `> [PROMPT IA: TABLA/FIGURA]` en una línea nueva.
-4. Concluye obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
+1. CONTINUIDAD FLUIDA: Continúa el texto exactamente donde quedó cortado el último fragmento, sin reiniciar el capítulo ni repetir párrafos o sub-numerales ya redactados arriba ({', '.join([s.split()[0] for s in developed_subs]) if developed_subs else 'ninguno'}).
+2. DESARROLLO DE SUB-NUMERALES PENDIENTES: Procede a desarrollar de forma exhaustiva los sub-numerales pendientes: {', '.join([s.split()[0] for s in pending_subs]) if pending_subs else 'la sección final de referencias'}. Cada sub-numeral debe ser un encabezado '###'.
+3. AISLAMIENTO DE CONDICIÓN: MANTÉNTE EXCLUSIVAMENTE DENTRO DE LA CONDICIÓN {meta.get('num')}. ESTÁ RIGUROSAMENTE PROHIBIDO SALIRSE A LA CONDICIÓN {next_cond_num} (NO generes ### {next_cond_num}.1 ni ### {next_cond_num}.2).
+4. PROMPTS DE TABLAS/FIGURAS: NO generes tablas ni figuras completas; redacta el prompt con prefijo `> [PROMPT IA: TABLA/FIGURA]` en una línea nueva.
+5. REFERENCIAS APA 7.0: Si es la última parte del capítulo, finaliza obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
 
         continuation_text = call_ai(
             messages=[
