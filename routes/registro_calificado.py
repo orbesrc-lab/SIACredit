@@ -940,7 +940,7 @@ EVIDENCIAS Y DOCUMENTOS INSTITUCIONALES DISPONIBLES EN EL PROYECTO:
 REGLAS STRICTAS DE SALIDA:
 1. Desarrolla EXCLUSIVAMENTE la Condición {meta.get('num')}. ESTÁ PROHIBIDO escribir subtítulos de la Condición {int(meta.get('num'))+1 if meta.get('num').isdigit() else 'siguiente'} (ejemplo: NO generes ### 3.1 si estás en la Condición 2).
 2. Utiliza obligatoriamente los sub-numerales indicados arriba (ejemplo: {meta.get('num')}.1, {meta.get('num')}.2, {meta.get('num')}.3...) como subtítulos principales de tercer nivel (###).
-3. Construye las TABLAS MARKDOWN COMPLETAS Y REALES con datos numéricos, créditos, matrices comparativas e indicadores dentro del texto.
+3. NO GENERES TABLAS MARKDOWN NI FIGURAS COMPLETAS DENTRO DEL TEXTO. En su lugar, redacta EXCLUSIVAMENTE el prompt necesario para que el usuario construya la tabla/figura por su cuenta. Estos prompts DEBEN iniciar obligatoriamente con el prefijo `> [PROMPT IA: TABLA/FIGURA]` en una línea nueva (ejemplo: `> [PROMPT IA: TABLA] Generar matriz de Resultados de Aprendizaje...`).
 4. Si un aspecto de la Res. 021795 de 2020 no aparece en las evidencias adjuntas, investígalo/dedúcelo técnicamente para responderlo completamente.
 5. Finaliza el capítulo con la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
 """
@@ -982,7 +982,7 @@ A continuación se muestra el fragmento final generado hasta el momento:
 REGLAS RIGUROSAS DE CONTINUACIÓN:
 1. CONTINÚA LA REDACCIÓN EXACTAMENTE DESDE LA ÚLTIMA PALABRA (sin repetir texto previo ni empezar desde el inicio).
 2. MANTÉNTE EXCLUSIVAMENTE DENTRO DE LA CONDICIÓN {meta.get('num')}: {meta.get('title')}. ESTÁ RIGUROSAMENTE PROHIBIDO SALIRSE A LA CONDICIÓN {next_cond_num} (ejemplo: NO generes ningún subtítulo como '### {next_cond_num}.1' ni '### {next_cond_num}.2').
-3. Continúa construyendo las TABLAS MARKDOWN COMPLETAS DIRECTAMENTE EN EL TEXTO con datos numéricos e indicadores reales.
+3. NO GENERES TABLAS MARKDOWN NI FIGURAS COMPLETAS DENTRO DEL TEXTO. En su lugar, redacta EXCLUSIVAMENTE el prompt necesario para que el usuario construya la tabla/figura por su cuenta. Estos prompts DEBEN iniciar obligatoriamente con el prefijo `> [PROMPT IA: TABLA/FIGURA]` en una línea nueva.
 4. Concluye obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
 
             continuation_text = call_ai(
@@ -1057,7 +1057,7 @@ Mantén el máximo rigor conceptual, investigación externa de fuentes (DANE, SP
 REGLAS STRICTAS DE CONTINUACIÓN:
 1. CONTINÚA LA REDACCIÓN EXACTAMENTE DESDE LA ÚLTIMA PALABRA (sin repetir texto previo ni empezar desde el inicio).
 2. MANTÉNTE EXCLUSIVAMENTE DENTRO DE LA CONDICIÓN {meta.get('num')}. ESTÁ RIGUROSAMENTE PROHIBIDO SALIRSE A LA CONDICIÓN {next_cond_num} (ejemplo: NO generes ### {next_cond_num}.1 ni ### {next_cond_num}.2).
-3. Construye las TABLAS MARKDOWN COMPLETAS DIRECTAMENTE EN EL TEXTO con datos numéricos e indicadores reales.
+3. NO GENERES TABLAS MARKDOWN NI FIGURAS COMPLETAS DENTRO DEL TEXTO. En su lugar, redacta EXCLUSIVAMENTE el prompt necesario para que el usuario construya la tabla/figura por su cuenta. Estos prompts DEBEN iniciar obligatoriamente con el prefijo `> [PROMPT IA: TABLA/FIGURA]` en una línea nueva.
 4. Concluye obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
 
         continuation_text = call_ai(
