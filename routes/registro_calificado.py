@@ -852,66 +852,18 @@ def generate_condition_ai():
         meta = CONDITIONS_METADATA.get(cond_key, {
             'num': 'X',
             'title': 'Condición de Calidad',
-            'focus': 'Decreto 1330 de 2019 y Decreto 0529 de 2024'
-        })
-
-        # ==========================================
-        # REUTILIZACIÓN INTELIGENTE DE CONDICIONES INSTITUCIONALES TRANSVERSALES
-        # (Investigación, Sector Externo, Profesores, Medios, Infraestructura, Introducción)
-        # ==========================================
-        institutional_keys = ['cond_intro', 'cond_5', 'cond_6', 'cond_7', 'cond_8', 'cond_9']
-        
-        if cond_key in institutional_keys and not force_regenerate:
-            all_projects = load_local_projects()
-            reusable_content = None
-            source_prog_name = ""
-            
-            for other_id, other_proj in all_projects.items():
-                if other_id != project_id and (other_proj.get('inst_name') == proj.get('inst_name') or not proj.get('inst_name')):
-                    other_conds = other_proj.get('conditions', {})
-                    if cond_key in other_conds and other_conds[cond_key].get('content', '').strip():
-                        raw_source = other_conds[cond_key]['content']
-                        old_prog = other_proj.get('program_name', '')
-                        new_prog = proj.get('program_name', '')
-                        old_title = other_proj.get('target_title', '')
-                        new_title = proj.get('target_title', '')
-                        
-                        adapted = raw_source
-                        if old_prog and old_prog in adapted:
-                            adapted = adapted.replace(old_prog, new_prog)
-                        if old_title and old_title in adapted:
-                            adapted = adapted.replace(old_title, new_title)
-                            
-                        reusable_content = adapted
-                        source_prog_name = old_prog
-                        break
-                        
-            if reusable_content:
-                if 'conditions' not in proj:
-                    proj['conditions'] = {}
-                proj['conditions'][cond_key] = {
-                    'content': reusable_content,
-                    'updated_at': datetime.datetime.now().isoformat(),
-                    'status': 'reused'
-                }
-                save_project(proj)
-                
-                return jsonify({
-                    'status': 'success',
-                    'reused': True,
-                    'cond_key': cond_key,
-                    'title': meta.get('title'),
-                    'content': reusable_content,
-                    'message': f"Condición institucional reutilizada y adaptada desde el proyecto '{source_prog_name}' (Ahorro del 100% de tokens)."
-                })
-        
-        # Compilar contexto de evidencias cargadas
+        # Compilar contexto de TODAS las evidencias cargadas en el proyecto (ordenadas de más reciente a más antigua)
+        evidences = proj.get('evidences', [])
         evidences_context = []
-        for ev in proj.get('evidences', []):
-            ev_text = ev.get('full_text', '')
+        
+        # Invertir para que las evidencias más recientemente subidas se procesen primero
+        sorted_evidences = list(reversed(evidences))
+        for ev in sorted_evidences:
+            ev_text = ev.get('full_text', '') or ev.get('text_sample', '')
             if ev_text:
-                sample = ev_text[:3500] if len(ev_text) > 3500 else ev_text
-                evidences_context.append(f"--- [DOCUMENTO FUENTE: {ev.get('name')} | TIPO: {ev.get('doc_type')}] ---\n{sample}\n")
+                # Pasar un muestreo representativo y amplio (hasta 6.000 caracteres por documento)
+                sample = ev_text[:6000] if len(ev_text) > 6000 else ev_text
+                evidences_context.append(f"--- [DOCUMENTO FUENTE: {ev.get('name') or ev.get('original_filename')} | TIPO: {ev.get('doc_type', 'General')}] ---\n{sample}\n")
                 
         evidences_str = "\n".join(evidences_context) if evidences_context else "No se adjuntaron documentos adicionales. Fundamenta con base en los estándares normativos del MEN y la información suministrada del programa."
         
