@@ -43,22 +43,25 @@ def save_local_projects(data):
         print(f"[RC] Error saving local projects file: {e}")
 
 def get_project(project_id):
-    # 1. Intentar de archivo local
+    proj = None
     projects = load_local_projects()
     if project_id in projects:
-        return projects[project_id]
-    
-    # 2. Fallback a Supabase statistics
-    try:
-        res = supabase.table('statistics').select('data_json').eq('table_id', f"RC_PROJ_{project_id}").order('id', desc=True).limit(1).execute()
-        if res.data:
-            proj = json.loads(res.data[0]['data_json'])
-            projects[project_id] = proj
-            save_local_projects(projects)
-            return proj
-    except Exception as e:
-        print(f"[RC] Error fetching project from DB: {e}")
-    return None
+        proj = projects[project_id]
+    else:
+        try:
+            res = supabase.table('statistics').select('data_json').eq('table_id', f"RC_PROJ_{project_id}").order('id', desc=True).limit(1).execute()
+            if res.data:
+                proj = json.loads(res.data[0]['data_json'])
+                projects[project_id] = proj
+                save_local_projects(projects)
+        except Exception as e:
+            print(f"[RC] Error fetching project from DB: {e}")
+            
+    if proj and 'conditions' in proj:
+        for k, v in proj['conditions'].items():
+            if isinstance(v, dict) and 'content' in v and v['content']:
+                v['content'] = sanitize_markdown_tables(v['content'])
+    return proj
 
 def save_project(proj):
     project_id = proj['id']
@@ -512,7 +515,7 @@ PROGRAMA ID: {program_id} | FECHA DE EXTRACCIÓN: {datetime.datetime.now().strft
 
 
 def sanitize_markdown_tables(text):
-    """Limpia guiones excesivos en tablas Markdown y colapsa bucles de enumeración repetitiva de artículos legales."""
+    """Limpia guiones excesivos en tablas Markdown, colapsa bucles de enumeración repetitiva de artículos legales y elimina filas duplicadas consecutivas en tablas."""
     if not text:
         return text
         
@@ -520,11 +523,30 @@ def sanitize_markdown_tables(text):
     text = re.sub(r'(\b\d+\.\d+\.\d+(?:\.\d+)*(?:,\s*|\s+y\s+)){3,}\b\d+\.\d+\.\d+(?:\.\d+)*', r'2.5.3.2.3.2.1 y ss.', text)
     text = re.sub(r'(?:2\.5\.3\.2\.3\.\d+\.\d+(?:,\s*|\s+y\s+)){3,}', '2.5.3.2.3.2.1 y ss. ', text)
     
+    # Colapsar bloques idénticos de filas en tablas Markdown (ej. | Nivel SOLO | Resultado... repetido infinitamente)
+    text = re.sub(r'(\|[^\n]+\|\n)(?:\s*\1){2,}', r'\1', text)
+    
     lines = text.split('\n')
     cleaned_lines = []
+    prev_table_row = None
+    dup_count = 0
     
     for line in lines:
         stripped = line.strip()
+        
+        # Eliminar filas duplicadas consecutivas en tablas Markdown
+        if stripped and stripped.startswith('|') and stripped.endswith('|'):
+            if stripped == prev_table_row:
+                dup_count += 1
+                if dup_count > 1:
+                    continue
+            else:
+                dup_count = 0
+                prev_table_row = stripped
+        else:
+            prev_table_row = None
+            dup_count = 0
+            
         if '|' in stripped and '-' * 5 in stripped:
             parts = stripped.split('|')
             new_parts = []
@@ -807,6 +829,9 @@ DIRECTRICES CRÍTICAS DE ESTRUCTURACIÓN Y REINGENIERÍA:
 5. CITACIÓN EN TEXTO Y BIBLIOGRAFÍA EN FORMATO APA 7.0:
    - Citas en texto formato APA 7.0 (DANE, 2024; SPADIES, 2024; UNESCO, 2024; Biggs & Tang, 2020).
    - Concluye la condición obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
+
+6. PROHIBICIÓN ESTRICTA DE FILAS DE TABLA REPETITIVAS O VACÍAS:
+   Está estrictamente prohibido generar o repetir filas idénticas o plantillas vacías en tablas Markdown (ejemplo: NO repitas '| Nivel SOLO | Resultado de Aprendizaje (RA) |' en bucle). Cada fila de la tabla DEBE contener datos reales, concretos y diferenciados del programa. Máximo 6 a 8 filas por tabla.
 """
 
         user_prompt = f"""DESCRIPCIÓN DEL PROYECTO DE REGISTRO CALIFICADO:
