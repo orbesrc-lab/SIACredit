@@ -1246,22 +1246,32 @@
         });
 
         // 1. CARGA DE PROYECTOS
-        async function loadProjects() {
+        async function loadProjects(retryCount = 0) {
             try {
                 const res = await fetch('/api/rc/projects');
+                if (!res.ok) {
+                    throw new Error(`HTTP Error ${res.status}`);
+                }
                 const data = await res.json();
                 if (data.status === 'success') {
                     allProjects = data.projects || [];
-                    renderProjectSelect();
                     if (allProjects.length > 0) {
+                        renderProjectSelect();
                         switchProject(allProjects[0].id);
                     } else {
-                        // Crear uno por defecto
                         await createDefaultProject();
                     }
+                } else {
+                    throw new Error(data.message || 'Error en respuesta de proyectos');
                 }
             } catch (e) {
                 console.error("Error cargando proyectos:", e);
+                if (retryCount < 3) {
+                    setTimeout(() => loadProjects(retryCount + 1), 1500);
+                } else {
+                    const sel = document.getElementById('projectSelector');
+                    if (sel) sel.innerHTML = '<option value="">Error cargando proyectos. Haz clic para reintentar.</option>';
+                }
             }
         }
 

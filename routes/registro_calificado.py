@@ -143,26 +143,35 @@ def registro_calificado_page():
 def list_projects():
     try:
         projects = load_local_projects()
-        # Si local está vacío, buscar en Supabase
-        if not projects:
-            try:
-                res = supabase.table('statistics').select('data_json').like('table_id', 'RC_PROJ_%').execute()
-                if res.data:
-                    for row in res.data:
-                        try:
-                            p = json.loads(row['data_json'])
+        
+        # Consultar Supabase como sincronización/fallback
+        try:
+            res = supabase.table('statistics').select('data_json').like('table_id', 'RC_PROJ_%').execute()
+            if res.data:
+                for row in res.data:
+                    try:
+                        p = json.loads(row['data_json'])
+                        if isinstance(p, dict) and 'id' in p:
                             projects[p['id']] = p
-                        except Exception:
-                            pass
-                    save_local_projects(projects)
-            except Exception as e:
-                print(f"[RC] Error fetching all projects from DB: {e}")
+                    except Exception:
+                        pass
+                save_local_projects(projects)
+        except Exception as e:
+            print(f"[RC] Error fetching all projects from DB: {e}")
 
         # Retornar lista ordenada por updated_at descendente
         proj_list = list(projects.values())
         proj_list.sort(key=lambda x: x.get('updated_at', ''), reverse=True)
+        
+        for p in proj_list:
+            if isinstance(p, dict) and 'conditions' in p and isinstance(p['conditions'], dict):
+                for k, v in p['conditions'].items():
+                    if isinstance(v, dict) and 'content' in v and v['content']:
+                        v['content'] = sanitize_markdown_tables(v['content'])
+
         return jsonify({'status': 'success', 'projects': proj_list})
     except Exception as e:
+        print(f"[RC] Error in list_projects: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @registro_calificado_bp.route('/api/rc/projects', methods=['POST'])
