@@ -58,9 +58,7 @@ def get_project(project_id):
             print(f"[RC] Error fetching project from DB: {e}")
             
     if proj and 'conditions' in proj:
-        for k, v in proj['conditions'].items():
-            if isinstance(v, dict) and 'content' in v and v['content']:
-                v['content'] = sanitize_markdown_tables(v['content'])
+        pass  # El contenido se retorna tal como se guardó (sin truncar tablas)
     return proj
 
 def save_project(proj):
@@ -561,7 +559,7 @@ def sanitize_markdown_tables(text):
             in_table = True
             table_row_count += 1
             
-            # 1. Eliminar filas vacías compuestas solo por guiones bajos, guiones o espacios (|______|______|)
+            # 1. Eliminar filas vacías compuestas solo por guiones bajos, guiones o espacios (|______|______|
             inner_content = re.sub(r'[\s|_:\-]', '', stripped)
             if not inner_content and table_row_count > 1:
                 continue
@@ -590,6 +588,64 @@ def sanitize_markdown_tables(text):
         else:
             in_table = False
             table_row_count = 0
+            prev_table_row = None
+            dup_count = 0
+            if re.match(r'^-{5,}$', stripped) or re.match(r'^_{5,}$', stripped):
+                continue
+            cleaned_lines.append(line)
+            
+    return '\n'.join(cleaned_lines)
+
+
+def sanitize_markdown_tables_light(text):
+    """Versión ligera: sólo limpia artículos repetitivos y filas vacías/duplicadas, SIN truncar tablas a 10 filas. 
+    Usar para almacenamiento de contenido generado por IA (preserva tablas completas)."""
+    if not text:
+        return text
+        
+    # Colapsar bucles de enumeración repetitiva de artículos legales
+    text = re.sub(r'(\b\d+\.\d+\.\d+(?:\.\d+)*(?:,\s*|\s+y\s+)){3,}\b\d+\.\d+\.\d+(?:\.\d+)*', r'2.5.3.2.3.2.1 y ss.', text)
+    text = re.sub(r'(?:2\.5\.3\.2\.3\.\d+\.\d+(?:,\s*|\s+y\s+)){3,}', '2.5.3.2.3.2.1 y ss. ', text)
+    
+    # Colapsar bloques idénticos de filas en tablas Markdown
+    text = re.sub(r'(\|[^\n]+\|\n)(?:\s*\1){2,}', r'\1', text)
+    
+    lines = text.split('\n')
+    cleaned_lines = []
+    prev_table_row = None
+    dup_count = 0
+    in_table = False
+    
+    for line in lines:
+        stripped = line.strip()
+        
+        if stripped.startswith('|') and stripped.endswith('|'):
+            in_table = True
+            
+            # 1. Eliminar filas vacías compuestas solo por guiones bajos, guiones o espacios
+            inner_content = re.sub(r'[\s|_:\-]', '', stripped)
+            if not inner_content:
+                continue
+                
+            # 2. Eliminar filas duplicadas consecutivas
+            if stripped == prev_table_row:
+                dup_count += 1
+                if dup_count > 1:
+                    continue
+            else:
+                dup_count = 0
+                prev_table_row = stripped
+                
+            # 3. Sanitizar divisores excesivos (|:--------...---|)
+            if re.match(r'^\|[\s|:_\-]+\|$', stripped) and ('---' in stripped or '___' in stripped):
+                parts = stripped.split('|')
+                new_parts = [' :--- ' if p.strip() else '' for p in parts]
+                cleaned_lines.append('|'.join(new_parts))
+                continue
+                
+            cleaned_lines.append(line)
+        else:
+            in_table = False
             prev_table_row = None
             dup_count = 0
             if re.match(r'^-{5,}$', stripped) or re.match(r'^_{5,}$', stripped):
@@ -948,7 +1004,7 @@ REGLAS RIGUROSAS DE CONTINUACIÓN:
             response_text = response_text.rstrip() + separator + continuation_text.lstrip()
             current_pass += 1
 
-        response_text = sanitize_markdown_tables(response_text)
+        response_text = sanitize_markdown_tables_light(response_text)
         
         # Guardar en el proyecto
         if 'conditions' not in proj:

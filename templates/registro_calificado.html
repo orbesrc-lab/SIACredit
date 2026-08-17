@@ -1563,10 +1563,12 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    const cleanText = sanitizeMarkdownTables(data.content || '');
+                    const rawText = data.content || '';
+                    const cleanText = sanitizeMarkdownTables(rawText);
                     if (!currentProject.conditions) currentProject.conditions = {};
                     currentProject.conditions[currentCondKey] = {
                         content: cleanText,
+                        raw_content: rawText,
                         status: 'generated'
                     };
                     const stageTextarea = document.getElementById('stageTextarea');
@@ -1595,8 +1597,12 @@
 
         async function continueCurrentConditionAI() {
             if (!currentProject || !currentCondKey) return;
-            const existing = document.getElementById('stageTextarea').value;
-            if (!existing.trim()) {
+            
+            // Usar raw_content si está disponible para no enviar texto ya truncado al backend
+            const condData = (currentProject.conditions || {})[currentCondKey] || {};
+            const existingRaw = condData.raw_content || document.getElementById('stageTextarea').value;
+            
+            if (!existingRaw.trim()) {
                 Swal.fire('Atención', 'Primero debes generar la condición antes de usar Continuar Redacción.', 'info');
                 return;
             }
@@ -1613,15 +1619,17 @@
                     body: JSON.stringify({
                         project_id: currentProject.id,
                         cond_key: currentCondKey,
-                        existing_content: existing
+                        existing_content: existingRaw
                     })
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    const cleanText = sanitizeMarkdownTables(data.content || '');
+                    const rawText = data.content || '';
+                    const cleanText = sanitizeMarkdownTables(rawText);
                     if (!currentProject.conditions) currentProject.conditions = {};
                     currentProject.conditions[currentCondKey] = {
                         content: cleanText,
+                        raw_content: rawText,
                         status: 'generated'
                     };
                     const stageTextarea = document.getElementById('stageTextarea');
