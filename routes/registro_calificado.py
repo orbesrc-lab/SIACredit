@@ -1550,12 +1550,17 @@ def export_docx():
         safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', proj.get('program_name', 'Documento_Maestro'))
         filename = f"Documento_Maestro_RC_{safe_name}.docx" if not cond_key else f"RC_{safe_name}_{cond_key}.docx"
         
-        return send_file(
-            file_stream,
-            as_attachment=True,
-            download_name=filename,
-            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        file_data = file_stream.getvalue()
+        
+        from flask import Response
+        response = Response(
+            file_data,
+            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
         )
+        return response
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
