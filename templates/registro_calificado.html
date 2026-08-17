@@ -1366,10 +1366,7 @@
                     const innerContent = stripped.replace(/[\s|_:\-]/g, '');
                     if (!innerContent && tableRowCount > 1) continue;
 
-                    // 2. Truncar tablas desbordadas a máximo 10 filas por tabla
-                    if (tableRowCount > 10) continue;
-
-                    // 3. Eliminar filas duplicadas consecutivas
+                    // 2. Eliminar filas duplicadas consecutivas
                     if (stripped === prevTableRow) {
                         dupCount++;
                         if (dupCount > 1) continue;
