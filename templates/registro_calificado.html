@@ -1261,7 +1261,9 @@
                     allProjects = data.projects || [];
                     if (allProjects.length > 0) {
                         renderProjectSelect();
-                        switchProject(allProjects[0].id);
+                        const savedPid = localStorage.getItem('rc_active_project_id');
+                        const targetProj = allProjects.find(p => p.id === savedPid) || allProjects[0];
+                        switchProject(targetProj.id);
                     } else {
                         await createDefaultProject();
                     }
@@ -1282,11 +1284,15 @@
         function renderProjectSelect() {
             const sel = document.getElementById('projectSelector');
             sel.innerHTML = '';
+            const seenIds = new Set();
             allProjects.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                opt.textContent = `${p.program_name} (${p.level}) - ${p.inst_name}`;
-                sel.appendChild(opt);
+                if (p && p.id && !seenIds.has(p.id)) {
+                    seenIds.add(p.id);
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = `${p.program_name} (${p.level}) - ${p.inst_name}`;
+                    sel.appendChild(opt);
+                }
             });
         }
 
@@ -1324,6 +1330,7 @@
             currentProject = allProjects.find(p => p.id === projectId);
             if (!currentProject) return;
 
+            localStorage.setItem('rc_active_project_id', projectId);
             document.getElementById('projectSelector').value = projectId;
             
             // Actualizar UI del Hero
@@ -1595,9 +1602,10 @@
         async function continueCurrentConditionAI() {
             if (!currentProject || !currentCondKey) return;
             
-            // Usar raw_content si está disponible para no enviar texto ya truncado al backend
+            const stageTextarea = document.getElementById('stageTextarea');
+            const existingInTextarea = (stageTextarea.value || '').trim();
             const condData = (currentProject.conditions || {})[currentCondKey] || {};
-            const existingRaw = condData.raw_content || document.getElementById('stageTextarea').value;
+            const existingRaw = existingInTextarea || condData.content || '';
             
             if (!existingRaw.trim()) {
                 Swal.fire('Atención', 'Primero debes generar la condición antes de usar Continuar Redacción.', 'info');
@@ -1606,7 +1614,7 @@
             
             const btn = document.getElementById('btnContinueAI');
             const origHTML = btn.innerHTML;
-            btn.innerHTML = '<span class="rc-spinner"></span> Continuando...';
+            btn.innerHTML = '<span class="rc-spinner"></span> Continuando redacción...';
             btn.disabled = true;
 
             try {
@@ -1629,17 +1637,22 @@
                         raw_content: rawText,
                         status: 'generated'
                     };
-                    const stageTextarea = document.getElementById('stageTextarea');
+                    
+                    // Actualizar el textarea con el texto ampliado
                     stageTextarea.value = cleanText;
-                    stageTextarea.scrollTop = stageTextarea.scrollHeight;
                     onEditorInput();
                     updateNavDots();
+                    
+                    // Scroll suave hacia abajo para mostrar el contenido nuevo
+                    setTimeout(() => {
+                        stageTextarea.scrollTop = stageTextarea.scrollHeight;
+                    }, 100);
                     
                     Swal.fire({
                         icon: 'success',
                         title: 'Redacción Continuada con Éxito',
-                        text: `Se han añadido ${data.added_length || 0} caracteres adicionales al capítulo.`,
-                        timer: 2500,
+                        text: `Se han añadido ${data.added_length || 0} caracteres adicionales con rigor y fuentes actualizadas.`,
+                        timer: 3000,
                         showConfirmButton: false
                     });
                 } else {

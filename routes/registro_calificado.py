@@ -142,9 +142,9 @@ def list_projects():
     try:
         projects = load_local_projects()
         
-        # Consultar Supabase como sincronización/fallback (timeout corto para no bloquear la UI)
+        # Consultar Supabase como sincronización/fallback
         try:
-            res = supabase.table('statistics').select('data_json').like('table_id', 'RC_PROJ_%').execute()
+            res = supabase.table('statistics').select('id, table_id, data_json').like('table_id', 'RC_PROJ_%').execute()
             if res.data:
                 for row in res.data:
                     try:
@@ -153,12 +153,46 @@ def list_projects():
                             projects[p['id']] = p
                     except Exception:
                         pass
-                save_local_projects(projects)
         except Exception as e:
             print(f"[RC] Error fetching all projects from DB (usando datos locales): {e}")
 
+        # DEDUPLICACIÓN INTELIGENTE: Si existen múltiples proyectos con el mismo program_name normalizado,
+        # conservar el que tenga mayor cantidad de condiciones/caracteres y eliminar los vacíos/duplicados.
+        deduped = {}
+        duplicates_to_delete = []
+
+        for p_id, p in projects.items():
+            if not isinstance(p, dict):
+                continue
+            prog_name_key = (p.get('program_name') or '').strip().lower().replace('á','a').replace('é','e').replace('í','i').replace('ó','o').replace('ú','u')
+            p_conds = p.get('conditions', {})
+            p_chars = sum(len(c.get('content', '')) for c in p_conds.values()) if isinstance(p_conds, dict) else 0
+
+            if prog_name_key not in deduped:
+                deduped[prog_name_key] = (p_id, p, p_chars)
+            else:
+                existing_id, existing_p, existing_chars = deduped[prog_name_key]
+                if p_chars > existing_chars:
+                    # El actual es más completo, reemplazar y marcar el anterior para borrar
+                    duplicates_to_delete.append(existing_id)
+                    deduped[prog_name_key] = (p_id, p, p_chars)
+                else:
+                    duplicates_to_delete.append(p_id)
+
+        # Reconstruir mapa limpio
+        clean_projects = {p_id: p for (p_id, p, _) in deduped.values()}
+        
+        # Si hubo duplicados, persistir la limpieza tanto en local como en Supabase
+        if duplicates_to_delete:
+            save_local_projects(clean_projects)
+            for dup_id in duplicates_to_delete:
+                try:
+                    supabase.table('statistics').delete().eq('table_id', f"RC_PROJ_{dup_id}").execute()
+                except Exception:
+                    pass
+
         # Retornar lista ordenada por updated_at descendente
-        proj_list = list(projects.values())
+        proj_list = list(clean_projects.values())
         proj_list.sort(key=lambda x: x.get('updated_at', ''), reverse=True)
         
         # Stripear full_text de las evidencias para optimizar la respuesta JSON
@@ -1076,8 +1110,9 @@ REGLAS STRICTAS DE CONTINUACIÓN:
         ends_mid_word = not existing_content.endswith((' ', '\n', '.', ',', ';', ':', ')', ']', '}', '`'))
         separator = "" if ends_mid_word else ("\n\n" if existing_content.endswith(('.', ':', ')', ']', '}', '`')) else " ")
         
-        # PRESERVAR 100% DEL TEXTO ANTERIOR Y ANEXAR NUEVO CONTENIDO AL FINAL
-        combined_content = existing_content + separator + continuation_text.lstrip()
+        # Sanitizar el texto añadido y anexar al final
+        clean_continuation = sanitize_markdown_tables_light(continuation_text.lstrip())
+        combined_content = existing_content + separator + clean_continuation
         
         if 'conditions' not in proj:
             proj['conditions'] = {}
