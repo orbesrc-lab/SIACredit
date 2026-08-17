@@ -838,10 +838,11 @@
             <div class="rc-toolbar">
                 <div class="rc-project-select-group">
                     <label for="projectSelector" style="font-size: 0.85rem; font-weight: 700; color: #475569; white-space: nowrap;"><i class="fa-solid fa-graduation-cap"></i> Proyecto Activo:</label>
-                    <select id="projectSelector" class="rc-select" onchange="switchProject(this.value)">
+                    <select id="projectSelector" class="rc-select" onchange="switchProject(this.value)" onclick="if(this.options.length<=1) loadProjects()">
                         <option value="">Cargando proyectos...</option>
                     </select>
                     <button class="btn-rc btn-rc-primary" onclick="openCreateProjectModal()"><i class="fa-solid fa-plus"></i> Nuevo Proyecto</button>
+                    <button class="btn-rc btn-rc-outline" onclick="loadProjects()" title="Recargar lista de proyectos de Supabase"><i class="fa-solid fa-rotate"></i></button>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <span style="font-size: 0.82rem; color: #64748b;" id="projectSummaryLine">Cargando datos...</span>
