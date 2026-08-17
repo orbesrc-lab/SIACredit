@@ -1797,12 +1797,114 @@
                     </div>
 
                     <div style="background: #eff6ff; border-radius: 8px; padding: 14px; margin-top: 14px; border: 1px solid #bfdbfe;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 0.88rem; color: #1e40af;"><i class="fa-solid fa-lightbulb"></i> Recomendaciones Previas a la Radicación en SACES</h4>
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px;">
+                            <h4 style="margin: 0; font-size: 0.88rem; color: #1e40af;"><i class="fa-solid fa-lightbulb"></i> Recomendaciones Previas a la Radicación en SACES</h4>
+                            <button class="btn-rc btn-rc-primary" id="btnRemediateAudit" onclick="remediateAuditFindings()" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); font-size: 0.82rem; padding: 6px 14px;" title="Generar la redacción técnica exacta para subsanar los faltantes y observaciones">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> 🛠️ Remediar y Anexar Faltantes con IA
+                            </button>
+                        </div>
                         <ul style="margin: 0; padding-left: 0; list-style: none; font-size: 0.84rem; color: #1e3a8a; display: flex; flex-direction: column; gap: 6px;">
                             ${recommendationsList || '<li>Revisar coherencia con anexos institucionales.</li>'}
                         </ul>
                     </div>
+
+                    <!-- PANE DE REMEDIACIONES GENERADAS -->
+                    <div id="remediationResultBox" style="display: none; margin-top: 16px; background: #ffffff; border: 2px solid #10b981; border-radius: 10px; padding: 18px; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.15);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 12px;">
+                            <h4 style="margin: 0; color: #065f46; font-size: 0.95rem;"><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Propuesta de Remediación Técnica (Lista para Anexar)</h4>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-rc btn-rc-outline" onclick="copyRemediationText()" style="font-size: 0.78rem; padding: 4px 10px; color: #0284c7; border-color: #bae6fd;"><i class="fa-solid fa-copy"></i> Copiar Texto</button>
+                                <button class="btn-rc btn-rc-primary" onclick="applyRemediationToEditor()" style="font-size: 0.78rem; padding: 4px 12px; background: #10b981;"><i class="fa-solid fa-file-circle-plus"></i> Anexar al Editor Markdown</button>
+                            </div>
+                        </div>
+                        <div id="remediationTextContent" style="font-size: 0.88rem; line-height: 1.6; color: #1e293b; max-height: 350px; overflow-y: auto; background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0;"></div>
+                    </div>
                 </div>`;
+        }
+
+        let lastRemediationRawText = '';
+
+        async function remediateAuditFindings() {
+            if (!currentProject || !currentCondKey) return;
+            const btn = document.getElementById('btnRemediateAudit');
+            const origHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="rc-spinner"></span> Redactando remediaciones...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/rc/remediate_audit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        project_id: currentProject.id,
+                        cond_key: currentCondKey
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success' && data.remediation) {
+                    lastRemediationRawText = data.remediation;
+                    const box = document.getElementById('remediationResultBox');
+                    const textContainer = document.getElementById('remediationTextContent');
+                    
+                    textContainer.innerHTML = marked.parse(data.remediation);
+                    box.style.display = 'block';
+                    box.scrollIntoView({ behavior: 'smooth' });
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Remediaciones Técnicas Listas',
+                        text: 'Se han generado los párrafos y precisiones para subsanar cada observación. Puedes anexarlos automáticamente al editor o copiarlos.',
+                        confirmButtonColor: '#10b981'
+                    });
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudieron generar las remediaciones.', 'error');
+                }
+            } catch (e) {
+                Swal.fire('Error', 'Fallo de conexión al remediar: ' + e.message, 'error');
+            } finally {
+                btn.innerHTML = origHTML;
+                btn.disabled = false;
+            }
+        }
+
+        function copyRemediationText() {
+            if (!lastRemediationRawText) return;
+            navigator.clipboard.writeText(lastRemediationRawText).then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Copiado!',
+                    text: 'El texto de remediación ha sido copiado al portapapeles.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            });
+        }
+
+        function applyRemediationToEditor() {
+            if (!lastRemediationRawText) return;
+            const stageTextarea = document.getElementById('stageTextarea');
+            const currentText = stageTextarea.value.trim();
+            const separator = currentText ? "\n\n" : "";
+            
+            const heading = `\n\n### Ajustes y Remediaciones de Auditoría CONACES\n`;
+            const combined = currentText + heading + lastRemediationRawText.trim();
+            
+            stageTextarea.value = combined;
+            onEditorInput();
+            saveCurrentConditionContent();
+            
+            switchStageTab('editor');
+            setTimeout(() => {
+                stageTextarea.scrollTop = stageTextarea.scrollHeight;
+            }, 150);
+
+            Swal.fire({
+                icon: 'success',
+                title: '¡Remediaciones Anexadas al Editor!',
+                text: 'El contenido técnico se incorporó en la condición y quedó guardado.',
+                timer: 2500,
+                showConfirmButton: false
+            });
         }
 
         // 5. GUARDAR CONTENIDO EDITADO
