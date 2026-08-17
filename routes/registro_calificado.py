@@ -962,7 +962,7 @@ def continue_condition_ai():
         data = request.json or {}
         project_id = data.get('project_id')
         cond_key = data.get('cond_key')
-        existing_content = data.get('existing_content', '').strip()
+        existing_content = sanitize_markdown_tables(data.get('existing_content', '').strip())
         
         if not project_id or not cond_key or not existing_content:
             return jsonify({'status': 'error', 'message': 'Faltan parámetros requeridos'}), 400
@@ -972,7 +972,7 @@ def continue_condition_ai():
             return jsonify({'status': 'error', 'message': 'Proyecto no encontrado'}), 404
             
         meta = CONDITIONS_METADATA.get(cond_key, {'num': 'X', 'title': 'Condición'})
-        last_snippet = existing_content[-400:]
+        last_snippet = existing_content[-400:] if len(existing_content) > 400 else existing_content
         next_cond_num = str(int(meta.get('num')) + 1) if meta.get('num').isdigit() else 'siguiente'
         
         system_prompt = f"""Eres un Evaluador Senior de CONACES, Par Académico del CNA y Consultor Senior del MEN de Colombia.
