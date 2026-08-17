@@ -162,12 +162,6 @@ def list_projects():
         # Retornar lista ordenada por updated_at descendente
         proj_list = list(projects.values())
         proj_list.sort(key=lambda x: x.get('updated_at', ''), reverse=True)
-        
-        for p in proj_list:
-            if isinstance(p, dict) and 'conditions' in p and isinstance(p['conditions'], dict):
-                for k, v in p['conditions'].items():
-                    if isinstance(v, dict) and 'content' in v and v['content']:
-                        v['content'] = sanitize_markdown_tables(v['content'])
 
         return jsonify({'status': 'success', 'projects': proj_list})
     except Exception as e:
