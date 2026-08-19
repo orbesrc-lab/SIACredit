@@ -828,6 +828,63 @@ def handle_institution():
         pass
     return jsonify({"name": "Nueva Institución", "logo_url": "", "program": "Programa Académico", "period": "2026-1"})
 
+@core_bp.route('/api/register', methods=['POST'])
+def handle_public_register():
+    data = request.json or {}
+    email = (data.get('email') or '').strip()
+    name = (data.get('name') or '').strip()
+    password = data.get('password')
+    inst_id = data.get('inst_id')
+    role = data.get('role', 'operativo')
+    program_id = data.get('program_id', 0)
+
+    if not email or not password or not inst_id:
+        return jsonify({"status": "error", "message": "Email, contraseña e institución son requeridos."}), 400
+
+    try:
+        inst_id = int(inst_id)
+        program_id = int(program_id)
+    except (ValueError, TypeError):
+        return jsonify({"status": "error", "message": "Identificador de institución no válido."}), 400
+
+    try:
+        # Check if user already exists
+        existing = supabase.table('users').select("id").eq("email", email).execute()
+        if existing.data:
+            return jsonify({"status": "error", "message": "El usuario ya existe con este correo electrónico."}), 409
+
+        password_hash = generate_password_hash(password)
+
+        try:
+            res = supabase.table('users').insert({
+                "email": email,
+                "password_hash": password_hash,
+                "role": role,
+                "inst_id": inst_id,
+                "program_id": program_id,
+                "name": name or email.split('@')[0]
+            }).execute()
+        except Exception:
+            try:
+                res = supabase.table('users').insert({
+                    "email": email,
+                    "password_hash": password_hash,
+                    "role": role,
+                    "inst_id": inst_id,
+                    "name": name or email.split('@')[0]
+                }).execute()
+            except Exception:
+                res = supabase.table('users').insert({
+                    "email": email,
+                    "password_hash": password_hash,
+                    "role": role,
+                    "inst_id": inst_id
+                }).execute()
+
+        return jsonify({"status": "success", "data": res.data[0] if res.data else {}})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @core_bp.route('/api/login', methods=['POST'])
 def handle_login():
     data = request.json
