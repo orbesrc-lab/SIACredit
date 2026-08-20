@@ -446,4 +446,58 @@ document.addEventListener('DOMContentLoaded', () => {
             closeAllModals();
         });
     });
+
+    // ==============================================================================
+    // 4. MOTOR DE NAVEGACIÓN SUAVE & ANTI-PARPADEO (Instant Prefetch + Smooth Transition)
+    // ==============================================================================
+    const prefetchedUrls = new Set();
+
+    function prefetchPage(url) {
+        if (!url || prefetchedUrls.has(url) || url.startsWith('#') || url.startsWith('javascript') || url.includes('logout')) return;
+        prefetchedUrls.add(url);
+        
+        try {
+            const link = document.createElement('link');
+            link.rel = 'prefetch';
+            link.href = url;
+            link.as = 'document';
+            document.head.appendChild(link);
+        } catch(e) {}
+    }
+
+    // Precargar páginas al pasar el cursor sobre cualquier item del menú lateral
+    document.querySelectorAll('.sidebar-item, .sidebar a, nav a').forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && href.endsWith('.html') && !href.startsWith('http') && !href.includes('logout')) {
+            link.addEventListener('mouseenter', () => prefetchPage(href), { passive: true });
+            link.addEventListener('touchstart', () => prefetchPage(href), { passive: true });
+
+            // Transición suave al hacer clic para evitar parpadeo en blanco
+            link.addEventListener('click', (e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || link.target === '_blank') return;
+                const targetHref = link.getAttribute('href');
+                if (targetHref && targetHref.endsWith('.html') && !targetHref.startsWith('#')) {
+                    const mainContainer = document.querySelector('.main-content, .rc-main, .dashboard-container, .workspace');
+                    if (mainContainer) {
+                        mainContainer.classList.add('page-smooth-exit');
+                    }
+                }
+            });
+        }
+    });
+
+    // Persistencia del estado de los grupos desplegados en el Sidebar
+    try {
+        const groups = document.querySelectorAll('.sidebar-group');
+        groups.forEach((group, idx) => {
+            const title = group.querySelector('.sidebar-group-title');
+            if (title) {
+                // Si el grupo contiene el enlace activo actual, mantenerlo abierto
+                const hasActive = group.querySelector('.sidebar-item.active, .sidebar-item[style*="font-weight: 600"]');
+                if (hasActive) {
+                    group.classList.add('active');
+                }
+            }
+        });
+    } catch(e) {}
 });
