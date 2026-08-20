@@ -601,40 +601,47 @@
             background: white;
             border-radius: 16px;
             width: 100%;
-            max-width: 850px;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-width: 900px;
+            max-height: 88vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             border: 1px solid var(--rc-border);
         }
 
         .rc-modal-header {
-            padding: 20px 24px;
+            padding: 16px 24px;
             border-bottom: 1px solid var(--rc-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: #f8fafc;
+            flex-shrink: 0;
         }
 
         .rc-modal-header h3 {
             margin: 0;
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             font-weight: 700;
             color: #0f172a;
         }
 
         .rc-modal-body {
-            padding: 24px;
+            padding: 20px 24px;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
         }
 
         .rc-modal-footer {
-            padding: 16px 24px;
+            padding: 14px 24px;
             border-top: 1px solid var(--rc-border);
             display: flex;
             justify-content: flex-end;
             gap: 12px;
             background: #f8fafc;
+            flex-shrink: 0;
         }
 
         .rc-form-group {
@@ -2277,10 +2284,8 @@
 
         function openEvidenceHubModal() {
             document.getElementById('modalEvidenceHub').style.display = 'flex';
-            switchEvidenceTab('project');
             renderEvidencesList();
-            loadSharedInstitutionalEvidences();
-            renderEvidenceChecklist();
+            switchEvidenceTab('project');
         }
 
         function switchEvidenceTab(tabName) {
@@ -2295,6 +2300,8 @@
                 renderEvidenceChecklist();
             } else if (tabName === 'shared') {
                 loadSharedInstitutionalEvidences();
+            } else if (tabName === 'project') {
+                renderEvidencesList();
             }
         }
 
@@ -2321,20 +2328,41 @@
                         <div style="flex: 1; min-width: 0;">
                             <div class="rc-evidence-card-title" title="${escapeHtml(ev.name || ev.original_filename)}">
                                 <i class="fa-solid fa-file-lines" style="color: var(--rc-primary);"></i>
-                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 190px;">${escapeHtml(ev.name || ev.original_filename)}</span>
+                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 170px;">${escapeHtml(ev.name || ev.original_filename)}</span>
                             </div>
                             <div class="rc-evidence-card-meta">
                                 Tipo: <strong>${escapeHtml(ev.doc_type || 'General')}</strong> | ${Math.round((ev.size_bytes || 0) / 1024)} KB
                                 ${ev.is_shared_institutional ? '<span class="rc-badge-pill rc-badge-pill-info" style="margin-left: 4px;">🏛️ Institucional</span>' : ''}
                             </div>
                         </div>
-                        <button class="btn-rc btn-rc-outline" onclick="deleteEvidenceItem('${ev.id}', '${escapeHtml((ev.name || ev.original_filename).replace(/'/g, "\\'"))}')" style="padding: 4px 8px; font-size: 0.75rem; color: #ef4444; border-color: #fca5a5;" title="Eliminar del proyecto"><i class="fa-solid fa-trash"></i></button>
+                        <div style="display: flex; gap: 4px;">
+                            <button class="btn-rc btn-rc-outline" onclick="viewEvidenceFullText('${ev.id}')" style="padding: 4px 7px; font-size: 0.74rem; color: #2563eb; border-color: #bfdbfe;" title="Ver texto completo indexado"><i class="fa-solid fa-eye"></i></button>
+                            <button class="btn-rc btn-rc-outline" onclick="deleteEvidenceItem('${ev.id}', '${escapeHtml((ev.name || ev.original_filename).replace(/'/g, "\\'"))}')" style="padding: 4px 7px; font-size: 0.74rem; color: #ef4444; border-color: #fca5a5;" title="Eliminar del proyecto"><i class="fa-solid fa-trash"></i></button>
+                        </div>
                     </div>
-                    <div style="margin-top: 8px; font-size: 0.74rem; color: #64748b; background: white; padding: 6px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
-                        <em>${escapeHtml((ev.text_sample || '').substring(0, 110))}...</em>
+                    <div style="margin-top: 8px; font-size: 0.74rem; color: #64748b; background: white; padding: 6px 8px; border-radius: 6px; border: 1px solid #f1f5f9; cursor: pointer;" onclick="viewEvidenceFullText('${ev.id}')" title="Haz clic para previsualizar texto">
+                        <em>${escapeHtml((ev.text_sample || '').substring(0, 100))}...</em>
                     </div>
                 </div>
             `).join('');
+        }
+
+        function viewEvidenceFullText(evidenceId) {
+            const ev = (currentProject?.evidences || []).find(e => e.id === evidenceId);
+            if (!ev) return;
+            const fullText = ev.full_text || ev.text_sample || 'No hay texto extraído disponible para este documento.';
+            Swal.fire({
+                title: `📄 ${escapeHtml(ev.name || ev.original_filename)}`,
+                html: `
+                    <div style="text-align: left; margin-bottom: 10px; font-size: 0.84rem; color: #475569;">
+                        Tipo: <strong>${escapeHtml(ev.doc_type || 'General')}</strong> | Tamaño: <strong>${Math.round((ev.size_bytes || 0) / 1024)} KB</strong> | Caracteres indexados: <strong>${fullText.length}</strong>
+                    </div>
+                    <div style="max-height: 400px; overflow-y: auto; text-align: left; font-family: monospace; font-size: 0.8rem; background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #cbd5e1; white-space: pre-wrap; word-break: break-word; line-height: 1.55; color: #1e293b;">${escapeHtml(fullText)}</div>
+                `,
+                width: '780px',
+                confirmButtonText: 'Cerrar Visor',
+                confirmButtonColor: '#2563eb'
+            });
         }
 
         async function loadSharedInstitutionalEvidences() {
