@@ -5,10 +5,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SKEL - Módulo de Formación y LMS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+    (function() {
+        try {
+            const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            if (!user || !user.email) {
+                window.location.href = '/login.html';
+            }
+            const savedTheme = localStorage.getItem('siac_theme') || 'default';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        } catch(e) {}
+    })();
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
-
         body, input, select, textarea, button {
             font-family: 'Outfit', -apple-system, sans-serif !important;
         }
@@ -60,6 +74,8 @@
         }
 
         .content-area {
+            animation: siacPageEnter 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            will-change: opacity;
             flex: 1;
             min-height: 0;
             padding: 35px;

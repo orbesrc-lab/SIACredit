@@ -180,6 +180,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Control específico para Capacitación (Formación)
+        const canSeeCap = ['admin', 'superadmin', 'super_admin', 'super-admin', 'profesor', 'estudiante', 'inst_admin'].includes(role) || !role;
+        const capLinks = document.querySelectorAll('#menuCapacitacion, a[href*="formacion.html"]');
+        capLinks.forEach(el => {
+            el.style.display = canSeeCap ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
+            if (window.location.pathname.includes('formacion')) {
+                el.classList.add('active');
+            }
+        });
+
         // Ocultar los grupos del acordeón que se quedaron vacíos (sin items visibles)
         const groups = document.querySelectorAll('.sidebar-group');
         groups.forEach(group => {
