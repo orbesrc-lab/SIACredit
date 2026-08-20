@@ -778,9 +778,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            max-height: 520px;
-            overflow-y: auto;
-            padding-right: 6px;
+            padding-right: 4px;
         }
 
         .rc-checklist-card {
@@ -788,11 +786,14 @@
             border-radius: 10px;
             background: white;
             overflow: hidden;
+            flex-shrink: 0 !important;
+            box-sizing: border-box;
             transition: all 0.2s ease;
         }
 
         .rc-checklist-header {
-            padding: 12px 16px;
+            padding: 14px 18px;
+            min-height: 52px;
             background: #f8fafc;
             display: flex;
             justify-content: space-between;
@@ -800,6 +801,7 @@
             cursor: pointer;
             user-select: none;
             border-bottom: 1px solid transparent;
+            box-sizing: border-box;
         }
 
         .rc-checklist-card.open .rc-checklist-header {
@@ -808,7 +810,7 @@
         }
 
         .rc-checklist-title {
-            font-size: 0.9rem;
+            font-size: 0.92rem;
             font-weight: 700;
             color: #0f172a;
             display: flex;
@@ -817,7 +819,7 @@
         }
 
         .rc-checklist-body {
-            padding: 16px;
+            padding: 16px 18px;
             display: none;
             background: white;
         }
@@ -829,12 +831,13 @@
         .rc-checklist-req-item {
             display: flex;
             align-items: flex-start;
-            gap: 10px;
-            padding: 10px 12px;
+            gap: 12px;
+            padding: 10px 14px;
             border-radius: 8px;
             background: #f8fafc;
             margin-bottom: 8px;
             border: 1px solid #f1f5f9;
+            box-sizing: border-box;
         }
 
         .rc-badge-pill {
@@ -2487,7 +2490,7 @@
             const currentEvidences = currentProject?.evidences || [];
 
             container.innerHTML = CONDITIONS_CHECKLIST_SCHEMA.map((cond, idx) => {
-                // Verificar qué tipos están cubiertos en el proyecto actual
+                // Verificar qué documentos del proyecto actual coinciden con esta condición
                 const matchingEvidences = currentEvidences.filter(ev => {
                     return cond.requiredTypes.includes(ev.doc_type);
                 });
@@ -2504,15 +2507,32 @@
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 ${isCovered ? 
-                                    `<span class="rc-badge-pill rc-badge-pill-success"><i class="fa-solid fa-circle-check"></i> ${coverageCount} documento(s) listos</span>` : 
+                                    `<span class="rc-badge-pill rc-badge-pill-success"><i class="fa-solid fa-circle-check"></i> ${coverageCount} documento(s) listo(s)</span>` : 
                                     `<span class="rc-badge-pill rc-badge-pill-warning"><i class="fa-solid fa-triangle-exclamation"></i> Pendiente insumos</span>`
                                 }
                                 <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem; color: #94a3b8; transition: transform 0.2s;"></i>
                             </div>
                         </div>
                         <div class="rc-checklist-body">
-                            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px;">
-                                <strong>Insumos requeridos por la normativa:</strong>
+                            ${matchingEvidences.length > 0 ? `
+                                <div style="margin-bottom: 12px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 8px; padding: 10px 12px;">
+                                    <div style="font-size: 0.78rem; font-weight: 700; color: #166534; margin-bottom: 6px;">
+                                        <i class="fa-solid fa-circle-check"></i> Documentos del Proyecto Vinculados a esta Condición (${matchingEvidences.length}):
+                                    </div>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                        ${matchingEvidences.map(ev => `
+                                            <span style="display: inline-flex; align-items: center; gap: 6px; background: white; border: 1px solid #bbf7d0; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; color: #1e293b;">
+                                                <i class="fa-solid fa-file-lines" style="color: #10b981;"></i>
+                                                <strong>${escapeHtml(ev.name || ev.original_filename)}</strong> (${escapeHtml(ev.doc_type || 'General')})
+                                                <button onclick="viewEvidenceFullText('${ev.id}')" style="border:none; background:none; color:#2563eb; cursor:pointer; font-size:0.75rem; padding:0 2px;" title="Ver texto extraído"><i class="fa-solid fa-eye"></i></button>
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px;">
+                                <strong>Insumos requeridos por la normativa colombiana:</strong>
                             </div>
                             ${cond.items.map(item => {
                                 const hasType = currentEvidences.some(e => e.doc_type === item.type);
