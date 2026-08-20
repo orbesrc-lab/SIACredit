@@ -727,6 +727,122 @@
             color: #64748b;
         }
 
+        /* Pestañas del Modal de Evidencias */
+        .rc-ev-tabs-nav {
+            display: flex;
+            gap: 8px;
+            background: #f1f5f9;
+            padding: 6px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .rc-ev-tab-btn {
+            flex: 1;
+            padding: 9px 14px;
+            border: none;
+            background: transparent;
+            font-size: 0.86rem;
+            font-weight: 600;
+            color: #64748b;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .rc-ev-tab-btn:hover {
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .rc-ev-tab-btn.active {
+            background: white;
+            color: var(--rc-primary);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+
+        /* Checklist Guía por Condición */
+        .rc-checklist-accordion {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        .rc-checklist-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .rc-checklist-header {
+            padding: 12px 16px;
+            background: #f8fafc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 1px solid transparent;
+        }
+
+        .rc-checklist-card.open .rc-checklist-header {
+            border-bottom-color: #e2e8f0;
+            background: #f1f5f9;
+        }
+
+        .rc-checklist-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rc-checklist-body {
+            padding: 16px;
+            display: none;
+            background: white;
+        }
+
+        .rc-checklist-card.open .rc-checklist-body {
+            display: block;
+        }
+
+        .rc-checklist-req-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: #f8fafc;
+            margin-bottom: 8px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .rc-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .rc-badge-pill-success { background: #dcfce7; color: #166534; }
+        .rc-badge-pill-warning { background: #fef3c7; color: #92400e; }
+        .rc-badge-pill-info { background: #e0f2fe; color: #075985; }
+
         /* Spinner */
         .rc-spinner {
             display: inline-block;
@@ -1184,39 +1300,97 @@
          MODAL: CENTRO DE EVIDENCIAS Y DOCUMENTOS
          ======================================================= -->
     <div id="modalEvidenceHub" class="rc-modal-overlay" style="display: none;">
-        <div class="rc-modal-container">
+        <div class="rc-modal-container" style="max-width: 900px;">
             <div class="rc-modal-header">
                 <h3><i class="fa-solid fa-folder-open"></i> Repositorio Documental y Evidencias Reales del Proyecto</h3>
                 <button onclick="closeModal('modalEvidenceHub')" style="border:none; background:none; cursor:pointer; font-size:1.2rem; color:#64748b;">&times;</button>
             </div>
             <div class="rc-modal-body">
-                <p style="font-size: 0.88rem; color: #475569; margin-top:0;">Sube los documentos institucionales de soporte (PEI, PDI, Reglamentos, Malla curricular, Estudios de Mercado, etc.). El sistema extraerá el texto automáticamente para que la IA cite y fundamente las condiciones con evidencia real.</p>
-                
-                <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
-                    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px;">
-                        <input type="text" id="uploadCustomName" class="rc-input" style="max-width: 250px;" placeholder="Nombre / Alias del documento">
-                        <select id="uploadDocType" class="rc-select" style="max-width: 220px;">
-                            <option value="PEI">PEI (Proyecto Educativo)</option>
-                            <option value="PDI">PDI (Plan de Desarrollo)</option>
-                            <option value="Reglamento">Reglamento / Estatuto</option>
-                            <option value="Politica">Política Institucional</option>
-                            <option value="Estudio_Mercado">Estudio de Mercado / DANE</option>
-                            <option value="Malla_Curricular">Malla y Plan de Estudios</option>
-                            <option value="General">Otro Soporte</option>
-                        </select>
-                        <input type="file" id="evidenceFileInput" style="display: none;" onchange="onFileSelected(this)">
-                        <button class="btn-rc btn-rc-primary" onclick="document.getElementById('evidenceFileInput').click()"><i class="fa-solid fa-cloud-arrow-up"></i> Seleccionar Archivo (PDF/DOCX/XLSX)</button>
-                    </div>
-                    <span style="font-size: 0.78rem; color: #94a3b8;" id="uploadSelectedFileName">Formatos soportados: PDF, Word (.docx), Excel (.xlsx), Texto (.txt)</span>
+                <!-- Navegación por pestañas del repositorio -->
+                <div class="rc-ev-tabs-nav">
+                    <button class="rc-ev-tab-btn active" id="evTabBtnProject" onclick="switchEvidenceTab('project')">
+                        <i class="fa-solid fa-folder"></i> Documentos del Proyecto (<span id="evTabBadgeCount">0</span>)
+                    </button>
+                    <button class="rc-ev-tab-btn" id="evTabBtnShared" onclick="switchEvidenceTab('shared')">
+                        <i class="fa-solid fa-building-columns"></i> Biblioteca Institucional Compartida
+                    </button>
+                    <button class="rc-ev-tab-btn" id="evTabBtnChecklist" onclick="switchEvidenceTab('checklist')">
+                        <i class="fa-solid fa-list-check"></i> Checklist Guía por Condición (0-9)
+                    </button>
                 </div>
 
-                <h4 style="margin: 16px 0 8px 0; font-size: 0.95rem; color: #0f172a;"><i class="fa-solid fa-layer-group"></i> Documentos Indexados en este Proyecto (<span id="evidencesListCount">0</span>)</h4>
-                <div class="rc-evidence-grid" id="evidencesContainer">
-                    <p style="color: #94a3b8; font-size: 0.85rem;">No hay documentos cargados aún en este proyecto.</p>
+                <!-- PESTAÑA 1: DOCUMENTOS DE ESTE PROYECTO -->
+                <div id="evTabPaneProject" class="rc-ev-tab-pane">
+                    <p style="font-size: 0.88rem; color: #475569; margin-top:0;">Sube los documentos de soporte del programa. El sistema extraerá el texto automáticamente para que la IA cite y fundamente las condiciones con evidencia real.</p>
+                    
+                    <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
+                        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px;">
+                            <input type="text" id="uploadCustomName" class="rc-input" style="max-width: 250px;" placeholder="Nombre / Alias del documento">
+                            <select id="uploadDocType" class="rc-select" style="max-width: 230px;">
+                                <option value="PEI">PEI (Proyecto Educativo)</option>
+                                <option value="PDI">PDI (Plan de Desarrollo)</option>
+                                <option value="Modelo_Pedagogico">Modelo Pedagógico y Curricular</option>
+                                <option value="Reglamento">Reglamento / Estatuto Docente</option>
+                                <option value="Politica">Política Institucional</option>
+                                <option value="Estudio_Mercado">Estudio de Mercado / DANE / OLE</option>
+                                <option value="Planes_Desarrollo">Plan Nal. Desarrollo / Decenal</option>
+                                <option value="Benchmarking_Curricular">Benchmarking de Otras IES</option>
+                                <option value="Malla_Curricular">Malla y Plan de Estudios</option>
+                                <option value="Investigacion">Líneas y Semilleros Investigativos</option>
+                                <option value="Convenios">Convenios y Sector Externo</option>
+                                <option value="General">Otro Soporte Documental</option>
+                            </select>
+                            <input type="file" id="evidenceFileInput" style="display: none;" onchange="onFileSelected(this)">
+                            <button class="btn-rc btn-rc-primary" onclick="document.getElementById('evidenceFileInput').click()"><i class="fa-solid fa-cloud-arrow-up"></i> Seleccionar Archivo (PDF/DOCX/XLSX)</button>
+                        </div>
+                        <span style="font-size: 0.78rem; color: #94a3b8;" id="uploadSelectedFileName">Formatos soportados: PDF, Word (.docx), Excel (.xlsx), Texto (.txt)</span>
+                    </div>
+
+                    <h4 style="margin: 16px 0 8px 0; font-size: 0.95rem; color: #0f172a;"><i class="fa-solid fa-layer-group"></i> Documentos Indexados en este Proyecto (<span id="evidencesListCount">0</span>)</h4>
+                    <div class="rc-evidence-grid" id="evidencesContainer">
+                        <p style="color: #94a3b8; font-size: 0.85rem;">No hay documentos cargados aún en este proyecto.</p>
+                    </div>
+                </div>
+
+                <!-- PESTAÑA 2: BIBLIOTECA INSTITUCIONAL COMPARTIDA (REUTILIZAR ARCHIVOS) -->
+                <div id="evTabPaneShared" class="rc-ev-tab-pane" style="display: none;">
+                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                        <h4 style="margin: 0 0 6px 0; color: #1e40af; font-size: 0.92rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-lightbulb"></i> Reutilización Inteligente de Documentos Institucionales
+                        </h4>
+                        <p style="margin: 0; font-size: 0.84rem; color: #1e3a8a; line-height: 1.45;">
+                            Los documentos institucionales transversales (como el <strong>PEI, PDI, Modelo Pedagógico, Políticas de Créditos, Estatutos</strong>) ya cargados en otros programas de esta misma IES están disponibles aquí. Puedes vincularlos a este nuevo programa con un solo clic sin tener que volver a subirlos ni re-extraerlos.
+                        </p>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+                        <input type="text" id="searchSharedEvInput" class="rc-input" placeholder="🔍 Buscar documento institucional (ej: PEI, Modelo Pedagógico, Reglamento...)" oninput="filterSharedEvidences(this.value)">
+                        <button class="btn-rc btn-rc-outline" onclick="loadSharedInstitutionalEvidences()"><i class="fa-solid fa-rotate"></i> Actualizar</button>
+                    </div>
+
+                    <div id="sharedEvidencesListContainer" style="max-height: 400px; overflow-y: auto;">
+                        <p style="text-align: center; color: #94a3b8; padding: 20px;">Cargando biblioteca institucional...</p>
+                    </div>
+                </div>
+
+                <!-- PESTAÑA 3: CHECKLIST GUÍA POR CONDICIÓN (0 AL 9) -->
+                <div id="evTabPaneChecklist" class="rc-ev-tab-pane" style="display: none;">
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                        <h4 style="margin: 0 0 6px 0; color: #166534; font-size: 0.92rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-check-double"></i> Guía Normativa de Insumos y Evidencias por Condición (Decreto 1330 / Res. 021795)
+                        </h4>
+                        <p style="margin: 0; font-size: 0.84rem; color: #14532d; line-height: 1.45;">
+                            Verifica la lista de insumos requeridos para cada capítulo del Documento Maestro. Puedes asociar o subir documentos directamente para cada condición.
+                        </p>
+                    </div>
+
+                    <div class="rc-checklist-accordion" id="checklistAccordionContainer">
+                        <!-- Generado dinámicamente con renderEvidenceChecklist() -->
+                    </div>
                 </div>
             </div>
             <div class="rc-modal-footer">
-                <button class="btn-rc btn-rc-primary" onclick="closeModal('modalEvidenceHub')">Entendido</button>
+                <button class="btn-rc btn-rc-primary" onclick="closeModal('modalEvidenceHub')">Listo / Cerrar</button>
             </div>
         </div>
     </div>
@@ -1976,39 +2150,388 @@
             window.location.href = `/api/rc/export_docx?project_id=${currentProject.id}&cond_key=${currentCondKey}`;
         }
 
-        // 7. GESTIÓN DE EVIDENCIAS Y SUBIDAS
+        // =======================================================
+        // 7. GESTIÓN DE EVIDENCIAS, BIBLIOTECA COMPARTIDA Y CHECKLIST
+        // =======================================================
+        let allSharedEvidences = [];
+
+        const CONDITIONS_CHECKLIST_SCHEMA = [
+            {
+                key: 'cond_intro',
+                num: '0',
+                title: 'Introducción y Contexto Institucional',
+                icon: '🏛️',
+                requiredTypes: ['PEI', 'PDI', 'Modelo_Pedagogico', 'Reglamento'],
+                items: [
+                    { name: 'Proyecto Educativo Institucional (PEI)', type: 'PEI', desc: 'Misión, visión, principios y proyecto educativo vigente.' },
+                    { name: 'Plan de Desarrollo Institucional (PDI)', type: 'PDI', desc: 'Metas estratégicas y plan de inversiones institucional.' },
+                    { name: 'Modelo Pedagógico y Curricular', type: 'Modelo_Pedagogico', desc: 'Enfoque constructivista, por competencias o resultados de aprendizaje.' },
+                    { name: 'Acto Administrativo / Estatuto General', type: 'Reglamento', desc: 'Personería jurídica o estatuto general de la IES.' }
+                ]
+            },
+            {
+                key: 'cond_1',
+                num: '1',
+                title: 'Condición 1: Denominación del Programa',
+                icon: '🏷️',
+                requiredTypes: ['General', 'Malla_Curricular'],
+                items: [
+                    { name: 'Ficha de Clasificaciones Normativas (CINE-F / CIUO / MNC / CUO / ODS)', type: 'General', desc: 'Clasificaciones oficiales según MEN y DANE.' },
+                    { name: 'Propuesta de Título y Nivel de Formación', type: 'Malla_Curricular', desc: 'Coherencia de la titulación con el nivel y campo ocupacional.' }
+                ]
+            },
+            {
+                key: 'cond_2',
+                num: '2',
+                title: 'Condición 2: Justificación del Programa',
+                icon: '📊',
+                requiredTypes: ['Estudio_Mercado', 'Planes_Desarrollo'],
+                items: [
+                    { name: 'Estadísticas de Oferta y Matrícula (SNIES / SPADIES)', type: 'Estudio_Mercado', desc: 'Análisis de programas activos en la región, matriculados y deserción.' },
+                    { name: 'Datos del Observatorio Laboral (OLE) y DANE', type: 'Estudio_Mercado', desc: 'Tasas de enganche laboral, salarios de recién graduados y vacantes.' },
+                    { name: 'Plan Nacional de Desarrollo y Plan Decenal de Educación', type: 'Planes_Desarrollo', desc: 'Articulación con metas de desarrollo nacional y sectorial.' },
+                    { name: 'Planes de Desarrollo Departamentales y Municipales', type: 'Planes_Desarrollo', desc: 'Pertinencia e impacto en la región y municipios de influencia.' },
+                    { name: 'Estudio de Necesidades del Sector Productivo', type: 'Estudio_Mercado', desc: 'Diagnóstico de empleabilidad y atributos diferenciadores del programa.' }
+                ]
+            },
+            {
+                key: 'cond_3',
+                num: '3',
+                title: 'Condición 3: Aspectos Curriculares',
+                icon: '📑',
+                requiredTypes: ['Malla_Curricular', 'Benchmarking_Curricular', 'Politica'],
+                items: [
+                    { name: 'Malla Curricular y Plan de Estudios Detallado', type: 'Malla_Curricular', desc: 'Asignaturas, créditos, HAD (acompañamiento) y HTI (independiente).' },
+                    { name: 'Benchmarking Curricular (Planes de Estudio de Otras IES)', type: 'Benchmarking_Curricular', desc: 'Mallas y planes de programas referentes nacionales e internacionales para contrastar.' },
+                    { name: 'Matriz de Resultados de Aprendizaje (Taxonomía SOLO y Bloom)', type: 'Malla_Curricular', desc: 'RA articulados a núcleos problémicos, competencias y perfiles de egreso.' },
+                    { name: 'Política de Créditos y Flexibilidad / Homologaciones', type: 'Politica', desc: 'Lineamientos de créditos y articulación por ciclos propedéuticos.' }
+                ]
+            },
+            {
+                key: 'cond_4',
+                num: '4',
+                title: 'Condición 4: Organización Formativa y Modalidades',
+                icon: '💻',
+                requiredTypes: ['Politica', 'Modelo_Pedagogico'],
+                items: [
+                    { name: 'Modelo de Virtualidad / Registro Único Multimodal', type: 'Politica', desc: 'Lineamientos pedagógicos según modalidad (Presencial, Virtual, Híbrida, Dual).' },
+                    { name: 'Estrategias de Interacción Sincrónica y Asincrónica', type: 'Modelo_Pedagogico', desc: 'Acompañamiento tutorial, foros, mediaciones tecnológicas y evaluación.' }
+                ]
+            },
+            {
+                key: 'cond_5',
+                num: '5',
+                title: 'Condición 5: Investigación e Innovación',
+                icon: '🔬',
+                requiredTypes: ['Investigacion'],
+                items: [
+                    { name: 'Líneas, Grupos y Semilleros de Investigación', type: 'Investigacion', desc: 'Grupos categorizados en MinCiencias y semilleros asociados al programa.' },
+                    { name: 'Proyección de Producción Científica a 7 Años', type: 'Investigacion', desc: 'Artículos, ponencias, software y proyectos de investigación formativa.' }
+                ]
+            },
+            {
+                key: 'cond_6',
+                num: '6',
+                title: 'Condición 6: Relación con el Sector Externo',
+                icon: '🤝',
+                requiredTypes: ['Convenios'],
+                items: [
+                    { name: 'Convenios Marco y Específicos de Prácticas', type: 'Convenios', desc: 'Acuerdos vigentes con empresas, hospitales o entidades del sector productivo.' },
+                    { name: 'Política de Proyección Social y Egresados', type: 'Convenios', desc: 'Mecanismos de seguimiento a graduados e internacionalización.' }
+                ]
+            },
+            {
+                key: 'cond_7',
+                num: '7',
+                title: 'Condición 7: Profesores',
+                icon: '👨‍🏫',
+                requiredTypes: ['Reglamento', 'General'],
+                items: [
+                    { name: 'Estatuto Docente y Plan de Cualificación', type: 'Reglamento', desc: 'Criterios de vinculación, escalafón docente y formación pedagógica/disciplinar.' },
+                    { name: 'Proyección de Planta Docente y Perfiles Requeridos', type: 'General', desc: 'Planta de profesores TC/MT/Cátedra proyectada según las modalidades solicitadas.' }
+                ]
+            },
+            {
+                key: 'cond_8',
+                num: '8',
+                title: 'Condición 8: Medios Educativos',
+                icon: '📚',
+                requiredTypes: ['General', 'Politica'],
+                items: [
+                    { name: 'Bases de Datos Científicas y Recursos Bibliográficos', type: 'General', desc: 'Suscripciones a Scopus, EBSCO, ScienceDirect, libros digitales y bibliotecas físicas.' },
+                    { name: 'Plataforma LMS, Simuladores y Software Especializado', type: 'Politica', desc: 'Licenciamiento de software técnico, entornos virtuales y laboratorios remotos.' }
+                ]
+            },
+            {
+                key: 'cond_9',
+                num: '9',
+                title: 'Condición 9: Infraestructura Física y Tecnológica',
+                icon: '🏢',
+                requiredTypes: ['General'],
+                items: [
+                    { name: 'Inventario de Aulas, Talleres y Laboratorios Físicos', type: 'General', desc: 'Espacios físicos, conectividad, ancho de banda, bioseguridad y bienestar.' },
+                    { name: 'Plan de Mantenimiento y Sostenibilidad Presupuestal', type: 'General', desc: 'Presupuesto proyectado a 7 años para renovación y mantenimiento de infraestructura.' }
+                ]
+            }
+        ];
+
         function openEvidenceHubModal() {
             document.getElementById('modalEvidenceHub').style.display = 'flex';
+            switchEvidenceTab('project');
             renderEvidencesList();
+            loadSharedInstitutionalEvidences();
+            renderEvidenceChecklist();
+        }
+
+        function switchEvidenceTab(tabName) {
+            const tabs = ['project', 'shared', 'checklist'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`evTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                const pane = document.getElementById(`evTabPane${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (btn) btn.classList.toggle('active', t === tabName);
+                if (pane) pane.style.display = (t === tabName) ? 'block' : 'none';
+            });
+            if (tabName === 'checklist') {
+                renderEvidenceChecklist();
+            } else if (tabName === 'shared') {
+                loadSharedInstitutionalEvidences();
+            }
         }
 
         function renderEvidencesList() {
             const container = document.getElementById('evidencesContainer');
             const evidences = currentProject?.evidences || [];
-            if (evidences.length === 0) {
-                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem;">No hay documentos cargados aún en este proyecto.</p>';
+            const evCount = evidences.length;
+
+            const b1 = document.getElementById('evidenceCountBadge');
+            const b2 = document.getElementById('evidencesListCount');
+            const b3 = document.getElementById('evTabBadgeCount');
+            if (b1) b1.textContent = evCount;
+            if (b2) b2.textContent = evCount;
+            if (b3) b3.textContent = evCount;
+
+            if (evCount === 0) {
+                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1; text-align: center; padding: 20px;">No hay documentos cargados aún en este proyecto. Sube uno arriba o impórtalo desde la Biblioteca Institucional.</p>';
                 return;
             }
 
             container.innerHTML = evidences.map(ev => `
                 <div class="rc-evidence-card">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-                        <div>
-                            <div class="rc-evidence-card-title">
+                        <div style="flex: 1; min-width: 0;">
+                            <div class="rc-evidence-card-title" title="${escapeHtml(ev.name || ev.original_filename)}">
                                 <i class="fa-solid fa-file-lines" style="color: var(--rc-primary);"></i>
-                                <span>${ev.name || ev.original_filename}</span>
+                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 190px;">${escapeHtml(ev.name || ev.original_filename)}</span>
                             </div>
                             <div class="rc-evidence-card-meta">
-                                Tipo: <strong>${ev.doc_type || 'General'}</strong> | ${Math.round((ev.size_bytes || 0) / 1024)} KB
+                                Tipo: <strong>${escapeHtml(ev.doc_type || 'General')}</strong> | ${Math.round((ev.size_bytes || 0) / 1024)} KB
+                                ${ev.is_shared_institutional ? '<span class="rc-badge-pill rc-badge-pill-info" style="margin-left: 4px;">🏛️ Institucional</span>' : ''}
                             </div>
                         </div>
-                        <button class="btn-rc btn-rc-outline" onclick="deleteEvidenceItem('${ev.id}', '${(ev.name || ev.original_filename).replace(/'/g, "\\'")}')" style="padding: 4px 8px; font-size: 0.75rem; color: #ef4444; border-color: #fca5a5;" title="Eliminar documento del repositorio"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn-rc btn-rc-outline" onclick="deleteEvidenceItem('${ev.id}', '${escapeHtml((ev.name || ev.original_filename).replace(/'/g, "\\'"))}')" style="padding: 4px 8px; font-size: 0.75rem; color: #ef4444; border-color: #fca5a5;" title="Eliminar del proyecto"><i class="fa-solid fa-trash"></i></button>
                     </div>
-                    <div style="margin-top: 10px; font-size: 0.75rem; color: #64748b;">
-                        <em>${(ev.text_sample || '').substring(0, 100)}...</em>
+                    <div style="margin-top: 8px; font-size: 0.74rem; color: #64748b; background: white; padding: 6px 8px; border-radius: 6px; border: 1px solid #f1f5f9;">
+                        <em>${escapeHtml((ev.text_sample || '').substring(0, 110))}...</em>
                     </div>
                 </div>
             `).join('');
+        }
+
+        async function loadSharedInstitutionalEvidences() {
+            const container = document.getElementById('sharedEvidencesListContainer');
+            if (!container) return;
+            container.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 20px;">🔍 Consultando biblioteca institucional...</p>';
+
+            try {
+                const instName = encodeURIComponent(currentProject?.inst_name || '');
+                const res = await fetch(`/api/rc/institutional_evidences?inst_name=${instName}`);
+                const data = await res.json();
+                
+                if (data.status === 'success') {
+                    allSharedEvidences = data.evidences || [];
+                    renderSharedEvidencesList(allSharedEvidences);
+                } else {
+                    container.innerHTML = `<p style="color:#ef4444; padding: 10px;">Error: ${data.message}</p>`;
+                }
+            } catch(e) {
+                container.innerHTML = `<p style="color:#ef4444; padding: 10px;">Error al cargar biblioteca institucional: ${e.message}</p>`;
+            }
+        }
+
+        function filterSharedEvidences(query) {
+            const term = (query || '').toLowerCase().trim();
+            if (!term) {
+                renderSharedEvidencesList(allSharedEvidences);
+                return;
+            }
+            const filtered = allSharedEvidences.filter(ev => {
+                const name = (ev.name || '').toLowerCase();
+                const type = (ev.doc_type || '').toLowerCase();
+                const prog = (ev.source_program_name || '').toLowerCase();
+                const inst = (ev.source_inst_name || '').toLowerCase();
+                return name.includes(term) || type.includes(term) || prog.includes(term) || inst.includes(term);
+            });
+            renderSharedEvidencesList(filtered);
+        }
+
+        function renderSharedEvidencesList(list) {
+            const container = document.getElementById('sharedEvidencesListContainer');
+            if (!container) return;
+
+            if (!list || list.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: #94a3b8;">
+                        <i class="fa-solid fa-folder-open" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.5;"></i>
+                        <p style="margin: 0; font-size: 0.88rem;">No hay otros documentos registrados en la biblioteca compartida todavía.</p>
+                        <p style="margin: 4px 0 0 0; font-size: 0.78rem;">Al subir documentos en cualquier programa de esta IES, aparecerán automáticamente aquí para ser reutilizados.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const currentEvIds = new Set((currentProject?.evidences || []).map(e => e.id));
+
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    ${list.map(ev => {
+                        const isAlreadyLinked = currentEvIds.has(ev.id);
+                        return `
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; gap: 12px;">
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-weight: 600; font-size: 0.88rem; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                                        <i class="fa-solid fa-file-lines" style="color: #6366f1;"></i>
+                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(ev.name || ev.original_filename)}</span>
+                                        <span class="rc-badge-pill rc-badge-pill-info">${escapeHtml(ev.doc_type || 'General')}</span>
+                                    </div>
+                                    <div style="font-size: 0.74rem; color: #64748b; margin-top: 3px;">
+                                        Origen: <strong>${escapeHtml(ev.source_inst_name || 'Institución')}</strong> (${escapeHtml(ev.source_program_name || 'General')}) | ${Math.round((ev.size_bytes || 0) / 1024)} KB
+                                    </div>
+                                </div>
+                                <div>
+                                    ${isAlreadyLinked ? 
+                                        `<span class="rc-badge-pill rc-badge-pill-success"><i class="fa-solid fa-check"></i> Vinculado</span>` : 
+                                        `<button class="btn-rc btn-rc-primary" onclick="linkSharedEvidenceItem('${ev.id}')" style="padding: 6px 12px; font-size: 0.78rem;"><i class="fa-solid fa-link"></i> Vincular a este Proyecto</button>`
+                                    }
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        async function linkSharedEvidenceItem(evidenceId) {
+            const ev = allSharedEvidences.find(e => e.id === evidenceId);
+            if (!ev || !currentProject) return;
+
+            try {
+                const res = await fetch(`/api/rc/projects/${currentProject.id}/link_institutional_evidence`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ evidence: ev })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    if (!currentProject.evidences) currentProject.evidences = [];
+                    currentProject.evidences.push(data.evidence);
+                    renderEvidencesList();
+                    renderSharedEvidencesList(allSharedEvidences);
+                    renderEvidenceChecklist();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Documento Vinculado',
+                        text: `"${ev.name}" ha sido incorporado al repositorio de este programa con éxito.`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire('Atención', data.message, 'warning');
+                }
+            } catch(e) {
+                Swal.fire('Error', 'Fallo de red al vincular documento: ' + e.message, 'error');
+            }
+        }
+
+        function renderEvidenceChecklist() {
+            const container = document.getElementById('checklistAccordionContainer');
+            if (!container) return;
+
+            const currentEvidences = currentProject?.evidences || [];
+
+            container.innerHTML = CONDITIONS_CHECKLIST_SCHEMA.map((cond, idx) => {
+                // Verificar qué tipos están cubiertos en el proyecto actual
+                const matchingEvidences = currentEvidences.filter(ev => {
+                    return cond.requiredTypes.includes(ev.doc_type);
+                });
+                
+                const isCovered = matchingEvidences.length > 0;
+                const coverageCount = matchingEvidences.length;
+
+                return `
+                    <div class="rc-checklist-card ${idx === 0 || cond.key === currentCondKey ? 'open' : ''}" id="checklistCard_${cond.key}">
+                        <div class="rc-checklist-header" onclick="toggleChecklistCard(this.parentElement)">
+                            <div class="rc-checklist-title">
+                                <span>${cond.icon}</span>
+                                <span>${cond.title}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                ${isCovered ? 
+                                    `<span class="rc-badge-pill rc-badge-pill-success"><i class="fa-solid fa-circle-check"></i> ${coverageCount} documento(s) listos</span>` : 
+                                    `<span class="rc-badge-pill rc-badge-pill-warning"><i class="fa-solid fa-triangle-exclamation"></i> Pendiente insumos</span>`
+                                }
+                                <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem; color: #94a3b8; transition: transform 0.2s;"></i>
+                            </div>
+                        </div>
+                        <div class="rc-checklist-body">
+                            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px;">
+                                <strong>Insumos requeridos por la normativa:</strong>
+                            </div>
+                            ${cond.items.map(item => {
+                                const hasType = currentEvidences.some(e => e.doc_type === item.type);
+                                return `
+                                    <div class="rc-checklist-req-item">
+                                        <div style="color: ${hasType ? '#10b981' : '#94a3b8'}; font-size: 1.1rem; margin-top: 2px;">
+                                            <i class="fa-solid ${hasType ? 'fa-circle-check' : 'fa-circle-dot'}"></i>
+                                        </div>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="font-weight: 600; font-size: 0.84rem; color: #1e293b;">
+                                                ${item.name}
+                                                <span class="rc-badge-pill ${hasType ? 'rc-badge-pill-success' : 'rc-badge-pill-warning'}" style="margin-left: 6px;">
+                                                    ${hasType ? 'Indexado' : 'Recomendado'}
+                                                </span>
+                                            </div>
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
+                                                ${item.desc}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <button class="btn-rc btn-rc-outline" onclick="openUploadForCondition('${item.type}', '${item.name.replace(/'/g, "\\'")}')" style="padding: 4px 10px; font-size: 0.75rem;">
+                                                <i class="fa-solid fa-cloud-arrow-up"></i> Subir
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleChecklistCard(cardEl) {
+            if (cardEl) {
+                cardEl.classList.toggle('open');
+            }
+        }
+
+        function openUploadForCondition(docType, defaultName) {
+            switchEvidenceTab('project');
+            const selectEl = document.getElementById('uploadDocType');
+            const nameEl = document.getElementById('uploadCustomName');
+            if (selectEl) selectEl.value = docType;
+            if (nameEl && defaultName) nameEl.value = defaultName;
+            const fileInput = document.getElementById('evidenceFileInput');
+            if (fileInput) fileInput.click();
         }
 
         async function deleteEvidenceItem(evidenceId, evidenceName) {
@@ -2032,9 +2555,7 @@
                     if (data.status === 'success') {
                         currentProject.evidences = (currentProject.evidences || []).filter(e => e.id !== evidenceId);
                         renderEvidencesList();
-                        const evCount = currentProject.evidences.length;
-                        document.getElementById('evidenceCountBadge').textContent = evCount;
-                        document.getElementById('evidencesListCount').textContent = evCount;
+                        renderEvidenceChecklist();
                         Swal.fire({
                             icon: 'success',
                             title: 'Documento Eliminado',
@@ -2118,11 +2639,8 @@
                     if (!currentProject.evidences) currentProject.evidences = [];
                     currentProject.evidences.push(data.evidence);
                     renderEvidencesList();
+                    renderEvidenceChecklist();
                     
-                    const evCount = currentProject.evidences.length;
-                    document.getElementById('evidenceCountBadge').textContent = evCount;
-                    document.getElementById('evidencesListCount').textContent = evCount;
-
                     document.getElementById('uploadCustomName').value = '';
                     input.value = '';
                     document.getElementById('uploadSelectedFileName').textContent = 'Documento indexado con éxito.';

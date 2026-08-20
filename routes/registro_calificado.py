@@ -384,6 +384,96 @@ def delete_evidence(project_id, evidence_id):
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+@registro_calificado_bp.route('/api/rc/institutional_evidences', methods=['GET'])
+def get_institutional_evidences():
+    """Retorna todos los documentos institucionales disponibles en la biblioteca compartida de la IES o de otros proyectos."""
+    try:
+        inst_name = (request.args.get('inst_name') or '').strip().lower()
+        projects = load_local_projects()
+        
+        all_evidences = []
+        seen_ids = set()
+        seen_names = set()
+        
+        for pid, p in projects.items():
+            p_inst = (p.get('inst_name') or '').strip().lower()
+            p_evs = p.get('evidences', [])
+            for ev in p_evs:
+                ev_id = ev.get('id')
+                ev_name = ev.get('name') or ev.get('original_filename') or 'Documento'
+                norm_key = f"{p_inst}::{ev_name.lower().strip()}"
+                
+                if ev_id not in seen_ids and norm_key not in seen_names:
+                    seen_ids.add(ev_id)
+                    seen_names.add(norm_key)
+                    all_evidences.append({
+                        'id': ev_id,
+                        'name': ev_name,
+                        'original_filename': ev.get('original_filename'),
+                        'doc_type': ev.get('doc_type', 'General'),
+                        'size_bytes': ev.get('size_bytes', 0),
+                        'text_sample': (ev.get('text_sample') or '')[:300],
+                        'uploaded_at': ev.get('uploaded_at'),
+                        'source_project_id': pid,
+                        'source_program_name': p.get('program_name', 'General'),
+                        'source_inst_name': p.get('inst_name', 'Institucional'),
+                        'full_text': ev.get('full_text', '')
+                    })
+                    
+        # Ordenar por fecha de subida descendente
+        all_evidences.sort(key=lambda x: x.get('uploaded_at') or '', reverse=True)
+        return jsonify({
+            'status': 'success',
+            'evidences': all_evidences
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@registro_calificado_bp.route('/api/rc/projects/<project_id>/link_institutional_evidence', methods=['POST'])
+def link_institutional_evidence(project_id):
+    """Vincula un documento institucional existente al proyecto activo sin duplicar el archivo físico."""
+    try:
+        proj = get_project(project_id)
+        if not proj:
+            return jsonify({'status': 'error', 'message': 'Proyecto no encontrado'}), 404
+            
+        data = request.json or {}
+        evidence_data = data.get('evidence')
+        if not evidence_data or not evidence_data.get('id'):
+            return jsonify({'status': 'error', 'message': 'Datos de documento inválidos'}), 400
+            
+        if 'evidences' not in proj:
+            proj['evidences'] = []
+            
+        # Verificar si ya está vinculado
+        existing = any(e.get('id') == evidence_data['id'] or e.get('name') == evidence_data.get('name') for e in proj['evidences'])
+        if existing:
+            return jsonify({'status': 'error', 'message': 'Este documento ya se encuentra vinculado a este proyecto'}), 400
+            
+        new_ev = {
+            'id': evidence_data['id'],
+            'name': evidence_data.get('name') or evidence_data.get('original_filename'),
+            'original_filename': evidence_data.get('original_filename'),
+            'doc_type': evidence_data.get('doc_type', 'PEI'),
+            'size_bytes': evidence_data.get('size_bytes', 0),
+            'text_sample': evidence_data.get('text_sample', ''),
+            'full_text': evidence_data.get('full_text', ''),
+            'uploaded_at': evidence_data.get('uploaded_at') or datetime.datetime.now().isoformat(),
+            'is_shared_institutional': True
+        }
+        
+        proj['evidences'].append(new_ev)
+        save_project(proj)
+        
+        return jsonify({
+            'status': 'success',
+            'message': f"Documento '{new_ev['name']}' vinculado con éxito.",
+            'evidence': new_ev,
+            'total_evidences': len(proj['evidences'])
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @registro_calificado_bp.route('/api/rc/suggest_classifications', methods=['POST'])
 def suggest_classifications():
     """Genera las clasificaciones normativas oficiales (CINE-F 2013 A.C., CIUO-08, MNC, CUO y ODS) usando IA."""
@@ -968,6 +1058,29 @@ Este documento corresponde a una RENOVACIÓN de Registro Calificado. Debes enfat
 ATENCIÓN ESPECIAL - TRÁMITE DE MODIFICACIÓN DE REGISTRO CALIFICADO:
 Este documento sustenta una modificación sustancial (e.g. ampliación de modalidades para Registro Único). Sustenta la pertinencia y coherencia del cambio."""
 
+        condition_specific_guidelines = ""
+        if cond_key == 'cond_2':
+            condition_specific_guidelines = """
+DIRECTRICES AVANZADAS DE JUSTIFICACIÓN (MINISTERIO DE EDUCACIÓN NACIONAL - CONACES):
+- Pertinencia Integral: Sustentar con rigor los contextos internacional (UNESCO, OCDE, tendencias globales), nacional y regional en los municipios y departamentos de influencia.
+- Estadísticas Oficiales Requeridas: Incorporar análisis cuantitativo y cualitativo de la oferta y matrícula del SNIES, tasas de deserción y graduación de SPADIES, estadísticas de empleabilidad e ingreso del Observatorio Laboral para la Educación (OLE), cifras del DANE (mercado laboral, índice de ocupación, valor agregado por sector económico).
+- Instrumentos de Planeación: Articular obligatoriamente la pertinencia con las metas del Plan Nacional de Desarrollo (PND) vigente, el Plan Decenal de Educación 2016-2026, los Planes de Desarrollo Departamentales y Municipales de la región de impacto.
+- Demanda Ocupacional y Atributos Diferenciadores: Detallar vacantes del mercado laboral, requerimientos del sector productivo y los atributos diferenciadores únicos que hacen a este programa competitivo frente a la oferta existente.
+"""
+        elif cond_key == 'cond_3':
+            condition_specific_guidelines = """
+DIRECTRICES AVANZADAS DE ASPECTOS CURRICULARES (RES. 021795 DE 2020 & D. 0529 DE 2024):
+- Benchmarking Curricular: Si existen planes de estudio de otras IES en las evidencias adjuntas, realizar un análisis comparativo y consolidar una propuesta formativa innovadora, flexible y diferenciadora.
+- Articulación Curricular Integral: Establecer una matriz de coherencia que articule:
+  1. Núcleos Problémicos y Áreas de Formación.
+  2. Perfil de Egreso y Competencias (Genéricas y Específicas).
+  3. Formulación Rigurosa de RESULTADOS DE APRENDIZAJE (RA):
+     - Estructurados bajo la TAXONOMÍA SOLO (Structure of Observed Learning Outcomes: Preestructural, Uniestructural, Multiestructural, Relacional, Abstracto Ampliado).
+     - Complementados con los niveles cognitivos de la TAXONOMÍA DE BLOOM revisada (Recordar, Comprender, Aplicar, Analizar, Evaluar, Crear).
+- Plan de Estudios y Créditos Académicos: Malla curricular discriminando créditos, horas de trabajo con acompañamiento directo del docente (HAD) vs. horas de trabajo independiente del estudiante (HTI), aplicando la proporción 1:2 o según la modalidad (Res. 021795).
+- Flexibilidad y Componente Propedéutico: Mecanismos de homologación, electividad, interdisciplinariedad y articulación por ciclos si aplica.
+"""
+
         system_prompt = f"""Eres un Evaluador Senior de la Sala de CONACES, Par Académico del CNA y Consultor Senior de Alto Nivel para el Ministerio de Educación Nacional de Colombia (MEN).
 
 Tu misión es redactar capítulos técnicos de máxima profundidad, rigor conceptual, riqueza argumentativa, citas fidedignas y datos estadísticos reales para un DOCUMENTO MAESTRO DE REGISTRO CALIFICADO institucional (diseñado para un expediente integral que sobrepasa las 350 páginas en su totalidad).
@@ -1027,6 +1140,7 @@ DIRECTRICES CRÍTICAS DE ESTRUCTURACIÓN Y REINGENIERÍA:
 - Alineación ODS: {proj.get('ods_alignment', '')}
 
 {procedure_instructions}
+{condition_specific_guidelines}
 
 SECCIÓN A REDACTAR (LÍMITE STRICTO - MANTENERSE EXCLUSIVAMENTE EN ESTA CONDICIÓN):
 CONDICIÓN {meta.get('num')}: {meta.get('title')}
