@@ -4,10 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>SKEL - Expertos en Proyectos de Educación Superior</title>
+    <title>SKEL - Configuración de Plataforma</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script>
     (function() {
@@ -16,13 +13,18 @@
             if (!user || !user.email) {
                 window.location.href = '/login.html';
             }
+            const savedTheme = localStorage.getItem('siac_theme') || 'default';
+            document.documentElement.setAttribute('data-theme', savedTheme);
         } catch(e) {}
     })();
     </script>
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .content-area {
+            animation: siacPageEnter 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            will-change: opacity;
             padding: 30px;
             max-width: 1000px;
             margin: 0 auto;
