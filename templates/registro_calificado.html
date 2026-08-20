@@ -241,9 +241,9 @@
         .rc-project-select-group {
             display: flex;
             align-items: center;
-            gap: 12px;
-            flex: 1;
-            min-width: 300px;
+            gap: 10px;
+            flex-wrap: wrap;
+            flex: 1 1 auto;
         }
 
         .rc-select {
@@ -257,8 +257,9 @@
             outline: none;
             cursor: pointer;
             transition: all 0.2s;
-            flex: 1;
-            max-width: 450px;
+            min-width: 260px;
+            max-width: 480px;
+            flex: 1 1 auto;
         }
         .rc-select:focus {
             border-color: var(--rc-primary);

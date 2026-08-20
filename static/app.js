@@ -150,11 +150,34 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Control específico para Registro Calificado (Exclusivo SuperAdmin)
-        const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(role);
-        const rcLinks = document.querySelectorAll('.superadmin-rc-link, #menuRegistroCalificado');
+        // Control específico para Registro Calificado (SuperAdmin y Administradores)
+        const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'super-admin', 'inst_admin'].includes(role) || !role;
+        let rcLinks = document.querySelectorAll('.superadmin-rc-link, #menuRegistroCalificado');
+        
+        if (isSuperAdmin && rcLinks.length === 0) {
+            const configLink = Array.from(document.querySelectorAll('.sidebar-item')).find(el => (el.getAttribute('href') || '').includes('configuracion') || el.textContent.toLowerCase().includes('configuraci'));
+            const sidebarNav = document.querySelector('.sidebar, aside nav, aside > div:first-child');
+            
+            const newLink = document.createElement('a');
+            newLink.href = '/registro_calificado.html';
+            newLink.className = 'sidebar-item superadmin-rc-link' + (window.location.pathname.includes('registro_calificado') ? ' active' : '');
+            newLink.id = 'menuRegistroCalificado';
+            newLink.style.cssText = 'color: #38bdf8; font-weight: 600; display: flex; align-items: center; gap: 8px;';
+            newLink.innerHTML = '📜 Registro Calificado';
+            
+            if (configLink && configLink.parentNode) {
+                configLink.parentNode.insertBefore(newLink, configLink);
+            } else if (sidebarNav) {
+                sidebarNav.appendChild(newLink);
+            }
+            rcLinks = document.querySelectorAll('.superadmin-rc-link, #menuRegistroCalificado');
+        }
+
         rcLinks.forEach(el => {
             el.style.display = isSuperAdmin ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
+            if (window.location.pathname.includes('registro_calificado')) {
+                el.classList.add('active');
+            }
         });
 
         // Ocultar los grupos del acordeón que se quedaron vacíos (sin items visibles)
