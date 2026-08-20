@@ -1038,11 +1038,18 @@ def generate_condition_ai():
         for ev in sorted_evidences:
             ev_text = ev.get('full_text', '') or ev.get('text_sample', '')
             if ev_text:
-                # Pasar un muestreo representativo y amplio (hasta 6.000 caracteres por documento)
-                sample = ev_text[:6000] if len(ev_text) > 6000 else ev_text
-                evidences_context.append(f"--- [DOCUMENTO FUENTE: {ev.get('name') or ev.get('original_filename')} | TIPO: {ev.get('doc_type', 'General')}] ---\n{sample}\n")
+                # Pasar un muestreo amplio y profundo (hasta 25.000 caracteres por documento para capturar detalles sustantivos)
+                sample = ev_text[:25000] if len(ev_text) > 25000 else ev_text
+                evidences_context.append(
+                    f"======================================================================\n"
+                    f"DOCUMENTO INSTITUCIONAL / EVIDENCIA REAL: {ev.get('name') or ev.get('original_filename')}\n"
+                    f"TIPO DE DOCUMENTO: {ev.get('doc_type', 'General')}\n"
+                    f"ORIGEN: {ev.get('source_inst_name', proj.get('inst_name', 'Institución'))} ({ev.get('source_program_name', 'Institucional')})\n"
+                    f"======================================================================\n"
+                    f"{sample}\n"
+                )
                 
-        evidences_str = "\n".join(evidences_context) if evidences_context else "No se adjuntaron documentos adicionales. Fundamenta con base en los estándares normativos del MEN y la información suministrada del programa."
+        evidences_str = "\n\n".join(evidences_context) if evidences_context else "No se adjuntaron documentos adicionales. Fundamenta con base en los estándares normativos del MEN y la información suministrada del programa."
         
         modalities_str = ", ".join(proj.get('modalities', ['Presencial']))
         propedeutic_str = "SÍ aplica ciclos propedéuticos. Niveles articulados: " + ", ".join(proj.get('propedeutic_levels', [])) if proj.get('has_propedeutic_cycle') else "NO aplica ciclos propedéuticos (programa estructurado en un solo nivel)."
@@ -1083,7 +1090,7 @@ DIRECTRICES AVANZADAS DE ASPECTOS CURRICULARES (RES. 021795 DE 2020 & D. 0529 DE
 
         system_prompt = f"""Eres un Evaluador Senior de la Sala de CONACES, Par Académico del CNA y Consultor Senior de Alto Nivel para el Ministerio de Educación Nacional de Colombia (MEN).
 
-Tu misión es redactar capítulos técnicos de máxima profundidad, rigor conceptual, riqueza argumentativa, citas fidedignas y datos estadísticos reales para un DOCUMENTO MAESTRO DE REGISTRO CALIFICADO institucional (diseñado para un expediente integral que sobrepasa las 350 páginas en su totalidad).
+Tu misión es redactar capítulos técnicos de máxima profundidad, rigor conceptual, riqueza argumentativa, citas fidedignas de las evidencias institucionales reales y datos estadísticos actualizados para un DOCUMENTO MAESTRO DE REGISTRO CALIFICADO (expediente de alta calidad técnica).
 
 MARCO NORMATIVO Y REGULATORIO OBLIGATORIO VIGENTE EN COLOMBIA:
 - Decreto 1330 de 2019 (Condiciones de calidad de programas de educación superior).
@@ -1093,21 +1100,27 @@ MARCO NORMATIVO Y REGULATORIO OBLIGATORIO VIGENTE EN COLOMBIA:
 - Marco Nacional de Cualificaciones (MNC), CUO Colombia (Res. 1658/2023) y CINE-F 2013 A.C.
 - Objetivos de Desarrollo Sostenible (ODS - Agenda 2030).
 
-DIRECTRICES CRÍTICAS DE ESTRUCTURACIÓN Y REINGENIERÍA:
+DIRECTRICES CRÍTICAS DE ESTRUCTURACIÓN Y USO DE EVIDENCIAS:
 
-1. LÍMITE STRICTO Y AISLAMIENTO DE LA CONDICIÓN (SIN MEZCLAR OTRAS CONDICIONES):
+1. USO OBLIGATORIO Y CITACIÓN DE TODAS LAS EVIDENCIAS Y DOCUMENTOS REALES ADJUNTOS:
+   - DEBES UTILIZAR ACTIVAMENTE TODO EL CONTENIDO Y DATOS DE LAS EVIDENCIAS PROVISTAS EN 'EVIDENCIAS Y DOCUMENTOS INSTITUCIONALES DISPONIBLES EN EL PROYECTO'.
+   - Extrae e integra de forma precisa: citas textuales y conceptuales del PEI, principios institucionales, modelo pedagógico, estatutos, reglamentos, políticas de créditos, mallas curriculares, matrices de RA, convenios, grupos de investigación o planes de desarrollo.
+   - Cita explícitamente en el texto el nombre de la institución y sus documentos rectores (ejemplo: "De conformidad con el Proyecto Educativo Institucional (PEI) de {proj.get('inst_name')}...", "En concordancia con el Modelo Pedagógico y Curricular institucional...", "Según lo dispuesto en la Política Institucional de Créditos...").
+   - Cruza y articula armónicamente esta evidencia institucional real con los referentes normativos y estadísticos del MEN (SNIES, SPADIES, OLE, DANE, PND, Plan Decenal).
+
+2. LÍMITE STRICTO Y AISLAMIENTO DE LA CONDICIÓN (SIN MEZCLAR OTRAS CONDICIONES):
    Estás redactando EXCLUSIVAMENTE la Condición {meta.get('num')}: {meta.get('title')}.
    Tus subtítulos principales (###) deben ser EXCLUSIVAMENTE los sub-numerales correspondientes a esta condición: {', '.join([s.split()[0] for s in meta.get('subnumerals', [])])}.
    ESTÁ RIGUROSAMENTE PROHIBIDO desviar la redacción o generar subtítulos pertenecientes a otras condiciones (por ejemplo, si estás en Condición 2, NO generes subtítulos de la Condición 3 como ### 3.1, ### 3.2 o ### 3.3).
 
-2. CUMPLIMIENTO DE ASPECTOS A EVALUAR (RESOLUCIÓN 021795 DE 2020):
+3. CUMPLIMIENTO DE ASPECTOS A EVALUAR (RESOLUCIÓN 021795 DE 2020):
    Debes responder de manera exhaustiva a todos los aspectos a evaluar fijados por la Res. 021795 de 2020 para esta condición. Si un parámetro técnico o dato específico no aparece en los adjuntos suministrados por el usuario, DEBES investigarlo / deducirlo con rigor profesional en internet/bases normativas, fundamentándolo de forma completa en el texto sin dejar preguntas o corchetes sin responder.
 
-3. GENERACIÓN DE TABLAS MARKDOWN COMPLETAS Y REALES (ESTILO DOCUMENTO MAESTRO INSTITUCIONAL):
+4. GENERACIÓN DE TABLAS MARKDOWN COMPLETAS Y REALES (ESTILO DOCUMENTO MAESTRO INSTITUCIONAL):
    DEBES CONSTRUIR LAS TABLAS MARKDOWN COMPLETAS Y RICAS DIRECTAMENTE DENTRO DEL TEXTO.
    No las reemplaces por meras instrucciones vacías; incluye la tabla completa en sintaxis Markdown (| Columna 1 | Columna 2 |) con todos sus datos cuantitativos, matrices de pertinencia, oferta comparativa SNIES/DANE, matriz de Resultados de Aprendizaje bajo Taxonomía SOLO, plan de estudios con horas presenciales e independientes, o cuadros de equivalencia entre modalidades.
 
-4. MARCADORES DE POSICIÓN PARA EVIDENCIA FOTOGRÁFICA Y PROMPTS DE DOCENTES/MEDIOS PARA DILIGENCIAR:
+5. MARCADORES DE POSICIÓN PARA EVIDENCIA FOTOGRÁFICA Y PROMPTS DE DOCENTES/MEDIOS:
    - Para evidencia visual en condiciones 5, 6, 7, 8 y 9, dispone espacios destacados:
      > 🖼️ **[ESPACIO PARA EVIDENCIA FOTOGRÁFICA / CAPTURA DE PANTALLA]**:
      > *"Pegar aquí fotografía o evidencia gráfica de: [Aulas, Laboratorios Físicos / LMS / Firma de Convenios / Medios Educativos]. Pie de foto recomendado: Figura X.Y - Recursos para el programa {proj.get('program_name')}."*
@@ -1116,12 +1129,9 @@ DIRECTRICES CRÍTICAS DE ESTRUCTURACIÓN Y REINGENIERÍA:
      > 🤖 **[PROMPT IA DE TABLA DE PLANTA DOCENTE / MEDIOS PARA DILIGENCIAR EN EXCEL/MARKDOWN]**:
      > *"Genera la plantilla estructurada en Markdown/Excel para la planta docente / inventario de software del programa '{proj.get('program_name')}' con las columnas: [Nombre del Docente | Máximo Nivel de Formación (Lic/Esp/MSc/PhD) | Área de Conocimiento | Tipo de Vinculación (TC/MT/Cátedra) | Asignaturas Asignadas | Horas Semanales Docencia | Horas Investigación/Extensión]. Dejar filas listas para ingresar los datos reales."*
 
-5. CITACIÓN EN TEXTO Y BIBLIOGRAFÍA EN FORMATO APA 7.0:
-   - Citas en texto formato APA 7.0 (DANE, 2024; SPADIES, 2024; UNESCO, 2024; Biggs & Tang, 2020).
+6. CITACIÓN EN TEXTO Y BIBLIOGRAFÍA EN FORMATO APA 7.0:
+   - Citas en texto formato APA 7.0 (DANE, 2024; SPADIES, 2024; UNESCO, 2024; Biggs & Tang, 2020, documentos institucionales).
    - Concluye la condición obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
-
-6. PROHIBICIÓN ESTRICTA DE FILAS DE TABLA REPETITIVAS O VACÍAS:
-   Está estrictamente prohibido generar o repetir filas idénticas o plantillas vacías en tablas Markdown (ejemplo: NO repitas '| Nivel SOLO | Resultado de Aprendizaje (RA) |' en bucle). Cada fila de la tabla DEBE contener datos reales, concretos y diferenciados del programa. Máximo 6 a 8 filas por tabla.
 """
 
         user_prompt = f"""DESCRIPCIÓN DEL PROYECTO DE REGISTRO CALIFICADO:
@@ -1152,15 +1162,15 @@ ENFOQUE NORMATIVO Y ASPECTOS A EVALUAR DE LA RES. 021795 DE 2020:
 {meta.get('focus')}
 
 INSTRUCCIONES ADICIONALES DEL USUARIO:
-{user_instructions if user_instructions else 'Generar la sección con la máxima extensión y profundidad académica, respondiendo a todos los aspectos a evaluar de la Res. 021795 de 2020, construyendo las tablas Markdown completas directamente en el texto, e incorporando datos estadísticos externos fidedignos (DANE, SPADIES, UNESCO 2024-2026) y citas en APA 7.0.'}
+{user_instructions if user_instructions else 'Generar la sección con la máxima extensión y profundidad académica, respondiendo a todos los aspectos a evaluar de la Res. 021795 de 2020, utilizando e integrando obligatoriamente todas las evidencias reales adjuntas, construyendo las tablas Markdown completas directamente en el texto, e incorporando datos estadísticos externos fidedignos (DANE, SPADIES, UNESCO 2024-2026) y citas en APA 7.0.'}
 
-EVIDENCIAS Y DOCUMENTOS INSTITUCIONALES DISPONIBLES EN EL PROYECTO:
+EVIDENCIAS Y DOCUMENTOS INSTITUCIONALES DISPONIBLES EN EL PROYECTO (DEBES USARLOS Y CITARLOS OBLIGATORIAMENTE EN LA REDACCIÓN):
 {evidences_str}
 
 REGLAS STRICTAS DE SALIDA:
-1. Desarrolla EXCLUSIVAMENTE la Condición {meta.get('num')}. ESTÁ PROHIBIDO escribir subtítulos de la Condición {int(meta.get('num'))+1 if meta.get('num').isdigit() else 'siguiente'} (ejemplo: NO generes ### 3.1 si estás en la Condición 2).
-2. Utiliza obligatoriamente los sub-numerales indicados arriba (ejemplo: {meta.get('num')}.1, {meta.get('num')}.2, {meta.get('num')}.3...) como subtítulos principales de tercer nivel (###).
-3. NO GENERES TABLAS MARKDOWN NI FIGURAS COMPLETAS DENTRO DEL TEXTO. En su lugar, redacta EXCLUSIVAMENTE el prompt necesario para que el usuario construya la tabla/figura por su cuenta. Estos prompts DEBEN iniciar obligatoriamente con el prefijo `> [PROMPT IA: TABLA/FIGURA]` en una línea nueva (ejemplo: `> [PROMPT IA: TABLA] Generar matriz de Resultados de Aprendizaje...`).
+1. Desarrolla EXCLUSIVAMENTE la Condición {meta.get('num')}. ESTÁ PROHIBIDO escribir subtítulos de la Condición siguiente.
+2. Utiliza obligatoriamente los sub-numerales indicados arriba como subtítulos principales de tercer nivel (###).
+3. Integra, cita y articula activamente los fragmentos y datos de las evidencias institucionales cargadas arriba.
 4. Si un aspecto de la Res. 021795 de 2020 no aparece en las evidencias adjuntas, investígalo/dedúcelo técnicamente para responderlo completamente.
 5. Finaliza el capítulo con la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
 """
