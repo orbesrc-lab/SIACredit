@@ -103,12 +103,12 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 
-def get_active_inst_id(requested_id):
+def get_active_inst_id(requested_id=None):
     try:
-        # Primero intentamos ver si el ID pedido existe
-        check = supabase.table('institution').select("id").eq("id", requested_id).execute()
-        if check.data:
-            return requested_id
+        if requested_id:
+            check = supabase.table('institution').select("id").eq("id", requested_id).execute()
+            if check.data:
+                return requested_id
         
         # Si no existe, buscamos la primera institución real disponible
         res = supabase.table('institution').select("id").limit(1).execute()

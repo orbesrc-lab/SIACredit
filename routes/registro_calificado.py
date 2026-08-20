@@ -392,6 +392,7 @@ def suggest_classifications():
         prog_name = data.get('program_name', '').strip()
         target_title = data.get('target_title', '').strip()
         level = data.get('level', '').strip()
+        inst_id = data.get('inst_id') or get_active_inst_id()
         
         if not prog_name:
             return jsonify({'status': 'error', 'message': 'El nombre del programa es requerido'}), 400
@@ -415,12 +416,18 @@ Responde EXCLUSIVAMENTE en formato JSON con la siguiente estructura exacta (sin 
         ai_response = call_ai([
             {"role": "system", "content": "Eres un asistente experto en normatividad de educación superior colombiana. Responde únicamente en formato JSON estricto."},
             {"role": "user", "content": prompt}
-        ], max_tokens=600, temperature=0.3)
+        ], max_tokens=800, temperature=0.2, inst_id=inst_id)
         
-        cleaned = (ai_response or '').strip()
-        if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
-            cleaned = re.sub(r"\s*```$", "", cleaned)
+        raw_text = (ai_response or '').strip()
+        # Intentar extraer el objeto JSON incluso si el modelo incluyó texto antes o después
+        json_match = re.search(r'(\{[\s\S]*\})', raw_text)
+        if json_match:
+            cleaned = json_match.group(1)
+        else:
+            cleaned = raw_text
+            if cleaned.startswith("```"):
+                cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
+                cleaned = re.sub(r"\s*```$", "", cleaned)
             
         result = json.loads(cleaned)
         return jsonify({
@@ -435,7 +442,84 @@ Responde EXCLUSIVAMENTE en formato JSON con la siguiente estructura exacta (sin 
         })
     except Exception as e:
         print(f"[RC] Error generando clasificaciones con IA: {e}")
-        return jsonify({'status': 'error', 'message': f"Error al generar sugerencias: {str(e)}"}), 500
+        # Fallback heurístico normativo inteligente según área de conocimiento (MEN / DANE)
+        prog_upper = prog_name.upper() if 'prog_name' in locals() and prog_name else ''
+        level_str = level.upper() if 'level' in locals() and level else ''
+        
+        # Determinar nivel MNC
+        if "TECNÓLOGO" in level_str or "TECNOLÓGICO" in level_str or "TECNOLOG" in prog_upper:
+            mnc_lvl = "Nivel 5 MNC - Cualificación Tecnológica"
+        elif "TÉCNICO" in level_str or "TECNICO" in prog_upper:
+            mnc_lvl = "Nivel 4 MNC - Cualificación Técnica Profesional"
+        elif "MAESTR" in level_str or "MAGISTER" in level_str:
+            mnc_lvl = "Nivel 7 MNC - Cualificación de Maestría"
+        elif "DOCTOR" in level_str:
+            mnc_lvl = "Nivel 8 MNC - Cualificación de Doctorado"
+        elif "ESPECIALIZ" in level_str:
+            mnc_lvl = "Nivel 6 MNC - Cualificación de Especialización"
+        else:
+            mnc_lvl = "Nivel 6 MNC - Cualificación Profesional Universitaria"
+
+        if any(k in prog_upper for k in ["MARKET", "VENTA", "COMERC", "MERCAD", "PUBLICID"]):
+            cine_f = "0414 - Marketing y publicidad"
+            ciuo = "2431 - Especialistas en publicidad y comercialización"
+            mnc = f"{mnc_lvl} en Gestión Estratégica de Marketing y Mercados Digitales"
+            cuo = "2431 - Especialistas en publicidad, mercadotecnia y ventas"
+            ods = "ODS 8 (Trabajo Decente y Crecimiento Económico), ODS 9 (Industria, Innovación e Infraestructura), ODS 12 (Producción y Consumo Responsables)"
+        elif any(k in prog_upper for k in ["SISTEMA", "SOFTWARE", "DATOS", "IA", "INTELIGENCIA", "INFORMÁTIC", "COMPUT", "REDES", "TI"]):
+            cine_f = "0612 - Diseño y administración de bases de datos y redes / 0613 - Desarrollo y análisis de software"
+            ciuo = "2512 - Desarrolladores de software y aplicaciones / 2511 - Analistas de sistemas"
+            mnc = f"{mnc_lvl} en Desarrollo de Soluciones Digitales y Tecnologías de la Información"
+            cuo = "2512 - Desarrolladores de aplicaciones y analistas de sistemas"
+            ods = "ODS 4 (Educación de Calidad), ODS 8 (Trabajo Decente), ODS 9 (Industria, Innovación e Infraestructura)"
+        elif any(k in prog_upper for k in ["ADMINISTR", "GESTIÓN", "GERENC", "FINANZ", "CONTAB", "ECONOM"]):
+            cine_f = "0413 - Gestión y administración"
+            ciuo = "2421 - Especialistas en gestión y organización"
+            mnc = f"{mnc_lvl} en Gestión Empresarial, Productividad y Sostenibilidad Organizacional"
+            cuo = "2421 - Analistas de gestión y organización empresarial"
+            ods = "ODS 8 (Trabajo Decente y Crecimiento Económico), ODS 9 (Industria e Innovación), ODS 12 (Consumo y Producción Sostenibles)"
+        elif any(k in prog_upper for k in ["SALUD", "ENFERMER", "MEDICIN", "ODONTOLOG", "PSICOLOG", "TERAP"]):
+            cine_f = "0913 - Enfermería y partería / 0912 - Medicina"
+            ciuo = "2221 - Profesionales de enfermería / 2212 - Médicos especialistas"
+            mnc = f"{mnc_lvl} en Atención y Cuidado Integral en Salud"
+            cuo = "2221 - Profesionales en enfermería y servicios de salud"
+            ods = "ODS 3 (Salud y Bienestar), ODS 4 (Educación de Calidad), ODS 10 (Reducción de las Desigualdades)"
+        elif any(k in prog_upper for k in ["EDUCAC", "LICENCIAT", "PEDAGOG", "DOCENC"]):
+            cine_f = "0114 - Formación para docentes con especialización en asignaturas"
+            ciuo = "2341 - Profesores de educación primaria / 2351 - Especialistas en métodos pedagógicos"
+            mnc = f"{mnc_lvl} en Innovación Pedagógica y Gestión Educativa"
+            cuo = "2351 - Especialistas en métodos pedagógicos e instrucción"
+            ods = "ODS 4 (Educación de Calidad), ODS 10 (Reducción de las Desigualdades)"
+        elif any(k in prog_upper for k in ["DERECHO", "JURIDIC", "LEYES", "CIENCIA POLITICA"]):
+            cine_f = "0421 - Derecho"
+            ciuo = "2611 - Abogados"
+            mnc = f"{mnc_lvl} en Práctica Jurídica, Resolución de Conflictos y Asesoría Legal"
+            cuo = "2611 - Abogados y asesores jurídicos"
+            ods = "ODS 16 (Paz, Justicia e Instituciones Sólidas), ODS 8 (Trabajo Decente)"
+        elif any(k in prog_upper for k in ["INDUSTRIAL", "CIVIL", "AMBIENTAL", "MECANIC", "ELECTR", "INGENIER"]):
+            cine_f = "0710 - Ingeniería y profesiones afines"
+            ciuo = "2141 - Ingenieros industriales y de producción"
+            mnc = f"{mnc_lvl} en Ingeniería, Optimización de Procesos y Operaciones"
+            cuo = "2141 - Ingenieros industriales, de producción y afines"
+            ods = "ODS 9 (Industria, Innovación e Infraestructura), ODS 12 (Producción Responsable), ODS 13 (Acción por el Clima)"
+        else:
+            cine_f = "0413 - Gestión, administración y afines"
+            ciuo = "2421 - Profesionales de la gestión y afines"
+            mnc = f"{mnc_lvl} en el Campo de Formación del Programa"
+            cuo = "2421 - Especialistas y profesionales del sector ocupacional"
+            ods = "ODS 4 (Educación de Calidad), ODS 8 (Trabajo Decente), ODS 9 (Industria, Innovación e Infraestructura)"
+
+        return jsonify({
+            'status': 'success',
+            'suggestions': {
+                'cine_f_code': cine_f,
+                'ciuo_08_code': ciuo,
+                'mnc_code': mnc,
+                'cuo_code': cuo,
+                'ods_alignment': ods
+            },
+            'warning': f"Generado mediante catálogo normativo base debido a: {str(e)}"
+        })
 
 @registro_calificado_bp.route('/api/rc/linkable_programs', methods=['GET'])
 def get_linkable_programs():

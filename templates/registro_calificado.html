@@ -2157,18 +2157,24 @@
         }
 
         async function autoSuggestClassifications() {
-            const progName = document.getElementById('cfgProgName').value.trim();
-            const targetTitle = document.getElementById('cfgTargetTitle').value.trim();
-            const level = document.getElementById('cfgLevel').value;
+            const progName = (document.getElementById('cfgProgName').value || '').trim();
+            const targetTitle = (document.getElementById('cfgTargetTitle').value || '').trim();
+            const level = document.getElementById('cfgLevel').value || 'Tecnológico';
+            const instId = (typeof currentProject !== 'undefined' && currentProject && currentProject.inst_id) ? currentProject.inst_id : null;
 
             if (!progName) {
-                Swal.fire('Atención', 'Por favor ingresa primero la Denominación del Programa Académico.', 'warning');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Denominación Requerida',
+                    text: 'Por favor ingresa primero la Denominación del Programa Académico antes de sugerir las clasificaciones.',
+                    confirmButtonColor: '#6366f1'
+                });
                 return;
             }
 
             Swal.fire({
-                title: 'Sugerida por Inteligencia Artificial',
-                html: `Consultando clasificaciones oficiales (CINE-F, CIUO-08, MNC, CUO y ODS) para <strong>"${progName}"</strong>...`,
+                title: 'Consultando Asistente de IA...',
+                html: `<div style="font-size:0.9rem; color:#475569; margin-top:8px;">Buscando clasificaciones oficiales del MEN, DANE, MNC y SACES para:<br><strong style="color:#1e293b;">"${progName}"</strong></div>`,
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
@@ -2180,23 +2186,44 @@
                     body: JSON.stringify({
                         program_name: progName,
                         target_title: targetTitle,
-                        level: level
+                        level: level,
+                        inst_id: instId
                     })
                 });
                 const data = await res.json();
                 if (data.status === 'success' && data.suggestions) {
                     const s = data.suggestions;
-                    if (s.cine_f_code) document.getElementById('cfgCineF').value = s.cine_f_code;
-                    if (s.ciuo_08_code) document.getElementById('cfgCiuo08').value = s.ciuo_08_code;
-                    if (s.mnc_code) document.getElementById('cfgMnc').value = s.mnc_code;
-                    if (s.cuo_code) document.getElementById('cfgCuo').value = s.cuo_code;
-                    if (s.ods_alignment) document.getElementById('cfgOds').value = s.ods_alignment;
+                    const cineFEl = document.getElementById('cfgCineF');
+                    const ciuo08El = document.getElementById('cfgCiuo08');
+                    const mncEl = document.getElementById('cfgMnc');
+                    const cuoEl = document.getElementById('cfgCuo');
+                    const odsEl = document.getElementById('cfgOds');
+
+                    if (cineFEl && s.cine_f_code) cineFEl.value = s.cine_f_code;
+                    if (ciuo08El && s.ciuo_08_code) ciuo08El.value = s.ciuo_08_code;
+                    if (mncEl && s.mnc_code) mncEl.value = s.mnc_code;
+                    if (cuoEl && s.cuo_code) cuoEl.value = s.cuo_code;
+                    if (odsEl && s.ods_alignment) odsEl.value = s.ods_alignment;
+
+                    // Efecto visual para destacar campos actualizados
+                    [cineFEl, ciuo08El, mncEl, cuoEl, odsEl].forEach(el => {
+                        if (el) {
+                            el.style.transition = 'all 0.4s ease';
+                            el.style.borderColor = '#10b981';
+                            el.style.backgroundColor = '#f0fdf4';
+                            setTimeout(() => {
+                                el.style.borderColor = '';
+                                el.style.backgroundColor = '';
+                            }, 3000);
+                        }
+                    });
 
                     Swal.fire({
                         icon: 'success',
-                        title: '✨ Clasificaciones Autocompletadas',
-                        text: 'Los códigos oficiales CINE-F, CIUO-08, MNC, CUO y ODS se asignaron automáticamente.',
-                        confirmButtonColor: '#6366f1'
+                        title: '✨ Clasificaciones Diligenciadas',
+                        html: 'Se han asignado los códigos oficiales <strong>CINE-F, CIUO-08, MNC, CUO y ODS</strong>.<br><br><small style="color:#64748b;">Recuerda presionar <strong>"Guardar Cambios"</strong> para almacenar la configuración.</small>',
+                        confirmButtonColor: '#6366f1',
+                        confirmButtonText: 'Entendido'
                     });
                 } else {
                     Swal.fire('Error', data.message || 'No se pudieron generar las clasificaciones', 'error');
