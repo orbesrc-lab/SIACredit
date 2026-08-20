@@ -315,31 +315,101 @@ def unenroll_student_from_course(inst_id, student_id, course_id):
 
 # ==================== COURSES ====================
 
-def load_courses(inst_id, program_id=0):
-    result = _sb_load('lms_courses', {'inst_id': inst_id})
-    if result is not None:
-        if program_id and program_id != 0:
-            return [c for c in result if c.get('program_id') == program_id]
-        return result
+def _get_fallback_courses():
+    """Carga cursos de respaldo desde local_courses.json o static/default_courses.json si la DB está vacía."""
+    candidates = [
+        os.path.join(os.path.dirname(__file__), 'instance', 'local_courses.json'),
+        os.path.join(os.path.dirname(__file__), 'static', 'default_courses.json')
+    ]
+    for json_path in candidates:
+        if os.path.exists(json_path):
+            try:
+                with open(json_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    if isinstance(data, list) and data:
+                        return data
+                    elif isinstance(data, dict):
+                        return [data]
+            except Exception as e:
+                print(f"[LMS] Error reading {json_path}: {e}")
+    return []
 
-    if not program_id or program_id == 0:
-        program_id = get_default_program_id(inst_id)
-    all_c = _local_query("SELECT data FROM lms_courses WHERE inst_id=?", (inst_id,))
-    return [c for c in all_c if c.get('program_id') == program_id]
+def load_courses(inst_id, program_id=0):
+    courses = []
+    
+    # 1. Intentar cargar desde Supabase
+    try:
+        sb_res = _sb_load('lms_courses', {'inst_id': inst_id})
+        if sb_res:
+            courses = sb_res
+        else:
+            # Fallback general en Supabase si para esa institución no hay cursos específicos
+            sb_all = _sb_load('lms_courses', {})
+            if sb_all:
+                courses = sb_all
+    except Exception as e:
+        print(f"[LMS] Error loading from Supabase: {e}")
+
+    # 2. Si no hay cursos en Supabase, consultar base de datos local SQLite
+    if not courses:
+        try:
+            all_c = _local_query("SELECT data FROM lms_courses WHERE inst_id=?", (inst_id,))
+            if all_c:
+                courses = all_c
+            else:
+                all_any = _local_query("SELECT data FROM lms_courses", ())
+                if all_any:
+                    courses = all_any
+        except Exception as e:
+            print(f"[LMS] Error loading from local DB: {e}")
+
+    # 3. Si aún no hay cursos, recurrir al archivo local_courses.json
+    if not courses:
+        courses = _get_fallback_courses()
+
+    # Deduplicar por ID y título
+    unique_map = {}
+    for c in courses:
+        if isinstance(c, dict) and c.get('title'):
+            cid = c.get('id') or c.get('title')
+            if cid not in unique_map:
+                unique_map[cid] = c
+
+    deduped = list(unique_map.values())
+
+    # Filtrar por programa solo si se especificó un program_id específico distinto de 0
+    if program_id and program_id != 0:
+        filtered = [c for c in deduped if c.get('program_id') == program_id]
+        return filtered if filtered else deduped
+        
+    return deduped
 
 def load_course(course_id):
-    result = _sb_load('lms_courses', {'id': course_id})
-    if result is not None:
-        return result[0] if result else None
-    return _local_query_one("SELECT data FROM lms_courses WHERE id=?", (course_id,))
+    # 1. Supabase
+    try:
+        result = _sb_load('lms_courses', {'id': course_id})
+        if result:
+            return result[0]
+    except Exception:
+        pass
+        
+    # 2. SQLite Local
+    local_c = _local_query_one("SELECT data FROM lms_courses WHERE id=?", (course_id,))
+    if local_c:
+        return local_c
+        
+    # 3. Fallback JSON
+    for c in _get_fallback_courses():
+        if c.get('id') == course_id:
+            return c
+    return None
 
 def save_course(inst_id, program_id, course_data):
-    if not program_id or program_id == 0:
-        program_id = get_default_program_id(inst_id)
     if not course_data.get('id'):
         course_data['id'] = "c_" + generate_id()
     course_data['inst_id'] = inst_id
-    course_data['program_id'] = program_id
+    course_data['program_id'] = program_id or 0
+    
     for key in ['outcomes', 'competencies', 'units', 'meetings', 'resources']:
         if key not in course_data:
             course_data[key] = []
@@ -350,15 +420,35 @@ def save_course(inst_id, program_id, course_data):
                     u[k] = []
     cid = course_data['id']
 
-    if _sb_upsert('lms_courses', {
-        "id": cid, "inst_id": inst_id, "program_id": program_id, "data": course_data
-    }):
-        return course_data
+    # 1. Supabase
+    try:
+        _sb_upsert('lms_courses', {
+            "id": cid, "inst_id": inst_id, "program_id": program_id or 0, "data": course_data
+        })
+    except Exception as e:
+        print(f"[LMS] Warning saving to Supabase: {e}")
 
-    _local_exec(
-        "INSERT OR REPLACE INTO lms_courses (id, inst_id, program_id, data) VALUES (?,?,?,?)",
-        (cid, inst_id, program_id, json.dumps(course_data))
-    )
+    # 2. SQLite Local
+    try:
+        _local_exec(
+            "INSERT OR REPLACE INTO lms_courses (id, inst_id, program_id, data) VALUES (?,?,?,?)",
+            (cid, inst_id, program_id or 0, json.dumps(course_data, ensure_ascii=False))
+        )
+    except Exception as e:
+        print(f"[LMS] Warning saving to SQLite: {e}")
+
+    # 3. local_courses.json
+    try:
+        json_path = os.path.join(os.path.dirname(__file__), 'instance', 'local_courses.json')
+        existing = _get_fallback_courses()
+        existing = [c for c in existing if c.get('id') != cid]
+        existing.append(course_data)
+        os.makedirs(os.path.dirname(json_path), exist_ok=True)
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(existing, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"[LMS] Warning saving to local_courses.json: {e}")
+
     return course_data
 
 def delete_course(inst_id, program_id, course_id):

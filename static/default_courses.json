@@ -1,0 +1,114 @@
+[
+  {
+    "category": "Administración",
+    "certifier": "SKEL",
+    "competencies": [
+      "Implementar indicadores en el desarrollo de procesos de autoevaluacion"
+    ],
+    "description": "Descripción básica de este curso de capacitación inteligente.",
+    "duration": 40,
+    "id": "c_bc4a727f2",
+    "inst_id": 1,
+    "level": "Principiante",
+    "meetings": [
+      {
+        "date": "2026-06-03",
+        "id": "m_nc2mu",
+        "platform": "Google Meet",
+        "time": "18:00",
+        "title": "Indicadores",
+        "url": "meet.google.com/assasssasa"
+      }
+    ],
+    "outcomes": [
+      "diferenciar los indicadores",
+      "utiliza los indicadores"
+    ],
+    "program_id": 0,
+    "resources": [],
+    "teacher_id": "t_75d9c90e8",
+    "title": "Indicadores academicos",
+    "units": [
+      {
+        "activities": [
+          {
+            "description": "",
+            "due_date": "",
+            "id": "act_9a16g",
+            "title": "hacer un ensayo"
+          }
+        ],
+        "evaluations": [
+          {
+            "id": "eval_mufvj",
+            "max_grade": 5,
+            "min_grade": 3,
+            "title": "ensayo"
+          }
+        ],
+        "id": "u_zvqsr",
+        "name": "Que es un indicador",
+        "resources": [
+          {
+            "id": "r_w4j18",
+            "name": "actividad-30",
+            "url": "https://www1.funcionpublica.gov.co/web/murc/actividad-30",
+            "type": "link"
+          },
+          {
+            "id": "r_tuxnw",
+            "name": "indicadores",
+            "url": "https://www.dane.gov.co/files/planificacion/fortalecimiento/cuadernillo/Guia_construccion_interpretacion_indicadores.pdf",
+            "type": "document"
+          }
+        ],
+        "topics": [
+          "Definicion",
+          "formulacion"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Calidad y Acreditación",
+    "certifier": "SKEL",
+    "competencies": [
+      "Analizar e interpretar indicadores de autoevaluación institucional y de programas",
+      "Diseñar planes de mejoramiento basados en evidencias objetivas"
+    ],
+    "description": "Formación integral en gestión de la calidad, medición de resultados de aprendizaje, tasas de permanencia y diseño de evidencias para el CNA y Registro Calificado.",
+    "duration": 60,
+    "id": "c_78cf55273",
+    "inst_id": 1,
+    "level": "Avanzado",
+    "meetings": [],
+    "outcomes": [
+      "Construir sistemas de indicadores alineados al Acuerdo 01 de 2025 del CESU",
+      "Formular diagnósticos y matrices de autoevaluación"
+    ],
+    "program_id": 0,
+    "resources": [],
+    "title": "Diplomado en Analítica e Indicadores para la Acreditación en Alta Calidad",
+    "units": []
+  },
+  {
+    "category": "Estrategia y Mercadeo",
+    "certifier": "SKEL",
+    "competencies": [
+      "Diseñar estrategias de posicionamiento y captación para programas académicos"
+    ],
+    "description": "Estrategias modernas de marketing educativo, prospección de aspirantes y retención estudiantil.",
+    "duration": 40,
+    "id": "c_3fb20cec3",
+    "inst_id": 1,
+    "level": "Intermedio",
+    "meetings": [],
+    "outcomes": [
+      "Desarrollar planes de marketing y posicionamiento de oferta académica"
+    ],
+    "program_id": 0,
+    "resources": [],
+    "title": "Marketing Estratégico para Instituciones de Educación Superior",
+    "units": []
+  }
+]
