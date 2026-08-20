@@ -201,6 +201,28 @@
             border-color: #94a3b8;
         }
 
+        .btn-rc-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+            font-size: 0.82rem;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-rc-danger:hover {
+            background: #ef4444;
+            color: white;
+            border-color: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
         /* Top Controls: Project Picker Bar */
         .rc-toolbar {
             background: white;
@@ -842,11 +864,11 @@
                         <option value="">Cargando proyectos...</option>
                     </select>
                     <button class="btn-rc btn-rc-primary" onclick="openCreateProjectModal()"><i class="fa-solid fa-plus"></i> Nuevo Proyecto</button>
-                    <button class="btn-rc btn-rc-outline" onclick="loadProjects()" title="Recargar lista de proyectos de Supabase"><i class="fa-solid fa-rotate"></i></button>
+                    <button class="btn-rc btn-rc-outline" onclick="loadProjects()" title="Recargar lista de proyectos"><i class="fa-solid fa-arrows-rotate"></i> Actualizar</button>
                 </div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 0.82rem; color: #64748b;" id="projectSummaryLine">Cargando datos...</span>
-                    <button class="btn-rc btn-rc-outline" onclick="deleteCurrentProject()" style="color: #ef4444; border-color: #fca5a5;" title="Eliminar proyecto"><i class="fa-solid fa-trash"></i></button>
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <span style="font-size: 0.82rem; color: #64748b; font-weight: 500;" id="projectSummaryLine">Cargando datos...</span>
+                    <button class="btn-rc btn-rc-danger" onclick="deleteCurrentProject()" title="Eliminar este proyecto permanentemente"><i class="fa-solid fa-trash-can"></i> Eliminar Proyecto</button>
                 </div>
             </div>
 
@@ -2359,27 +2381,70 @@
         }
 
         async function deleteCurrentProject() {
-            if (!currentProject) return;
+            const selEl = document.getElementById('projectSelector');
+            const targetId = (currentProject && currentProject.id) ? currentProject.id : (selEl ? selEl.value : null);
+            
+            if (!targetId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atención',
+                    text: 'No hay ningún proyecto seleccionado para eliminar.',
+                    confirmButtonColor: '#6366f1'
+                });
+                return;
+            }
+
+            const targetProj = allProjects.find(p => p.id === targetId) || currentProject || {};
+            const progName = targetProj.program_name || 'este proyecto';
+
             const confirm = await Swal.fire({
                 title: '¿Eliminar este proyecto?',
-                text: `Se borrará el proyecto "${currentProject.program_name}" y sus condiciones generadas.`,
+                html: `¿Estás seguro de eliminar permanentemente el proyecto <strong>"${progName}"</strong>?<br><br><small style="color:#ef4444;">Esta acción eliminará todas las condiciones redactadas y evidencias asociadas a este programa.</small>`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
-                confirmButtonText: 'Sí, eliminar',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fa-solid fa-trash-can"></i> Sí, eliminar permanentemente',
                 cancelButtonText: 'Cancelar'
             });
 
             if (confirm.isConfirmed) {
-                await fetch(`/api/rc/projects/${currentProject.id}`, { method: 'DELETE' });
-                allProjects = allProjects.filter(p => p.id !== currentProject.id);
-                renderProjectSelect();
-                if (allProjects.length > 0) {
-                    switchProject(allProjects[0].id);
-                } else {
-                    await createDefaultProject();
+                Swal.fire({
+                    title: 'Eliminando proyecto...',
+                    text: 'Por favor espera un momento.',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                try {
+                    const res = await fetch(`/api/rc/projects/${targetId}`, { method: 'DELETE' });
+                    const data = await res.json();
+                    
+                    if (data.status === 'success') {
+                        allProjects = allProjects.filter(p => p.id !== targetId);
+                        localStorage.removeItem('rc_active_project_id');
+                        
+                        if (allProjects.length > 0) {
+                            renderProjectSelect();
+                            switchProject(allProjects[0].id);
+                        } else {
+                            await createDefaultProject();
+                        }
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Proyecto Eliminado',
+                            text: 'El proyecto fue removido exitosamente del sistema.',
+                            timer: 1800,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire('Error', data.message || 'No se pudo eliminar el proyecto', 'error');
+                    }
+                } catch (e) {
+                    console.error("Error al eliminar proyecto:", e);
+                    Swal.fire('Error', 'Ocurrió un error al procesar la eliminación con el servidor.', 'error');
                 }
-                Swal.fire('Eliminado', 'Proyecto removido correctamente.', 'success');
             }
         }
 
