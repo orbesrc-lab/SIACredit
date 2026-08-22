@@ -74,27 +74,26 @@ app.register_blueprint(registro_calificado_bp)
 @app.after_request
 def add_security_headers(response):
     response.headers['Content-Security-Policy'] = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-        "font-src 'self' data: https://fonts.gstatic.com; "
-        "connect-src 'self' https://*.supabase.co https://ftpkhueqooyqvwliifzb.supabase.co wss://*.supabase.co; "
+        "default-src 'self' data: blob: https:; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://meet.jit.si; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
+        "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+        "connect-src 'self' https://*.supabase.co https://ftpkhueqooyqvwliifzb.supabase.co wss://*.supabase.co https://*.google-analytics.com; "
         "img-src 'self' data: https: blob:; "
-        "frame-src 'self' https:; "
+        "frame-src 'self' https: data: blob:; "
         "object-src 'none';"
     )
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
     
     # Cache-Control: Permitir cacheo de recursos estáticos para acelerar navegación
     if request.path.startswith('/static/') or any(request.path.endswith(ext) for ext in ['.css', '.js', '.webp', '.png', '.jpg', '.svg', '.woff2', '.ttf']):
         response.headers['Cache-Control'] = 'public, max-age=86400, stale-while-revalidate=604800'
     else:
-        response.headers['Cache-Control'] = 'no-cache, must-revalidate'
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '-1'
+        response.headers['Expires'] = '0'
     
     return response
 
