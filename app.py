@@ -87,13 +87,16 @@ def add_security_headers(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     
-    # Cache-Control: Permitir cacheo de recursos estáticos para acelerar navegación
-    if request.path.startswith('/static/') or any(request.path.endswith(ext) for ext in ['.css', '.js', '.webp', '.png', '.jpg', '.svg', '.woff2', '.ttf']):
-        response.headers['Cache-Control'] = 'public, max-age=86400, stale-while-revalidate=604800'
-    else:
+    # Cache-Control para máximo rendimiento e inmediatez absoluta
+    if request.path.startswith('/api/'):
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
+    elif request.path.startswith('/static/') or any(request.path.endswith(ext) for ext in ['.css', '.js', '.webp', '.png', '.jpg', '.svg', '.woff2', '.ttf']):
+        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    else:
+        # Páginas HTML: Carga instantánea mediante Edge CDN con revalidación en segundo plano
+        response.headers['Cache-Control'] = 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400'
     
     return response
 
