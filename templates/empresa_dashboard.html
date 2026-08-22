@@ -417,8 +417,10 @@
                     renderInternos();
                     if (isManualReload) alert("✅ Factores Internos recargados correctamente desde la base de datos.");
                 } else {
-                    document.getElementById('listF').innerHTML = '<p style="color:#64748b; font-size:0.85rem;">No hay fortalezas. Ve a Informes y usa "Factores DOFA".</p>';
-                    document.getElementById('listD').innerHTML = '<p style="color:#64748b; font-size:0.85rem;">No hay debilidades. Ve a Informes y usa "Factores DOFA".</p>';
+                    const elF = document.getElementById('listF');
+                    const elD = document.getElementById('listD');
+                    if (elF) elF.innerHTML = '<p style="color:#64748b; font-size:0.85rem;">No hay fortalezas. Ve a Informes y usa "Factores DOFA".</p>';
+                    if (elD) elD.innerHTML = '<p style="color:#64748b; font-size:0.85rem;">No hay debilidades. Ve a Informes y usa "Factores DOFA".</p>';
                     if (isManualReload) alert("⚠️ No se encontraron factores guardados para este programa.\n\nPor favor, ve a la sección de Informes, carga un informe y presiona el botón '🛡️ Factores DOFA' para que la IA los genere y guarde.");
                 }
             } catch(e) { 
@@ -430,6 +432,7 @@
         function renderInternos() {
             const drawList = (arr, listId, colorPrefix, type) => {
                 const list = document.getElementById(listId);
+                if (!list) return;
                 list.innerHTML = '';
                 if(!arr || arr.length === 0) return;
                 arr.forEach((item, idx) => {

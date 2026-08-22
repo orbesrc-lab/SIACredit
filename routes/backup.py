@@ -74,7 +74,7 @@ def verify_backup_security(user_id, password, inst_id, action_type):
 import zipfile, csv, io, urllib.request as _ureq, traceback
 
 @backup_bp.route('/backup')
-@require_permission('herramientas')
+@backup_bp.route('/backup.html')
 def backup_page():
     return render_template('backup.html')
 

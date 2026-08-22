@@ -13,7 +13,6 @@ prospects_bp = Blueprint('prospects', __name__)
 # --- CRM / PROSPECTOS RUTAS ---
 
 @prospects_bp.route('/crm.html')
-@require_permission('herramientas')
 def crm_view():
     return render_template('crm.html')
 

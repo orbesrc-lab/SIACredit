@@ -937,6 +937,7 @@ async function cargarISO() {
         }
         function renderTree(tree) {
             const container = document.getElementById('planningTree');
+            if(!container) return;
             if(!tree || tree.length === 0) {
                 container.innerHTML = `<div style="text-align:center; padding:30px; color:#64748b;">No hay Planificación Estratégica definida.</div>`;
                 return;
