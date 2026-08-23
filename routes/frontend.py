@@ -41,78 +41,97 @@ def registro():
     return render_template('registro.html')
 
 @frontend_bp.route('/dashboard.html')
+@frontend_bp.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')
 
 @frontend_bp.route('/evidencias.html')
+@frontend_bp.route('/evidencias')
 def evidencias():
     return render_template('evidencias.html')
 
 @frontend_bp.route('/autoevaluacion.html')
+@frontend_bp.route('/autoevaluacion')
 def autoevaluacion():
     return render_template('autoevaluacion.html')
 
 @frontend_bp.route('/informes.html')
+@frontend_bp.route('/informes')
 def informes():
     return render_template('informes.html')
 
 @frontend_bp.route('/dofa.html')
+@frontend_bp.route('/dofa')
 def dofa():
     return render_template('dofa.html')
 
 @frontend_bp.route('/empresa_dashboard.html')
+@frontend_bp.route('/empresa_dashboard')
 def empresa_dashboard():
     return render_template('empresa_dashboard.html')
 
 @frontend_bp.route('/empresa_matrices.html')
+@frontend_bp.route('/empresa_matrices')
 def empresa_matrices():
     return render_template('empresa_matrices.html')
 
 @frontend_bp.route('/empresa_porter.html')
+@frontend_bp.route('/empresa_porter')
 def empresa_porter():
     return render_template('empresa_porter.html')
 
 @frontend_bp.route('/empresa_riesgos.html')
+@frontend_bp.route('/empresa_riesgos')
 def empresa_riesgos():
     return render_template('empresa_riesgos.html')
 
 @frontend_bp.route('/empresa_stakeholders.html')
+@frontend_bp.route('/empresa_stakeholders')
 def empresa_stakeholders():
     return render_template('empresa_stakeholders.html')
 
 @frontend_bp.route('/empresa_comunicacion.html')
+@frontend_bp.route('/empresa_comunicacion')
 def empresa_comunicacion():
     return render_template('empresa_comunicacion.html')
 
 @frontend_bp.route('/empresa_informe_gerencial.html')
+@frontend_bp.route('/empresa_informe_gerencial')
 def empresa_informe_gerencial():
     return render_template('empresa_informe_gerencial.html')
 
 @frontend_bp.route('/empresa_iso.html')
+@frontend_bp.route('/empresa_iso')
 def empresa_iso():
     return render_template('empresa_iso.html')
 
 @frontend_bp.route('/estadisticas.html')
+@frontend_bp.route('/estadisticas')
 def estadisticas():
     return render_template('estadisticas.html')
 
 @frontend_bp.route('/configuracion.html')
+@frontend_bp.route('/configuracion')
 def configuracion():
     return render_template('configuracion.html')
 
 @frontend_bp.route('/formacion.html')
+@frontend_bp.route('/formacion')
 def formacion():
     return render_template('formacion.html')
 
 @frontend_bp.route('/biblioteca.html')
+@frontend_bp.route('/biblioteca')
 def biblioteca():
     return render_template('biblioteca.html')
 
 @frontend_bp.route('/normatividad.html')
+@frontend_bp.route('/normatividad')
 def normatividad():
     return render_template('normatividad.html')
 
 @frontend_bp.route('/skel360.html')
+@frontend_bp.route('/skel360')
 def skel360():
     return render_template('skel360.html')
 

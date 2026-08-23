@@ -77,7 +77,7 @@
             return;
         }
 
-        if (isSuperAdmin) return; // Superadmin tiene acceso a todo lo demás
+        if (isInstAdmin) return; // Administradores y Superadmins tienen acceso completo sin restricciones ni bloqueos
 
         // 3. Aplicar permisos desde caché local en memoria/sessionStorage
         const cacheKey = `siac_perms_${user.inst_id || 1}_${user.program_id || 0}`;
