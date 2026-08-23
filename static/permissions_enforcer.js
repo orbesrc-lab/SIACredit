@@ -1,197 +1,152 @@
 /**
- * SKEL Permissions Enforcer
- * Este script se ejecuta en todas las páginas protegidas para validar permisos por rol.
+ * SKEL Permissions Enforcer (Ultra-fast con caché en sessionStorage)
+ * Valida permisos por rol inmediatamente sin retardos de red ni parpadeos.
  */
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Validar que el usuario esté logueado
-    const user = JSON.parse(localStorage.getItem('siac_user'));
-    if (!user || !user.role) {
-        return; // Probablemente en login u otra página pública
-    }
+(function() {
+    function applyPermissionsNow() {
+        const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+        if (!user || !user.role) return;
 
-    let originalRole = user.role;
-    
-    // MAPEO DE ROLES REALES (DB) A COLUMNAS DE LA MATRIZ:
-    // El rol más alto en la base de datos es 'admin' (etiquetado como Super Admin en UI).
-    // El administrador institucional es 'inst_admin' (etiquetado como Administrador en UI).
-    let mappedRole = originalRole;
-    
-    // El Super Administrador (rol 'admin' en DB) nunca pierde acceso.
-    if (mappedRole === 'admin') return; // Bypass global
+        const role = (user.role || '').toLowerCase();
+        const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'super-admin'].includes(role);
+        const isInstAdmin = isSuperAdmin || role === 'inst_admin';
 
-    // 2. Mapeo de páginas (URLs) a módulos de permisos
-    const pageToModuleMap = {
-        // Autoevaluación & Estadísticas Globales
-        'dashboard.html': 'autoevaluacion',
-        'autoevaluacion.html': 'autoevaluacion',
-        'evidencias.html': 'autoevaluacion',
-        'evidencias_mod.html': 'autoevaluacion',
-        'encuestas.html': 'autoevaluacion',
-        'estadisticas.html': 'autoevaluacion',
-        
-        // Informes Institucionales & PDF
-        'informes.html': 'informes',
-        'dofa.html': 'informes',
-        
-        // Planificación Estratégica & PDI
-        'planificacion.html': 'planificacion',
-        
-        // Hub Estratégico B2B
-        'empresa_dashboard.html': 'hub_estrategico',
-        'empresa_informe_gerencial.html': 'hub_estrategico',
-        'empresa_matrices.html': 'hub_estrategico',
-        'empresa_porter.html': 'hub_estrategico',
-        'empresa_riesgos.html': 'hub_estrategico',
-        'empresa_stakeholders.html': 'hub_estrategico',
-        'empresa_comunicacion.html': 'hub_estrategico',
-        'empresa_dofa.html': 'hub_estrategico',
-        'empresa_bcg.html': 'hub_estrategico',
-        
-        // Sistema ISO 9001
-        'empresa_iso.html': 'iso9001',
-        
-        // Módulo de Capacitación & Cursos
-        'formacion.html': 'capacitacion',
-        'curso_reporte.html': 'capacitacion',
-        
-        // Herramientas Gerenciales
-        'biblioteca.html': 'herramientas',
-        'crm.html': 'herramientas',
-        'backup.html': 'herramientas',
+        // 1. Mostrar de inmediato enlaces exclusivos de SuperAdmin / Admin
+        const rcLinks = document.querySelectorAll('.superadmin-rc-link, #menuRegistroCalificado');
+        rcLinks.forEach(el => {
+            el.style.display = isSuperAdmin ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
+        });
 
-        // SKEL HC 360 - Evaluación de Capital Humano
-        'skel360.html': 'skel_hc360',
-        'skel_empresa_dashboard.html': 'skel_hc360',
-        'skel_diccionario.html': 'skel_hc360',
-        'skel_evaluar.html': 'skel_hc360',
-        'skel_empresa_plan_formacion.html': 'skel_hc360',
-        'skel_empresa_resultados.html': 'skel_hc360',
-        'reporte_individual_360.html': 'skel_hc360',
-        'skel360_portal.html': 'skel_hc360',
-        
-        // Configuración - Usualmente solo admin/superadmin, pero lo manejamos
-        'configuracion.html': 'configuracion',
-        'normatividad.html': 'autoevaluacion',
-        'registro_calificado.html': 'registro_calificado'
-    };
+        const crmLinks = document.querySelectorAll('#menuCrm');
+        crmLinks.forEach(el => {
+            el.style.display = isInstAdmin ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
+        });
 
-    // 3. Obtener página actual
-    let currentPage = window.location.pathname.split('/').pop();
-    if (!currentPage || currentPage === '') currentPage = 'dashboard.html';
+        const backupLinks = document.querySelectorAll('#menuBackup');
+        backupLinks.forEach(el => {
+            el.style.display = isInstAdmin ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
+        });
 
-    // REGLA ESTRICTA SUPERADMIN: Módulo exclusivo de Registro Calificado
-    if (currentPage === 'registro_calificado.html') {
-        const isSuper = ['admin', 'superadmin', 'super_admin'].includes((user.role || '').toLowerCase());
-        if (!isSuper) {
-            if (typeof Swal !== 'undefined') {
-                await Swal.fire({
-                    icon: 'warning',
-                    title: 'Acceso Exclusivo',
-                    text: 'El módulo de Registro Calificado está reservado exclusivamente para el Superadministrador.',
-                    confirmButtonColor: '#3b82f6'
-                });
-            } else {
-                alert('Acceso Exclusivo: El módulo de Registro Calificado está reservado exclusivamente para el Superadministrador.');
-            }
+        // 2. Mapeo de páginas a módulos
+        const pageToModuleMap = {
+            'dashboard.html': 'autoevaluacion',
+            'autoevaluacion.html': 'autoevaluacion',
+            'evidencias.html': 'autoevaluacion',
+            'evidencias_mod.html': 'autoevaluacion',
+            'encuestas.html': 'autoevaluacion',
+            'estadisticas.html': 'autoevaluacion',
+            'informes.html': 'informes',
+            'dofa.html': 'informes',
+            'planificacion.html': 'planificacion',
+            'empresa_dashboard.html': 'hub_estrategico',
+            'empresa_informe_gerencial.html': 'hub_estrategico',
+            'empresa_matrices.html': 'hub_estrategico',
+            'empresa_porter.html': 'hub_estrategico',
+            'empresa_riesgos.html': 'hub_estrategico',
+            'empresa_stakeholders.html': 'hub_estrategico',
+            'empresa_comunicacion.html': 'hub_estrategico',
+            'empresa_dofa.html': 'hub_estrategico',
+            'empresa_bcg.html': 'hub_estrategico',
+            'empresa_iso.html': 'iso9001',
+            'formacion.html': 'capacitacion',
+            'curso_reporte.html': 'capacitacion',
+            'biblioteca.html': 'herramientas',
+            'crm.html': 'herramientas',
+            'backup.html': 'herramientas',
+            'skel360.html': 'skel_hc360',
+            'skel_empresa_dashboard.html': 'skel_hc360',
+            'skel_diccionario.html': 'skel_hc360',
+            'skel_evaluar.html': 'skel_hc360',
+            'skel_empresa_plan_formacion.html': 'skel_hc360',
+            'skel_empresa_resultados.html': 'skel_hc360',
+            'reporte_individual_360.html': 'skel_hc360',
+            'skel360_portal.html': 'skel_hc360',
+            'configuracion.html': 'configuracion',
+            'normatividad.html': 'autoevaluacion',
+            'registro_calificado.html': 'registro_calificado'
+        };
+
+        let currentPage = window.location.pathname.split('/').pop();
+        if (!currentPage || currentPage === '') currentPage = 'dashboard.html';
+
+        // Protección específica para Registro Calificado
+        if (currentPage === 'registro_calificado.html' && !isSuperAdmin) {
+            alert('Acceso Exclusivo: El módulo de Registro Calificado está reservado exclusivamente para el Superadministrador.');
             window.location.href = '/dashboard.html';
             return;
         }
-        return; // Superadmin autorizada
-    }
 
-    try {
-        const instId = user.inst_id || 1;
-        const progId = user.program_id || 0;
+        if (isSuperAdmin) return; // Superadmin tiene acceso a todo lo demás
+
+        // 3. Aplicar permisos desde caché local en memoria/sessionStorage
+        const cacheKey = `siac_perms_${user.inst_id || 1}_${user.program_id || 0}`;
+        const cached = sessionStorage.getItem(cacheKey);
         
-        // Evitamos múltiples llamadas en cache si es posible (aunque fetch es rapido localmente)
-        const res = await fetch(`/api/permissions/form?inst_id=${instId}&program_id=${progId}`);
-        const data = await res.json();
-        
-        if (data.status === 'success' && data.permissions) {
-            const perms = data.permissions;
-            
-            // 4. VERIFICAR ACCESO A LA PÁGINA ACTUAL
+        function enforcePerms(perms) {
+            if (!perms) return;
             const requiredModule = pageToModuleMap[currentPage];
-            
-            // Configuración se gestiona internamente por applyRoleScoping en configuracion.html
-            if (currentPage === 'configuracion.html' || requiredModule === 'configuracion') {
-                return;
-            }
-
-            // Regla para Herramientas Gerenciales
-            if (['biblioteca.html', 'crm.html', 'backup.html'].includes(currentPage) || requiredModule === 'herramientas') {
-                if (!['admin', 'superadmin', 'super_admin', 'inst_admin', 'lider', 'consultor'].includes(mappedRole)) {
-                    if (typeof Swal !== 'undefined') {
-                        await Swal.fire({
-                            icon: 'error',
-                            title: 'Acceso Denegado',
-                            text: 'El módulo de Herramientas Gerenciales es de uso exclusivo para Administradores.',
-                            confirmButtonColor: '#3b82f6'
-                        });
-                    } else {
-                        alert('Acceso Denegado: El módulo de Herramientas Gerenciales es de uso exclusivo para Administradores.');
-                    }
-                    window.location.href = '/dashboard.html';
-                    return;
-                }
-            }
 
             if (requiredModule && !['configuracion', 'herramientas'].includes(requiredModule) && perms[requiredModule]) {
-                if (!perms[requiredModule].includes(mappedRole)) {
-                    // BLOQUEADO - Redirigir al dashboard si no es dashboard, sino alertar.
+                if (!perms[requiredModule].includes(role)) {
                     if (currentPage !== 'dashboard.html') {
-                        if (typeof Swal !== 'undefined') {
-                            await Swal.fire({
-                                icon: 'error',
-                                title: 'Acceso Denegado',
-                                text: 'Tu rol no tiene permisos para acceder a este módulo.',
-                                confirmButtonColor: '#3b82f6'
-                            });
-                        } else {
-                            alert('Acceso Denegado: Tu rol no tiene permisos para acceder a este módulo.');
-                        }
+                        alert('Acceso Denegado: Tu rol no tiene permisos para acceder a este módulo.');
                         window.location.href = '/dashboard.html';
-                        return; // Detener ejecución
+                        return;
                     }
                 }
             }
-            
-            // 5. OCULTAR ENLACES Y MÓDULOS EN EL MENÚ LATERAL (SIDEBAR)
-            const isAdmin = ['admin', 'superadmin', 'super_admin', 'inst_admin'].includes(mappedRole);
-            
-            const sidebarLinks = document.querySelectorAll('.sidebar-menu a, .sidebar-item, a[href="configuracion.html"], a[href="backup.html"], a[href="crm.html"], a[href="biblioteca.html"]');
+
+            // Ocultar enlaces no permitidos
+            const sidebarLinks = document.querySelectorAll('.sidebar-menu a, .sidebar-item');
             sidebarLinks.forEach(link => {
                 const href = link.getAttribute('href');
                 if (href) {
                     const linkPage = href.split('/').pop();
                     const linkModule = pageToModuleMap[linkPage];
-                    
-                    if (['configuracion.html', 'biblioteca.html', 'crm.html', 'backup.html'].includes(linkPage) || linkModule === 'configuracion' || linkModule === 'herramientas') {
-                        if (!isAdmin) {
-                            link.style.display = 'none';
-                            link.classList.add('permission-hidden');
-                        }
-                    } else if (linkModule && perms[linkModule]) {
-                        if (!perms[linkModule].includes(mappedRole)) {
-                            // Ocultar el enlace (display: none)
-                            link.style.display = 'none';
-                            link.classList.add('permission-hidden');
-                        }
+                    if (linkModule && perms[linkModule] && !perms[linkModule].includes(role)) {
+                        link.style.display = 'none';
+                        link.classList.add('permission-hidden');
                     }
                 }
             });
-            
-            // 6. LIMPIAR SIDEBAR GROUPS VACÍOS
-            const sidebarGroups = document.querySelectorAll('.sidebar-group');
-            sidebarGroups.forEach(group => {
+
+            // Limpiar grupos vacíos
+            document.querySelectorAll('.sidebar-group').forEach(group => {
                 const visibleLinks = group.querySelectorAll('.sidebar-submenu a:not(.permission-hidden)');
                 if (group.querySelector('.sidebar-submenu') && visibleLinks.length === 0) {
                     group.style.display = 'none';
                 }
             });
         }
-    } catch (error) {
-        console.error("Error validando permisos de acceso:", error);
+
+        if (cached) {
+            try {
+                enforcePerms(JSON.parse(cached));
+            } catch(e) {}
+        }
+
+        // Actualizar caché en segundo plano sin bloquear la interfaz
+        const lastFetch = sessionStorage.getItem(cacheKey + '_time');
+        const now = Date.now();
+        if (!cached || !lastFetch || (now - parseInt(lastFetch)) > 300000) { // 5 min
+            fetch(`/api/permissions/form?inst_id=${user.inst_id || 1}&program_id=${user.program_id || 0}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success' && data.permissions) {
+                        sessionStorage.setItem(cacheKey, JSON.stringify(data.permissions));
+                        sessionStorage.setItem(cacheKey + '_time', String(now));
+                        enforcePerms(data.permissions);
+                    }
+                })
+                .catch(() => {});
+        }
     }
-});
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', applyPermissionsNow);
+    } else {
+        applyPermissionsNow();
+    }
+})();
+

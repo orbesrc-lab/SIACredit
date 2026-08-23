@@ -1,13 +1,8 @@
-// ── Anti-flash: aplicar tema antes de que cargue el CSS para evitar parpadeo ──
+// ── Anti-flash optimizado: aplicar tema inmediatamente sin bloquear visibilidad ──
 (function(){
-    var h=document.documentElement;
-    var t=localStorage.getItem('siac_theme');
-    h.style.background=(t==='default')?'#f8fafc':'#0f172a';
-    h.style.visibility='hidden';
-    document.addEventListener('DOMContentLoaded',function(){
-        h.style.visibility='';
-        h.style.background='';
-    });
+    var t = localStorage.getItem('siac_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    document.documentElement.style.backgroundColor = (t === 'default' || t === 'light') ? '#f8fafc' : '#0f172a';
 })();
 
 // Global authentication check
