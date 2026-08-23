@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 alert('Acceso Exclusivo: El módulo de Registro Calificado está reservado exclusivamente para el Superadministrador.');
             }
-            window.location.href = 'dashboard.html';
+            window.location.href = '/dashboard.html';
             return;
         }
         return; // Superadmin autorizada
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     } else {
                         alert('Acceso Denegado: El módulo de Herramientas Gerenciales es de uso exclusivo para Administradores.');
                     }
-                    window.location.href = 'dashboard.html';
+                    window.location.href = '/dashboard.html';
                     return;
                 }
             }
@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         } else {
                             alert('Acceso Denegado: Tu rol no tiene permisos para acceder a este módulo.');
                         }
-                        window.location.href = 'dashboard.html';
+                        window.location.href = '/dashboard.html';
                         return; // Detener ejecución
                     }
                 }

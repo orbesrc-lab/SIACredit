@@ -134,8 +134,10 @@ def extract_text_from_file(file_path, filename):
 # ==========================================
 
 @registro_calificado_bp.route('/registro_calificado.html')
+@registro_calificado_bp.route('/registro_calificado')
 def registro_calificado_page():
     return render_template('registro_calificado.html')
+
 
 @registro_calificado_bp.route('/api/rc/projects', methods=['GET'])
 def list_projects():

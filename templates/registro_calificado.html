@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro Calificado - Documento Maestro IA | SIAC</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -865,15 +865,15 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
-    <script src="{{ url_for('static', filename='permissions_enforcer.js') }}"></script>
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script src="/static/app.js"></script>
+    <script src="/static/permissions_enforcer.js"></script>
 </head>
 <body>
     <div class="rc-container">
         <!-- Sidebar Navigation (Matching SIAC layout) -->
         <aside class="sidebar">
             <div class="sidebar-header" style="justify-content: center; padding: 20px 15px;">
-                <img src="{{ url_for('static', filename='logo_skel.png') }}" alt="SKEL Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
+                <img src="/static/logo_skel.png" alt="SKEL Logo" style="max-height: 60px; max-width: 100%; object-fit: contain;">
             </div>
             <div class="sidebar-menu" id="accordionSidebar">
                 <!-- Autoevaluación global -->
