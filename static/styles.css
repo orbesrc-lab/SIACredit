@@ -1,10 +1,12 @@
-/* ─── Soporte de tema dinámico (Claro por defecto / Oscuro configurable) ─── */
+/* ─── Marco exterior de la aplicación: Azul Oscuro SKEL (#0f172a) ─── */
 html {
+    background: #0f172a !important;
+    background-color: #0f172a !important;
     color-scheme: light dark;
 }
 
 :root {
-    /* Premium Variables (Light Theme / Blanco por defecto) */
+    /* Variables de diseño SKEL (Zona de trabajo) */
     --primary-color: #2563eb; /* Royal Blue */
     --primary-hover: #1e40af; /* Deep Blue */
     --secondary-color: #3b82f6; /* Bright Blue */
@@ -42,17 +44,15 @@ html {
     --radius-xl: 24px;
 }
 [data-theme="dark"] {
-    --primary-color: #3b82f6; /* Slate blue accent */
+    --primary-color: #3b82f6;
     --primary-hover: #2563eb;
     --secondary-color: #60a5fa;
-    --secondary-bg: #0f172a; /* Deep background dark blue */
+    --secondary-bg: #0f172a;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
     --border-color: #334155;
-    --white: #1e293b; /* Card background */
+    --white: #1e293b;
     --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-    
-    /* Premium Slate Blue Gradients for body/workspace */
     --premium-gradient-1: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     --premium-gradient-2: radial-gradient(circle at top right, #1e293b, transparent 50%),
                           radial-gradient(circle at bottom left, #0f172a, transparent 50%);
@@ -71,7 +71,8 @@ html {
 body {
     font-family: var(--font-main);
     color: var(--text-main);
-    background-color: #f1f5f9;
+    background: #0f172a !important;
+    background-color: #0f172a !important;
     line-height: 1.6;
     overflow: hidden;
     display: flex;
@@ -81,18 +82,14 @@ body {
     height: 100vh;
 }
 
-[data-theme="dark"] body {
-    background-color: #0b1121;
-}
-
-/* Base Layout (Dashboard - Contenedor Principal con Azul Oscuro SKEL) */
+/* Contenedor Principal (Dashboard y Vistas de Trabajo) */
 .dashboard-container {
     width: 100%;
     max-width: 1800px;
     height: calc(100vh - 40px);
-    background: #0f172a;
+    background: var(--secondary-bg);
     border-radius: 24px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     display: flex;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.08);

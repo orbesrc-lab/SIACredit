@@ -50,6 +50,11 @@ def dashboard():
 def evidencias():
     return render_template('evidencias.html')
 
+@frontend_bp.route('/evidencias_mod.html')
+@frontend_bp.route('/evidencias_mod')
+def evidencias_mod():
+    return render_template('evidencias_mod.html')
+
 @frontend_bp.route('/autoevaluacion.html')
 @frontend_bp.route('/autoevaluacion')
 def autoevaluacion():
