@@ -141,31 +141,44 @@ def skel360():
     return render_template('skel360.html')
 
 @frontend_bp.route('/skel360_portal.html')
+@frontend_bp.route('/skel360_portal')
 def skel360_portal():
     return render_template('skel360_portal.html')
 
 @frontend_bp.route('/skel360/diccionario')
+@frontend_bp.route('/skel_diccionario.html')
+@frontend_bp.route('/skel_diccionario')
 def skel360_diccionario():
     return render_template('skel_diccionario.html')
 
 @frontend_bp.route('/skel360/empresa/<id>')
-def skel360_empresa(id):
+@frontend_bp.route('/skel_empresa_dashboard.html')
+@frontend_bp.route('/skel_empresa_dashboard')
+def skel360_empresa(id=None):
     return render_template('skel_empresa_dashboard.html', empresa_id=id)
 
 @frontend_bp.route('/skel360/empresa/<empresa_id>/resultados')
-def skel_empresa_resultados(empresa_id):
+@frontend_bp.route('/skel_empresa_resultados.html')
+@frontend_bp.route('/skel_empresa_resultados')
+def skel_empresa_resultados(empresa_id=None):
     return render_template('skel_empresa_resultados.html', empresa_id=empresa_id)
 
 @frontend_bp.route('/evaluar')
+@frontend_bp.route('/skel_evaluar.html')
+@frontend_bp.route('/skel_evaluar')
 def evaluar_publico():
     return render_template('skel_evaluar.html')
 
 @frontend_bp.route('/skel360/reporte/individual')
+@frontend_bp.route('/reporte_individual_360.html')
+@frontend_bp.route('/reporte_individual_360')
 def skel360_reporte_individual():
     return render_template('reporte_individual_360.html')
 
 @frontend_bp.route('/skel360/empresa/<empresa_id>/plan-formacion')
-def skel_empresa_plan_formacion(empresa_id):
+@frontend_bp.route('/skel_empresa_plan_formacion.html')
+@frontend_bp.route('/skel_empresa_plan_formacion')
+def skel_empresa_plan_formacion(empresa_id=None):
     return render_template('skel_empresa_plan_formacion.html', empresa_id=empresa_id)
 
 @frontend_bp.route('/registro_calificado.html')

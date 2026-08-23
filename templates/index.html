@@ -26,7 +26,7 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}?v=2.1">
     <link rel="stylesheet" href="{{ url_for('static', filename='chatbot.css') }}?v=1.0">
-<script src="/static/app.js"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 <body class="{{ theme + '-theme' if theme and theme != 'dark' else '' }}">
 
