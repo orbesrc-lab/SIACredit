@@ -5,11 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import json
 import urllib.request
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
-from supabase import create_client, Client
 from openai import OpenAI
 import survey_storage
 import formacion_storage
@@ -95,35 +91,15 @@ def add_security_headers(response):
     elif request.path.startswith('/static/') or any(request.path.endswith(ext) for ext in ['.css', '.js', '.webp', '.png', '.jpg', '.svg', '.woff2', '.ttf']):
         response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
     else:
-        # Páginas HTML: Carga instantánea mediante Edge CDN con revalidación en segundo plano
-        response.headers['Cache-Control'] = 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400'
+        # Páginas HTML: no cachear en CDN para evitar servir respuestas con errores
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
 
     return response
 
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-
-
-def get_active_inst_id(requested_id=None):
-    try:
-        if requested_id:
-            check = supabase.table('institution').select("id").eq("id", requested_id).execute()
-            if check.data:
-                return requested_id
-        
-        # Si no existe, buscamos la primera institución real disponible
-        res = supabase.table('institution').select("id").limit(1).execute()
-        if res.data:
-            return res.data[0]['id']
-    except Exception as e:
-        print(f"Error resolving inst_id: {e}")
-    return requested_id or 1
-
-# Inicializar Cliente Supabase
-url: str = os.getenv("SUPABASE_URL")
-key: str = os.getenv("SUPABASE_KEY")
-supabase: Client = create_client(url, key)
+# El cliente Supabase se importa desde utils.db (ya inicializado ahí)
+from utils.db import supabase, get_active_inst_id
 
 # Nota: Las configuraciones se leen bajo demanda sin bloquear el arranque serverless
 

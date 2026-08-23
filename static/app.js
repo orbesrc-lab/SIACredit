@@ -503,4 +503,67 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     } catch(e) {}
+
+    // ── Prefetch inteligente de páginas del sidebar ──
+    // Al hacer hover sobre un link del sidebar, se precarga la página
+    // en background para que el cambio de módulo sea instantáneo.
+    try {
+        const prefetched = new Set();
+        const HTML_PAGES = [
+            'dashboard.html','autoevaluacion.html','evidencias.html','encuestas.html',
+            'estadisticas.html','informes.html','dofa.html','planificacion.html',
+            'biblioteca.html','configuracion.html','normatividad.html','formacion.html',
+            'skel360.html','empresa_dashboard.html','crm.html','backup.html'
+        ];
+
+        function prefetchPage(href) {
+            if (!href || prefetched.has(href)) return;
+            const page = href.split('/').pop();
+            if (!HTML_PAGES.includes(page)) return;
+            prefetched.add(href);
+            const link = document.createElement('link');
+            link.rel = 'prefetch';
+            link.href = href;
+            link.as = 'document';
+            document.head.appendChild(link);
+        }
+
+        // Prefetch al hover con delay de 100ms para evitar prefetches innecesarios
+        document.querySelectorAll('.sidebar-item[href]').forEach(a => {
+            let timer;
+            a.addEventListener('mouseenter', () => {
+                timer = setTimeout(() => prefetchPage(a.getAttribute('href')), 100);
+            });
+            a.addEventListener('mouseleave', () => {
+                clearTimeout(timer);
+            });
+        });
+
+        // Prefetch proactivo: al cargar la página, precarga las páginas más comunes
+        setTimeout(() => {
+            ['dashboard.html','autoevaluacion.html','evidencias.html'].forEach(p => {
+                prefetchPage('/' + p);
+            });
+        }, 2000); // Espera 2s para no competir con recursos críticos
+
+    } catch(e) {}
+
+    // ── Transición de salida suave al navegar ──
+    // Aplica una animación de fade-out antes de cambiar de página
+    // para que la navegación se sienta más fluida.
+    try {
+        document.querySelectorAll('.sidebar-item[href]').forEach(a => {
+            a.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (!href || href.startsWith('javascript') || href.startsWith('#')) return;
+                // Solo aplicar a páginas del mismo dominio
+                if (href.startsWith('http') && !href.includes(window.location.hostname)) return;
+                e.preventDefault();
+                document.body.style.transition = 'opacity 0.15s ease';
+                document.body.style.opacity = '0';
+                setTimeout(() => { window.location.href = href; }, 150);
+            });
+        });
+    } catch(e) {}
+
 });
