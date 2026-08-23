@@ -1,11 +1,10 @@
-/* ─── Anti-Flash: fondo inmediato antes de que cualquier script o CSS externo cargue ─── */
+/* ─── Soporte de tema dinámico (Claro por defecto / Oscuro configurable) ─── */
 html {
-    background: #0f172a;
-    color-scheme: dark;
+    color-scheme: light dark;
 }
 
 :root {
-    /* Premium Variables */
+    /* Premium Variables (Light Theme / Blanco por defecto) */
     --primary-color: #2563eb; /* Royal Blue */
     --primary-hover: #1e40af; /* Deep Blue */
     --secondary-color: #3b82f6; /* Bright Blue */
@@ -63,7 +62,6 @@ html {
     --glass-border: rgba(255, 255, 255, 0.05);
 }
 
-
 * {
     margin: 0;
     padding: 0;
@@ -73,9 +71,8 @@ html {
 body {
     font-family: var(--font-main);
     color: var(--text-main);
+    background-color: var(--secondary-bg);
     line-height: 1.6;
-    background: #0f172a !important;
-    background-color: #0f172a !important;
     overflow: hidden;
     display: flex;
     justify-content: center;

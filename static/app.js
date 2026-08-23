@@ -1,8 +1,7 @@
-// ── Fondo nativo azul oscuro de SKEL (#0f172a) ──
+// ── Soporte dinámico de tema (Claro por defecto / Oscuro configurable) ──
 (function(){
-    document.documentElement.setAttribute('data-theme', 'dark');
-    document.documentElement.style.backgroundColor = '#0f172a';
-    if (document.body) document.body.style.backgroundColor = '#0f172a';
+    var savedTheme = localStorage.getItem('siac_theme') || 'default';
+    document.documentElement.setAttribute('data-theme', savedTheme);
 })();
 
 // Global authentication check
