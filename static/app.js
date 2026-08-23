@@ -1,16 +1,15 @@
-// ── Anti-flash optimizado: aplicar tema inmediatamente sin bloquear visibilidad ──
+// ── Fondo nativo azul oscuro de SKEL (#0f172a) ──
 (function(){
-    var t = localStorage.getItem('siac_theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', t);
-    document.documentElement.style.backgroundColor = (t === 'default' || t === 'light') ? '#f8fafc' : '#0f172a';
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.style.backgroundColor = '#0f172a';
+    if (document.body) document.body.style.backgroundColor = '#0f172a';
 })();
 
 // Global authentication check
-
 (function() {
     const path = window.location.pathname.toLowerCase();
     const isPublic = path.includes('index.html') || path.includes('login.html') || path.includes('registro.html') || path.endsWith('/');
-    const user = JSON.parse(localStorage.getItem('siac_user'));
+    const user = JSON.parse(localStorage.getItem('siac_user') || 'null');
     if (!user && !isPublic) {
         window.location.href = 'login.html';
     }
@@ -18,37 +17,26 @@
 
 // Funciones Globales de Identificación
 function getInstId() {
-    const user = JSON.parse(localStorage.getItem('siac_user'));
-    return user ? (user.inst_id || 1) : 1;
+    const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    return user.inst_id || 1;
 }
 
 function getProgramId() {
-    const user = JSON.parse(localStorage.getItem('siac_user'));
-    return user ? (user.program_id || 0) : 0;
+    const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    return user.program_id || 0;
 }
 
 /**
  * authFetch — Wrapper autenticado sobre fetch().
- * Agrega automáticamente el header X-User-Id para que el servidor
- * pueda validar permisos por rol (server-side).
- *
- * Uso: reemplazar fetch(...) por authFetch(...) en endpoints protegidos.
- *
- * @param {string} url - URL del endpoint
- * @param {object} options - Opciones de fetch (method, body, headers, etc.)
- * @returns {Promise<Response>}
  */
 function authFetch(url, options = {}) {
     const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
     const method = ((options && options.method) || 'GET').toUpperCase();
-
     const isFormData = options.body instanceof FormData;
     const headers = {
         ...(!isFormData && method !== 'GET' ? {'Content-Type': 'application/json'} : {}),
         ...((options && options.headers) || {}),
     };
-    
-    // Obtener identificador de usuario tolerante a id, user_id o email
     const userId = user.id || user.user_id || user.email || localStorage.getItem('user_id') || '1';
     if (userId) {
         headers['X-User-Id'] = String(userId);
@@ -56,159 +44,66 @@ function authFetch(url, options = {}) {
     return fetch(url, { ...options, headers });
 }
 
+// Inicialización de Menú y Permisos Rápida
+function initFastSidebar() {
+    const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
+    if (!user || !user.role) return;
 
-// Redirección de Accesos y Roles
-(function() {
-    try {
-        const user = JSON.parse(localStorage.getItem('siac_user'));
-        if (user) {
-            const path = window.location.pathname.toLowerCase();
-            const isAdmin = (user.role === 'admin' || user.role === 'superadmin' || user.role === 'inst_admin');
+    const role = (user.role || '').toLowerCase();
+    const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'super-admin'].includes(role);
+    const isInstAdmin = isSuperAdmin || role === 'inst_admin';
+    const isDocenteEst = (role === 'estudiante' || role === 'profesor');
 
-            // 1. Evitar que estudiantes y profesores accedan a páginas administrativas
-            if (user.role === 'estudiante' || user.role === 'profesor') {
-                if (!path.includes('formacion.html') && !path.includes('login') && !path.includes('registro') && path !== '/' && !path.includes('index.html')) {
-                    window.location.href = 'formacion.html';
-                    return;
-                }
+    // Registro Calificado
+    document.querySelectorAll('.superadmin-rc-link, #menuRegistroCalificado').forEach(el => {
+        el.style.display = isSuperAdmin ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
+        if (window.location.pathname.includes('registro_calificado')) el.classList.add('active');
+    });
+
+    // CRM B2B y Backup
+    document.querySelectorAll('#menuCrm').forEach(el => {
+        el.style.display = isInstAdmin ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
+    });
+    document.querySelectorAll('#menuBackup').forEach(el => {
+        el.style.display = isInstAdmin ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
+    });
+    document.querySelectorAll('#menuConsultoriaB2B').forEach(el => {
+        el.style.display = isInstAdmin ? 'block' : 'none';
+    });
+
+    // Formación / Capacitación
+    document.querySelectorAll('#menuCapacitacion, a[href*="formacion.html"]').forEach(el => {
+        el.style.display = (isInstAdmin || isDocenteEst) ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
+        if (window.location.pathname.includes('formacion')) el.classList.add('active');
+    });
+
+    // Restricciones específicas para Estudiantes / Profesores
+    if (isDocenteEst) {
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            const href = (item.getAttribute('href') || '').toLowerCase();
+            const text = item.textContent.toLowerCase();
+            if (!href.includes('formacion') && !text.includes('formaci') && !text.includes('cerrar')) {
+                item.style.display = 'none';
             }
-
-            // 2. Proteger exclusivamente los módulos DOFA e INFORMES para administradores
-            if (path.includes('dofa.html') || path.includes('informes.html')) {
-                if (!isAdmin) {
-                    alert('Acceso denegado. Este módulo es de uso exclusivo para Administradores de la plataforma.');
-                    window.location.href = 'dashboard.html';
-                    return;
-                }
-            }
-
-            // 3. Ocultar del menú lateral si es un rol restringido
-            document.addEventListener("DOMContentLoaded", () => {
-                const restrictedRoles = ['estudiante', 'profesor', 'operativo', 'lider', 'coordinador'];
-                if (restrictedRoles.includes((user.role || '').toLowerCase())) {
-                    const menuInformes = document.querySelector('a[href="informes.html"]');
-                    const menuDofa = document.querySelector('a[href="dofa.html"]');
-                    if (menuInformes) menuInformes.style.display = 'none';
-                    if (menuDofa) menuDofa.style.display = 'none';
-                }
-            });
-        }
-    } catch (e) {
-        console.error("Error in role check:", e);
+        });
     }
-})();
 
-// Cargar tema al iniciar
-(function() {
-    const savedTheme = localStorage.getItem('siac_theme') || 'default';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-})();
+    // Ocultar grupos del acordeón vacíos
+    document.querySelectorAll('.sidebar-group').forEach(group => {
+        const visible = Array.from(group.querySelectorAll('.sidebar-submenu a, .sidebar-item')).some(a => a.style.display !== 'none');
+        if (!visible && group.querySelector('.sidebar-submenu')) {
+            group.style.display = 'none';
+        }
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFastSidebar);
+} else {
+    initFastSidebar();
+}
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Theme Toggle Handler
-    const themeToggle = document.getElementById('themeToggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'default' : 'dark';
-            document.documentElement.setAttribute('data-theme', currentTheme);
-            localStorage.setItem('siac_theme', currentTheme);
-        });
-    }
-
-    // Control de visibilidad por roles en el menú
-    const user = JSON.parse(localStorage.getItem('siac_user'));
-
-    if (user && user.role) {
-        const role = user.role.toLowerCase();
-        const menuItems = document.querySelectorAll('.sidebar-item');
-        
-        menuItems.forEach(item => {
-            const text = item.textContent.toLowerCase();
-            
-            // Ocultar Formación para cualquier rol excepto super-admin, profesor y estudiante
-            if (role !== 'admin' && role !== 'profesor' && role !== 'estudiante' && role !== 'superadmin' && role !== 'super-admin') {
-                if (text.includes('formacion') || text.includes('formación')) {
-                    item.style.display = 'none';
-                }
-            }
-            
-            // Ocultar Informes y DOFA para cualquier rol que no sea admin
-            if (role !== 'admin' && role !== 'super-admin' && role !== 'superadmin' && role !== 'inst_admin') {
-                if (text.includes('informes') || text.includes('dofa')) {
-                    item.style.display = 'none';
-                }
-            }
-            
-            if (role === 'operativo') {
-                // El operativo solo ve Dashboard, Evidencias y Cerrar Sesión
-                if (!text.includes('dashboard') && !text.includes('evidencias') && !text.includes('cerrar')) {
-                    item.style.display = 'none';
-                }
-            } else if (role === 'estudiante' || role === 'profesor') {
-                // El estudiante/profesor solo debe ver Formación y Cerrar Sesión en el menú
-                if (!text.includes('cerrar') && !text.includes('formacion') && !text.includes('formación')) {
-                    item.style.display = 'none';
-                }
-            } else if (role === 'lider') {
-                // El líder ve todo menos Configuración
-                if (text.includes('configuracion') || text.includes('configuración')) {
-                    item.style.display = 'none';
-                }
-            }
-        });
-
-        // Control específico para Registro Calificado (SuperAdmin y Administradores)
-        const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'super-admin', 'inst_admin'].includes(role) || !role;
-        let rcLinks = document.querySelectorAll('.superadmin-rc-link, #menuRegistroCalificado');
-        
-        if (isSuperAdmin && rcLinks.length === 0) {
-            const configLink = Array.from(document.querySelectorAll('.sidebar-item')).find(el => (el.getAttribute('href') || '').includes('configuracion') || el.textContent.toLowerCase().includes('configuraci'));
-            const sidebarNav = document.querySelector('.sidebar, aside nav, aside > div:first-child');
-            
-            const newLink = document.createElement('a');
-            newLink.href = '/registro_calificado.html';
-            newLink.className = 'sidebar-item superadmin-rc-link' + (window.location.pathname.includes('registro_calificado') ? ' active' : '');
-            newLink.id = 'menuRegistroCalificado';
-            newLink.style.cssText = 'color: #38bdf8; font-weight: 600; display: flex; align-items: center; gap: 8px;';
-            newLink.innerHTML = '📜 Registro Calificado';
-            
-            if (configLink && configLink.parentNode) {
-                configLink.parentNode.insertBefore(newLink, configLink);
-            } else if (sidebarNav) {
-                sidebarNav.appendChild(newLink);
-            }
-            rcLinks = document.querySelectorAll('.superadmin-rc-link, #menuRegistroCalificado');
-        }
-
-        rcLinks.forEach(el => {
-            el.style.display = isSuperAdmin ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
-            if (window.location.pathname.includes('registro_calificado')) {
-                el.classList.add('active');
-            }
-        });
-
-        // Control específico para Capacitación (Formación)
-        const canSeeCap = ['admin', 'superadmin', 'super_admin', 'super-admin', 'profesor', 'estudiante', 'inst_admin'].includes(role) || !role;
-        const capLinks = document.querySelectorAll('#menuCapacitacion, a[href*="formacion.html"]');
-        capLinks.forEach(el => {
-            el.style.display = canSeeCap ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
-            if (window.location.pathname.includes('formacion')) {
-                el.classList.add('active');
-            }
-        });
-
-        // Ocultar los grupos del acordeón que se quedaron vacíos (sin items visibles)
-        const groups = document.querySelectorAll('.sidebar-group');
-        groups.forEach(group => {
-            const visibleItems = Array.from(group.querySelectorAll('.sidebar-item')).filter(item => {
-                return window.getComputedStyle(item).display !== 'none' && item.style.display !== 'none';
-            });
-            if (visibleItems.length === 0) {
-                group.style.display = 'none';
-            }
-        });
-    }
-
     // Add smooth scrolling for navigation links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {

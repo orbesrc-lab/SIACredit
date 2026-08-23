@@ -74,10 +74,9 @@ body {
     font-family: var(--font-main);
     color: var(--text-main);
     line-height: 1.6;
-    /* Dark background for floating window mode */
-    background: #0f172a;
+    background: #0f172a !important;
+    background-color: #0f172a !important;
     overflow: hidden;
-    transition: background-color 0.3s, color 0.3s;
     display: flex;
     justify-content: center;
     align-items: center;
