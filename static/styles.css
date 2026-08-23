@@ -1,3 +1,9 @@
+/* ─── Anti-Flash: fondo inmediato antes de que cualquier script o CSS externo cargue ─── */
+html {
+    background: #0f172a;
+    color-scheme: dark;
+}
+
 :root {
     /* Premium Variables */
     --primary-color: #2563eb; /* Royal Blue */
@@ -861,20 +867,20 @@ input::placeholder, textarea::placeholder {
 
 /* Transición suave de salida para enlaces del menú */
 .page-smooth-exit {
-    opacity: 0.15 !important;
-    transition: opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.3 !important;
+    transition: opacity 0.08s ease-out;
     pointer-events: none;
 }
 
-/* Animación ultra-suave de entrada al cargar nueva vista */
+/* Animación de entrada: empieza visible para evitar flash */
 .main-content, .rc-main, .dashboard-container {
-    animation: siacPageEnter 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    will-change: opacity;
+    animation: siacPageEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: opacity, transform;
 }
 
 @keyframes siacPageEnter {
-    from { opacity: 0.88; }
-    to { opacity: 1; }
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Estabilidad del Sidebar para evitar layout shifts */

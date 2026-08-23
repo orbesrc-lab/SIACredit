@@ -97,7 +97,39 @@ def add_security_headers(response):
     else:
         # Páginas HTML: Carga instantánea mediante Edge CDN con revalidación en segundo plano
         response.headers['Cache-Control'] = 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400'
-    
+
+    # ── Anti-flash: inyectar estilo de fondo antes de que cargue el CSS externo ──
+    # Esto elimina el parpadeo blanco/en blanco entre navegaciones de página.
+    ct = response.content_type or ''
+    if 'text/html' in ct and response.direct_passthrough is False:
+        try:
+            data = response.get_data(as_text=True)
+            # Script minificado que se ejecuta ANTES de que cargue el CSS externo.
+            # 1. Lee el tema guardado en localStorage para saber qué fondo aplicar.
+            # 2. Aplica el fondo directamente al <html> para que no haya flash blanco/negro.
+            # 3. Restaura la visibilidad en DOMContentLoaded (cuando el CSS ya está aplicado).
+            anti_flash = (
+                '<script id="siac-af">'
+                '(function(){'
+                'var h=document.documentElement;'
+                'var t=localStorage.getItem("siac_theme");'
+                'h.style.background=(t==="default")?"#f8fafc":"#0f172a";'
+                'h.style.visibility="hidden";'
+                'document.addEventListener("DOMContentLoaded",function(){'
+                'h.style.visibility="";'
+                'h.style.background="";'
+                'var s=document.getElementById("siac-af");'
+                'if(s)s.remove();'
+                '});'
+                '})();'
+                '</script>'
+            )
+            if '<head>' in data:
+                data = data.replace('<head>', '<head>' + anti_flash, 1)
+                response.set_data(data)
+        except Exception:
+            pass  # nunca interrumpir la respuesta por este fix cosmético
+
     return response
 
 import smtplib
