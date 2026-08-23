@@ -1,5 +1,17 @@
+// ── Anti-flash: aplicar tema antes de que cargue el CSS para evitar parpadeo ──
+(function(){
+    var h=document.documentElement;
+    var t=localStorage.getItem('siac_theme');
+    h.style.background=(t==='default')?'#f8fafc':'#0f172a';
+    h.style.visibility='hidden';
+    document.addEventListener('DOMContentLoaded',function(){
+        h.style.visibility='';
+        h.style.background='';
+    });
+})();
 
 // Global authentication check
+
 (function() {
     const path = window.location.pathname.toLowerCase();
     const isPublic = path.includes('index.html') || path.includes('login.html') || path.includes('registro.html') || path.endsWith('/');
