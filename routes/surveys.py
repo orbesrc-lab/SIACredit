@@ -264,17 +264,22 @@ def handle_api_courses():
         return resp
 
 @surveys_bp.route('/api/public/courses', methods=['GET'])
-def handle_api_public_courses():
+def get_public_courses_catalog():
     try:
-        courses = formacion_storage.load_courses(1, 0)
-        resp = Response(json.dumps(courses), mimetype='application/json')
-        resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        return resp
+        courses = formacion_storage.load_public_courses() or formacion_storage.load_courses(1, 0)
+        public_catalog = []
+        for c in courses:
+            public_catalog.append({
+                "id": c.get("id"), "title": c.get("title"),
+                "description": c.get("description"), "duration": c.get("duration"),
+                "level": c.get("level"), "category": c.get("category"),
+                "certifier": c.get("certifier")
+            })
+        return jsonify(public_catalog)
     except Exception as e:
         print(f"Error loading public courses: {e}")
-        resp = Response(json.dumps([]), mimetype='application/json')
-        resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        return resp
+        return jsonify([])
+
 
 
 @surveys_bp.route('/api/courses/<course_id>/forum', methods=['GET', 'POST'])
@@ -342,18 +347,6 @@ def handle_api_course_specific(course_id):
             return jsonify({"status": "success"})
         return jsonify({"status": "error", "message": "No se pudo eliminar el curso."})
 
-@surveys_bp.route('/api/public/courses', methods=['GET'])
-def get_public_courses_catalog():
-    courses = formacion_storage.load_public_courses()
-    public_catalog = []
-    for c in courses:
-        public_catalog.append({
-            "id": c.get("id"), "title": c.get("title"),
-            "description": c.get("description"), "duration": c.get("duration"),
-            "level": c.get("level"), "category": c.get("category"),
-            "certifier": c.get("certifier")
-        })
-    return jsonify(public_catalog)
 
 @surveys_bp.route('/api/courses/<course_id>/analytics', methods=['GET'])
 @require_permission('capacitacion')
