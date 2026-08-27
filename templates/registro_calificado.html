@@ -3075,7 +3075,19 @@
         // ==========================================
         // FUNCIONES DE INTEGRACIÓN GOOGLE NOTEBOOKLM
         // ==========================================
-        function openNotebookLMHubModal() {
+        async function ensureActiveProject() {
+            if (!currentProject) {
+                if (allProjects && allProjects.length > 0) {
+                    currentProject = allProjects[0];
+                } else {
+                    await loadProjects();
+                }
+            }
+            return currentProject;
+        }
+
+        async function openNotebookLMHubModal() {
+            await ensureActiveProject();
             if (!currentProject) {
                 Swal.fire('Atención', 'Por favor selecciona o crea un proyecto activo primero.', 'info');
                 return;
@@ -3096,6 +3108,7 @@
         }
 
         async function exportNotebookLMBundle() {
+            await ensureActiveProject();
             if (!currentProject) {
                 Swal.fire('Atención', 'Por favor selecciona o crea un proyecto activo primero.', 'info');
                 return;
@@ -3135,6 +3148,7 @@
         }
 
         async function openNotebookLMPromptsModal() {
+            await ensureActiveProject();
             if (!currentProject) {
                 Swal.fire('Atención', 'Por favor selecciona un proyecto activo primero.', 'info');
                 return;
@@ -3723,9 +3737,43 @@
             }
         }
 
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
+        function openModal(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
         }
+
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Exponer funciones globales a window para garantizar su disponibilidad inmediata en onclick
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.openNotebookLMHubModal = openNotebookLMHubModal;
+        window.exportNotebookLMBundle = exportNotebookLMBundle;
+        window.openNotebookLMPromptsModal = openNotebookLMPromptsModal;
+        window.copyNotebookLMPrompt = copyNotebookLMPrompt;
+        window.saveNotebookLMPodcastUrl = saveNotebookLMPodcastUrl;
+        window.openAppendCustomContentModal = openAppendCustomContentModal;
+        window.openEvidenceHubModal = openEvidenceHubModal;
+        window.openProjectSettingsModal = openProjectSettingsModal;
+        window.openCreateProjectModal = openCreateProjectModal;
+        window.exportFullDocx = exportFullDocx;
+        window.loadProjects = loadProjects;
+        window.switchProject = switchProject;
+        window.selectCondition = selectCondition;
+        window.generateCurrentConditionAI = generateCurrentConditionAI;
+        window.continueCurrentConditionAI = continueCurrentConditionAI;
+        window.auditCurrentConditionAI = auditCurrentConditionAI;
+        window.saveCurrentConditionContent = saveCurrentConditionContent;
+        window.deleteCurrentProject = deleteCurrentProject;
     </script>
 </body>
 </html>
