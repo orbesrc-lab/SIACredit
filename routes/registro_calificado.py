@@ -4,6 +4,8 @@ import uuid
 import re
 import io
 import datetime
+import requests
+from bs4 import BeautifulSoup
 from flask import Blueprint, jsonify, request, render_template, send_file, Response
 from utils.db import supabase, get_active_inst_id
 from utils.auth import require_permission
@@ -127,6 +129,124 @@ def extract_text_from_file(file_path, filename):
     except Exception as e:
         text = f"Error extrayendo texto del documento: {str(e)}"
     return text.strip()
+
+# Helper para extraer texto de URLs web, enlaces directos a PDF, Word, Excel o Google Docs
+def extract_text_from_url(url):
+    """
+    Descarga y extrae texto de una URL (página web HTML, documento PDF en línea, 
+    archivo DOCX o XLSX en la web) sin necesidad de almacenamiento local permanente.
+    """
+    url = url.strip()
+    if not url.startswith(('http://', 'https://')):
+        url = 'https://' + url
+        
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*;q=0.8'
+    }
+    
+    # Manejo especial para Google Docs y Google Sheets públicos
+    if 'docs.google.com/document/d/' in url:
+        doc_id_match = re.search(r'/document/d/([a-zA-Z0-9-_]+)', url)
+        if doc_id_match:
+            doc_id = doc_id_match.group(1)
+            export_url = f"https://docs.google.com/document/d/{doc_id}/export?format=txt"
+            try:
+                exp_resp = requests.get(export_url, headers=headers, timeout=15)
+                if exp_resp.status_code == 200 and len(exp_resp.text.strip()) > 30:
+                    return exp_resp.text.strip(), f"Google Doc: {doc_id}", 'gdoc'
+            except Exception:
+                pass
+    elif 'docs.google.com/spreadsheets/d/' in url:
+        sheet_id_match = re.search(r'/spreadsheets/d/([a-zA-Z0-9-_]+)', url)
+        if sheet_id_match:
+            sheet_id = sheet_id_match.group(1)
+            export_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+            try:
+                exp_resp = requests.get(export_url, headers=headers, timeout=15)
+                if exp_resp.status_code == 200 and len(exp_resp.text.strip()) > 20:
+                    return exp_resp.text.strip(), f"Google Sheet: {sheet_id}", 'gsheet'
+            except Exception:
+                pass
+
+    resp = requests.get(url, headers=headers, timeout=20, allow_redirects=True)
+    resp.raise_for_status()
+    
+    content_type = resp.headers.get('Content-Type', '').lower()
+    url_lower = url.lower().split('?')[0]
+    
+    title = ''
+    text = ''
+    doc_format = 'html'
+    
+    # 1. Si es PDF en línea
+    if 'pdf' in content_type or url_lower.endswith('.pdf'):
+        doc_format = 'pdf'
+        import PyPDF2
+        reader = PyPDF2.PdfReader(io.BytesIO(resp.content))
+        pages_text = []
+        for i, page in enumerate(reader.pages):
+            pt = page.extract_text()
+            if pt:
+                pages_text.append(f"--- [Página {i+1}] ---\n{pt.strip()}")
+        text = "\n\n".join(pages_text)
+        title = url.split('/')[-1].split('?')[0] or 'Documento PDF en línea'
+        
+    # 2. Si es DOCX en línea
+    elif 'wordprocessingml' in content_type or url_lower.endswith('.docx'):
+        doc_format = 'docx'
+        import docx
+        doc = docx.Document(io.BytesIO(resp.content))
+        paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
+        for table in doc.tables:
+            for row in table.rows:
+                row_text = " | ".join(cell.text.strip() for cell in row.cells if cell.text.strip())
+                if row_text:
+                    paragraphs.append(f"[TABLA] {row_text}")
+        text = "\n".join(paragraphs)
+        title = url.split('/')[-1].split('?')[0] or 'Documento Word en línea'
+        
+    # 3. Si es XLSX/XLS en línea
+    elif 'spreadsheetml' in content_type or url_lower.endswith(('.xlsx', '.xls')):
+        doc_format = 'xlsx'
+        import openpyxl
+        wb = openpyxl.load_workbook(io.BytesIO(resp.content), data_only=True)
+        lines = []
+        for sheet in wb.sheetnames:
+            ws = wb[sheet]
+            lines.append(f"--- Hoja: {sheet} ---")
+            for row in ws.iter_rows(values_only=True):
+                row_vals = [str(c).strip() for c in row if c is not None and str(c).strip()]
+                if row_vals:
+                    lines.append(" | ".join(row_vals))
+        text = "\n".join(lines)
+        title = url.split('/')[-1].split('?')[0] or 'Archivo Excel en línea'
+        
+    # 4. Si es página web HTML o texto plano
+    else:
+        doc_format = 'html'
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        
+        # Extraer título de la página
+        og_title = soup.find('meta', property='og:title')
+        if soup.title and soup.title.string and soup.title.string.strip():
+            title = soup.title.string.strip()
+        elif og_title and og_title.get('content'):
+            title = og_title['content'].strip()
+        else:
+            domain = url.replace('https://', '').replace('http://', '').split('/')[0]
+            title = f"Enlace Web: {domain}"
+            
+        # Eliminar elementos no textuales o ruidosos
+        for tag in soup(['script', 'style', 'nav', 'header', 'footer', 'aside', 'noscript', 'iframe', 'svg', 'button', 'form']):
+            tag.decompose()
+            
+        # Extraer texto preservando estructura
+        text = soup.get_text(separator='\n', strip=True)
+        text = re.sub(r'\n{3,}', '\n\n', text)
+        
+    return text.strip(), title, doc_format
 
 
 # ==========================================
@@ -348,6 +468,82 @@ def upload_evidence():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+@registro_calificado_bp.route('/api/rc/add_url_evidence', methods=['POST'])
+def add_url_evidence():
+    """Extrae e indexa el contenido de una URL externa como evidencia/fuente para el proyecto."""
+    try:
+        data = request.json or {}
+        project_id = data.get('project_id')
+        raw_url = (data.get('url') or '').strip()
+        custom_name = (data.get('name') or '').strip()
+        doc_type = data.get('doc_type') or 'General'
+        
+        if not project_id:
+            return jsonify({'status': 'error', 'message': 'Falta el ID del proyecto'}), 400
+        if not raw_url:
+            return jsonify({'status': 'error', 'message': 'Debes ingresar una URL válida'}), 400
+            
+        proj = get_project(project_id)
+        if not proj:
+            return jsonify({'status': 'error', 'message': 'Proyecto no encontrado'}), 404
+            
+        # Extraer texto del enlace web o documento en línea
+        try:
+            extracted_text, detected_title, doc_format = extract_text_from_url(raw_url)
+        except Exception as err:
+            return jsonify({
+                'status': 'error',
+                'message': f"No se pudo acceder o extraer contenido de la URL: {str(err)}. Verifica que el enlace sea público y accesible."
+            }), 400
+            
+        if not extracted_text or len(extracted_text.strip()) < 15:
+            return jsonify({
+                'status': 'error',
+                'message': 'No se encontró contenido de texto legible en la URL suministrada.'
+            }), 400
+            
+        final_name = custom_name if custom_name else (detected_title or raw_url)
+        url_id = f"url_{uuid.uuid4().hex[:8]}"
+        
+        evidence_item = {
+            'id': url_id,
+            'name': final_name,
+            'original_filename': raw_url,
+            'url': raw_url,
+            'is_url': True,
+            'doc_format': doc_format,
+            'doc_type': doc_type,
+            'size_bytes': len(extracted_text.encode('utf-8')),
+            'text_sample': extracted_text[:1200] + ('...' if len(extracted_text) > 1200 else ''),
+            'full_text': extracted_text,
+            'uploaded_at': datetime.datetime.now().isoformat()
+        }
+        
+        if 'evidences' not in proj:
+            proj['evidences'] = []
+            
+        proj['evidences'].append(evidence_item)
+        save_project(proj)
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Enlace web extraído e indexado exitosamente',
+            'evidence': {
+                'id': evidence_item['id'],
+                'name': evidence_item['name'],
+                'url': evidence_item['url'],
+                'is_url': True,
+                'doc_format': evidence_item['doc_format'],
+                'doc_type': evidence_item['doc_type'],
+                'size_bytes': evidence_item['size_bytes'],
+                'text_sample': evidence_item['text_sample'],
+                'text_length': len(extracted_text),
+                'uploaded_at': evidence_item['uploaded_at']
+            }
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @registro_calificado_bp.route('/api/rc/projects/<project_id>/evidences/<evidence_id>', methods=['DELETE'])
 def delete_evidence(project_id, evidence_id):
     """Elimina un documento o evidencia de un proyecto."""
@@ -365,17 +561,18 @@ def delete_evidence(project_id, evidence_id):
             
         save_project(proj)
         
-        # Eliminar archivo físico si existe
-        try:
-            file_path = os.path.join(RC_UPLOADS_DIR, evidence_id)
-            if os.path.exists(file_path):
-                os.remove(file_path)
-        except Exception:
-            pass
+        # Eliminar archivo físico si existe y no es una URL
+        if not evidence_id.startswith('url_'):
+            try:
+                file_path = os.path.join(RC_UPLOADS_DIR, evidence_id)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+            except Exception:
+                pass
             
         return jsonify({
             'status': 'success',
-            'message': 'Documento eliminado del repositorio exitosamente',
+            'message': 'Documento/enlace eliminado del repositorio exitosamente',
             'remaining_count': len(proj['evidences'])
         })
     except Exception as e:
@@ -407,6 +604,9 @@ def get_institutional_evidences():
                         'id': ev_id,
                         'name': ev_name,
                         'original_filename': ev.get('original_filename'),
+                        'url': ev.get('url'),
+                        'is_url': ev.get('is_url', False),
+                        'doc_format': ev.get('doc_format', 'file'),
                         'doc_type': ev.get('doc_type', 'General'),
                         'size_bytes': ev.get('size_bytes', 0),
                         'text_sample': (ev.get('text_sample') or '')[:300],
@@ -451,6 +651,9 @@ def link_institutional_evidence(project_id):
             'id': evidence_data['id'],
             'name': evidence_data.get('name') or evidence_data.get('original_filename'),
             'original_filename': evidence_data.get('original_filename'),
+            'url': evidence_data.get('url'),
+            'is_url': evidence_data.get('is_url', False),
+            'doc_format': evidence_data.get('doc_format', 'file'),
             'doc_type': evidence_data.get('doc_type', 'PEI'),
             'size_bytes': evidence_data.get('size_bytes', 0),
             'text_sample': evidence_data.get('text_sample', ''),
@@ -1037,16 +1240,21 @@ def generate_condition_ai():
             if ev_text:
                 # Pasar un muestreo amplio y profundo (hasta 25.000 caracteres por documento para capturar detalles sustantivos)
                 sample = ev_text[:25000] if len(ev_text) > 25000 else ev_text
+                if ev.get('is_url') or ev.get('url'):
+                    header_line = f"ENLACE WEB / URL FUENTE: {ev.get('name')}\nURL DIRECTA: {ev.get('url')}\nFORMATO: {ev.get('doc_format', 'web').upper()}"
+                else:
+                    header_line = f"DOCUMENTO INSTITUCIONAL / EVIDENCIA REAL (ARCHIVO): {ev.get('name') or ev.get('original_filename')}"
+                
                 evidences_context.append(
                     f"======================================================================\n"
-                    f"DOCUMENTO INSTITUCIONAL / EVIDENCIA REAL: {ev.get('name') or ev.get('original_filename')}\n"
-                    f"TIPO DE DOCUMENTO: {ev.get('doc_type', 'General')}\n"
+                    f"{header_line}\n"
+                    f"TIPO DE RECURSO: {ev.get('doc_type', 'General')}\n"
                     f"ORIGEN: {ev.get('source_inst_name', proj.get('inst_name', 'Institución'))} ({ev.get('source_program_name', 'Institucional')})\n"
                     f"======================================================================\n"
                     f"{sample}\n"
                 )
                 
-        evidences_str = "\n\n".join(evidences_context) if evidences_context else "No se adjuntaron documentos adicionales. Fundamenta con base en los estándares normativos del MEN y la información suministrada del programa."
+        evidences_str = "\n\n".join(evidences_context) if evidences_context else "No se adjuntaron documentos o enlaces adicionales. Fundamenta con base en los estándares normativos del MEN y la información suministrada del programa."
         
         modalities_str = ", ".join(proj.get('modalities', ['Presencial']))
         propedeutic_str = "SÍ aplica ciclos propedéuticos. Niveles articulados: " + ", ".join(proj.get('propedeutic_levels', [])) if proj.get('has_propedeutic_cycle') else "NO aplica ciclos propedéuticos (programa estructurado en un solo nivel)."
@@ -1285,11 +1493,14 @@ def continue_condition_ai():
         # Compilar contexto de evidencias cargadas
         evidences_context = []
         for ev in proj.get('evidences', []):
-            ev_text = ev.get('full_text', '')
+            ev_text = ev.get('full_text', '') or ev.get('text_sample', '')
             if ev_text:
-                sample = ev_text[:2500] if len(ev_text) > 2500 else ev_text
-                evidences_context.append(f"--- [DOCUMENTO FUENTE: {ev.get('name')} | TIPO: {ev.get('doc_type')}] ---\n{sample}\n")
-        evidences_str = "\n".join(evidences_context) if evidences_context else "Fundamenta con base en evidencias institucionales, normatividad del MEN y datos de mercado."
+                sample = ev_text[:4000] if len(ev_text) > 4000 else ev_text
+                if ev.get('is_url') or ev.get('url'):
+                    evidences_context.append(f"--- [ENLACE WEB: {ev.get('name')} | URL: {ev.get('url')} | TIPO: {ev.get('doc_type')}] ---\n{sample}\n")
+                else:
+                    evidences_context.append(f"--- [DOCUMENTO FUENTE: {ev.get('name') or ev.get('original_filename')} | TIPO: {ev.get('doc_type')}] ---\n{sample}\n")
+        evidences_str = "\n".join(evidences_context) if evidences_context else "Fundamenta con base en evidencias institucionales, enlaces web, normatividad del MEN y datos de mercado."
 
         # Tomar los últimos 1500 caracteres para un contexto de enlace mucho más sólido
         last_snippet = existing_content[-1500:] if len(existing_content) > 1500 else existing_content

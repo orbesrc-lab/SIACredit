@@ -1331,9 +1331,20 @@
 
                 <!-- PESTAÑA 1: DOCUMENTOS DE ESTE PROYECTO -->
                 <div id="evTabPaneProject" class="rc-ev-tab-pane">
-                    <p style="font-size: 0.88rem; color: #475569; margin-top:0;">Sube los documentos de soporte del programa. El sistema extraerá el texto automáticamente para que la IA cite y fundamente las condiciones con evidencia real.</p>
+                    <p style="font-size: 0.88rem; color: #475569; margin-top:0;">Sube archivos o ingresa enlaces web/URLs para enriquecer y fundamentar la redacción con IA optimizando el almacenamiento.</p>
                     
-                    <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
+                    <!-- Toggle Modo de Ingreso: Archivo vs URL -->
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button type="button" id="btnModeUploadFile" class="btn-rc btn-rc-primary" style="font-size: 0.82rem; padding: 7px 16px; border-radius: 8px;" onclick="switchUploadMode('file')">
+                            <i class="fa-solid fa-file-arrow-up"></i> 📁 Subir Archivo (PDF, Word .docx, Excel .xlsx)
+                        </button>
+                        <button type="button" id="btnModeAddUrl" class="btn-rc btn-rc-outline" style="font-size: 0.82rem; padding: 7px 16px; border-radius: 8px;" onclick="switchUploadMode('url')">
+                            <i class="fa-solid fa-link"></i> 🔗 Vincular Enlace Web / URL (Ahorro de Espacio)
+                        </button>
+                    </div>
+
+                    <!-- Panel Modo 1: Subir Archivo -->
+                    <div id="uploadModePaneFile" style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
                         <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px;">
                             <input type="text" id="uploadCustomName" class="rc-input" style="max-width: 250px;" placeholder="Nombre / Alias del documento">
                             <select id="uploadDocType" class="rc-select" style="max-width: 230px;">
@@ -1354,6 +1365,30 @@
                             <button class="btn-rc btn-rc-primary" onclick="document.getElementById('evidenceFileInput').click()"><i class="fa-solid fa-cloud-arrow-up"></i> Seleccionar Archivo (PDF/DOCX/XLSX)</button>
                         </div>
                         <span style="font-size: 0.78rem; color: #94a3b8;" id="uploadSelectedFileName">Formatos soportados: PDF, Word (.docx), Excel (.xlsx), Texto (.txt)</span>
+                    </div>
+
+                    <!-- Panel Modo 2: Vincular URL / Enlace Web -->
+                    <div id="uploadModePaneUrl" style="display: none; background: #f0f9ff; border: 2px dashed #7dd3fc; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
+                        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px;">
+                            <input type="url" id="uploadUrlInput" class="rc-input" style="flex: 1; min-width: 260px; max-width: 380px;" placeholder="🔗 Pega la URL aquí (ej: https://dane.gov.co/... o web institucional)">
+                            <input type="text" id="uploadUrlCustomName" class="rc-input" style="max-width: 200px;" placeholder="Nombre / Alias (opcional)">
+                            <select id="uploadUrlDocType" class="rc-select" style="max-width: 210px;">
+                                <option value="Estudio_Mercado">Estudio de Mercado / DANE / OLE</option>
+                                <option value="PEI">PEI (Proyecto Educativo)</option>
+                                <option value="PDI">PDI (Plan de Desarrollo)</option>
+                                <option value="Modelo_Pedagogico">Modelo Pedagógico y Curricular</option>
+                                <option value="Reglamento">Reglamento / Estatuto Docente</option>
+                                <option value="Politica">Política Institucional</option>
+                                <option value="Planes_Desarrollo">Plan Nal. Desarrollo / Decenal</option>
+                                <option value="Benchmarking_Curricular">Benchmarking de Otras IES</option>
+                                <option value="Malla_Curricular">Malla y Plan de Estudios</option>
+                                <option value="Investigacion">Líneas y Semilleros Investigativos</option>
+                                <option value="Convenios">Convenios y Sector Externo</option>
+                                <option value="General">Otro Soporte Documental</option>
+                            </select>
+                            <button id="btnSubmitUrlEvidence" class="btn-rc btn-rc-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1);" onclick="submitUrlEvidence()"><i class="fa-solid fa-cloud-arrow-down"></i> Extraer e Indexar URL</button>
+                        </div>
+                        <span style="font-size: 0.78rem; color: #0369a1;"><i class="fa-solid fa-circle-info"></i> El sistema descargará y extraerá el texto de páginas web, documentos PDF, Word (.docx) o Excel (.xlsx) en línea sin ocupar espacio en disco.</span>
                     </div>
 
                     <h4 style="margin: 16px 0 8px 0; font-size: 0.95rem; color: #0f172a;"><i class="fa-solid fa-layer-group"></i> Documentos Indexados en este Proyecto (<span id="evidencesListCount">0</span>)</h4>
@@ -2315,6 +2350,86 @@
             }
         }
 
+        function switchUploadMode(mode) {
+            const filePane = document.getElementById('uploadModePaneFile');
+            const urlPane = document.getElementById('uploadModePaneUrl');
+            const btnFile = document.getElementById('btnModeUploadFile');
+            const btnUrl = document.getElementById('btnModeAddUrl');
+            
+            if (mode === 'url') {
+                if (filePane) filePane.style.display = 'none';
+                if (urlPane) urlPane.style.display = 'block';
+                if (btnFile) { btnFile.className = 'btn-rc btn-rc-outline'; }
+                if (btnUrl) { btnUrl.className = 'btn-rc btn-rc-primary'; }
+                setTimeout(() => { document.getElementById('uploadUrlInput')?.focus(); }, 100);
+            } else {
+                if (filePane) filePane.style.display = 'block';
+                if (urlPane) urlPane.style.display = 'none';
+                if (btnFile) { btnFile.className = 'btn-rc btn-rc-primary'; }
+                if (btnUrl) { btnUrl.className = 'btn-rc btn-rc-outline'; }
+            }
+        }
+
+        async function submitUrlEvidence() {
+            if (!currentProject) return;
+            const urlInput = document.getElementById('uploadUrlInput');
+            const nameInput = document.getElementById('uploadUrlCustomName');
+            const docTypeSelect = document.getElementById('uploadUrlDocType');
+            const btn = document.getElementById('btnSubmitUrlEvidence');
+            
+            const rawUrl = (urlInput?.value || '').trim();
+            if (!rawUrl) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'URL requerida',
+                    text: 'Por favor ingresa la dirección web (URL) de la fuente o documento a indexar.',
+                    confirmButtonColor: '#0284c7'
+                });
+                return;
+            }
+            
+            const origHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="rc-spinner"></span> Extrayendo e indexando...';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch('/api/rc/add_url_evidence', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        project_id: currentProject.id,
+                        url: rawUrl,
+                        name: (nameInput?.value || '').trim(),
+                        doc_type: docTypeSelect?.value || 'General'
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    if (!currentProject.evidences) currentProject.evidences = [];
+                    currentProject.evidences.push(data.evidence);
+                    renderEvidencesList();
+                    renderEvidenceChecklist();
+                    
+                    if (urlInput) urlInput.value = '';
+                    if (nameInput) nameInput.value = '';
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Enlace Web Indexado!',
+                        html: `<p><strong>${escapeHtml(data.evidence.name)}</strong></p><p style="font-size:0.85rem; color:#64748b;">Se procesaron <strong>${data.evidence.text_length}</strong> caracteres listos para enriquecer el análisis de la IA sin consumir espacio en disco.</p>`,
+                        confirmButtonColor: '#0284c7'
+                    });
+                } else {
+                    Swal.fire('Error al indexar URL', data.message || 'No se pudo acceder al enlace proporcionado.', 'error');
+                }
+            } catch(e) {
+                Swal.fire('Error de conexión', 'No fue posible contactar con el servidor: ' + e.message, 'error');
+            } finally {
+                btn.innerHTML = origHTML;
+                btn.disabled = false;
+            }
+        }
+
         function renderEvidencesList() {
             const container = document.getElementById('evidencesContainer');
             const evidences = currentProject?.evidences || [];
@@ -2328,44 +2443,58 @@
             if (b3) b3.textContent = evCount;
 
             if (evCount === 0) {
-                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1; text-align: center; padding: 20px;">No hay documentos cargados aún en este proyecto. Sube uno arriba o impórtalo desde la Biblioteca Institucional.</p>';
+                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; grid-column: 1/-1; text-align: center; padding: 20px;">No hay documentos ni enlaces cargados aún en este proyecto. Sube un archivo o vincula una URL arriba.</p>';
                 return;
             }
 
-            container.innerHTML = evidences.map(ev => `
+            container.innerHTML = evidences.map(ev => {
+                const isUrl = !!(ev.is_url || ev.url);
+                const iconClass = isUrl ? 'fa-solid fa-link' : (ev.doc_format === 'xlsx' || (ev.name||'').endsWith('.xlsx') ? 'fa-solid fa-file-excel' : (ev.doc_format === 'docx' || (ev.name||'').endsWith('.docx') ? 'fa-solid fa-file-word' : 'fa-solid fa-file-lines'));
+                const iconColor = isUrl ? '#0284c7' : (ev.doc_format === 'xlsx' || (ev.name||'').endsWith('.xlsx') ? '#16a34a' : (ev.doc_format === 'docx' || (ev.name||'').endsWith('.docx') ? '#2563eb' : '#6366f1'));
+                const sizeLabel = ev.size_bytes ? `${Math.round(ev.size_bytes / 1024)} KB` : `${(ev.full_text || ev.text_sample || '').length} chars`;
+
+                return `
                 <div class="rc-evidence-card">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                         <div style="flex: 1; min-width: 0;">
-                            <div class="rc-evidence-card-title" title="${escapeHtml(ev.name || ev.original_filename)}">
-                                <i class="fa-solid fa-file-lines" style="color: var(--rc-primary);"></i>
-                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 170px;">${escapeHtml(ev.name || ev.original_filename)}</span>
+                            <div class="rc-evidence-card-title" title="${escapeHtml(ev.name || ev.original_filename || ev.url || 'Documento')}">
+                                <i class="${iconClass}" style="color: ${iconColor};"></i>
+                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 170px;">${escapeHtml(ev.name || ev.original_filename || ev.url)}</span>
                             </div>
                             <div class="rc-evidence-card-meta">
-                                Tipo: <strong>${escapeHtml(ev.doc_type || 'General')}</strong> | ${Math.round((ev.size_bytes || 0) / 1024)} KB
+                                Tipo: <strong>${escapeHtml(ev.doc_type || 'General')}</strong> | 
+                                ${isUrl ? '<span class="rc-badge-pill rc-badge-pill-info" style="font-size:0.7rem; padding: 2px 6px;"><i class="fa-solid fa-link"></i> URL</span>' : '<span class="rc-badge-pill rc-badge-pill-warning" style="font-size:0.7rem; padding: 2px 6px;">📄 Archivo</span>'}
+                                | ${sizeLabel}
                                 ${ev.is_shared_institutional ? '<span class="rc-badge-pill rc-badge-pill-info" style="margin-left: 4px;">🏛️ Institucional</span>' : ''}
                             </div>
                         </div>
                         <div style="display: flex; gap: 4px;">
+                            ${isUrl && ev.url ? `<a href="${escapeHtml(ev.url)}" target="_blank" rel="noopener noreferrer" class="btn-rc btn-rc-outline" style="padding: 4px 7px; font-size: 0.74rem; color: #0284c7; border-color: #bae6fd; text-decoration: none;" title="Abrir URL original en nueva pestaña"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
                             <button class="btn-rc btn-rc-outline" onclick="viewEvidenceFullText('${ev.id}')" style="padding: 4px 7px; font-size: 0.74rem; color: #2563eb; border-color: #bfdbfe;" title="Ver texto completo indexado"><i class="fa-solid fa-eye"></i></button>
-                            <button class="btn-rc btn-rc-outline" onclick="deleteEvidenceItem('${ev.id}', '${escapeHtml((ev.name || ev.original_filename).replace(/'/g, "\\'"))}')" style="padding: 4px 7px; font-size: 0.74rem; color: #ef4444; border-color: #fca5a5;" title="Eliminar del proyecto"><i class="fa-solid fa-trash"></i></button>
+                            <button class="btn-rc btn-rc-outline" onclick="deleteEvidenceItem('${ev.id}', '${escapeHtml((ev.name || ev.original_filename || ev.url || 'Documento').replace(/'/g, "\\'"))}')" style="padding: 4px 7px; font-size: 0.74rem; color: #ef4444; border-color: #fca5a5;" title="Eliminar del proyecto"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
                     <div style="margin-top: 8px; font-size: 0.74rem; color: #64748b; background: white; padding: 6px 8px; border-radius: 6px; border: 1px solid #f1f5f9; cursor: pointer;" onclick="viewEvidenceFullText('${ev.id}')" title="Haz clic para previsualizar texto">
                         <em>${escapeHtml((ev.text_sample || '').substring(0, 100))}...</em>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function viewEvidenceFullText(evidenceId) {
             const ev = (currentProject?.evidences || []).find(e => e.id === evidenceId);
             if (!ev) return;
             const fullText = ev.full_text || ev.text_sample || 'No hay texto extraído disponible para este documento.';
+            const isUrl = !!(ev.is_url || ev.url);
+            const urlHtml = isUrl && ev.url ? `<div style="margin-bottom: 8px; font-size: 0.82rem;"><strong>URL Fuente:</strong> <a href="${escapeHtml(ev.url)}" target="_blank" style="color: #0284c7; text-decoration: underline; word-break: break-all;">${escapeHtml(ev.url)} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem;"></i></a></div>` : '';
+            
             Swal.fire({
-                title: `📄 ${escapeHtml(ev.name || ev.original_filename)}`,
+                title: `${isUrl ? '🔗' : '📄'} ${escapeHtml(ev.name || ev.original_filename || 'Recurso')}`,
                 html: `
                     <div style="text-align: left; margin-bottom: 10px; font-size: 0.84rem; color: #475569;">
-                        Tipo: <strong>${escapeHtml(ev.doc_type || 'General')}</strong> | Tamaño: <strong>${Math.round((ev.size_bytes || 0) / 1024)} KB</strong> | Caracteres indexados: <strong>${fullText.length}</strong>
+                        ${urlHtml}
+                        Tipo: <strong>${escapeHtml(ev.doc_type || 'General')}</strong> | Origen: <strong>${isUrl ? 'Enlace Web' : 'Archivo Local'}</strong> | Tamaño: <strong>${Math.round((ev.size_bytes || 0) / 1024)} KB</strong> | Caracteres indexados: <strong>${fullText.length}</strong>
                     </div>
                     <div style="max-height: 400px; overflow-y: auto; text-align: left; font-family: monospace; font-size: 0.8rem; background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #cbd5e1; white-space: pre-wrap; word-break: break-word; line-height: 1.55; color: #1e293b;">${escapeHtml(fullText)}</div>
                 `,
@@ -2433,19 +2562,25 @@
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     ${list.map(ev => {
                         const isAlreadyLinked = currentEvIds.has(ev.id);
+                        const isUrl = !!(ev.is_url || ev.url);
+                        const iconClass = isUrl ? 'fa-solid fa-link' : (ev.doc_format === 'xlsx' || (ev.name||'').endsWith('.xlsx') ? 'fa-solid fa-file-excel' : (ev.doc_format === 'docx' || (ev.name||'').endsWith('.docx') ? 'fa-solid fa-file-word' : 'fa-solid fa-file-lines'));
+                        const iconColor = isUrl ? '#0284c7' : (ev.doc_format === 'xlsx' || (ev.name||'').endsWith('.xlsx') ? '#16a34a' : (ev.doc_format === 'docx' || (ev.name||'').endsWith('.docx') ? '#2563eb' : '#6366f1'));
+
                         return `
                             <div style="display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; gap: 12px;">
                                 <div style="flex: 1; min-width: 0;">
                                     <div style="font-weight: 600; font-size: 0.88rem; color: #0f172a; display: flex; align-items: center; gap: 8px;">
-                                        <i class="fa-solid fa-file-lines" style="color: #6366f1;"></i>
-                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(ev.name || ev.original_filename)}</span>
+                                        <i class="${iconClass}" style="color: ${iconColor};"></i>
+                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(ev.name || ev.original_filename || ev.url)}</span>
                                         <span class="rc-badge-pill rc-badge-pill-info">${escapeHtml(ev.doc_type || 'General')}</span>
+                                        ${isUrl ? '<span class="rc-badge-pill rc-badge-pill-info" style="font-size:0.68rem;">🔗 URL</span>' : '<span class="rc-badge-pill rc-badge-pill-warning" style="font-size:0.68rem;">📄 Archivo</span>'}
                                     </div>
                                     <div style="font-size: 0.74rem; color: #64748b; margin-top: 3px;">
                                         Origen: <strong>${escapeHtml(ev.source_inst_name || 'Institución')}</strong> (${escapeHtml(ev.source_program_name || 'General')}) | ${Math.round((ev.size_bytes || 0) / 1024)} KB
                                     </div>
                                 </div>
-                                <div>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    ${isUrl && ev.url ? `<a href="${escapeHtml(ev.url)}" target="_blank" rel="noopener noreferrer" class="btn-rc btn-rc-outline" style="padding: 4px 8px; font-size: 0.75rem; color: #0284c7; text-decoration: none;" title="Abrir URL"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
                                     ${isAlreadyLinked ? 
                                         `<span class="rc-badge-pill rc-badge-pill-success"><i class="fa-solid fa-check"></i> Vinculado</span>` : 
                                         `<button class="btn-rc btn-rc-primary" onclick="linkSharedEvidenceItem('${ev.id}')" style="padding: 6px 12px; font-size: 0.78rem;"><i class="fa-solid fa-link"></i> Vincular a este Proyecto</button>`
@@ -2583,10 +2718,21 @@
             switchEvidenceTab('project');
             const selectEl = document.getElementById('uploadDocType');
             const nameEl = document.getElementById('uploadCustomName');
+            const selectUrlEl = document.getElementById('uploadUrlDocType');
+            const nameUrlEl = document.getElementById('uploadUrlCustomName');
+            
             if (selectEl) selectEl.value = docType;
+            if (selectUrlEl) selectUrlEl.value = docType;
             if (nameEl && defaultName) nameEl.value = defaultName;
-            const fileInput = document.getElementById('evidenceFileInput');
-            if (fileInput) fileInput.click();
+            if (nameUrlEl && defaultName) nameUrlEl.value = defaultName;
+            
+            const isUrlMode = document.getElementById('uploadModePaneUrl')?.style.display !== 'none';
+            if (isUrlMode) {
+                document.getElementById('uploadUrlInput')?.focus();
+            } else {
+                const fileInput = document.getElementById('evidenceFileInput');
+                if (fileInput) fileInput.click();
+            }
         }
 
         async function deleteEvidenceItem(evidenceId, evidenceName) {
