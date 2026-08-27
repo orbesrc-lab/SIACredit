@@ -1470,6 +1470,135 @@ CONDITIONS_METADATA = {
     }
 }
 
+
+def get_condition_specific_guidelines(cond_key, proj):
+    """Retorna directrices normativas especializadas de CONACES / MEN Colombia y matrices obligatorias para cada condición."""
+    inst_name = proj.get('inst_name', 'la Institución')
+    prog_name = proj.get('program_name', 'el Programa')
+    level = proj.get('level', 'Tecnológico')
+    modalities = ", ".join(proj.get('modalities', ['Presencial']))
+    places = ", ".join(proj.get('places_of_development', ['Sede Principal']))
+
+    if cond_key == 'cond_intro':
+        return f"""
+DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - INTRODUCCIÓN Y CONTEXTO INSTITUCIONAL:
+- Marco Identitario y Teleológico: Desarrollar con fidelidad la Misión, Visión, Principios y Proyecto Educativo Institucional (PEI) de {inst_name}.
+- Articulación Estratégica con el PDI: Demostrar cómo la creación/renovación del programa {prog_name} tributa a los ejes estratégicos, metas e indicadores del Plan de Desarrollo Institucional (PDI).
+- Enfoque Pedagógico Institucional: Contextualizar el modelo pedagógico y curricular institucional, su evolución y su impacto en la formación integral.
+- Propósito del Trámite ante el MEN/SACES: Justificar formalmente la solicitud de Registro Calificado (modalidades: {modalities}, lugares: {places}) en el marco del Decreto 1330 de 2019 y Decreto 0529 de 2024.
+"""
+    elif cond_key == 'cond_1':
+        return f"""
+DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 1: DENOMINACIÓN DEL PROGRAMA:
+- Coherencia y Racionalidad: Fundamentar la denominación '{prog_name}' con el nivel de formación ({level}), el título otorgado ('{proj.get('target_title')}'), el campo de conocimiento y el perfil de egreso (Decreto 1330 de 2019 Art. 2.5.3.2.3.2.1 & Decreto 0529 de 2024).
+- Clasificaciones Oficiales MEN/DANE: Incluir y desglosar detalladamente la tabla de clasificaciones normativas:
+  | Clasificación Oficial | Código | Denominación Oficial | Justificación Técnica de Coherencia |
+  | CINE-F 2013 A.C. | {proj.get('cine_f_code', 'Campo Amplio / Específico')} | Área de Conocimiento | Articulación con el núcleo de formación |
+  | CIUO-08 DANE | {proj.get('ciuo_08_code', 'Ocupaciones')} | Ocupaciones Principales | Perfil ocupacional del graduado |
+  | Marco Nacional de Cualificaciones (MNC) | {proj.get('mnc_code', 'Nivel MNC')} | Cualificación Nacional | Descriptores de conocimientos, destrezas y autonomía |
+  | Clasificación Única de Ocupaciones (CUO) | {proj.get('cuo_code', 'CUO')} | Ocupaciones CUO Colombia | Demanda laboral y sectores económicos |
+- Alineación ODS: Detallar la contribución concreta a los Objetivos de Desarrollo Sostenible ({proj.get('ods_alignment', 'ODS 4, ODS 8, ODS 9')}).
+"""
+    elif cond_key == 'cond_2':
+        return f"""
+DIRECTRICES AVANZADAS Y MATRICES DE JUSTIFICACIÓN (DECRETO 1330 DE 2019, ART. 2.5.3.2.3.2.2 & RES. 021795 DE 2020):
+1. Pertinencia en los 4 Contextos Obligatorios:
+   a) Contexto Internacional: Análisis de tendencias globales, recomendaciones de organismos multilaterales (UNESCO, OCDE, OIT, Banco Mundial), estándares internacionales y avances científicos/tecnológicos de vanguardia en {prog_name}.
+   b) Contexto Nacional: Articulación explícita con el Plan Nacional de Desarrollo (PND) vigente, el Plan Decenal de Educación 2016-2026, políticas de reindustrialización, transición digital y sostenibilidad productiva de Colombia.
+   c) Contexto Regional y Local: Vocación económica, apuestas productivas territoriales, planes de desarrollo departamentales y municipales en {places}.
+   d) Coherencia con el PDI: Tabla de articulación entre los objetivos del programa y los ejes estratégicos del PDI de {inst_name}.
+
+2. Estudio de Mercado, Demanda Laboral y Tendencias Ocupacionales:
+   - Análisis de estadísticas DANE (Gran Encuesta Integrada de Hogares, tasa de ocupación sectorial, valor agregado económico territorial).
+   - Datos del Observatorio Laboral para la Educación (OLE): Tasas de cotización y vinculación formal de graduados de programas afines en Colombia, salarios promedio de enganche a 1 y 3 años de graduación, tiempo promedio de colocación laboral.
+   - Demanda de competencias y perfiles ocupacionales proyectados por gremios y sectores empleadores (ANDI, ACOPI, cámaras de comercio, sectores líderes).
+
+3. Estado de la Oferta Académica (SNIES / SPADIES):
+   - Análisis cuantitativo del SNIES a nivel nacional y en el área de influencia ({places}): programas activos, instituciones oferentes, modalidades, cupos anuales y evolución de la matrícula.
+   - Construir OBLIGATORIAMENTE la Tabla de Benchmarking y Oferta Comparativa SNIES:
+     | IES Oferente | Denominación del Programa | Sede / Municipio | Nivel Formación | Modalidad | Créditos | Acreditación Alta Calidad | Valor Matrícula (COP) |
+   - Análisis SPADIES: Tasas de deserción y retención por cohorte en el área de conocimiento, con las estrategias institucionales de permanencia y graduación oportuna.
+
+4. Atributos Diferenciadores y Factores de Innovación:
+   - Sustentar con total claridad los factores que hacen único, pertinente, competitivo e innovador a este programa frente a toda la oferta existente en Colombia (enfoque curricular, certificaciones, mediaciones tecnológicas, articulación con el sector productivo, flexibilidad).
+"""
+    elif cond_key == 'cond_3':
+        return f"""
+DIRECTRICES AVANZADAS Y MATRICES DE ASPECTOS CURRICULARES (DECRETO 1330 DE 2019, RES. 021795 DE 2020 & DECRETO 0529 DE 2024):
+1. Conceptualización Epistemológica, Teórica y Pedagógica:
+   - Fundamentación epistemológica profunda de la disciplina, corrientes teóricas contemporáneas y su articulación con el Proyecto Educativo Institucional (PEI) y el Modelo Pedagógico y Curricular de {inst_name}.
+   - Enfoque pedagógico activo, constructivista y centrado en el aprendizaje autónomo y colaborativo del estudiante.
+
+2. Matriz Exhaustiva de RESULTADOS DE APRENDIZAJE (RA) bajo TAXONOMÍA SOLO & BLOOM:
+   - Estructuración metodológica obligatoria bajo los 5 niveles de la TAXONOMÍA SOLO (Structure of Observed Learning Outcomes: Preestructural, Uniestructural, Multiestructural, Relacional y Abstracto Ampliado), complementados con los niveles cognitivos de Bloom (Recordar, Comprender, Aplicar, Analizar, Evaluar, Crear).
+   - Formulación canónica de cada RA: Verbo de desempeño en tercera persona + Objeto de conocimiento + Contexto de aplicación + Finalidad / Criterio de idoneidad.
+   - Construir OBLIGATORIAMENTE la Tabla / Matriz Completa de Resultados de Aprendizaje:
+     | Nivel Taxonómico SOLO | Nivel Cognitivo Bloom | Código RA | Enunciado del Resultado de Aprendizaje (RA) | Competencia / Perfil de Egreso Vinculado | Evidencia / Instrumento Evaluativo Asociado |
+
+3. Plan de Estudios, Malla Curricular y Créditos Académicos (HAD vs. HTI):
+   - Malla curricular completa y semestralizada ({proj.get('total_duration', 'Semestres')}, {proj.get('total_credits', 96)} Créditos).
+   - Cumplimiento de la proporción de horas normativas (Res. 021795/2020): 1 crédito = 48 horas totales (horas de acompañamiento docente directo HAD + horas de trabajo independiente HTI) según modalidad ({modalities}).
+   - Construir OBLIGATORIAMENTE la Tabla Completa del Plan de Estudios:
+     | Sem. | Código | Nombre de la Asignatura | Área / Componente de Formación | Créditos | Horas HAD | Horas HTI | Total Horas | Prerrequisitos / Correquisitos |
+
+4. Componentes de Formación, Interdisciplinariedad y Flexibilidad Curricular:
+   - Desglose porcentual y en créditos por componentes: Formación Básica / Fundamentación, Formación Disciplinar / Específica, Formación Sociohumanística / General, y Formación Electiva / Profundización.
+   - Rutas de electividad, líneas de profundización, doble titulación, homologación y movilidad académica (Decreto 0529 de 2024).
+
+5. Estrategias de Evaluación de los Resultados de Aprendizaje:
+   - Momentos evaluativos: Diagnóstica, Formativa y Sumativa. Rúbricas analíticas de evaluación del desempeño, comités curriculares y mecanismos de aseguramiento del aprendizaje (Assurance of Learning).
+
+6. Componente Propedéutico (si aplica):
+   - Sustentación de la articulación vertical de créditos, competencias y perfiles formativos entre niveles si aplica ciclos propedéuticos ({proj.get('has_propedeutic_cycle')}).
+"""
+    elif cond_key == 'cond_4':
+        return f"""
+DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 4: ORGANIZACIÓN FORMATIVA Y MODALIDADES (REGISTRO ÚNICO MULTIMODAL):
+- Decreto 1330 de 2019 Art. 2.5.3.2.3.2.4 & Registro Único Multimodal: Desarrollar con exhaustividad las estrategias pedagógicas para cada modalidad solicitada ({modalities}).
+- Mediaciones Tecnológicas y Ambientes de Aprendizaje: Plataformas LMS, aulas virtuales, herramientas interactivas, laboratorios remotos y simuladores.
+- Interacciones Sincrónicas y Asincrónicas: Acompañamiento tutorial, foros de discusión, tutorías académicas y retroalimentación formativa.
+- Tabla de Equivalencia Académica y Créditos: Demostrar que los resultados de aprendizaje y la exigencia académica son equivalentes en todas las modalidades.
+"""
+    elif cond_key == 'cond_5':
+        return f"""
+DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 5: INVESTIGACIÓN, INNOVACIÓN Y CREACIÓN:
+- Formación Investigativa en el Currículo: Asignaturas de metodología de investigación, proyectos integradores y trabajo de grado.
+- Grupos y Semilleros de Investigación: Líneas de investigación institucionales de {inst_name} vinculadas al programa {prog_name}, grupos categorizados en MinCiencias y semilleros de estudiantes.
+- Tabla de Proyección de Producción Científica/Tecnológica a 7 Años: Artículos, ponencias, software, prototipos y proyectos de investigación formativa proyectados durante la vigencia del registro.
+"""
+    elif cond_key == 'cond_6':
+        return f"""
+DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 6: RELACIÓN CON EL SECTOR EXTERNO:
+- Proyección Social y Extensión: Programas de consultoría, proyectos de impacto comunitario, voluntariado y educación continua.
+- Convenios de Prácticas y Sector Productivo: Acuerdos marco y específicos con empresas, entidades públicas y gremios del sector ({places}).
+- Internacionalización del Currículo: Bilingüismo, clases espejo, cátedras internacionales, movilidad docente/estudiantil y redes académicas internacionales.
+- Seguimiento a Egresados: Observatorio de graduados, bolsa de empleo, actualización profesional y vinculación a los órganos de gobierno institucional.
+"""
+    elif cond_key == 'cond_7':
+        return f"""
+DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 7: PROFESORES:
+- Proyección de la Planta Docente: Perfiles de formación (Doctorado, Maestría, Especialización) y experiencia profesional/pedagógica requeridos según las modalidades ({modalities}).
+- Dedicación Horaria: Distribución equilibrada entre Tiempo Completo (TC), Medio Tiempo (MT) y Cátedra en docencia, investigación y extensión.
+- Estatuto y Cualificación Docente: Plan institucional de formación pedagógica, disciplinar y tecnológica, sistema de evaluación docente y escalafón.
+- Tabla de Planta Docente Proyectada: Cuadro estructurado con perfiles, áreas de conocimiento, dedicación y asignaturas asignadas.
+"""
+    elif cond_key == 'cond_8':
+        return f"""
+DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 8: MEDIOS EDUCATIVOS:
+- Recursos Bibliográficos Físicos y Digitales: Suscripciones activas a bases de datos científicas indexadas (Scopus, ScienceDirect, EBSCO, IEEE, SciELO, e-Libro, etc.), convenios interbibliotecarios y repositorios.
+- Plataforma LMS y Software Especializado: Licenciamiento de plataformas virtuales, software técnico y disciplinar del programa, laboratorios virtuales y simuladores.
+- Políticas de Accesibilidad e Inclusión: Medios educativos adaptados para estudiantes con discapacidad o diversidad funcional, y plan de capacitación continua.
+"""
+    elif cond_key == 'cond_9':
+        return f"""
+DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 9: INFRAESTRUCTURA FÍSICA Y TECNOLÓGICA:
+- Espacios Físicos Especializados: Aulas, talleres, laboratorios físicos, conectividad a internet de alta velocidad, ancho de banda y salas de cómputo en {places}.
+- Bioseguridad, Bienestar y Accesibilidad: Espacios de bienestar universitario (deporte, cultura, salud), protocolos de bioseguridad y accesibilidad universal (rampas, ascensores).
+- Plan de Mantenimiento y Presupuesto Proyectado a 7 Años: Tabla financiera de inversiones en infraestructura y renovación tecnológica proyectada para los 7 años de vigencia del registro calificado.
+"""
+    return ""
+
+
 @registro_calificado_bp.route('/api/rc/generate_condition', methods=['POST'])
 def generate_condition_ai():
     try:
@@ -1501,8 +1630,8 @@ def generate_condition_ai():
         for ev in sorted_evidences:
             ev_text = ev.get('full_text', '') or ev.get('text_sample', '')
             if ev_text:
-                # Pasar un muestreo amplio y profundo (hasta 25.000 caracteres por documento para capturar detalles sustantivos)
-                sample = ev_text[:25000] if len(ev_text) > 25000 else ev_text
+                # Pasar un muestreo amplio y profundo (hasta 30.000 caracteres por documento para capturar detalles sustantivos)
+                sample = ev_text[:30000] if len(ev_text) > 30000 else ev_text
                 if ev.get('is_url') or ev.get('url'):
                     header_line = f"ENLACE WEB / URL FUENTE: {ev.get('name')}\nURL DIRECTA: {ev.get('url')}\nFORMATO: {ev.get('doc_format', 'web').upper()}"
                 else:
@@ -1527,34 +1656,13 @@ def generate_condition_ai():
         if procedure_type == 'renovacion':
             procedure_instructions = """
 ATENCIÓN ESPECIAL - TRÁMITE DE RENOVACIÓN DE REGISTRO CALIFICADO:
-Este documento corresponde a una RENOVACIÓN de Registro Calificado. Debes enfatizar la evolución institucional, autoevaluaciones y planes de mejoramiento."""
+Este documento corresponde a una RENOVACIÓN de Registro Calificado. Debes enfatizar la evolución institucional, resultados de autoevaluación, impacto de egresados y planes de mejoramiento continuo."""
         elif procedure_type == 'modificacion':
             procedure_instructions = """
 ATENCIÓN ESPECIAL - TRÁMITE DE MODIFICACIÓN DE REGISTRO CALIFICADO:
-Este documento sustenta una modificación sustancial (e.g. ampliación de modalidades para Registro Único). Sustenta la pertinencia y coherencia del cambio."""
+Este documento sustenta una modificación sustancial (e.g. ampliación de modalidades para Registro Único Multimodal). Sustenta la pertinencia y coherencia del cambio."""
 
-        condition_specific_guidelines = ""
-        if cond_key == 'cond_2':
-            condition_specific_guidelines = """
-DIRECTRICES AVANZADAS DE JUSTIFICACIÓN (MINISTERIO DE EDUCACIÓN NACIONAL - CONACES):
-- Pertinencia Integral: Sustentar con rigor los contextos internacional (UNESCO, OCDE, tendencias globales), nacional y regional en los municipios y departamentos de influencia.
-- Estadísticas Oficiales Requeridas: Incorporar análisis cuantitativo y cualitativo de la oferta y matrícula del SNIES, tasas de deserción y graduación de SPADIES, estadísticas de empleabilidad e ingreso del Observatorio Laboral para la Educación (OLE), cifras del DANE (mercado laboral, índice de ocupación, valor agregado por sector económico).
-- Instrumentos de Planeación: Articular obligatoriamente la pertinencia con las metas del Plan Nacional de Desarrollo (PND) vigente, el Plan Decenal de Educación 2016-2026, los Planes de Desarrollo Departamentales y Municipales de la región de impacto.
-- Demanda Ocupacional y Atributos Diferenciadores: Detallar vacantes del mercado laboral, requerimientos del sector productivo y los atributos diferenciadores únicos que hacen a este programa competitivo frente a la oferta existente.
-"""
-        elif cond_key == 'cond_3':
-            condition_specific_guidelines = """
-DIRECTRICES AVANZADAS DE ASPECTOS CURRICULARES (RES. 021795 DE 2020 & D. 0529 DE 2024):
-- Benchmarking Curricular: Si existen planes de estudio de otras IES en las evidencias adjuntas, realizar un análisis comparativo y consolidar una propuesta formativa innovadora, flexible y diferenciadora.
-- Articulación Curricular Integral: Establecer una matriz de coherencia que articule:
-  1. Núcleos Problémicos y Áreas de Formación.
-  2. Perfil de Egreso y Competencias (Genéricas y Específicas).
-  3. Formulación Rigurosa de RESULTADOS DE APRENDIZAJE (RA):
-     - Estructurados bajo la TAXONOMÍA SOLO (Structure of Observed Learning Outcomes: Preestructural, Uniestructural, Multiestructural, Relacional, Abstracto Ampliado).
-     - Complementados con los niveles cognitivos de la TAXONOMÍA DE BLOOM revisada (Recordar, Comprender, Aplicar, Analizar, Evaluar, Crear).
-- Plan de Estudios y Créditos Académicos: Malla curricular discriminando créditos, horas de trabajo con acompañamiento directo del docente (HAD) vs. horas de trabajo independiente del estudiante (HTI), aplicando la proporción 1:2 o según la modalidad (Res. 021795).
-- Flexibilidad y Componente Propedéutico: Mecanismos de homologación, electividad, interdisciplinariedad y articulación por ciclos si aplica.
-"""
+        condition_specific_guidelines = get_condition_specific_guidelines(cond_key, proj)
 
         system_prompt = f"""Eres un Evaluador Senior de la Sala de CONACES, Par Académico del CNA y Consultor Senior de Alto Nivel para el Ministerio de Educación Nacional de Colombia (MEN).
 
@@ -1584,18 +1692,14 @@ DIRECTRICES CRÍTICAS DE ESTRUCTURACIÓN Y USO DE EVIDENCIAS:
 3. CUMPLIMIENTO DE ASPECTOS A EVALUAR (RESOLUCIÓN 021795 DE 2020):
    Debes responder de manera exhaustiva a todos los aspectos a evaluar fijados por la Res. 021795 de 2020 para esta condición. Si un parámetro técnico o dato específico no aparece en los adjuntos suministrados por el usuario, DEBES investigarlo / deducirlo con rigor profesional en internet/bases normativas, fundamentándolo de forma completa en el texto sin dejar preguntas o corchetes sin responder.
 
-4. GENERACIÓN DE TABLAS MARKDOWN COMPLETAS Y REALES (ESTILO DOCUMENTO MAESTRO INSTITUCIONAL):
+4. GENERACIÓN DE TABLAS MARKDOWN COMPLETAS, REALES Y EXHAUSTIVAS:
    DEBES CONSTRUIR LAS TABLAS MARKDOWN COMPLETAS Y RICAS DIRECTAMENTE DENTRO DEL TEXTO.
-   No las reemplaces por meras instrucciones vacías; incluye la tabla completa en sintaxis Markdown (| Columna 1 | Columna 2 |) con todos sus datos cuantitativos, matrices de pertinencia, oferta comparativa SNIES/DANE, matriz de Resultados de Aprendizaje bajo Taxonomía SOLO, plan de estudios con horas presenciales e independientes, o cuadros de equivalencia entre modalidades.
+   No las reemplaces por meras instrucciones vacías; incluye la tabla completa en sintaxis Markdown (| Columna 1 | Columna 2 |) con todos sus datos cuantitativos, matrices de pertinencia, oferta comparativa SNIES/DANE, matriz de Resultados de Aprendizaje bajo Taxonomía SOLO, plan de estudios con horas presenciales e independientes (HAD vs HTI), o cuadros de equivalencia entre modalidades.
 
-5. MARCADORES DE POSICIÓN PARA EVIDENCIA FOTOGRÁFICA Y PROMPTS DE DOCENTES/MEDIOS:
+5. MARCADORES DE POSICIÓN PARA EVIDENCIA FOTOGRÁFICA:
    - Para evidencia visual en condiciones 5, 6, 7, 8 y 9, dispone espacios destacados:
      > 🖼️ **[ESPACIO PARA EVIDENCIA FOTOGRÁFICA / CAPTURA DE PANTALLA]**:
      > *"Pegar aquí fotografía o evidencia gráfica de: [Aulas, Laboratorios Físicos / LMS / Firma de Convenios / Medios Educativos]. Pie de foto recomendado: Figura X.Y - Recursos para el programa {proj.get('program_name')}."*
-   
-   - Para Planta Docente (Condición 7) y Medios/Software (Condición 8), incluye la tabla estructurada oficial con columnas para ser diligenciada por la institución:
-     > 🤖 **[PROMPT IA DE TABLA DE PLANTA DOCENTE / MEDIOS PARA DILIGENCIAR EN EXCEL/MARKDOWN]**:
-     > *"Genera la plantilla estructurada en Markdown/Excel para la planta docente / inventario de software del programa '{proj.get('program_name')}' con las columnas: [Nombre del Docente | Máximo Nivel de Formación (Lic/Esp/MSc/PhD) | Área de Conocimiento | Tipo de Vinculación (TC/MT/Cátedra) | Asignaturas Asignadas | Horas Semanales Docencia | Horas Investigación/Extensión]. Dejar filas listas para ingresar los datos reales."*
 
 6. CITACIÓN EN TEXTO Y BIBLIOGRAFÍA EN FORMATO APA 7.0:
    - Citas en texto formato APA 7.0 (DANE, 2024; SPADIES, 2024; UNESCO, 2024; Biggs & Tang, 2020, documentos institucionales).
@@ -1639,8 +1743,9 @@ REGLAS STRICTAS DE SALIDA:
 1. Desarrolla EXCLUSIVAMENTE la Condición {meta.get('num')}. ESTÁ PROHIBIDO escribir subtítulos de la Condición siguiente.
 2. Utiliza obligatoriamente los sub-numerales indicados arriba como subtítulos principales de tercer nivel (###).
 3. Integra, cita y articula activamente los fragmentos y datos de las evidencias institucionales cargadas arriba.
-4. Si un aspecto de la Res. 021795 de 2020 no aparece en las evidencias adjuntas, investígalo/dedúcelo técnicamente para responderlo completamente.
-5. Finaliza el capítulo con la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
+4. Construye directamente en el texto todas las tablas Markdown completas (Benchmarking SNIES, Demanda DANE, Matriz de RA bajo Taxonomía SOLO, Plan de Estudios con HAD/HTI/Créditos, etc.).
+5. Si un aspecto de la Res. 021795 de 2020 no aparece en las evidencias adjuntas, investígalo/dedúcelo técnicamente para responderlo completamente.
+6. Finaliza el capítulo con la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
 """
 
         # Pase 1: Generación inicial (máximo de tokens para contenido extenso)
@@ -1669,7 +1774,7 @@ REGLAS STRICTAS DE SALIDA:
                 break
                 
             # Si el texto está truncado o le faltan las referencias, preparar prompt de continuación exacta
-            last_snippet = text_trim[-400:] if len(text_trim) > 400 else text_trim
+            last_snippet = text_trim[-500:] if len(text_trim) > 500 else text_trim
             
             next_cond_num = str(int(meta.get('num')) + 1) if meta.get('num').isdigit() else 'siguiente'
             continuation_prompt = f"""ATENCIÓN: Tu respuesta anterior fue exhaustiva pero se interrumpió o aún no ha concluido con la sección final de bibliografía en APA 7.0.
@@ -1680,7 +1785,7 @@ A continuación se muestra el fragmento final generado hasta el momento:
 REGLAS RIGUROSAS DE CONTINUACIÓN:
 1. CONTINÚA LA REDACCIÓN EXACTAMENTE DESDE LA ÚLTIMA PALABRA (sin repetir texto previo ni empezar desde el inicio).
 2. MANTÉNTE EXCLUSIVAMENTE DENTRO DE LA CONDICIÓN {meta.get('num')}: {meta.get('title')}. ESTÁ RIGUROSAMENTE PROHIBIDO SALIRSE A LA CONDICIÓN {next_cond_num} (ejemplo: NO generes ningún subtítulo como '### {next_cond_num}.1' ni '### {next_cond_num}.2').
-3. NO GENERES TABLAS MARKDOWN NI FIGURAS COMPLETAS DENTRO DEL TEXTO. En su lugar, redacta EXCLUSIVAMENTE el prompt necesario para que el usuario construya la tabla/figura por su cuenta. Estos prompts DEBEN iniciar obligatoriamente con el prefijo `> [PROMPT IA: TABLA/FIGURA]` en una línea nueva.
+3. CONSTRUYE TABLAS MARKDOWN COMPLETAS Y DETALLADAS DIRECTAMENTE EN EL TEXTO cuando corresponda (mallas curriculares, matrices de RA SOLO, comparativos SNIES/DANE).
 4. Concluye obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
 
             continuation_text = call_ai(
@@ -1758,7 +1863,7 @@ def continue_condition_ai():
         for ev in proj.get('evidences', []):
             ev_text = ev.get('full_text', '') or ev.get('text_sample', '')
             if ev_text:
-                sample = ev_text[:4000] if len(ev_text) > 4000 else ev_text
+                sample = ev_text[:8000] if len(ev_text) > 8000 else ev_text
                 if ev.get('is_url') or ev.get('url'):
                     evidences_context.append(f"--- [ENLACE WEB: {ev.get('name')} | URL: {ev.get('url')} | TIPO: {ev.get('doc_type')}] ---\n{sample}\n")
                 else:
@@ -1769,12 +1874,16 @@ def continue_condition_ai():
         last_snippet = existing_content[-1500:] if len(existing_content) > 1500 else existing_content
         next_cond_num = str(int(meta.get('num')) + 1) if meta.get('num').isdigit() else 'siguiente'
         
+        condition_specific_guidelines = get_condition_specific_guidelines(cond_key, proj)
+
         system_prompt = f"""Eres un Evaluador Senior de la Sala de CONACES, Par Académico del CNA y Consultor Senior del MEN de Colombia.
 Tu misión es CONTINUAR la redacción de alta densidad técnica y académica de la CONDICIÓN {meta.get('num')}: {meta.get('title')} para el programa '{proj.get('program_name')}'.
-Mantén el máximo rigor conceptual, investigación externa de fuentes (DANE, SPADIES, UNESCO 2024-2026), citas APA 7.0 y sin repetir numerales ya redactados."""
+Mantén el máximo rigor conceptual, investigación de fuentes (DANE, SPADIES, OLE, UNESCO 2024-2026), citas en APA 7.0, tablas completas de datos y sin repetir numerales ya redactados."""
 
         continuation_prompt = f"""DOCUMENTO MAESTRO - CONDICIÓN {meta.get('num')}: {meta.get('title')}
 PROGRAMA: {proj.get('program_name')} | NIVEL: {proj.get('level')} | MODALIDADES: {', '.join(proj.get('modalities', ['Presencial']))}
+
+{condition_specific_guidelines}
 
 ESTADO DE LA REDACCIÓN HASTA ESTE MOMENTO:
 - Sub-numerales ya desarrollados previamente:
@@ -1795,7 +1904,7 @@ REGLAS STRICTAS DE CONTINUACIÓN:
 1. CONTINUIDAD FLUIDA: Continúa el texto exactamente donde quedó cortado el último fragmento, sin reiniciar el capítulo ni repetir párrafos o sub-numerales ya redactados arriba ({', '.join([s.split()[0] for s in developed_subs]) if developed_subs else 'ninguno'}).
 2. DESARROLLO DE SUB-NUMERALES PENDIENTES: Procede a desarrollar de forma exhaustiva los sub-numerales pendientes: {', '.join([s.split()[0] for s in pending_subs]) if pending_subs else 'la sección final de referencias'}. Cada sub-numeral debe ser un encabezado '###'.
 3. AISLAMIENTO DE CONDICIÓN: MANTÉNTE EXCLUSIVAMENTE DENTRO DE LA CONDICIÓN {meta.get('num')}. ESTÁ RIGUROSAMENTE PROHIBIDO SALIRSE A LA CONDICIÓN {next_cond_num} (NO generes ### {next_cond_num}.1 ni ### {next_cond_num}.2).
-4. PROMPTS DE TABLAS/FIGURAS: NO generes tablas ni figuras completas; redacta el prompt con prefijo `> [PROMPT IA: TABLA/FIGURA]` en una línea nueva.
+4. CONSTRUCCIÓN DE TABLAS Y MATRICES: Desarrolla y construye tablas Markdown completas y detalladas directamente en el texto cuando el subnumeral lo requiera (matrices de RA SOLO, mallas curriculares, comparativos SNIES/DANE).
 5. REFERENCIAS APA 7.0: Si es la última parte del capítulo, finaliza obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
 
         continuation_text = call_ai(
