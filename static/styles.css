@@ -853,22 +853,9 @@ input::placeholder, textarea::placeholder {
     to { opacity: 0; }
 }
 
-/* Transición suave de salida para enlaces del menú */
-.page-smooth-exit {
-    opacity: 0.3 !important;
-    transition: opacity 0.08s ease-out;
-    pointer-events: none;
-}
-
-/* Animación de entrada: empieza visible para evitar flash */
+/* Transiciones estables sin parpadeos */
 .main-content, .rc-main, .dashboard-container {
-    animation: siacPageEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
-    will-change: opacity, transform;
-}
-
-@keyframes siacPageEnter {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
+    opacity: 1;
 }
 
 /* Estabilidad del Sidebar para evitar layout shifts */

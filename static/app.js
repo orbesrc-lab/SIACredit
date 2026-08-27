@@ -187,7 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    
     // 1. Detect if we are inside an iframe (Module Modal)
     const isModal = window.self !== window.top;
     
@@ -205,19 +204,18 @@ document.addEventListener('DOMContentLoaded', () => {
             dashContainer.style.boxShadow = 'none';
             dashContainer.style.background = 'transparent';
             dashContainer.style.height = '100vh';
-        const mainContent = document.querySelector('.main-content');
-        if (mainContent) {
-            mainContent.style.height = '100%';
-            mainContent.style.overflowY = 'auto';
-        }
-        const contentArea = document.querySelector('.content-area');
-        if (contentArea) {
-            contentArea.style.height = 'auto';
-            contentArea.style.overflowY = 'visible';
-        }
-        // Force body to scroll if needed
-        document.body.style.display = 'block';
-
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.style.height = '100%';
+                mainContent.style.overflowY = 'auto';
+            }
+            const contentArea = document.querySelector('.content-area');
+            if (contentArea) {
+                contentArea.style.height = 'auto';
+                contentArea.style.overflowY = 'visible';
+            }
+            // Force body to scroll if needed
+            document.body.style.display = 'block';
         }
         
         // Let the parent modal know the title of this module
@@ -237,22 +235,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
             const mainContent = document.querySelector('.main-content') || document.querySelector('.dashboard-container');
             if (mainContent) {
-                mainContent.style.position = 'relative'; // Ensure positioning context
+                mainContent.style.position = 'relative';
                 mainContent.insertAdjacentHTML('beforeend', modalHTML);
             }
         }
-        
-        // Navegación nativa limpia para todos los enlaces del menú lateral
-        const sidebarLinks = document.querySelectorAll('.sidebar-item');
-        sidebarLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                const href = link.getAttribute('href');
-                if (href && href !== '#' && !href.startsWith('javascript:')) {
-                    // Permitir navegación nativa fluida sin capturar iframe
-                    window.location.href = href;
-                }
-            });
-        });
     }
 });
 
@@ -286,13 +272,11 @@ window.setModuleModalTitle = function(newTitle) {
     }
 };
 
-
 window.addEventListener('message', (e) => {
     if (e.data && e.data.type === 'settings_updated') {
         window.location.reload();
     }
 });
-
 
 // Helpers globales para navegación lateral y cierre de sesión
 window.toggleSidebarGroup = function(element) {
@@ -312,11 +296,9 @@ window.logout = function() {
     window.top.location.href = '/login.html';
 };
 
-
-// ==============================================================================
-// Gestor Universal de Modales y Cortinas Oscuras (Backdrops)
-// Evita que las superposiciones queden colgadas al navegar o cambiar de opción.
-// ==============================================================================
+// ==========================================
+// Gestor Universal de Modales
+// ==========================================
 function closeAllModals() {
     try {
         const modals = document.querySelectorAll('[id*="modal"], [id*="Modal"], .modal, .modal-backdrop');
@@ -358,26 +340,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ==============================================================================
-    // 4. MOTOR DE NAVEGACIÓN LIMPIA
-    // ==============================================================================
-    document.querySelectorAll('.sidebar-item, .sidebar a, nav a').forEach(link => {
-        const href = link.getAttribute('href');
-        if (href && href.endsWith('.html') && !href.startsWith('http') && !href.includes('logout')) {
-            // Transición suave al hacer clic
-            link.addEventListener('click', (e) => {
-                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || link.target === '_blank') return;
-                const targetHref = link.getAttribute('href');
-                if (targetHref && targetHref.endsWith('.html') && !targetHref.startsWith('#')) {
-                    const mainContainer = document.querySelector('.main-content, .rc-main, .dashboard-container, .workspace');
-                    if (mainContainer) {
-                        mainContainer.classList.add('page-smooth-exit');
-                    }
-                }
-            });
-        }
-    });
-
     // Persistencia del estado de los grupos desplegados en el Sidebar
     try {
         const groups = document.querySelectorAll('.sidebar-group');
@@ -392,67 +354,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     } catch(e) {}
-
-    // ── Prefetch inteligente de páginas del sidebar ──
-    // Al hacer hover sobre un link del sidebar, se precarga la página
-    // en background para que el cambio de módulo sea instantáneo.
-    try {
-        const prefetched = new Set();
-        const HTML_PAGES = [
-            'dashboard.html','autoevaluacion.html','evidencias.html','encuestas.html',
-            'estadisticas.html','informes.html','dofa.html','planificacion.html',
-            'biblioteca.html','configuracion.html','normatividad.html','formacion.html',
-            'skel360.html','empresa_dashboard.html','crm.html','backup.html'
-        ];
-
-        function prefetchPage(href) {
-            if (!href || prefetched.has(href)) return;
-            const page = href.split('/').pop();
-            if (!HTML_PAGES.includes(page)) return;
-            prefetched.add(href);
-            const link = document.createElement('link');
-            link.rel = 'prefetch';
-            link.href = href;
-            link.as = 'document';
-            document.head.appendChild(link);
-        }
-
-        // Prefetch al hover con delay de 100ms para evitar prefetches innecesarios
-        document.querySelectorAll('.sidebar-item[href]').forEach(a => {
-            let timer;
-            a.addEventListener('mouseenter', () => {
-                timer = setTimeout(() => prefetchPage(a.getAttribute('href')), 100);
-            });
-            a.addEventListener('mouseleave', () => {
-                clearTimeout(timer);
-            });
-        });
-
-        // Prefetch proactivo: al cargar la página, precarga las páginas más comunes
-        setTimeout(() => {
-            ['dashboard.html','autoevaluacion.html','evidencias.html'].forEach(p => {
-                prefetchPage('/' + p);
-            });
-        }, 2000); // Espera 2s para no competir con recursos críticos
-
-    } catch(e) {}
-
-    // ── Transición de salida suave al navegar ──
-    // Aplica una animación de fade-out antes de cambiar de página
-    // para que la navegación se sienta más fluida.
-    try {
-        document.querySelectorAll('.sidebar-item[href]').forEach(a => {
-            a.addEventListener('click', function(e) {
-                const href = this.getAttribute('href');
-                if (!href || href.startsWith('javascript') || href.startsWith('#')) return;
-                // Solo aplicar a páginas del mismo dominio
-                if (href.startsWith('http') && !href.includes(window.location.hostname)) return;
-                e.preventDefault();
-                document.body.style.transition = 'opacity 0.15s ease';
-                document.body.style.opacity = '0';
-                setTimeout(() => { window.location.href = href; }, 150);
-            });
-        });
-    } catch(e) {}
-
 });
