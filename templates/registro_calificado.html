@@ -1482,9 +1482,14 @@
                 </div>
             </div>
             <div class="rc-modal-footer" style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
-                <button class="btn-rc btn-rc-outline" onclick="copyViewerText()" style="font-size: 0.82rem; padding: 6px 14px; color: #0284c7; border-color: #bae6fd;">
-                    <i class="fa-solid fa-copy"></i> Copiar Texto Extraído
-                </button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-rc btn-rc-outline" onclick="copyViewerText()" style="font-size: 0.82rem; padding: 6px 14px; color: #0284c7; border-color: #bae6fd;">
+                        <i class="fa-solid fa-copy"></i> Copiar Texto Extraído
+                    </button>
+                    <button class="btn-rc btn-rc-outline" id="btnViewerDownloadOriginal" onclick="downloadEvidenceFile(currentViewerEvidenceId)" style="font-size: 0.82rem; padding: 6px 14px; color: #16a34a; border-color: #86efac;">
+                        <i class="fa-solid fa-download"></i> Descargar Archivo Original
+                    </button>
+                </div>
                 <button class="btn-rc btn-rc-primary" onclick="closeModal('modalEvidenceViewer')">Cerrar Visor</button>
             </div>
         </div>
@@ -2520,6 +2525,7 @@
                         </div>
                         <div style="display: flex; gap: 4px;">
                             ${isUrl && ev.url ? `<a href="${escapeHtml(ev.url)}" target="_blank" rel="noopener noreferrer" class="btn-rc btn-rc-outline" style="padding: 4px 7px; font-size: 0.74rem; color: #0284c7; border-color: #bae6fd; text-decoration: none;" title="Abrir URL original en nueva pestaña"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+                            <button class="btn-rc btn-rc-outline" onclick="downloadEvidenceFile('${ev.id}')" style="padding: 4px 7px; font-size: 0.74rem; color: #16a34a; border-color: #86efac;" title="Descargar archivo original fielmente"><i class="fa-solid fa-download"></i></button>
                             <button class="btn-rc btn-rc-outline" onclick="viewEvidenceFullText('${ev.id}')" style="padding: 4px 7px; font-size: 0.74rem; color: #2563eb; border-color: #bfdbfe;" title="Ver texto completo indexado"><i class="fa-solid fa-eye"></i></button>
                             <button class="btn-rc btn-rc-outline" onclick="deleteEvidenceItem('${ev.id}', '${escapeHtml((ev.name || ev.original_filename || ev.url || 'Documento').replace(/'/g, "\\'"))}')" style="padding: 4px 7px; font-size: 0.74rem; color: #ef4444; border-color: #fca5a5;" title="Eliminar del proyecto"><i class="fa-solid fa-trash"></i></button>
                         </div>
@@ -2533,14 +2539,29 @@
         }
 
         let currentViewerFullText = '';
+        let currentViewerEvidenceId = null;
+
+        function downloadEvidenceFile(evidenceId) {
+            if (!evidenceId) return;
+            const projectIdParam = currentProject ? `?project_id=${encodeURIComponent(currentProject.id)}` : '';
+            const downloadUrl = `/api/rc/download_evidence/${encodeURIComponent(evidenceId)}${projectIdParam}`;
+            
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
 
         function viewEvidenceFullText(evidenceId) {
-            const ev = (currentProject?.evidences || []).find(e => e.id === evidenceId);
+            const ev = (currentProject?.evidences || []).find(e => e.id === evidenceId) || (allSharedEvidences || []).find(e => e.id === evidenceId);
             if (!ev) {
                 Swal.fire('Error', 'No se encontró el documento solicitado.', 'error');
                 return;
             }
             
+            currentViewerEvidenceId = evidenceId;
             const fullText = ev.full_text || ev.text_sample || 'No hay texto extraído disponible para este recurso.';
             currentViewerFullText = fullText;
             
@@ -2711,6 +2732,8 @@
                                 </div>
                                 <div style="display: flex; gap: 6px; align-items: center;">
                                     ${isUrl && ev.url ? `<a href="${escapeHtml(ev.url)}" target="_blank" rel="noopener noreferrer" class="btn-rc btn-rc-outline" style="padding: 4px 8px; font-size: 0.75rem; color: #0284c7; text-decoration: none;" title="Abrir URL"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+                                    <button class="btn-rc btn-rc-outline" onclick="downloadEvidenceFile('${ev.id}')" style="padding: 5px 10px; font-size: 0.76rem; color: #16a34a; border-color: #86efac;" title="Descargar archivo original fielmente"><i class="fa-solid fa-download"></i> Descargar</button>
+                                    <button class="btn-rc btn-rc-outline" onclick="viewEvidenceFullText('${ev.id}')" style="padding: 5px 10px; font-size: 0.76rem; color: #2563eb; border-color: #bfdbfe;" title="Ver texto"><i class="fa-solid fa-eye"></i></button>
                                     ${isAlreadyLinked ? 
                                         `<span class="rc-badge-pill rc-badge-pill-success"><i class="fa-solid fa-check"></i> Vinculado</span>` : 
                                         `<button class="btn-rc btn-rc-primary" onclick="linkSharedEvidenceItem('${ev.id}')" style="padding: 6px 12px; font-size: 0.78rem;"><i class="fa-solid fa-link"></i> Vincular a este Proyecto</button>`
@@ -2796,6 +2819,7 @@
                                             <span style="display: inline-flex; align-items: center; gap: 6px; background: white; border: 1px solid #bbf7d0; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; color: #1e293b;">
                                                 <i class="fa-solid fa-file-lines" style="color: #10b981;"></i>
                                                 <strong>${escapeHtml(ev.name || ev.original_filename)}</strong> (${escapeHtml(ev.doc_type || 'General')})
+                                                <button onclick="downloadEvidenceFile('${ev.id}')" style="border:none; background:none; color:#16a34a; cursor:pointer; font-size:0.75rem; padding:0 2px;" title="Descargar archivo original fielmente"><i class="fa-solid fa-download"></i></button>
                                                 <button onclick="viewEvidenceFullText('${ev.id}')" style="border:none; background:none; color:#2563eb; cursor:pointer; font-size:0.75rem; padding:0 2px;" title="Ver texto extraído"><i class="fa-solid fa-eye"></i></button>
                                             </span>
                                         `).join('')}

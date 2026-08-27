@@ -4,7 +4,7 @@ import uuid
 import re
 import io
 import datetime
-from flask import Blueprint, jsonify, request, render_template, send_file, Response
+from flask import Blueprint, jsonify, request, render_template, send_file, Response, redirect
 from utils.db import supabase, get_active_inst_id
 from utils.auth import require_permission
 from routes.ai import call_ai
@@ -487,8 +487,11 @@ def upload_evidence():
             'evidence': {
                 'id': evidence_item['id'],
                 'name': evidence_item['name'],
+                'original_filename': evidence_item['original_filename'],
                 'doc_type': evidence_item['doc_type'],
+                'size_bytes': evidence_item['size_bytes'],
                 'text_sample': evidence_item['text_sample'],
+                'full_text': evidence_item['full_text'],
                 'text_length': len(extracted_text),
                 'uploaded_at': evidence_item['uploaded_at']
             }
@@ -605,6 +608,93 @@ def delete_evidence(project_id, evidence_id):
         })
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@registro_calificado_bp.route('/api/rc/download_evidence/<evidence_id>', methods=['GET'])
+@registro_calificado_bp.route('/api/rc/projects/<project_id>/evidences/<evidence_id>/download', methods=['GET'])
+def download_evidence(evidence_id, project_id=None):
+    """Descarga fielmente el archivo original adjunto como evidencia."""
+    try:
+        req_project_id = project_id or request.args.get('project_id')
+        evidence_item = None
+        projects = load_local_projects()
+        
+        # 1. Buscar en el proyecto especificado o en todos los proyectos locales
+        if req_project_id and req_project_id in projects:
+            for ev in projects[req_project_id].get('evidences', []):
+                if ev.get('id') == evidence_id:
+                    evidence_item = ev
+                    break
+                    
+        if not evidence_item:
+            for pid, p in projects.items():
+                for ev in p.get('evidences', []):
+                    if ev.get('id') == evidence_id:
+                        evidence_item = ev
+                        break
+                if evidence_item:
+                    break
+
+        # 2. Si no se encontró en local, buscar en Supabase
+        if not evidence_item:
+            try:
+                res = supabase.table('statistics').select('data_json').like('table_id', 'RC_PROJ_%').execute()
+                if res.data:
+                    for row in res.data:
+                        try:
+                            pdata = json.loads(row.get('data_json') or '{}')
+                            for ev in pdata.get('evidences', []):
+                                if ev.get('id') == evidence_id:
+                                    evidence_item = ev
+                                    break
+                            if evidence_item:
+                                break
+                        except Exception:
+                            pass
+            except Exception as e:
+                print(f"[RC] Error searching evidence in Supabase: {e}")
+
+        orig_filename = None
+        if evidence_item:
+            orig_filename = evidence_item.get('original_filename') or evidence_item.get('name')
+
+        # 3. Caso Principal: Archivo físico guardado en RC_UPLOADS_DIR
+        file_path = os.path.join(RC_UPLOADS_DIR, evidence_id)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            download_name = orig_filename if orig_filename else evidence_id
+            # Asegurar extensión congruente con el archivo guardado
+            file_ext = os.path.splitext(evidence_id)[1]
+            if file_ext and not os.path.splitext(download_name)[1]:
+                download_name += file_ext
+            return send_file(file_path, as_attachment=True, download_name=download_name)
+
+        # 4. Caso Enlace Web / URL: Si es una evidencia vinculada por URL
+        if evidence_item and (evidence_item.get('is_url') or evidence_item.get('url')):
+            target_url = evidence_item.get('url')
+            if target_url:
+                return redirect(target_url)
+
+        # 5. Caso Fallback: Si el archivo físico no reside en disco pero se tiene el texto completo indexado
+        if evidence_item and (evidence_item.get('full_text') or evidence_item.get('text_sample')):
+            full_text = evidence_item.get('full_text') or evidence_item.get('text_sample')
+            download_name = orig_filename or f"evidencia_{evidence_id}.txt"
+            if not os.path.splitext(download_name)[1] or os.path.splitext(download_name)[1].lower() not in ['.txt', '.md', '.docx', '.pdf']:
+                download_name += '.txt'
+            elif os.path.splitext(download_name)[1].lower() in ['.docx', '.pdf', '.xlsx']:
+                download_name = os.path.splitext(download_name)[0] + '.txt'
+                
+            mem_file = io.BytesIO()
+            mem_file.write(full_text.encode('utf-8'))
+            mem_file.seek(0)
+            return send_file(
+                mem_file,
+                as_attachment=True,
+                download_name=download_name,
+                mimetype='text/plain; charset=utf-8'
+            )
+
+        return jsonify({'status': 'error', 'message': 'Archivo de evidencia no encontrado en el servidor'}), 404
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': f'Error al descargar archivo: {str(e)}'}), 500
 
 @registro_calificado_bp.route('/api/rc/institutional_evidences', methods=['GET'])
 def get_institutional_evidences():
