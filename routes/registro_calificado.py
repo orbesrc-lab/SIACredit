@@ -4,8 +4,6 @@ import uuid
 import re
 import io
 import datetime
-import requests
-from bs4 import BeautifulSoup
 from flask import Blueprint, jsonify, request, render_template, send_file, Response
 from utils.db import supabase, get_active_inst_id
 from utils.auth import require_permission
@@ -152,9 +150,12 @@ def extract_text_from_url(url):
             doc_id = doc_id_match.group(1)
             export_url = f"https://docs.google.com/document/d/{doc_id}/export?format=txt"
             try:
-                exp_resp = requests.get(export_url, headers=headers, timeout=15)
-                if exp_resp.status_code == 200 and len(exp_resp.text.strip()) > 30:
-                    return exp_resp.text.strip(), f"Google Doc: {doc_id}", 'gdoc'
+                import urllib.request
+                req = urllib.request.Request(export_url, headers=headers)
+                with urllib.request.urlopen(req, timeout=15) as exp_resp:
+                    exp_text = exp_resp.read().decode('utf-8', errors='ignore')
+                    if len(exp_text.strip()) > 30:
+                        return exp_text.strip(), f"Google Doc: {doc_id}", 'gdoc'
             except Exception:
                 pass
     elif 'docs.google.com/spreadsheets/d/' in url:
@@ -163,18 +164,31 @@ def extract_text_from_url(url):
             sheet_id = sheet_id_match.group(1)
             export_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
             try:
-                exp_resp = requests.get(export_url, headers=headers, timeout=15)
-                if exp_resp.status_code == 200 and len(exp_resp.text.strip()) > 20:
-                    return exp_resp.text.strip(), f"Google Sheet: {sheet_id}", 'gsheet'
+                import urllib.request
+                req = urllib.request.Request(export_url, headers=headers)
+                with urllib.request.urlopen(req, timeout=15) as exp_resp:
+                    exp_text = exp_resp.read().decode('utf-8', errors='ignore')
+                    if len(exp_text.strip()) > 20:
+                        return exp_text.strip(), f"Google Sheet: {sheet_id}", 'gsheet'
             except Exception:
                 pass
 
-    resp = requests.get(url, headers=headers, timeout=20, allow_redirects=True)
-    resp.raise_for_status()
-    
-    content_type = resp.headers.get('Content-Type', '').lower()
+    raw_content = b''
+    content_type = ''
+    try:
+        import requests
+        resp = requests.get(url, headers=headers, timeout=20, allow_redirects=True)
+        resp.raise_for_status()
+        raw_content = resp.content
+        content_type = resp.headers.get('Content-Type', '').lower()
+    except Exception:
+        import urllib.request
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=20) as u_resp:
+            raw_content = u_resp.read()
+            content_type = (u_resp.headers.get('Content-Type') or '').lower()
+
     url_lower = url.lower().split('?')[0]
-    
     title = ''
     text = ''
     doc_format = 'html'
@@ -182,68 +196,82 @@ def extract_text_from_url(url):
     # 1. Si es PDF en línea
     if 'pdf' in content_type or url_lower.endswith('.pdf'):
         doc_format = 'pdf'
-        import PyPDF2
-        reader = PyPDF2.PdfReader(io.BytesIO(resp.content))
-        pages_text = []
-        for i, page in enumerate(reader.pages):
-            pt = page.extract_text()
-            if pt:
-                pages_text.append(f"--- [Página {i+1}] ---\n{pt.strip()}")
-        text = "\n\n".join(pages_text)
+        try:
+            import PyPDF2
+            reader = PyPDF2.PdfReader(io.BytesIO(raw_content))
+            pages_text = []
+            for i, page in enumerate(reader.pages):
+                pt = page.extract_text()
+                if pt:
+                    pages_text.append(f"--- [Página {i+1}] ---\n{pt.strip()}")
+            text = "\n\n".join(pages_text)
+        except Exception as e:
+            text = f"Error leyendo PDF en línea: {e}"
         title = url.split('/')[-1].split('?')[0] or 'Documento PDF en línea'
         
     # 2. Si es DOCX en línea
     elif 'wordprocessingml' in content_type or url_lower.endswith('.docx'):
         doc_format = 'docx'
-        import docx
-        doc = docx.Document(io.BytesIO(resp.content))
-        paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
-        for table in doc.tables:
-            for row in table.rows:
-                row_text = " | ".join(cell.text.strip() for cell in row.cells if cell.text.strip())
-                if row_text:
-                    paragraphs.append(f"[TABLA] {row_text}")
-        text = "\n".join(paragraphs)
+        try:
+            import docx
+            doc = docx.Document(io.BytesIO(raw_content))
+            paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
+            for table in doc.tables:
+                for row in table.rows:
+                    row_text = " | ".join(cell.text.strip() for cell in row.cells if cell.text.strip())
+                    if row_text:
+                        paragraphs.append(f"[TABLA] {row_text}")
+            text = "\n".join(paragraphs)
+        except Exception as e:
+            text = f"Error leyendo Word en línea: {e}"
         title = url.split('/')[-1].split('?')[0] or 'Documento Word en línea'
         
     # 3. Si es XLSX/XLS en línea
     elif 'spreadsheetml' in content_type or url_lower.endswith(('.xlsx', '.xls')):
         doc_format = 'xlsx'
-        import openpyxl
-        wb = openpyxl.load_workbook(io.BytesIO(resp.content), data_only=True)
-        lines = []
-        for sheet in wb.sheetnames:
-            ws = wb[sheet]
-            lines.append(f"--- Hoja: {sheet} ---")
-            for row in ws.iter_rows(values_only=True):
-                row_vals = [str(c).strip() for c in row if c is not None and str(c).strip()]
-                if row_vals:
-                    lines.append(" | ".join(row_vals))
-        text = "\n".join(lines)
+        try:
+            import openpyxl
+            wb = openpyxl.load_workbook(io.BytesIO(raw_content), data_only=True)
+            lines = []
+            for sheet in wb.sheetnames:
+                ws = wb[sheet]
+                lines.append(f"--- Hoja: {sheet} ---")
+                for row in ws.iter_rows(values_only=True):
+                    row_vals = [str(c).strip() for c in row if c is not None and str(c).strip()]
+                    if row_vals:
+                        lines.append(" | ".join(row_vals))
+            text = "\n".join(lines)
+        except Exception as e:
+            text = f"Error leyendo Excel en línea: {e}"
         title = url.split('/')[-1].split('?')[0] or 'Archivo Excel en línea'
         
     # 4. Si es página web HTML o texto plano
     else:
         doc_format = 'html'
-        from bs4 import BeautifulSoup
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        
-        # Extraer título de la página
-        og_title = soup.find('meta', property='og:title')
-        if soup.title and soup.title.string and soup.title.string.strip():
-            title = soup.title.string.strip()
-        elif og_title and og_title.get('content'):
-            title = og_title['content'].strip()
-        else:
-            domain = url.replace('https://', '').replace('http://', '').split('/')[0]
-            title = f"Enlace Web: {domain}"
+        try:
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(raw_content, 'html.parser')
+            og_title = soup.find('meta', property='og:title')
+            if soup.title and soup.title.string and soup.title.string.strip():
+                title = soup.title.string.strip()
+            elif og_title and og_title.get('content'):
+                title = og_title['content'].strip()
+            else:
+                domain = url.replace('https://', '').replace('http://', '').split('/')[0]
+                title = f"Enlace Web: {domain}"
+                
+            for tag in soup(['script', 'style', 'nav', 'header', 'footer', 'aside', 'noscript', 'iframe', 'svg', 'button', 'form']):
+                tag.decompose()
+                
+            text = soup.get_text(separator='\n', strip=True)
+        except Exception:
+            decoded = raw_content.decode('utf-8', errors='ignore')
+            title_match = re.search(r'<title>(.*?)</title>', decoded, re.IGNORECASE | re.DOTALL)
+            title = title_match.group(1).strip() if title_match else url
+            cleaned = re.sub(r'<(script|style).*?>.*?</\1>', '', decoded, flags=re.IGNORECASE | re.DOTALL)
+            cleaned = re.sub(r'<[^>]+>', ' ', cleaned)
+            text = re.sub(r'\s+', ' ', cleaned).strip()
             
-        # Eliminar elementos no textuales o ruidosos
-        for tag in soup(['script', 'style', 'nav', 'header', 'footer', 'aside', 'noscript', 'iframe', 'svg', 'button', 'form']):
-            tag.decompose()
-            
-        # Extraer texto preservando estructura
-        text = soup.get_text(separator='\n', strip=True)
         text = re.sub(r'\n{3,}', '\n\n', text)
         
     return text.strip(), title, doc_format

@@ -13,3 +13,5 @@ pyzipper
 python-docx
 pandas
 openpyxl
+requests
+beautifulsoup4
