@@ -585,6 +585,10 @@
         .rc-verdict-tag.red { background: #fee2e2; color: #991b1b; }
 
         /* Modal Styles */
+        .swal2-container {
+            z-index: 25000 !important;
+        }
+
         .rc-modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -1436,6 +1440,52 @@
             </div>
             <div class="rc-modal-footer">
                 <button class="btn-rc btn-rc-primary" onclick="closeModal('modalEvidenceHub')">Listo / Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =======================================================
+         MODAL: VISOR DE EVIDENCIA / DOCUMENTO INDEXADO
+         ======================================================= -->
+    <div id="modalEvidenceViewer" class="rc-modal-overlay" style="display: none; z-index: 10050;">
+        <div class="rc-modal-container" style="max-width: 860px; max-height: 90vh;">
+            <div class="rc-modal-header" style="background: linear-gradient(135deg, #0f172a, #1e293b); color: white;">
+                <h3 id="evViewerTitle" style="color: white; display: flex; align-items: center; gap: 8px; font-size: 1.05rem; margin:0;">
+                    <i class="fa-solid fa-file-lines" id="evViewerIcon" style="color: #38bdf8;"></i>
+                    <span id="evViewerName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 650px;">Visor de Documento</span>
+                </h3>
+                <button onclick="closeModal('modalEvidenceViewer')" style="border:none; background:none; cursor:pointer; font-size:1.4rem; color:#94a3b8; line-height: 1;">&times;</button>
+            </div>
+            <div class="rc-modal-body" style="padding: 18px 24px; overflow-y: auto;">
+                <!-- Metadatos del Documento -->
+                <div id="evViewerMetaBar" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; font-size: 0.82rem; color: #475569; background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                </div>
+
+                <!-- Banner de URL si aplica -->
+                <div id="evViewerUrlBanner" style="display: none; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; align-items: center; justify-content: space-between; gap: 10px;">
+                    <div style="font-size: 0.82rem; color: #0369a1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;">
+                        <strong>🔗 URL Fuente:</strong> <span id="evViewerUrlLinkText" style="text-decoration: underline;"></span>
+                    </div>
+                    <a id="evViewerUrlBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn-rc btn-rc-primary" style="font-size: 0.76rem; padding: 4px 10px; text-decoration: none; white-space: nowrap; background: #0284c7;">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Web Original
+                    </a>
+                </div>
+
+                <!-- Buscador dentro del texto -->
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <input type="text" id="evViewerSearchInput" class="rc-input" placeholder="🔍 Filtrar o buscar palabras clave en este texto indexado..." oninput="filterViewerContent(this.value)" style="font-size: 0.82rem; padding: 6px 12px; flex: 1;">
+                </div>
+
+                <!-- Contenido Extraído -->
+                <div style="position: relative;">
+                    <pre id="evViewerContent" style="max-height: 400px; overflow-y: auto; text-align: left; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.82rem; background: #0f172a; color: #f1f5f9; padding: 16px; border-radius: 8px; border: 1px solid #334155; white-space: pre-wrap; word-break: break-word; line-height: 1.6; margin: 0;"></pre>
+                </div>
+            </div>
+            <div class="rc-modal-footer" style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+                <button class="btn-rc btn-rc-outline" onclick="copyViewerText()" style="font-size: 0.82rem; padding: 6px 14px; color: #0284c7; border-color: #bae6fd;">
+                    <i class="fa-solid fa-copy"></i> Copiar Texto Extraído
+                </button>
+                <button class="btn-rc btn-rc-primary" onclick="closeModal('modalEvidenceViewer')">Cerrar Visor</button>
             </div>
         </div>
     </div>
@@ -2482,25 +2532,105 @@
             }).join('');
         }
 
+        let currentViewerFullText = '';
+
         function viewEvidenceFullText(evidenceId) {
             const ev = (currentProject?.evidences || []).find(e => e.id === evidenceId);
-            if (!ev) return;
-            const fullText = ev.full_text || ev.text_sample || 'No hay texto extraído disponible para este documento.';
-            const isUrl = !!(ev.is_url || ev.url);
-            const urlHtml = isUrl && ev.url ? `<div style="margin-bottom: 8px; font-size: 0.82rem;"><strong>URL Fuente:</strong> <a href="${escapeHtml(ev.url)}" target="_blank" style="color: #0284c7; text-decoration: underline; word-break: break-all;">${escapeHtml(ev.url)} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem;"></i></a></div>` : '';
+            if (!ev) {
+                Swal.fire('Error', 'No se encontró el documento solicitado.', 'error');
+                return;
+            }
             
-            Swal.fire({
-                title: `${isUrl ? '🔗' : '📄'} ${escapeHtml(ev.name || ev.original_filename || 'Recurso')}`,
-                html: `
-                    <div style="text-align: left; margin-bottom: 10px; font-size: 0.84rem; color: #475569;">
-                        ${urlHtml}
-                        Tipo: <strong>${escapeHtml(ev.doc_type || 'General')}</strong> | Origen: <strong>${isUrl ? 'Enlace Web' : 'Archivo Local'}</strong> | Tamaño: <strong>${Math.round((ev.size_bytes || 0) / 1024)} KB</strong> | Caracteres indexados: <strong>${fullText.length}</strong>
-                    </div>
-                    <div style="max-height: 400px; overflow-y: auto; text-align: left; font-family: monospace; font-size: 0.8rem; background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #cbd5e1; white-space: pre-wrap; word-break: break-word; line-height: 1.55; color: #1e293b;">${escapeHtml(fullText)}</div>
-                `,
-                width: '780px',
-                confirmButtonText: 'Cerrar Visor',
-                confirmButtonColor: '#2563eb'
+            const fullText = ev.full_text || ev.text_sample || 'No hay texto extraído disponible para este recurso.';
+            currentViewerFullText = fullText;
+            
+            const isUrl = !!(ev.is_url || ev.url);
+            const nameEl = document.getElementById('evViewerName');
+            const iconEl = document.getElementById('evViewerIcon');
+            const metaBar = document.getElementById('evViewerMetaBar');
+            const urlBanner = document.getElementById('evViewerUrlBanner');
+            const urlLinkText = document.getElementById('evViewerUrlLinkText');
+            const urlBtn = document.getElementById('evViewerUrlBtn');
+            const contentEl = document.getElementById('evViewerContent');
+            const searchInput = document.getElementById('evViewerSearchInput');
+            
+            if (nameEl) nameEl.textContent = ev.name || ev.original_filename || ev.url || 'Documento';
+            
+            if (iconEl) {
+                if (isUrl) {
+                    iconEl.className = 'fa-solid fa-link';
+                    iconEl.style.color = '#38bdf8';
+                } else if (ev.doc_format === 'xlsx' || (ev.name||'').endsWith('.xlsx')) {
+                    iconEl.className = 'fa-solid fa-file-excel';
+                    iconEl.style.color = '#4ade80';
+                } else if (ev.doc_format === 'docx' || (ev.name||'').endsWith('.docx')) {
+                    iconEl.className = 'fa-solid fa-file-word';
+                    iconEl.style.color = '#60a5fa';
+                } else {
+                    iconEl.className = 'fa-solid fa-file-lines';
+                    iconEl.style.color = '#38bdf8';
+                }
+            }
+            
+            if (metaBar) {
+                const sizeKb = Math.round((ev.size_bytes || 0) / 1024);
+                metaBar.innerHTML = `
+                    <span>Tipo: <strong style="color:#0f172a;">${escapeHtml(ev.doc_type || 'General')}</strong></span>
+                    <span>•</span>
+                    <span>Formato: <strong style="color:#0f172a;">${isUrl ? 'Enlace Web / URL' : (ev.doc_format || 'Archivo').toUpperCase()}</strong></span>
+                    <span>•</span>
+                    <span>Tamaño: <strong style="color:#0f172a;">${sizeKb} KB</strong></span>
+                    <span>•</span>
+                    <span>Caracteres indexados para IA: <strong style="color:#16a34a;">${fullText.length.toLocaleString()}</strong></span>
+                    ${ev.is_shared_institutional ? '<span>•</span><span class="rc-badge-pill rc-badge-pill-info">🏛️ Compartido Institucional</span>' : ''}
+                `;
+            }
+            
+            if (urlBanner) {
+                if (isUrl && ev.url) {
+                    urlBanner.style.display = 'flex';
+                    if (urlLinkText) urlLinkText.textContent = ev.url;
+                    if (urlBtn) urlBtn.href = ev.url;
+                } else {
+                    urlBanner.style.display = 'none';
+                }
+            }
+            
+            if (searchInput) searchInput.value = '';
+            if (contentEl) contentEl.textContent = fullText;
+            
+            const modalEl = document.getElementById('modalEvidenceViewer');
+            if (modalEl) modalEl.style.display = 'flex';
+        }
+
+        function filterViewerContent(term) {
+            const contentEl = document.getElementById('evViewerContent');
+            if (!contentEl) return;
+            const query = (term || '').trim().toLowerCase();
+            if (!query) {
+                contentEl.textContent = currentViewerFullText;
+                return;
+            }
+            
+            const lines = currentViewerFullText.split('\n');
+            const matchingLines = lines.filter(l => l.toLowerCase().includes(query));
+            if (matchingLines.length > 0) {
+                contentEl.textContent = `--- Mostrando ${matchingLines.length} líneas que coinciden con "${query}" ---\n\n` + matchingLines.join('\n');
+            } else {
+                contentEl.textContent = `No se encontraron coincidencias para "${query}" en este documento.`;
+            }
+        }
+
+        function copyViewerText() {
+            if (!currentViewerFullText) return;
+            navigator.clipboard.writeText(currentViewerFullText).then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Texto Copiado!',
+                    text: 'El contenido completo indexado fue copiado al portapapeles.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
             });
         }
 
