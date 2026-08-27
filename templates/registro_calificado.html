@@ -982,6 +982,7 @@
                 </div>
                 <div class="rc-hero-actions">
                     <button class="btn-rc btn-rc-secondary" onclick="openEvidenceHubModal()"><i class="fa-solid fa-folder-open"></i> Evidencias & Fuentes (<span id="evidenceCountBadge">0</span>)</button>
+                    <button class="btn-rc btn-rc-outline" onclick="openNotebookLMHubModal()" style="border-color: #7dd3fc; color: #0284c7; background: #f0f9ff; font-weight: 600;" title="Centro de Articulación y Herramientas con Google NotebookLM"><i class="fa-brands fa-google"></i> NotebookLM Hub</button>
                     <button class="btn-rc btn-rc-secondary" onclick="openProjectSettingsModal()"><i class="fa-solid fa-sliders"></i> Configurar Programa</button>
                     <button class="btn-rc btn-rc-success" onclick="exportFullDocx()"><i class="fa-solid fa-file-word"></i> Exportar Documento Maestro (.docx)</button>
                 </div>
@@ -1122,12 +1123,18 @@
                         <div id="paneEditor" style="display: flex; flex-direction: column; flex: 1; gap: 12px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <span style="font-size: 0.8rem; color: #64748b;"><i class="fa-solid fa-circle-info"></i> Texto con referentes fidedignos (2024-2026).</span>
-                                    <a href="https://notebooklm.google.com/" target="_blank" class="btn-rc btn-rc-outline" style="font-size: 0.76rem; padding: 3px 9px; color: #0284c7; border-color: #bae6fd; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;" title="Abrir Google NotebookLM para consultar tus fuentes y evidencias">
-                                        <i class="fa-brands fa-google"></i> NotebookLM Google
-                                    </a>
+                                    <span style="font-size: 0.8rem; color: #64748b;"><i class="fa-solid fa-circle-info"></i> Fuentes y referentes fidedignos.</span>
+                                    <button class="btn-rc btn-rc-outline" onclick="openNotebookLMHubModal()" style="font-size: 0.76rem; padding: 3px 9px; color: #0284c7; border-color: #bae6fd; background: #f0f9ff; display: inline-flex; align-items: center; gap: 5px; font-weight: 600;" title="Abrir Centro de Google NotebookLM para consultar tus fuentes y evidencias">
+                                        <i class="fa-brands fa-google"></i> Google NotebookLM Hub
+                                    </button>
+                                    <button class="btn-rc btn-rc-outline" onclick="exportNotebookLMBundle()" style="font-size: 0.76rem; padding: 3px 9px; color: #7c3aed; border-color: #ddd6fe; background: #f5f3ff; display: inline-flex; align-items: center; gap: 5px;" title="Descargar paquete compilado de todas las evidencias y normativas para subir a NotebookLM">
+                                        <i class="fa-solid fa-box-archive"></i> Paquete de Fuentes
+                                    </button>
+                                    <button class="btn-rc btn-rc-outline" onclick="openNotebookLMPromptsModal()" style="font-size: 0.76rem; padding: 3px 9px; color: #0369a1; border-color: #bae6fd; display: inline-flex; align-items: center; gap: 5px;" title="Ver y copiar prompts especializados de CONACES para NotebookLM sobre esta condición">
+                                        <i class="fa-solid fa-clipboard-question"></i> Prompts NotebookLM
+                                    </button>
                                 </div>
-                                <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     <button class="btn-rc btn-rc-outline" onclick="openAppendCustomContentModal()" style="font-size: 0.78rem; padding: 4px 10px; color: #16a34a; border-color: #bbf7d0;" title="Pegar o anexar texto de NotebookLM/Gemini directamente al final del editor"><i class="fa-solid fa-file-circle-plus"></i> Anexar Texto de Fuentes/IA</button>
                                     <button class="btn-rc btn-rc-outline" onclick="copyPromptsFromCondition()" style="font-size: 0.78rem; padding: 4px 10px; color: #2563eb; border-color: #bfdbfe;" title="Copiar todos los prompts de tablas e infografías de esta sección"><i class="fa-solid fa-copy"></i> Copiar Prompts IA</button>
                                     <span id="charCountBadge" style="font-size: 0.75rem; color: #94a3b8;">0 caracteres</span>
@@ -1491,6 +1498,145 @@
                     </button>
                 </div>
                 <button class="btn-rc btn-rc-primary" onclick="closeModal('modalEvidenceViewer')">Cerrar Visor</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =======================================================
+         MODAL: CENTRO DE INTEGRACIÓN GOOGLE NOTEBOOKLM
+         ======================================================= -->
+    <div id="modalNotebookLMHub" class="rc-modal-overlay" style="display: none; z-index: 10040;">
+        <div class="rc-modal-container" style="max-width: 820px; max-height: 90vh;">
+            <div class="rc-modal-header" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: white;">
+                <h3 style="color: white; display: flex; align-items: center; gap: 8px; font-size: 1.1rem; margin: 0;">
+                    <i class="fa-brands fa-google"></i>
+                    <span>Centro de Articulación con Google NotebookLM</span>
+                </h3>
+                <button onclick="closeModal('modalNotebookLMHub')" style="border:none; background:none; cursor:pointer; font-size:1.4rem; color:white; line-height: 1;">&times;</button>
+            </div>
+            <div class="rc-modal-body" style="padding: 20px 24px; overflow-y: auto;">
+                <p style="font-size: 0.88rem; color: #475569; margin-top: 0; line-height: 1.5;">
+                    <strong>Google NotebookLM</strong> es la IA de investigación de Google basada estrictamente en tus fuentes documentales (PEI, mallas, normativas, estudios de mercado). Utiliza estas herramientas para potenciar el análisis de tus evidencias y retroalimentar el Documento Maestro de Registro Calificado.
+                </p>
+
+                <!-- GRID DE TARJETAS DE ACCIÓN NOTEBOOKLM -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin-top: 14px;">
+                    <!-- Tarjeta 1: Paquete de Fuentes -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                <span style="font-size: 1.3rem;">📦</span>
+                                <h4 style="margin: 0; font-size: 0.95rem; color: #0f172a;">1. Paquete de Fuentes para NotebookLM</h4>
+                            </div>
+                            <p style="font-size: 0.8rem; color: #64748b; margin: 0; line-height: 1.4;">
+                                Descarga un dossier compilado con todas las evidencias cargadas, fichas técnicas y normativas colombianas listo para arrastrar y soltar en tu cuaderno de NotebookLM.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="btn-rc btn-rc-primary" onclick="exportNotebookLMBundle()" style="font-size: 0.8rem; padding: 7px 14px;">
+                                <i class="fa-solid fa-download"></i> Descargar Paquete (.txt)
+                            </button>
+                            <a href="https://notebooklm.google.com/" target="_blank" class="btn-rc btn-rc-outline" style="font-size: 0.8rem; padding: 7px 12px; text-decoration: none; color: #0284c7; border-color: #bae6fd;">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir NotebookLM
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 2: Prompts Especializados CONACES -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                <span style="font-size: 1.3rem;">📋</span>
+                                <h4 style="margin: 0; font-size: 0.95rem; color: #0f172a;">2. Prompts de Auditoría CONACES</h4>
+                            </div>
+                            <p style="font-size: 0.8rem; color: #64748b; margin: 0; line-height: 1.4;">
+                                Obtén preguntas y comandos técnicos contextualizados para que NotebookLM contraste tus evidencias con los aspectos a evaluar de la Res. 021795 de 2020.
+                            </p>
+                        </div>
+                        <div>
+                            <button class="btn-rc btn-rc-outline" onclick="openNotebookLMPromptsModal()" style="font-size: 0.8rem; padding: 7px 14px; color: #0369a1; border-color: #bae6fd; background: white;">
+                                <i class="fa-solid fa-clipboard-question"></i> Ver Prompts de la Condición Activa
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 3: Importador Rápido de Notas -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                <span style="font-size: 1.3rem;">📥</span>
+                                <h4 style="margin: 0; font-size: 0.95rem; color: #0f172a;">3. Importador con Citas APA 7.0</h4>
+                            </div>
+                            <p style="font-size: 0.8rem; color: #64748b; margin: 0; line-height: 1.4;">
+                                Pega el texto analizado en NotebookLM. El importador convierte automáticamente las referencias de fuentes [1], [2] y lo añade al editor sin sobrescribir.
+                            </p>
+                        </div>
+                        <div>
+                            <button class="btn-rc btn-rc-success" onclick="openAppendCustomContentModal()" style="font-size: 0.8rem; padding: 7px 14px;">
+                                <i class="fa-solid fa-file-circle-plus"></i> Importar Respuesta al Editor
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 4: Deep Dive Audio / Podcasts -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                <span style="font-size: 1.3rem;">🎙️</span>
+                                <h4 style="margin: 0; font-size: 0.95rem; color: #0f172a;">4. Audio Overview & Podcast</h4>
+                            </div>
+                            <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 8px 0; line-height: 1.4;">
+                                Vincula el enlace del Podcast / Audio Overview generado en NotebookLM para que directivos y comités escuchen la sustentación ejecutiva del programa.
+                            </p>
+                            <div style="display: flex; gap: 6px;">
+                                <input type="text" id="cfgNotebookLMPodcastUrl" class="rc-input" placeholder="https://notebooklm.google.com/notebook/..." style="font-size: 0.78rem; padding: 5px 8px; flex: 1;">
+                                <button class="btn-rc btn-rc-primary" onclick="saveNotebookLMPodcastUrl()" style="font-size: 0.76rem; padding: 5px 10px; white-space: nowrap;">
+                                    <i class="fa-solid fa-save"></i> Guardar
+                                </button>
+                            </div>
+                        </div>
+                        <div id="podcastPreviewRow" style="margin-top: 4px;">
+                            <a id="btnOpenNotebookLMPodcast" href="#" target="_blank" class="btn-rc btn-rc-outline" style="display: none; font-size: 0.78rem; padding: 6px 12px; color: #7c3aed; border-color: #ddd6fe; text-decoration: none;">
+                                <i class="fa-solid fa-headphones"></i> Escuchar Podcast Vinculado
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="rc-modal-footer" style="background: #f8fafc; text-align: right;">
+                <button class="btn-rc btn-rc-primary" onclick="closeModal('modalNotebookLMHub')">Cerrar Hub</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =======================================================
+         MODAL: CATÁLOGO DE PROMPTS CONACES PARA NOTEBOOKLM
+         ======================================================= -->
+    <div id="modalNotebookLMPrompts" class="rc-modal-overlay" style="display: none; z-index: 10045;">
+        <div class="rc-modal-container" style="max-width: 780px; max-height: 88vh;">
+            <div class="rc-modal-header" style="background: #0f172a; color: white;">
+                <h3 style="color: white; display: flex; align-items: center; gap: 8px; font-size: 1.05rem; margin: 0;">
+                    <i class="fa-solid fa-clipboard-question" style="color: #38bdf8;"></i>
+                    <span id="notebookLMPromptsHeaderTitle">Prompts de Auditoría CONACES para NotebookLM</span>
+                </h3>
+                <button onclick="closeModal('modalNotebookLMPrompts')" style="border:none; background:none; cursor:pointer; font-size:1.4rem; color:#94a3b8; line-height: 1;">&times;</button>
+            </div>
+            <div class="rc-modal-body" style="padding: 18px 22px; overflow-y: auto;">
+                <p style="font-size: 0.84rem; color: #475569; margin-top: 0;">
+                    Copia cualquiera de estos prompts y pégalos directamente en el chat de <strong>Google NotebookLM</strong> para interrogar tus fuentes documentales cargadas:
+                </p>
+                <div id="notebookLMPromptsList" style="display: flex; flex-direction: column; gap: 14px;">
+                    <div style="text-align: center; padding: 25px; color: #94a3b8;">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+                        <p>Generando prompts contextualizados para esta condición...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="rc-modal-footer" style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+                <a href="https://notebooklm.google.com/" target="_blank" class="btn-rc btn-rc-outline" style="font-size: 0.8rem; padding: 6px 12px; color: #0284c7; border-color: #bae6fd; text-decoration: none;">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Ir a Google NotebookLM
+                </a>
+                <button class="btn-rc btn-rc-primary" onclick="closeModal('modalNotebookLMPrompts')">Listo / Cerrar</button>
             </div>
         </div>
     </div>
@@ -2926,33 +3072,213 @@
             }
         }
 
+        // ==========================================
+        // FUNCIONES DE INTEGRACIÓN GOOGLE NOTEBOOKLM
+        // ==========================================
+        function openNotebookLMHubModal() {
+            if (!currentProject) {
+                Swal.fire('Atención', 'Por favor selecciona o crea un proyecto activo primero.', 'info');
+                return;
+            }
+            const podcastUrl = currentProject.notebooklm_podcast_url || '';
+            const inputEl = document.getElementById('cfgNotebookLMPodcastUrl');
+            const linkBtn = document.getElementById('btnOpenNotebookLMPodcast');
+            if (inputEl) inputEl.value = podcastUrl;
+            if (linkBtn) {
+                if (podcastUrl && podcastUrl.startsWith('http')) {
+                    linkBtn.href = podcastUrl;
+                    linkBtn.style.display = 'inline-flex';
+                } else {
+                    linkBtn.style.display = 'none';
+                }
+            }
+            openModal('modalNotebookLMHub');
+        }
+
+        async function exportNotebookLMBundle() {
+            if (!currentProject) {
+                Swal.fire('Atención', 'Por favor selecciona o crea un proyecto activo primero.', 'info');
+                return;
+            }
+            try {
+                Swal.fire({
+                    title: '📦 Compilando Paquete para NotebookLM',
+                    html: '<p style="font-size:0.85rem; color:#64748b;">Generando dossier unificado con evidencias, normativas y parámetros...</p>',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                const downloadUrl = `/api/rc/projects/${currentProject.id}/export_notebooklm_bundle`;
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `PAQUETE_FUENTES_NOTEBOOKLM_${(currentProject.program_name || 'Programa').replace(/[^a-zA-Z0-9]/g, '_')}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Paquete Descargado!',
+                        html: `
+                            <p style="font-size: 0.85rem; color: #475569; text-align: left;">
+                                Se ha descargado el archivo <strong>.txt</strong> con todas tus evidencias y normativas consolidadas.<br><br>
+                                <strong>Siguiente paso:</strong> Ve a <a href="https://notebooklm.google.com/" target="_blank" style="color: #0284c7; font-weight: bold;">Google NotebookLM</a>, crea un cuaderno nuevo y arrastra este archivo descargado como fuente.
+                            </p>
+                        `,
+                        confirmButtonText: 'Entendido'
+                    });
+                }, 800);
+            } catch (e) {
+                Swal.fire('Error', 'No se pudo descargar el paquete: ' + e.message, 'error');
+            }
+        }
+
+        async function openNotebookLMPromptsModal() {
+            if (!currentProject) {
+                Swal.fire('Atención', 'Por favor selecciona un proyecto activo primero.', 'info');
+                return;
+            }
+            openModal('modalNotebookLMPrompts');
+            const listEl = document.getElementById('notebookLMPromptsList');
+            const headerTitle = document.getElementById('notebookLMPromptsHeaderTitle');
+            const meta = CONDITIONS_METADATA[currentCondKey] || { title: 'Condición' };
+            if (headerTitle) headerTitle.textContent = `Prompts CONACES para NotebookLM: ${meta.title}`;
+
+            listEl.innerHTML = `
+                <div style="text-align: center; padding: 25px; color: #94a3b8;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem;"></i>
+                    <p style="margin-top: 8px; font-size: 0.85rem;">Generando prompts contextualizados con la normativa de CONACES...</p>
+                </div>
+            `;
+
+            try {
+                const res = await fetch(`/api/rc/notebooklm_prompts/${currentCondKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ project_id: currentProject.id })
+                });
+                const data = await res.json();
+                if (data.status === 'success' && data.prompts) {
+                    listEl.innerHTML = data.prompts.map(p => `
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 0.72rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px;">${escapeHtml(p.category)}</span>
+                                    <strong style="font-size: 0.86rem; color: #0f172a;">${escapeHtml(p.title)}</strong>
+                                </div>
+                                <button class="btn-rc btn-rc-outline" onclick="copyNotebookLMPrompt(decodeURIComponent('${encodeURIComponent(p.prompt)}'), this)" style="font-size: 0.75rem; padding: 3px 10px; color: #0284c7; border-color: #bae6fd;">
+                                    <i class="fa-solid fa-copy"></i> Copiar Prompt
+                                </button>
+                            </div>
+                            <pre style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 12px; font-size: 0.78rem; font-family: inherit; color: #334155; white-space: pre-wrap; word-break: break-word; line-height: 1.45; margin: 0;">${escapeHtml(p.prompt)}</pre>
+                        </div>
+                    `).join('');
+                } else {
+                    listEl.innerHTML = `<div style="color: #ef4444; padding: 15px;">Error cargando prompts: ${escapeHtml(data.message || 'Desconocido')}</div>`;
+                }
+            } catch (e) {
+                listEl.innerHTML = `<div style="color: #ef4444; padding: 15px;">Error de conexión al obtener prompts: ${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        function copyNotebookLMPrompt(promptText, btnEl) {
+            navigator.clipboard.writeText(promptText).then(() => {
+                const originalHtml = btnEl.innerHTML;
+                btnEl.innerHTML = '<i class="fa-solid fa-check"></i> ¡Copiado!';
+                btnEl.style.borderColor = '#86efac';
+                btnEl.style.color = '#16a34a';
+                setTimeout(() => {
+                    btnEl.innerHTML = originalHtml;
+                    btnEl.style.borderColor = '#bae6fd';
+                    btnEl.style.color = '#0284c7';
+                }, 2000);
+            }).catch(err => {
+                Swal.fire('Error', 'No se pudo copiar: ' + err, 'error');
+            });
+        }
+
+        async function saveNotebookLMPodcastUrl() {
+            if (!currentProject) return;
+            const inputEl = document.getElementById('cfgNotebookLMPodcastUrl');
+            const val = (inputEl ? inputEl.value : '').trim();
+
+            currentProject.notebooklm_podcast_url = val;
+
+            try {
+                const res = await fetch(`/api/rc/projects/${currentProject.id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notebooklm_podcast_url: val })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const linkBtn = document.getElementById('btnOpenNotebookLMPodcast');
+                    if (linkBtn) {
+                        if (val && val.startsWith('http')) {
+                            linkBtn.href = val;
+                            linkBtn.style.display = 'inline-flex';
+                        } else {
+                            linkBtn.style.display = 'none';
+                        }
+                    }
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Enlace Guardado',
+                        text: 'El enlace del Audio Overview / Podcast quedó vinculado al proyecto.',
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+                }
+            } catch (e) {
+                Swal.fire('Error', 'No se pudo guardar el enlace: ' + e.message, 'error');
+            }
+        }
+
         async function openAppendCustomContentModal() {
-            const { value: textToAppend } = await Swal.fire({
-                title: '📥 Anexar Texto de NotebookLM o Fuentes Externas',
+            const { value: formValues } = await Swal.fire({
+                title: '📥 Importar Texto de NotebookLM o Fuentes',
                 html: `
                     <p style="font-size: 0.85rem; color: #64748b; text-align: left; margin-bottom: 8px;">
-                        Pega aquí la respuesta generada en <strong>Google NotebookLM</strong>, <strong>Gemini</strong> o tu texto investigado. Se agregará automáticamente al final de la condición activa sin sobrescribir lo existente.
+                        Pega aquí la respuesta generada en <strong>Google NotebookLM</strong>, <strong>Gemini</strong> o tu investigación. Se agregará automáticamente al final de la condición activa sin sobrescribir lo existente.
                     </p>
-                    <textarea id="swalAppendTextarea" class="swal2-textarea" style="min-height: 220px; font-family: monospace; font-size: 0.85rem;" placeholder="Pega el texto aquí..."></textarea>
+                    <textarea id="swalAppendTextarea" class="swal2-textarea" style="min-height: 200px; font-family: monospace; font-size: 0.84rem;" placeholder="Pega el texto de NotebookLM aquí..."></textarea>
+                    <div style="margin-top: 10px; text-align: left;">
+                        <label style="font-size: 0.82rem; color: #334155; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <input type="checkbox" id="swalConvertCitations" checked>
+                            <span>Limpiar y convertir citas de fuentes <code>[1]</code>, <code>[2]</code> a formato textual formal</span>
+                        </label>
+                    </div>
                 `,
                 showCancelButton: true,
-                confirmButtonText: '➕ Anexar al Editor',
+                confirmButtonText: '➕ Importar al Documento',
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#16a34a',
                 preConfirm: () => {
                     const text = document.getElementById('swalAppendTextarea').value;
+                    const convertCitations = document.getElementById('swalConvertCitations').checked;
                     if (!text || !text.trim()) {
-                        Swal.showValidationMessage('Por favor pega el contenido que deseas anexar.');
+                        Swal.showValidationMessage('Por favor pega el contenido que deseas importar.');
                     }
-                    return text;
+                    return { text, convertCitations };
                 }
             });
 
-            if (textToAppend && textToAppend.trim()) {
+            if (formValues && formValues.text && formValues.text.trim()) {
+                let textToAppend = formValues.text.trim();
+
+                // Limpieza inteligente de citas de NotebookLM
+                if (formValues.convertCitations) {
+                    // Reemplazar patrones de citas de NotebookLM como [1], [1, 2] por referencias limpias
+                    textToAppend = textToAppend.replace(/\[(\d+(?:,\s*\d+)*)\]/g, (match, p1) => {
+                        return ` (Fuente ref. ${p1})`;
+                    });
+                }
+
                 const stageTextarea = document.getElementById('stageTextarea');
                 const currentText = stageTextarea.value.trim();
                 const separator = currentText ? "\n\n" : "";
-                const combined = currentText + separator + textToAppend.trim();
+                const combined = currentText + separator + textToAppend;
                 
                 stageTextarea.value = combined;
                 onEditorInput();
@@ -2964,8 +3290,8 @@
 
                 Swal.fire({
                     icon: 'success',
-                    title: '¡Texto Anexado y Guardado!',
-                    text: `Se añadieron ${textToAppend.trim().length} caracteres a la condición actual.`,
+                    title: '¡Texto Importado y Guardado!',
+                    text: `Se añadieron ${textToAppend.length} caracteres a la condición actual con formato conservado.`,
                     timer: 2000,
                     showConfirmButton: false
                 });

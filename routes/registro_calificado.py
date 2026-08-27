@@ -2556,3 +2556,194 @@ def render_markdown_table_in_docx(doc, table_lines):
                     shd = parse_xml(r'<w:shd {} w:fill="F8FAFC"/>'.format(nsdecls('w')))
                     cell._tc.get_or_add_tcPr().append(shd)
     doc.add_paragraph().paragraph_format.space_after = Pt(10)
+
+
+# ==============================================================================
+# INTEGRACIÓN AVANZADA CON GOOGLE NOTEBOOKLM
+# ==============================================================================
+
+@registro_calificado_bp.route('/api/rc/projects/<project_id>/export_notebooklm_bundle', methods=['GET'])
+def export_notebooklm_bundle(project_id):
+    """Genera un paquete documental unificado y estructurado en formato Markdown / Texto
+    diseñado para ser arrastrado o cargado directamente a Google NotebookLM como fuente de conocimiento."""
+    try:
+        proj = get_project(project_id)
+        if not proj:
+            return jsonify({'status': 'error', 'message': 'Proyecto no encontrado'}), 404
+
+        inst_name = proj.get('inst_name', 'Institución de Educación Superior')
+        prog_name = proj.get('program_name', 'Programa Académico')
+        level = proj.get('level', 'Tecnológico')
+        modalities_str = ", ".join(proj.get('modalities', ['Presencial']))
+        places_str = ", ".join(proj.get('places_of_development', ['Sede Principal']))
+
+        bundle_parts = []
+
+        # 1. ENCABEZADO Y FICHA TÉCNICA
+        bundle_parts.append(f"""# DOSSIER DE FUENTES Y EVIDENCIAS INSTITUCIONALES PARA GOOGLE NOTEBOOKLM
+# PROGRAMA: {prog_name.upper()} ({level.upper()})
+# INSTITUCIÓN: {inst_name.upper()}
+# FECHA DE COMPILACIÓN: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+================================================================================
+1. FICHA TÉCNICA OFICIAL DEL PROGRAMA Y PARÁMETROS REGULATORIOS
+================================================================================
+- Institución: {inst_name}
+- Nombre del Programa: {prog_name}
+- Título a Otorgar: {proj.get('target_title')}
+- Nivel de Formación: {level}
+- Tipo de Trámite: {proj.get('procedure_type', 'Nuevo').upper()}
+- Modalidad(es) de Oferta: {modalities_str}
+- Lugar(es) de Desarrollo: {places_str}
+- Créditos Totales: {proj.get('total_credits')} | Duración: {proj.get('total_duration')}
+- Cupo Anual Proyectado: {proj.get('annual_quota')}
+- Clasificación CINE-F 2013 A.C.: {proj.get('cine_f_code', 'N/A')}
+- Clasificación CIUO-08 DANE: {proj.get('ciuo_08_code', 'N/A')}
+- Marco Nacional de Cualificaciones (MNC): {proj.get('mnc_code', 'N/A')}
+- Clasificación Única de Ocupaciones (CUO): {proj.get('cuo_code', 'N/A')}
+- Alineación ODS (Agenda 2030): {proj.get('ods_alignment', 'N/A')}
+- Ciclos Propedéuticos: {'Sí (' + ', '.join(proj.get('propedeutic_levels', [])) + ')' if proj.get('has_propedeutic_cycle') else 'No'}
+""")
+
+        # 2. MARCO NORMATIVO OFICIAL COLOMBIANO
+        bundle_parts.append("""
+================================================================================
+2. MARCO NORMATIVO COLOMBIANO DE REFERENCIA (DECRETOS Y RESOLUCIONES MEN)
+================================================================================
+* DECRETO 1330 DE 2019: Establece las 9 condiciones de calidad para la oferta y desarrollo de programas de educación superior.
+* DECRETO 0529 DE 2024: Reglamenta la flexibilización curricular, movilidad académica y el Registro Único Multimodal.
+* RESOLUCIÓN 021795 DE 2020: Fija los parámetros de autoevaluación, aspectos a evaluar por los pares académicos de CONACES y verificación de Resultados de Aprendizaje.
+* TAXONOMÍA SOLO (Biggs & Collis): Modelo taxonómico de 5 niveles para formulación y evaluación de Resultados de Aprendizaje (Preestructural, Uniestructural, Multiestructural, Relacional, Abstracto Ampliado).
+""")
+
+        # 3. COMPILACIÓN DE TODAS LAS EVIDENCIAS Y DOCUMENTOS FUENTE DEL PROYECTO
+        evidences = proj.get('evidences', [])
+        bundle_parts.append(f"""
+================================================================================
+3. CATÁLOGO DE EVIDENCIAS Y DOCUMENTOS INSTITUCIONALES ADJUNTOS ({len(evidences)} DOCUMENTOS)
+================================================================================
+""")
+        if not evidences:
+            bundle_parts.append("(No se han adjuntado evidencias institucionales en el proyecto aún.)\n")
+        else:
+            for idx, ev in enumerate(evidences, start=1):
+                ev_name = ev.get('name') or ev.get('original_filename') or f"Evidencia_{idx}"
+                ev_type = ev.get('doc_type', 'General')
+                ev_origin = ev.get('source_inst_name', inst_name)
+                ev_text = ev.get('full_text', '') or ev.get('text_sample', '')
+
+                bundle_parts.append(f"""
+--------------------------------------------------------------------------------
+[EVIDENCIA {idx}/{len(evidences)}] {ev_name.upper()}
+TIPO DE DOCUMENTO: {ev_type} | ORIGEN: {ev_origin}
+--------------------------------------------------------------------------------
+{ev_text if ev_text else '(Documento sin texto indexable o enlace de referencia)'}
+""")
+
+        # 4. ESTADO ACTUAL DE LAS CONDICIONES REDACTADAS EN EL PROYECTO
+        bundle_parts.append("""
+================================================================================
+4. BORRADOR ACTUAL DEL DOCUMENTO MAESTRO REDACTADO EN SIACREDIT
+================================================================================
+""")
+        conditions = proj.get('conditions', {})
+        for c_key in ['cond_intro', 'cond_1', 'cond_2', 'cond_3', 'cond_4', 'cond_5', 'cond_6', 'cond_7', 'cond_8', 'cond_9']:
+            meta = CONDITIONS_METADATA.get(c_key, {})
+            c_content = conditions.get(c_key, {}).get('content', '').strip()
+            bundle_parts.append(f"""
+### CONDICIÓN {meta.get('num')}: {meta.get('title').upper()}
+{c_content if c_content else '(Condición aún no redactada)'}
+""")
+
+        full_bundle_text = "\n".join(bundle_parts)
+
+        # Preparar respuesta de descarga
+        clean_prog = re.sub(r'[^a-zA-Z0-9_\-]', '_', prog_name)
+        filename = f"PAQUETE_FUENTES_NOTEBOOKLM_{clean_prog}.txt"
+
+        from flask import Response
+        return Response(
+            full_bundle_text.encode('utf-8'),
+            mimetype="text/plain; charset=utf-8",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': f'Error generando paquete NotebookLM: {str(e)}'}), 500
+
+
+@registro_calificado_bp.route('/api/rc/notebooklm_prompts/<cond_key>', methods=['POST'])
+def get_notebooklm_prompts(cond_key):
+    """Genera un catálogo de prompts altamente especializados para interrogar fuentes en Google NotebookLM
+    bajo los lineamientos de evaluación de CONACES y la condición seleccionada."""
+    try:
+        data = request.json or {}
+        project_id = data.get('project_id')
+        proj = get_project(project_id) if project_id else {}
+
+        prog_name = proj.get('program_name', 'el Programa')
+        inst_name = proj.get('inst_name', 'la Institución')
+        level = proj.get('level', 'Tecnológico')
+        modalities = ", ".join(proj.get('modalities', ['Presencial']))
+
+        meta = CONDITIONS_METADATA.get(cond_key, {'num': 'X', 'title': 'Condición'})
+        cond_num = meta.get('num', '')
+        cond_title = meta.get('title', '')
+        subnumerals = meta.get('subnumerals', [])
+
+        # Prompts estructurados
+        prompts = [
+            {
+                "id": "p_auditoria",
+                "category": "Auditoría de Fuentes (CONACES)",
+                "title": f"1. Contrastar evidencias disponibles para la Condición {cond_num}",
+                "prompt": f"""Actuando como un Par Académico Evaluador Senior de CONACES (Ministerio de Educación Nacional de Colombia), analiza todas las fuentes documentales cargadas en este cuaderno para el programa '{prog_name}' ({level}, modalidad {modalities}) de {inst_name}.
+Evalúa el cumplimiento estricto de la CONDICIÓN {cond_num}: {cond_title} (Decreto 1330/2019 y Res. 021795/2020).
+Responde con:
+1. Resumen ejecutivo de los hallazgos sustentados en las fuentes (citando nombre de documento y página exacta).
+2. Nivel de cumplimiento de los subnumerales: {', '.join([s.split()[0] for s in subnumerals])}.
+3. Vacíos o aspectos normativos que requieren mayor respaldo documental."""
+            },
+            {
+                "id": "p_sintesis",
+                "category": "Extracción y Tablas Estructuradas",
+                "title": f"2. Construir tablas y matrices de datos para la Condición {cond_num}",
+                "prompt": f"""Con base exclusiva en los documentos institucionales cargados, extrae y consolida en formato de Tabla Markdown completa y detallada la información requerida para la Condición {cond_num} ({cond_title}) del programa '{prog_name}'.
+Asegúrate de incluir datos cuantitativos reales, porcentajes, horas, créditos o perfiles que aparezcan en los textos, sin omitir filas ni usar placeholders."""
+            },
+            {
+                "id": "p_podcast",
+                "category": "Guía de Audio Overview / Podcast",
+                "title": f"3. Orientación para Deep Dive Audio / Podcast de Dirección",
+                "prompt": f"""Genera un guion y resumen ejecutivo para orientar el Audio Overview (Podcast) sobre la propuesta formativa y pertinencia de '{prog_name}' de {inst_name}.
+El enfoque debe destacar los atributos diferenciadores frente a la competencia en Colombia, la coherencia con el PEI, el impacto regional y la solidez curricular bajo la Taxonomía SOLO."""
+            }
+        ]
+
+        # Agregar prompt específico para justificación y currículo
+        if cond_key == 'cond_2':
+            prompts.append({
+                "id": "p_mercado",
+                "category": "Estudio de Mercado y OLE",
+                "title": "4. Extraer estadísticas DANE, OLE y Demanda Laboral",
+                "prompt": f"Revisa las fuentes adjuntas y extrae todos los datos de pertinencia para '{prog_name}': tasas de vinculación formal (OLE), salarios promedio, ocupaciones CIUO-08 y requerimientos del sector productivo. Estructura el análisis en una tabla comparativa con citas exactas."
+            })
+        elif cond_key == 'cond_3':
+            prompts.append({
+                "id": "p_solo",
+                "category": "Taxonomía SOLO & Malla Curricular",
+                "title": "4. Mapear Resultados de Aprendizaje bajo Taxonomía SOLO",
+                "prompt": f"A partir de los planes de estudio y documentos pedagógicos cargados de '{prog_name}', formula la matriz completa de Resultados de Aprendizaje (RA) clasificados en los 5 niveles de la Taxonomía SOLO (Preestructural, Uniestructural, Multiestructural, Relacional y Abstracto Ampliado) articulados con la Taxonomía de Bloom y su respectivo criterio de evaluación."
+            })
+
+        return jsonify({
+            'status': 'success',
+            'cond_key': cond_key,
+            'cond_num': cond_num,
+            'cond_title': cond_title,
+            'prompts': prompts
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
