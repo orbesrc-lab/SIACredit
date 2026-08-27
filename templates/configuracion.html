@@ -3387,6 +3387,28 @@
             }
         }
 
+        async function autoSaveCarouselSettings() {
+            try {
+                const carouselSpeed = document.getElementById('carouselSpeedSelect') ? document.getElementById('carouselSpeedSelect').value : '3';
+                const carouselSize = document.getElementById('carouselSizeSelect') ? document.getElementById('carouselSizeSelect').value : 'medium';
+                const payload = {
+                    carousel_images: carouselImages,
+                    carousel_speed: carouselSpeed,
+                    carousel_size: carouselSize
+                };
+                if (!carouselImages || carouselImages.length === 0) {
+                    payload.clear_carousel = true;
+                }
+                await authFetch('/api/global-settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (e) {
+                console.error("Error auto-guardando carrusel:", e);
+            }
+        }
+
         async function uploadCarouselImage(input) {
             if (!input.files || input.files.length === 0) return;
             if (carouselImages.length >= 6) {
@@ -3411,11 +3433,12 @@
                 if (data.status === 'success') {
                     carouselImages.push(data.url);
                     renderCarouselPreview();
+                    await autoSaveCarouselSettings();
                     Swal.fire({
                         toast: true,
                         position: 'top-end',
                         icon: 'success',
-                        title: 'Imagen subida al carrusel',
+                        title: 'Imagen subida y guardada en el carrusel',
                         showConfirmButton: false,
                         timer: 2000
                     });
@@ -3433,22 +3456,32 @@
         function removeCarouselImage(index) {
             Swal.fire({
                 title: '¿Eliminar imagen?',
-                text: "Esta imagen se quitará del carrusel.",
+                text: "Esta imagen se quitará del carrusel permanentemente.",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
                 cancelButtonText: 'Cancelar',
                 confirmButtonText: 'Sí, eliminar'
-            }).then((result) => {
+            }).then(async (result) => {
                 if (result.isConfirmed) {
                     carouselImages.splice(index, 1);
                     renderCarouselPreview();
+                    await autoSaveCarouselSettings();
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Imagen eliminada del carrusel',
+                        showConfirmButton: false,
+                        timer: 1800
+                    });
                 }
             });
         }
         
         function renderCarouselPreview() {
             const container = document.getElementById('carouselImagesPreview');
+            if (!container) return;
             container.innerHTML = '';
             
             carouselImages.forEach((url, index) => {
@@ -3491,14 +3524,15 @@
         }
 
         async function saveGlobalSettings() {
-            const theme = document.getElementById('globalThemeSelect').value;
-            const aiProvider = document.getElementById('aiProviderSelect').value;
-            const aiModel = document.getElementById('aiModelInput').value;
-            const aiApiKey = document.getElementById('aiApiKeyInput').value;
+            const theme = document.getElementById('globalThemeSelect') ? document.getElementById('globalThemeSelect').value : 'dark';
+            const aiProvider = document.getElementById('aiProviderSelect') ? document.getElementById('aiProviderSelect').value : 'gemini';
+            const aiModel = document.getElementById('aiModelInput') ? document.getElementById('aiModelInput').value : 'gemini-2.5-flash';
+            const aiApiKeyEl = document.getElementById('aiApiKeyInput');
+            const aiApiKey = aiApiKeyEl ? aiApiKeyEl.value : '';
             const aiVoiceColombia = document.getElementById('aiVoiceColombia') ? document.getElementById('aiVoiceColombia').checked : false;
             const aiGlobalEnabled = document.getElementById('aiGlobalEnabled') ? document.getElementById('aiGlobalEnabled').checked : true;
-            const carouselSpeed = document.getElementById('carouselSpeedSelect').value;
-            const carouselSize = document.getElementById('carouselSizeSelect').value;
+            const carouselSpeed = document.getElementById('carouselSpeedSelect') ? document.getElementById('carouselSpeedSelect').value : '3';
+            const carouselSize = document.getElementById('carouselSizeSelect') ? document.getElementById('carouselSizeSelect').value : 'medium';
 
             const payload = {
                 theme: theme,
@@ -3507,16 +3541,16 @@
                 ai_voice_colombia: aiVoiceColombia,
                 ai_global_enabled: aiGlobalEnabled,
                 carousel_speed: carouselSpeed,
-                carousel_size: carouselSize
+                carousel_size: carouselSize,
+                carousel_images: carouselImages
             };
 
-            // Only include carousel_images if loaded (avoid wiping stored images)
-            if (carouselImages && carouselImages.length > 0) {
-                payload.carousel_images = carouselImages;
+            if (!carouselImages || carouselImages.length === 0) {
+                payload.clear_carousel = true;
             }
 
             // Only send API Key if user typed a real new key (not the dots placeholder)
-            const _cleanKey = aiApiKey.trim();
+            const _cleanKey = (aiApiKey || '').trim();
             if (_cleanKey !== '' && !/^[\u2022•*]+$/.test(_cleanKey)) {
                 payload.ai_api_key = _cleanKey;
             }
@@ -3529,20 +3563,25 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    alert("✅ Configuración global guardada correctamente.");
-                    // Reload global settings to visually restore the password dots without making the user think they lost it
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Configuración Guardada',
+                        text: 'La configuración global y el carrusel se guardaron exitosamente.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
                     await loadGlobalSettings();
-                    // Recargar lista de instituciones para asegurar que el selector no se pierda
-                    await loadAllInstitutions();
-            // Notify parent to reload so theme changes apply globally
-            if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ type: 'settings_updated' }, '*');
-            }
+                    if (typeof loadAllInstitutions === 'function') {
+                        await loadAllInstitutions();
+                    }
+                    if (window.parent && window.parent !== window) {
+                        window.parent.postMessage({ type: 'settings_updated' }, '*');
+                    }
                 } else {
-                    alert("❌ Error: " + data.message);
+                    Swal.fire('Error', data.message || 'Error guardando configuración', 'error');
                 }
             } catch (e) {
-                alert("Error de conexion al guardar configuracion global.");
+                Swal.fire('Error', 'Fallo de conexión guardando configuración: ' + e.message, 'error');
             }
         }
 
