@@ -1533,10 +1533,13 @@
                             </p>
                         </div>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button class="btn-rc btn-rc-primary" onclick="exportNotebookLMBundle()" style="font-size: 0.8rem; padding: 7px 14px;">
-                                <i class="fa-solid fa-download"></i> Descargar Paquete (.txt)
+                            <button class="btn-rc btn-rc-primary" onclick="exportNotebookLMBundle()" style="font-size: 0.8rem; padding: 7px 12px;" title="Descarga 1 solo archivo .txt optimizado y ligero">
+                                <i class="fa-solid fa-file-lines"></i> Paquete .txt Ligero
                             </button>
-                            <a href="https://notebooklm.google.com/" target="_blank" class="btn-rc btn-rc-outline" style="font-size: 0.8rem; padding: 7px 12px; text-decoration: none; color: #0284c7; border-color: #bae6fd;">
+                            <button class="btn-rc btn-rc-outline" onclick="exportNotebookLMZip()" style="font-size: 0.8rem; padding: 7px 12px; color: #7c3aed; border-color: #ddd6fe; background: #f5f3ff;" title="Descarga un ZIP con fuentes individuales para carga paralela instantánea">
+                                <i class="fa-solid fa-file-zipper"></i> Paquete .ZIP
+                            </button>
+                            <a href="https://notebooklm.google.com/" target="_blank" class="btn-rc btn-rc-outline" style="font-size: 0.8rem; padding: 7px 10px; text-decoration: none; color: #0284c7; border-color: #bae6fd;">
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir NotebookLM
                             </a>
                         </div>
@@ -3135,7 +3138,7 @@
                         title: '¡Paquete Descargado!',
                         html: `
                             <p style="font-size: 0.85rem; color: #475569; text-align: left;">
-                                Se ha descargado el archivo <strong>.txt</strong> con todas tus evidencias y normativas consolidadas.<br><br>
+                                Se ha descargado el archivo <strong>.txt</strong> optimizado con todas tus evidencias y normativas consolidadas.<br><br>
                                 <strong>Siguiente paso:</strong> Ve a <a href="https://notebooklm.google.com/" target="_blank" style="color: #0284c7; font-weight: bold;">Google NotebookLM</a>, crea un cuaderno nuevo y arrastra este archivo descargado como fuente.
                             </p>
                         `,
@@ -3144,6 +3147,45 @@
                 }, 800);
             } catch (e) {
                 Swal.fire('Error', 'No se pudo descargar el paquete: ' + e.message, 'error');
+            }
+        }
+
+        async function exportNotebookLMZip() {
+            await ensureActiveProject();
+            if (!currentProject) {
+                Swal.fire('Atención', 'Por favor selecciona o crea un proyecto activo primero.', 'info');
+                return;
+            }
+            try {
+                Swal.fire({
+                    title: '📦 Compilando ZIP para NotebookLM',
+                    html: '<p style="font-size:0.85rem; color:#64748b;">Generando archivo ZIP con evidencias individuales para indexación en paralelo...</p>',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                const downloadUrl = `/api/rc/projects/${currentProject.id}/export_notebooklm_zip`;
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `FUENTES_NOTEBOOKLM_ZIP_${(currentProject.program_name || 'Programa').replace(/[^a-zA-Z0-9]/g, '_')}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡ZIP Descargado!',
+                        html: `
+                            <p style="font-size: 0.85rem; color: #475569; text-align: left;">
+                                Descomprime este archivo <strong>.zip</strong> en una carpeta y arrastra todos los archivos <code>.txt</code> juntos hacia Google NotebookLM para que se procesen en paralelo en pocos segundos.
+                            </p>
+                        `,
+                        confirmButtonText: 'Entendido'
+                    });
+                }, 800);
+            } catch (e) {
+                Swal.fire('Error', 'No se pudo descargar el ZIP: ' + e.message, 'error');
             }
         }
 
@@ -3758,6 +3800,7 @@
         window.closeModal = closeModal;
         window.openNotebookLMHubModal = openNotebookLMHubModal;
         window.exportNotebookLMBundle = exportNotebookLMBundle;
+        window.exportNotebookLMZip = exportNotebookLMZip;
         window.openNotebookLMPromptsModal = openNotebookLMPromptsModal;
         window.copyNotebookLMPrompt = copyNotebookLMPrompt;
         window.saveNotebookLMPodcastUrl = saveNotebookLMPodcastUrl;
