@@ -24,6 +24,21 @@ try:
 except Exception as e:
     print(f"[RC] Warning creating dir: {e}")
 
+MIME_MAP = {
+    '.pdf': 'application/pdf',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.doc': 'application/msword',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.xls': 'application/vnd.ms-excel',
+    '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    '.ppt': 'application/vnd.ms-powerpoint',
+    '.txt': 'text/plain; charset=utf-8',
+    '.csv': 'text/csv; charset=utf-8',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png'
+}
+
 RC_PROJECTS_FILE = os.path.join(RC_DATA_DIR, 'projects.json')
 
 def load_local_projects():
@@ -459,17 +474,37 @@ def upload_evidence():
         file_id = f"ev_{uuid.uuid4().hex[:8]}{file_ext}"
         save_path = os.path.join(RC_UPLOADS_DIR, file_id)
         
+        file_bytes = file.read()
+        file.seek(0)
         file.save(save_path)
         
         # Extraer texto automáticamente
         extracted_text = extract_text_from_file(save_path, original_filename)
+        
+        # Subir a Supabase Storage en el bucket 'evidencias' para persistencia en nube
+        storage_path = f"registro_calificado/{file_id}"
+        public_url = None
+        try:
+            mime_type = MIME_MAP.get(file_ext.lower(), 'application/octet-stream')
+            supabase.storage.from_('evidencias').upload(
+                path=storage_path,
+                file=file_bytes,
+                file_options={"content-type": mime_type, "upsert": "true"}
+            )
+            url_res = supabase.storage.from_('evidencias').get_public_url(storage_path)
+            public_url = url_res if isinstance(url_res, str) else url_res.get('publicURL', '')
+        except Exception as e_stor:
+            print(f"[RC] Storage upload info: {e_stor}")
         
         evidence_item = {
             'id': file_id,
             'name': custom_name if custom_name else original_filename,
             'original_filename': original_filename,
             'doc_type': doc_type,
-            'size_bytes': os.path.getsize(save_path),
+            'doc_format': file_ext.lstrip('.').lower(),
+            'size_bytes': len(file_bytes),
+            'storage_path': storage_path,
+            'public_url': public_url,
             'text_sample': extracted_text[:1200] + ('...' if len(extracted_text) > 1200 else ''),
             'full_text': extracted_text,
             'uploaded_at': datetime.datetime.now().isoformat()
@@ -489,7 +524,10 @@ def upload_evidence():
                 'name': evidence_item['name'],
                 'original_filename': evidence_item['original_filename'],
                 'doc_type': evidence_item['doc_type'],
+                'doc_format': evidence_item['doc_format'],
                 'size_bytes': evidence_item['size_bytes'],
+                'storage_path': evidence_item['storage_path'],
+                'public_url': evidence_item['public_url'],
                 'text_sample': evidence_item['text_sample'],
                 'full_text': evidence_item['full_text'],
                 'text_length': len(extracted_text),
@@ -612,7 +650,7 @@ def delete_evidence(project_id, evidence_id):
 @registro_calificado_bp.route('/api/rc/download_evidence/<evidence_id>', methods=['GET'])
 @registro_calificado_bp.route('/api/rc/projects/<project_id>/evidences/<evidence_id>/download', methods=['GET'])
 def download_evidence(evidence_id, project_id=None):
-    """Descarga fielmente el archivo original adjunto como evidencia."""
+    """Descarga fielmente el archivo original adjunto como evidencia preservando su nombre y extensión."""
     try:
         req_project_id = project_id or request.args.get('project_id')
         evidence_item = None
@@ -653,43 +691,150 @@ def download_evidence(evidence_id, project_id=None):
             except Exception as e:
                 print(f"[RC] Error searching evidence in Supabase: {e}")
 
+        # Determinar el nombre original del archivo y su extensión fiel
         orig_filename = None
         if evidence_item:
             orig_filename = evidence_item.get('original_filename') or evidence_item.get('name')
+        if not orig_filename:
+            orig_filename = f"evidencia_{evidence_id}"
 
-        # 3. Caso Principal: Archivo físico guardado en RC_UPLOADS_DIR
+        # Detectar la extensión correcta del archivo original
+        file_ext = os.path.splitext(orig_filename)[1]
+        if not file_ext:
+            id_ext = os.path.splitext(evidence_id)[1]
+            if id_ext:
+                file_ext = id_ext
+                orig_filename = f"{orig_filename}{file_ext}"
+            elif evidence_item and evidence_item.get('doc_format'):
+                file_ext = f".{evidence_item.get('doc_format').lstrip('.')}"
+                orig_filename = f"{orig_filename}{file_ext}"
+            else:
+                file_ext = '.pdf'
+                orig_filename = f"{orig_filename}{file_ext}"
+
+        mimetype = MIME_MAP.get(file_ext.lower(), 'application/octet-stream')
+
+        # 3. Caso Principal: Archivo físico original guardado en disco RC_UPLOADS_DIR
         file_path = os.path.join(RC_UPLOADS_DIR, evidence_id)
         if os.path.exists(file_path) and os.path.isfile(file_path):
-            download_name = orig_filename if orig_filename else evidence_id
-            # Asegurar extensión congruente con el archivo guardado
-            file_ext = os.path.splitext(evidence_id)[1]
-            if file_ext and not os.path.splitext(download_name)[1]:
-                download_name += file_ext
-            return send_file(file_path, as_attachment=True, download_name=download_name)
+            return send_file(
+                file_path,
+                as_attachment=True,
+                download_name=orig_filename,
+                mimetype=mimetype
+            )
 
-        # 4. Caso Enlace Web / URL: Si es una evidencia vinculada por URL
+        # 4. Caso Supabase Storage: Si el archivo está persistido en la nube
+        storage_candidates = []
+        if evidence_item and evidence_item.get('storage_path'):
+            storage_candidates.append(evidence_item['storage_path'])
+        storage_candidates.extend([
+            f"registro_calificado/{evidence_id}",
+            f"registro_calificado/{req_project_id}/{evidence_id}" if req_project_id else None
+        ])
+        for sp in storage_candidates:
+            if not sp: continue
+            try:
+                down_bytes = supabase.storage.from_('evidencias').download(sp)
+                if down_bytes:
+                    return send_file(
+                        io.BytesIO(down_bytes),
+                        as_attachment=True,
+                        download_name=orig_filename,
+                        mimetype=mimetype
+                    )
+            except Exception:
+                pass
+
+        # 5. Caso Enlace Web / URL: Si es una evidencia vinculada por URL
         if evidence_item and (evidence_item.get('is_url') or evidence_item.get('url')):
             target_url = evidence_item.get('url')
             if target_url:
                 return redirect(target_url)
 
-        # 5. Caso Fallback: Si el archivo físico no reside en disco pero se tiene el texto completo indexado
+        # 6. Caso Generación Fiel a partir del contenido estructurado indexado
         if evidence_item and (evidence_item.get('full_text') or evidence_item.get('text_sample')):
             full_text = evidence_item.get('full_text') or evidence_item.get('text_sample')
-            download_name = orig_filename or f"evidencia_{evidence_id}.txt"
-            if not os.path.splitext(download_name)[1] or os.path.splitext(download_name)[1].lower() not in ['.txt', '.md', '.docx', '.pdf']:
-                download_name += '.txt'
-            elif os.path.splitext(download_name)[1].lower() in ['.docx', '.pdf', '.xlsx']:
-                download_name = os.path.splitext(download_name)[0] + '.txt'
-                
-            mem_file = io.BytesIO()
-            mem_file.write(full_text.encode('utf-8'))
-            mem_file.seek(0)
+            
+            # 6.1 Si la extensión original es .docx
+            if file_ext.lower() == '.docx':
+                try:
+                    import docx
+                    doc = docx.Document()
+                    doc.add_heading(orig_filename.replace('.docx', ''), 0)
+                    for para in full_text.split('\n\n'):
+                        if para.strip():
+                            doc.add_paragraph(para.strip())
+                    mem_docx = io.BytesIO()
+                    doc.save(mem_docx)
+                    mem_docx.seek(0)
+                    return send_file(
+                        mem_docx,
+                        as_attachment=True,
+                        download_name=orig_filename,
+                        mimetype=MIME_MAP['.docx']
+                    )
+                except Exception as e:
+                    print(f"[RC] Error generating docx fallback: {e}")
+
+            # 6.2 Si la extensión original es .xlsx o .xls
+            elif file_ext.lower() in ['.xlsx', '.xls']:
+                try:
+                    import openpyxl
+                    wb = openpyxl.Workbook()
+                    ws = wb.active
+                    ws.title = "Evidencia"
+                    for r_idx, line in enumerate(full_text.split('\n'), start=1):
+                        parts = line.split('\t') if '\t' in line else line.split('|')
+                        if len(parts) > 1:
+                            for c_idx, p in enumerate(parts, start=1):
+                                ws.cell(row=r_idx, column=c_idx, value=p.strip())
+                        else:
+                            ws.cell(row=r_idx, column=1, value=line.strip())
+                    mem_xlsx = io.BytesIO()
+                    wb.save(mem_xlsx)
+                    mem_xlsx.seek(0)
+                    return send_file(
+                        mem_xlsx,
+                        as_attachment=True,
+                        download_name=orig_filename,
+                        mimetype=MIME_MAP['.xlsx']
+                    )
+                except Exception as e:
+                    print(f"[RC] Error generating xlsx fallback: {e}")
+
+            # 6.3 Si la extensión original es .pdf
+            elif file_ext.lower() == '.pdf':
+                try:
+                    from fpdf import FPDF
+                    pdf = FPDF()
+                    pdf.add_page()
+                    pdf.set_auto_page_break(auto=True, margin=15)
+                    pdf.set_font("Helvetica", 'B', 14)
+                    clean_title = orig_filename.replace('.pdf', '').encode('latin-1', 'replace').decode('latin-1')
+                    pdf.multi_cell(0, 10, clean_title)
+                    pdf.ln(4)
+                    pdf.set_font("Helvetica", size=10)
+                    for para in full_text.split('\n'):
+                        clean_para = para.encode('latin-1', 'replace').decode('latin-1')
+                        pdf.multi_cell(0, 6, clean_para)
+                    mem_pdf = io.BytesIO(bytes(pdf.output()))
+                    return send_file(
+                        mem_pdf,
+                        as_attachment=True,
+                        download_name=orig_filename,
+                        mimetype=MIME_MAP['.pdf']
+                    )
+                except Exception as e:
+                    print(f"[RC] Error generating pdf fallback: {e}")
+
+            # 6.4 Texto plano como último recurso
+            mem_file = io.BytesIO(full_text.encode('utf-8'))
             return send_file(
                 mem_file,
                 as_attachment=True,
-                download_name=download_name,
-                mimetype='text/plain; charset=utf-8'
+                download_name=orig_filename,
+                mimetype=mimetype
             )
 
         return jsonify({'status': 'error', 'message': 'Archivo de evidencia no encontrado en el servidor'}), 404
