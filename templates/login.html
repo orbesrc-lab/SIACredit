@@ -311,6 +311,21 @@
                         return;
                     }
                     localStorage.setItem('siac_user', JSON.stringify(result.user));
+
+                    // Pre-cargar matriz de permisos del tenant/institución
+                    try {
+                        const instId = result.user.inst_id || 1;
+                        const permRes = await fetch(`/api/permissions/form?inst_id=${instId}&program_id=0`, {
+                            headers: { 'X-User-Id': String(result.user.id || result.user.email) }
+                        });
+                        if (permRes.ok) {
+                            const pData = await permRes.json();
+                            if (pData.status === 'success' && pData.permissions) {
+                                localStorage.setItem('siac_role_permissions', JSON.stringify(pData.permissions));
+                            }
+                        }
+                    } catch(pe) { console.error("Error pre-cargando permisos:", pe); }
+
                     if (result.user.role === 'estudiante' || result.user.role === 'profesor') {
                         window.location.href = 'formacion.html';
                     } else {
@@ -355,31 +370,7 @@
             }
         });
     </script>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const _u = JSON.parse(localStorage.getItem('siac_user') || '{}');
-    const _r = _u.role || localStorage.getItem('user_role') || '';
-    
-    // Herramientas de super administrador
-    const _adminOnly = ['admin', 'super_admin'];
-    
-    // CRM B2B link (dentro de Herramientas Gerenciales)
-    const _crm = document.getElementById('menuCrm');
-    if(_crm) _crm.style.display = _adminOnly.includes(_r) ? 'block' : 'none';
-    
-    // Capacitacion / Formacion
-    const _cap = document.getElementById('menuCapacitacion');
-    if(_cap) _cap.style.display = _adminOnly.includes(_r) ? 'block' : 'none';
-    
-    // Backup y Seguridad
-    const _bk = document.getElementById('menuBackup');
-    if(_bk) _bk.style.display = ['admin', 'super_admin', 'inst_admin', 'lider', 'empresa_admin'].includes(_r) ? 'block' : 'none';
-    
-    // Consultoria B2B section
-    const _b2b = document.getElementById('menuConsultoriaB2B');
-    if(_b2b) _b2b.style.display = ['admin', 'super_admin', 'empresa_admin'].includes(_r) ? 'block' : 'none';
-});
-</script>
+
 </body>
 </html>
 

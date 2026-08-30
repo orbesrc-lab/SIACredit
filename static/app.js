@@ -43,38 +43,99 @@ function authFetch(url, options = {}) {
     return fetch(url, { ...options, headers });
 }
 
-// Inicialización de Menú y Permisos Rápida
-function initFastSidebar() {
+// Inicialización de Menú y Permisos Rápida y Reactiva
+async function initFastSidebar() {
     const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
     if (!user || !user.role) return;
 
     const role = (user.role || '').toLowerCase();
     const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'super-admin'].includes(role);
-    const isInstAdmin = isSuperAdmin || role === 'inst_admin';
     const isDocenteEst = (role === 'estudiante' || role === 'profesor');
 
-    // Registro Calificado
+    // 1. Registro Calificado (Exclusivo SuperAdmin)
     document.querySelectorAll('.superadmin-rc-link, #menuRegistroCalificado').forEach(el => {
         el.style.display = isSuperAdmin ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
         if (window.location.pathname.includes('registro_calificado')) el.classList.add('active');
     });
 
-    // CRM B2B y Backup
-    document.querySelectorAll('#menuCrm').forEach(el => {
-        el.style.display = isInstAdmin ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
-    });
-    document.querySelectorAll('#menuBackup').forEach(el => {
-        el.style.display = isInstAdmin ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
-    });
-    document.querySelectorAll('#menuConsultoriaB2B').forEach(el => {
-        el.style.display = isInstAdmin ? 'block' : 'none';
-    });
+    // 2. Obtener matriz de permisos activa (desde cache local o API)
+    let permissions = {};
+    try {
+        const cached = localStorage.getItem('siac_role_permissions');
+        if (cached) permissions = JSON.parse(cached);
+    } catch(e) {}
 
-    // Formación / Capacitación
-    document.querySelectorAll('#menuCapacitacion, a[href*="formacion.html"]').forEach(el => {
-        el.style.display = (isInstAdmin || isDocenteEst) ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
-        if (window.location.pathname.includes('formacion')) el.classList.add('active');
+    // Si es SuperAdmin, tiene acceso a todos los módulos
+    const canAccess = (moduleKey) => {
+        if (isSuperAdmin) return true;
+        if (!permissions || Object.keys(permissions).length === 0) {
+            // Valores por defecto seguros si aún no ha cargado la matriz
+            if (moduleKey === 'skel_hc360') return false;
+            if (moduleKey === 'hub_estrategico' || moduleKey === 'consultoria') return ['admin', 'inst_admin', 'consultor'].includes(role);
+            return true;
+        }
+        const allowed = permissions[moduleKey];
+        if (!allowed || !Array.isArray(allowed)) return false;
+        return allowed.includes(role);
+    };
+
+    // Función auxiliar para aplicar visibilidad a selectores o elementos
+    const applyVisibility = (elements, isVisible) => {
+        elements.forEach(el => {
+            if (!isVisible) {
+                el.style.display = 'none';
+            } else {
+                el.style.display = el.tagName === 'A' ? 'flex' : 'block';
+            }
+        });
+    };
+
+    // Aplicar a cada módulo del Sidebar
+    const autoevalGroups = Array.from(document.querySelectorAll('.sidebar-group')).filter(g => {
+        const t = (g.querySelector('.sidebar-group-title') || {}).textContent || '';
+        return t.toLowerCase().includes('autoevaluación') || t.toLowerCase().includes('autoevaluacion');
     });
+    applyVisibility(autoevalGroups, canAccess('autoevaluacion'));
+
+    const informesGroups = Array.from(document.querySelectorAll('.sidebar-group')).filter(g => {
+        const t = (g.querySelector('.sidebar-group-title') || {}).textContent || '';
+        return t.toLowerCase().includes('análisis') || t.toLowerCase().includes('analisis') || t.toLowerCase().includes('informes');
+    });
+    applyVisibility(informesGroups, canAccess('informes'));
+
+    const planifGroups = Array.from(document.querySelectorAll('.sidebar-group')).filter(g => {
+        const t = (g.querySelector('.sidebar-group-title') || {}).textContent || '';
+        return t.toLowerCase().includes('autorregulación') || t.toLowerCase().includes('autorregulacion') || t.toLowerCase().includes('planificación') || t.toLowerCase().includes('planificacion');
+    });
+    applyVisibility(planifGroups, canAccess('planificacion'));
+
+    // Hub Estratégico / Consultoría B2B
+    const b2bGroups = document.querySelectorAll('#menuConsultoriaB2B, [data-module="hub_estrategico"]');
+    applyVisibility(Array.from(b2bGroups), canAccess('hub_estrategico'));
+
+    // SKEL HC 360
+    const skel360Groups = Array.from(document.querySelectorAll('.sidebar-group')).filter(g => {
+        const t = (g.querySelector('.sidebar-group-title') || {}).textContent || '';
+        return t.toLowerCase().includes('skel') || t.toLowerCase().includes('360');
+    });
+    applyVisibility(skel360Groups, canAccess('skel_hc360'));
+
+    // Herramientas Gerenciales
+    const herramGroups = Array.from(document.querySelectorAll('.sidebar-group')).filter(g => {
+        const t = (g.querySelector('.sidebar-group-title') || {}).textContent || '';
+        return t.toLowerCase().includes('herramientas gerenciales') || t.toLowerCase().includes('herramientas');
+    });
+    applyVisibility(herramGroups, canAccess('herramientas'));
+
+    // CRM B2B y Backup específicos
+    const crmElements = document.querySelectorAll('#menuCrm');
+    applyVisibility(Array.from(crmElements), canAccess('herramientas'));
+    const backupElements = document.querySelectorAll('#menuBackup');
+    applyVisibility(Array.from(backupElements), canAccess('herramientas'));
+
+    // Capacitación / Formación
+    const capElements = document.querySelectorAll('#menuCapacitacion, a[href*="formacion.html"]');
+    applyVisibility(Array.from(capElements), canAccess('capacitacion'));
 
     // Restricciones específicas para Estudiantes / Profesores
     if (isDocenteEst) {
@@ -89,11 +150,30 @@ function initFastSidebar() {
 
     // Ocultar grupos del acordeón vacíos
     document.querySelectorAll('.sidebar-group').forEach(group => {
-        const visible = Array.from(group.querySelectorAll('.sidebar-submenu a, .sidebar-item')).some(a => a.style.display !== 'none');
-        if (!visible && group.querySelector('.sidebar-submenu')) {
-            group.style.display = 'none';
+        const submenuItems = group.querySelectorAll('.sidebar-submenu a, .sidebar-submenu .sidebar-item');
+        if (submenuItems.length > 0) {
+            const hasVisibleChild = Array.from(submenuItems).some(a => a.style.display !== 'none' && window.getComputedStyle(a).display !== 'none');
+            if (!hasVisibleChild) {
+                group.style.display = 'none';
+            }
         }
     });
+
+    // Si no teníamos la matriz en memoria, consultarla asíncronamente y reaplicar
+    if (!localStorage.getItem('siac_role_permissions')) {
+        try {
+            const res = await authFetch(`/api/permissions/form?inst_id=${getInstId()}&program_id=0`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.status === 'success' && data.permissions) {
+                    localStorage.setItem('siac_role_permissions', JSON.stringify(data.permissions));
+                    initFastSidebar(); // Re-ejecutar con los permisos frescos
+                }
+            }
+        } catch(e) {
+            console.error("Error al sincronizar permisos:", e);
+        }
+    }
 }
 
 if (document.readyState === 'loading') {
