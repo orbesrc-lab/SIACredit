@@ -206,9 +206,11 @@
                 </div>
                 
                 <div style="margin-bottom:25px;">
-                    <label style="display:block; margin-bottom:5px;">Comportamientos (Preguntas)</label>
-                    <p style="font-size:0.8rem; color:#64748b; margin-bottom:10px;">Escribe un comportamiento por línea. Estos serán las preguntas a evaluar (ej: ¿Analiza datos antes de decidir?).</p>
-                    <textarea id="comp-comportamientos" rows="5" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;" required></textarea>
+                    <label style="display:block; margin-bottom:5px; font-weight:600;">Comportamientos (Afirmaciones / Preguntas)</label>
+                    <p style="font-size:0.82rem; color:#64748b; margin-bottom:10px; line-height: 1.4;">
+                        Escribe un comportamiento por línea. Puedes redactarlo en 1ª persona (<em>"Conozco mis funciones..."</em>) o en 3ª persona (<em>"Conoce sus funciones..."</em>). El sistema adaptará automáticamente la sintaxis para <strong>Autoevaluación</strong> y <strong>Heteroevaluación 360° (Jefe/Pares/Subordinados)</strong>.
+                    </p>
+                    <textarea id="comp-comportamientos" rows="5" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;" placeholder="Ej: Conozco con precisión los objetivos y responsabilidades de mi cargo." required></textarea>
                 </div>
                 
                 <div style="display:flex; justify-content:flex-end; gap:10px;">

@@ -133,15 +133,17 @@
                 if(data.status === 'success') {
                     document.getElementById('eval-form').style.display = 'block';
                     
-                    if(data.tipo === 'Autoevaluación' || !data.tipo) {
+                    let isAutoeval = (data.tipo === 'Autoevaluación' || !data.tipo);
+                    
+                    if(isAutoeval) {
                         document.getElementById('user-name').innerText = `Hola, ${data.empleado}`;
-                        document.getElementById('desc-text').innerText = 'Estás realizando tu Autoevaluación 360. Por favor, califica cada comportamiento del 1 al 5, donde 1 es "Nunca" y 5 es "Siempre".';
+                        document.getElementById('desc-text').innerText = 'Estás realizando tu Autoevaluación 360. Por favor, califica cada afirmación sobre tus comportamientos y competencias del 1 al 5, donde 1 es "Nunca" y 5 es "Siempre".';
                     } else {
                         document.getElementById('user-name').innerText = `Evaluando a: ${data.empleado}`;
-                        document.getElementById('desc-text').innerText = `Estás realizando la evaluación de ${data.empleado} en calidad de ${data.tipo}. Por favor, califica su comportamiento del 1 al 5.`;
+                        document.getElementById('desc-text').innerText = `Estás realizando la evaluación de ${data.empleado} en calidad de ${data.tipo}. Por favor, evalúa con qué frecuencia manifiesta cada uno de los siguientes comportamientos del 1 al 5.`;
                     }
                     
-                    renderForm(data.data);
+                    renderForm(data.data, isAutoeval, data.empleado);
                 } else {
                     showError(data.message);
                 }
@@ -152,7 +154,166 @@
             }
         }
 
-        function renderForm(competencias) {
+        // Motor de adaptación sintáctica psicométrica (1ª Persona <-> 3ª Persona)
+        function adaptQuestionSyntax(text, isAutoeval, nombreEvaluado) {
+            if (!text) return '';
+            let t = text.trim();
+            
+            // Si es Autoevaluación y ya está en 1ª persona, se conserva; si vino en 3ª persona se puede adaptar a 1ª persona
+            if (isAutoeval) {
+                const rulesTo1P = [
+                    [/\bConoce\b/g, 'Conozco'],
+                    [/\bconoce\b/g, 'conozco'],
+                    [/\bEntiende\b/g, 'Entiendo'],
+                    [/\bentiende\b/g, 'entiendo'],
+                    [/\bTiene\b/g, 'Tengo'],
+                    [/\btiene\b/g, 'tengo'],
+                    [/\bDispone\b/g, 'Dispongo'],
+                    [/\bdispone\b/g, 'dispongo'],
+                    [/\bComprende\b/g, 'Comprendo'],
+                    [/\bcomprende\b/g, 'comprendo'],
+                    [/\bSabe\b/g, 'Sé'],
+                    [/\bsabe\b/g, 'sé'],
+                    [/\bLe interesa\b/g, 'Me gusta'],
+                    [/\ble interesa\b/g, 'me gusta'],
+                    [/\bEstá dispuesto\(a\)\b/g, 'Estoy dispuesto(a)'],
+                    [/\bestá dispuesto\(a\)\b/g, 'estoy dispuesto(a)'],
+                    [/\bAplica\b/g, 'Aplico'],
+                    [/\baplica\b/g, 'aplico'],
+                    [/\bComparte\b/g, 'Comparto'],
+                    [/\bcomparte\b/g, 'comparto'],
+                    [/\bConsidera\b/g, 'Considero'],
+                    [/\bconsidera\b/g, 'considero'],
+                    [/\bManeja\b/g, 'Manejo'],
+                    [/\bmaneja\b/g, 'manejo'],
+                    [/\bIdentifica\b/g, 'Identifico'],
+                    [/\bidentifica\b/g, 'identifico'],
+                    [/\bUtiliza\b/g, 'Utilizo'],
+                    [/\butiliza\b/g, 'utilizo'],
+                    [/\bUsa\b/g, 'Uso'],
+                    [/\busa\b/g, 'uso'],
+                    [/\bEmplea\b/g, 'Empleo'],
+                    [/\bemplea\b/g, 'empleo'],
+                    [/\bAnaliza\b/g, 'Analizo'],
+                    [/\banaliza\b/g, 'analizo'],
+                    [/\bExpresa\b/g, 'Expreso'],
+                    [/\bexpresa\b/g, 'expreso'],
+                    [/\bRedacta\b/g, 'Redacto'],
+                    [/\bredacta\b/g, 'redacto'],
+                    [/\bDemuestra\b/g, 'Demuestro'],
+                    [/\bdemuestra\b/g, 'demuestro'],
+                    [/\bMuestra\b/g, 'Muestro'],
+                    [/\bmuestra\b/g, 'muestro'],
+                    [/\bPrioriza\b/g, 'Priorizo'],
+                    [/\bprioriza\b/g, 'priorizo'],
+                    [/\bActúa\b/g, 'Actúo'],
+                    [/\bactúa\b/g, 'actúo'],
+                    [/\bMantiene\b/g, 'Mantengo'],
+                    [/\bmantiene\b/g, 'mantengo'],
+                    [/\bsu cargo\b/g, 'mi cargo'],
+                    [/\bsu trabajo\b/g, 'mi trabajo'],
+                    [/\bsu desempeño\b/g, 'mi desempeño'],
+                    [/\bsus funciones\b/g, 'mis funciones'],
+                    [/\bsus responsabilidades\b/g, 'mis responsabilidades'],
+                    [/\bsus tareas\b/g, 'mis tareas'],
+                    [/\bsus conocimientos\b/g, 'mis conocimientos'],
+                    [/\bsus compañeros\b/g, 'mis compañeros'],
+                    [/\bsu equipo\b/g, 'mi equipo'],
+                    [/\bsu área\b/g, 'mi área'],
+                    [/\bsu agenda\b/g, 'mi agenda'],
+                    [/\bsus ideas\b/g, 'mis ideas'],
+                    [/\bsus entregables\b/g, 'mis entregables']
+                ];
+                // Si la frase parece empezar en 3P y no en 1P, podemos normalizarla a 1P
+                let res = t;
+                for (let [pat, rep] of rulesTo1P) {
+                    res = res.replace(pat, rep);
+                }
+                return res;
+            }
+
+            // Si es Heteroevaluación (Jefe, Par, Subordinado), transformar a 3ª persona
+            const rulesTo3P = [
+                [/\bConozco\b/g, 'Conoce'],
+                [/\bconozco\b/g, 'conoce'],
+                [/\bEntiendo\b/g, 'Entiende'],
+                [/\bentiendo\b/g, 'entiende'],
+                [/\bTengo\b/g, 'Tiene'],
+                [/\btengo\b/g, 'tiene'],
+                [/\bDispongo\b/g, 'Dispone'],
+                [/\bdispongo\b/g, 'dispone'],
+                [/\bComprendo\b/g, 'Comprende'],
+                [/\bcomprendo\b/g, 'comprende'],
+                [/\bSé\b/g, 'Sabe'],
+                [/\bsé\b/g, 'sabe'],
+                [/\bSe a quién\b/g, 'Sabe a quién'],
+                [/\bse a quién\b/g, 'sabe a quién'],
+                [/\bMe gusta\b/g, 'Le interesa'],
+                [/\bme gusta\b/g, 'le interesa'],
+                [/\bEstoy dispuesto\(a\)\b/g, 'Está dispuesto(a)'],
+                [/\bestoy dispuesto\(a\)\b/g, 'está dispuesto(a)'],
+                [/\bEstoy dispuesto\b/g, 'Está dispuesto(a)'],
+                [/\bestoy dispuesto\b/g, 'está dispuesto(a)'],
+                [/\bAplico\b/g, 'Aplica'],
+                [/\baplico\b/g, 'aplica'],
+                [/\bComparto\b/g, 'Comparte'],
+                [/\bcomparto\b/g, 'comparte'],
+                [/\bConsidero\b/g, 'Considera'],
+                [/\bconsidero\b/g, 'considera'],
+                [/\bManejo\b/g, 'Maneja'],
+                [/\bmanejo\b/g, 'maneja'],
+                [/\bIdentifico\b/g, 'Identifica'],
+                [/\bidentifico\b/g, 'identifica'],
+                [/\bUtilizo\b/g, 'Utiliza'],
+                [/\butilizo\b/g, 'utiliza'],
+                [/\bUso\b/g, 'Usa'],
+                [/\buso\b/g, 'usa'],
+                [/\bEmpleo\b/g, 'Emplea'],
+                [/\bempleo\b/g, 'emplea'],
+                [/\bAnalizo\b/g, 'Analiza'],
+                [/\banalizo\b/g, 'analiza'],
+                [/\bExpreso\b/g, 'Expresa'],
+                [/\bexpreso\b/g, 'expresa'],
+                [/\bRedacto\b/g, 'Redacta'],
+                [/\bredacto\b/g, 'redacta'],
+                [/\bDemuestro\b/g, 'Demuestra'],
+                [/\bdemuestro\b/g, 'demuestro'],
+                [/\bMuestro\b/g, 'Muestra'],
+                [/\bmuestro\b/g, 'muestra'],
+                [/\bPriorizo\b/g, 'Prioriza'],
+                [/\bpriorizo\b/g, 'prioriza'],
+                [/\bActúo\b/g, 'Actúa'],
+                [/\bactúo\b/g, 'actúa'],
+                [/\bMantengo\b/g, 'Mantiene'],
+                [/\bmantengo\b/g, 'mantiene'],
+                [/\bmi cargo\b/g, 'su cargo'],
+                [/\bmi trabajo\b/g, 'su trabajo'],
+                [/\bmi desempeño\b/g, 'su desempeño'],
+                [/\bmis funciones\b/g, 'sus funciones'],
+                [/\bmis responsabilidades\b/g, 'sus responsabilidades'],
+                [/\bmis tareas\b/g, 'sus tareas'],
+                [/\bmis conocimientos\b/g, 'sus conocimientos'],
+                [/\bmis compañeros\b/g, 'sus compañeros'],
+                [/\bmi equipo\b/g, 'su equipo'],
+                [/\bmi área\b/g, 'su área'],
+                [/\bmi agenda\b/g, 'su agenda'],
+                [/\bmis ideas\b/g, 'sus ideas'],
+                [/\bmis entregables\b/g, 'sus entregables'],
+                [/\bde mí\b/g, 'de él/ella'],
+                [/\bconmigo\b/g, 'con él/ella'],
+                [/\bme capacito\b/g, 'se capacita'],
+                [/\bme comunico\b/g, 'se comunica'],
+                [/\bme adapto\b/g, 'se adapta']
+            ];
+
+            let res = t;
+            for (let [pat, rep] of rulesTo3P) {
+                res = res.replace(pat, rep);
+            }
+            return res;
+        }
+
+        function renderForm(competencias, isAutoeval, nombreEvaluado) {
             const container = document.getElementById('competencias-container');
             let html = '';
 
@@ -164,9 +325,10 @@
                 `;
 
                 comp.comportamientos.forEach(preg => {
+                    const textoAdaptado = adaptQuestionSyntax(preg.descripcion, isAutoeval, nombreEvaluado);
                     html += `
                         <div class="pregunta">
-                            <div class="pregunta-text">${preg.descripcion}</div>
+                            <div class="pregunta-text">${textoAdaptado}</div>
                             <div class="escala">
                                 <label><input type="radio" name="preg_${preg.id}" value="1" required><span>1</span></label>
                                 <label><input type="radio" name="preg_${preg.id}" value="2" required><span>2</span></label>
