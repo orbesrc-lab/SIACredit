@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='downloader.js') }}"></script>
     <style>
         .sgc-card{background:white;padding:22px;border-radius:14px;box-shadow:0 4px 15px rgba(0,0,0,0.04);margin-bottom:22px;border:1px solid #f1f5f9;}
         .btn-action{padding:10px 18px;border-radius:8px;border:none;font-weight:bold;font-size:.88rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;color:white;transition:all .2s ease;box-shadow:0 2px 4px rgba(0,0,0,.1);}
@@ -687,18 +688,18 @@ function buildUserSelect(selectId, currentValue, placeholder='Seleccionar respon
 /* ============================================================
    INIT
    ============================================================ */
-document.addEventListener('DOMContentLoaded',async()=>{
-    await initHeader();
-    await loadSGC();
-    await loadPlanningTree();
-    await loadSystemUsers();
-    renderProcessMap();
-    renderAuditoriasTable();
-    renderNCTable();
-    renderRiesgosTable();
-    renderBancoIndicadores();
-    renderChecklist();
-    checkHashTab();
+document.addEventListener('DOMContentLoaded', async () => {
+    try { await initHeader(); } catch(e){ console.error('Header init err:', e); }
+    try { await loadSGC(); } catch(e){ console.error('SGC load err:', e); }
+    try { await loadPlanningTree(); } catch(e){ console.error('Planning tree load err:', e); }
+    try { await loadSystemUsers(); } catch(e){ console.error('Users load err:', e); }
+    try { renderProcessMap(); } catch(e){ console.error('Render map err:', e); }
+    try { renderAuditoriasTable(); } catch(e){ console.error('Render aud err:', e); }
+    try { renderNCTable(); } catch(e){ console.error('Render NC err:', e); }
+    try { renderRiesgosTable(); } catch(e){ console.error('Render riesgos err:', e); }
+    try { renderBancoIndicadores(); } catch(e){ console.error('Render banco err:', e); }
+    try { renderChecklist(); } catch(e){ console.error('Render checklist err:', e); }
+    try { checkHashTab(); } catch(e){ console.error('Check hash tab err:', e); }
 });
 async function initHeader(){try{const r=await authFetch(`/api/institution?inst_id=${getInstId()}`);if(r.ok){const d=await r.json();document.getElementById('inst_name_display').textContent=d.name||'ORGANIZACION';if(d.logo_url){const img=document.getElementById('inst_logo_img');img.src=d.logo_url;img.style.display='block';window._instLogoUrl=d.logo_url;}}}catch(e){console.error(e);}}
 async function loadPlanningTree(){try{const r=await authFetch(`/api/planning/tree?inst_id=${getInstId()}&program_id=${getProgramId()}`);if(r.ok){const d=await r.json();if(d.status==='success'&&d.tree)planningTreeData=d.tree;}}catch(e){console.error(e);}}
@@ -2522,11 +2523,15 @@ function renderChecklist(){
         
         let evidenceFileHTML = '';
         if(item.evidencia_url){
-            const dlUrl = `/api/download?url=${encodeURIComponent(item.evidencia_url)}&name=${encodeURIComponent(item.evidencia_nombre||'evidencia_sgc.pdf')}`;
+            const cleanName = escQ(item.evidencia_nombre || 'evidencia_sgc.pdf');
+            const cleanUrl = escQ(item.evidencia_url);
             evidenceFileHTML = `
                 <div class="chk-evidence-box" style="display:flex;gap:6px;align-items:center;margin-top:5px;">
-                    <a href="${dlUrl}" target="_blank" class="btn-action" style="background:#2563eb;padding:4px 10px;font-size:.78rem;text-decoration:none;border-radius:6px;" title="Ver/Descargar Evidencia">
-                        <i class="fas fa-paperclip"></i> ${item.evidencia_nombre || 'Ver Evidencia'}
+                    <a href="${item.evidencia_url}" target="_blank" onclick="event.preventDefault(); if(window.forceDownload){ forceDownload('${cleanUrl}', '${cleanName}'); } else { window.open('${cleanUrl}', '_blank'); }" class="btn-action" style="background:#2563eb;padding:4px 10px;font-size:.78rem;text-decoration:none;border-radius:6px;" title="Ver y Descargar Evidencia con su formato y nombre original">
+                        <i class="fas fa-download"></i> ${item.evidencia_nombre || 'Descargar Evidencia'}
+                    </a>
+                    <a href="${item.evidencia_url}" target="_blank" class="btn-action" style="background:#475569;padding:4px 8px;font-size:.75rem;text-decoration:none;border-radius:6px;" title="Abrir en pestaña nueva">
+                        <i class="fas fa-external-link-alt"></i>
                     </a>
                     <button class="btn-action" style="background:#ef4444;padding:4px 8px;font-size:.75rem;border-radius:6px;" onclick="removeChecklistEvidence(${idx})" title="Eliminar archivo">
                         <i class="fas fa-trash-alt"></i>
