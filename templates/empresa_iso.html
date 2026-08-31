@@ -1816,19 +1816,11 @@ function switchMainTab(panelId, btnEl){
     else if(panelId === 'view-auditorias') renderAuditoriasTable();
     else if(panelId === 'view-nc') renderNCTable();
     else if(panelId === 'view-riesgos') renderRiesgosTable();
-    else if(panelId === 'view-indicadores') renderBancoIndicadoresTab();
+    else if(panelId === 'view-indicadores') renderBancoIndicadores();
     else if(panelId === 'view-checklist') renderChecklist();
 }
 
-function renderBancoIndicadoresTab(){
-    renderBancoIndicadores();
-    const origStats = document.getElementById('banco_stats');
-    const origGrid = document.getElementById('banco_grid');
-    const mStats = document.getElementById('banco_stats_mirror');
-    const mGrid = document.getElementById('banco_grid_mirror');
-    if(origStats && mStats) mStats.innerHTML = origStats.innerHTML;
-    if(origGrid && mGrid) mGrid.innerHTML = origGrid.innerHTML;
-}
+
 
 /* ============================================================
    MÓDULO 2: AUDITORÍAS & VISITAS PERIÓDICAS (CLÁUSULA 9.3)
