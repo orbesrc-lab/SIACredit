@@ -15,11 +15,19 @@
         .btn-action:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,.15);}
         .btn-save{background:#10b981;}.btn-ai{background:linear-gradient(135deg,#8b5cf6,#3b82f6);}.btn-pdf{background:#059669;}.btn-add-proc{background:#2563eb;}.btn-back{background:#64748b;text-decoration:none;}
         
-        /* Top Navigation Tabs for ISO Modules */
-        .iso-nav-tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid #e2e8f0;padding-bottom:2px;overflow-x:auto;flex-wrap:nowrap;}
-        .iso-nav-tab{padding:12px 20px;border:none;background:#f8fafc;color:#64748b;font-weight:700;font-size:.9rem;cursor:pointer;border-radius:10px 10px 0 0;display:flex;align-items:center;gap:8px;transition:all .2s;white-space:nowrap;border:1px solid #e2e8f0;border-bottom:none;}
-        .iso-nav-tab:hover{background:#f1f5f9;color:#1e293b;}
-        .iso-nav-tab.active{background:#1e3a8a;color:white;border-color:#1e3a8a;}
+        /* Top Navigation Cards for ISO Modules */
+        .iso-nav-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));gap:12px;margin-bottom:22px;}
+        .iso-menu-card{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .2s ease;box-shadow:0 2px 6px rgba(0,0,0,.03);position:relative;overflow:hidden;}
+        .iso-menu-card:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.08);border-color:#3b82f6;}
+        .iso-menu-card.active{background:linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);color:#ffffff;border-color:#1e3a8a;box-shadow:0 6px 16px rgba(30,58,138,.25);}
+        .iso-menu-card.active .iso-card-icon{background:rgba(255,255,255,0.2);color:#ffffff;}
+        .iso-menu-card.active .iso-card-sub{color:#bfdbfe;}
+        .iso-menu-card.active .iso-card-title{color:#ffffff;}
+        .iso-card-icon{width:40px;height:40px;min-width:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;background:#f1f5f9;color:#1e3a8a;transition:all .2s;}
+        .iso-card-content{display:flex;flex-direction:column;overflow:hidden;}
+        .iso-card-title{font-weight:700;font-size:.85rem;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .iso-card-sub{font-size:.72rem;color:#64748b;font-weight:600;}
+
         .iso-view-panel{display:none;animation:fadeIn .25s ease-in-out;}
         .iso-view-panel.active{display:block;}
         @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
@@ -215,13 +223,49 @@
                 </div>
                 <a href="/empresa_dashboard.html" class="btn-action btn-back"><i class="fas fa-arrow-left"></i> Volver</a>
             </div>
-            <div class="iso-nav-tabs">
-                <button class="iso-nav-tab active" id="tab-nav-mapa" onclick="switchMainTab('view-mapa', this)"><i class="fas fa-sitemap"></i> 1. Mapa de Procesos & SIPOC</button>
-                <button class="iso-nav-tab" id="tab-nav-auditorias" onclick="switchMainTab('view-auditorias', this)"><i class="fas fa-clipboard-list"></i> 2. Auditorías & Visitas (Cláusula 9.3)</button>
-                <button class="iso-nav-tab" id="tab-nav-nc" onclick="switchMainTab('view-nc', this)"><i class="fas fa-exclamation-triangle"></i> 3. No Conformidades & Incidencias (Cláusula 10.2)</button>
-                <button class="iso-nav-tab" id="tab-nav-riesgos" onclick="switchMainTab('view-riesgos', this)"><i class="fas fa-shield-alt"></i> 4. Matriz de Riesgos (Cláusula 6.1)</button>
-                <button class="iso-nav-tab" id="tab-nav-indicadores" onclick="switchMainTab('view-indicadores', this)"><i class="fas fa-chart-line"></i> 5. Banco de Indicadores (Cláusula 9.1)</button>
-                <button class="iso-nav-tab" id="tab-nav-checklist" onclick="switchMainTab('view-checklist', this)"><i class="fas fa-tasks"></i> 6. Checklist de Auditoría Oficial</button>
+            <div class="iso-nav-grid">
+                <div class="iso-menu-card active" id="tab-card-mapa" onclick="switchMainTab('view-mapa', this)">
+                    <div class="iso-card-icon" style="color:#2563eb;"><i class="fas fa-sitemap"></i></div>
+                    <div class="iso-card-content">
+                        <div class="iso-card-title">Mapa & SIPOC</div>
+                        <div class="iso-card-sub">Cláusula 4.4</div>
+                    </div>
+                </div>
+                <div class="iso-menu-card" id="tab-card-auditorias" onclick="switchMainTab('view-auditorias', this)">
+                    <div class="iso-card-icon" style="color:#1d4ed8;"><i class="fas fa-clipboard-list"></i></div>
+                    <div class="iso-card-content">
+                        <div class="iso-card-title">Auditorías & Visitas</div>
+                        <div class="iso-card-sub">Cláusula 9.3</div>
+                    </div>
+                </div>
+                <div class="iso-menu-card" id="tab-card-nc" onclick="switchMainTab('view-nc', this)">
+                    <div class="iso-card-icon" style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="iso-card-content">
+                        <div class="iso-card-title">No Conformidades</div>
+                        <div class="iso-card-sub">Cláusula 10.2</div>
+                    </div>
+                </div>
+                <div class="iso-menu-card" id="tab-card-riesgos" onclick="switchMainTab('view-riesgos', this)">
+                    <div class="iso-card-icon" style="color:#059669;"><i class="fas fa-shield-alt"></i></div>
+                    <div class="iso-card-content">
+                        <div class="iso-card-title">Matriz de Riesgos</div>
+                        <div class="iso-card-sub">Cláusula 6.1</div>
+                    </div>
+                </div>
+                <div class="iso-menu-card" id="tab-card-indicadores" onclick="switchMainTab('view-indicadores', this)">
+                    <div class="iso-card-icon" style="color:#7c3aed;"><i class="fas fa-chart-line"></i></div>
+                    <div class="iso-card-content">
+                        <div class="iso-card-title">Banco Indicadores</div>
+                        <div class="iso-card-sub">Cláusula 9.1</div>
+                    </div>
+                </div>
+                <div class="iso-menu-card" id="tab-card-checklist" onclick="switchMainTab('view-checklist', this)">
+                    <div class="iso-card-icon" style="color:#0284c7;"><i class="fas fa-tasks"></i></div>
+                    <div class="iso-card-content">
+                        <div class="iso-card-title">Checklist Oficial</div>
+                        <div class="iso-card-sub">Cláusulas 4 a 10</div>
+                    </div>
+                </div>
             </div>
 
             <div id="view-mapa" class="iso-view-panel active">
@@ -399,9 +443,8 @@
                             <button class="btn-action" style="background:#2563eb;padding:7px 14px;font-size:.82rem;" onclick="exportBancoIndicadoresPDF()"><i class="fas fa-print"></i> Imprimir Banco</button>
                         </div>
                     </div>
-                    <div id="banco_panel_container">
-                        <!-- Synced with Banco section -->
-                    </div>
+                    <div id="banco_stats_mirror" class="banco-stats"></div>
+                    <div id="banco_grid_mirror" class="banco-grid"></div>
                 </div>
             </div>
 
@@ -657,6 +700,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
     renderRiesgosTable();
     renderBancoIndicadores();
     renderChecklist();
+    checkHashTab();
 });
 async function initHeader(){try{const r=await authFetch(`/api/institution?inst_id=${getInstId()}`);if(r.ok){const d=await r.json();document.getElementById('inst_name_display').textContent=d.name||'ORGANIZACION';if(d.logo_url){const img=document.getElementById('inst_logo_img');img.src=d.logo_url;img.style.display='block';window._instLogoUrl=d.logo_url;}}}catch(e){console.error(e);}}
 async function loadPlanningTree(){try{const r=await authFetch(`/api/planning/tree?inst_id=${getInstId()}&program_id=${getProgramId()}`);if(r.ok){const d=await r.json();if(d.status==='success'&&d.tree)planningTreeData=d.tree;}}catch(e){console.error(e);}}
@@ -1388,7 +1432,6 @@ async function saveSGC(){
 
 /* ============================================================
    AI
-   ============================================================ */
 async function generateSGCAI(){await generatePolicyAI();}
 async function evalProcessAI(){if(!currentActiveProcess)return;Swal.fire({title:'Auditor Virtual ISO 9001...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});try{const r=await authFetch('/api/business/iso9001_generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({inst_id:getInstId(),action_type:'act',process_name:currentActiveProcess,process_data:sgcData.processes[currentActiveProcess]})});const d=await r.json();Swal.close();if(d.status==='success'&&d.data){let h=`<p><strong>Evaluacion de Auditoria:</strong> ${d.data.evaluacion_auditor}</p><h5 style="color:#1e3a8a;margin-top:10px;">Acciones de Mejora (Clausula 10):</h5><ul>`;(d.data.acciones_mejora||[]).forEach(a=>{h+=`<li><strong>${a.accion}</strong><br><small><strong>Causa Raiz:</strong> ${a.causa_raiz} | <strong>Responsable:</strong> ${a.responsable} | <strong>Plazo:</strong> ${a.plazo||'—'}</small></li>`;});h+=`</ul>`;document.getElementById('aiActResults').innerHTML=h;sgcData.processes[currentActiveProcess].actuar=h;}}catch(e){Swal.close();Swal.fire('Error','No se pudo evaluar con la IA.','error');}}
 
@@ -1757,14 +1800,30 @@ async function exportBancoIndicadoresPDF(){
     }
 }
 </script>
-<script src="{{ url_for('static', filename='permissions_enforcer.js') }}">
+<script src="{{ url_for('static', filename='permissions_enforcer.js') }}"></script>
+<script>
 
 const DEFAULT_CHECKLIST = [{"id": "chk_4_1", "clausula": "4.1", "clausula_nombre": "Contexto de la Organización", "pregunta": "¿Existe un análisis documentado de cuestiones externas e internas?", "criterio": "Documento de contexto (PESTEL / Diagnóstico Interno) disponible y actualizado (máx 12 meses).", "estado": "Cumple", "evidencia": "Matriz PESTEL y diagnóstico institucional.", "responsable": "Alta Dirección / Calidad", "hallazgos": ""}, {"id": "chk_4_2", "clausula": "4.2", "clausula_nombre": "Partes Interesadas", "pregunta": "¿Se han identificado partes interesadas y sus requisitos pertinentes?", "criterio": "Matriz de Partes Interesadas con requisitos, nivel de influencia e impacto en el SGC.", "estado": "Cumple", "evidencia": "Matriz de Partes Interesadas actualizada.", "responsable": "Alta Dirección / Calidad", "hallazgos": ""}, {"id": "chk_4_3", "clausula": "4.3", "clausula_nombre": "Alcance del SGC", "pregunta": "¿Está definido, documentado y justificado el alcance del SGC?", "criterio": "Documento de alcance con límites, productos/servicios y justificación de exclusiones.", "estado": "Cumple", "evidencia": "Declaración formal de alcance del SGC en manual.", "responsable": "Calidad", "hallazgos": ""}, {"id": "chk_4_4", "clausula": "4.4", "clausula_nombre": "Sistema y Procesos", "pregunta": "¿Existe mapa de procesos con secuencia, interacción y caracterizaciones?", "criterio": "Mapa de procesos visual y fichas SIPOC por cada proceso estratégico, misional y de apoyo.", "estado": "Cumple", "evidencia": "Mapa de procesos interactivo y fichas SIPOC.", "responsable": "Dueños de Proceso / Calidad", "hallazgos": ""}, {"id": "chk_5_1", "clausula": "5.1", "clausula_nombre": "Liderazgo y Compromiso", "pregunta": "¿Demuestra la alta dirección liderazgo y compromiso con el SGC?", "criterio": "Actas de comité, asignación presupuestal y comunicaciones formales de calidad.", "estado": "Cumple", "evidencia": "Actas de consejo y presupuesto asignado al SGC.", "responsable": "Alta Dirección", "hallazgos": ""}, {"id": "chk_5_2", "clausula": "5.2", "clausula_nombre": "Política de Calidad", "pregunta": "¿La política de calidad está comunicada, entendida y revisada?", "criterio": "Política firmada, publicada en puntos visibles y alineada al propósito institucional.", "estado": "Cumple", "evidencia": "Política de Calidad en plataforma y carteleras.", "responsable": "Alta Dirección", "hallazgos": ""}, {"id": "chk_5_3", "clausula": "5.3", "clausula_nombre": "Roles y Autoridades", "pregunta": "¿Están asignadas y comunicadas las responsabilidades y autoridades del SGC?", "criterio": "Organigrama, matrices de roles/responsabilidades (RACI) y perfiles de cargo.", "estado": "Cumple", "evidencia": "Perfiles de cargo y asignación de líderes.", "responsable": "Gestión Humana / Calidad", "hallazgos": ""}, {"id": "chk_6_1", "clausula": "6.1", "clausula_nombre": "Riesgos y Oportunidades", "pregunta": "¿Existe matriz de riesgos y oportunidades con acciones planificadas?", "criterio": "Matriz de riesgos con evaluación de probabilidad/impacto, mitigación y seguimiento.", "estado": "Cumple", "evidencia": "Matriz de riesgos por proceso con semáforos.", "responsable": "Comité de Riesgos / Calidad", "hallazgos": ""}, {"id": "chk_6_2", "clausula": "6.2", "clausula_nombre": "Objetivos de Calidad", "pregunta": "¿Existen objetivos de calidad medibles (SMART) con seguimiento?", "criterio": "Plan de objetivos con indicadores, metas, periodicidad y responsables definidos.", "estado": "Cumple", "evidencia": "Objetivos de calidad y Banco de Indicadores.", "responsable": "Calidad / Líderes", "hallazgos": ""}, {"id": "chk_6_3", "clausula": "6.3", "clausula_nombre": "Planificación de Cambios", "pregunta": "¿Los cambios al SGC se planifican de manera sistemática?", "criterio": "Evaluaciones de impacto previas a cambios significativos y control de cambios en fichas.", "estado": "Cumple", "evidencia": "Histórico de control de cambios por proceso.", "responsable": "Calidad", "hallazgos": ""}, {"id": "chk_7_1", "clausula": "7.1", "clausula_nombre": "Recursos e Infraestructura", "pregunta": "¿Se proporcionan y mantienen los recursos necesarios para el SGC?", "criterio": "Mantenimiento preventivo de infraestructura, tecnología y calibración de equipos.", "estado": "Cumple", "evidencia": "Planes de mantenimiento e inventario tecnológico.", "responsable": "Infraestructura / TI", "hallazgos": ""}, {"id": "chk_7_2", "clausula": "7.2", "clausula_nombre": "Competencia del Personal", "pregunta": "¿Se demuestra la competencia y formación continua del personal?", "criterio": "Registros de capacitaciones, evaluaciones de desempeño y perfiles de competencias.", "estado": "Cumple", "evidencia": "Planes de capacitación y evaluaciones de desempeño 360.", "responsable": "Gestión Humana", "hallazgos": ""}, {"id": "chk_7_3", "clausula": "7.3", "clausula_nombre": "Toma de Conciencia", "pregunta": "¿El personal es consciente de su aporte a la calidad y del impacto del incumplimiento?", "criterio": "Registros de inducciones, charlas de calidad y campañas de sensibilización.", "estado": "Cumple", "evidencia": "Actas de socialización de política y objetivos.", "responsable": "Calidad / Gestión Humana", "hallazgos": ""}, {"id": "chk_7_4", "clausula": "7.4", "clausula_nombre": "Comunicación", "pregunta": "¿Están determinados los canales y planes de comunicación interna y externa?", "criterio": "Plan de comunicación institucional con matriz de qué, cuándo, a quién y cómo comunicar.", "estado": "Cumple", "evidencia": "Matriz y canales oficiales de comunicación.", "responsable": "Comunicaciones", "hallazgos": ""}, {"id": "chk_7_5", "clausula": "7.5", "clausula_nombre": "Información Documentada", "pregunta": "¿La información documentada está controlada, aprobada y protegida?", "criterio": "Listado maestro de documentos, control de versiones y políticas de respaldo/seguridad.", "estado": "Cumple", "evidencia": "Listado maestro de procedimientos y políticas.", "responsable": "Calidad / TI", "hallazgos": ""}, {"id": "chk_8_1", "clausula": "8.1", "clausula_nombre": "Control Operacional", "pregunta": "¿Los procesos operativos se planifican y ejecutan bajo condiciones controladas?", "criterio": "Planes de control operacional, procedimientos ejecutados y registros de cumplimiento.", "estado": "Cumple", "evidencia": "Fichas PHVA operativas y guías de servicio.", "responsable": "Líderes de Procesos Misionales", "hallazgos": ""}, {"id": "chk_8_2", "clausula": "8.2", "clausula_nombre": "Requisitos del Cliente", "pregunta": "¿Se revisan y confirman los requisitos del servicio antes de comprometerse?", "criterio": "Registros de revisión de solicitudes, contratos y atención a requerimientos.", "estado": "Cumple", "evidencia": "Contratos, acuerdos de servicio y registros de matrícula/admisión.", "responsable": "Admisiones / Comercial", "hallazgos": ""}, {"id": "chk_8_4", "clausula": "8.4", "clausula_nombre": "Control de Proveedores", "pregunta": "¿Los proveedores externos son evaluados, seleccionados y monitoreados?", "criterio": "Listado de proveedores aprobados con criterios de evaluación y seguimiento.", "estado": "Cumple", "evidencia": "Evaluación periódica de proveedores críticos.", "responsable": "Compras / Adquisiciones", "hallazgos": ""}, {"id": "chk_8_5", "clausula": "8.5", "clausula_nombre": "Prestación del Servicio", "pregunta": "¿La prestación del servicio cuenta con trazabilidad, preservación e instrucciones?", "criterio": "Instrucciones de trabajo disponibles en puntos de uso y trazabilidad de registros.", "estado": "Cumple", "evidencia": "Formatos y registros de servicio prestado.", "responsable": "Operaciones / Docencia", "hallazgos": ""}, {"id": "chk_8_6", "clausula": "8.6", "clausula_nombre": "Liberación del Servicio", "pregunta": "¿Se verifica el cumplimiento de requisitos antes de la liberación final del servicio?", "criterio": "Registros de verificación y firmas de aprobación de cumplimiento.", "estado": "Cumple", "evidencia": "Actas de grado, certificaciones o entrega de servicios.", "responsable": "Registro y Control / Calidad", "hallazgos": ""}, {"id": "chk_9_1", "clausula": "9.1", "clausula_nombre": "Satisfacción del Cliente", "pregunta": "¿Se mide y analiza sistemáticamente la percepción y satisfacción del usuario?", "criterio": "Encuestas periódicas de satisfacción, análisis de PQRS y tendencias estadísticas.", "estado": "Cumple", "evidencia": "Reportes de encuestas y Banco de Indicadores de satisfacción.", "responsable": "Calidad / Servicio al Cliente", "hallazgos": ""}, {"id": "chk_9_2", "clausula": "9.2", "clausula_nombre": "Análisis y Evaluación", "pregunta": "¿Se analizan los datos de desempeño, indicadores y eficacia del SGC?", "criterio": "Informes periódicos con gráficas de tendencia y toma de decisiones basada en evidencia.", "estado": "Cumple", "evidencia": "Tableros de control con semáforos e histórico de indicadores.", "responsable": "Calidad / Dirección", "hallazgos": ""}, {"id": "chk_9_3", "clausula": "9.3", "clausula_nombre": "Auditoría Interna", "pregunta": "¿Se realizan auditorías internas periódicas con informes y seguimiento a hallazgos?", "criterio": "Programa anual de auditoría, auditores competentes, informes de visita y seguimiento a no conformidades.", "estado": "Cumple", "evidencia": "Módulo de Auditorías periódicas e informes de hallazgos.", "responsable": "Líder de Auditoría / Calidad", "hallazgos": ""}, {"id": "chk_9_4", "clausula": "9.4", "clausula_nombre": "Revisión por la Dirección", "pregunta": "¿La alta dirección revisa el SGC a intervalos planificados con todas las entradas?", "criterio": "Actas formales de revisión con análisis de entradas requeridas y decisiones estratégicas.", "estado": "Cumple", "evidencia": "Acta anual de revisión por la dirección.", "responsable": "Alta Dirección", "hallazgos": ""}, {"id": "chk_10_2", "clausula": "10.2", "clausula_nombre": "No Conformidad y Acción Correctiva", "pregunta": "¿Las no conformidades se gestionan con contención, causa raíz y verificación de eficacia?", "criterio": "Registro de NC (Menores/Mayores), método de causa raíz (5 Porqués/Ishikawa), ACC y cierre formal.", "estado": "Cumple", "evidencia": "Matriz y bandeja de No Conformidades con trazabilidad completa.", "responsable": "Calidad / Responsables de ACC", "hallazgos": ""}, {"id": "chk_10_3", "clausula": "10.3", "clausula_nombre": "Mejora Continua", "pregunta": "¿Existen evidencias tangibles de mejora continua en la eficacia del SGC?", "criterio": "Planes de mejora ejecutados, proyectos Kaizen/PDCA y evolución positiva de indicadores.", "estado": "Cumple", "evidencia": "Planes de mejoramiento institucional y metas superadas.", "responsable": "Calidad / Alta Dirección", "hallazgos": ""}];
 
 function switchMainTab(panelId, btnEl){
-    document.querySelectorAll('.iso-nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.iso-menu-card').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.iso-view-panel').forEach(p => p.classList.remove('active'));
-    if(btnEl) btnEl.classList.add('active');
+    
+    if(btnEl) {
+        btnEl.classList.add('active');
+    } else {
+        const mapTab = {
+            'view-mapa': 'tab-card-mapa',
+            'view-auditorias': 'tab-card-auditorias',
+            'view-nc': 'tab-card-nc',
+            'view-riesgos': 'tab-card-riesgos',
+            'view-indicadores': 'tab-card-indicadores',
+            'view-checklist': 'tab-card-checklist'
+        };
+        const c = document.getElementById(mapTab[panelId]);
+        if(c) c.classList.add('active');
+    }
+
     const target = document.getElementById(panelId);
     if(target) target.classList.add('active');
 
@@ -1772,8 +1831,18 @@ function switchMainTab(panelId, btnEl){
     else if(panelId === 'view-auditorias') renderAuditoriasTable();
     else if(panelId === 'view-nc') renderNCTable();
     else if(panelId === 'view-riesgos') renderRiesgosTable();
-    else if(panelId === 'view-indicadores') renderBancoIndicadores();
+    else if(panelId === 'view-indicadores') renderBancoIndicadoresTab();
     else if(panelId === 'view-checklist') renderChecklist();
+}
+
+function renderBancoIndicadoresTab(){
+    renderBancoIndicadores();
+    const origStats = document.getElementById('banco_stats');
+    const origGrid = document.getElementById('banco_grid');
+    const mStats = document.getElementById('banco_stats_mirror');
+    const mGrid = document.getElementById('banco_grid_mirror');
+    if(origStats && mStats) mStats.innerHTML = origStats.innerHTML;
+    if(origGrid && mGrid) mGrid.innerHTML = origGrid.innerHTML;
 }
 
 /* ============================================================
@@ -2424,6 +2493,21 @@ function updateChecklistItem(idx, field, value){
         sgcData.checklist[idx][field] = value;
         renderChecklist();
         saveSGCData(sgcData);
+    }
+}
+
+function checkHashTab(){
+    const h = (window.location.hash||'').replace('#','');
+    const hashMap = {
+        'mapa': 'view-mapa',
+        'auditorias': 'view-auditorias',
+        'nc': 'view-nc',
+        'riesgos': 'view-riesgos',
+        'indicadores': 'view-indicadores',
+        'checklist': 'view-checklist'
+    };
+    if(h && hashMap[h]){
+        switchMainTab(hashMap[h], null);
     }
 }
 
