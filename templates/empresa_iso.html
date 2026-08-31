@@ -685,22 +685,7 @@ function buildUserSelect(selectId, currentValue, placeholder='Seleccionar respon
     return `<select id="${selectId}" class="swal2-input" style="margin:4px 0 0;font-size:.86rem;width:100%;box-sizing:border-box;">${opts}</select>`;
 }
 
-/* ============================================================
-   INIT
-   ============================================================ */
-document.addEventListener('DOMContentLoaded', async () => {
-    try { await initHeader(); } catch(e){ console.error('Header init err:', e); }
-    try { await loadSGC(); } catch(e){ console.error('SGC load err:', e); }
-    try { await loadPlanningTree(); } catch(e){ console.error('Planning tree load err:', e); }
-    try { await loadSystemUsers(); } catch(e){ console.error('Users load err:', e); }
-    try { renderProcessMap(); } catch(e){ console.error('Render map err:', e); }
-    try { renderAuditoriasTable(); } catch(e){ console.error('Render aud err:', e); }
-    try { renderNCTable(); } catch(e){ console.error('Render NC err:', e); }
-    try { renderRiesgosTable(); } catch(e){ console.error('Render riesgos err:', e); }
-    try { renderBancoIndicadores(); } catch(e){ console.error('Render banco err:', e); }
-    try { renderChecklist(); } catch(e){ console.error('Render checklist err:', e); }
-    try { checkHashTab(); } catch(e){ console.error('Check hash tab err:', e); }
-});
+/* INIT moved to end of script block 2, after all functions are defined */
 async function initHeader(){try{const r=await authFetch(`/api/institution?inst_id=${getInstId()}`);if(r.ok){const d=await r.json();document.getElementById('inst_name_display').textContent=d.name||'ORGANIZACION';if(d.logo_url){const img=document.getElementById('inst_logo_img');img.src=d.logo_url;img.style.display='block';window._instLogoUrl=d.logo_url;}}}catch(e){console.error(e);}}
 async function loadPlanningTree(){try{const r=await authFetch(`/api/planning/tree?inst_id=${getInstId()}&program_id=${getProgramId()}`);if(r.ok){const d=await r.json();if(d.status==='success'&&d.tree)planningTreeData=d.tree;}}catch(e){console.error(e);}}
 
@@ -2605,6 +2590,22 @@ function checkHashTab(){
     }
 }
 
+/* ============================================================
+   INIT — placed here so ALL functions above are defined first
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', async () => {
+    try { await initHeader(); } catch(e){ console.error('Header init err:', e); }
+    try { await loadSGC(); } catch(e){ console.error('SGC load err:', e); }
+    try { await loadPlanningTree(); } catch(e){ console.error('Planning tree load err:', e); }
+    try { await loadSystemUsers(); } catch(e){ console.error('Users load err:', e); }
+    try { renderProcessMap(); } catch(e){ console.error('Render map err:', e); }
+    try { renderAuditoriasTable(); } catch(e){ console.error('Render aud err:', e); }
+    try { renderNCTable(); } catch(e){ console.error('Render NC err:', e); }
+    try { renderRiesgosTable(); } catch(e){ console.error('Render riesgos err:', e); }
+    try { renderBancoIndicadores(); } catch(e){ console.error('Render banco err:', e); }
+    try { renderChecklist(); } catch(e){ console.error('Render checklist err:', e); }
+    try { checkHashTab(); } catch(e){ console.error('Check hash tab err:', e); }
+});
 </script>
 <div id="printSection"></div>
 </body>
