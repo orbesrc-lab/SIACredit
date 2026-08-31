@@ -442,7 +442,13 @@
                             <button class="btn-action" style="background:#2563eb;padding:7px 14px;font-size:.82rem;" onclick="exportBancoIndicadoresPDF()"><i class="fas fa-print"></i> Imprimir Banco</button>
                         </div>
                     </div>
-                    <div id="banco_stats_mirror" class="banco-stats"></div>
+                    <div class="banco-stats" id="banco_stats_mirror"></div>
+                    <div class="filter-bar">
+                        <span style="font-weight:600;font-size:.83rem;color:#334155;"><i class="fas fa-filter"></i> Filtrar:</span>
+                        <select id="filter_proceso_tab" class="filter-select" onchange="renderBancoIndicadores()"><option value="">Todos los Procesos</option></select>
+                        <select id="filter_tipo_tab" class="filter-select" onchange="renderBancoIndicadores()"><option value="">Todos los Tipos</option><option value="eficacia">Eficacia</option><option value="eficiencia">Eficiencia</option><option value="efectividad">Efectividad</option></select>
+                        <select id="filter_estado_tab" class="filter-select" onchange="renderBancoIndicadores()"><option value="">Todos los Estados</option><option value="verde">🟢 En Meta</option><option value="amarillo">🟡 En Riesgo</option><option value="rojo">🔴 Fuera de Meta</option></select>
+                    </div>
                     <div id="banco_grid_mirror" class="banco-grid"></div>
                 </div>
             </div>
@@ -1243,32 +1249,124 @@ function openRegistrarMedicionModal(pName,indId){
    ============================================================ */
 function renderBancoIndicadores(){
     populateBancoFilters();
-    const fp=document.getElementById('filter_proceso')?.value||'',ft=document.getElementById('filter_tipo')?.value||'',fe=document.getElementById('filter_estado')?.value||'';
-    const grid=document.getElementById('banco_grid');const stats=document.getElementById('banco_stats');if(!grid)return;
-    let all=[];for(const[pName,pData]of Object.entries(sgcData.processes))(pData.indicadores||[]).forEach(ind=>all.push({...ind,_proceso:pName}));
-    let tot=all.length,ve=0,am=0,ro=0;
-    all.forEach(ind=>{const lr=getLastRegistro(ind);if(lr){const s=getSemaforo(lr.valor,ind.meta);if(s.label==='En Meta')ve++;else if(s.label==='En Riesgo')am++;else if(s.label==='Fuera de Meta')ro++;}});
-    if(stats)stats.innerHTML=`<div class="banco-stat-card stat-total"><div class="banco-stat-num">${tot}</div><div class="banco-stat-label">Total Indicadores</div></div><div class="banco-stat-card stat-verde"><div class="banco-stat-num">${ve}</div><div class="banco-stat-label">🟢 En Meta</div></div><div class="banco-stat-card stat-amarillo"><div class="banco-stat-num">${am}</div><div class="banco-stat-label">🟡 En Riesgo</div></div><div class="banco-stat-card stat-rojo"><div class="banco-stat-num">${ro}</div><div class="banco-stat-label">🔴 Fuera de Meta</div></div>`;
-    let fil=all;
-    if(fp)fil=fil.filter(i=>i._proceso===fp);if(ft)fil=fil.filter(i=>(i.tipo||'').toLowerCase()===ft);
-    if(fe)fil=fil.filter(i=>{const lr=getLastRegistro(i);if(!lr)return false;const s=getSemaforo(lr.valor,i.meta);return fe==='verde'?s.label==='En Meta':fe==='amarillo'?s.label==='En Riesgo':fe==='rojo'?s.label==='Fuera de Meta':true;});
-    Object.keys(chartInstances).filter(k=>k.startsWith('banco_')).forEach(k=>{try{chartInstances[k].destroy();}catch(e){}delete chartInstances[k];});
-    if(!fil.length){grid.innerHTML=`<div class="banco-empty"><i class="fas fa-chart-bar"></i><p>No hay indicadores${fp||ft||fe?' con los filtros seleccionados':' registrados aun'}.</p><small>Abra un proceso del Mapa y agregue indicadores.</small></div>`;return;}
-    grid.innerHTML=fil.map(ind=>{
-        const lr=getLastRegistro(ind);const sem=lr?getSemaforo(lr.valor,ind.meta):{icon:'⚪',cls:'',label:'Sin datos',color:'#94a3b8',pct:0};
-        const bc=`tipo-${(ind.tipo||'eficacia').toLowerCase()}`;const pct=Math.min(sem.pct,150);
-        const bc2=sem.label==='En Meta'?'#16a34a':sem.label==='En Riesgo'?'#d97706':sem.label==='Fuera de Meta'?'#dc2626':'#e2e8f0';
-        const hasChart=ind.registros&&ind.registros.length>0;
-        return`<div class="banco-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;"><div style="flex:1;min-width:0;"><div class="banco-card-title">${ind.nombre}</div><span class="ind-badge-tipo ${bc}" style="display:inline-block;margin-top:4px;">${ind.tipo||'Eficacia'}</span><div class="banco-process-tag" style="margin-top:3px;"><i class="fas fa-cog"></i> ${ind._proceso}</div></div><span style="font-size:1.4rem;flex-shrink:0;" title="${sem.label}">${sem.icon}</span></div>
-        <div class="banco-formula" title="${ind.formula||''}">${ind.formula||'Sin formula definida'}</div>
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin:10px 0 6px;"><div><div class="banco-valor-actual" style="color:${sem.color};">${lr?lr.valor:'—'}</div><div class="banco-valor-sub">${ind.unidad||''} ${lr?'· '+lr.periodo:'· Sin mediciones'}</div></div><div style="text-align:right;"><div class="banco-meta-badge">Meta: ${ind.meta||'—'} ${ind.unidad||''}</div><div style="font-size:.75rem;color:${sem.color};font-weight:bold;margin-top:5px;">${lr?Math.round(pct)+'% cumplimiento':'—'}</div></div></div>
-        <div class="banco-progress-bar"><div class="banco-progress-fill" style="width:${Math.min(pct,100)}%;background:${bc2};"></div></div>
-        ${hasChart?`<div class="banco-chart-mini"><canvas id="banco_chart_${ind.id}"></canvas></div>`:'<div style="height:50px;display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:.81rem;"><i class="fas fa-chart-bar" style="margin-right:5px;"></i> Sin registros</div>'}
-        <div class="banco-footer"><span><i class="fas fa-user"></i> ${ind.responsable||'Sin asignar'}</span><span>${(ind.registros||[]).length} medicion${(ind.registros||[]).length!==1?'es':''} · ${ind.frecuencia||'—'}</span></div></div>`;
-    }).join('');
-    setTimeout(()=>fil.forEach(ind=>{if(ind.registros&&ind.registros.length)buildChart(`banco_chart_${ind.id}`,ind);}),80);
+    const fp = document.getElementById('filter_proceso_tab')?.value || document.getElementById('filter_proceso')?.value || '';
+    const ft = document.getElementById('filter_tipo_tab')?.value || document.getElementById('filter_tipo')?.value || '';
+    const fe = document.getElementById('filter_estado_tab')?.value || document.getElementById('filter_estado')?.value || '';
+
+    const grids = [document.getElementById('banco_grid'), document.getElementById('banco_grid_mirror')].filter(Boolean);
+    const statsList = [document.getElementById('banco_stats'), document.getElementById('banco_stats_mirror')].filter(Boolean);
+
+    if(!grids.length) return;
+
+    let all=[];
+    for(const[pName,pData] of Object.entries(sgcData.processes)) {
+        (pData.indicadores||[]).forEach(ind => all.push({...ind, _proceso: pName}));
+    }
+
+    let tot = all.length, ve = 0, am = 0, ro = 0;
+    all.forEach(ind => {
+        const lr = getLastRegistro(ind);
+        if(lr){
+            const s = getSemaforo(lr.valor, ind.meta);
+            if(s.label === 'En Meta') ve++;
+            else if(s.label === 'En Riesgo') am++;
+            else if(s.label === 'Fuera de Meta') ro++;
+        }
+    });
+
+    const statsHTML = `<div class="banco-stat-card stat-total"><div class="banco-stat-num">${tot}</div><div class="banco-stat-label">Total Indicadores</div></div><div class="banco-stat-card stat-verde"><div class="banco-stat-num">${ve}</div><div class="banco-stat-label">🟢 En Meta</div></div><div class="banco-stat-card stat-amarillo"><div class="banco-stat-num">${am}</div><div class="banco-stat-label">🟡 En Riesgo</div></div><div class="banco-stat-card stat-rojo"><div class="banco-stat-num">${ro}</div><div class="banco-stat-label">🔴 Fuera de Meta</div></div>`;
+    statsList.forEach(st => st.innerHTML = statsHTML);
+
+    let fil = all;
+    if(fp) fil = fil.filter(i => i._proceso === fp);
+    if(ft) fil = fil.filter(i => (i.tipo||'').toLowerCase() === ft);
+    if(fe) fil = fil.filter(i => {
+        const lr = getLastRegistro(i);
+        if(!lr) return false;
+        const s = getSemaforo(lr.valor, i.meta);
+        return fe === 'verde' ? s.label === 'En Meta' : fe === 'amarillo' ? s.label === 'En Riesgo' : fe === 'rojo' ? s.label === 'Fuera de Meta' : true;
+    });
+
+    Object.keys(chartInstances).filter(k => k.startsWith('banco_')).forEach(k => {
+        try { chartInstances[k].destroy(); } catch(e){}
+        delete chartInstances[k];
+    });
+
+    if(!fil.length){
+        const emptyHTML = `<div class="banco-empty"><i class="fas fa-chart-bar"></i><p>No hay indicadores${fp||ft||fe?' con los filtros seleccionados':' registrados aún'}.</p><small>Abra un proceso del Mapa y agregue indicadores.</small></div>`;
+        grids.forEach(g => g.innerHTML = emptyHTML);
+        return;
+    }
+
+    const renderCard = (ind, suffix='') => {
+        const lr = getLastRegistro(ind);
+        const sem = lr ? getSemaforo(lr.valor, ind.meta) : {icon:'⚪',cls:'',label:'Sin datos',color:'#94a3b8',pct:0};
+        const bc = `tipo-${(ind.tipo||'eficacia').toLowerCase()}`;
+        const pct = Math.min(sem.pct, 150);
+        const bc2 = sem.label==='En Meta'?'#16a34a':sem.label==='En Riesgo'?'#d97706':sem.label==='Fuera de Meta'?'#dc2626':'#e2e8f0';
+        const hasChart = ind.registros && ind.registros.length > 0;
+        const chartId = `banco_chart_${ind.id}${suffix}`;
+
+        return `<div class="banco-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                <div style="flex:1;min-width:0;">
+                    <div class="banco-card-title">${ind.nombre}</div>
+                    <span class="ind-badge-tipo ${bc}" style="display:inline-block;margin-top:4px;">${ind.tipo||'Eficacia'}</span>
+                    <div class="banco-process-tag" style="margin-top:3px;"><i class="fas fa-cog"></i> ${ind._proceso}</div>
+                </div>
+                <span style="font-size:1.4rem;flex-shrink:0;" title="${sem.label}">${sem.icon}</span>
+            </div>
+            <div class="banco-formula" title="${ind.formula||''}">${ind.formula||'Sin fórmula definida'}</div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;margin:10px 0 6px;">
+                <div>
+                    <div class="banco-valor-actual" style="color:${sem.color};">${lr?lr.valor:'—'}</div>
+                    <div class="banco-valor-sub">${ind.unidad||''} ${lr?'· '+lr.periodo:'· Sin mediciones'}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="banco-meta-badge">Meta: ${ind.meta||'—'} ${ind.unidad||''}</div>
+                    <div style="font-size:.75rem;color:${sem.color};font-weight:bold;margin-top:5px;">${lr?Math.round(pct)+'% cumplimiento':'—'}</div>
+                </div>
+            </div>
+            <div class="banco-progress-bar"><div class="banco-progress-fill" style="width:${Math.min(pct,100)}%;background:${bc2};"></div></div>
+            ${hasChart ? `<div class="banco-chart-mini"><canvas id="${chartId}"></canvas></div>` : '<div style="height:50px;display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:.81rem;"><i class="fas fa-chart-bar" style="margin-right:5px;"></i> Sin registros</div>'}
+            <div class="banco-footer">
+                <span><i class="fas fa-user"></i> ${ind.responsable||'Sin asignar'}</span>
+                <span>${(ind.registros||[]).length} medición${(ind.registros||[]).length!==1?'es':''} · ${ind.frecuencia||'—'}</span>
+            </div>
+        </div>`;
+    };
+
+    const g1 = document.getElementById('banco_grid');
+    if(g1) g1.innerHTML = fil.map(i => renderCard(i, '')).join('');
+
+    const g2 = document.getElementById('banco_grid_mirror');
+    if(g2) g2.innerHTML = fil.map(i => renderCard(i, '_m')).join('');
+
+    setTimeout(() => {
+        fil.forEach(ind => {
+            if(ind.registros && ind.registros.length){
+                if(g1) buildChart(`banco_chart_${ind.id}`, ind);
+                if(g2) buildChart(`banco_chart_${ind.id}_m`, ind);
+            }
+        });
+    }, 80);
 }
-function populateBancoFilters(){const sel=document.getElementById('filter_proceso');if(!sel)return;const cur=sel.value;sel.innerHTML='<option value="">Todos los Procesos</option>';Object.keys(sgcData.processes).forEach(pName=>{const o=document.createElement('option');o.value=pName;o.textContent=pName;if(pName===cur)o.selected=true;sel.appendChild(o);});}
+
+function populateBancoFilters(){
+    ['filter_proceso', 'filter_proceso_tab'].forEach(id => {
+        const sel = document.getElementById(id);
+        if(!sel) return;
+        const cur = sel.value;
+        sel.innerHTML = '<option value="">Todos los Procesos</option>';
+        Object.keys(sgcData.processes).forEach(pName => {
+            const o = document.createElement('option');
+            o.value = pName;
+            o.textContent = pName;
+            if(pName === cur) o.selected = true;
+            sel.appendChild(o);
+        });
+    });
+}
 
 /* ============================================================
    CHART.JS BUILDER
