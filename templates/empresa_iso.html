@@ -215,7 +215,7 @@
                 <h2 id="inst_name_display" style="font-size:1.25rem;margin:0;color:#1e3a8a;">Cargando...</h2>
             </div>
         </header>
-        <div class="content-area">
+                <div class="content-area">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
                 <div>
                     <h1 style="margin:0;font-size:1.55rem;color:#0f172a;">🏆 Sistema de Gestion de Calidad ISO 9001:2015</h1>
@@ -268,6 +268,7 @@
                 </div>
             </div>
 
+            <!-- PANEL 1: MAPA & SIPOC -->
             <div id="view-mapa" class="iso-view-panel active">
 <div style="background:white;padding:15px;border-radius:10px;margin-bottom:20px;box-shadow:0 2px 4px rgba(0,0,0,.05);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;">
                 <div style="display:flex;align-items:center;gap:10px;">
@@ -338,11 +339,7 @@
                     <div class="banco-empty"><i class="fas fa-chart-bar"></i><p>No hay indicadores registrados aun.</p><small>Abra un proceso del Mapa y agregue indicadores.</small></div>
                 </div>
             </div>
-        </div>
-    </div>
-            </div>
             <!-- CIERRE PANEL 1 MAPA -->
-            </div>
 
             <!-- PANEL 2: AUDITORÍAS -->
             <div id="view-auditorias" class="iso-view-panel">
@@ -468,6 +465,7 @@
         </div>
     </main>
 </div>
+
 
 <!-- MODAL -->
 <div class="modal" id="processModal">
@@ -2443,6 +2441,70 @@ function deleteRiesgo(idx){
 /* ============================================================
    MÓDULO 6: CHECKLIST DE AUDITORÍA (CLÁUSULAS 4 A 10)
    ============================================================ */
+
+/* ============================================================
+   SUBIDA DE EVIDENCIA DIRECTA EN CHECKLIST ISO 9001
+   ============================================================ */
+async function uploadChecklistEvidence(fileInput, idx){
+    const file = fileInput.files[0];
+    if(!file) return;
+    const progId = getProgramId();
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('inst_id', getInstId());
+    formData.append('program_id', progId || '1');
+    formData.append('aspect_id', 'ISO9001_CHK_' + idx);
+    formData.append('period', 'Auditoria');
+    
+    const user = JSON.parse(localStorage.getItem('siac_user')||'{}');
+    if(user && user.email) formData.append('email', user.email);
+
+    const parentDiv = fileInput.closest('.chk-evidence-box');
+    if(parentDiv) parentDiv.innerHTML = '<span style="color:#2563eb;font-size:.8rem;font-weight:bold;"><i class="fas fa-spinner fa-spin"></i> Subiendo archivo...</span>';
+
+    try {
+        const res = await authFetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if(data.status === 'success' && data.url){
+            if(!sgcData.checklist) sgcData.checklist = JSON.parse(JSON.stringify(DEFAULT_CHECKLIST));
+            if(sgcData.checklist[idx]){
+                sgcData.checklist[idx].evidencia_url = data.url;
+                sgcData.checklist[idx].evidencia_nombre = file.name;
+                await saveSGCData(sgcData);
+                renderChecklist();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Evidencia Cargada',
+                    text: `El archivo ${file.name} se vinculó correctamente.`,
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            }
+        } else {
+            Swal.fire('Error', 'No se pudo subir el archivo: ' + (data.error||'Error desconocido'), 'error');
+            renderChecklist();
+        }
+    } catch(err){
+        console.error('Error subiendo evidencia:', err);
+        Swal.fire('Error de red', 'No se pudo contactar el servidor de almacenamiento.', 'error');
+        renderChecklist();
+    }
+}
+
+function removeChecklistEvidence(idx){
+    if(sgcData.checklist && sgcData.checklist[idx]){
+        sgcData.checklist[idx].evidencia_url = '';
+        sgcData.checklist[idx].evidencia_nombre = '';
+        saveSGCData(sgcData);
+        renderChecklist();
+    }
+}
+
+
 function renderChecklist(){
     const cont = document.getElementById('checklist_container');
     if(!cont) return;
@@ -2456,6 +2518,31 @@ function renderChecklist(){
     let h = '';
     items.forEach((item, idx) => {
         const clsSel = item.estado === 'Cumple' ? 'chk-cumple' : item.estado === 'En Progreso' ? 'chk-progreso' : 'chk-nocumple';
+        
+        let evidenceFileHTML = '';
+        if(item.evidencia_url){
+            const dlUrl = `/api/download?url=${encodeURIComponent(item.evidencia_url)}&name=${encodeURIComponent(item.evidencia_nombre||'evidencia_sgc.pdf')}`;
+            evidenceFileHTML = `
+                <div class="chk-evidence-box" style="display:flex;gap:6px;align-items:center;margin-top:5px;">
+                    <a href="${dlUrl}" target="_blank" class="btn-action" style="background:#2563eb;padding:4px 10px;font-size:.78rem;text-decoration:none;border-radius:6px;" title="Ver/Descargar Evidencia">
+                        <i class="fas fa-paperclip"></i> ${item.evidencia_nombre || 'Ver Evidencia'}
+                    </a>
+                    <button class="btn-action" style="background:#ef4444;padding:4px 8px;font-size:.75rem;border-radius:6px;" onclick="removeChecklistEvidence(${idx})" title="Eliminar archivo">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+        } else {
+            evidenceFileHTML = `
+                <div class="chk-evidence-box" style="margin-top:5px;">
+                    <label style="cursor:pointer;background:#f1f5f9;border:1px dashed #93c5fd;color:#2563eb;padding:5px 10px;border-radius:6px;font-size:.78rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .2s;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='#f1f5f9'">
+                        <i class="fas fa-cloud-upload-alt"></i> Subir Archivo de Evidencia (PDF/Doc/Img)
+                        <input type="file" style="display:none;" onchange="uploadChecklistEvidence(this, ${idx})">
+                    </label>
+                </div>
+            `;
+        }
+
         h += `<div class="chk-card">
             <div class="chk-header">
                 <div>
@@ -2472,14 +2559,15 @@ function renderChecklist(){
             <div style="font-size:.8rem;color:#475569;background:#f8fafc;padding:8px 12px;border-radius:6px;margin-bottom:8px;border-left:3px solid #3b82f6;">
                 <strong>Criterio de Conformidad para el Auditor:</strong> ${item.criterio}
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div>
-                    <label style="font-size:.75rem;font-weight:bold;color:#64748b;">Evidencia Documentada / Registro:</label>
-                    <input type="text" value="${item.evidencia||''}" onchange="updateChecklistItem(${idx}, 'evidencia', this.value)" style="width:100%;padding:5px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:.82rem;box-sizing:border-box;">
+                    <label style="font-size:.75rem;font-weight:bold;color:#64748b;display:block;margin-bottom:3px;">Descripción de Evidencia Documentada:</label>
+                    <input type="text" value="${item.evidencia||''}" placeholder="Ej. Procedimiento PR-CAL-01 v2..." onchange="updateChecklistItem(${idx}, 'evidencia', this.value)" style="width:100%;padding:6px 9px;border:1px solid #cbd5e1;border-radius:6px;font-size:.82rem;box-sizing:border-box;">
+                    ${evidenceFileHTML}
                 </div>
                 <div>
-                    <label style="font-size:.75rem;font-weight:bold;color:#64748b;">Observaciones / Hallazgos del Auditor:</label>
-                    <input type="text" value="${item.hallazgos||''}" placeholder="Notas de la visita..." onchange="updateChecklistItem(${idx}, 'hallazgos', this.value)" style="width:100%;padding:5px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:.82rem;box-sizing:border-box;">
+                    <label style="font-size:.75rem;font-weight:bold;color:#64748b;display:block;margin-bottom:3px;">Observaciones / Hallazgos del Auditor:</label>
+                    <textarea placeholder="Notas de la visita de auditoría..." onchange="updateChecklistItem(${idx}, 'hallazgos', this.value)" style="width:100%;height:68px;padding:6px 9px;border:1px solid #cbd5e1;border-radius:6px;font-size:.82rem;box-sizing:border-box;resize:vertical;">${item.hallazgos||''}</textarea>
                 </div>
             </div>
         </div>`;
