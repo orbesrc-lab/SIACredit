@@ -1430,6 +1430,7 @@ async function saveSGC(){
 
 /* ============================================================
    AI
+   ============================================================ */
 async function generateSGCAI(){await generatePolicyAI();}
 async function evalProcessAI(){if(!currentActiveProcess)return;Swal.fire({title:'Auditor Virtual ISO 9001...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});try{const r=await authFetch('/api/business/iso9001_generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({inst_id:getInstId(),action_type:'act',process_name:currentActiveProcess,process_data:sgcData.processes[currentActiveProcess]})});const d=await r.json();Swal.close();if(d.status==='success'&&d.data){let h=`<p><strong>Evaluacion de Auditoria:</strong> ${d.data.evaluacion_auditor}</p><h5 style="color:#1e3a8a;margin-top:10px;">Acciones de Mejora (Clausula 10):</h5><ul>`;(d.data.acciones_mejora||[]).forEach(a=>{h+=`<li><strong>${a.accion}</strong><br><small><strong>Causa Raiz:</strong> ${a.causa_raiz} | <strong>Responsable:</strong> ${a.responsable} | <strong>Plazo:</strong> ${a.plazo||'—'}</small></li>`;});h+=`</ul>`;document.getElementById('aiActResults').innerHTML=h;sgcData.processes[currentActiveProcess].actuar=h;}}catch(e){Swal.close();Swal.fire('Error','No se pudo evaluar con la IA.','error');}}
 
