@@ -1794,23 +1794,33 @@ function switchMainTab(panelId, btnEl){
     document.querySelectorAll('.iso-menu-card').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.iso-view-panel').forEach(p => p.classList.remove('active'));
     
-    if(btnEl) {
-        btnEl.classList.add('active');
-    } else {
-        const mapTab = {
-            'view-mapa': 'tab-card-mapa',
-            'view-auditorias': 'tab-card-auditorias',
-            'view-nc': 'tab-card-nc',
-            'view-riesgos': 'tab-card-riesgos',
-            'view-indicadores': 'tab-card-indicadores',
-            'view-checklist': 'tab-card-checklist'
-        };
-        const c = document.getElementById(mapTab[panelId]);
-        if(c) c.classList.add('active');
-    }
+    const mapTab = {
+        'view-mapa': 'tab-card-mapa',
+        'view-auditorias': 'tab-card-auditorias',
+        'view-nc': 'tab-card-nc',
+        'view-riesgos': 'tab-card-riesgos',
+        'view-indicadores': 'tab-card-indicadores',
+        'view-checklist': 'tab-card-checklist'
+    };
+
+    const hashMapRev = {
+        'view-mapa': 'mapa',
+        'view-auditorias': 'auditorias',
+        'view-nc': 'nc',
+        'view-riesgos': 'riesgos',
+        'view-indicadores': 'indicadores',
+        'view-checklist': 'checklist'
+    };
+
+    const c = btnEl || document.getElementById(mapTab[panelId]);
+    if(c) c.classList.add('active');
 
     const target = document.getElementById(panelId);
     if(target) target.classList.add('active');
+
+    if(hashMapRev[panelId]) {
+        history.replaceState(null, null, '#' + hashMapRev[panelId]);
+    }
 
     if(panelId === 'view-mapa') renderProcessMap();
     else if(panelId === 'view-auditorias') renderAuditoriasTable();
