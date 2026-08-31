@@ -407,31 +407,40 @@
         
         async function guardarColaborador(e) {
             e.preventDefault();
-            const data = {
-                id: document.getElementById('colab-id').value,
-                nombres: document.getElementById('colab-nombres').value,
-                apellidos: document.getElementById('colab-apellidos').value,
-                documento: document.getElementById('colab-documento').value,
-                email: document.getElementById('colab-email').value,
-                cargo: document.getElementById('colab-cargo').value,
-                area: document.getElementById('colab-area').value
-            };
-            
-            const method = data.id ? 'PUT' : 'POST';
-            const url = data.id ? `/api/skel360/colaborador/${data.id}` : `/api/skel360/empresa/${empresaId}/colaboradores`;
-            
-            if (method === 'PUT') {
-                data.empresa_id = empresaId; // Make sure the backend has it for getting area/cargo
-            }
-            
-            const res = await fetch(url, {
-                method: method,
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
-            if((await res.json()).status === 'success') {
-                cerrarModalColaborador();
-                loadColaboradores();
+            try {
+                const data = {
+                    id: document.getElementById('colab-id').value,
+                    nombres: document.getElementById('colab-nombres').value,
+                    apellidos: document.getElementById('colab-apellidos').value,
+                    documento: document.getElementById('colab-documento').value,
+                    email: document.getElementById('colab-email').value,
+                    cargo: document.getElementById('colab-cargo').value,
+                    area: document.getElementById('colab-area').value
+                };
+                
+                const method = data.id ? 'PUT' : 'POST';
+                const url = data.id ? `/api/skel360/colaborador/${data.id}` : `/api/skel360/empresa/${empresaId}/colaboradores`;
+                
+                if (method === 'PUT') {
+                    data.empresa_id = empresaId; // Make sure the backend has it for getting area/cargo
+                }
+                
+                const res = await authFetch(url, {
+                    method: method,
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const resData = await res.json();
+                if(resData.status === 'success') {
+                    cerrarModalColaborador();
+                    loadColaboradores();
+                    alert(data.id ? 'Colaborador actualizado correctamente.' : 'Colaborador creado correctamente.');
+                } else {
+                    alert('Error al guardar: ' + (resData.message || 'No se pudo guardar el colaborador.'));
+                }
+            } catch(err) {
+                console.error(err);
+                alert('Error de conexión o permisos al guardar el colaborador.');
             }
         }
         
