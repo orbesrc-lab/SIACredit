@@ -201,7 +201,10 @@
             <div id="tabInternos" class="dofa-panel active">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
                     <h3>🔍 Fortalezas y Debilidades</h3>
-                    <button class="btn-secondary" onclick="loadInternos(true)">🔄 Recargar desde Informes</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btnAIInterno" class="btn-primary" onclick="generarDOFAInternoIA()" style="background: linear-gradient(135deg, #10b981, #059669); border:none; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">✨ Autodetectar con IA</button>
+                        <button class="btn-secondary" onclick="loadInternos(true)">🔄 Recargar desde Informes</button>
+                    </div>
                 </div>
                 <p style="color:#64748b; font-size:0.9rem; margin-bottom: 20px;">
                     Estos factores fueron extraídos automáticamente en la sección de <b>Informes</b> usando Inteligencia Artificial.
@@ -222,7 +225,10 @@
             <div id="tabExternos" class="dofa-panel">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
                     <h3>🌍 Oportunidades y Amenazas</h3>
-                    <button class="btn-primary" onclick="saveExternos()">💾 Guardar Factores Externos</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btnAIExterno" class="btn-primary" onclick="generarDOFAExterno()" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); border:none; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);">🌍 Autodetectar PESTA con IA</button>
+                        <button class="btn-primary" onclick="saveExternos()">💾 Guardar Factores Externos</button>
+                    </div>
                 </div>
                 <p style="color:#64748b; font-size:0.9rem; margin-bottom: 20px;">
                     Agrega los factores del entorno que afectan al programa. Priorízalos de 1 (más importante) en adelante.
@@ -461,6 +467,120 @@
                 });
                 alert("✅ Factores Externos guardados correctamente.");
             } catch(e) { alert("Error al guardar: " + e); }
+        }
+
+        async function generarDOFAInternoIA() {
+            const btn = document.getElementById('btnAIInterno');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Analizando autoevaluación...';
+            btn.disabled = true;
+            
+            try {
+                // 1. Fetch raw evaluation data
+                const dynRes = await authFetch(`/api/informe_dinamico?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const reportData = await dynRes.json();
+                
+                // 2. Generate text report
+                btn.innerHTML = '⏳ Redactando informe base...';
+                const repAiRes = await authFetch('/api/ai/generate_report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ report_data: reportData })
+                });
+                const repData = await repAiRes.json();
+                
+                if (repData.status !== 'success') {
+                    throw new Error(repData.error || "Error al generar informe base");
+                }
+                
+                // 3. Extract DOFA
+                btn.innerHTML = '⏳ Extrayendo DOFA...';
+                const aiRes = await authFetch('/api/ai/generate_dofa', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ report_text: repData.report })
+                });
+                
+                const aiData = await aiRes.json();
+                
+                if (aiData.status === 'success' && aiData.dofa && !aiData.dofa.error_parseo) {
+                    internalFactors = aiData.dofa;
+                    renderInternos();
+                    
+                    await authFetch('/api/estadisticas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            table_id: 'DOFA_INTERNAL',
+                            inst_id: getInstId(),
+                            program_id: getProgramId(),
+                            data: internalFactors
+                        })
+                    });
+                    
+                    alert("✅ Factores Internos autodetectados y guardados con éxito.");
+                } else {
+                    alert("Error en la IA al extraer el DOFA: " + (aiData.error || aiData.dofa?.error_parseo));
+                }
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function generarDOFAExterno() {
+            let ctxE = prompt("Ingresa el sector y alcance geográfico a analizar (Ej. Educación Superior en Colombia, Sector Industrial en el Valle del Cauca...)", "Educación Superior en Colombia");
+            if(!ctxE) return;
+
+            const btn = document.getElementById('btnAIExterno');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Detectando...';
+            btn.disabled = true;
+
+            try {
+                const aiRes = await authFetch('/api/ai/generate_pesta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        inst_id: getInstId(),
+                        program_id: getProgramId(),
+                        contexto: ctxE 
+                    })
+                });
+                
+                const aiData = await aiRes.json();
+                
+                if (aiData.status === 'success' && aiData.pesta && !aiData.pesta.error_parseo) {
+                    let accumulatedOportunidades = aiData.pesta.oportunidades || [];
+                    let accumulatedAmenazas = aiData.pesta.amenazas || [];
+                    
+                    if (externalFactors.oportunidades) {
+                        accumulatedOportunidades = externalFactors.oportunidades.concat(accumulatedOportunidades);
+                    }
+                    if (externalFactors.amenazas) {
+                        accumulatedAmenazas = externalFactors.amenazas.concat(accumulatedAmenazas);
+                    }
+                    
+                    accumulatedOportunidades.forEach((o, idx) => o.id = `O${idx+1}`);
+                    accumulatedAmenazas.forEach((a, idx) => a.id = `A${idx+1}`);
+                    
+                    externalFactors.oportunidades = accumulatedOportunidades;
+                    externalFactors.amenazas = accumulatedAmenazas;
+
+                    renderExternos();
+                    await saveExternos();
+                    alert("✅ Factores Externos (PESTA) autodetectados y guardados con éxito.");
+                } else {
+                    alert("Error en la IA: " + (aiData.error || aiData.pesta?.error_parseo));
+                }
+            } catch (err) {
+                alert("Error contactando IA: " + err);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
 
         // --- Carga por Excel ---
