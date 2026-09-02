@@ -1492,6 +1492,10 @@ def ai_generate_dofa():
         
         # Limpieza básica por si el LLM incluye formato de bloque de código
         dofa_res = dofa_res.replace('```json', '').replace('```', '').strip()
+        start = dofa_res.find('{')
+        end = dofa_res.rfind('}')
+        if start != -1 and end != -1:
+            dofa_res = dofa_res[start:end+1]
         
         try:
             dofa_json = json.loads(dofa_res)
@@ -1556,6 +1560,10 @@ def ai_generate_pesta():
         
         # Limpieza básica
         pesta_res = pesta_res.replace('```json', '').replace('```', '').strip()
+        start = pesta_res.find('{')
+        end = pesta_res.rfind('}')
+        if start != -1 and end != -1:
+            pesta_res = pesta_res[start:end+1]
         
         try:
             pesta_json = json.loads(pesta_res)
@@ -1619,6 +1627,10 @@ def ai_cruce_dofa():
         )
         
         cruce_res = cruce_res.replace('```json', '').replace('```', '').strip()
+        start = cruce_res.find('{')
+        end = cruce_res.rfind('}')
+        if start != -1 and end != -1:
+            cruce_res = cruce_res[start:end+1]
         
         try:
             cruce_json = json.loads(cruce_res)
