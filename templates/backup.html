@@ -555,7 +555,8 @@
         document.getElementById('securityModal').style.display = 'none';
         
         const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
-        const authData = { user_id: user.id, password: pwd };
+        const userId = user.id || user.user_id || user.email || localStorage.getItem('user_id');
+        const authData = { user_id: userId, password: pwd };
         
         if(pendingBackupAction) {
             pendingBackupAction(authData, ...pendingBackupArgs);
@@ -711,7 +712,7 @@
             ? { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }
             : { method:'GET' };
         const url = isPost ? endpoint : endpoint + '?' + new URLSearchParams(payload).toString();
-        const response = await fetch(url, opts);
+        const response = await authFetch(url, opts);
         if(!response.ok) {
             const err = await response.json().catch(() => ({message: 'Error ' + response.status}));
             throw new Error(err.message || ('HTTP ' + response.status));

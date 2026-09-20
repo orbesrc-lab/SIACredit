@@ -310,7 +310,7 @@ def backup_generate():
     try:
         data = request.json or {}
         inst_id = data.get('inst_id', 1)
-        user_id = data.get('user_id')
+        user_id = data.get('user_id') or request.headers.get('X-User-Id', '').strip()
         password = data.get('password')
         is_valid, msg = verify_backup_security(user_id, password, inst_id, 'FULL_BACKUP')
         if not is_valid:
@@ -343,7 +343,7 @@ def backup_factor():
     try:
         data = request.json or {}
         inst_id = data.get('inst_id', 1)
-        user_id = data.get('user_id')
+        user_id = data.get('user_id') or request.headers.get('X-User-Id', '').strip()
         password = data.get('password')
         is_valid, msg = verify_backup_security(user_id, password, inst_id, 'FACTOR_BACKUP')
         if not is_valid:
@@ -410,7 +410,7 @@ def backup_evidencias():
     try:
         data = request.json or {}
         inst_id = data.get('inst_id', 1)
-        user_id = data.get('user_id')
+        user_id = data.get('user_id') or request.headers.get('X-User-Id', '').strip()
         password = data.get('password')
         is_valid, msg = verify_backup_security(user_id, password, inst_id, 'EVIDENCIAS_BACKUP')
         if not is_valid:
@@ -487,7 +487,7 @@ def backup_csv_single(tipo):
     try:
         data = request.json or {}
         inst_id = data.get('inst_id', 1)
-        user_id = data.get('user_id')
+        user_id = data.get('user_id') or request.headers.get('X-User-Id', '').strip()
         password = data.get('password')
         is_valid, msg = verify_backup_security(user_id, password, inst_id, 'CSV_MODULE_BACKUP')
         if not is_valid:
@@ -529,7 +529,7 @@ def backup_csv_all():
     try:
         data = request.json or {}
         inst_id = data.get('inst_id', 1)
-        user_id = data.get('user_id')
+        user_id = data.get('user_id') or request.headers.get('X-User-Id', '').strip()
         password = data.get('password')
         is_valid, msg = verify_backup_security(user_id, password, inst_id, 'CSV_ALL_BACKUP')
         if not is_valid:
@@ -579,7 +579,7 @@ def backup_csv_all():
 @require_permission('herramientas')
 def get_backup_logs():
     data = request.json or {}
-    user_id = data.get('user_id')
+    user_id = data.get('user_id') or request.headers.get('X-User-Id', '').strip()
     
     # Optional: Check if user is admin
     res_user = supabase.table('users').select('role').eq('id', user_id).execute()
