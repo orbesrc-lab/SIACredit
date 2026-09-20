@@ -240,7 +240,16 @@ def get_informe_dinamico():
                         "id": a_id,
                         "number": a.get('number', ''),
                         "name": a.get('name', a.get('text', '')),
-                        "evidencias": [{"name": ev['name'], "file_url": ev.get('file_url', ev.get('file_path')), "period": ev.get('period', '')} for ev in evidencias]
+                        "evidencias": [
+                            {
+                                "id": ev.get('id'),
+                                "name": ev.get('name', ''),
+                                "file_url": ev.get('file_url', ev.get('file_path', '')),
+                                "period": ev.get('period', ''),
+                                "ai_synthesis": ev.get('ai_synthesis', ''),
+                                "ai_contribution": ev.get('ai_contribution', '')
+                            } for ev in evidencias
+                        ]
                     }
                     char_info['aspectos'].append(aspect_info)
                 
