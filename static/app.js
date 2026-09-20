@@ -7,10 +7,10 @@
 // Global authentication check
 (function() {
     const path = window.location.pathname.toLowerCase();
-    const isPublic = path.includes('index.html') || path.includes('login.html') || path.includes('registro.html') || path.endsWith('/');
+    const isPublic = path.includes('index.html') || path.includes('login.html') || path.includes('registro.html') || path.includes('public') || path.includes('report') || path.includes('encuesta_publica') || path.endsWith('/');
     const user = JSON.parse(localStorage.getItem('siac_user') || 'null');
     if (!user && !isPublic) {
-        window.location.href = 'login.html';
+        window.location.href = '/login.html';
     }
 })();
 

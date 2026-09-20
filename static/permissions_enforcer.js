@@ -5,6 +5,9 @@
 
 (function() {
     function enforceAccess() {
+        const fullPath = (window.location.pathname || '').toLowerCase();
+        if (fullPath.includes('public') || fullPath.includes('report') || fullPath.includes('encuesta_publica')) return;
+
         const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
         if (!user || !user.role) return;
 
