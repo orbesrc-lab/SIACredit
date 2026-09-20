@@ -1142,6 +1142,86 @@ def save_evidence_ia(evidence_id):
         print(f"Error saving evidence IA analysis: {e}")
         return jsonify({"status": "error", "message": str(e)})
 
+@ai_bp.route('/api/autoevaluacion/generate_juicio_val', methods=['POST'])
+def generate_juicio_valor_ia():
+    try:
+        data = request.json or {}
+        char_id = data.get('char_id')
+        inst_id = data.get('inst_id', 1)
+        program_id = data.get('program_id', 0)
+        rating = data.get('rating', '')
+        
+        # 1. Obtener detalles de la característica y sus aspectos
+        res_f = supabase.table('factors').select('*,characteristics(*,aspects(*))').eq('inst_id', inst_id).execute()
+        char_obj = None
+        factor_obj = None
+        aspect_ids = []
+        
+        for f in (res_f.data or []):
+            for c in (f.get('characteristics') or []):
+                if str(c.get('id')) == str(char_id):
+                    char_obj = c
+                    factor_obj = f
+                    aspect_ids = [str(a.get('id')) for a in (c.get('aspects') or []) if a.get('id')]
+                    break
+        
+        # 2. Cargar evidencias vinculadas a los aspectos de esta característica
+        evidences_data = []
+        if aspect_ids:
+            try:
+                res_ev = supabase.table('evidences').select('*').eq('inst_id', inst_id).in_('aspect_id', aspect_ids).execute()
+                evidences_data = res_ev.data or []
+            except Exception as ex_ev:
+                print("Error cargando evidencias por aspect_ids:", ex_ev)
+                
+        # 3. Formatear resumen de evidencias y sus aportes IA/manuales
+        ev_summaries = []
+        for ev in evidences_data:
+            syn = ev.get('ai_synthesis') or ''
+            con = ev.get('ai_contribution') or ''
+            name = ev.get('name', 'Evidencia')
+            period = ev.get('period', 'N/A')
+            ev_summaries.append(f"- Archivo: {name} (Periodo {period})\n  Síntesis: {syn[:300]}\n  Aporte Cualitativo: {con[:400]}")
+            
+        ev_context_str = "\n\n".join(ev_summaries) if ev_summaries else "No hay síntesis o aportes de evidencias registrados aún."
+
+        # 4. Construir prompt para la IA
+        char_title = f"Característica {char_obj.get('number', '')}: {char_obj.get('name', '')}" if char_obj else f"Característica ID {char_id}"
+        factor_title = f"Factor {factor_obj.get('number', '')}: {factor_obj.get('name', '')}" if factor_obj else "Factor Institucional"
+        
+        prompt = f"""
+Actúa como un evaluador experto en Acreditación de Alta Calidad (Modelo CESU Acuerdo 01/2025).
+Tu objetivo es redactar un **Juicio de Valor (Análisis Cualitativo)** formal, riguroso y exhaustivo para la siguiente Característica:
+
+INFORMACIÓN DEL COMPONENTE:
+- {factor_title}
+- {char_title}
+- Calificación Cuantitativa Asignada: {rating if rating else 'No especificada'} (Escala CNA 1.0 a 5.0)
+
+EVIDENCIAS Y APORTES CUALITATIVOS DOCUMENTADOS:
+{ev_context_str}
+
+INSTRUCCIONES DE REDACCIÓN:
+1. Redacta un texto fluido (de 3 a 5 párrafos) en español académico y formal.
+2. Analiza la coherencia, pertinencia y grado de cumplimiento de la característica.
+3. ARTICULA Y CITA EXPLÍCITAMENTE las evidencias analizadas y sus aportes cualitativos documentados (mencionando nombres de soportes y periodo).
+4. Concluye resumiendo las fortalezas consolidadas y el nivel de madurez alcanzado.
+5. NO incluyas encabezados como "Introducción:", genera directamente el texto del Juicio de Valor listo para publicarse.
+"""
+        from routes.ai_generator import generar_informe_ia_base
+        juicio_valor_texto = generar_informe_ia_base(prompt, max_tokens=2500)
+        
+        return jsonify({
+            "status": "success",
+            "juicio_valor": juicio_valor_texto.strip()
+        })
+    except Exception as e:
+        print(f"Error en generate_juicio_valor_ia: {e}")
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        })
+
 @ai_bp.route('/api/proxy/external_pdf', methods=['GET'])
 def proxy_external_pdf():
     file_url = request.args.get('url', '')

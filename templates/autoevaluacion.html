@@ -542,12 +542,12 @@
 
 
                                 <div style="margin-bottom:30px;">
-
                                     <label style="display:block; font-weight:700; margin-bottom:10px;">Juicio de Valor (Análisis Cualitativo)</label>
-
                                     <div style="padding: 20px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; white-space: pre-wrap; line-height: 1.6;">${currentEval.just || 'Sin justificación.'}</div>
-
                                 </div>
+
+                                <!-- Contenedor de Soporte de Evidencias Analizadas (IA & Manual) -->
+                                <div id="evidenciasSoporteContainer" style="margin-bottom:30px;"></div>
 
 
 
@@ -620,12 +620,17 @@
 
 
                                 <div style="margin-bottom:30px;">
-
-                                    <label style="display:block; font-weight:700; margin-bottom:10px;">Juicio de Valor (Análisis Cualitativo)</label>
-
-                                    <textarea id="just_input" placeholder="Redacte aquí el análisis integral de la característica...">${currentEval.just || ''}</textarea>
-
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
+                                        <label style="font-weight:700; margin:0;">Juicio de Valor (Análisis Cualitativo)</label>
+                                        <button type="button" class="btn-ghost" id="btnGenJuicioValIA" onclick="triggerGenerateJuicioValorIA('${cId}')" style="padding:6px 14px; font-size:0.85rem; border:1px solid #7c3aed; color:#7c3aed; background:#f5f3ff; border-radius:6px; font-weight:600; cursor:pointer;">
+                                            <i class="fas fa-wand-magic-sparkles"></i> ✨ Redactar con IA articulando Evidencias
+                                        </button>
+                                    </div>
+                                    <textarea id="just_input" placeholder="Redacte aquí el análisis integral de la característica o haz clic en 'Redactar con IA' para articular las evidencias analizadas...">${currentEval.just || ''}</textarea>
                                 </div>
+
+                                <!-- Contenedor de Soporte de Evidencias Analizadas (IA & Manual) -->
+                                <div id="evidenciasSoporteContainer" style="margin-bottom:30px;"></div>
 
 
 
@@ -667,11 +672,104 @@
 
                 loadAndRenderPlanesMejora(cId);
 
+                loadAndRenderEvidenciasSoporte(cId, char);
+
             } catch(e) { console.error("Error showEval:", e); }
 
         }
 
 
+
+        // --- FUNCIONES GESTIÓN DE EVIDENCIAS Y JUICIO DE VALOR CON IA ---
+
+        async function loadAndRenderEvidenciasSoporte(charId, char) {
+            const container = document.getElementById('evidenciasSoporteContainer');
+            if (!container) return;
+            
+            try {
+                const res = await authFetch(`/api/evidences?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                const allEvs = await res.json();
+                
+                const aspectIds = (char.aspects || []).map(a => String(a.id));
+                const charEvs = (Array.isArray(allEvs) ? allEvs : []).filter(ev => aspectIds.includes(String(ev.aspect_id)));
+                
+                if (charEvs.length === 0) {
+                    container.innerHTML = `
+                        <div style="padding:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; color:#64748b; font-size:0.85rem;">
+                            ℹ️ No hay evidencias adjuntas para los aspectos de esta característica aún. <a href="/evidencias.html" style="color:#2563eb; font-weight:600;">Ir al módulo Evidencias</a>
+                        </div>`;
+                    return;
+                }
+                
+                let html = `
+                    <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:16px;">
+                        <h4 style="margin:0 0 12px; font-size:0.95rem; color:#1e293b; display:flex; align-items:center; gap:8px;">
+                            <i class="fas fa-folder-open" style="color:#4f46e5;"></i> Soporte Documental de Evidencias y Aportes IA (${charEvs.length})
+                        </h4>
+                        <div style="display:flex; flex-direction:column; gap:10px;">`;
+                        
+                charEvs.forEach(ev => {
+                    const hasAnal = Boolean((ev.ai_synthesis && ev.ai_synthesis.trim()) || (ev.ai_contribution && ev.ai_contribution.trim()));
+                    html += `
+                        <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:12px; font-size:0.85rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong style="color:#0f172a;">📄 ${ev.name}</strong>
+                                <span style="font-size:0.75rem; background:${hasAnal ? '#8b5cf6' : '#94a3b8'}; color:white; padding:2px 8px; border-radius:4px; font-weight:600;">
+                                    ${hasAnal ? '✨ IA Analizada' : 'Sin análisis'}
+                                </span>
+                            </div>
+                            <div style="margin-top:4px; color:#64748b; font-size:0.8rem;">Periodo: ${ev.period || 'N/A'} | Creado por: ${ev.user_email || 'N/A'}</div>
+                            ${ev.ai_contribution ? `<div style="margin-top:8px; padding:8px; background:#f5f3ff; border-left:3px solid #8b5cf6; color:#4c1d95; font-size:0.82rem;"><strong>Aporte Cualitativo:</strong> ${ev.ai_contribution}</div>` : ''}
+                        </div>`;
+                });
+                
+                html += `</div></div>`;
+                container.innerHTML = html;
+            } catch(e) {
+                console.error("Error loading evidencias soporte:", e);
+            }
+        }
+
+        async function triggerGenerateJuicioValorIA(cId) {
+            const btn = document.getElementById('btnGenJuicioValIA');
+            const textarea = document.getElementById('just_input');
+            const ratingInput = document.getElementById('rating_input');
+            
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando Juicio de Valor con IA...';
+            }
+            
+            try {
+                const rating = ratingInput ? ratingInput.value : '';
+                const res = await authFetch('/api/autoevaluacion/generate_juicio_val', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        char_id: cId,
+                        inst_id: getInstId(),
+                        program_id: getProgramId(),
+                        rating: rating
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.status === 'success' && data.juicio_valor) {
+                    textarea.value = data.juicio_valor;
+                    alert('✨ Juicio de Valor generado con éxito articulando las evidencias analizadas.');
+                } else {
+                    alert('Error generando Juicio de Valor: ' + (data.message || 'Verifica los datos e inténtalo de nuevo.'));
+                }
+            } catch(e) {
+                console.error("Error al generar Juicio de Valor:", e);
+                alert("Error de conexión al generar con IA.");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> ✨ Redactar con IA articulando Evidencias';
+                }
+            }
+        }
 
         // --- FUNCIONES GESTIÓN DE PLANES DE MEJORA ---
 
