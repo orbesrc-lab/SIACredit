@@ -64,7 +64,6 @@ def save_cc_project(inst_id, data):
         return False
 
 @cambio_caracter_bp.route('/cambio_caracter', methods=['GET'])
-@require_permission('view_academico')
 def render_cambio_caracter():
     inst_id = get_active_inst_id()
     return render_template('cambio_caracter.html', inst_id=inst_id, requisitos=REQUISITOS)
