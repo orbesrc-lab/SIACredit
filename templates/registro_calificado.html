@@ -2215,7 +2215,8 @@
                 statusText = 'Requiere Ajustes de Fondo';
             }
 
-            const strengthsList = (audit.strengths || []).map(s => `<li><i class="fa-solid fa-check" style="color:#10b981; margin-right:6px;"></i> ${s}</li>`).join('');
+            const strengthsList = (audit.strengths || []).map(s => `<li><i class="fa-solid fa-check" style="color:#10b981; margin-right:6px;"></i> ${s}</li>
+                <li><a href="/cambio_caracter" id="link-cambio-caracter"><span class="icon">🏛️</span> Cambio de Carácter</a></li>`).join('');
             const observationsList = (audit.observations || []).map(o => `<li><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b; margin-right:6px;"></i> ${o}</li>`).join('');
             const recommendationsList = (audit.recommendations || []).map(r => `<li><i class="fa-solid fa-arrow-right" style="color:#3b82f6; margin-right:6px;"></i> ${r}</li>`).join('');
 
