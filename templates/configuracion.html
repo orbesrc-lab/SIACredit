@@ -2797,20 +2797,7 @@
                 select.selectedIndex = 0;
             }
 
-            // Monitor selector change to disable delete on ID 1
-            select.addEventListener('change', () => {
-                const btn = document.querySelector('[onclick="deleteInstitution()"]');
-                if (btn) {
-                    btn.style.opacity = select.value == '1' ? '0.5' : '1';
-                    btn.title = select.value == '1' ? 'No se puede eliminar la institución principal.' : '';
-                }
-            });
-            // Initial check
-            const btnDel = document.querySelector('[onclick="deleteInstitution()"]');
-            if (btnDel) {
-                btnDel.style.opacity = select.value == '1' ? '0.5' : '1';
-                btnDel.title = select.value == '1' ? 'No se puede eliminar la institución principal.' : '';
-            }
+            // Removida la restricción visual para eliminar la institución principal
         }
 
         async function changeCurrentInst() {
@@ -3183,11 +3170,7 @@
             const instId = sel ? sel.value : '0';
             if (!instId || instId == '0') { alert('Selecciona una institución válida.'); return; }
             
-            // PROTECCIÓN: No permitir borrar la institución principal (ID 1)
-            if (instId == '1') {
-                alert('No se puede eliminar la institución principal del sistema.');
-                return;
-            }
+            // Removida la protección de ID 1 en el frontend
             
             const instName = sel.options[sel.selectedIndex].text;
             showConfigConfirm({

@@ -773,9 +773,7 @@ def handle_all_institutions():
 @core_bp.route('/api/institutions/<int:inst_id>', methods=['DELETE'])
 def delete_institution(inst_id):
     try:
-        # PROTECCIÓN: No permitir borrar la institución principal (ID 1)
-        if inst_id == 1:
-            return jsonify({"status": "error", "message": "No se puede eliminar la institución principal del sistema."}), 403
+        # Se eliminó la protección de ID 1 para permitir limpiar la institución principal
             
         # ON DELETE CASCADE en Supabase se encarga de borrar hijos automáticamente
         supabase.table('institution').delete().eq("id", inst_id).execute()
