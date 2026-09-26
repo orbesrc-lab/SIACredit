@@ -773,9 +773,41 @@ def handle_all_institutions():
 @core_bp.route('/api/institutions/<int:inst_id>', methods=['DELETE'])
 def delete_institution(inst_id):
     try:
-        # Se eliminó la protección de ID 1 para permitir limpiar la institución principal
-            
-        # ON DELETE CASCADE en Supabase se encarga de borrar hijos automáticamente
+        import threading
+
+        def radical_delete_storage(deleted_inst_id):
+            buckets = ['evidencias', 'lms_files']
+            try:
+                for bucket in buckets:
+                    prefix = f"inst_{deleted_inst_id}"
+                    
+                    def walk_and_delete(current_prefix):
+                        res = supabase.storage.from_(bucket).list(current_prefix)
+                        if not res: return
+                        
+                        files_to_delete = []
+                        for item in res:
+                            name = item.get('name')
+                            if not name or name == '.emptyFolderPlaceholder': continue
+                            
+                            # Si es subdirectorio
+                            if item.get('id') is None and item.get('created_at') is None:
+                                walk_and_delete(f"{current_prefix}/{name}")
+                            else:
+                                files_to_delete.append(f"{current_prefix}/{name}")
+                                
+                        if files_to_delete:
+                            # Supabase acepta borrar array de paths
+                            supabase.storage.from_(bucket).remove(files_to_delete)
+                            
+                    walk_and_delete(prefix)
+            except Exception as e:
+                print(f"Error en borrado radical de storage inst_{deleted_inst_id}: {e}")
+
+        # Ejecutar el borrado físico en segundo plano para no bloquear la respuesta HTTP
+        threading.Thread(target=radical_delete_storage, args=(inst_id,)).start()
+
+        # ON DELETE CASCADE en Supabase se encarga de borrar hijos en la base de datos
         supabase.table('institution').delete().eq("id", inst_id).execute()
         return jsonify({"status": "success"})
     except Exception as e:
