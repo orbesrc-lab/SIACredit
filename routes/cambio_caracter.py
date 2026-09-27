@@ -86,7 +86,8 @@ def api_cambio_caracter_upload():
         path = f"inst_{inst_id}/cambio_caracter/{req_id}/{new_filename}"
         
         file_bytes = file.read()
-        res = supabase.storage.from_('evidencias').upload(path, file_bytes)
+        file_options = {"content-type": file.content_type} if hasattr(file, 'content_type') else {}
+        res = supabase.storage.from_('evidencias').upload(path, file_bytes, file_options=file_options)
         
         public_url = supabase.storage.from_('evidencias').get_public_url(path)
         
@@ -121,7 +122,8 @@ def api_cc_ai_gap_analysis():
         # Save document to storage for record-keeping
         new_filename = f"base_doc_{uuid.uuid4()}{ext}"
         path = f"inst_{inst_id}/cambio_caracter/base_documents/{new_filename}"
-        supabase.storage.from_('evidencias').upload(path, file_bytes)
+        file_options = {"content-type": file.content_type} if hasattr(file, 'content_type') else {}
+        supabase.storage.from_('evidencias').upload(path, file_bytes, file_options=file_options)
         
         text = ""
         if ext == '.pdf':
