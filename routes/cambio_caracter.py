@@ -236,3 +236,46 @@ def api_cc_download_word():
     doc.save(io_stream)
     io_stream.seek(0)
     return send_file(io_stream, as_attachment=True, download_name="analisis_brechas_cc.docx", mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/download_pdf', methods=['POST'])
+def api_cc_download_pdf():
+    text = request.form.get('content', '')
+    import io
+    from fpdf import FPDF
+    from flask import send_file
+    
+    class PDF(FPDF):
+        def header(self):
+            self.set_font("helvetica", "B", 12)
+            self.cell(0, 10, "Analisis de Brechas - Cambio de Caracter", border=0, align="C")
+            self.ln(15)
+            
+        def footer(self):
+            self.set_y(-15)
+            self.set_font("helvetica", "I", 8)
+            self.cell(0, 10, f"Pagina {self.page_no()}", border=0, align="C")
+            
+    try:
+        pdf = PDF()
+        pdf.add_page()
+        pdf.set_font("helvetica", size=10)
+        
+        for line in text.split('\\n'):
+            line = line.replace('**', '').replace('##', '').replace('#', '').strip()
+            if not line:
+                pdf.ln(5)
+                continue
+            # Safe encoding for standard fonts
+            safe_line = line.encode('latin-1', 'replace').decode('latin-1')
+            pdf.multi_cell(0, 6, txt=safe_line)
+            
+        pdf_bytes = pdf.output()
+        if isinstance(pdf_bytes, str):
+            pdf_bytes = pdf_bytes.encode('latin-1')
+            
+        io_stream = io.BytesIO(pdf_bytes)
+        return send_file(io_stream, as_attachment=True, download_name="analisis_brechas_cc.pdf", mimetype="application/pdf")
+    except Exception as e:
+        print(f"[CC] PDF Download Error: {e}")
+        return str(e), 500
