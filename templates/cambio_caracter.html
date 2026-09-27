@@ -344,42 +344,6 @@
     </div>
 </main>
 
-<!-- Modal for Requisito -->
-<div id="reqModal" translate="no" class="notranslate" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-    <div style="background:white; padding:30px; border-radius:12px; width:600px; max-width:90%; max-height:90vh; overflow-y:auto; color:#333;">
-        <h3 id="modalReqTitle" style="margin-top:0;"></h3>
-        <p id="modalReqDesc" style="color:#666; font-size:0.9rem; margin-bottom:20px;"></p>
-        
-        <div style="margin-bottom: 20px;" class="notranslate">
-            <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:5px;">Estado:</label>
-            <select id="modalReqStatus" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;">
-                <option value="Pendiente">Pendiente</option>
-                <option value="En Construcción">En Construcción</option>
-                <option value="Completado">Completado</option>
-            </select>
-        </div>
-        
-        <div style="margin-bottom: 20px;" class="notranslate">
-            <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:5px;">Observaciones:</label>
-            <textarea id="modalReqNotes" rows="4" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; resize:vertical;"></textarea>
-        </div>
-        
-        <div style="margin-bottom: 20px;" class="notranslate">
-            <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:5px;">Subir Evidencia (PDF, Word, etc):</label>
-            <input type="file" id="modalReqFile" style="width:100%; margin-bottom:10px;">
-            <button id="btnUpload" onclick="uploadEvidence()" style="background:#2563eb; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-size:0.85rem;">Subir Archivo</button>
-        </div>
-        
-        <div id="evidenciasList" style="margin-bottom:20px;" class="notranslate"></div>
-
-        <div style="display:flex; justify-content:flex-end; gap:10px;">
-            <button onclick="document.getElementById('reqModal').style.display='none'" style="padding:10px 15px; border-radius:8px; border:1px solid #ccc; background:white; cursor:pointer;">Cerrar</button>
-            <button onclick="saveReqData()" style="padding:10px 15px; border-radius:8px; border:none; background:#10b981; color:white; cursor:pointer; font-weight:bold;">Guardar Cambios</button>
-        </div>
-    </div>
-</div>
-
-
 <!-- Modal for AI Gap Analysis -->
 <div id="aiGapModal" translate="no" class="notranslate" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:12px; width:800px; max-width:95%; max-height:90vh; overflow-y:auto; color:#333; position:relative;">
@@ -498,13 +462,44 @@
                             <h4 style="font-size:0.95rem; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;" title="${req.desc}">${req.desc}</h4><p style="font-size:0.8rem; margin-top:5px; color:#64748b;" title="${req.title}"><i class="fa-solid fa-tag"></i> ${req.title}</p>
                         </div>
                     </div>
-                    <div class="cc-hub-card-footer">
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                            <span class="cc-badge" style="color: ${statusColor}; background: ${statusBg};">
-                                <i class="fa-solid ${statusIcon}"></i> ${reqData.status}
-                            </span>
-                            <span style="font-size: 0.75rem; color: #94a3b8;"><i class="fa-solid fa-paperclip"></i> ${reqData.evidences ? reqData.evidences.length : 0}</span>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:15px; border-top:1px solid #f1f5f9;">
+                        <div style="font-size:0.8rem; font-weight:600; color:${statusColor}; display:flex; align-items:center; gap:5px;">
+                            <i class="fa-solid ${statusIcon}"></i> ${reqData.status || 'Pendiente'}
+                            <span style="color:#94a3b8; font-weight:normal; margin-left:5px;"><i class="fa-solid fa-paperclip"></i> ${reqData.evidences ? reqData.evidences.length : 0}</span>
                         </div>
+                        <button class="cc-action-btn" onclick="toggleReq('${req.id}')">Gestionar &darr;</button>
+                    </div>
+                    
+                    <!-- INLINE EDIT CONTAINER -->
+                    <div id="inline-edit-${req.id}" style="display:none; margin-top:15px; padding-top:15px; border-top:2px dashed #e2e8f0; background:rgba(255,255,255,0.8); border-radius:8px; padding:15px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                        <div style="margin-bottom: 15px;" class="notranslate">
+                            <label style="font-weight:600; font-size:0.85rem; display:block; margin-bottom:5px;">Estado:</label>
+                            <select id="inline-status-${req.id}" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ccc; font-size:0.85rem;">
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="En Construcción">En Construcción</option>
+                                <option value="Completado">Completado</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;" class="notranslate">
+                            <label style="font-weight:600; font-size:0.85rem; display:block; margin-bottom:5px;">Observaciones / Plan de Acción:</label>
+                            <textarea id="inline-notes-${req.id}" rows="3" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ccc; resize:vertical; font-size:0.85rem;"></textarea>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0;" class="notranslate">
+                            <label style="font-weight:600; font-size:0.85rem; display:block; margin-bottom:5px;">Subir Evidencia:</label>
+                            <input type="file" id="inline-file-${req.id}" style="width:100%; margin-bottom:8px; font-size:0.8rem;">
+                            <button onclick="uploadEvidenceInline('${req.id}')" style="background:#2563eb; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.8rem; width:100%;">Subir Archivo</button>
+                            <div id="inline-evidencias-${req.id}" style="margin-top:10px;"></div>
+                        </div>
+                        
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="toggleReq('${req.id}')" style="width:50%; padding:8px; background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; font-size:0.85rem;">Cerrar</button>
+                            <button onclick="saveInlineReqData('${req.id}')" style="width:50%; padding:8px; background:#10b981; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.85rem;"><i class="fa-solid fa-save"></i> Guardar</button>
+                        </div>
+                    </div>
+
                         <button class="cc-action-btn" onclick="openReq('${req.id}')">Gestionar &rarr;</button>
                     </div>
                 `;
@@ -515,36 +510,35 @@
         }
     }
 
-    function openReq(id) {
-        currentReqId = id;
-        const req = REQUISITOS.find(r => r.id === id);
-        if (!currentData.requisitos[id]) currentData.requisitos[id] = { status: 'Pendiente', evidences: [], notes: '' };
-        const reqData = currentData.requisitos[id];
-        
-        document.getElementById('modalReqTitle').innerText = req.title;
-        document.getElementById('modalReqDesc').innerText = req.desc;
-        document.getElementById('modalReqStatus').value = reqData.status || 'Pendiente';
-        document.getElementById('modalReqNotes').value = reqData.notes || '';
-        
-        renderEvidencesList();
-        
-        document.getElementById('reqModal').style.display = 'flex';
+    
+    function toggleReq(id) {
+        const el = document.getElementById('inline-edit-' + id);
+        if(el.style.display === 'block') {
+            el.style.display = 'none';
+        } else {
+            // Populate
+            const reqData = currentData.requisitos[id] || { status: 'Pendiente', evidences: [], notes: '' };
+            document.getElementById('inline-status-' + id).value = reqData.status || 'Pendiente';
+            document.getElementById('inline-notes-' + id).value = reqData.notes || '';
+            renderInlineEvidencesList(id);
+            el.style.display = 'block';
+        }
     }
 
-    function renderEvidencesList() {
-        const reqData = currentData.requisitos[currentReqId];
-        const list = document.getElementById('evidenciasList');
-        if (!reqData.evidences || reqData.evidences.length === 0) {
-            list.innerHTML = '<p style="font-size:0.85rem; color:#888; font-style:italic;">No hay evidencias subidas.</p>';
+    function renderInlineEvidencesList(id) {
+        const reqData = currentData.requisitos[id];
+        const list = document.getElementById('inline-evidencias-' + id);
+        if (!reqData || !reqData.evidences || reqData.evidences.length === 0) {
+            list.innerHTML = '<p style="font-size:0.75rem; color:#888; font-style:italic;">No hay evidencias subidas.</p>';
             return;
         }
         
         let html = '<ul style="list-style:none; padding:0; margin:0;">';
         reqData.evidences.forEach((ev, idx) => {
             html += `
-                <li style="padding:8px; border:1px solid #eee; margin-bottom:5px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
-                    <a href="${ev.url}" target="_blank" style="color:#2563eb; text-decoration:none; font-size:0.85rem;"><i class="fa-solid fa-file-pdf"></i> ${ev.name}</a>
-                    <button onclick="deleteEvidence(${idx})" style="background:#fee2e2; color:#ef4444; border:none; border-radius:4px; padding:4px 8px; cursor:pointer; font-size:0.75rem;">Eliminar</button>
+                <li style="padding:6px; border:1px solid #eee; margin-bottom:5px; border-radius:4px; display:flex; justify-content:space-between; align-items:center; background:white;">
+                    <a href="${ev.url}" target="_blank" style="color:#2563eb; text-decoration:none; font-size:0.75rem;"><i class="fa-solid fa-file-pdf"></i> ${ev.name}</a>
+                    <button onclick="deleteEvidenceInline('${id}', ${idx})" style="background:#fee2e2; color:#ef4444; border:none; border-radius:4px; padding:3px 6px; cursor:pointer; font-size:0.7rem;">Eliminar</button>
                 </li>
             `;
         });
@@ -552,14 +546,14 @@
         list.innerHTML = html;
     }
 
-    async function uploadEvidence() {
-        const fileInput = document.getElementById('modalReqFile');
+    async function uploadEvidenceInline(id) {
+        const fileInput = document.getElementById('inline-file-' + id);
         if (!fileInput.files.length) return Swal.fire('Error', 'Selecciona un archivo primero.', 'error');
         
         const file = fileInput.files[0];
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('req_id', currentReqId);
+        formData.append('req_id', id);
         
         Swal.fire({title: 'Subiendo...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
         
@@ -570,44 +564,54 @@
         const d = await res.json();
         
         if (d.status === 'success') {
-            if (!currentData.requisitos[currentReqId].evidences) currentData.requisitos[currentReqId].evidences = [];
-            currentData.requisitos[currentReqId].evidences.push({
+            if (!currentData.requisitos[id]) currentData.requisitos[id] = { status: 'Pendiente', evidences: [], notes: '' };
+            if (!currentData.requisitos[id].evidences) currentData.requisitos[id].evidences = [];
+            currentData.requisitos[id].evidences.push({
                 name: d.name,
                 url: d.url,
                 path: d.path,
                 uploaded_at: new Date().toISOString()
             });
             await saveToServer();
-            renderEvidencesList();
+            renderInlineEvidencesList(id);
             fileInput.value = '';
             Swal.close();
+            // Re-render the card to update the badge
+            renderRequisitos();
+            // Keep it open
+            toggleReq(id);
         } else {
             Swal.fire('Error', d.message, 'error');
         }
     }
 
-    async function deleteEvidence(idx) {
-        const ev = currentData.requisitos[currentReqId].evidences[idx];
+    async function deleteEvidenceInline(id, idx) {
+        const ev = currentData.requisitos[id].evidences[idx];
         if(confirm('¿Eliminar esta evidencia?')) {
             await fetch('/api/cambio_caracter/delete_file', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({path: ev.path})
             });
-            currentData.requisitos[currentReqId].evidences.splice(idx, 1);
+            currentData.requisitos[id].evidences.splice(idx, 1);
             await saveToServer();
-            renderEvidencesList();
+            renderInlineEvidencesList(id);
+            // Re-render the card to update the badge
+            renderRequisitos();
+            // Keep it open
+            toggleReq(id);
         }
     }
 
-    async function saveReqData() {
-        currentData.requisitos[currentReqId].status = document.getElementById('modalReqStatus').value;
-        currentData.requisitos[currentReqId].notes = document.getElementById('modalReqNotes').value;
+    async function saveInlineReqData(id) {
+        if (!currentData.requisitos[id]) currentData.requisitos[id] = { status: 'Pendiente', evidences: [], notes: '' };
+        currentData.requisitos[id].status = document.getElementById('inline-status-' + id).value;
+        currentData.requisitos[id].notes = document.getElementById('inline-notes-' + id).value;
         await saveToServer();
-        document.getElementById('reqModal').style.display = 'none';
         renderRequisitos();
         Swal.fire({icon: 'success', title: 'Guardado', timer: 1500, showConfirmButton: false});
     }
+
 
     async function saveToServer() {
         await fetch('/api/cambio_caracter/data', {
