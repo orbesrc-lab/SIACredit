@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SKEL - Expertos en Proyectos de Educación Superior</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
@@ -433,11 +434,11 @@
             // Eje Header
             const ejeHeader = document.createElement('h3');
             ejeHeader.innerText = eje;
-            ejeHeader.style.cssText = 'margin-top: 30px; margin-bottom: 15px; font-size: 1.15rem; color: #4c1d95; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;';
+            ejeHeader.style.cssText = 'margin-top: 30px; margin-bottom: 15px; font-size: 1.15rem; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-weight: 800;';
             container.appendChild(ejeHeader);
             
             let ejeIconInfo = { icon: 'fa-cube', grad: 'linear-gradient(135deg, #6366f1, #4f46e5)' };
-            if (eje.includes('FUNDAMENTOS') || eje.includes('DECISIÓN')) ejeIconInfo = { icon: 'fa-building-columns', grad: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' };
+            if (eje.includes('FUNDAMENTOS') || eje.includes('DECISIÓN')) ejeIconInfo = { icon: 'fa-building-columns', grad: 'linear-gradient(135deg, #3b82f6, #1e3a8a)' };
             else if (eje.includes('CARÁCTER ACADÉMICO')) ejeIconInfo = { icon: 'fa-graduation-cap', grad: 'linear-gradient(135deg, #3b82f6, #2563eb)' };
             else if (eje.includes('PERTINENCIA')) ejeIconInfo = { icon: 'fa-globe', grad: 'linear-gradient(135deg, #14b8a6, #0f766e)' };
             else if (eje.includes('CONDICIONES FÍSICAS')) ejeIconInfo = { icon: 'fa-laptop-code', grad: 'linear-gradient(135deg, #f97316, #c2410c)' };
