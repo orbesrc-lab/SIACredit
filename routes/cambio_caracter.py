@@ -150,14 +150,14 @@ Eres un experto del Ministerio de Educación Nacional de Colombia (MEN).
 La institución quiere cambiar su carácter académico a 'Institución Universitaria' según la Ley 749 de 2002 y el Decreto 2038 de 2023.
 A continuación te presento el texto extraído de su documento base actual (PEI, Proyecto Institucional o similar).
 
-Tu tarea es analizar este documento e identificar las BRECHAS (lo que falta o no cumple plenamente) frente a los 56 aspectos normativos exigidos para el cambio de carácter.
+Tu tarea no es solo analizar, sino REDACTAR. A partir del documento base, identifica las BRECHAS frente a los 56 aspectos normativos exigidos para el cambio de carácter, y GENERA UNA PROPUESTA REDACTADA (artículos, párrafos, capítulos) que subsane esas brechas.
 
 RUBRICA DE EVALUACIÓN (Aspectos exigidos):
 {rubrica_text}
 
 Debes devolver EXCLUSIVAMENTE un bloque de código JSON (sin texto adicional antes o después) con la siguiente estructura:
 {{
-  "markdown_report": "Aquí va el checklist detallado y el reporte general en formato Markdown.",
+  "markdown_report": "Aquí redacta el INFORME TÉCNICO Y LA PROPUESTA DE REDACCIÓN DE LOS ESTATUTOS/DOCUMENTOS FALTANTES en formato Markdown. No hagas un simple checklist: redacta textos formales, sugerencias de articulado y párrafos académicos que la institución pueda usar directamente en su nuevo documento.",
   "evaluations": {{
     "req_1": {{
       "status": "En Construcción", 

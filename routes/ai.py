@@ -18,7 +18,7 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
     import json
     provider = "gemini"
     api_key = None
-    model = "gemini-2.5-flash"
+    model = "gemini-1.5-flash-8b"
     
     db_error = None
     check = None
