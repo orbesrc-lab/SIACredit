@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
     <title>SKEL - Expertos en Proyectos de Educación Superior</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -349,21 +350,27 @@
         <h3 id="modalReqTitle" style="margin-top:0;"></h3>
         <p id="modalReqDesc" style="color:#666; font-size:0.9rem; margin-bottom:20px;"></p>
         
-        <label style="font-weight:600; font-size:0.9rem;">Estado:</label>
-        <select id="modalReqStatus" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin-bottom:20px;">
-            <option value="Pendiente">Pendiente</option>
-            <option value="En Construcción">En Construcción</option>
-            <option value="Completado">Completado</option>
-        </select>
+        <div style="margin-bottom: 20px;" class="notranslate">
+            <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:5px;">Estado:</label>
+            <select id="modalReqStatus" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;">
+                <option value="Pendiente">Pendiente</option>
+                <option value="En Construcción">En Construcción</option>
+                <option value="Completado">Completado</option>
+            </select>
+        </div>
         
-        <label style="font-weight:600; font-size:0.9rem;">Observaciones:</label>
-        <textarea id="modalReqNotes" rows="4" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin-bottom:20px;"></textarea>
+        <div style="margin-bottom: 20px;" class="notranslate">
+            <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:5px;">Observaciones:</label>
+            <textarea id="modalReqNotes" rows="4" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; resize:vertical;"></textarea>
+        </div>
         
-        <label style="font-weight:600; font-size:0.9rem;">Subir Evidencia (PDF, Word, etc):</label>
-        <input type="file" id="modalReqFile" style="width:100%; margin-bottom:10px;">
-        <button id="btnUpload" onclick="uploadEvidence()" style="background:#2563eb; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-size:0.85rem; margin-bottom:20px;">Subir Archivo</button>
+        <div style="margin-bottom: 20px;" class="notranslate">
+            <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:5px;">Subir Evidencia (PDF, Word, etc):</label>
+            <input type="file" id="modalReqFile" style="width:100%; margin-bottom:10px;">
+            <button id="btnUpload" onclick="uploadEvidence()" style="background:#2563eb; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; font-size:0.85rem;">Subir Archivo</button>
+        </div>
         
-        <div id="evidenciasList" style="margin-bottom:20px;"></div>
+        <div id="evidenciasList" style="margin-bottom:20px;" class="notranslate"></div>
 
         <div style="display:flex; justify-content:flex-end; gap:10px;">
             <button onclick="document.getElementById('reqModal').style.display='none'" style="padding:10px 15px; border-radius:8px; border:1px solid #ccc; background:white; cursor:pointer;">Cerrar</button>
