@@ -436,6 +436,14 @@
             ejeHeader.style.cssText = 'margin-top: 30px; margin-bottom: 15px; font-size: 1.15rem; color: #4c1d95; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;';
             container.appendChild(ejeHeader);
             
+            let ejeIconInfo = { icon: 'fa-cube', grad: 'linear-gradient(135deg, #6366f1, #4f46e5)' };
+            if (eje.includes('FUNDAMENTOS') || eje.includes('DECISIÓN')) ejeIconInfo = { icon: 'fa-building-columns', grad: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' };
+            else if (eje.includes('CARÁCTER ACADÉMICO')) ejeIconInfo = { icon: 'fa-graduation-cap', grad: 'linear-gradient(135deg, #3b82f6, #2563eb)' };
+            else if (eje.includes('PERTINENCIA')) ejeIconInfo = { icon: 'fa-globe', grad: 'linear-gradient(135deg, #14b8a6, #0f766e)' };
+            else if (eje.includes('CONDICIONES FÍSICAS')) ejeIconInfo = { icon: 'fa-laptop-code', grad: 'linear-gradient(135deg, #f97316, #c2410c)' };
+            else if (eje.includes('CONDICIONES FINANCIERAS')) ejeIconInfo = { icon: 'fa-chart-line', grad: 'linear-gradient(135deg, #10b981, #047857)' };
+            else if (eje.includes('AUTORREGULACIÓN')) ejeIconInfo = { icon: 'fa-compass', grad: 'linear-gradient(135deg, #f43f5e, #be123c)' };
+
             // Grid for this Eje
             const grid = document.createElement('div');
             grid.className = 'cc-hub-grid';
@@ -445,18 +453,15 @@
                 
                 let statusColor = '#64748b';
                 let statusBg = '#f1f5f9';
-                let iconGradient = 'linear-gradient(135deg, #94a3b8, #475569)';
                 let statusIcon = 'fa-clock';
                 
                 if (reqData.status === 'En Construcción') {
                     statusColor = '#d97706';
                     statusBg = '#fef3c7';
-                    iconGradient = 'linear-gradient(135deg, #fcd34d, #d97706)';
                     statusIcon = 'fa-hammer';
                 } else if (reqData.status === 'Completado') {
                     statusColor = '#059669';
                     statusBg = '#d1fae5';
-                    iconGradient = 'linear-gradient(135deg, #34d399, #059669)';
                     statusIcon = 'fa-check';
                 }
 
@@ -465,8 +470,8 @@
                 card.innerHTML = `
                     <div>
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div class="cc-hub-card-icon" style="background: ${iconGradient}; width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px; margin-bottom: 15px;">
-                                <i class="fa-solid fa-file-contract"></i>
+                            <div class="cc-hub-card-icon" style="background: ${ejeIconInfo.grad};">
+                                <i class="fa-solid ${ejeIconInfo.icon}"></i>
                             </div>
                             <span title="${req.ley}" style="font-size:0.65rem; color:#94a3b8; max-width:60%; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${req.ley}</span>
                         </div>
