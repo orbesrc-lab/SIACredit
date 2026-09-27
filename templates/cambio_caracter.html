@@ -646,6 +646,9 @@
         btn.disabled = true;
         btn.style.opacity = '0.7';
         
+        document.getElementById('aiResultsContainer').style.display = 'block';
+        document.getElementById('aiResultsContent').value = 'La Inteligencia Artificial está leyendo tu documento y analizando las brechas frente a los 56 requisitos normativos... \n\nPor favor, no cierres esta ventana. Esto puede tardar hasta un par de minutos dependiendo del tamaño del archivo.';
+        
         try {
             const res = await fetch('/api/cambio_caracter/ai_gap_analysis', {
                 method: 'POST',
