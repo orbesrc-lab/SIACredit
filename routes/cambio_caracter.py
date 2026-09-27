@@ -170,7 +170,8 @@ DOCUMENTO BASE EXTRAÍDO:
 {text}
 """
         
-        ai_response = call_ai(prompt, system_prompt="Eres un asesor experto del MEN en Colombia, especialista en Cambio de Carácter (Ley 749 de 2002).")
+        prompt = "Eres un asesor experto del MEN en Colombia, especialista en Cambio de Carácter (Ley 749 de 2002).\n\n" + prompt
+        ai_response = call_ai(prompt)
         
         return jsonify({"status": "success", "analysis_html": ai_response, "saved_path": path})
     except Exception as e:

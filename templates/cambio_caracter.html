@@ -344,7 +344,7 @@
 
 <!-- Modal for Requisito -->
 <div id="reqModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-    <div style="background:white; padding:30px; border-radius:12px; width:600px; max-width:90%; color:#333;">
+    <div style="background:white; padding:30px; border-radius:12px; width:600px; max-width:90%; max-height:90vh; overflow-y:auto; color:#333;">
         <h3 id="modalReqTitle" style="margin-top:0;"></h3>
         <p id="modalReqDesc" style="color:#666; font-size:0.9rem; margin-bottom:20px;"></p>
         
@@ -472,8 +472,7 @@
                         </div>
                         <div class="cc-hub-card-content">
                             <p style="font-size:0.75rem; color:#6366f1; font-weight:700; margin-bottom:5px;">${req.factor}</p>
-                            <h4 style="font-size:0.95rem;">${req.title}</h4>
-                            <p style="font-size:0.8rem; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;" title="${req.desc}">${req.desc}</p>
+                            <h4 style="font-size:0.95rem; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;" title="${req.desc}">${req.desc}</h4><p style="font-size:0.8rem; margin-top:5px; color:#64748b;" title="${req.title}"><i class="fa-solid fa-tag"></i> ${req.title}</p>
                         </div>
                     </div>
                     <div class="cc-hub-card-footer">
