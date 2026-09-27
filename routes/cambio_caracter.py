@@ -13,21 +13,11 @@ from utils.auth import require_permission
 cambio_caracter_bp = Blueprint('cambio_caracter', __name__)
 
 # Requisitos combinados de Ley 749 y Decreto 2038
-REQUISITOS = [
-    {"id": "req_1", "ley": "Ley 749", "title": "Misión Institucional", "desc": "Formulación clara de su misión institucional, de manera coherente y pertinente."},
-    {"id": "req_2", "ley": "Ley 749", "title": "Proyecto Educativo Institucional (PEI)", "desc": "Como referencia fundamental a los procesos de toma de decisiones, incorporando estrategias para formación integral."},
-    {"id": "req_3", "ley": "Ley 749", "title": "Políticas Académicas", "desc": "Existencia de políticas que integren docencia, investigación y extensión."},
-    {"id": "req_4", "ley": "Ley 749", "title": "Diseños Curriculares", "desc": "Diseños de currículos coherentes con la debida pertinencia social y académica."},
-    {"id": "req_5", "ley": "Ley 749", "title": "Estructura Físico-Académica", "desc": "Estructura física adecuada que le dé identidad a la institución con criterios de calidad."},
-    {"id": "req_6", "ley": "Ley 749", "title": "Recursos de Apoyo", "desc": "Recursos de apoyo académicos suficientes y modernos."},
-    {"id": "req_7", "ley": "Ley 749", "title": "Consolidación Financiera", "desc": "Consolidación en lo relativo a la conformación de su patrimonio y administración."},
-    {"id": "req_8", "ley": "Ley 749", "title": "Organización Administrativa", "desc": "Organización académica y administrativa eficiente."},
-    {"id": "req_9", "ley": "Ley 749", "title": "Autoevaluación", "desc": "Procesos de autoevaluación y autorregulación permanentes."},
-    {"id": "req_10", "ley": "Ley 749", "title": "Plan Estratégico", "desc": "Proyección del desarrollo institucional a corto y mediano plazo."},
-    {"id": "req_11", "ley": "Dec. 2038", "title": "Reglamentos Ajustados", "desc": "Reglamentos estudiantil y docente ajustados, incluyendo criterios de movilidad."},
-    {"id": "req_12", "ley": "Dec. 2038", "title": "Interacción con Entorno", "desc": "Tener definidas políticas y programas para la interacción con el entorno."},
-    {"id": "req_13", "ley": "Dec. 2038", "title": "Plan de Desarrollo (Proyección)", "desc": "El Plan de Desarrollo debe incluir proyección académica, investigativa, financiera y administrativa."}
-]
+import os
+import json
+req_path = os.path.join(os.path.dirname(__file__), 'requisitos_cc.json')
+with open(req_path, 'r', encoding='utf-8') as f:
+    REQUISITOS = json.load(f)
 
 def get_cc_project(inst_id):
     table_id = f"CC_PROJ_{inst_id}"

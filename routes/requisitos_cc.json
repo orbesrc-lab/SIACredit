@@ -1,0 +1,506 @@
+[
+  {
+    "id": "req_1",
+    "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
+    "factor": "F01 · Nuevo carácter (IU)",
+    "title": "Caracterización jurídica del carácter solicitado",
+    "desc": "La institución identifica con precisión la definición, el alcance y las funciones del carácter de Institución Universitaria: fundamentación de los programas en la generación y apropiación del conocimiento, con énfasis en la docencia, y posibilidad de ofrecer programas de posgrado (especialización y maestría).",
+    "evidencia_requerida": "Documento de caracterización jurídico-institucional del nuevo carácter, aprobado por el Consejo Superior.",
+    "ley": "Ley 30/1992 art. 16; Ley 749/2002 art. 2; Acuerdo CESU 0749/2021 (clasificación general)"
+  },
+  {
+    "id": "req_2",
+    "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
+    "factor": "F01 · Nuevo carácter (IU)",
+    "title": "Caracterización jurídica del carácter solicitado",
+    "desc": "El carácter actual de Institución Técnica Profesional redefinida se encuentra vigente y correctamente registrado, con la formación por ciclos propedéuticos ratificada ante el MEN.",
+    "evidencia_requerida": "Resolución de reconocimiento/ratificación del carácter vigente y certificado de registro en el SNIES actualizado.",
+    "ley": "Ley 749/2002 arts. 1, 13 y 14; D.1075/2015 art. 2.5.1.1.1; Res. MEN 21795/2020 (SNIES)"
+  },
+  {
+    "id": "req_3",
+    "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
+    "factor": "F01 · Nuevo carácter (IU)",
+    "title": "Delimitación de la oferta académica del nuevo carácter",
+    "desc": "Existe un mapeo del portafolio actual (técnico profesional, tecnológico y profesional universitario por ciclos propedéuticos) frente a la oferta proyectada como Institución Universitaria (profesional universitario, especialización y maestría).",
+    "evidencia_requerida": "Matriz de portafolio académico actual vs. proyectado, con cronograma de transición.",
+    "ley": "Ley 749/2002 art. 13; Acuerdo CESU 0749/2021"
+  },
+  {
+    "id": "req_4",
+    "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
+    "factor": "F01 · Nuevo carácter (IU)",
+    "title": "Delimitación de la oferta académica del nuevo carácter",
+    "desc": "Se identifican los títulos y niveles que podrá otorgar la institución en el nuevo carácter y los requisitos de cada nivel.",
+    "evidencia_requerida": "Documento de títulos y niveles proyectados, contrastado con la normativa de posgrados.",
+    "ley": "Ley 30/1992 art. 16; D.1075/2015 arts. 2.5.3.2.6.1 a 2.5.3.2.6.4"
+  },
+  {
+    "id": "req_5",
+    "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
+    "factor": "F01 · Nuevo carácter (IU)",
+    "title": "Decisión institucional formal de iniciar el proceso",
+    "desc": "El órgano competente delibera y decide iniciar el trámite de cambio de carácter y designa formalmente el equipo responsable del proceso de autoevaluación y gestión del cambio.",
+    "evidencia_requerida": "Acta de sesión del Consejo Superior (u órgano competente) con la decisión, el equipo designado y las asignaciones de responsabilidad.",
+    "ley": "Ley 749/2002 art. 13; D.1075/2015 art. 2.5.1.3.1"
+  },
+  {
+    "id": "req_6",
+    "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
+    "factor": "F02 · Reforma estatutaria",
+    "title": "Adecuación estatutaria al nuevo carácter",
+    "desc": "El estatuto general es reformado para ajustar naturaleza, objeto, denominación y organización de gobierno al carácter de Institución Universitaria solicitado.",
+    "evidencia_requerida": "Estatuto general reformado presentado en un solo cuerpo, con la denominación nueva.",
+    "ley": "Ley 749/2002 art. 13; D.1075/2015 arts. 2.5.1.2.1 y 2.5.1.3.1"
+  },
+  {
+    "id": "req_7",
+    "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
+    "factor": "F02 · Reforma estatutaria",
+    "title": "Adecuación estatutaria al nuevo carácter",
+    "desc": "La reforma estatutaria es adoptada por el órgano competente según la naturaleza jurídica y los procedimientos internos vigentes.",
+    "evidencia_requerida": "Acta(s) de aprobación de la reforma expedidas por el Consejo Superior o la Asamblea, según corresponda.",
+    "ley": "Ley 30/1992 arts. 96 a 102; estatuto institucional vigente"
+  },
+  {
+    "id": "req_8",
+    "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
+    "factor": "F02 · Reforma estatutaria",
+    "title": "Coherencia del gobierno y la organización estatutaria",
+    "desc": "Los órganos de gobierno (Consejo Superior, Consejo Académico y demás instancias) quedan con composición y funciones compatibles con el nuevo carácter académico.",
+    "evidencia_requerida": "Reglamentos y acuerdos de composición y funcionamiento de los órganos actualizados.",
+    "ley": "Ley 30/1992 art. 28; estatuto reformado"
+  },
+  {
+    "id": "req_9",
+    "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
+    "factor": "F03 · Trámite ante el MEN",
+    "title": "Documentos de la solicitud de ratificación de la reforma estatutaria",
+    "desc": "La solicitud se presenta ante el MEN en los formatos diseñados para tal fin, firmada por el rector, representante legal o apoderado debidamente constituido.",
+    "evidencia_requerida": "Formato de solicitud diligenciado; poder debidamente otorgado (cuando actúe apoderado).",
+    "ley": "D.1075/2015 art. 2.5.1.3.1; Res. MEN 21795/2020 (parámetros del trámite)"
+  },
+  {
+    "id": "req_10",
+    "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
+    "factor": "F03 · Trámite ante el MEN",
+    "title": "Documentos de la solicitud de ratificación de la reforma estatutaria",
+    "desc": "A la solicitud se adjuntan el acta o actas donde conste la reforma estatutaria realizada por el órgano competente y copia del estatuto general reformado en un solo cuerpo.",
+    "evidencia_requerida": "Acta(s) de reforma y estatuto reformado, radicados ante el MEN (constancia de radicación).",
+    "ley": "D.1075/2015 art. 2.5.1.3.1 nums. 1 y 2"
+  },
+  {
+    "id": "req_11",
+    "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
+    "factor": "F03 · Trámite ante el MEN",
+    "title": "Documentos de la solicitud de ratificación de la reforma estatutaria",
+    "desc": "Se presenta simultáneamente la solicitud de registro calificado para los programas que serán ofrecidos por la institución en su nuevo carácter.",
+    "evidencia_requerida": "Radicaciones ante SACES de los programas del nuevo carácter y su correspondencia.",
+    "ley": "D.1075/2015 art. 2.5.1.3.1 num. 3; Res. MEN 21795/2020"
+  },
+  {
+    "id": "req_12",
+    "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
+    "factor": "F03 · Trámite ante el MEN",
+    "title": "Ruta de evaluación, concepto y decisión",
+    "desc": "La institución conoce y gestiona las etapas del trámite: designación de pares académicos (5 días hábiles), comunicación y recusación (10 días hábiles), evaluación con visita y presentación del informe (2 meses), solicitud de revisión (10 días hábiles), decisión del MEN (3 meses) y concepto de la instancia consultiva correspondiente.",
+    "evidencia_requerida": "Cronograma del trámite con responsables internos y hoja de seguimiento de etapas y términos.",
+    "ley": "D.1075/2015 arts. 2.5.1.3.2 a 2.5.1.3.5; Ley 749/2002 art. 16 (plazo máximo de 18 meses y silencio administrativo positivo); Res. MEN 21795/2020"
+  },
+  {
+    "id": "req_13",
+    "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
+    "factor": "F03 · Trámite ante el MEN",
+    "title": "Ruta de evaluación, concepto y decisión",
+    "desc": "La institución atiende los requerimientos de complementación de documentación que formule el MEN dentro de los términos del derecho de petición.",
+    "evidencia_requerida": "Correspondencia interna y externa con constancias de respuesta y complementación.",
+    "ley": "D.1075/2015 art. 2.5.1.3.1 (in fine); Ley 1755/2015 (derecho de petición)"
+  },
+  {
+    "id": "req_14",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F04 · Misión (15 lit. a)",
+    "title": "Formulación de la misión",
+    "desc": "La misión institucional está formulada de manera clara, coherente y pertinente con el nuevo carácter académico de Institución Universitaria, en los términos de la Ley 30 de 1992.",
+    "evidencia_requerida": "Documento de misión vigente, ajustado y aprobado por el órgano competente.",
+    "ley": "Ley 749/2002 art. 15 lit. a"
+  },
+  {
+    "id": "req_15",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F04 · Misión (15 lit. a)",
+    "title": "Coherencia de la misión con la proyección institucional",
+    "desc": "Existe un análisis de coherencia entre la misión, los estatutos, el PEI y la oferta académica actual y proyectada hacia el nuevo carácter.",
+    "evidencia_requerida": "Documento de análisis de coherencia (insumo del informe de autoevaluación).",
+    "ley": "Ley 749/2002 arts. 1 a 3 y 15 lit. a"
+  },
+  {
+    "id": "req_16",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F05 · PEI (15 lit. b)",
+    "title": "PEI como referencia fundamental de la toma de decisiones",
+    "desc": "El PEI vigente orienta las decisiones institucionales en docencia, extensión, investigación y cooperación internacional, y está ajustado al nuevo carácter.",
+    "evidencia_requerida": "PEI actualizado, aprobado por el Consejo Superior y publicado en los medios institucionales.",
+    "ley": "Ley 749/2002 art. 15 lit. b"
+  },
+  {
+    "id": "req_17",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F05 · PEI (15 lit. b)",
+    "title": "Formación integral y construcción de comunidad académica",
+    "desc": "El PEI incorpora estrategias para el fomento de la formación integral y expresa la preocupación por construir comunidad académica en un ambiente adecuado de bienestar.",
+    "evidencia_requerida": "Capítulo(s) del PEI sobre formación integral, comunidad académica y bienestar; planes asociados.",
+    "ley": "Ley 749/2002 art. 15 lit. b"
+  },
+  {
+    "id": "req_18",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F05 · PEI (15 lit. b)",
+    "title": "Proyección de la investigación y la cooperación",
+    "desc": "El PEI contiene una agenda institucional de investigación y creación, con líneas, grupos y mecanismos de cooperación internacional coherentes con el nuevo carácter.",
+    "evidencia_requerida": "Documento de agenda de investigación; registro institucional de grupos y líneas (plataformas de Minciencias).",
+    "ley": "Ley 749/2002 art. 15 lit. b; Acuerdo CESU 0749/2021 (criterios de calidad)"
+  },
+  {
+    "id": "req_19",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F06 · Políticas académicas (15 c)",
+    "title": "Existencia de políticas académicas integradoras",
+    "desc": "Existen políticas académicas aprobadas por las instancias competentes que integran en el proceso formativo la docencia, la investigación y la extensión.",
+    "evidencia_requerida": "Acuerdo o documento de política académica aprobado por el Consejo Académico/Superior.",
+    "ley": "Ley 749/2002 art. 15 lit. c"
+  },
+  {
+    "id": "req_20",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F06 · Políticas académicas (15 c)",
+    "title": "Implementación en los programas",
+    "desc": "Los currículos y planes de área materializan la integración mediante actividades de investigación formativa (semilleros) y extensión (proyectos, prácticas y proyección social).",
+    "evidencia_requerida": "Mallas curriculares con actividades integradas; informes de ejecución de semilleros y proyectos de extensión.",
+    "ley": "Ley 749/2002 art. 15 lit. c; Ley 30/1992 art. 120"
+  },
+  {
+    "id": "req_21",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F07 · Currículos (15 lit. d)",
+    "title": "Diseño curricular con pertinencia social y académica",
+    "desc": "Los currículos de los programas vigentes responden a necesidades del contexto y están diseñados en coherencia con los perfiles de egreso y el nivel de formación.",
+    "evidencia_requerida": "Documentos maestros de los programas con registro calificado; estudios de pertinencia.",
+    "ley": "Ley 749/2002 art. 15 lit. d; D.1075/2015 art. 2.5.3.2.3.2.4"
+  },
+  {
+    "id": "req_22",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F07 · Currículos (15 lit. d)",
+    "title": "Transición curricular hacia el nuevo carácter",
+    "desc": "Existe un plan de transición curricular que consolida la oferta de profesional universitario y define el diseño progresivo de la oferta de posgrado.",
+    "evidencia_requerida": "Plan de portafolio y transición curricular aprobado por las instancias competentes.",
+    "ley": "Ley 749/2002 art. 13; Acuerdo CESU 0749/2021"
+  },
+  {
+    "id": "req_23",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F08 · Estructura físico-acad. (15 e)",
+    "title": "Infraestructura con criterios de calidad",
+    "desc": "Los escenarios de aprendizaje (aulas, laboratorios, talleres, biblioteca y espacios de bienestar) son adecuados, con identidad institucional y criterios de calidad verificables.",
+    "evidencia_requerida": "Inventario y fichas técnicas de la infraestructura; plan de mantenimiento e inversión.",
+    "ley": "Ley 749/2002 art. 15 lit. e; D.1075/2015 arts. 2.5.3.2.3.2.9 y 2.5.3.2.3.2.10"
+  },
+  {
+    "id": "req_24",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F08 · Estructura físico-acad. (15 e)",
+    "title": "Adecuación de la infraestructura al nuevo carácter",
+    "desc": "Se identifican las brechas de infraestructura requeridas para la oferta de profesional universitario y posgrado, con plan de cierre de brechas y recursos asignados.",
+    "evidencia_requerida": "Estudio de brechas de infraestructura y plan de inversión aprobado.",
+    "ley": "Ley 749/2002 art. 15 lit. e; Decreto 529/2024 (verificación de condiciones)"
+  },
+  {
+    "id": "req_25",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F09 · Recursos de apoyo (15 f)",
+    "title": "Medios educativos y recursos de aprendizaje",
+    "desc": "La institución dispone de recursos bibliográficos, bases de datos, plataformas digitales y laboratorios suficientes, adecuados y pertinentes con la naturaleza de los programas y los avances tecnológicos.",
+    "evidencia_requerida": "Catálogo bibliográfico actualizado; licencias vigentes; informe del sistema de biblioteca.",
+    "ley": "Ley 749/2002 art. 15 lit. f; D.1075/2015 art. 2.5.3.2.3.2.9"
+  },
+  {
+    "id": "req_26",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F09 · Recursos de apoyo (15 f)",
+    "title": "Sistemas institucionales de apoyo académico",
+    "desc": "Existen sistemas de gestión académica, aula virtual, analíticas educativas y demás herramientas tecnológicas que soportan los procesos formativos y administrativos.",
+    "evidencia_requerida": "Inventario de sistemas y políticas de uso; evidencia de operación y soporte.",
+    "ley": "Ley 749/2002 art. 15 lit. f"
+  },
+  {
+    "id": "req_27",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F10 · Financiera (15 lit. g)",
+    "title": "Conformación del patrimonio",
+    "desc": "El patrimonio institucional está conformado y es adecuado para garantizar la prestación del servicio educativo, conforme a la naturaleza jurídica de la institución.",
+    "evidencia_requerida": "Estados financieros auditados con dictamen; certificación de patrimonio y de sus afectaciones.",
+    "ley": "Ley 749/2002 art. 15 lit. g; Ley 30/1992 arts. 82 a 88"
+  },
+  {
+    "id": "req_28",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F10 · Financiera (15 lit. g)",
+    "title": "Administración y sostenibilidad financiera",
+    "desc": "El presupuesto funcional y de inversión garantiza la operación académica y el plan de transición al nuevo carácter; la administración financiera cuenta con control y dictamen.",
+    "evidencia_requerida": "Presupuesto aprobado; informes de ejecución presupuestal; opinión de auditoría externa.",
+    "ley": "Ley 749/2002 art. 15 lit. g"
+  },
+  {
+    "id": "req_29",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F11 · Organización (15 lit. h)",
+    "title": "Estructura organizacional bajo principios de eficiencia, eficacia y economía",
+    "desc": "La organización académica y administrativa (estructura, procesos, cargos y personal) responde a los principios de eficiencia, eficacia y economía.",
+    "evidencia_requerida": "Organigrama vigente; manual de funciones; mapa de procesos certificado.",
+    "ley": "Ley 749/2002 art. 15 lit. h; D.1075/2015 art. 2.5.3.2.3.1.3"
+  },
+  {
+    "id": "req_30",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F11 · Organización (15 lit. h)",
+    "title": "Regulación interna publicada",
+    "desc": "Los reglamentos internos (docente, estudiantil, laboral y de contratación) están actualizados, aprobados y publicados en los medios de comunicación institucional.",
+    "evidencia_requerida": "Acuerdos y reglamentos vigentes con constancia de publicación y divulgación.",
+    "ley": "D.1075/2015 art. 2.5.3.2.3.1.2"
+  },
+  {
+    "id": "req_31",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F12 · Autoevaluación (15 lit. i)",
+    "title": "Sistema Institucional de Autoevaluación (SIAC)",
+    "desc": "El SIAC está institucionalizado y en funcionamiento, con ciclos de autoevaluación de programas y de la institución, y planes de mejoramiento con seguimiento.",
+    "evidencia_requerida": "Acuerdo de creación y reglamentación del SIAC; informes de autoevaluación; matrices de seguimiento a planes de mejoramiento.",
+    "ley": "Ley 749/2002 art. 15 lit. i; D.1075/2015 arts. 2.5.3.2.3.1.4 y 2.5.3.2.3.2.11"
+  },
+  {
+    "id": "req_32",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F12 · Autoevaluación (15 lit. i)",
+    "title": "Informe de autoevaluación con fines de cambio de carácter",
+    "desc": "El proceso de autoevaluación con fines de cambio de carácter consolida sus resultados en un informe institucional aprobado por el Consejo Superior, soportado en este modelo.",
+    "evidencia_requerida": "Informe de autoevaluación con fines de cambio de carácter, con acta de aprobación y anexos de evidencias.",
+    "ley": "Ley 749/2002 art. 13; Res. MEN 21795/2020; Acuerdo CESU 0749/2021"
+  },
+  {
+    "id": "req_33",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F12 · Autoevaluación (15 lit. i)",
+    "title": "Autorregulación y rendición de cuentas",
+    "desc": "La institución socializa los resultados de la autoevaluación con sus estamentos y rendición de cuentas a las comunidades, incorporando ajustes al mejoramiento continuo.",
+    "evidencia_requerida": "Informes públicos de rendición de cuentas; memorias de socialización con estamentos.",
+    "ley": "Acuerdo CESU 0749/2021; D.1075/2015 art. 2.5.3.2.3.1.4"
+  },
+  {
+    "id": "req_34",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F13 · Plan estratégico (15 j)",
+    "title": "Plan estratégico de corto y mediano plazo",
+    "desc": "La institución cuenta con un plan estratégico o de desarrollo vigente que proyecta su desarrollo a corto y mediano plazo.",
+    "evidencia_requerida": "Plan de desarrollo institucional aprobado por el órgano competente.",
+    "ley": "Ley 749/2002 art. 15 lit. j"
+  },
+  {
+    "id": "req_35",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F13 · Plan estratégico (15 j)",
+    "title": "Proyección integral del cambio de carácter (requisito expreso)",
+    "desc": "El Plan de Desarrollo incluye expresamente la proyección del desarrollo académico, investigativo, administrativo, económico y financiero de la institución asociada al cambio de carácter.",
+    "evidencia_requerida": "Capítulo del Plan de Desarrollo con la proyección integral del cambio de carácter.",
+    "ley": "D.1075/2015 art. 2.5.1.2.2 num. 3 (modificado por el Decreto 2038/2023)"
+  },
+  {
+    "id": "req_36",
+    "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
+    "factor": "F13 · Plan estratégico (15 j)",
+    "title": "Indicadores y metas para la transición",
+    "desc": "El plan define indicadores con línea base y metas (programas, profesores, investigación, infraestructura y finanzas) para monitorear la transición al nuevo carácter.",
+    "evidencia_requerida": "Tablero de indicadores del plan de desarrollo con línea base, metas y responsables.",
+    "ley": "Ley 749/2002 art. 15 lit. j; D.1075/2015 art. 2.5.3.2.3.1.7"
+  },
+  {
+    "id": "req_37",
+    "eje": "EJE C. REQUISITOS ESPECÍFICOS — D.1075/2015, ARTÍCULO 2.5.1.2.2 (MODIFICADO POR EL DECRETO 2038/2023)",
+    "factor": "F14 · Reglamentos (2.5.1.2.2 n.1)",
+    "title": "Reglamento estudiantil ajustado",
+    "desc": "El reglamento estudiantil está ajustado al carácter académico solicitado, aprobado y publicado en los medios de comunicación e información institucional.",
+    "evidencia_requerida": "Acuerdo del reglamento estudiantil vigente y constancia de publicación.",
+    "ley": "D.1075/2015 arts. 2.5.1.2.2 num. 1 y 2.5.3.2.3.1.2 lit. a"
+  },
+  {
+    "id": "req_38",
+    "eje": "EJE C. REQUISITOS ESPECÍFICOS — D.1075/2015, ARTÍCULO 2.5.1.2.2 (MODIFICADO POR EL DECRETO 2038/2023)",
+    "factor": "F14 · Reglamentos (2.5.1.2.2 n.1)",
+    "title": "Reglamento estudiantil ajustado",
+    "desc": "El reglamento estudiantil contiene criterios de movilidad interna y externa de los estudiantes (requisito expreso del numeral 1).",
+    "evidencia_requerida": "Capítulo de movilidad del reglamento; convenios y reglamentación de movilidad interinstitucional.",
+    "ley": "D.1075/2015 art. 2.5.1.2.2 num. 1"
+  },
+  {
+    "id": "req_39",
+    "eje": "EJE C. REQUISITOS ESPECÍFICOS — D.1075/2015, ARTÍCULO 2.5.1.2.2 (MODIFICADO POR EL DECRETO 2038/2023)",
+    "factor": "F14 · Reglamentos (2.5.1.2.2 n.1)",
+    "title": "Reglamento docente ajustado",
+    "desc": "El reglamento profesoral establece mecanismos y criterios de selección, permanencia, promoción y evaluación de los profesores, y está ajustado al nuevo carácter.",
+    "evidencia_requerida": "Acuerdo del reglamento docente vigente y constancia de publicación.",
+    "ley": "D.1075/2015 arts. 2.5.1.2.2 num. 1 y 2.5.3.2.3.1.2 lit. b"
+  },
+  {
+    "id": "req_40",
+    "eje": "EJE C. REQUISITOS ESPECÍFICOS — D.1075/2015, ARTÍCULO 2.5.1.2.2 (MODIFICADO POR EL DECRETO 2038/2023)",
+    "factor": "F15 · Entorno (2.5.1.2.2 n.2)",
+    "title": "Políticas de interacción con el entorno",
+    "desc": "La institución tiene definidas políticas de interacción con el entorno (extensión, proyección social y cooperación) aprobadas por las instancias competentes.",
+    "evidencia_requerida": "Documento de política de extensión/proyección social aprobado; portafolio de programas.",
+    "ley": "D.1075/2015 art. 2.5.1.2.2 num. 2; Ley 30/1992 art. 120"
+  },
+  {
+    "id": "req_41",
+    "eje": "EJE C. REQUISITOS ESPECÍFICOS — D.1075/2015, ARTÍCULO 2.5.1.2.2 (MODIFICADO POR EL DECRETO 2038/2023)",
+    "factor": "F15 · Entorno (2.5.1.2.2 n.2)",
+    "title": "Ejecución y articulación con el sector externo",
+    "desc": "Los programas de interacción con el entorno se ejecutan y se articulan con el sector productivo, el Estado y la comunidad, con resultados documentados.",
+    "evidencia_requerida": "Convenios vigentes; informes de ejecución y resultados; relación con el sector externo de cada programa.",
+    "ley": "D.1075/2015 arts. 2.5.1.2.2 num. 2 y 2.5.3.2.3.2.7"
+  },
+  {
+    "id": "req_42",
+    "eje": "EJE D. CONDICIONES INSTITUCIONALES VIGENTES — D.1075/2015, ARTS. 2.5.3.2.3.1.x (SUSTITUIDOS POR EL D.1330/2019)",
+    "factor": "F16 · Selección y evaluación",
+    "title": "Mecanismos de selección y evaluación de estudiantes",
+    "desc": "El reglamento estudiantil o su equivalente establece requisitos y criterios precisos y transparentes para inscripción, admisión, ingreso, matrícula, deberes y derechos, distinciones e incentivos, régimen disciplinario y demás aspectos académicos.",
+    "evidencia_requerida": "Reglamento estudiantil vigente; evidencia de divulgación en medios institucionales.",
+    "ley": "D.1075/2015 art. 2.5.3.2.3.1.2 lit. a"
+  },
+  {
+    "id": "req_43",
+    "eje": "EJE D. CONDICIONES INSTITUCIONALES VIGENTES — D.1075/2015, ARTS. 2.5.3.2.3.1.x (SUSTITUIDOS POR EL D.1330/2019)",
+    "factor": "F16 · Selección y evaluación",
+    "title": "Mecanismos de selección y evaluación de estudiantes",
+    "desc": "La institución cuenta con políticas e información cualitativa y cuantitativa para establecer estrategias de mejora del bienestar, la permanencia y la graduación de los estudiantes.",
+    "evidencia_requerida": "Informes de deserción, permanencia y graduación; planes y estrategias asociados.",
+    "ley": "D.1075/2015 art. 2.5.3.2.3.1.2 lit. a"
+  },
+  {
+    "id": "req_44",
+    "eje": "EJE D. CONDICIONES INSTITUCIONALES VIGENTES — D.1075/2015, ARTS. 2.5.3.2.3.1.x (SUSTITUIDOS POR EL D.1330/2019)",
+    "factor": "F16 · Selección y evaluación",
+    "title": "Mecanismos de selección y evaluación de profesores",
+    "desc": "La institución cuenta con un grupo de profesores que, en términos de dedicación, vinculación y disponibilidad, responde a las actividades académicas, y con políticas institucionales y reglamentación para su selección y evaluación.",
+    "evidencia_requerida": "Relación nominal de profesores (vinculación, dedicación, formación); reglamento profesoral; instrumentos y resultados de evaluación docente.",
+    "ley": "D.1075/2015 art. 2.5.3.2.3.1.2 lit. b"
+  },
+  {
+    "id": "req_45",
+    "eje": "EJE D. CONDICIONES INSTITUCIONALES VIGENTES — D.1075/2015, ARTS. 2.5.3.2.3.1.x (SUSTITUIDOS POR EL D.1330/2019)",
+    "factor": "F17 · Estructura administrativa",
+    "title": "Estructura, procesos y comunicación institucional",
+    "desc": "La institución define políticas, relaciones, procesos, cargos y mecanismos de comunicación que le permiten gobernar, organizar, desplegar y evaluar sus procesos misionales.",
+    "evidencia_requerida": "Estructura orgánica aprobada; manual de funciones y competencias; mecanismos de comunicación documentados.",
+    "ley": "D.1075/2015 art. 2.5.3.2.3.1.3"
+  },
+  {
+    "id": "req_46",
+    "eje": "EJE D. CONDICIONES INSTITUCIONALES VIGENTES — D.1075/2015, ARTS. 2.5.3.2.3.1.x (SUSTITUIDOS POR EL D.1330/2019)",
+    "factor": "F17 · Estructura administrativa",
+    "title": "Ajuste de la estructura para el nuevo carácter",
+    "desc": "La estructura académica y administrativa se ajusta para soportar las funciones del nuevo carácter (investigación y posgrados), con las instancias y dedicaciones requeridas.",
+    "evidencia_requerida": "Proyecto de ajuste de estructura aprobado (actas); descripción de instancias de investigación y posgrados.",
+    "ley": "D.1075/2015 art. 2.5.3.2.3.1.3; Ley 749/2002 art. 15 lit. h"
+  },
+  {
+    "id": "req_47",
+    "eje": "EJE D. CONDICIONES INSTITUCIONALES VIGENTES — D.1075/2015, ARTS. 2.5.3.2.3.1.x (SUSTITUIDOS POR EL D.1330/2019)",
+    "factor": "F18 · Autoeval. y egresados",
+    "title": "Cultura de la autoevaluación",
+    "desc": "La institución dispone de mecanismos permanentes de seguimiento y autoevaluación con participación de los estamentos, que retroalimentan la toma de decisiones.",
+    "evidencia_requerida": "Documento del sistema de autoevaluación; informes de autoevaluación por programa y evidencias de participación de estamentos.",
+    "ley": "D.1075/2015 art. 2.5.3.2.3.1.4"
+  },
+  {
+    "id": "req_48",
+    "eje": "EJE D. CONDICIONES INSTITUCIONALES VIGENTES — D.1075/2015, ARTS. 2.5.3.2.3.1.x (SUSTITUIDOS POR EL D.1330/2019)",
+    "factor": "F18 · Autoeval. y egresados",
+    "title": "Programa de egresados",
+    "desc": "La institución establece políticas y actividades de seguimiento a egresados que evidencian la apropiación de la misión institucional y la pertinencia de la formación (empleabilidad y aportes al sector).",
+    "evidencia_requerida": "Programa de egresados formalizado; estudios de seguimiento a graduados e informes de empleabilidad.",
+    "ley": "D.1075/2015 art. 2.5.3.2.3.1.5"
+  },
+  {
+    "id": "req_49",
+    "eje": "EJE D. CONDICIONES INSTITUCIONALES VIGENTES — D.1075/2015, ARTS. 2.5.3.2.3.1.x (SUSTITUIDOS POR EL D.1330/2019)",
+    "factor": "F19 · Bienestar y recursos",
+    "title": "Modelo de bienestar",
+    "desc": "La institución establece políticas, procesos, actividades y espacios de bienestar (académico, físico, socioeconómico, cultural y deportivo) para estudiantes y profesores, con cobertura y seguimiento definidos.",
+    "evidencia_requerida": "Modelo o política de bienestar aprobada; informes de ejecución, cobertura y satisfacción.",
+    "ley": "D.1075/2015 art. 2.5.3.2.3.1.6"
+  },
+  {
+    "id": "req_50",
+    "eje": "EJE D. CONDICIONES INSTITUCIONALES VIGENTES — D.1075/2015, ARTS. 2.5.3.2.3.1.x (SUSTITUIDOS POR EL D.1330/2019)",
+    "factor": "F19 · Bienestar y recursos",
+    "title": "Recursos suficientes para el cumplimiento de las metas",
+    "desc": "La institución garantiza la existencia, generación y asignación de recursos humanos, físicos, tecnológicos y financieros suficientes para el cumplimiento de las metas institucionales.",
+    "evidencia_requerida": "Presupuesto funcional y de inversión; plan de adquisiciones; convenios de financiación y evidencias de asignación a las metas.",
+    "ley": "D.1075/2015 art. 2.5.3.2.3.1.7"
+  },
+  {
+    "id": "req_51",
+    "eje": "EJE E. CAPACIDAD PARA OFERTAR COMO INSTITUCIÓN UNIVERSITARIA",
+    "factor": "F20 · Registro calificado",
+    "title": "Programas vigentes con registro calificado en debida forma",
+    "desc": "Todos los programas vigentes cuentan con registro calificado otorgado o renovado, y las modificaciones se tramitan conforme al marco del Decreto 529 de 2024.",
+    "evidencia_requerida": "Resoluciones de registro calificado vigentes; reporte del estado de los programas en SACES.",
+    "ley": "D.1075/2015 arts. 2.5.3.2.2.1 y 2.5.3.2.2.2; Decreto 529/2024"
+  },
+  {
+    "id": "req_52",
+    "eje": "EJE E. CAPACIDAD PARA OFERTAR COMO INSTITUCIÓN UNIVERSITARIA",
+    "factor": "F20 · Registro calificado",
+    "title": "Simultaneidad de las evaluaciones del cambio de carácter y los programas",
+    "desc": "Los programas que se ofrecerán en el nuevo carácter (profesional universitario y posgrados) tramitan su registro calificado, el cual se evalúa simultáneamente con la reforma estatutaria, según el trámite establecido.",
+    "evidencia_requerida": "Radicaciones SACES de los programas del nuevo carácter; correspondencia con el MEN sobre la simultaneidad.",
+    "ley": "D.1075/2015 art. 2.5.1.3.4 (parágrafo); Res. MEN 21795/2020"
+  },
+  {
+    "id": "req_53",
+    "eje": "EJE E. CAPACIDAD PARA OFERTAR COMO INSTITUCIÓN UNIVERSITARIA",
+    "factor": "F20 · Registro calificado",
+    "title": "Coherencia con el marco del SAC-ES vigente",
+    "desc": "La institución documenta que el cumplimiento de las condiciones institucionales y de programa se verifica en coherencia con la naturaleza jurídica, el carácter académico, la misión, el tipo de programa, la modalidad y el contexto territorial.",
+    "evidencia_requerida": "Documento de trazabilidad de condiciones (matriz de coherencia) alineado con el Decreto 529 de 2024.",
+    "ley": "Decreto 529/2024 (verificación y evaluación de condiciones de calidad)"
+  },
+  {
+    "id": "req_54",
+    "eje": "EJE E. CAPACIDAD PARA OFERTAR COMO INSTITUCIÓN UNIVERSITARIA",
+    "factor": "F21 · Posgrados",
+    "title": "Diseño de la oferta de posgrado",
+    "desc": "La institución formula propuestas de especialización y maestría con objetivos, currículo y pertinencia definidos, en coherencia con su misión y el nuevo carácter.",
+    "evidencia_requerida": "Documentos maestros en diseño de los programas de posgrado; estudios de viabilidad y demanda.",
+    "ley": "D.1075/2015 arts. 2.5.3.2.6.1 a 2.5.3.2.6.4"
+  },
+  {
+    "id": "req_55",
+    "eje": "EJE E. CAPACIDAD PARA OFERTAR COMO INSTITUCIÓN UNIVERSITARIA",
+    "factor": "F21 · Posgrados",
+    "title": "Capacidad de investigación e innovación para soportar posgrados",
+    "desc": "La institución desarrolla grupos, líneas y producción de investigación e innovación que soportan la formación posgraduada proyectada.",
+    "evidencia_requerida": "Plan de investigación institucional; registro de grupos y producción científica (Minciencias); proyectos vigentes.",
+    "ley": "D.1075/2015 art. 2.5.3.2.6.2; Acuerdo CESU 0749/2021"
+  },
+  {
+    "id": "req_56",
+    "eje": "EJE E. CAPACIDAD PARA OFERTAR COMO INSTITUCIÓN UNIVERSITARIA",
+    "factor": "F21 · Posgrados",
+    "title": "Profesores con formación de posgrado",
+    "desc": "La institución asegura un cuerpo de profesores con formación de maestría y doctorado, en número y dedicación suficientes para los programas de posgrado proyectados.",
+    "evidencia_requerida": "Base de datos docente (hojas de vida, nivel de formación, dedicación); plan de vinculación y formación de profesores.",
+    "ley": "D.1075/2015 art. 2.5.3.2.3.2.8; Acuerdo CESU 0749/2021"
+  }
+]

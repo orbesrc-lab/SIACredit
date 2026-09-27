@@ -419,58 +419,84 @@
     function renderRequisitos() {
         const container = document.getElementById('requisitos-container');
         container.innerHTML = '';
-        container.className = 'cc-hub-grid'; // Use grid layout
+        container.className = ''; // Remove grid from the main container
         
+        // Group by Eje
+        const grouped = {};
         REQUISITOS.forEach(req => {
-            const reqData = currentData.requisitos[req.id];
-            
-            // Colores y badges
-            let statusColor = '#64748b';
-            let statusBg = '#f1f5f9';
-            let iconGradient = 'linear-gradient(135deg, #94a3b8, #475569)';
-            let statusIcon = 'fa-clock';
-            
-            if (reqData.status === 'En Construcción') {
-                statusColor = '#d97706';
-                statusBg = '#fef3c7';
-                iconGradient = 'linear-gradient(135deg, #fcd34d, #d97706)';
-                statusIcon = 'fa-hammer';
-            } else if (reqData.status === 'Completado') {
-                statusColor = '#059669';
-                statusBg = '#d1fae5';
-                iconGradient = 'linear-gradient(135deg, #34d399, #059669)';
-                statusIcon = 'fa-check';
-            }
-
-            const div = document.createElement('div');
-            div.className = 'cc-hub-card';
-            div.innerHTML = `
-                <div>
-                    <div class="cc-hub-card-icon" style="background: ${iconGradient};">
-                        <i class="fa-solid fa-file-contract"></i>
-                    </div>
-                    <div class="cc-hub-card-content">
-                        <h4>${req.title}</h4>
-                        <p>${req.desc}</p>
-                    </div>
-                </div>
-                <div class="cc-hub-card-footer">
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                        <span class="cc-badge" style="color: ${statusColor}; background: ${statusBg};">
-                            <i class="fa-solid ${statusIcon}"></i> ${reqData.status}
-                        </span>
-                        <span style="font-size: 0.75rem; color: #94a3b8;"><i class="fa-solid fa-paperclip"></i> ${reqData.evidences ? reqData.evidences.length : 0}</span>
-                    </div>
-                    <button class="cc-action-btn" onclick="openReq('${req.id}')">Gestionar &rarr;</button>
-                </div>
-            `;
-            container.appendChild(div);
+            const eje = req.eje || 'Otros';
+            if (!grouped[eje]) grouped[eje] = [];
+            grouped[eje].push(req);
         });
+        
+        for (const [eje, reqs] of Object.entries(grouped)) {
+            // Eje Header
+            const ejeHeader = document.createElement('h3');
+            ejeHeader.innerText = eje;
+            ejeHeader.style.cssText = 'margin-top: 30px; margin-bottom: 15px; font-size: 1.15rem; color: #4c1d95; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;';
+            container.appendChild(ejeHeader);
+            
+            // Grid for this Eje
+            const grid = document.createElement('div');
+            grid.className = 'cc-hub-grid';
+            
+            reqs.forEach(req => {
+                const reqData = currentData.requisitos[req.id] || { status: 'Pendiente', evidences: [] };
+                
+                let statusColor = '#64748b';
+                let statusBg = '#f1f5f9';
+                let iconGradient = 'linear-gradient(135deg, #94a3b8, #475569)';
+                let statusIcon = 'fa-clock';
+                
+                if (reqData.status === 'En Construcción') {
+                    statusColor = '#d97706';
+                    statusBg = '#fef3c7';
+                    iconGradient = 'linear-gradient(135deg, #fcd34d, #d97706)';
+                    statusIcon = 'fa-hammer';
+                } else if (reqData.status === 'Completado') {
+                    statusColor = '#059669';
+                    statusBg = '#d1fae5';
+                    iconGradient = 'linear-gradient(135deg, #34d399, #059669)';
+                    statusIcon = 'fa-check';
+                }
+
+                const card = document.createElement('div');
+                card.className = 'cc-hub-card';
+                card.innerHTML = `
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div class="cc-hub-card-icon" style="background: ${iconGradient}; width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px; margin-bottom: 15px;">
+                                <i class="fa-solid fa-file-contract"></i>
+                            </div>
+                            <span title="${req.ley}" style="font-size:0.65rem; color:#94a3b8; max-width:60%; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${req.ley}</span>
+                        </div>
+                        <div class="cc-hub-card-content">
+                            <p style="font-size:0.75rem; color:#6366f1; font-weight:700; margin-bottom:5px;">${req.factor}</p>
+                            <h4 style="font-size:0.95rem;">${req.title}</h4>
+                            <p style="font-size:0.8rem; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;" title="${req.desc}">${req.desc}</p>
+                        </div>
+                    </div>
+                    <div class="cc-hub-card-footer">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            <span class="cc-badge" style="color: ${statusColor}; background: ${statusBg};">
+                                <i class="fa-solid ${statusIcon}"></i> ${reqData.status}
+                            </span>
+                            <span style="font-size: 0.75rem; color: #94a3b8;"><i class="fa-solid fa-paperclip"></i> ${reqData.evidences ? reqData.evidences.length : 0}</span>
+                        </div>
+                        <button class="cc-action-btn" onclick="openReq('${req.id}')">Gestionar &rarr;</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            
+            container.appendChild(grid);
+        }
     }
 
     function openReq(id) {
         currentReqId = id;
         const req = REQUISITOS.find(r => r.id === id);
+        if (!currentData.requisitos[id]) currentData.requisitos[id] = { status: 'Pendiente', evidences: [], notes: '' };
         const reqData = currentData.requisitos[id];
         
         document.getElementById('modalReqTitle').innerText = req.title;
