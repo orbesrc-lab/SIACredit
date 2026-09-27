@@ -141,39 +141,89 @@ def api_cc_ai_gap_analysis():
         # Limit text length to avoid token limits
         text = text[:40000]
         
+        rubrica_text = "\n".join([f"- ID: {r['id']} | EJE: {r['eje']} | FACTOR: {r['factor']}\n  ASPECTO: {r['desc']}" for r in REQUISITOS])
+        
         prompt = f"""
 Eres un experto del Ministerio de Educación Nacional de Colombia (MEN). 
 La institución quiere cambiar su carácter académico a 'Institución Universitaria' según la Ley 749 de 2002 y el Decreto 2038 de 2023.
 A continuación te presento el texto extraído de su documento base actual (PEI, Proyecto Institucional o similar).
 
-Tu tarea es analizar este documento e identificar las BRECHAS (lo que falta o no cumple plenamente) frente a los 13 requisitos normativos exigidos para el cambio de carácter.
-Genera un 'Checklist de Mejoramiento' que le indique a la institución exactamente qué debe construir o mejorar en cada uno de los 13 requisitos para presentarse con éxito ante el MEN.
+Tu tarea es analizar este documento e identificar las BRECHAS (lo que falta o no cumple plenamente) frente a los 56 aspectos normativos exigidos para el cambio de carácter.
 
-Requisitos a evaluar:
-1. Misión Institucional.
-2. Proyecto Educativo Institucional (PEI).
-3. Políticas Académicas (docencia, investigación, extensión).
-4. Diseños Curriculares (pertinencia social y académica).
-5. Estructura Físico-Académica.
-6. Recursos de Apoyo académico.
-7. Consolidación Financiera.
-8. Organización Administrativa.
-9. Autoevaluación permanente.
-10. Plan Estratégico (Proyección).
-11. Reglamentos Ajustados (Dec. 2038).
-12. Interacción con Entorno (Dec. 2038).
-13. Plan de Desarrollo (Dec. 2038).
+RUBRICA DE EVALUACIÓN (Aspectos exigidos):
+{rubrica_text}
 
-Devuelve tu respuesta estructurada en texto plano con formato Markdown (usando -, *, #). Esto se cargará en un editor de texto para que el usuario pueda ir completando y redactando su documento final. No uses etiquetas HTML.
+Debes devolver EXCLUSIVAMENTE un bloque de código JSON (sin texto adicional antes o después) con la siguiente estructura:
+{{
+  "markdown_report": "Aquí va el checklist detallado y el reporte general en formato Markdown.",
+  "evaluations": {{
+    "req_1": {{
+      "status": "En Construcción", 
+      "notes": "Breve nota de por qué cumple o no cumple este aspecto."
+    }},
+    "req_2": {{
+      "status": "Pendiente",
+      "notes": "No se encontró evidencia..."
+    }}
+  }}
+}}
+Nota para status: Usa únicamente 'Pendiente', 'En Construcción', o 'Completado'.
 
 DOCUMENTO BASE EXTRAÍDO:
 {text}
 """
         
-        prompt = "Eres un asesor experto del MEN en Colombia, especialista en Cambio de Carácter (Ley 749 de 2002).\n\n" + prompt
-        ai_response = call_ai(prompt)
+        messages = [
+            {"role": "system", "content": "Eres un asesor experto del MEN en Colombia, especialista en Cambio de Carácter (Ley 749 de 2002)."},
+            {"role": "user", "content": prompt}
+        ]
+        ai_response = call_ai(messages)
         
-        return jsonify({"status": "success", "analysis_html": ai_response, "saved_path": path})
+        import re
+        import json
+        match = re.search(r'```json\n(.*?)\n```', ai_response, re.DOTALL)
+        if match:
+            json_str = match.group(1)
+        else:
+            json_str = ai_response.strip()
+            if json_str.startswith('```') and json_str.endswith('```'):
+                json_str = json_str.strip('`').replace('json\n', '', 1).strip()
+                
+        try:
+            data = json.loads(json_str)
+            analysis_html = data.get("markdown_report", "")
+            evaluations = data.get("evaluations", {})
+        except Exception as json_e:
+            print("[CC AI] JSON Parse error:", json_e)
+            analysis_html = ai_response
+            evaluations = {}
+        
+        return jsonify({"status": "success", "analysis_html": analysis_html, "evaluations": evaluations, "saved_path": path})
     except Exception as e:
         print(f"[CC AI] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/download_word', methods=['POST'])
+def api_cc_download_word():
+    text = request.form.get('content', '')
+    import docx
+    import io
+    from flask import send_file
+    
+    doc = docx.Document()
+    doc.add_heading('Análisis de Brechas - Cambio de Carácter', 0)
+    for line in text.split('\n'):
+        if line.startswith('# '):
+            doc.add_heading(line[2:], level=1)
+        elif line.startswith('## '):
+            doc.add_heading(line[3:], level=2)
+        elif line.startswith('### '):
+            doc.add_heading(line[4:], level=3)
+        else:
+            doc.add_paragraph(line)
+            
+    io_stream = io.BytesIO()
+    doc.save(io_stream)
+    io_stream.seek(0)
+    return send_file(io_stream, as_attachment=True, download_name="analisis_brechas_cc.docx", mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")

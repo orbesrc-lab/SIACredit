@@ -641,6 +641,26 @@
                 document.getElementById('aiResultsContainer').style.display = 'block';
                 document.getElementById('aiResultsContent').value = data.analysis_html || data.analysis_text || '';
                 currentData.ai_gap_analysis = document.getElementById('aiResultsContent').value;
+                
+                // Auto-feed the evaluations into the cards
+                if (data.evaluations) {
+                    let updatedCount = 0;
+                    for (const [reqId, evalData] of Object.entries(data.evaluations)) {
+                        if (!currentData.requisitos[reqId]) {
+                            currentData.requisitos[reqId] = { status: 'Pendiente', evidences: [], notes: '' };
+                        }
+                        if (evalData.status && ['Pendiente', 'En Construcción', 'Completado'].includes(evalData.status)) {
+                            currentData.requisitos[reqId].status = evalData.status;
+                        }
+                        if (evalData.notes) {
+                            currentData.requisitos[reqId].notes = evalData.notes;
+                        }
+                        updatedCount++;
+                    }
+                    console.log(`Updated ${updatedCount} requirements from AI evaluations.`);
+                    renderRequisitos(); // Refresh the UI cards
+                }
+                
                 await saveToServer();
                 Swal.fire('¡Análisis Completado!', 'El checklist de brechas se ha generado exitosamente.', 'success');
             } else {
