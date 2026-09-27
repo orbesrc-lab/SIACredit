@@ -177,7 +177,7 @@ DOCUMENTO BASE EXTRAÍDO:
             {"role": "system", "content": "Eres un asesor experto del MEN en Colombia, especialista en Cambio de Carácter (Ley 749 de 2002)."},
             {"role": "user", "content": prompt}
         ]
-        ai_response = call_ai(messages)
+        ai_response = call_ai(messages, max_tokens=32000)
         
         import re
         import json
@@ -195,7 +195,14 @@ DOCUMENTO BASE EXTRAÍDO:
             evaluations = data.get("evaluations", {})
         except Exception as json_e:
             print("[CC AI] JSON Parse error:", json_e)
-            analysis_html = ai_response
+            # Intentar rescatar el markdown_report con regex si se cortó
+            import re
+            rescate = re.search(r'"markdown_report"\s*:\s*"(.*?)(?:","evaluations"|$)', json_str, re.DOTALL | re.IGNORECASE)
+            if rescate:
+                # Reemplazar \n escapados por saltos de línea reales si es necesario
+                analysis_html = rescate.group(1).replace('\\n', '\n').replace('\\"', '"')
+            else:
+                analysis_html = ai_response
             evaluations = {}
         
         return jsonify({"status": "success", "analysis_html": analysis_html, "evaluations": evaluations, "saved_path": path})
