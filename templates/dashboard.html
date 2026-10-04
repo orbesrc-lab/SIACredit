@@ -238,7 +238,7 @@
                 <div class="card">
                     <h3>Avance Global</h3>
                     <div class="value" id="stat_progress">-</div>
-                    <div class="trend">Basado en autoevaluaciones</div>
+                    <div class="trend" id="stat_progress_sub">Basado en autoevaluaciones</div>
                 </div>
                 <div class="card">
                     <h3>Evidencias Subidas</h3>
@@ -437,6 +437,15 @@
                 const resp = await authFetch(`/api/dashboard/stats?inst_id=${getInstId()}&program_id=${getProgramId()}`);
                 const stats = await resp.json();
                 document.getElementById('stat_progress').textContent = (stats.global_progress || 0) + '%';
+                const sub = document.getElementById('stat_progress_sub');
+                if (sub) {
+                    if (stats.total_characteristics) {
+                        const promText = (stats.avg_rating > 0) ? ` · Prom: ${stats.avg_rating}/5.0` : '';
+                        sub.textContent = `${stats.evaluated_chars || 0} de ${stats.total_characteristics} características evaluadas${promText}`;
+                    } else {
+                        sub.textContent = 'Basado en autoevaluaciones';
+                    }
+                }
                 document.getElementById('stat_evidences').textContent = stats.total_evidences || 0;
                 document.getElementById('stat_evidences_sub').textContent = (stats.pending_evidences || 0) + ' pendientes de revisión';
                 document.getElementById('stat_factors').textContent = (stats.total_factors || 0) + ' factores';

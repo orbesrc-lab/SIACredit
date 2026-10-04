@@ -36,31 +36,51 @@ def dashboard_stats():
         factors = supabase.table('factors').select("id").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
         evals = supabase.table('evaluations').select("char_id, rating").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
         
-        users_query = supabase.table('users').select("id").eq("inst_id", inst_id)
-        if program_id != 0:
-            users_query = users_query.eq("program_id", program_id)
-        users_count = users_query.execute().data
+        # Consultar total de características del modelo para el programa
+        factor_ids = [f['id'] for f in factors] if factors else []
+        total_chars = 0
+        if factor_ids:
+            chars_data = supabase.table('characteristics').select("id").in_("factor_id", factor_ids).execute().data
+            total_chars = len(chars_data) if chars_data else 0
+
+        # Total de usuarios institucionales activos
+        users_count = supabase.table('users').select("id").eq("inst_id", inst_id).execute().data
 
         total_ev = len(evidences)
-        pending_ev = len([e for e in evidences if e['status'] == 'pendiente'])
-        approved_ev = len([e for e in evidences if e['status'] == 'aprobado'])
+        pending_ev = len([e for e in evidences if e.get('status') == 'pendiente'])
+        approved_ev = len([e for e in evidences if e.get('status') == 'aprobado'])
         total_factors = len(factors)
-        evaluated_factors = len(set(e['char_id'] for e in evals))
-        avg_rating = round(sum(e['rating'] for e in evals) / len(evals), 2) if evals else 0
-        global_progress = round((avg_rating / 5) * 100, 1) if avg_rating > 0 else 0
+        
+        # Características efectivamente evaluadas con calificación > 0
+        evaluated_chars_set = set(e['char_id'] for e in evals if e.get('rating') is not None and float(e.get('rating', 0)) > 0)
+        evaluated_chars_count = len(evaluated_chars_set)
+
+        # Avance real del modelo: porcentaje de características evaluadas frente al total
+        if total_chars > 0:
+            global_progress = round((evaluated_chars_count / total_chars) * 100, 1)
+        elif total_factors > 0:
+            global_progress = round((evaluated_chars_count / total_factors) * 100, 1)
+        else:
+            global_progress = 0.0
+
+        # Calificación promedio real de las características que han sido evaluadas
+        valid_ratings = [float(e['rating']) for e in evals if e.get('rating') is not None and float(e.get('rating', 0)) > 0]
+        avg_rating = round(sum(valid_ratings) / len(valid_ratings), 2) if valid_ratings else 0.0
 
         return jsonify({
             "total_evidences": total_ev,
             "pending_evidences": pending_ev,
             "approved_evidences": approved_ev,
             "total_factors": total_factors,
-            "evaluated_chars": evaluated_factors,
+            "total_characteristics": total_chars,
+            "evaluated_chars": evaluated_chars_count,
+            "avg_rating": avg_rating,
             "global_progress": global_progress,
-            "total_users": len(users_count)
+            "total_users": len(users_count) if users_count else 0
         })
     except Exception as e:
         print(f"Stats error: {e}")
-        return jsonify({"global_progress": 0, "total_evidences": 0, "pending_evidences": 0, "approved_evidences": 0, "total_factors": 0, "evaluated_chars": 0, "total_users": 0})
+        return jsonify({"global_progress": 0, "total_evidences": 0, "pending_evidences": 0, "approved_evidences": 0, "total_factors": 0, "total_characteristics": 0, "evaluated_chars": 0, "avg_rating": 0, "total_users": 0})
 
 
 @reports_bp.route('/api/reports/summary')
