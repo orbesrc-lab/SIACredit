@@ -341,27 +341,17 @@
     <script>
 
         function getInstId() {
-
             try {
-
                 const u = JSON.parse(localStorage.getItem('siac_user'));
-
-                return u ? (u.inst_id || 1) : 1;
-
-            } catch(e) { return 1; }
-
+                return u ? (u.inst_id || 7) : 7;
+            } catch(e) { return 7; }
         }
 
         function getProgramId() {
-
             try {
-
                 const u = JSON.parse(localStorage.getItem('siac_user'));
-
-                return u ? (u.program_id || 0) : 0;
-
-            } catch(e) { return 0; }
-
+                return u ? (u.program_id || 68) : 68;
+            } catch(e) { return 68; }
         }
 
 

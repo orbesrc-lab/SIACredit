@@ -11,14 +11,18 @@ supabase: Client = create_client(url, key, options=options)
 
 def get_active_inst_id(requested_id=None):
     try:
-        if requested_id:
-            check = supabase.table('institution').select("id").eq("id", requested_id).execute()
+        if requested_id and int(requested_id) > 1:
+            check = supabase.table('institution').select("id").eq("id", int(requested_id)).execute()
             if check.data:
-                return requested_id
+                return int(requested_id)
         
-        res = supabase.table('institution').select("id").limit(1).execute()
+        res = supabase.table('factors').select("inst_id").limit(1).execute()
         if res.data:
-            return res.data[0]['id']
+            return res.data[0]['inst_id']
+
+        res_inst = supabase.table('institution').select("id").order("id", desc=True).limit(1).execute()
+        if res_inst.data:
+            return res_inst.data[0]['id']
     except Exception as e:
         print(f"Error resolving inst_id: {e}")
-    return requested_id or 1
+    return 7

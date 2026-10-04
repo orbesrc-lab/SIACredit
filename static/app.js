@@ -17,12 +17,12 @@
 // Funciones Globales de Identificación
 function getInstId() {
     const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
-    return user.inst_id || 1;
+    return user.inst_id || 7;
 }
 
 function getProgramId() {
     const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
-    return user.program_id || 0;
+    return user.program_id || 68;
 }
 
 /**

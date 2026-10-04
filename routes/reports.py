@@ -10,8 +10,27 @@ reports_bp = Blueprint('reports', __name__)
 
 @reports_bp.route('/api/dashboard/stats')
 def dashboard_stats():
-    inst_id = request.args.get('inst_id', 1, type=int)
+    raw_inst_id = request.args.get('inst_id', 7, type=int)
+    inst_id = get_active_inst_id(raw_inst_id)
     program_id = request.args.get('program_id', 0, type=int)
+    
+    if not program_id or program_id == 0:
+        try:
+            progs = supabase.table('programs').select("id").eq("inst_id", inst_id).order("id", desc=True).execute()
+            if progs.data:
+                for p in progs.data:
+                    p_id = p['id']
+                    f_check = supabase.table('factors').select("id").eq("inst_id", inst_id).eq("program_id", p_id).limit(1).execute()
+                    if f_check.data:
+                        program_id = p_id
+                        break
+                if not program_id and progs.data:
+                    program_id = progs.data[0]['id']
+        except Exception as ex_p:
+            print("Error resolviendo program_id por defecto:", ex_p)
+            
+    if not program_id or program_id == 0:
+        program_id = 68
     try:
         evidences = supabase.table('evidences').select("id, status").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
         factors = supabase.table('factors').select("id").eq("inst_id", inst_id).eq("program_id", program_id).execute().data
@@ -88,8 +107,27 @@ def report_summary():
 
 @reports_bp.route('/api/informe_dinamico', methods=['GET'])
 def get_informe_dinamico():
-    inst_id = request.args.get('inst_id', 1, type=int)
+    raw_inst_id = request.args.get('inst_id', 7, type=int)
+    inst_id = get_active_inst_id(raw_inst_id)
     program_id = request.args.get('program_id', 0, type=int)
+    
+    if not program_id or program_id == 0:
+        try:
+            progs = supabase.table('programs').select("id").eq("inst_id", inst_id).order("id", desc=True).execute()
+            if progs.data:
+                for p in progs.data:
+                    p_id = p['id']
+                    f_check = supabase.table('factors').select("id").eq("inst_id", inst_id).eq("program_id", p_id).limit(1).execute()
+                    if f_check.data:
+                        program_id = p_id
+                        break
+                if not program_id and progs.data:
+                    program_id = progs.data[0]['id']
+        except Exception as ex_p:
+            print("Error resolviendo program_id por defecto:", ex_p)
+            
+    if not program_id or program_id == 0:
+        program_id = 68
     
     try:
         def safe_float(val):

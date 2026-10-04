@@ -7,20 +7,20 @@ var localStatsCache = window.localStatsCache || {};
 function getInstId() {
     try {
         const user = JSON.parse(localStorage.getItem('siac_user'));
-        return user ? (user.inst_id || 1) : 1;
+        return user ? (user.inst_id || 7) : 7;
     } catch (e) {
         console.error("Error parsing siac_user in getInstId:", e);
-        return 1;
+        return 7;
     }
 }
 
 function getProgramId() {
     try {
         const user = JSON.parse(localStorage.getItem('siac_user'));
-        return user ? (user.program_id || 0) : 0;
+        return user ? (user.program_id || 68) : 68;
     } catch (e) {
         console.error("Error parsing siac_user in getProgramId:", e);
-        return 0;
+        return 68;
     }
 }
 
