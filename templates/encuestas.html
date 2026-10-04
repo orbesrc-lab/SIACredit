@@ -259,6 +259,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
                 <h1 style="font-size: 1.8rem; margin: 0;">Gestión de Encuestas de Autoevaluación</h1>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-primary" style="background:#7c3aed;" onclick="loadDefaultCNABattery()">✨ Batería CNA 2025</button>
                     <button class="btn-secondary" onclick="downloadSurveyCSVTemplate()">📥 Plantilla Preguntas CSV</button>
                     <button class="btn-secondary" onclick="triggerImportSurveyCSV()">📤 Importar Encuesta (CSV)</button>
                     <input type="file" id="importSurveyFile" accept=".csv" style="display: none;" onchange="importSurveyCSV(event)">
@@ -1421,7 +1422,247 @@
                     aspect_id: aspectId
                 });
             }
-            return questions;
+        async function loadDefaultCNABattery() {
+            if (surveysData.length > 0) {
+                if (!confirm("¿Desea agregar las 4 encuestas institucionales de la Batería CNA 2025 articuladas con el modelo a su lista actual?")) return;
+            }
+
+            const defaultSurveys = [
+                {
+                    id: 'surv_cna_estudiantes_' + generateId(),
+                    title: 'Encuesta de Autoevaluación a Estudiantes (Modelo CNA 2025)',
+                    description: 'Evaluación integral del programa académico desde la perspectiva de los estudiantes (Plan de estudios, cuerpo docente, recursos y bienestar).',
+                    target: 'estudiantes',
+                    status: 'activo',
+                    created_at: new Date().toISOString(),
+                    questions: [
+                        {
+                            id: 'q_est_1_' + generateId(),
+                            type: 'rating',
+                            text: '¿Cómo califica la pertinencia y actualización de la estructura del Plan de Estudios para el ejercicio profesional?',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        },
+                        {
+                            id: 'q_est_2_' + generateId(),
+                            type: 'rating',
+                            text: '¿Qué tan satisfecho está con la calidad pedagógica, preparación y acompañamiento de los docentes del programa?',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        },
+                        {
+                            id: 'q_est_3_' + generateId(),
+                            type: 'rating',
+                            text: '¿Cómo evalúa los recursos bibliográficos, laboratorios, licencias de software y plataformas tecnológicas institucionales?',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        },
+                        {
+                            id: 'q_est_4_' + generateId(),
+                            type: 'likert',
+                            text: 'Los programas de Bienestar Universitario responden eficazmente a mis necesidades académicas, psicosociales y culturales.',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        },
+                        {
+                            id: 'q_est_5_' + generateId(),
+                            type: 'text',
+                            text: 'Mencione las principales fortalezas y aspectos que considera que la institución debe priorizar en su Plan de Mejoramiento.',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        }
+                    ]
+                },
+                {
+                    id: 'surv_cna_docentes_' + generateId(),
+                    title: 'Encuesta de Autoevaluación a Cuerpo Docente (Modelo CNA 2025)',
+                    description: 'Evaluación de las condiciones de docencia, desarrollo profesional, investigación y gestión institucional.',
+                    target: 'profesores',
+                    status: 'activo',
+                    created_at: new Date().toISOString(),
+                    questions: [
+                        {
+                            id: 'q_doc_1_' + generateId(),
+                            type: 'rating',
+                            text: '¿Cómo valora los apoyos e incentivos institucionales para la investigación, publicación y producción científica o artística?',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        },
+                        {
+                            id: 'q_doc_2_' + generateId(),
+                            type: 'rating',
+                            text: '¿En qué medida las condiciones laborales, la estabilidad y la cualificación académica (maestrías/doctorados) responden a sus expectativas?',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        },
+                        {
+                            id: 'q_doc_3_' + generateId(),
+                            type: 'likert',
+                            text: 'La estructura académica y administrativa del programa facilita la gestión eficiente de los procesos formativos y de autoevaluación.',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        },
+                        {
+                            id: 'q_doc_4_' + generateId(),
+                            type: 'text',
+                            text: 'Aportes y recomendaciones estratégicas para fortalecer el currículo y los resultados de aprendizaje del programa.',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        }
+                    ]
+                },
+                {
+                    id: 'surv_cna_egresados_' + generateId(),
+                    title: 'Encuesta de Impacto Social a Egresados (Modelo CNA 2025)',
+                    description: 'Seguimiento al desempeño laboral, inserción en el mercado y pertinencia social de la formación recibida.',
+                    target: 'egresados',
+                    status: 'activo',
+                    created_at: new Date().toISOString(),
+                    questions: [
+                        {
+                            id: 'q_egr_1_' + generateId(),
+                            type: 'rating',
+                            text: '¿Qué tan pertinente considera que fue la formación recibida frente a los retos de su desempeño laboral actual?',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        },
+                        {
+                            id: 'q_egr_2_' + generateId(),
+                            type: 'select',
+                            text: '¿En cuánto tiempo logró ubicarse profesionalmente en su área de conocimiento tras obtener el grado?',
+                            options: ['Antes de graduarme', 'Menos de 6 meses', '6 a 12 meses', 'Más de 1 año', 'Aún no ubicado'],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        },
+                        {
+                            id: 'q_egr_3_' + generateId(),
+                            type: 'text',
+                            text: '¿Qué competencias, tecnologías o saberes recomienda integrar prioritariamente en el plan de estudios?',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        }
+                    ]
+                },
+                {
+                    id: 'surv_cna_empleadores_' + generateId(),
+                    title: 'Encuesta al Sector Productivo y Empleadores (Modelo CNA 2025)',
+                    description: 'Valoración externa sobre el nivel de competencias, desempeño ético e impacto de los graduados del programa.',
+                    target: 'empleadores',
+                    status: 'activo',
+                    created_at: new Date().toISOString(),
+                    questions: [
+                        {
+                            id: 'q_emp_1_' + generateId(),
+                            type: 'rating',
+                            text: '¿Cómo evalúa la capacidad técnica, resolución de problemas y calidad profesional de los graduados de este programa en su empresa?',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        },
+                        {
+                            id: 'q_emp_2_' + generateId(),
+                            type: 'likert',
+                            text: 'Los graduados demuestran sólidas competencias blandas, liderazgo, ética profesional y compromiso con la calidad.',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        },
+                        {
+                            id: 'q_emp_3_' + generateId(),
+                            type: 'boolean',
+                            text: '¿Recomienda o continuaría vinculando profesionales formados en este programa académico?',
+                            options: [],
+                            factor_id: null,
+                            char_id: null,
+                            aspect_id: null
+                        }
+                    ]
+                }
+            ];
+
+            // Auto-link questions to factors if modelData loaded
+            if (modelData && modelData.length > 0) {
+                defaultSurveys.forEach(s => {
+                    s.questions.forEach(q => {
+                        if (q.text.includes('Plan de Estudios') || q.text.includes('currículo')) {
+                            const f = modelData.find(m => String(m.number) === '1' || (m.name || '').toLowerCase().includes('plan'));
+                            if (f) {
+                                q.factor_id = f.id;
+                                if (f.characteristics && f.characteristics.length > 0) q.char_id = f.characteristics[0].id;
+                            }
+                        } else if (q.text.includes('docentes') || q.text.includes('pedagógica')) {
+                            const f = modelData.find(m => String(m.number) === '3' || (m.name || '').toLowerCase().includes('docente'));
+                            if (f) {
+                                q.factor_id = f.id;
+                                if (f.characteristics && f.characteristics.length > 0) q.char_id = f.characteristics[0].id;
+                            }
+                        } else if (q.text.includes('investigación') || q.text.includes('publicación')) {
+                            const f = modelData.find(m => String(m.number) === '5' || (m.name || '').toLowerCase().includes('investigación'));
+                            if (f) {
+                                q.factor_id = f.id;
+                                if (f.characteristics && f.characteristics.length > 0) q.char_id = f.characteristics[0].id;
+                            }
+                        } else if (q.text.includes('Bienestar')) {
+                            const f = modelData.find(m => String(m.number) === '11' || (m.name || '').toLowerCase().includes('bienestar'));
+                            if (f) {
+                                q.factor_id = f.id;
+                                if (f.characteristics && f.characteristics.length > 0) q.char_id = f.characteristics[0].id;
+                            }
+                        } else if (q.text.includes('Egresados') || q.text.includes('egresados') || q.text.includes('empleadores') || q.text.includes('empresa') || q.text.includes('graduados')) {
+                            const f = modelData.find(m => String(m.number) === '6' || (m.name || '').toLowerCase().includes('egresado') || (m.name || '').toLowerCase().includes('social'));
+                            if (f) {
+                                q.factor_id = f.id;
+                                if (f.characteristics && f.characteristics.length > 0) q.char_id = f.characteristics[0].id;
+                            }
+                        }
+                    });
+                });
+            }
+
+            const updatedList = [...surveysData, ...defaultSurveys];
+
+            try {
+                const resp = await authFetch(`/api/surveys?inst_id=${getInstId()}&program_id=${getProgramId()}&use_cloud=${useCloud}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedList)
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    alert("✨ ¡Batería de 4 Encuestas Institucionales CNA 2025 creada y articulada con éxito!");
+                    await loadSurveys();
+                } else {
+                    alert("Error cargando batería de encuestas: " + res.message);
+                }
+            } catch(e) {
+                console.error("Error al cargar batería CNA:", e);
+                alert("Error de conexión al cargar la batería CNA.");
+            }
         }
 
         window.onload = initPage;

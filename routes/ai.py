@@ -1215,10 +1215,45 @@ def generate_juicio_valor_ia():
             surveys_list = survey_storage.load_local_surveys(inst_id, program_id)
             for s in surveys_list:
                 stitle = s.get('title') or s.get('name') or 'Encuesta Institucional'
+                target_str = s.get('target', 'Comunidad')
+                s_id = s.get('id')
+                responses = survey_storage.load_local_responses(s_id, inst_id, program_id) or []
+                
                 for q in (s.get('questions') or []):
-                    if str(q.get('char_id')) == str(char_id) or (q.get('aspect_id') and str(q.get('aspect_id')) in aspect_ids):
+                    q_char = str(q.get('char_id', ''))
+                    q_aspect = str(q.get('aspect_id', ''))
+                    if q_char == str(char_id) or (q_aspect and q_aspect in aspect_ids):
                         qtext = q.get('text', 'Pregunta de Percepción')
-                        survey_summaries.append(f"  • [{stitle}] Indicador/Pregunta: '{qtext}'")
+                        qtype = q.get('type', 'rating')
+                        
+                        # Process responses for this question
+                        q_ratings = []
+                        q_comments = []
+                        for r in responses:
+                            ans = (r.get('answers') or {}).get(q.get('id'))
+                            if ans is not None and str(ans).strip() != '':
+                                if qtype in ('rating', 'likert'):
+                                    try:
+                                        val = float(ans)
+                                        if 1 <= val <= 5:
+                                            q_ratings.append(val)
+                                    except ValueError: pass
+                                elif qtype in ('boolean', 'select', 'checkbox'):
+                                    q_ratings.append(str(ans))
+                                elif qtype == 'text':
+                                    q_comments.append(str(ans).strip())
+                        
+                        if q_ratings:
+                            if qtype in ('rating', 'likert'):
+                                avg_val = round(sum(q_ratings) / len(q_ratings), 2)
+                                survey_summaries.append(f"  • Encuesta: '{stitle}' ({target_str.upper()}) | Indicador: '{qtext}' -> Promedio Percepción: {avg_val} / 5.0 (en {len(q_ratings)} encuestados)")
+                            else:
+                                survey_summaries.append(f"  • Encuesta: '{stitle}' ({target_str.upper()}) | Indicador: '{qtext}' -> Respuestas: {', '.join(map(str, q_ratings[:5]))} (Total: {len(q_ratings)})")
+                        elif q_comments:
+                            comments_str = ' | '.join(q_comments[:3])
+                            survey_summaries.append(f"  • Encuesta: '{stitle}' ({target_str.upper()}) | Percepción Cualitativa: '{qtext}' -> Comentarios de la comunidad: \"{comments_str}\"")
+                        else:
+                            survey_summaries.append(f"  • Encuesta: '{stitle}' ({target_str.upper()}) | Indicador Articulado: '{qtext}'")
         except Exception as ex_s:
             print("Error cargando encuestas para IA:", ex_s)
         surveys_context_str = "\n".join(survey_summaries) if survey_summaries else "  • Evaluación de la percepción de los estamentos institucionales (estudiantes, docentes, egresados y empleadores)."
