@@ -1066,19 +1066,20 @@ def analyze_evidence_ia(evidence_id):
 
         # 3. Prompt estructurado para IA (Modelo CESU Acuerdo 01/2025)
         prompt = f"""
-Se requiere realizar el análisis técnico de acreditación de la siguiente evidencia para Educación Superior (Modelo CESU Acuerdo 01/2025):
+Actúa como un Especialista Sénior en Auditoría Documental y Acreditación de Alta Calidad en Educación Superior (Modelo CESU Acuerdo 01/2025).
+Se requiere un análisis técnico y pedagógico profundo para la siguiente evidencia institucional:
 
 DETALLES DE LA EVIDENCIA:
-- Nombre del Archivo: {filename}
+- Archivo Documental: {filename}
 - Periodo Académico: {period}
-- Factor: {factor_name}
-- Característica: {char_name}
-- Aspecto Evaluado: {aspect_text}
+- {factor_name}
+- {char_name}
+- Aspecto Específico Evaluado: {aspect_text}
 
-INSTRUCCIONES:
-Genera un análisis sintético estructurado en formato JSON con dos claves obligatorias:
-1. "synthesis": Resumen ejecutivo conciso del documento (2 a 4 párrafos), detallando qué información o soporte contiene.
-2. "contribution": Análisis cualitativo de su aporte específico a la acreditación del Aspecto, la Característica y el Factor. Explica cómo esta evidencia demuestra el cumplimiento de los criterios del modelo de autoevaluación.
+INSTRUCCIONES DE ALTA CALIDAD ACADÉMICA:
+Genera un análisis riguroso, explicativo y formal en formato JSON con dos claves obligatorias:
+1. "synthesis": Síntesis técnica detallada y comprensiva del documento (de 3 a 5 párrafos amplios). Describe de forma rigurosa la naturaleza del documento, su contenido normativo, técnico o procedimental, las decisiones institucionales que respalda y los datos e indicadores clave que soporta.
+2. "contribution": Análisis cualitativo y argumentativo denso (de 3 a 5 párrafos amplios). Explica de manera fundamentada de qué forma este soporte demuestra el cumplimiento sustantivo del Aspecto, fortaleciendo la Característica y el Factor evaluados dentro del modelo de autoevaluación.
 
 Responde estrictamente en formato JSON válido:
 {{
@@ -1087,7 +1088,7 @@ Responde estrictamente en formato JSON válido:
 }}
 """
         from routes.ai_generator import generar_informe_ia_base
-        raw_response = generar_informe_ia_base(prompt, max_tokens=2000)
+        raw_response = generar_informe_ia_base(prompt, max_tokens=3500)
         
         import json, re
         parsed = None
@@ -1174,42 +1175,53 @@ def generate_juicio_valor_ia():
             except Exception as ex_ev:
                 print("Error cargando evidencias por aspect_ids:", ex_ev)
                 
-        # 3. Formatear resumen de evidencias y sus aportes IA/manuales
+        # 3. Formatear resumen de evidencias y sus aportes IA/manuales sin truncamiento severo
         ev_summaries = []
         for ev in evidences_data:
-            syn = ev.get('ai_synthesis') or ''
-            con = ev.get('ai_contribution') or ''
+            syn = (ev.get('ai_synthesis') or '').strip()
+            con = (ev.get('ai_contribution') or '').strip()
             name = ev.get('name', 'Evidencia')
             period = ev.get('period', 'N/A')
-            ev_summaries.append(f"- Archivo: {name} (Periodo {period})\n  Síntesis: {syn[:300]}\n  Aporte Cualitativo: {con[:400]}")
+            ev_summaries.append(f"- Soporte: {name} (Periodo: {period})\n  Síntesis Técnica: {syn[:1500]}\n  Aporte Cualitativo Registrado: {con[:2000]}")
             
         ev_context_str = "\n\n".join(ev_summaries) if ev_summaries else "No hay síntesis o aportes de evidencias registrados aún."
 
-        # 4. Construir prompt para la IA
+        # 4. Obtener nombres de aspectos de la característica
+        aspect_names = [a.get('name') or a.get('text') or f"Aspecto {a.get('number', '')}" for a in (char_obj.get('aspects') or []) if a]
+        aspects_str = "\n".join([f"  • {asp}" for asp in aspect_names]) if aspect_names else "  • Aspectos normativos y pedagógicos de la característica."
+
+        # 5. Construir prompt para la IA (Par Evaluador Sénior CNA)
         char_title = f"Característica {char_obj.get('number', '')}: {char_obj.get('name', '')}" if char_obj else f"Característica ID {char_id}"
         factor_title = f"Factor {factor_obj.get('number', '')}: {factor_obj.get('name', '')}" if factor_obj else "Factor Institucional"
         
         prompt = f"""
-Actúa como un evaluador experto en Acreditación de Alta Calidad (Modelo CESU Acuerdo 01/2025).
-Tu objetivo es redactar un **Juicio de Valor (Análisis Cualitativo)** formal, riguroso y exhaustivo para la siguiente Característica:
+Actúa como un Par Evaluador Sénior del Consejo Nacional de Acreditación (CNA) de Educación Superior y Doctor en Gestión de Calidad Académica e Institucional.
+Tu objetivo es redactar un **JUICIO DE VALOR Y ANÁLISIS CUALITATIVO EXHAUSTIVO, RIGUROSO Y PERFECTO** para la autoevaluación de la siguiente Característica (Modelo CESU Acuerdo 01/2025 y Decreto 1330/2019):
 
-INFORMACIÓN DEL COMPONENTE:
+==================================================
+INFORMACIÓN DE LA CARACTERÍSTICA EVALUADA:
+==================================================
 - {factor_title}
 - {char_title}
 - Calificación Cuantitativa Asignada: {rating if rating else 'No especificada'} (Escala CNA 1.0 a 5.0)
 
-EVIDENCIAS Y APORTES CUALITATIVOS DOCUMENTADOS:
+ASPECTOS CONSTITUTIVOS EVALUADOS:
+{aspects_str}
+
+EVIDENCIAS Y APORTES CUALITATIVOS SOPORTADOS:
 {ev_context_str}
 
-INSTRUCCIONES DE REDACCIÓN:
-1. Redacta un texto fluido (de 3 a 5 párrafos) en español académico y formal.
-2. Analiza la coherencia, pertinencia y grado de cumplimiento de la característica.
-3. ARTICULA Y CITA EXPLÍCITAMENTE las evidencias analizadas y sus aportes cualitativos documentados (mencionando nombres de soportes y periodo).
-4. Concluye resumiendo las fortalezas consolidadas y el nivel de madurez alcanzado.
-5. NO incluyas encabezados como "Introducción:", genera directamente el texto del Juicio de Valor listo para publicarse.
+==================================================
+DIRECTRICES DE REDACCIÓN Y ALTA CALIDAD ACADÉMICA:
+==================================================
+1. **Nivel Académico y Estilo**: Escribe en un lenguaje altamente formal, articulado, técnico, argumentativo y explicativo propio de un Par Evaluador Experto de nivel doctoral.
+2. **Profundidad y Extensión**: Construye una redacción amplia, completa y detallada (de 4 a 6 párrafos extensos y densos en contenido). No utilices resúmenes breves ni frases superficiales.
+3. **Articulación de Evidencias**: Cita y analiza explícitamente las evidencias documentadas (mencionando sus nombres completos, periodos y aportes cualitativos), demostrando con rigor cómo respaldan el cumplimiento del modelo.
+4. **Evaluación de Madurez e Impacto**: Analiza la pertinencia, coherencia, sostenibilidad, cultura de autorregulación y madurez alcanzada por la institución en esta característica.
+5. **Formato Unificado**: NO incluyas encabezados como "Introducción:", "Desarrollo:" ni notas al final. Genera directamente el texto fluido y elegante del Juicio de Valor listo para integrarse de forma impecable en el Informe Final de Acreditación.
 """
         from routes.ai_generator import generar_informe_ia_base
-        juicio_valor_texto = generar_informe_ia_base(prompt, max_tokens=2500)
+        juicio_valor_texto = generar_informe_ia_base(prompt, max_tokens=4500)
         
         return jsonify({
             "status": "success",

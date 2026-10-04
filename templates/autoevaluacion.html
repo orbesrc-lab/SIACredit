@@ -622,10 +622,20 @@
 
                                 <div style="margin-bottom:30px;">
                                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
-                                        <label style="font-weight:700; margin:0;">Juicio de Valor (Análisis Cualitativo)</label>
-                                        <button type="button" class="btn-ghost" id="btnGenJuicioValIA" onclick="triggerGenerateJuicioValorIA('${cId}')" style="padding:6px 14px; font-size:0.85rem; border:1px solid #7c3aed; color:#7c3aed; background:#f5f3ff; border-radius:6px; font-weight:600; cursor:pointer;">
-                                            <i class="fas fa-wand-magic-sparkles"></i> ✨ Redactar con IA articulando Evidencias
-                                        </button>
+                                        <label style="font-weight:700; margin:0; display:flex; align-items:center; gap:8px;">
+                                            Juicio de Valor (Análisis Cualitativo)
+                                            <span id="saveStatusBadgeIA" style="font-size:0.75rem; background:#ecfdf5; color:#047857; border:1px solid #6ee7b7; padding:2px 8px; border-radius:12px; font-weight:600; display:none;">
+                                                ✅ Guardado en Supabase
+                                            </span>
+                                        </label>
+                                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                            <button type="button" class="btn-ghost" id="btnGenJuicioValIA" onclick="triggerGenerateJuicioValorIA('${cId}')" style="padding:6px 14px; font-size:0.85rem; border:1px solid #7c3aed; color:#7c3aed; background:#f5f3ff; border-radius:6px; font-weight:600; cursor:pointer;">
+                                                <i class="fas fa-wand-magic-sparkles"></i> ✨ Redactar con IA articulando Evidencias
+                                            </button>
+                                            <button type="button" class="btn-ghost" id="btnSaveJuicioValIA" onclick="saveJuicioValorIA('${cId}')" style="padding:6px 14px; font-size:0.85rem; border:1px solid #10b981; color:#047857; background:#ecfdf5; border-radius:6px; font-weight:700; cursor:pointer;">
+                                                <i class="fas fa-save"></i> 💾 Guardar Informe IA
+                                            </button>
+                                        </div>
                                     </div>
                                     <textarea id="just_input" placeholder="Redacte aquí el análisis integral de la característica o haz clic en 'Redactar con IA' para articular las evidencias analizadas...">${currentEval.just || ''}</textarea>
                                 </div>
@@ -683,7 +693,70 @@
 
         // --- FUNCIONES GESTIÓN DE EVIDENCIAS Y JUICIO DE VALOR CON IA ---
 
+        async function saveJuicioValorIA(cId, isAuto = false) {
+            const textarea = document.getElementById('just_input');
+            const ratingInput = document.getElementById('rating_input');
+            const btn = document.getElementById('btnSaveJuicioValIA');
+            const badge = document.getElementById('saveStatusBadgeIA');
+            
+            if (!textarea || !textarea.value.trim()) {
+                if (!isAuto) alert("No hay texto en el Juicio de Valor para guardar.");
+                return;
+            }
+            
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            }
+            
+            try {
+                const ratingVal = ratingInput && ratingInput.value ? parseFloat(ratingInput.value) : null;
+                const payload = {
+                    [cId]: {
+                        just: textarea.value.trim(),
+                    }
+                };
+                if (ratingVal !== null && !isNaN(ratingVal)) {
+                    payload[cId].rating = ratingVal;
+                }
+                
+                const iId = getInstId();
+                const pId = getProgramId();
+                const resp = await authFetch(`/api/evaluations?inst_id=${iId}&program_id=${pId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await resp.json();
+                if (resp.ok && result.status === 'success') {
+                    if (!allEvals[cId]) allEvals[cId] = {};
+                    allEvals[cId].just = textarea.value.trim();
+                    if (ratingVal !== null) allEvals[cId].rating = ratingVal;
+                    
+                    if (badge) {
+                        badge.style.display = 'inline-block';
+                        setTimeout(() => { if (badge) badge.style.display = 'none'; }, 6000);
+                    }
+                    if (!isAuto) {
+                        alert("✅ Informe IA / Juicio de Valor guardado exitosamente en Supabase.");
+                    }
+                } else {
+                    if (!isAuto) alert("Error al guardar informe IA: " + (result.message || "Error del servidor"));
+                }
+            } catch(e) {
+                console.error("Error guardando Juicio de Valor IA:", e);
+                if (!isAuto) alert("Error de conexión al guardar el informe de la IA.");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save"></i> 💾 Guardar Informe IA';
+                }
+            }
+        }
+
         async function loadAndRenderEvidenciasSoporte(charId, char) {
+            window.currentActiveCharObj = char;
             const container = document.getElementById('evidenciasSoporteContainer');
             if (!container) return;
             
@@ -711,16 +784,28 @@
                         
                 charEvs.forEach(ev => {
                     const hasAnal = Boolean((ev.ai_synthesis && ev.ai_synthesis.trim()) || (ev.ai_contribution && ev.ai_contribution.trim()));
+                    const safeName = (ev.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const safeSyn = (ev.ai_synthesis || '').replace(/'/g, "\\'").replace(/\n/g, ' ').replace(/"/g, '&quot;');
+                    const safeCon = (ev.ai_contribution || '').replace(/'/g, "\\'").replace(/\n/g, ' ').replace(/"/g, '&quot;');
+                    
                     html += `
                         <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:12px; font-size:0.85rem;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <strong style="color:#0f172a;">📄 ${ev.name}</strong>
-                                <span style="font-size:0.75rem; background:${hasAnal ? '#8b5cf6' : '#94a3b8'}; color:white; padding:2px 8px; border-radius:4px; font-weight:600;">
-                                    ${hasAnal ? '✨ IA Analizada' : 'Sin análisis'}
-                                </span>
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                <div>
+                                    <strong style="color:#0f172a;">📄 ${ev.name}</strong>
+                                    <div style="margin-top:2px; color:#64748b; font-size:0.78rem;">Periodo: ${ev.period || 'N/A'} | Creado por: ${ev.user_email || 'N/A'}</div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:0.75rem; background:${hasAnal ? '#8b5cf6' : '#94a3b8'}; color:white; padding:3px 10px; border-radius:12px; font-weight:600;">
+                                        ${hasAnal ? '✨ IA Analizada' : 'Sin análisis'}
+                                    </span>
+                                    <button class="btn-ghost" onclick="openEvAIAutoModal(${ev.id}, '${charId}', '${safeName}', '${ev.period || ''}', '${safeSyn}', '${safeCon}')" style="padding:4px 10px; font-size:0.78rem; border:1px solid #8b5cf6; color:#6d28d9; background:#f5f3ff; border-radius:6px; font-weight:600; cursor:pointer;">
+                                        ${hasAnal ? '✏️ Ver / Editar IA' : '✨ Analizar con IA'}
+                                    </button>
+                                </div>
                             </div>
-                            <div style="margin-top:4px; color:#64748b; font-size:0.8rem;">Periodo: ${ev.period || 'N/A'} | Creado por: ${ev.user_email || 'N/A'}</div>
-                            ${ev.ai_contribution ? `<div style="margin-top:8px; padding:8px; background:#f5f3ff; border-left:3px solid #8b5cf6; color:#4c1d95; font-size:0.82rem;"><strong>Aporte Cualitativo:</strong> ${ev.ai_contribution}</div>` : ''}
+                            ${ev.ai_synthesis ? `<div style="margin-top:8px; padding:8px; background:#f8fafc; border-left:3px solid #3b82f6; color:#1e293b; font-size:0.8rem;"><strong>Síntesis:</strong> ${ev.ai_synthesis}</div>` : ''}
+                            ${ev.ai_contribution ? `<div style="margin-top:6px; padding:8px; background:#f5f3ff; border-left:3px solid #8b5cf6; color:#4c1d95; font-size:0.8rem;"><strong>Aporte Cualitativo:</strong> ${ev.ai_contribution}</div>` : ''}
                         </div>`;
                 });
                 
@@ -757,7 +842,9 @@
                 
                 if (data.status === 'success' && data.juicio_valor) {
                     textarea.value = data.juicio_valor;
-                    alert('✨ Juicio de Valor generado con éxito articulando las evidencias analizadas.');
+                    // Persistir inmediatamente en Supabase para evitar perdida de tokens
+                    await saveJuicioValorIA(cId, true);
+                    alert('✨ Juicio de Valor generado con éxito y guardado automáticamente en Supabase.');
                 } else {
                     alert('Error generando Juicio de Valor: ' + (data.message || 'Verifica los datos e inténtalo de nuevo.'));
                 }
@@ -768,6 +855,108 @@
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> ✨ Redactar con IA articulando Evidencias';
+                }
+            }
+        }
+
+        // --- FUNCIONES GESTIÓN DE MODAL IA PARA EVIDENCIAS INDIVIDUALES ---
+        let currentEvAutoId = null;
+        let currentEvAutoCharId = null;
+
+        function openEvAIAutoModal(evId, charId, evName, period, synthesis, contribution) {
+            currentEvAutoId = evId;
+            currentEvAutoCharId = charId;
+            const titleEl = document.getElementById('evAIAutoNameDisplay');
+            const synEl = document.getElementById('evAIAutoSynthesis');
+            const conEl = document.getElementById('evAIAutoContribution');
+            const modalEl = document.getElementById('modalEvAIAuto');
+            
+            if (titleEl) titleEl.textContent = evName + ' (Periodo: ' + (period || 'N/A') + ')';
+            if (synEl) synEl.value = synthesis || '';
+            if (conEl) conEl.value = contribution || '';
+            if (modalEl) modalEl.style.display = 'flex';
+        }
+
+        function closeEvAIAutoModal() {
+            const modalEl = document.getElementById('modalEvAIAuto');
+            if (modalEl) modalEl.style.display = 'none';
+        }
+
+        async function triggerGenEvAIAuto() {
+            if (!currentEvAutoId) return;
+            const btn = document.getElementById('btnGenEvAIAuto');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analizando con IA...';
+            }
+            
+            try {
+                const res = await authFetch(`/api/evidences/${currentEvAutoId}/analyze_ia`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ inst_id: getInstId(), program_id: getProgramId() })
+                });
+                const data = await res.json();
+                
+                if (data.status === 'success' || data.status === 'fallback') {
+                    const synEl = document.getElementById('evAIAutoSynthesis');
+                    const conEl = document.getElementById('evAIAutoContribution');
+                    if (synEl) synEl.value = data.synthesis || '';
+                    if (conEl) conEl.value = data.contribution || '';
+                    // Persistir inmediatamente en Supabase
+                    await saveEvAIAuto(true);
+                } else {
+                    alert("Error al analizar evidencia con IA: " + (data.message || "Error desconocido"));
+                }
+            } catch(e) {
+                console.error("Error analizando evidencia:", e);
+                alert("Error de conexión al analizar con IA.");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> ✨ Generar / Re-analizar con IA';
+                }
+            }
+        }
+
+        async function saveEvAIAuto(isAuto = false) {
+            if (!currentEvAutoId) return;
+            const synEl = document.getElementById('evAIAutoSynthesis');
+            const conEl = document.getElementById('evAIAutoContribution');
+            const btn = document.getElementById('btnSaveEvAIAuto');
+            
+            const synthesis = synEl ? synEl.value.trim() : '';
+            const contribution = conEl ? conEl.value.trim() : '';
+            
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando en Supabase...';
+            }
+            
+            try {
+                const res = await authFetch(`/api/evidences/${currentEvAutoId}/save_ia`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ synthesis, contribution })
+                });
+                const data = await res.json();
+                
+                if (data.status === 'success') {
+                    if (!isAuto) alert("✅ Análisis y Aporte de la Evidencia guardados exitosamente en Supabase.");
+                    closeEvAIAutoModal();
+                    if (currentEvAutoCharId && window.currentActiveCharObj) {
+                        loadAndRenderEvidenciasSoporte(currentEvAutoCharId, window.currentActiveCharObj);
+                    }
+                } else {
+                    if (!isAuto) alert("Error al guardar aporte IA: " + (data.message || "Error del servidor"));
+                }
+            } catch(e) {
+                console.error("Error guardando evidencia IA:", e);
+                if (!isAuto) alert("Error de conexión al guardar el aporte de la evidencia.");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save"></i> 💾 Guardar Aporte IA en Supabase';
                 }
             }
         }
@@ -1706,84 +1895,54 @@
 
             
 
-            if (!accion || !responsable || !fecha_limite) {
-
-                alert("Por favor complete todos los campos de la acción.");
-
+            if (!accion) {
+                alert("Por favor escriba la Acción o Actividad determinada por el equipo.");
                 return;
-
             }
 
+            const currentUserObj = JSON.parse(localStorage.getItem('siac_user') || '{}');
+            const finalResponsable = responsable || currentUserObj.email || 'Equipo de Autoevaluación';
             
+            const today = new Date();
+            const defaultLimit = new Date(today.setDate(today.getDate() + 90)).toISOString().split('T')[0];
+            const finalFechaInicio = fecha_inicio || new Date().toISOString().split('T')[0];
+            const finalFechaLimite = fecha_limite || defaultLimit;
 
             try {
-
                 const resp = await authFetch(`/api/planes_mejora?inst_id=${getInstId()}&program_id=${getProgramId()}`, {
-
                     method: 'POST',
-
                     headers: { 'Content-Type': 'application/json' },
-
                     body: JSON.stringify({
-
                         char_id: cId,
-
                         accion,
-
                         meta,
-
-                        fecha_inicio,
-
-                        fecha_limite,
-
+                        fecha_inicio: finalFechaInicio,
+                        fecha_limite: finalFechaLimite,
                         presupuesto_tiempo,
-
                         presupuesto_dinero: presupuesto_dinero ? parseFloat(presupuesto_dinero) : 0,
-
-                        responsable_rol,
-
-                        responsable,
-
+                        responsable_rol: responsable_rol || 'lider',
+                        responsable: finalResponsable,
                         indicador_tipo,
-
                         indicador_meta_num,
-
                         indicador_meta_den,
-
                         indicador_survey_id,
-
                         indicador_question_id,
-
                         avance: 0,
-
                         estado: 'Pendiente'
-
                     })
-
                 });
 
-                
-
                 if (resp.ok) {
-
+                    alert("✅ Acción de mejora determinada por el equipo registrada con éxito en Supabase y vinculada a los Planes de Mejoramiento.");
                     loadAndRenderPlanesMejora(cId);
-
                 } else {
-
                     const err = await resp.json();
-
-                    alert("Error: " + err.message);
-
+                    alert("Error guardando la acción: " + (err.message || "Error del servidor"));
                 }
-
             } catch (e) {
-
-                console.error(e);
-
-                alert("Error al guardar la acción de mejora.");
-
+                console.error("Error al guardar acción de mejora:", e);
+                alert("Error de conexión al guardar la acción de mejora.");
             }
-
         }
 
 
@@ -2759,6 +2918,39 @@
 
 
 
+
+    <!-- Modal para Analizar / Guardar Aporte IA de Evidencia desde Autoevaluación -->
+    <div id="modalEvAIAuto" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:16px; width:90%; max-width:650px; padding:24px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); position:relative; max-height:90vh; overflow-y:auto;">
+            <h3 style="margin:0 0 15px; color:#1e293b; display:flex; justify-content:space-between; align-items:center; font-size:1.1rem;">
+                <span>✨ Análisis IA de la Evidencia</span>
+                <button onclick="closeEvAIAutoModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#64748b;">&times;</button>
+            </h3>
+            <p id="evAIAutoNameDisplay" style="color:#64748b; font-size:0.85rem; margin-bottom:15px; font-weight:600;"></p>
+            
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">1. Síntesis Técnica del Documento</label>
+                <textarea id="evAIAutoSynthesis" rows="3" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.85rem; font-family:inherit; box-sizing:border-box;"></textarea>
+            </div>
+            
+            <div style="margin-bottom:18px;">
+                <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">2. Aporte Cualitativo al Aspecto y Característica</label>
+                <textarea id="evAIAutoContribution" rows="3" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.85rem; font-family:inherit; box-sizing:border-box;"></textarea>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <button type="button" id="btnGenEvAIAuto" onclick="triggerGenEvAIAuto()" style="padding:10px 16px; background:#f5f3ff; color:#7c3aed; border:1px solid #8b5cf6; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.85rem;">
+                    <i class="fas fa-wand-magic-sparkles"></i> ✨ Generar / Re-analizar con IA
+                </button>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" onclick="closeEvAIAutoModal()" style="padding:10px 16px; background:#f1f5f9; color:#475569; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:0.85rem;">Cancelar</button>
+                    <button type="button" id="btnSaveEvAIAuto" onclick="saveEvAIAuto()" style="padding:10px 18px; background:linear-gradient(135deg, #10b981 0%, #047857 100%); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.85rem; box-shadow:0 4px 12px rgba(16,185,129,0.3);">
+                        <i class="fas fa-save"></i> 💾 Guardar Aporte IA en Supabase
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='permissions_enforcer.js') }}"></script>
 </body>

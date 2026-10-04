@@ -138,38 +138,57 @@ def handle_evaluations():
     if request.method == 'POST':
         data = request.json
         try:
+            valid_inst_id = inst_id if (inst_id and inst_id > 0) else None
+            valid_program_id = program_id if (program_id and program_id > 0) else None
+            
             for char_id, eval_data in data.items():
-                try:
-                    existing = supabase.table('evaluations').select('id').eq('char_id', char_id).execute()
-                    if existing.data:
+                new_rating = eval_data.get('rating')
+                new_just = eval_data.get('just')
+                
+                query = supabase.table('evaluations').select('*').eq('char_id', char_id)
+                if valid_inst_id:
+                    query = query.eq('inst_id', valid_inst_id)
+                if valid_program_id:
+                    query = query.eq('program_id', valid_program_id)
+                existing = query.execute()
+                
+                if not existing.data:
+                    existing = supabase.table('evaluations').select('*').eq('char_id', char_id).execute()
+                
+                curr_rec = existing.data[0] if existing.data else {}
+                final_rating = new_rating if (new_rating is not None and new_rating != '') else curr_rec.get('rating', 0)
+                final_just = new_just if new_just is not None else curr_rec.get('just', '')
+                
+                payload = {
+                    "rating": final_rating,
+                    "just": final_just
+                }
+                if valid_inst_id:
+                    payload["inst_id"] = valid_inst_id
+                if valid_program_id:
+                    payload["program_id"] = valid_program_id
+                    
+                if curr_rec:
+                    try:
+                        supabase.table('evaluations').update(payload).eq('id', curr_rec['id']).execute()
+                    except Exception as ex_fk:
+                        print("FK update fallback:", ex_fk)
                         supabase.table('evaluations').update({
-                            "rating": eval_data.get('rating', 0), 
-                            "just": eval_data.get('just', ''),
-                            "inst_id": inst_id,
-                            "program_id": program_id
-                        }).eq('char_id', char_id).execute()
-                    else:
+                            "rating": final_rating,
+                            "just": final_just
+                        }).eq('id', curr_rec['id']).execute()
+                else:
+                    payload["char_id"] = char_id
+                    try:
+                        supabase.table('evaluations').insert(payload).execute()
+                    except Exception as ex_fk:
+                        print("FK insert fallback:", ex_fk)
                         supabase.table('evaluations').insert({
-                            "char_id": char_id, 
-                            "rating": eval_data.get('rating', 0), 
-                            "just": eval_data.get('just', ''),
-                            "inst_id": inst_id,
-                            "program_id": program_id
+                            "char_id": char_id,
+                            "rating": final_rating,
+                            "just": final_just
                         }).execute()
-                except Exception:
-                    # Fallback si no existen las columnas inst_id/program_id
-                    existing_fb = supabase.table('evaluations').select('id').eq('char_id', char_id).execute()
-                    if existing_fb.data:
-                        supabase.table('evaluations').update({
-                            "rating": eval_data.get('rating', 0), 
-                            "just": eval_data.get('just', '')
-                        }).eq('char_id', char_id).execute()
-                    else:
-                        supabase.table('evaluations').insert({
-                            "char_id": char_id, 
-                            "rating": eval_data.get('rating', 0), 
-                            "just": eval_data.get('just', '')
-                        }).execute()
+                        
             return jsonify({"status": "success"})
         except Exception as e:
             print(f"Error saving eval: {e}")
@@ -300,8 +319,18 @@ def handle_planes_mejora():
             presupuesto_dinero = data.get('presupuesto_dinero', 0)
             responsable_rol = data.get('responsable_rol', 'lider')
             
-            if not char_id or not accion or not responsable or not fecha_limite:
-                return jsonify({"status": "error", "message": "Datos incompletos"})
+            from datetime import datetime, timedelta
+            if not char_id or not accion or not str(accion).strip():
+                return jsonify({"status": "error", "message": "Falta la característica o la descripción de la acción"})
+            
+            if not responsable or not str(responsable).strip():
+                responsable = data.get('user_email') or 'Equipo de Autoevaluación'
+                
+            if not fecha_inicio or not str(fecha_inicio).strip():
+                fecha_inicio = datetime.now().strftime('%Y-%m-%d')
+                
+            if not fecha_limite or not str(fecha_limite).strip():
+                fecha_limite = (datetime.now() + timedelta(days=90)).strftime('%Y-%m-%d')
             
             avance = calculate_plan_avance({
                 "indicador_tipo": indicador_tipo,
