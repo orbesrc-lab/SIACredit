@@ -3272,21 +3272,23 @@
         // GENERACIÓN PDF — VENTANA DEDICADA (Informe Autoevaluación)
         // ============================================================
         
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (typeof initHeader === 'function') await initHeader();
-            else {
-                try {
-                    const resp = await authFetch(`/api/institution?inst_id=${getInstId()}`);
-                    if (resp.ok) {
-                        const data = await resp.json();
-                        document.getElementById('inst_name_display').textContent = data.name || 'INSTITUCIÓN EDUCATIVA';
-                        if (data.logo_url) {
-                            const img = document.getElementById('inst_logo_img');
-                            img.src = data.logo_url; img.style.display = 'block';
-                        }
+        async function initHeader() {
+            try {
+                const resp = await authFetch(`/api/institution?inst_id=${getInstId()}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const nameEl = document.getElementById('inst_name_display');
+                    if (nameEl) nameEl.textContent = data.name || 'INTENALCO';
+                    if (data.logo_url) {
+                        const img = document.getElementById('inst_logo_img');
+                        if (img) { img.src = data.logo_url; img.style.display = 'block'; }
                     }
-                } catch(e){}
-            }
+                }
+            } catch(e) { console.error("Error initHeader:", e); }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initHeader();
         });
 
     function imprimirInformeCompleto() {
@@ -3822,191 +3824,5 @@ group.classList.toggle('active');
 
     <script src="{{ url_for('static', filename='permissions_enforcer.js') }}"></script>
 
-<!-- ===== MODAL RENOVACI├ôN REGISTRO CALIFICADO ===== -->
-    <div id="rrcOverlay" class="rrc-overlay" onclick="cerrarModalRRCSiClick(event)">
-        <div class="rrc-modal" id="rrcModal">
-            <!-- Header -->
-            <div class="rrc-header">
-                <div class="rrc-header-left">
-                    <h2>­ƒÅø´©Å Soporte para Renovaci├│n de Registro Calificado</h2>
-                    <p id="rrcProgramaTitle">Cargando programa...</p>
-                    <div class="rrc-header-badges">
-                        <span class="rrc-badge">Decreto 1330 de 2019</span>
-                        <span class="rrc-badge">Resoluci├│n 0529 MEN</span>
-                        <span class="rrc-badge">9 Condiciones de Calidad</span>
-                    </div>
-                </div>
-                <button class="rrc-close-btn" onclick="cerrarModalRRC()" title="Cerrar">Ô£ò</button>
-            </div>
-
-            <!-- Cuerpo: Loading -->
-            <div id="rrcLoading" class="rrc-loading active">
-                <div class="rrc-loader"></div>
-                <div style="text-align:center;">
-                    <strong>Generando soporte documental...</strong>
-                    <p>Mapeando la autoevaluaci├│n a las 9 condiciones del Dec. 1330/2019 y analizando con IA</p>
-                </div>
-            </div>
-
-            <!-- Cuerpo: Contenido -->
-            <div id="rrcContent" style="display:none;">
-                <div class="rrc-body">
-                    <!-- Tabs de condiciones -->
-                    <div class="rrc-tabs" id="rrcTabs"></div>
-                    <!-- Paneles -->
-                    <div id="rrcPanels"></div>
-                </div>
-                <!-- Footer -->
-                <div class="rrc-footer">
-                    <div style="flex: 1;">
-                        <p class="rrc-footer-note" style="margin-bottom:10px;">
-                            ÔÜá´©Å Este documento es un <strong>soporte de construcci├│n</strong>. Debe ser revisado y validado por el equipo acad├®mico antes de presentarse al MEN.
-                        </p>
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <label for="justificationFileRRC" style="font-size:0.85rem; font-weight:600;">Soporte / Justificaci├│n (Opcional):</label>
-                            <input type="file" id="justificationFileRRC" accept=".pdf,.docx,.xlsx" style="font-size:0.8rem;">
-                            <button class="btn-primary" style="font-size:0.75rem; padding: 4px 10px;" onclick="analizarSoporteCondicion()" id="btnAnalizarSoporte" title="Sube el archivo y analiza mediante IA solo la pesta├▒a activa"><i class="fas fa-brain"></i> Analizar Pesta├▒a Activa</button>
-                        </div>
-                    </div>
-                    <div class="rrc-footer-actions">
-                        <button class="btn-secondary" onclick="imprimirRRC()">­ƒû¿´©Å Imprimir / PDF</button>
-                        <button class="btn-primary" onclick="guardarReporteRRC()">­ƒÆ¥ Guardar Cambios</button>
-                        <button class="btn-rrc" onclick="regenerarRRC()">­ƒöä Generar con IA</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== MODAL DOFA INTERNO ===== -->
-    <div id="dofaOverlay" class="rrc-overlay" onclick="if(event.target===this) cerrarModalDOFA()">
-        <div class="rrc-modal" style="max-width: 900px;">
-            <div class="rrc-header" style="background: linear-gradient(135deg, #064e3b 0%, #059669 100%);">
-                <div class="rrc-header-left">
-                    <h2>­ƒøí´©Å Factores Internos DOFA</h2>
-                    <p>Fortalezas y Debilidades extra├¡das estrat├®gicamente por IA</p>
-                </div>
-                <button class="rrc-close-btn" onclick="cerrarModalDOFA()" title="Cerrar">Ô£ò</button>
-            </div>
-            <div id="dofaLoading" class="rrc-loading active">
-                <div class="rrc-loader" style="border-top-color: #059669;"></div>
-                <div style="text-align:center;">
-                    <strong>Analizando el informe maestro...</strong>
-                    <p>Identificando y priorizando Fortalezas y Debilidades bajo el formato D1, F1</p>
-                </div>
-            </div>
-            <div id="dofaContent" style="display:none; padding: 30px;">
-                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 300px;">
-                        <h3 style="color: #059669; border-bottom: 2px solid #34d399; padding-bottom: 8px; margin-bottom: 15px;">Ô¡É Fortalezas</h3>
-                        <div id="dofaFortalezasList" style="display:flex; flex-direction:column; gap:10px;"></div>
-                    </div>
-                    <div style="flex: 1; min-width: 300px;">
-                        <h3 style="color: #dc2626; border-bottom: 2px solid #f87171; padding-bottom: 8px; margin-bottom: 15px;">ÔÜá´©Å Debilidades</h3>
-                        <div id="dofaDebilidadesList" style="display:flex; flex-direction:column; gap:10px;"></div>
-                    </div>
-                </div>
-                <div style="margin-top: 30px; padding: 15px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; color: #166534; font-size: 0.95rem;">
-                    <strong>┬íAn├ílisis Guardado Exitosamente!</strong> Estos factores internos han sido almacenados de forma autom├ítica en la base de datos de tu programa, y estar├ín listos para ser utilizados en la Matriz del futuro m├│dulo de <b>Diagn├│stico DOFA</b>.
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== MODAL PESTA EXTERNO ===== -->
-    <div id="pestaOverlay" class="rrc-overlay" onclick="if(event.target===this) cerrarModalPESTA()">
-        <div class="rrc-modal" style="max-width: 1000px; max-height: 90vh; display:flex; flex-direction:column;">
-            <div class="rrc-header" style="background: linear-gradient(135deg, #075985 0%, #0284c7 100%);">
-                <div class="rrc-header-left">
-                    <h2>­ƒîì Factores Externos (PESTA)</h2>
-                    <p>Barrido referencial y an├ílisis del entorno global, sectorial y disciplinar.</p>
-                </div>
-                <button class="rrc-close-btn" onclick="cerrarModalPESTA()" title="Cerrar">Ô£ò</button>
-            </div>
-            <div id="pestaLoading" class="rrc-loading active">
-                <div class="rrc-loader" style="border-top-color: #0284c7;"></div>
-                <div style="text-align:center;">
-                    <strong>Realizando barrido referencial PESTA...</strong>
-                    <p>Identificando tendencias, Oportunidades y Amenazas en el entorno estrat├®gico.</p>
-                </div>
-            </div>
-            <div id="pestaContent" style="display:none; padding: 30px; overflow-y: auto; background: #f8fafc;">
-                <div style="display:flex; justify-content: flex-end; margin-bottom: 15px;">
-                    <button class="btn-secondary" onclick="imprimirPESTA()">­ƒû¿´©Å Exportar Informe PESTA</button>
-                </div>
-                <style>
-                    #pestaMarkdownReport h1 { font-size: 1.6rem; color: #075985; margin-bottom: 1rem; border-bottom: 2px solid #e0f2fe; padding-bottom: 0.5rem; }
-                    #pestaMarkdownReport h2 { font-size: 1.3rem; color: #0284c7; margin-top: 1.5rem; margin-bottom: 0.8rem; }
-                    #pestaMarkdownReport h3 { font-size: 1.15rem; color: #0369a1; margin-top: 1.2rem; }
-                    #pestaMarkdownReport p { margin-bottom: 1rem; color: #334155; }
-                    #pestaMarkdownReport ul, #pestaMarkdownReport ol { margin-left: 1.5rem; margin-bottom: 1rem; color: #334155; }
-                    #pestaMarkdownReport li { margin-bottom: 0.3rem; }
-                </style>
-                <div id="pestaMarkdownReport" style="line-height: 1.6; font-size: 1rem; padding: 30px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 20px;"></div>
-                
-                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 300px;">
-                        <h3 style="color: #0284c7; border-bottom: 2px solid #38bdf8; padding-bottom: 8px; margin-bottom: 15px;">­ƒÜÇ Oportunidades</h3>
-                        <div id="pestaOportunidadesList" style="display:flex; flex-direction:column; gap:10px;"></div>
-                    </div>
-                    <div style="flex: 1; min-width: 300px;">
-                        <h3 style="color: #b45309; border-bottom: 2px solid #fbbf24; padding-bottom: 8px; margin-bottom: 15px;">ÔÜí Amenazas</h3>
-                        <div id="pestaAmenazasList" style="display:flex; flex-direction:column; gap:10px;"></div>
-                    </div>
-                </div>
-                <div style="margin-top: 30px; padding: 15px; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; color: #115e59; font-size: 0.95rem;">
-                    <strong>┬íFactores Externos Guardados Exitosamente!</strong> Las Oportunidades y Amenazas extra├¡das han sido almacenadas y estar├ín disponibles en el <b>Diagn├│stico DOFA</b>.
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Widget Chatbot IA -->
-    <div id="aiChatWidget" class="ai-chat-widget">
-        <div class="ai-chat-header" onclick="toggleChat()">
-            <span>* Asistente IA (Margy) CNA</span>
-            <span id="chatToggleIcon">Ôû╝</span>
-        </div>
-        <div class="ai-chat-body" id="aiChatBody" style="display:none;">
-            <div class="ai-chat-messages" id="aiChatMessages">
-                <div class="ai-message">┬íHola! Soy Margy, tu asistente de Inteligencia Artificial para la acreditaci├│n. Puedo ayudarte a analizar cuadros estad├¡sticos o generar reportes de los factores. ┬┐En qu├® te ayudo hoy?</div>
-            </div>
-            <div class="ai-chat-input-area" style="align-items: center;">
-                <input type="file" id="aiChatFile" style="display:none;" onchange="updateChatFileLabel()">
-                <label for="aiChatFile" id="aiChatFileLabel" style="cursor:pointer; font-size:1.2rem; padding:0 8px; color:#64748b; margin-bottom:0;" title="Adjuntar archivo">­ƒôÄ</label>
-                <input type="text" id="aiChatInput" placeholder="Escribe tu consulta..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
-                <button onclick="sendChatMessage()">Enviar</button>
-            </div>
-        </div>
-    </div>
-
-<!-- MODAL PERMISOS -->
-<div class="modal-overlay" id="permisosOverlay">
-    <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">
-            <h3>Configurar Permisos de Rol</h3>
-            <button class="close-btn" onclick="cerrarModalPermisos()">├ù</button>
-        </div>
-        <div class="modal-body">
-            <p style="margin-bottom: 15px; font-size: 0.9rem; color: #64748b;">Selecciona qu├® roles pueden ver y usar este elemento:</p>
-            <input type="hidden" id="currentPermNodeId">
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <label><input type="checkbox" class="perm-role-cb" value="super_admin"> Super Admin</label>
-                <label><input type="checkbox" class="perm-role-cb" value="admin"> Administrador</label>
-                <label><input type="checkbox" class="perm-role-cb" value="lider"> L├¡der</label>
-                <label><input type="checkbox" class="perm-role-cb" value="operador"> Operador</label>
-                <label><input type="checkbox" class="perm-role-cb" value="docente"> Docente</label>
-                <label><input type="checkbox" class="perm-role-cb" value="estudiante"> Estudiante</label>
-                <label><input type="checkbox" class="perm-role-cb" value="empresa_admin"> Empresa Admin</label>
-            </div>
-            <div style="margin-top: 20px; text-align: right;">
-                <button class="btn-primary" onclick="guardarPermisosNodo()">Guardar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 </body>
-
 </html>
-
