@@ -259,6 +259,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
                 <h1 style="font-size: 1.8rem; margin: 0;">Gestión de Encuestas de Autoevaluación</h1>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-primary" style="background:#0284c7;" onclick="openQuestionBankManagerModal()">📚 Banco de Preguntas</button>
                     <button class="btn-primary" style="background:#7c3aed;" onclick="loadDefaultCNABattery()">✨ Batería CNA 2025</button>
                     <button class="btn-secondary" onclick="downloadSurveyCSVTemplate()">📥 Plantilla Preguntas CSV</button>
                     <button class="btn-secondary" onclick="triggerImportSurveyCSV()">📤 Importar Encuesta (CSV)</button>
@@ -345,8 +346,9 @@
             <div style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 8px;">
                     <h4 style="margin: 0; font-size: 1.05rem;">Preguntas de la Encuesta</h4>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn-ghost" style="padding: 6px 12px; font-size: 0.85rem; border: 1px dashed var(--border-color);" onclick="triggerImportModalQuestionsCSV()">📥 Importar Preguntas CSV</button>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn-primary" style="padding: 6px 12px; font-size: 0.85rem; background: #0284c7;" onclick="openQuestionBankPickerModal()">📚 Explorar Banco de Preguntas</button>
+                        <button class="btn-ghost" style="padding: 6px 12px; font-size: 0.85rem; border: 1px dashed var(--border-color);" onclick="triggerImportModalQuestionsCSV()">📥 Importar CSV</button>
                         <input type="file" id="importModalQuestionsFile" accept=".csv" style="display: none;" onchange="importModalQuestionsCSV(event)">
                         <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="addQuestionItem()">+ Añadir Pregunta</button>
                     </div>
@@ -360,6 +362,135 @@
             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--border-color);">
                 <button class="btn-secondary" onclick="closeSurveyModal()">Cancelar</button>
                 <button class="btn-primary" onclick="saveSurvey()">Guardar Encuesta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL BANCO DE PREGUNTAS -->
+    <div id="questionBankModal" class="modal-overlay" style="display: none; z-index: 1100;">
+        <div class="modal-content" style="max-width: 900px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; padding: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
+                <div>
+                    <h3 style="font-size: 1.25rem; margin: 0; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                        📚 Banco de Preguntas Institucional (CNA 2025 & Decreto 1330)
+                    </h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 4px 0 0;">
+                        Seleccione preguntas preconfiguradas o agregue sus propias preguntas personales para que sumen al repositorio central.
+                    </p>
+                </div>
+                <button class="btn-ghost" onclick="closeQuestionBankModal()" style="font-size: 1.2rem; cursor: pointer;">×</button>
+            </div>
+
+            <!-- FILTROS Y BÚSQUEDA -->
+            <div style="background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+                <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                    <div>
+                        <label style="font-size: 0.78rem; font-weight: 700;">Buscar Pregunta</label>
+                        <input type="text" id="qbSearchInput" placeholder="Palabra clave..." oninput="filterQuestionBankList()" style="padding: 8px; font-size: 0.85rem;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.78rem; font-weight: 700;">Estamento / Actor</label>
+                        <select id="qbTargetFilter" onchange="filterQuestionBankList()" style="padding: 8px; font-size: 0.85rem;">
+                            <option value="">Todos los Actores</option>
+                            <option value="transversal">Transversal (Todos)</option>
+                            <option value="estudiantes">Estudiantes</option>
+                            <option value="profesores">Profesores / Docentes</option>
+                            <option value="egresados">Egresados / Graduados</option>
+                            <option value="administrativos">Administrativos</option>
+                            <option value="directivos">Directivos</option>
+                            <option value="empleadores">Empleadores / Sector Prod.</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.78rem; font-weight: 700;">Tipo de Aspecto</label>
+                        <select id="qbAspectTypeFilter" onchange="filterQuestionBankList()" style="padding: 8px; font-size: 0.85rem;">
+                            <option value="">Todos los Tipos</option>
+                            <option value="opinion">Opinión / Percepción</option>
+                            <option value="rating">Evaluativo Cuantitativo</option>
+                            <option value="factual">Factual / Verificación</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.78rem; font-weight: 700;">Ámbito / Nivel</label>
+                        <select id="qbScopeFilter" onchange="filterQuestionBankList()" style="padding: 8px; font-size: 0.85rem;">
+                            <option value="">Todos los Nivel</option>
+                            <option value="programa">Programa Académico</option>
+                            <option value="institucional">Institucional</option>
+                            <option value="unidad">Unidad / Facultad</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700;">Factor del Modelo</label>
+                    <select id="qbFactorFilter" onchange="filterQuestionBankList()" style="padding: 8px; font-size: 0.85rem; width: 100%;">
+                        <option value="">Todos los Factores (1 a 12)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- CONTENEDOR DE PREGUNTAS DEL BANCO -->
+            <div id="qbQuestionsList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 5px; min-height: 250px;">
+                <!-- Se inyecta dinámicamente -->
+            </div>
+
+            <!-- FORMULARIO CREAR PREGUNTA AL BANCO -->
+            <div id="qbAddCustomForm" style="display: none; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 15px; margin-top: 15px;">
+                <h4 style="margin: 0 0 10px; font-size: 0.95rem; color: #0369a1;">➕ Agregar Pregunta Personal al Banco Institucional</h4>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label style="font-size: 0.8rem; font-weight: 700;">Texto de la Pregunta</label>
+                    <input type="text" id="newQbText" placeholder="Ej: ¿Qué tan satisfecho está con la puntualidad en el inicio de clases?" style="padding: 8px; font-size: 0.88rem;">
+                </div>
+                <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px;">
+                    <div>
+                        <label style="font-size: 0.78rem;">Tipo de Respuesta</label>
+                        <select id="newQbType" style="padding: 6px; font-size: 0.82rem;">
+                            <option value="rating">Rating (1-5 Estrellas)</option>
+                            <option value="likert">Escala Likert (1-5)</option>
+                            <option value="boolean">Sí / No</option>
+                            <option value="text">Comentario / Texto</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.78rem;">Aspecto</label>
+                        <select id="newQbAspectType" style="padding: 6px; font-size: 0.82rem;">
+                            <option value="opinion">Opinión / Percepción</option>
+                            <option value="rating">Evaluativo Cuantitativo</option>
+                            <option value="factual">Factual / Verificación</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.78rem;">Público Objetivo</label>
+                        <select id="newQbTarget" style="padding: 6px; font-size: 0.82rem;">
+                            <option value="transversal">Transversal</option>
+                            <option value="estudiantes">Estudiantes</option>
+                            <option value="profesores">Profesores</option>
+                            <option value="egresados">Egresados</option>
+                            <option value="administrativos">Administrativos</option>
+                            <option value="empleadores">Empleadores</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.78rem;">Ámbito</label>
+                        <select id="newQbScope" style="padding: 6px; font-size: 0.82rem;">
+                            <option value="programa">Programa</option>
+                            <option value="institucional">Institucional</option>
+                            <option value="unidad">Unidad</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.82rem;" onclick="toggleAddQbForm(false)">Cancelar</button>
+                    <button class="btn-primary" style="padding: 6px 12px; font-size: 0.82rem;" onclick="saveNewQuestionToBank()">💾 Guardar en Banco</button>
+                </div>
+            </div>
+
+            <!-- PIE Y ACCIONES DE IMPORTACIÓN -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px;">
+                <button class="btn-secondary" style="font-size: 0.85rem;" onclick="toggleAddQbForm(true)">+ Crear Nueva Pregunta Personal</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-secondary" onclick="closeQuestionBankModal()">Cerrar</button>
+                    <button class="btn-primary" id="btnImportSelectedQb" style="display: none; background: #0284c7;" onclick="importSelectedQuestionsFromBank()">📥 Importar Preguntas Seleccionadas (0)</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1422,6 +1553,9 @@
                     aspect_id: aspectId
                 });
             }
+            return questions;
+        }
+
         async function loadDefaultCNABattery() {
             if (surveysData.length > 0) {
                 if (!confirm("¿Desea agregar las 4 encuestas institucionales de la Batería CNA 2025 articuladas con el modelo a su lista actual?")) return;
@@ -1662,6 +1796,229 @@
             } catch(e) {
                 console.error("Error al cargar batería CNA:", e);
                 alert("Error de conexión al cargar la batería CNA.");
+            }
+        }
+
+        // --- BANCO DE PREGUNTAS INSTITUCIONAL ---
+        let rawQuestionBank = [];
+        let selectedQbIds = new Set();
+        let isPickerMode = false;
+
+        async function fetchQuestionBank() {
+            try {
+                const resp = await authFetch(`/api/question_bank?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                rawQuestionBank = await resp.json();
+                populateQbFactorFilter();
+            } catch (e) {
+                console.error("Error fetching question bank:", e);
+            }
+        }
+
+        function populateQbFactorFilter() {
+            const select = document.getElementById('qbFactorFilter');
+            if (!select) return;
+            select.innerHTML = '<option value="">Todos los Factores (1 a 12)</option>';
+            
+            const factorsMap = {};
+            rawQuestionBank.forEach(q => {
+                if (q.factor_number) {
+                    factorsMap[q.factor_number] = q.factor_name || `Factor ${q.factor_number}`;
+                }
+            });
+            
+            Object.keys(factorsMap).sort((a,b) => a - b).forEach(num => {
+                const opt = document.createElement('option');
+                opt.value = num;
+                opt.textContent = `${factorsMap[num]}`;
+                select.appendChild(opt);
+            });
+        }
+
+        async function openQuestionBankManagerModal() {
+            isPickerMode = false;
+            const btnImp = document.getElementById('btnImportSelectedQb');
+            if (btnImp) btnImp.style.display = 'none';
+            selectedQbIds.clear();
+            await fetchQuestionBank();
+            filterQuestionBankList();
+            document.getElementById('questionBankModal').style.display = 'flex';
+        }
+
+        async function openQuestionBankPickerModal() {
+            isPickerMode = true;
+            const btnImp = document.getElementById('btnImportSelectedQb');
+            if (btnImp) btnImp.style.display = 'inline-block';
+            selectedQbIds.clear();
+            updateImportSelectedBtnText();
+            await fetchQuestionBank();
+            filterQuestionBankList();
+            document.getElementById('questionBankModal').style.display = 'flex';
+        }
+
+        function closeQuestionBankModal() {
+            document.getElementById('questionBankModal').style.display = 'none';
+            toggleAddQbForm(false);
+        }
+
+        function filterQuestionBankList() {
+            const searchInput = document.getElementById('qbSearchInput');
+            const search = searchInput ? (searchInput.value || '').toLowerCase().trim() : '';
+            const target = document.getElementById('qbTargetFilter') ? document.getElementById('qbTargetFilter').value : '';
+            const aspectType = document.getElementById('qbAspectTypeFilter') ? document.getElementById('qbAspectTypeFilter').value : '';
+            const scope = document.getElementById('qbScopeFilter') ? document.getElementById('qbScopeFilter').value : '';
+            const factorNum = document.getElementById('qbFactorFilter') ? document.getElementById('qbFactorFilter').value : '';
+
+            const filtered = rawQuestionBank.filter(q => {
+                if (search && !(q.text || '').toLowerCase().includes(search)) return false;
+                if (target && q.target !== target && q.target !== 'transversal') return false;
+                if (aspectType && q.aspect_type !== aspectType) return false;
+                if (scope && q.scope !== scope) return false;
+                if (factorNum && String(q.factor_number) !== String(factorNum)) return false;
+                return true;
+            });
+
+            renderQuestionBankList(filtered);
+        }
+
+        function renderQuestionBankList(questions) {
+            const list = document.getElementById('qbQuestionsList');
+            if (!list) return;
+            list.innerHTML = '';
+
+            if (questions.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">🔍</div>
+                        <p>No se encontraron preguntas con los filtros seleccionados.</p>
+                    </div>`;
+                return;
+            }
+
+            questions.forEach(q => {
+                const card = document.createElement('div');
+                card.style.background = 'var(--white)';
+                card.style.border = '1px solid var(--border-color)';
+                card.style.borderRadius = '10px';
+                card.style.padding = '14px';
+                card.style.display = 'flex';
+                card.style.gap = '12px';
+                card.style.alignItems = 'flex-start';
+
+                const isChecked = selectedQbIds.has(q.id);
+                
+                const targetClass = q.target ? `target-${q.target}` : 'target-estudiantes';
+                const aspectLabel = q.aspect_type === 'opinion' ? '💡 Opinión / Percepción' : (q.aspect_type === 'factual' ? '📄 Factual / Hecho' : '📊 Evaluativo Cuantitativo');
+                const scopeLabel = q.scope ? q.scope.toUpperCase() : 'PROGRAMA';
+                const originBadge = q.is_system ? '<span style="font-size:0.7rem; background:#f1f5f9; color:#475569; padding:2px 6px; border-radius:4px;">CNA 2025</span>' : '<span style="font-size:0.7rem; background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; font-weight:700;">Aporte Personal</span>';
+
+                let checkboxHtml = isPickerMode ? `
+                    <input type="checkbox" style="width: 18px; height: 18px; margin-top: 3px; cursor: pointer;" ${isChecked ? 'checked' : ''} onchange="toggleSelectQbQuestion('${q.id}', this.checked)">
+                ` : '';
+
+                card.innerHTML = `
+                    ${checkboxHtml}
+                    <div style="flex: 1;">
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; align-items: center;">
+                            <span class="survey-target-badge ${targetClass}" style="margin: 0;">${q.target || 'Transversal'}</span>
+                            <span style="font-size:0.75rem; background:#eff6ff; color:#1d4ed8; padding:2px 8px; border-radius:12px; font-weight:600;">${aspectLabel}</span>
+                            <span style="font-size:0.75rem; background:#f3e8ff; color:#6b21a8; padding:2px 8px; border-radius:12px; font-weight:600;">Ámbito: ${scopeLabel}</span>
+                            <span style="font-size:0.75rem; background:#ecfdf5; color:#047857; padding:2px 8px; border-radius:12px; font-weight:600;">F${q.factor_number || 1}</span>
+                            ${originBadge}
+                        </div>
+                        <div style="font-size: 0.92rem; font-weight: 600; color: var(--text-main); line-height: 1.4;">${q.text}</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+                            Tipo: <strong>${q.type || 'rating'}</strong> ${q.options && q.options.length > 0 ? '| Opciones: ' + q.options.join(', ') : ''}
+                        </div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function toggleSelectQbQuestion(qId, isChecked) {
+            if (isChecked) selectedQbIds.add(qId);
+            else selectedQbIds.delete(qId);
+            updateImportSelectedBtnText();
+        }
+
+        function updateImportSelectedBtnText() {
+            const btn = document.getElementById('btnImportSelectedQb');
+            if (btn) btn.textContent = `📥 Importar (${selectedQbIds.size}) Seleccionadas a la Encuesta`;
+        }
+
+        function importSelectedQuestionsFromBank() {
+            if (selectedQbIds.size === 0) {
+                alert("Por favor seleccione al menos una pregunta del banco.");
+                return;
+            }
+
+            const selectedQs = rawQuestionBank.filter(q => selectedQbIds.has(q.id));
+            const container = document.getElementById('questionsContainer');
+            
+            const items = container.querySelectorAll('.question-builder-item');
+            if (items.length === 1 && !items[0].querySelector('.q-text').value.trim()) {
+                container.innerHTML = "";
+            }
+
+            selectedQs.forEach(q => {
+                addQuestionItem({
+                    id: 'q_' + generateId(),
+                    text: q.text,
+                    type: q.type || 'rating',
+                    options: q.options || [],
+                    factor_id: q.factor_number || null,
+                    char_id: null,
+                    aspect_id: null
+                });
+            });
+
+            alert(`✅ Se han importado ${selectedQs.length} preguntas de manera exitosa a la encuesta.`);
+            closeQuestionBankModal();
+        }
+
+        function toggleAddQbForm(show) {
+            const form = document.getElementById('qbAddCustomForm');
+            if (form) form.style.display = show ? 'block' : 'none';
+        }
+
+        async function saveNewQuestionToBank() {
+            const text = document.getElementById('newQbText').value.trim();
+            if (!text) { alert("El texto de la pregunta es obligatorio."); return; }
+
+            const type = document.getElementById('newQbType').value;
+            const aspect_type = document.getElementById('newQbAspectType').value;
+            const target = document.getElementById('newQbTarget').value;
+            const scope = document.getElementById('newQbScope').value;
+
+            const newQ = {
+                text: text,
+                type: type,
+                aspect_type: aspect_type,
+                target: target,
+                scope: scope,
+                factor_number: 1,
+                is_system: false
+            };
+
+            try {
+                const resp = await authFetch(`/api/question_bank/add?inst_id=${getInstId()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify([newQ])
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    alert("✨ Pregunta personal guardada con éxito en el Banco Institucional.");
+                    document.getElementById('newQbText').value = "";
+                    toggleAddQbForm(false);
+                    await fetchQuestionBank();
+                    filterQuestionBankList();
+                } else {
+                    alert("Error al guardar en el banco: " + res.message);
+                }
+            } catch (e) {
+                console.error("Error saving new question to bank:", e);
+                alert("Error de conexión al guardar en el banco.");
             }
         }
 

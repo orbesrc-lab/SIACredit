@@ -26,6 +26,30 @@ def handle_surveys():
 
     if request.method == 'POST':
         data = request.json  # list of surveys
+        
+        # Ingest custom questions into Question Bank automatically
+        try:
+            import question_bank
+            custom_qs = []
+            if isinstance(data, list):
+                for surv in data:
+                    t_st = surv.get('target', 'transversal')
+                    for q in (surv.get('questions') or []):
+                        if q.get('text'):
+                            custom_qs.append({
+                                "text": q.get('text'),
+                                "type": q.get('type', 'rating'),
+                                "aspect_type": "opinion" if q.get('type') == "text" else ("factual" if q.get('type') in ("boolean","file") else "rating"),
+                                "scope": "programa",
+                                "target": t_st,
+                                "factor_number": q.get('factor_id') or 1,
+                                "options": q.get('options') or []
+                            })
+            if custom_qs:
+                question_bank.save_custom_questions(inst_id, custom_qs)
+        except Exception as ex_qb:
+            print("Error auto-ingesting questions into Question Bank:", ex_qb)
+
         if use_cloud:
             try:
                 # Pull first to ensure we don't wipe out other responses stored in cloud when we save/sync
@@ -52,6 +76,25 @@ def handle_surveys():
             
     surveys = survey_storage.load_local_surveys(inst_id, program_id)
     return jsonify(surveys)
+
+@surveys_bp.route('/api/question_bank', methods=['GET'])
+@require_permission('autoevaluacion')
+def get_question_bank_api():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    import question_bank
+    full_bank = question_bank.get_full_question_bank(inst_id)
+    return jsonify(full_bank)
+
+@surveys_bp.route('/api/question_bank/add', methods=['POST'])
+@require_permission('autoevaluacion')
+def add_question_bank_api():
+    inst_id = request.args.get('inst_id', 1, type=int)
+    data = request.json
+    import question_bank
+    if isinstance(data, dict):
+        data = [data]
+    added = question_bank.save_custom_questions(inst_id, data or [])
+    return jsonify({"status": "success", "added_count": added})
 
 @surveys_bp.route('/api/surveys/<survey_id>', methods=['GET', 'DELETE'])
 @require_permission('autoevaluacion')
