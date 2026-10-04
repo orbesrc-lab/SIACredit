@@ -435,32 +435,41 @@
 
             <!-- FORMULARIO CREAR PREGUNTA AL BANCO -->
             <div id="qbAddCustomForm" style="display: none; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 15px; margin-top: 15px;">
-                <h4 style="margin: 0 0 10px; font-size: 0.95rem; color: #0369a1;">➕ Agregar Pregunta Personal al Banco Institucional</h4>
+                <h4 style="margin: 0 0 8px; font-size: 0.95rem; color: #0369a1;">➕ Agregar Pregunta(s) Personal(es) al Banco Institucional</h4>
+                <p style="font-size: 0.78rem; color: #64748b; margin: 0 0 10px;">
+                    Puede escribir una sola pregunta o pegar múltiples preguntas (una por línea) para agregarlas en lote.
+                </p>
                 <div class="form-group" style="margin-bottom: 10px;">
-                    <label style="font-size: 0.8rem; font-weight: 700;">Texto de la Pregunta</label>
-                    <input type="text" id="newQbText" placeholder="Ej: ¿Qué tan satisfecho está con la puntualidad en el inicio de clases?" style="padding: 8px; font-size: 0.88rem;">
+                    <label style="font-size: 0.8rem; font-weight: 700;">Texto de la(s) Pregunta(s)</label>
+                    <textarea id="newQbText" rows="2" placeholder="Ej: ¿Qué tan satisfecho está con la puntualidad en el inicio de clases? (Para varias preguntas, escriba una por línea)" style="padding: 8px; font-size: 0.88rem; width: 100%; border-radius: 6px; border: 1px solid #cbd5e1;"></textarea>
                 </div>
-                <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px;">
+                <div class="form-grid" style="grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 10px;">
                     <div>
-                        <label style="font-size: 0.78rem;">Tipo de Respuesta</label>
-                        <select id="newQbType" style="padding: 6px; font-size: 0.82rem;">
-                            <option value="rating">Rating (1-5 Estrellas)</option>
+                        <label style="font-size: 0.78rem; font-weight: 700;">Factor Vinculado</label>
+                        <select id="newQbFactor" style="padding: 6px; font-size: 0.82rem; width: 100%;">
+                            <option value="1">Factor 1</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.78rem; font-weight: 700;">Tipo Respuesta</label>
+                        <select id="newQbType" style="padding: 6px; font-size: 0.82rem; width: 100%;">
+                            <option value="rating">Rating (1-5)</option>
                             <option value="likert">Escala Likert (1-5)</option>
                             <option value="boolean">Sí / No</option>
                             <option value="text">Comentario / Texto</option>
                         </select>
                     </div>
                     <div>
-                        <label style="font-size: 0.78rem;">Aspecto</label>
-                        <select id="newQbAspectType" style="padding: 6px; font-size: 0.82rem;">
+                        <label style="font-size: 0.78rem; font-weight: 700;">Aspecto</label>
+                        <select id="newQbAspectType" style="padding: 6px; font-size: 0.82rem; width: 100%;">
                             <option value="opinion">Opinión / Percepción</option>
                             <option value="rating">Evaluativo Cuantitativo</option>
                             <option value="factual">Factual / Verificación</option>
                         </select>
                     </div>
                     <div>
-                        <label style="font-size: 0.78rem;">Público Objetivo</label>
-                        <select id="newQbTarget" style="padding: 6px; font-size: 0.82rem;">
+                        <label style="font-size: 0.78rem; font-weight: 700;">Actor Objetivo</label>
+                        <select id="newQbTarget" style="padding: 6px; font-size: 0.82rem; width: 100%;">
                             <option value="transversal">Transversal</option>
                             <option value="estudiantes">Estudiantes</option>
                             <option value="profesores">Profesores</option>
@@ -470,8 +479,8 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-size: 0.78rem;">Ámbito</label>
-                        <select id="newQbScope" style="padding: 6px; font-size: 0.82rem;">
+                        <label style="font-size: 0.78rem; font-weight: 700;">Ámbito</label>
+                        <select id="newQbScope" style="padding: 6px; font-size: 0.82rem; width: 100%;">
                             <option value="programa">Programa</option>
                             <option value="institucional">Institucional</option>
                             <option value="unidad">Unidad</option>
@@ -480,7 +489,7 @@
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.82rem;" onclick="toggleAddQbForm(false)">Cancelar</button>
-                    <button class="btn-primary" style="padding: 6px 12px; font-size: 0.82rem;" onclick="saveNewQuestionToBank()">💾 Guardar en Banco</button>
+                    <button class="btn-primary" style="padding: 6px 14px; font-size: 0.82rem; background: #0284c7;" onclick="saveNewQuestionToBank()">💾 Guardar Pregunta(s) en Banco</button>
                 </div>
             </div>
 
@@ -1815,22 +1824,41 @@
         }
 
         function populateQbFactorFilter() {
-            const select = document.getElementById('qbFactorFilter');
-            if (!select) return;
-            select.innerHTML = '<option value="">Todos los Factores (1 a 12)</option>';
+            const filterSelect = document.getElementById('qbFactorFilter');
+            const formSelect = document.getElementById('newQbFactor');
+            
+            if (filterSelect) filterSelect.innerHTML = '<option value="">Todos los Factores (1 a 12)</option>';
+            if (formSelect) formSelect.innerHTML = '';
             
             const factorsMap = {};
+            
+            if (window.modelData && Array.isArray(window.modelData) && window.modelData.length > 0) {
+                window.modelData.forEach(f => {
+                    const num = parseInt(f.number, 10) || f.number;
+                    factorsMap[num] = `${f.number}. ${f.name}`;
+                });
+            }
+            
             rawQuestionBank.forEach(q => {
-                if (q.factor_number) {
+                if (q.factor_number && !factorsMap[q.factor_number]) {
                     factorsMap[q.factor_number] = q.factor_name || `Factor ${q.factor_number}`;
                 }
             });
-            
-            Object.keys(factorsMap).sort((a,b) => a - b).forEach(num => {
-                const opt = document.createElement('option');
-                opt.value = num;
-                opt.textContent = `${factorsMap[num]}`;
-                select.appendChild(opt);
+
+            const sortedNums = Object.keys(factorsMap).sort((a,b) => parseInt(a,10) - parseInt(b,10));
+            sortedNums.forEach(num => {
+                if (filterSelect) {
+                    const opt = document.createElement('option');
+                    opt.value = num;
+                    opt.textContent = `${factorsMap[num]}`;
+                    filterSelect.appendChild(opt);
+                }
+                if (formSelect) {
+                    const opt = document.createElement('option');
+                    opt.value = num;
+                    opt.textContent = `${factorsMap[num]}`;
+                    formSelect.appendChild(opt);
+                }
             });
         }
 
@@ -1982,34 +2010,48 @@
         }
 
         async function saveNewQuestionToBank() {
-            const text = document.getElementById('newQbText').value.trim();
-            if (!text) { alert("El texto de la pregunta es obligatorio."); return; }
+            const rawText = document.getElementById('newQbText').value.trim();
+            if (!rawText) { alert("El texto de la pregunta es obligatorio."); return; }
 
+            // Support single or multiple lines
+            const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (lines.length === 0) return;
+
+            const factor_number = parseInt(document.getElementById('newQbFactor').value, 10) || 1;
             const type = document.getElementById('newQbType').value;
             const aspect_type = document.getElementById('newQbAspectType').value;
             const target = document.getElementById('newQbTarget').value;
             const scope = document.getElementById('newQbScope').value;
 
-            const newQ = {
-                text: text,
+            const newQuestions = lines.map(lineText => ({
+                text: lineText,
                 type: type,
                 aspect_type: aspect_type,
                 target: target,
                 scope: scope,
-                factor_number: 1,
+                factor_number: factor_number,
                 is_system: false
-            };
+            }));
 
             try {
                 const resp = await authFetch(`/api/question_bank/add?inst_id=${getInstId()}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify([newQ])
+                    body: JSON.stringify(newQuestions)
                 });
                 const res = await resp.json();
                 if (res.status === 'success') {
-                    alert("✨ Pregunta personal guardada con éxito en el Banco Institucional.");
+                    const countMsg = lines.length > 1 ? `${res.added_count} preguntas personales guardadas` : "Pregunta personal guardada";
+                    alert(`✨ ${countMsg} con éxito en el Banco Institucional.`);
                     document.getElementById('newQbText').value = "";
+                    
+                    // Clear search and filter inputs so the newly saved question is visible immediately
+                    if (document.getElementById('qbSearchInput')) document.getElementById('qbSearchInput').value = "";
+                    if (document.getElementById('qbTargetFilter')) document.getElementById('qbTargetFilter').value = "";
+                    if (document.getElementById('qbAspectTypeFilter')) document.getElementById('qbAspectTypeFilter').value = "";
+                    if (document.getElementById('qbScopeFilter')) document.getElementById('qbScopeFilter').value = "";
+                    if (document.getElementById('qbFactorFilter')) document.getElementById('qbFactorFilter').value = "";
+
                     toggleAddQbForm(false);
                     await fetchQuestionBank();
                     filterQuestionBankList();
