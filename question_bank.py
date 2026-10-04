@@ -4,589 +4,347 @@ import uuid
 
 SYSTEM_QUESTION_BANK = [
     # ==================================================
-    # FACTOR 1: MISIÓN, PEI Y PROYECTO EDUCATIVO
+    # MODELO: AUTOEVALUACIÓN DE PROGRAMA (CNA 2025 / CESU)
     # ==================================================
+    # Factor 1: Proyecto Educativo del Programa e Identidad Institucional
     {
-        "id": "bank_f1_q1",
-        "text": "¿Qué tanto conoce y se identifica con la Misión, Visión y Objetivos del Proyecto Educativo Institucional (PEI)?",
+        "id": "bank_prog_f1_q1",
+        "model_type": "programa",
+        "text": "¿Qué tanto conoce y se identifica con la Misión, Visión y el Proyecto Educativo del Programa (PEP)?",
         "type": "rating",
         "aspect_type": "opinion",
-        "scope": "institucional",
+        "scope": "programa",
         "target": "transversal",
         "factor_number": 1,
-        "factor_name": "Factor 1: Misión, PEI y Proyecto Educativo",
+        "factor_name": "Factor 1: Proyecto educativo del programa e identidad institucional",
         "options": [],
         "is_system": True
     },
     {
-        "id": "bank_f1_q2",
-        "text": "¿El Proyecto Educativo del Programa (PEP) orienta de forma clara, explícita y coherente el perfil de egreso y los resultados de aprendizaje esperados?",
+        "id": "bank_prog_f1_q2",
+        "text": "¿El perfil de egreso y los resultados de aprendizaje definidos en el programa responden a las necesidades del contexto regional y nacional?",
         "type": "likert",
         "aspect_type": "rating",
         "scope": "programa",
         "target": "profesores",
         "factor_number": 1,
-        "factor_name": "Factor 1: Misión, PEI y Proyecto Educativo",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f1_q3",
-        "text": "¿Considera que los principios institucionales de inclusión, ética y sostenibilidad se ven reflejados en la vida cotidiana del programa?",
-        "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "institucional",
-        "target": "estudiantes",
-        "factor_number": 1,
-        "factor_name": "Factor 1: Misión, PEI y Proyecto Educativo",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f1_q4",
-        "text": "Comentarios u observaciones sobre la apropiación del Proyecto Educativo Institucional en los procesos curriculares del programa.",
-        "type": "text",
-        "aspect_type": "factual",
-        "scope": "programa",
-        "target": "directivos",
-        "factor_number": 1,
-        "factor_name": "Factor 1: Misión, PEI y Proyecto Educativo",
+        "factor_name": "Factor 1: Proyecto educativo del programa e identidad institucional",
         "options": [],
         "is_system": True
     },
 
-    # ==================================================
-    # FACTOR 2: GOBIERNO INSTITUCIONAL, ORGANIZACIÓN Y GESTIÓN
-    # ==================================================
+    # Factor 2: Comunidad de Estudiantes
     {
-        "id": "bank_f2_q1",
-        "text": "¿Cómo evalúa la transparencia, efectividad y oportunidad en la toma de decisiones por parte de los órganos de gobierno institucionales?",
-        "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "institucional",
-        "target": "transversal",
+        "id": "bank_prog_f2_q1",
+        "text": "¿Los criterios de admisión, selección, nivelación y transferencia de estudiantes son transparentes y equitativos?",
+        "type": "likert",
+        "aspect_type": "factual",
+        "scope": "programa",
+        "target": "estudiantes",
         "factor_number": 2,
-        "factor_name": "Factor 2: Gobierno Institucional y Organización",
+        "factor_name": "Factor 2: Comunidad de estudiantes",
         "options": [],
         "is_system": True
     },
     {
-        "id": "bank_f2_q2",
-        "text": "¿La estructura administrativa de la Facultad/Unidad brinda un soporte oportuno y eficiente para los trámites académicos y laborales?",
+        "id": "bank_prog_f2_q2",
+        "text": "¿Cómo evalúa el acompañamiento pedagógico, tutorías docentes y estímulos al mérito académico recibidos en el programa?",
+        "type": "rating",
+        "aspect_type": "opinion",
+        "scope": "programa",
+        "target": "estudiantes",
+        "factor_number": 2,
+        "factor_name": "Factor 2: Comunidad de estudiantes",
+        "options": [],
+        "is_system": True
+    },
+
+    # Factor 3: Comunidad de Profesores
+    {
+        "id": "bank_prog_f3_q1",
+        "text": "¿Cómo califica la idoneidad profesional, formación académica (maestría/doctorado) y dominio pedagógico de sus profesores?",
+        "type": "rating",
+        "aspect_type": "opinion",
+        "scope": "programa",
+        "target": "estudiantes",
+        "factor_number": 3,
+        "factor_name": "Factor 3: Comunidad de profesores",
+        "options": [],
+        "is_system": True
+    },
+    {
+        "id": "bank_prog_f3_q2",
+        "text": "¿La institución y la facultad otorgan apoyos e incentivos efectivos para la cualificación docente y el desarrollo profesional continuo?",
+        "type": "likert",
+        "aspect_type": "rating",
+        "scope": "programa",
+        "target": "profesores",
+        "factor_number": 3,
+        "factor_name": "Factor 3: Comunidad de profesores",
+        "options": [],
+        "is_system": True
+    },
+
+    # Factor 4: Comunidad de Egresados
+    {
+        "id": "bank_prog_f4_q1",
+        "text": "¿En qué medida la formación académica recibida le ha permitido desempeñarse exitosamente en su ejercicio profesional?",
+        "type": "rating",
+        "aspect_type": "opinion",
+        "scope": "programa",
+        "target": "egresados",
+        "factor_number": 4,
+        "factor_name": "Factor 4: Comunidad de egresados",
+        "options": [],
+        "is_system": True
+    },
+    {
+        "id": "bank_prog_f4_q2",
+        "text": "¿El programa mantiene canales fluidos de comunicación, seguimiento laboral y ofertas de educación continuada para los graduados?",
+        "type": "likert",
+        "aspect_type": "opinion",
+        "scope": "programa",
+        "target": "egresados",
+        "factor_number": 4,
+        "factor_name": "Factor 4: Comunidad de egresados",
+        "options": [],
+        "is_system": True
+    },
+
+    # Factor 5: Aspectos Académicos y Evaluación
+    {
+        "id": "bank_prog_f5_q1",
+        "text": "¿Cómo evalúa la pertinencia, actualización, flexibilidad e interdisciplinariedad del Plan de Estudios del programa?",
+        "type": "rating",
+        "aspect_type": "opinion",
+        "scope": "programa",
+        "target": "transversal",
+        "factor_number": 5,
+        "factor_name": "Factor 5: Aspectos académicos y evaluación",
+        "options": [],
+        "is_system": True
+    },
+    {
+        "id": "bank_prog_f5_q2",
+        "text": "¿Las metodologías de enseñanza y las evaluaciones aplicadas permiten verificar con claridad el logro de los Resultados de Aprendizaje?",
+        "type": "likert",
+        "aspect_type": "rating",
+        "scope": "programa",
+        "target": "profesores",
+        "factor_number": 5,
+        "factor_name": "Factor 5: Aspectos académicos y evaluación",
+        "options": [],
+        "is_system": True
+    },
+
+    # Factor 6: Permanencia y Graduación
+    {
+        "id": "bank_prog_f6_q1",
+        "text": "¿Cómo valora las estrategias e intervenciones institucionales orientadas a prevenir la deserción y favorecer la graduación oportuna?",
+        "type": "rating",
+        "aspect_type": "opinion",
+        "scope": "programa",
+        "target": "transversal",
+        "factor_number": 6,
+        "factor_name": "Factor 6: Permanencia y graduación",
+        "options": [],
+        "is_system": True
+    },
+
+    # Factor 7: Proyección e Interacción con el Entorno
+    {
+        "id": "bank_prog_f7_q1",
+        "text": "¿Cómo califica el desempeño ético, resolutivo y la capacidad técnica de los graduados de este programa en su empresa u organización?",
+        "type": "rating",
+        "aspect_type": "rating",
+        "scope": "programa",
+        "target": "empleadores",
+        "factor_number": 7,
+        "factor_name": "Factor 7: Proyección e interacción con el entorno",
+        "options": [],
+        "is_system": True
+    },
+    {
+        "id": "bank_prog_f7_q2",
+        "text": "¿El programa promueve proyectos de extensión, prácticas profesionales y servicio social con impacto real en la comunidad?",
+        "type": "likert",
+        "aspect_type": "opinion",
+        "scope": "programa",
+        "target": "estudiantes",
+        "factor_number": 7,
+        "factor_name": "Factor 7: Proyección e interacción con el entorno",
+        "options": [],
+        "is_system": True
+    },
+
+    # Factor 8: Investigación, Innovación y Creación
+    {
+        "id": "bank_prog_f8_q1",
+        "text": "¿El programa fomenta activamente la investigación formativa, semilleros, desarrollo tecnológico o creación artística?",
+        "type": "likert",
+        "aspect_type": "opinion",
+        "scope": "programa",
+        "target": "estudiantes",
+        "factor_number": 8,
+        "factor_name": "Factor 8: Investigación, innovación y creación",
+        "options": [],
+        "is_system": True
+    },
+    {
+        "id": "bank_prog_f8_q2",
+        "text": "¿Los docentes cuentan con horas asignadas, convocatorias y presupuesto adecuado para la producción científica en grupos reconocidos?",
+        "type": "rating",
+        "aspect_type": "rating",
+        "scope": "programa",
+        "target": "profesores",
+        "factor_number": 8,
+        "factor_name": "Factor 8: Investigación, innovación y creación",
+        "options": [],
+        "is_system": True
+    },
+
+    # Factor 9: Bienestar de la Comunidad Académica
+    {
+        "id": "bank_prog_f9_q1",
+        "text": "¿Los servicios de salud, desarrollo humano, cultura, deporte y orientación psicosocial responden a las necesidades del estamento?",
+        "type": "rating",
+        "aspect_type": "opinion",
+        "scope": "institucional",
+        "target": "transversal",
+        "factor_number": 9,
+        "factor_name": "Factor 9: Bienestar de la comunidad académica",
+        "options": [],
+        "is_system": True
+    },
+
+    # Factor 10: Recursos y Ambientes de Aprendizaje
+    {
+        "id": "bank_prog_f10_q1",
+        "text": "¿Las aulas, laboratorios, talleres, licencias de software y bibliotecas físicas y digitales responden con suficiencia y calidad?",
+        "type": "rating",
+        "aspect_type": "rating",
+        "scope": "programa",
+        "target": "transversal",
+        "factor_number": 10,
+        "factor_name": "Factor 10: Recursos y ambientes de aprendizaje",
+        "options": [],
+        "is_system": True
+    },
+
+    # Factor 11: Organización, Administración y Financiación
+    {
+        "id": "bank_prog_f11_q1",
+        "text": "¿La gestión administrativa y financiera de la facultad garantiza el cumplimiento oportuno de las metas de inversión del programa?",
         "type": "likert",
         "aspect_type": "opinion",
         "scope": "unidad",
         "target": "administrativos",
-        "factor_number": 2,
-        "factor_name": "Factor 2: Gobierno Institucional y Organización",
+        "factor_number": 11,
+        "factor_name": "Factor 11: Organización, administración y financiación",
         "options": [],
         "is_system": True
     },
+
+    # Factor 12: Aseguramiento de la Alta Calidad
     {
-        "id": "bank_f2_q3",
-        "text": "¿Los canales formales de comunicación institucional son claros y permiten una fluida rendición de cuentas a la comunidad?",
+        "id": "bank_prog_f12_q1",
+        "text": "¿Cómo evalúa la cultura de autorregulación y la efectividad de los Planes de Mejoramiento implementados en el programa?",
         "type": "rating",
-        "aspect_type": "rating",
-        "scope": "institucional",
-        "target": "profesores",
-        "factor_number": 2,
-        "factor_name": "Factor 2: Gobierno Institucional y Organización",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f2_q4",
-        "text": "¿Existen mecanismos efectivos para garantizar la representación y participación activa de estudiantes y profesores en los consejos directivos?",
-        "type": "boolean",
-        "aspect_type": "factual",
-        "scope": "institucional",
+        "aspect_type": "opinion",
+        "scope": "programa",
         "target": "transversal",
-        "factor_number": 2,
-        "factor_name": "Factor 2: Gobierno Institucional y Organización",
+        "factor_number": 12,
+        "factor_name": "Factor 12: Aseguramiento de la alta calidad",
         "options": [],
         "is_system": True
     },
 
     # ==================================================
-    # FACTOR 3: ESTUDIANTES (ADMISIÓN, TUTORÍAS Y PERMANENCIA)
+    # MODELO: AUTOEVALUACIÓN INSTITUCIONAL (CNA)
     # ==================================================
     {
-        "id": "bank_f3_q1",
-        "text": "¿Los criterios de admisión, selección y homologación de asignaturas del programa son transparentes, equitativos y de conocimiento público?",
-        "type": "likert",
-        "aspect_type": "factual",
-        "scope": "programa",
-        "target": "estudiantes",
-        "factor_number": 3,
-        "factor_name": "Factor 3: Estudiantes",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f3_q2",
-        "text": "¿Cómo valora la eficacia de los programas de acompañamiento, tutorías académicas y consejería en su adaptación y nivelación universitaria?",
-        "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "programa",
-        "target": "estudiantes",
-        "factor_number": 3,
-        "factor_name": "Factor 3: Estudiantes",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f3_q3",
-        "text": "¿Qué acciones o estrategias considera prioritarias para fortalecer la permanencia y reducir la deserción en los primeros semestres académicos?",
-        "type": "text",
-        "aspect_type": "factual",
-        "scope": "programa",
-        "target": "profesores",
-        "factor_number": 3,
-        "factor_name": "Factor 3: Estudiantes",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f3_q4",
-        "text": "¿El programa fomenta un ambiente propicio para el desarrollo integral, el estímulo al mérito académico y la participación estudiantil?",
-        "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "programa",
-        "target": "estudiantes",
-        "factor_number": 3,
-        "factor_name": "Factor 3: Estudiantes",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f3_q5",
-        "text": "¿Ha hecho uso de las becas, descuentos o apoyos socioeconómicos ofrecidos por la institución?",
-        "type": "boolean",
-        "aspect_type": "factual",
-        "scope": "institucional",
-        "target": "estudiantes",
-        "factor_number": 3,
-        "factor_name": "Factor 3: Estudiantes",
-        "options": [],
-        "is_system": True
-    },
-
-    # ==================================================
-    # FACTOR 4: PROFESORES Y CUERPO DOCENTE
-    # ==================================================
-    {
-        "id": "bank_f4_q1",
-        "text": "¿Cómo califica la idoneidad profesional, preparación pedagógica, actualización disciplinar y puntualidad del equipo docente del programa?",
-        "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "programa",
-        "target": "estudiantes",
-        "factor_number": 4,
-        "factor_name": "Factor 4: Profesores",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f4_q2",
-        "text": "¿La institución otorga incentivos y apoyos suficientes para la cualificación académica avanzada (maestrías, doctorados y publicaciones)?",
-        "type": "likert",
-        "aspect_type": "rating",
-        "scope": "institucional",
-        "target": "profesores",
-        "factor_number": 4,
-        "factor_name": "Factor 4: Profesores",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f4_q3",
-        "text": "¿La asignación de la carga académica (docencia, investigación, extensión y gestión) responde a criterios razonables y equilibrados?",
-        "type": "likert",
-        "aspect_type": "opinion",
-        "scope": "unidad",
-        "target": "profesores",
-        "factor_number": 4,
-        "factor_name": "Factor 4: Profesores",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f4_q4",
-        "text": "¿Cómo evalúa los procedimientos de selección, vinculación, evaluación del desempeño y escalafón docente institucional?",
-        "type": "rating",
-        "aspect_type": "rating",
-        "scope": "institucional",
-        "target": "profesores",
-        "factor_number": 4,
-        "factor_name": "Factor 4: Profesores",
-        "options": [],
-        "is_system": True
-    },
-
-    # ==================================================
-    # FACTOR 5: ASPECTOS ACADÉMICOS Y RESULTADOS DE APRENDIZAJE
-    # ==================================================
-    {
-        "id": "bank_f5_q1",
-        "text": "¿Cómo evalúa la pertinencia, estructura y actualización del Plan de Estudios para responder a las exigencias del entorno profesional?",
-        "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "programa",
-        "target": "transversal",
-        "factor_number": 5,
-        "factor_name": "Factor 5: Aspectos Académicos y Resultados de Aprendizaje",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f5_q2",
-        "text": "¿Las metodologías de enseñanza y las estrategias de evaluación formativa garantizan la verificación efectiva de los Resultados de Aprendizaje?",
-        "type": "likert",
-        "aspect_type": "rating",
-        "scope": "programa",
-        "target": "profesores",
-        "factor_number": 5,
-        "factor_name": "Factor 5: Aspectos Académicos y Resultados de Aprendizaje",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f5_q3",
-        "text": "¿El programa promueve efectivamente la flexibilidad curricular, electividad, homologación y las asignaturas interdisciplinares?",
-        "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "programa",
-        "target": "estudiantes",
-        "factor_number": 5,
-        "factor_name": "Factor 5: Aspectos Académicos y Resultados de Aprendizaje",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f5_q4",
-        "text": "¿En qué medida las actividades formativas potencian el desarrollo de la competencia en segunda lengua (inglés) y las competencias digitales?",
-        "type": "rating",
-        "aspect_type": "rating",
-        "scope": "programa",
-        "target": "estudiantes",
-        "factor_number": 5,
-        "factor_name": "Factor 5: Aspectos Académicos y Resultados de Aprendizaje",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f5_q5",
-        "text": "Sugerencias específicas de adición o modificación de temáticas, asignaturas o prácticas profesionales en la currícula del programa.",
-        "type": "text",
-        "aspect_type": "factual",
-        "scope": "programa",
-        "target": "transversal",
-        "factor_number": 5,
-        "factor_name": "Factor 5: Aspectos Académicos y Resultados de Aprendizaje",
-        "options": [],
-        "is_system": True
-    },
-
-    # ==================================================
-    # FACTOR 6: INVESTIGACIÓN, INNOVACIÓN Y CREACIÓN ARTÍSTICA
-    # ==================================================
-    {
-        "id": "bank_f6_q1",
-        "text": "¿El programa fomenta el desarrollo del pensamiento crítico y la investigación formativa (semilleros, proyectos de aula y trabajos de grado)?",
-        "type": "likert",
-        "aspect_type": "opinion",
-        "scope": "programa",
-        "target": "estudiantes",
-        "factor_number": 6,
-        "factor_name": "Factor 6: Investigación y Creación Artística",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f6_q2",
-        "text": "¿Cómo califica los recursos financieros, convocatorias internas y apoyos para proyectos de los grupos de investigación clasificados?",
-        "type": "rating",
-        "aspect_type": "rating",
-        "scope": "institucional",
-        "target": "profesores",
-        "factor_number": 6,
-        "factor_name": "Factor 6: Investigación y Creación Artística",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f6_q3",
-        "text": "¿La producción científica y aplicada del programa (artículos, patentes, productos de creación) impacta positivamente el entorno social?",
-        "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "programa",
-        "target": "profesores",
-        "factor_number": 6,
-        "factor_name": "Factor 6: Investigación y Creación Artística",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f6_q4",
-        "text": "¿Ha participado como integrante o ponente en semilleros, ponencias o eventos de investigación académica durante su carrera?",
-        "type": "boolean",
-        "aspect_type": "factual",
-        "scope": "programa",
-        "target": "estudiantes",
-        "factor_number": 6,
-        "factor_name": "Factor 6: Investigación y Creación Artística",
-        "options": [],
-        "is_system": True
-    },
-
-    # ==================================================
-    # FACTOR 7: PERTINENCIA, IMPACTO SOCIAL Y EGRESADOS
-    # ==================================================
-    {
-        "id": "bank_f7_q1",
-        "text": "¿En qué medida la formación recibida le permitió desenvolverse con solidez técnica y ética en el mercado laboral profesional?",
-        "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "programa",
-        "target": "egresados",
-        "factor_number": 7,
-        "factor_name": "Factor 7: Pertinencia, Impacto Social y Egresados",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f7_q2",
-        "text": "¿Cómo califica la capacidad de resolución de problemas, liderazgo, ética profesional y trabajo en equipo de los graduados del programa en su organización?",
-        "type": "rating",
-        "aspect_type": "rating",
-        "scope": "programa",
-        "target": "empleadores",
-        "factor_number": 7,
-        "factor_name": "Factor 7: Pertinencia, Impacto Social y Egresados",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f7_q3",
-        "text": "¿En cuánto tiempo logró vincularse laboralmente en un cargo acorde a su área de formación tras obtener el grado académico?",
-        "type": "select",
-        "aspect_type": "factual",
-        "scope": "programa",
-        "target": "egresados",
-        "factor_number": 7,
-        "factor_name": "Factor 7: Pertinencia, Impacto Social y Egresados",
-        "options": ["Antes de graduarme", "Menos de 6 meses", "6 a 12 meses", "Más de 1 año", "Aún no ubicado"],
-        "is_system": True
-    },
-    {
-        "id": "bank_f7_q4",
-        "text": "¿La institución mantiene vínculos permanentes con los egresados mediante bolsas de empleo, eventos de actualización y educación continuada?",
+        "id": "bank_inst_f1_q1",
+        "model_type": "institucional",
+        "text": "¿La gobernanza institucional promueve decisiones participativas, transparentes y orientadas a la excelencia académica?",
         "type": "likert",
         "aspect_type": "opinion",
         "scope": "institucional",
-        "target": "egresados",
-        "factor_number": 7,
-        "factor_name": "Factor 7: Pertinencia, Impacto Social y Egresados",
+        "target": "directivos",
+        "factor_number": 1,
+        "factor_name": "Gobierno y Gobernanza Institucional",
         "options": [],
         "is_system": True
     },
     {
-        "id": "bank_f7_q5",
-        "text": "¿Recomendaría o continuaría contratando profesionales formados en este programa académico para su empresa u organización?",
-        "type": "boolean",
-        "aspect_type": "rating",
-        "scope": "programa",
-        "target": "empleadores",
-        "factor_number": 7,
-        "factor_name": "Factor 7: Pertinencia, Impacto Social y Egresados",
-        "options": [],
-        "is_system": True
-    },
-
-    # ==================================================
-    # FACTOR 8: BIENESTAR UNIVERSITARIO Y CLIMA INSTITUCIONAL
-    # ==================================================
-    {
-        "id": "bank_f8_q1",
-        "text": "¿Cómo evalúa los servicios de salud, orientación psicológica, deporte, desarrollo humano y cultura prestados por Bienestar Universitario?",
+        "id": "bank_inst_f2_q1",
+        "model_type": "institucional",
+        "text": "¿Los planes de desarrollo físico y financiero garantizan la sostenibilidad económica de la institución a largo plazo?",
         "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "institucional",
-        "target": "transversal",
-        "factor_number": 8,
-        "factor_name": "Factor 8: Bienestar Universitario",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f8_q2",
-        "text": "El ambiente de trabajo y estudio fomenta valores sustantivos de inclusión, respeto por la diversidad, equidad de género y convivencia pacífica.",
-        "type": "likert",
-        "aspect_type": "opinion",
-        "scope": "institucional",
-        "target": "transversal",
-        "factor_number": 8,
-        "factor_name": "Factor 8: Bienestar Universitario",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f8_q3",
-        "text": "¿Considera que los programas de apoyo socioeconómico (subsidios de alimentación, transporte, becas) llegan oportunamente a los estudiantes vulnerables?",
-        "type": "rating",
-        "aspect_type": "rating",
-        "scope": "institucional",
-        "target": "estudiantes",
-        "factor_number": 8,
-        "factor_name": "Factor 8: Bienestar Universitario",
-        "options": [],
-        "is_system": True
-    },
-
-    # ==================================================
-    # FACTOR 9: RECURSOS BIBLIOGRÁFICOS Y TECNOLÓGICOS
-    # ==================================================
-    {
-        "id": "bank_f9_q1",
-        "text": "¿Cómo califica la suficiencia, actualidad y disponibilidad de las bases de datos bibliográficas digitales, libros físicos y revistas científicas?",
-        "type": "rating",
-        "aspect_type": "rating",
-        "scope": "institucional",
-        "target": "transversal",
-        "factor_number": 9,
-        "factor_name": "Factor 9: Recursos Bibliográficos y Tecnológicos",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f9_q2",
-        "text": "¿La plataforma de campus virtual, conectividad wifi y licencias de software especializado responden satisfactoriamente a las exigencias académicas?",
-        "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "programa",
-        "target": "transversal",
-        "factor_number": 9,
-        "factor_name": "Factor 9: Recursos Bibliográficos y Tecnológicos",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f9_q3",
-        "text": "¿Ha recibido capacitación o inducción adecuada para la búsqueda de información científica en las bases de datos institucionales?",
-        "type": "boolean",
-        "aspect_type": "factual",
-        "scope": "institucional",
-        "target": "estudiantes",
-        "factor_number": 9,
-        "factor_name": "Factor 9: Recursos Bibliográficos y Tecnológicos",
-        "options": [],
-        "is_system": True
-    },
-
-    # ==================================================
-    # FACTOR 10: INFRAESTRUCTURA FÍSICA Y FINANCIERA
-    # ==================================================
-    {
-        "id": "bank_f10_q1",
-        "text": "¿Las aulas de clase, auditorios, laboratorios, talleres y áreas de estudio cuentan con condiciones óptimas de iluminación, ventilación y mantenimiento?",
-        "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "institucional",
-        "target": "transversal",
-        "factor_number": 10,
-        "factor_name": "Factor 10: Infraestructura Física y Financiera",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f10_q2",
-        "text": "¿Los espacios físicos de la institución cuentan con condiciones adecuadas de accesibilidad para personas con movilidad reducida o discapacidad?",
-        "type": "likert",
-        "aspect_type": "factual",
-        "scope": "institucional",
-        "target": "transversal",
-        "factor_number": 10,
-        "factor_name": "Factor 10: Infraestructura Física y Financiera",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f10_q3",
-        "text": "¿La gestión financiera institucional garantiza la sostenibilidad económica y el cumplimiento de las metas de inversión del programa?",
-        "type": "likert",
         "aspect_type": "rating",
         "scope": "institucional",
         "target": "directivos",
-        "factor_number": 10,
-        "factor_name": "Factor 10: Infraestructura Física y Financiera",
+        "factor_number": 2,
+        "factor_name": "Sostenibilidad Financiera e Infraestructura",
         "options": [],
         "is_system": True
     },
 
     # ==================================================
-    # FACTOR 11: AUTORREGULACIÓN Y CULTURA DE CALIDAD
+    # MODELO: REGISTRO CALIFICADO (DECRETO 1330 / ACUERDO 02/2020)
     # ==================================================
     {
-        "id": "bank_f11_q1",
-        "text": "¿Cómo evalúa el nivel de compromiso y participación de los estamentos en los procesos de Autoevaluación, Autorregulación y Acreditación?",
-        "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "institucional",
-        "target": "transversal",
-        "factor_number": 11,
-        "factor_name": "Factor 11: Procesos de Autorregulación y Calidad",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f11_q2",
-        "text": "¿Los Planes de Mejoramiento formulados e implementados se traducen en acciones concretas que fortalecen la calidad del programa?",
+        "id": "bank_rc_cond1_q1",
+        "model_type": "registro_calificado",
+        "text": "¿La denominación del programa y la justificación del mismo responden explícitamente a las tendencias y necesidades del sector?",
         "type": "likert",
-        "aspect_type": "rating",
-        "scope": "programa",
-        "target": "profesores",
-        "factor_number": 11,
-        "factor_name": "Factor 11: Procesos de Autorregulación y Calidad",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f11_q3",
-        "text": "Describa qué oportunidad de mejora estratégica considera urgente incorporar en el Plan de Mejoramiento Institucional o del Programa.",
-        "type": "text",
         "aspect_type": "factual",
         "scope": "programa",
-        "target": "transversal",
-        "factor_number": 11,
-        "factor_name": "Factor 11: Procesos de Autorregulación y Calidad",
+        "target": "profesores",
+        "factor_number": 1,
+        "factor_name": "Condición 1: Denominación y Justificación del Programa",
+        "options": [],
+        "is_system": True
+    },
+    {
+        "id": "bank_rc_cond2_q1",
+        "model_type": "registro_calificado",
+        "text": "¿La fundamentación teórica y la organización de las actividades académicas garantizan el logro de los contenidos curriculares?",
+        "type": "rating",
+        "aspect_type": "rating",
+        "scope": "programa",
+        "target": "profesores",
+        "factor_number": 2,
+        "factor_name": "Condición 2: Contenidos Curriculares y Organización",
+        "options": [],
+        "is_system": True
+    },
+    {
+        "id": "bank_rc_cond3_q1",
+        "model_type": "registro_calificado",
+        "text": "¿La oferta de medios educativos (plataformas, laboratorios, talleres) garantiza el aprendizaje práctico en todas las sedes?",
+        "type": "rating",
+        "aspect_type": "rating",
+        "scope": "programa",
+        "target": "estudiantes",
+        "factor_number": 3,
+        "factor_name": "Condición 3: Medios Educativos e Infraestructura",
         "options": [],
         "is_system": True
     },
 
     # ==================================================
-    # FACTOR 12: INTERNACIONALIZACIÓN Y RELACIONES INTERINSTITUCIONALES
+    # MODELO: CAMBIO DE CARÁCTER INSTITUCIONAL (ITP a IU)
     # ==================================================
     {
-        "id": "bank_f12_q1",
-        "text": "¿Cómo califica las oportunidades y convenios de movilidad académica (pasantías, intercambio, doble titulación) nacionales e internacionales?",
-        "type": "rating",
-        "aspect_type": "opinion",
-        "scope": "programa",
-        "target": "transversal",
-        "factor_number": 12,
-        "factor_name": "Factor 12: Internacionalización e Interacción con el Entorno",
-        "options": [],
-        "is_system": True
-    },
-    {
-        "id": "bank_f12_q2",
-        "text": "¿El programa promueve activamente la participación de estudiantes y profesores en redes de conocimiento, eventos internacionales o COIL?",
+        "id": "bank_cc_f1_q1",
+        "model_type": "cambio_caracter",
+        "text": "¿La institución demuestra capacidad técnica e investigativa para dar el salto cualitativo hacia el nuevo carácter académico?",
         "type": "likert",
-        "aspect_type": "rating",
-        "scope": "programa",
-        "target": "profesores",
-        "factor_number": 12,
-        "factor_name": "Factor 12: Internacionalización e Interacción con el Entorno",
+        "aspect_type": "opinion",
+        "scope": "institucional",
+        "target": "directivos",
+        "factor_number": 1,
+        "factor_name": "Capacidad Institucional para Cambio de Carácter",
         "options": [],
         "is_system": True
     }
@@ -636,6 +394,7 @@ def save_custom_questions(inst_id, new_questions):
             if t and t not in existing_texts:
                 nq['id'] = nq.get('id') or f"bank_custom_{uuid.uuid4().hex[:8]}"
                 nq['inst_id'] = target_inst
+                nq['model_type'] = nq.get('model_type') or 'programa'
                 nq['is_system'] = False
                 all_custom.append(nq)
                 existing_texts.add(t)
