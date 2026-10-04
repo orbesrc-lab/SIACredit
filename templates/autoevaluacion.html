@@ -728,8 +728,14 @@
                     body: JSON.stringify(payload)
                 });
                 
-                const result = await resp.json();
-                if (resp.ok && result.status === 'success') {
+                let result = {};
+                try {
+                    result = await resp.json();
+                } catch(jsonErr) {
+                    console.warn("No se pudo parsear respuesta JSON de /api/evaluations:", jsonErr);
+                }
+                
+                if (resp.ok && (result.status === 'success' || !result.status)) {
                     if (!allEvals[cId]) allEvals[cId] = {};
                     allEvals[cId].just = textarea.value.trim();
                     if (ratingVal !== null) allEvals[cId].rating = ratingVal;
@@ -742,11 +748,13 @@
                         alert("✅ Informe IA / Juicio de Valor guardado exitosamente en Supabase.");
                     }
                 } else {
-                    if (!isAuto) alert("Error al guardar informe IA: " + (result.message || "Error del servidor"));
+                    const msg = result.message || `Error del servidor (${resp.status})`;
+                    console.error("Error guardando eval:", msg);
+                    if (!isAuto) alert("Error al guardar informe IA: " + msg);
                 }
             } catch(e) {
                 console.error("Error guardando Juicio de Valor IA:", e);
-                if (!isAuto) alert("Error de conexión al guardar el informe de la IA.");
+                if (!isAuto) alert("Error de conexión al guardar el informe de la IA: " + (e.message || e));
             } finally {
                 if (btn) {
                     btn.disabled = false;

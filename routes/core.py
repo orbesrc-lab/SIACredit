@@ -136,24 +136,32 @@ def handle_evaluations():
     inst_id = get_active_inst_id(raw_inst_id)
     program_id = request.args.get('program_id', 0, type=int)
     if request.method == 'POST':
-        data = request.json
+        data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return jsonify({"status": "error", "message": "Payload JSON inválido"}), 400
         try:
             valid_inst_id = inst_id if (inst_id and inst_id > 0) else None
             valid_program_id = program_id if (program_id and program_id > 0) else None
             
             for char_id, eval_data in data.items():
+                if not isinstance(eval_data, dict):
+                    continue
                 new_rating = eval_data.get('rating')
                 new_just = eval_data.get('just')
+                cid_str = str(char_id)
                 
-                query = supabase.table('evaluations').select('*').eq('char_id', char_id)
+                query = supabase.table('evaluations').select('*').eq('char_id', cid_str)
                 if valid_inst_id:
                     query = query.eq('inst_id', valid_inst_id)
                 if valid_program_id:
                     query = query.eq('program_id', valid_program_id)
                 existing = query.execute()
                 
+                if not existing.data and valid_program_id:
+                    existing = supabase.table('evaluations').select('*').eq('char_id', cid_str).eq('inst_id', valid_inst_id).execute()
+                
                 if not existing.data:
-                    existing = supabase.table('evaluations').select('*').eq('char_id', char_id).execute()
+                    existing = supabase.table('evaluations').select('*').eq('char_id', cid_str).execute()
                 
                 curr_rec = existing.data[0] if existing.data else {}
                 final_rating = new_rating if (new_rating is not None and new_rating != '') else curr_rec.get('rating', 0)
@@ -178,13 +186,13 @@ def handle_evaluations():
                             "just": final_just
                         }).eq('id', curr_rec['id']).execute()
                 else:
-                    payload["char_id"] = char_id
+                    payload["char_id"] = cid_str
                     try:
                         supabase.table('evaluations').insert(payload).execute()
                     except Exception as ex_fk:
                         print("FK insert fallback:", ex_fk)
                         supabase.table('evaluations').insert({
-                            "char_id": char_id,
+                            "char_id": cid_str,
                             "rating": final_rating,
                             "just": final_just
                         }).execute()
@@ -192,7 +200,7 @@ def handle_evaluations():
             return jsonify({"status": "success"})
         except Exception as e:
             print(f"Error saving eval: {e}")
-            return jsonify({"status": "error", "message": str(e)})
+            return jsonify({"status": "error", "message": str(e)}), 500
 
     try:
         # Intentar carga con filtros
