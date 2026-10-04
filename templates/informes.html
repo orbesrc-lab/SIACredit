@@ -1779,6 +1779,8 @@
             document.getElementById('loadingSpinner').style.display = 'block';
             document.getElementById('informeContainer').style.display = 'none';
             document.getElementById('btnImprimir').style.display = 'none';
+            const hub = document.getElementById('reportsHubGrid');
+            if (hub) hub.style.display = 'none';
 
             try {
                 const res = await authFetch(`/api/informe_dinamico?inst_id=${getInstId()}&program_id=${getProgramId()}`);
@@ -1809,6 +1811,8 @@
 
         function renderInforme(data, tipo) {
             const container = document.getElementById('informeContainer');
+            const hub = document.getElementById('reportsHubGrid');
+            if (hub) hub.style.display = 'none';
             document.getElementById('informeTitulo').textContent = `INFORME ${tipo.toUpperCase()} DE AUTOEVALUACIÓN`;
             
             let subtitleText = `Generado el: ${new Date().toLocaleDateString()}`;
@@ -2466,7 +2470,7 @@
                 formData.append('file', justFile);
                 formData.append('plan_id', 'RRC_JUSTIFICATION_COND_' + activeCond);
                 
-                const upRes = await fetch('/api/planes_mejora/upload_soporte', { method: 'POST', body: formData });
+                const upRes = await authFetch('/api/planes_mejora/upload_soporte', { method: 'POST', body: formData });
                 const upData = await upRes.json();
                 
                 if (!upData.url) throw new Error('Error al subir el archivo.');
@@ -2476,8 +2480,8 @@
                 
                 const condicion_data = _rrcCondData[activeCond] || {};
 
-                // Llamar IA para condici├│n espec├¡fica
-                const aiRes = await fetch('/api/ai/generar_rrc_condicion', {
+                // Llamar IA para condición específica
+                const aiRes = await authFetch('/api/ai/generar_rrc_condicion', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -2492,13 +2496,13 @@
                 });
                 
                 const aiData = await aiRes.json();
-                if (aiData.status !== 'success') throw new Error(aiData.message || 'Error en an├ílisis IA');
+                if (aiData.status !== 'success') throw new Error(aiData.message || 'Error en análisis IA');
                 
                 // Actualizar panel activo
                 const contentDiv = document.getElementById(`rrc-edit-content-${activeCond}`);
                 if (contentDiv) {
                     contentDiv.innerHTML = marked.parse(aiData.report);
-                    alert('Condici├│n ' + activeCond + ' actualizada con el an├ílisis del archivo.');
+                    alert('Condición ' + activeCond + ' actualizada con el análisis del archivo.');
                     guardarReporteRRC(); // Auto-guardar
                 }
                 
@@ -2514,10 +2518,10 @@
                 const instId    = getInstId();
                 const programId = getProgramId();
 
-                // Intentar cargar reporte persistido si no es regeneraci├│n forzada
+                // Intentar cargar reporte persistido si no es regeneración forzada
                 if (!forceRegenerate && !_rrcIAReport && !_rrcManualEditObj) {
                     try {
-                        const savedRes = await fetch(`/api/rrc/report?inst_id=${instId}&program_id=${programId}`);
+                        const savedRes = await authFetch(`/api/rrc/report?inst_id=${instId}&program_id=${programId}`);
                         const savedData = await savedRes.json();
                         if (savedData.report) {
                             if (typeof savedData.report === 'string' && savedData.report.trim() !== '') {
@@ -2529,28 +2533,28 @@
                     } catch(e) { console.error("Error cargando reporte persistido", e); }
                 }
 
-                // 1. Cargar datos instituci├│n y programa
+                // 1. Cargar datos institución y programa
                 const [instResp, progResp] = await Promise.all([
-                    fetch(`/api/institution?inst_id=${instId}`),
-                    fetch(`/api/programs?inst_id=${instId}`)
+                    authFetch(`/api/institution?inst_id=${instId}`),
+                    authFetch(`/api/programs?inst_id=${instId}`)
                 ]);
                 const instData  = await instResp.json();
                 const programs  = await progResp.json();
 
-                const programaActivo = programs.find(p => p.id == programId);
-                _rrcInstName = instData.name || 'Instituci├│n';
-                _rrcProgName = programaActivo ? programaActivo.name : (instData.program || 'Programa Acad├®mico');
+                const programaActivo = Array.isArray(programs) ? programs.find(p => p.id == programId) : null;
+                _rrcInstName = instData.name || 'Institución';
+                _rrcProgName = programaActivo ? programaActivo.name : (instData.program || 'Programa Académico');
 
                 document.getElementById('rrcProgramaTitle').textContent =
-                    `${_rrcProgName} ┬À ${_rrcInstName}`;
+                    `${_rrcProgName} · ${_rrcInstName}`;
 
-                const informeRes = await fetch(`/api/informe_dinamico?inst_id=${instId}&program_id=${programId}`);
+                const informeRes = await authFetch(`/api/informe_dinamico?inst_id=${instId}&program_id=${programId}`);
                 _rrcInformeData  = await informeRes.json();
 
                 _rrcCondData = mapearCondicionesRRC(_rrcInformeData, instData, programaActivo);
 
                 if (!_rrcIAReport && !_rrcManualEditObj) {
-                    // Subir archivo de justificaci├│n si existe
+                    // Subir archivo de justificación si existe
                     const justFile = document.getElementById('justificationFileRRC').files[0];
                     let justification_url = '';
                     if (justFile) {
@@ -2559,16 +2563,16 @@
                         formData.append('file', justFile);
                         formData.append('plan_id', 'RRC_JUSTIFICATION');
                         try {
-                            const upRes = await fetch('/api/planes_mejora/upload_soporte', { method: 'POST', body: formData });
+                            const upRes = await authFetch('/api/planes_mejora/upload_soporte', { method: 'POST', body: formData });
                             const upData = await upRes.json();
                             if (upData.url) justification_url = upData.url;
                         } catch (e) { console.error("Error upload justificacion", e); }
                     } else {
-                        document.getElementById('rrcLoading').innerHTML = '<div class="rrc-loader"></div><div style="text-align:center;"><strong>Generando soporte documental con IA...</strong><p>Procesando metadatos y cuadros estad├¡sticos...</p></div>';
+                        document.getElementById('rrcLoading').innerHTML = '<div class="rrc-loader"></div><div style="text-align:center;"><strong>Generando soporte documental con IA...</strong><p>Procesando metadatos y cuadros estadísticos...</p></div>';
                     }
 
-                    // 4. Llamar a IA para an├ílisis
-                    const aiRes = await fetch('/api/ai/generar_rrc', {
+                    // 4. Llamar a IA para análisis
+                    const aiRes = await authFetch('/api/ai/generar_rrc', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -2584,7 +2588,7 @@
                     _rrcIAReport = (aiData.status === 'success') ? aiData.report : null;
                     
                     if (_rrcIAReport) {
-                        await fetch(`/api/rrc/report?inst_id=${instId}&program_id=${programId}`, {
+                        await authFetch(`/api/rrc/report?inst_id=${instId}&program_id=${programId}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ report: _rrcIAReport })
@@ -2592,7 +2596,7 @@
                     }
                 }
 
-                // 5. Parsear el reporte IA por condici├│n
+                // 5. Parsear el reporte IA por condición
                 const analisisIA = _rrcManualEditObj ? _rrcManualEditObj : (_rrcIAReport ? parsearReporteIA(_rrcIAReport) : {});
 
                 // 6. Renderizar
@@ -2601,7 +2605,7 @@
             } catch (err) {
                 console.error('Error RRC:', err);
                 document.getElementById('rrcLoading').innerHTML =
-                    `<p style="color:#ef4444; text-align:center;">ÔØî Error generando soporte: ${err.message}</p>`;
+                    `<p style="color:#ef4444; text-align:center;">❌ Error generando soporte: ${err.message}</p>`;
             }
         }
 
@@ -2621,15 +2625,15 @@
             _rrcIAReport = null;
 
             try {
-                const res = await fetch(`/api/rrc/report?inst_id=${instId}&program_id=${programId}`, {
+                const res = await authFetch(`/api/rrc/report?inst_id=${instId}&program_id=${programId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ report: objAGuardar })
                 });
-                if (res.ok) alert('Ô£à Informe guardado correctamente. Los cambios no se perder├ín.');
-                else alert('ÔØî Error al guardar el informe.');
+                if (res.ok) alert('✅ Informe guardado correctamente. Los cambios no se perderán.');
+                else alert('❌ Error al guardar el informe.');
             } catch(e) {
-                alert('ÔØî Error de conexi├│n al guardar.');
+                alert('❌ Error de conexión al guardar.');
             }
         }
 
@@ -3299,6 +3303,8 @@
             document.getElementById('loadingSpinner').style.display = 'block';
             document.getElementById('informeContainer').style.display = 'none';
             document.getElementById('btnImprimir').style.display = 'none';
+            const hub = document.getElementById('reportsHubGrid');
+            if (hub) hub.style.display = 'none';
 
             try {
                 // Fetch context data first
@@ -3326,6 +3332,8 @@
 
         function renderInformeIA(markdownText) {
             const container = document.getElementById('informeContainer');
+            const hub = document.getElementById('reportsHubGrid');
+            if (hub) hub.style.display = 'none';
             document.getElementById('informeTitulo').textContent = `INFORME MAESTRO (GENERADO POR IA)`;
             document.getElementById('informeFecha').textContent = `Generado el: ${new Date().toLocaleDateString()}`;
             
@@ -3361,8 +3369,27 @@
 
         async function generarDOFAInterno() {
             if (!window.currentAiReport) {
-                alert("⚠️ Primero debes generar un informe usando el botón '* Generar con IA'. El análisis DOFA requiere evaluar ese texto maestro para poder extraer las fortalezas y debilidades reales.");
-                return;
+                document.getElementById('loadingSpinner').style.display = 'block';
+                try {
+                    const res = await authFetch(`/api/informe_dinamico?inst_id=${getInstId()}&program_id=${getProgramId()}`);
+                    const data = await res.json();
+                    let autoContext = "";
+                    if (data && data.factores) {
+                        data.factores.forEach(f => {
+                            autoContext += `\nFactor ${f.number}: ${f.name} (Calificación: ${f.nota_promedio})\n`;
+                            autoContext += `Justificación: ${f.justificacion_general || 'Sin justificación registrada'}\n`;
+                            (f.caracteristicas || []).forEach(c => {
+                                autoContext += `- Característica ${c.number}: ${c.name} (Calificación: ${c.nota_promedio})\n`;
+                            });
+                        });
+                    }
+                    window.currentAiReport = autoContext || "Informe de autoevaluación institucional del programa.";
+                } catch(e) {
+                    console.error("Error extrayendo contexto dinámico para DOFA:", e);
+                    window.currentAiReport = "Informe de autoevaluación institucional del programa.";
+                } finally {
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                }
             }
 
             abrirModalDOFA();

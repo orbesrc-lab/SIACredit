@@ -1851,18 +1851,28 @@ def ai_generate_pesta():
             max_tokens=4000
         )
         
-        # Limpieza básica
         pesta_res = pesta_res.replace('```json', '').replace('```', '').strip()
         start = pesta_res.find('{')
         end = pesta_res.rfind('}')
         if start != -1 and end != -1:
             pesta_res = pesta_res[start:end+1]
         
+        pesta_json = None
         try:
-            pesta_json = json.loads(pesta_res)
-        except Exception as e_json:
-            print("Error parsing PESTA JSON:", str(e_json), "Raw Output:", pesta_res[:200])
-            pesta_json = {"informe_pesta": "# Error\\nNo se pudo generar el formato correcto.", "oportunidades": [], "amenazas": [], "error_parseo": "El formato generado no fue un JSON válido."}
+            pesta_json = json.loads(pesta_res, strict=False)
+        except Exception:
+            try:
+                cleaned = re.sub(r'[\r\n]+', '\\n', pesta_res)
+                pesta_json = json.loads(cleaned, strict=False)
+            except Exception as e_json:
+                print("Error parsing PESTA JSON:", str(e_json), "Raw Output:", pesta_res[:200])
+
+        if not pesta_json or not isinstance(pesta_json, dict):
+            pesta_json = {
+                "informe_pesta": pesta_res if pesta_res else "# Análisis PESTA\nSe generó la estructura sin formato JSON.",
+                "oportunidades": [],
+                "amenazas": []
+            }
             
         return jsonify({"status": "success", "pesta": pesta_json})
     except Exception as e:
