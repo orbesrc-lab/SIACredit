@@ -213,6 +213,21 @@ def api_cambio_caracter_delete_file():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@cambio_caracter_bp.route('/api/cambio_caracter/skel_users', methods=['GET'])
+def api_cc_skel_users():
+    inst_id = get_active_inst_id()
+    try:
+        res = supabase.table('users').select('id, email, name, role, inst_id').execute()
+        valid_users = [
+            u for u in (res.data or [])
+            if u.get('role') in ['inst_admin', 'lider', 'operativo', 'admin']
+            and (u.get('inst_id') in [inst_id, 7, None] or u.get('role') == 'admin')
+        ]
+        return jsonify({"status": "success", "users": valid_users})
+    except Exception as e:
+        print(f"[CC] Error fetch users: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @cambio_caracter_bp.route('/api/cambio_caracter/ai_gap_analysis', methods=['POST'])
 def api_cc_ai_gap_analysis():
     try:
