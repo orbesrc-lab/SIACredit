@@ -1830,6 +1830,9 @@
         function sanitizeMarkdownTables(text) {
             if (!text) return text;
             
+            // 0. Eliminar de raíz cualquier bloque o línea de puros guiones repetitivos (degeneración de LLM)
+            text = text.replace(/(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+/gm, '');
+
             // Colapsar bucles repetitivos de enumeración de artículos legales (ej. 2.5.3.2.3.2.1, 2.5.3.2.3.2.2...)
             text = text.replace(/(\b\d+\.\d+\.\d+(?:\.\d+)*(?:,\s*|\s+y\s+)){3,}\b\d+\.\d+\.\d+(?:\.\d+)*/g, '2.5.3.2.3.2.1 y ss.');
             text = text.replace(/(?:2\.5\.3\.2\.3\.\d+\.\d+(?:,\s*|\s+y\s+)){3,}/g, '2.5.3.2.3.2.1 y ss. ');
@@ -1845,13 +1848,18 @@
                 const line = lines[i];
                 const stripped = line.trim();
 
+                // Ignorar líneas compuestas enteramente de guiones, guiones bajos o espacios repetidos
+                if (/^[-_—–\s]{4,}$/.test(stripped)) {
+                    continue;
+                }
+
                 if (stripped.startsWith('|') && stripped.endsWith('|')) {
                     inTable = true;
                     tableRowCount++;
 
                     // 1. Eliminar filas vacías compuestas solo por guiones bajos, guiones o espacios (|______|______|)
-                    const innerContent = stripped.replace(/[\s|_:\-]/g, '');
-                    if (!innerContent && tableRowCount > 1) continue;
+                    const innerContent = stripped.replace(/[\s|_:\-—–]/g, '');
+                    if (!innerContent && tableRowCount > 1 && !stripped.includes(':---')) continue;
 
                     // 2. Eliminar filas duplicadas consecutivas
                     if (stripped === prevTableRow) {
@@ -1863,7 +1871,7 @@
                     }
 
                     // 4. Sanitizar divisores con guiones o guiones bajos excesivos (|:--------...---|)
-                    if (/^\|[\s|:_\-]+\|$/.test(stripped) && (stripped.includes('---') || stripped.includes('___'))) {
+                    if (/^\|[\s|:_\-—–]+\|$/.test(stripped) && (stripped.includes('---') || stripped.includes('___'))) {
                         const parts = stripped.split('|');
                         const newParts = parts.map(p => p.trim() ? ' :--- ' : '');
                         cleanedLines.push(newParts.join('|'));
@@ -1872,11 +1880,13 @@
                 } else {
                     inTable = false;
                     tableRowCount = 0;
+                    prevTableRow = null;
+                    dupCount = 0;
                 }
 
                 cleanedLines.push(line);
             }
-            return cleanedLines.join('\n');
+            return cleanedLines.join('\n').trim();
         }
 
 
@@ -1942,6 +1952,9 @@
             // Cargar contenido en el editor
             const condData = (currentProject.conditions || {})[condKey] || {};
             const content = sanitizeMarkdownTables(condData.content || '');
+            if (condData.content && condData.content !== content) {
+                condData.content = content;
+            }
             const stageTextarea = document.getElementById('stageTextarea');
             stageTextarea.value = content;
             stageTextarea.scrollTop = 0;

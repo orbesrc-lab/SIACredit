@@ -1242,6 +1242,9 @@ def sanitize_markdown_tables(text):
     if not text:
         return text
         
+    # 0. Eliminar de raíz cualquier bloque o línea de puros guiones repetitivos (degeneración de LLM)
+    text = re.sub(r'(?:^\s*[-_—–\s]{4,}\s*$\n?)+', '', text, flags=re.MULTILINE)
+
     # Colapsar bucles de enumeración repetitiva de artículos legales (ej. 2.5.3.2.3.2.1, 2.5.3.2.3.2.2...)
     text = re.sub(r'(\b\d+\.\d+\.\d+(?:\.\d+)*(?:,\s*|\s+y\s+)){3,}\b\d+\.\d+\.\d+(?:\.\d+)*', r'2.5.3.2.3.2.1 y ss.', text)
     text = re.sub(r'(?:2\.5\.3\.2\.3\.\d+\.\d+(?:,\s*|\s+y\s+)){3,}', '2.5.3.2.3.2.1 y ss. ', text)
@@ -1259,17 +1262,21 @@ def sanitize_markdown_tables(text):
     for line in lines:
         stripped = line.strip()
         
+        # Ignorar cualquier línea compuesta exclusivamente de guiones o guiones bajos
+        if re.match(r'^[-_—–\s]{4,}$', stripped):
+            continue
+            
         if stripped.startswith('|') and stripped.endswith('|'):
             in_table = True
             table_row_count += 1
             
-            # 1. Eliminar filas vacías compuestas solo por guiones bajos, guiones o espacios (|______|______|
-            inner_content = re.sub(r'[\s|_:\-]', '', stripped)
-            if not inner_content and table_row_count > 1:
+            # 1. Eliminar filas vacías compuestas solo por guiones bajos, guiones o espacios (|______|______|)
+            inner_content = re.sub(r'[\s|_:\-—–]', '', stripped)
+            if not inner_content and table_row_count > 1 and not re.match(r'^\|[\s|:_\-—–]+\|$', stripped):
                 continue
                 
-            # 2. Truncar tablas desbordadas a máximo 10 filas por tabla
-            if table_row_count > 10:
+            # 2. Truncar tablas desbordadas a máximo 15 filas por tabla
+            if table_row_count > 15:
                 continue
                 
             # 3. Eliminar filas duplicadas consecutivas
@@ -1282,7 +1289,7 @@ def sanitize_markdown_tables(text):
                 prev_table_row = stripped
                 
             # 4. Sanitizar divisores con guiones o guiones bajos excesivos (|:--------...---|)
-            if re.match(r'^\|[\s|:_\-]+\|$', stripped) and ('---' in stripped or '___' in stripped):
+            if re.match(r'^\|[\s|:_\-—–]+\|$', stripped) and ('---' in stripped or '___' in stripped):
                 parts = stripped.split('|')
                 new_parts = [' :--- ' if p.strip() else '' for p in parts]
                 cleaned_lines.append('|'.join(new_parts))
@@ -1294,7 +1301,7 @@ def sanitize_markdown_tables(text):
             table_row_count = 0
             prev_table_row = None
             dup_count = 0
-            if re.match(r'^-{5,}$', stripped) or re.match(r'^_{5,}$', stripped):
+            if re.match(r'^[-_—–\s]{4,}$', stripped):
                 continue
             cleaned_lines.append(line)
             
@@ -1307,6 +1314,9 @@ def sanitize_markdown_tables_light(text):
     if not text:
         return text
         
+    # 0. Eliminar de raíz cualquier bloque o línea de puros guiones repetitivos (degeneración de LLM)
+    text = re.sub(r'(?:^\s*[-_—–\s]{4,}\s*$\n?)+', '', text, flags=re.MULTILINE)
+
     # Colapsar bucles de enumeración repetitiva de artículos legales
     text = re.sub(r'(\b\d+\.\d+\.\d+(?:\.\d+)*(?:,\s*|\s+y\s+)){3,}\b\d+\.\d+\.\d+(?:\.\d+)*', r'2.5.3.2.3.2.1 y ss.', text)
     text = re.sub(r'(?:2\.5\.3\.2\.3\.\d+\.\d+(?:,\s*|\s+y\s+)){3,}', '2.5.3.2.3.2.1 y ss. ', text)
@@ -1323,12 +1333,16 @@ def sanitize_markdown_tables_light(text):
     for line in lines:
         stripped = line.strip()
         
+        # Ignorar cualquier línea compuesta exclusivamente de guiones o guiones bajos
+        if re.match(r'^[-_—–\s]{4,}$', stripped):
+            continue
+
         if stripped.startswith('|') and stripped.endswith('|'):
             in_table = True
             
             # 1. Eliminar filas vacías compuestas solo por guiones bajos, guiones o espacios
-            inner_content = re.sub(r'[\s|_:\-]', '', stripped)
-            if not inner_content:
+            inner_content = re.sub(r'[\s|_:\-—–]', '', stripped)
+            if not inner_content and not re.match(r'^\|[\s|:_\-—–]+\|$', stripped):
                 continue
                 
             # 2. Eliminar filas duplicadas consecutivas
@@ -1341,7 +1355,7 @@ def sanitize_markdown_tables_light(text):
                 prev_table_row = stripped
                 
             # 3. Sanitizar divisores excesivos (|:--------...---|)
-            if re.match(r'^\|[\s|:_\-]+\|$', stripped) and ('---' in stripped or '___' in stripped):
+            if re.match(r'^\|[\s|:_\-—–]+\|$', stripped) and ('---' in stripped or '___' in stripped):
                 parts = stripped.split('|')
                 new_parts = [' :--- ' if p.strip() else '' for p in parts]
                 cleaned_lines.append('|'.join(new_parts))
@@ -1352,7 +1366,7 @@ def sanitize_markdown_tables_light(text):
             in_table = False
             prev_table_row = None
             dup_count = 0
-            if re.match(r'^-{5,}$', stripped) or re.match(r'^_{5,}$', stripped):
+            if re.match(r'^[-_—–\s]{4,}$', stripped):
                 continue
             cleaned_lines.append(line)
             
@@ -1696,10 +1710,9 @@ DIRECTRICES CRÍTICAS DE ESTRUCTURACIÓN Y USO DE EVIDENCIAS:
    DEBES CONSTRUIR LAS TABLAS MARKDOWN COMPLETAS Y RICAS DIRECTAMENTE DENTRO DEL TEXTO.
    No las reemplaces por meras instrucciones vacías; incluye la tabla completa en sintaxis Markdown (| Columna 1 | Columna 2 |) con todos sus datos cuantitativos, matrices de pertinencia, oferta comparativa SNIES/DANE, matriz de Resultados de Aprendizaje bajo Taxonomía SOLO, plan de estudios con horas presenciales e independientes (HAD vs HTI), o cuadros de equivalencia entre modalidades.
 
-5. MARCADORES DE POSICIÓN PARA EVIDENCIA FOTOGRÁFICA:
-   - Para evidencia visual en condiciones 5, 6, 7, 8 y 9, dispone espacios destacados:
-     > 🖼️ **[ESPACIO PARA EVIDENCIA FOTOGRÁFICA / CAPTURA DE PANTALLA]**:
-     > *"Pegar aquí fotografía o evidencia gráfica de: [Aulas, Laboratorios Físicos / LMS / Firma de Convenios / Medios Educativos]. Pie de foto recomendado: Figura X.Y - Recursos para el programa {proj.get('program_name')}."*
+5. PROHIBICIÓN TAXATIVA DE GUIONES REPETIDOS Y LÍNEAS DE RELLENO:
+   ESTÁ TOTALMENTE PROHIBIDO generar secuencias de guiones repetidos (como '----------------' o '________________') para separar párrafos, rellenar espacios o decorar el texto.
+   En las tablas Markdown, utiliza ÚNICAMENTE una sola línea divisoria con formato estándar (| :--- | :--- |) seguida INMEDIATAMENTE de las filas de datos con texto sustantivo real. NUNCA emitas líneas de puros guiones.
 
 6. CITACIÓN EN TEXTO Y BIBLIOGRAFÍA EN FORMATO APA 7.0:
    - Citas en texto formato APA 7.0 (DANE, 2024; SPADIES, 2024; UNESCO, 2024; Biggs & Tang, 2020, documentos institucionales).
@@ -1743,9 +1756,10 @@ REGLAS STRICTAS DE SALIDA:
 1. Desarrolla EXCLUSIVAMENTE la Condición {meta.get('num')}. ESTÁ PROHIBIDO escribir subtítulos de la Condición siguiente.
 2. Utiliza obligatoriamente los sub-numerales indicados arriba como subtítulos principales de tercer nivel (###).
 3. Integra, cita y articula activamente los fragmentos y datos de las evidencias institucionales cargadas arriba.
-4. Construye directamente en el texto todas las tablas Markdown completas (Benchmarking SNIES, Demanda DANE, Matriz de RA bajo Taxonomía SOLO, Plan de Estudios con HAD/HTI/Créditos, etc.).
-5. Si un aspecto de la Res. 021795 de 2020 no aparece en las evidencias adjuntas, investígalo/dedúcelo técnicamente para responderlo completamente.
-6. Finaliza el capítulo con la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
+4. Construye directamente en el texto todas las tablas Markdown completas (Benchmarking SNIES, Demanda DANE, Matriz de RA bajo Taxonomía SOLO, Plan de Estudios con HAD/HTI/Créditos, etc.). Cada tabla debe tener datos reales inmediatamente después de la línea de formato.
+5. PROHIBIDO GENERAR LÍNEAS DE GUIONES REPETIDOS ('---' o '____'). Escribe siempre párrafos sustantivos.
+6. Si un aspecto de la Res. 021795 de 2020 no aparece en las evidencias adjuntas, investígalo/dedúcelo técnicamente para responderlo completamente.
+7. Finaliza el capítulo con la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
 """
 
         # Pase 1: Generación inicial (máximo de tokens para contenido extenso)
@@ -1759,12 +1773,16 @@ REGLAS STRICTAS DE SALIDA:
             inst_id=proj.get('inst_id')
         )
         
+        # Limpieza inmediata de posibles degeneraciones de guiones en el Pase 1
+        response_text = re.sub(r'(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+', '', response_text, flags=re.MULTILINE)
+        response_text = re.sub(r'[-_—–\s]{4,}$', '', response_text).rstrip()
+        
         # Bucle de Auto-Continuación de IA para garantizar completitud total y bibliografía APA 7.0
-        max_continuation_passes = 3
+        max_continuation_passes = 2
         current_pass = 0
         
         while current_pass < max_continuation_passes:
-            text_trim = response_text.strip()
+            text_trim = re.sub(r'(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+', '', response_text.strip(), flags=re.MULTILINE).rstrip()
             
             # Verificar si el documento ya cuenta con la sección final de referencias APA 7.0 y no está cortado mid-sentence
             has_references = '### Referencias' in text_trim or 'Referencias Bibliográficas' in text_trim or 'REFERENCIAS BIBLIOGRÁFICAS' in text_trim
@@ -1775,9 +1793,15 @@ REGLAS STRICTAS DE SALIDA:
                 
             # Si el texto está truncado o le faltan las referencias, preparar prompt de continuación exacta
             last_snippet = text_trim[-500:] if len(text_trim) > 500 else text_trim
+            last_snippet = re.sub(r'[-_—–\s]{4,}$', '', last_snippet).rstrip()
+            
+            # Salvaguarda crítica: verificar que el snippet contenga palabras reales y no solo símbolos/guiones
+            real_words = re.findall(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]{3,}', last_snippet)
+            if len(real_words) < 5:
+                break
             
             next_cond_num = str(int(meta.get('num')) + 1) if meta.get('num').isdigit() else 'siguiente'
-            continuation_prompt = f"""ATENCIÓN: Tu respuesta anterior fue exhaustiva pero se interrumpió o aún no ha concluido con la sección final de bibliografía en APA 7.0.
+            continuation_prompt = f"""ATENCIÓN: Tu respuesta anterior fue exhaustiva pero aún no ha concluido con la sección final de bibliografía en APA 7.0 o quedó en pausa.
 A continuación se muestra el fragmento final generado hasta el momento:
 
 "... {last_snippet}"
@@ -1785,8 +1809,9 @@ A continuación se muestra el fragmento final generado hasta el momento:
 REGLAS RIGUROSAS DE CONTINUACIÓN:
 1. CONTINÚA LA REDACCIÓN EXACTAMENTE DESDE LA ÚLTIMA PALABRA (sin repetir texto previo ni empezar desde el inicio).
 2. MANTÉNTE EXCLUSIVAMENTE DENTRO DE LA CONDICIÓN {meta.get('num')}: {meta.get('title')}. ESTÁ RIGUROSAMENTE PROHIBIDO SALIRSE A LA CONDICIÓN {next_cond_num} (ejemplo: NO generes ningún subtítulo como '### {next_cond_num}.1' ni '### {next_cond_num}.2').
-3. CONSTRUYE TABLAS MARKDOWN COMPLETAS Y DETALLADAS DIRECTAMENTE EN EL TEXTO cuando corresponda (mallas curriculares, matrices de RA SOLO, comparativos SNIES/DANE).
-4. Concluye obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
+3. PROHIBICIÓN TAXATIVA DE GUIONES REPETIDOS: NUNCA emitas líneas de puros guiones ('---' o '____'). Escribe siempre párrafos sustantivos y tablas completas con datos reales.
+4. CONSTRUYE TABLAS MARKDOWN COMPLETAS Y DETALLADAS DIRECTAMENTE EN EL TEXTO cuando corresponda (mallas curriculares, matrices de RA SOLO, comparativos SNIES/DANE).
+5. Concluye obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
 
             continuation_text = call_ai(
                 messages=[
@@ -1801,6 +1826,13 @@ REGLAS RIGUROSAS DE CONTINUACIÓN:
             if not continuation_text or not continuation_text.strip():
                 break
                 
+            # Limpiar de inmediato cualquier guión repetido de la continuación
+            continuation_text = re.sub(r'(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+', '', continuation_text, flags=re.MULTILINE)
+            continuation_words = re.findall(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]{3,}', continuation_text)
+            if len(continuation_words) < 10:
+                # La IA no retornó texto sustantivo, evitar degeneración
+                break
+
             # Unir limpiamente la continuación sin romper palabras a la mitad
             ends_mid_word = not response_text.rstrip().endswith((' ', '\n', '.', ',', ';', ':', ')', ']', '}', '`'))
             separator = "" if ends_mid_word else ("\n\n" if response_text.rstrip().endswith(('.', ':', ')', ']', '}', '`')) else " ")
@@ -1870,8 +1902,12 @@ def continue_condition_ai():
                     evidences_context.append(f"--- [DOCUMENTO FUENTE: {ev.get('name') or ev.get('original_filename')} | TIPO: {ev.get('doc_type')}] ---\n{sample}\n")
         evidences_str = "\n".join(evidences_context) if evidences_context else "Fundamenta con base en evidencias institucionales, enlaces web, normatividad del MEN y datos de mercado."
 
+        existing_content = re.sub(r'(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+', '', existing_content, flags=re.MULTILINE)
+        existing_content = re.sub(r'[-_—–\s]{4,}$', '', existing_content).rstrip()
+        
         # Tomar los últimos 1500 caracteres para un contexto de enlace mucho más sólido
         last_snippet = existing_content[-1500:] if len(existing_content) > 1500 else existing_content
+        last_snippet = re.sub(r'[-_—–\s]{4,}$', '', last_snippet).rstrip()
         next_cond_num = str(int(meta.get('num')) + 1) if meta.get('num').isdigit() else 'siguiente'
         
         condition_specific_guidelines = get_condition_specific_guidelines(cond_key, proj)
@@ -1904,8 +1940,9 @@ REGLAS STRICTAS DE CONTINUACIÓN:
 1. CONTINUIDAD FLUIDA: Continúa el texto exactamente donde quedó cortado el último fragmento, sin reiniciar el capítulo ni repetir párrafos o sub-numerales ya redactados arriba ({', '.join([s.split()[0] for s in developed_subs]) if developed_subs else 'ninguno'}).
 2. DESARROLLO DE SUB-NUMERALES PENDIENTES: Procede a desarrollar de forma exhaustiva los sub-numerales pendientes: {', '.join([s.split()[0] for s in pending_subs]) if pending_subs else 'la sección final de referencias'}. Cada sub-numeral debe ser un encabezado '###'.
 3. AISLAMIENTO DE CONDICIÓN: MANTÉNTE EXCLUSIVAMENTE DENTRO DE LA CONDICIÓN {meta.get('num')}. ESTÁ RIGUROSAMENTE PROHIBIDO SALIRSE A LA CONDICIÓN {next_cond_num} (NO generes ### {next_cond_num}.1 ni ### {next_cond_num}.2).
-4. CONSTRUCCIÓN DE TABLAS Y MATRICES: Desarrolla y construye tablas Markdown completas y detalladas directamente en el texto cuando el subnumeral lo requiera (matrices de RA SOLO, mallas curriculares, comparativos SNIES/DANE).
-5. REFERENCIAS APA 7.0: Si es la última parte del capítulo, finaliza obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
+4. PROHIBICIÓN TAXATIVA DE GUIONES REPETIDOS: NUNCA emitas líneas de puros guiones ('---' o '____'). Escribe siempre párrafos sustantivos y tablas completas con datos reales.
+5. CONSTRUCCIÓN DE TABLAS Y MATRICES: Desarrolla y construye tablas Markdown completas y detalladas directamente en el texto cuando el subnumeral lo requiera (matrices de RA SOLO, mallas curriculares, comparativos SNIES/DANE).
+6. REFERENCIAS APA 7.0: Si es la última parte del capítulo, finaliza obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
 
         continuation_text = call_ai(
             messages=[
@@ -1919,6 +1956,12 @@ REGLAS STRICTAS DE CONTINUACIÓN:
         
         if not continuation_text or not continuation_text.strip():
             return jsonify({'status': 'error', 'message': 'La IA no retornó contenido adicional'}), 500
+
+        continuation_text = re.sub(r'(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+', '', continuation_text, flags=re.MULTILINE)
+        continuation_text = re.sub(r'[-_—–\s]{4,}$', '', continuation_text).rstrip()
+        continuation_words = re.findall(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]{3,}', continuation_text)
+        if len(continuation_words) < 10:
+            return jsonify({'status': 'error', 'message': 'La IA no aportó texto sustantivo adicional'}), 500
             
         ends_mid_word = not existing_content.endswith((' ', '\n', '.', ',', ';', ':', ')', ']', '}', '`'))
         separator = "" if ends_mid_word else ("\n\n" if existing_content.endswith(('.', ':', ')', ']', '}', '`')) else " ")
