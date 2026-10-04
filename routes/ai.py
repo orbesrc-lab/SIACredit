@@ -1186,39 +1186,91 @@ def generate_juicio_valor_ia():
             
         ev_context_str = "\n\n".join(ev_summaries) if ev_summaries else "No hay síntesis o aportes de evidencias registrados aún."
 
-        # 4. Obtener nombres de aspectos de la característica
+        # 4. Obtener nombres y texto de aspectos constitutivos
         aspect_names = [a.get('name') or a.get('text') or f"Aspecto {a.get('number', '')}" for a in (char_obj.get('aspects') or []) if a]
-        aspects_str = "\n".join([f"  • {asp}" for asp in aspect_names]) if aspect_names else "  • Aspectos normativos y pedagógicos de la característica."
+        aspects_str = "\n".join([f"  • {asp}" for asp in aspect_names]) if aspect_names else "  • Aspectos normativos, pedagógicos e institucionales de la característica."
 
-        # 5. Construir prompt para la IA (Par Evaluador Sénior CNA)
+        # 5. Cargar Planes de Mejora / Acciones determinadas por el equipo para esta característica
+        planes_summaries = []
+        try:
+            res_p = supabase.table('planes_mejora').select('*').eq('inst_id', inst_id).eq('char_id', str(char_id)).execute()
+            for p in (res_p.data or []):
+                act = p.get('accion', 'Acción de mejora')
+                meta_p = p.get('meta', 'N/A')
+                est = p.get('estado', 'Pendiente')
+                av = p.get('avance', 0)
+                resp = p.get('responsable', 'Unidad de Calidad')
+                planes_summaries.append(f"  • Acción: '{act}' | Estado: {est} ({av}%) | Meta: {meta_p} | Responsable: {resp}")
+        except Exception as ex_p:
+            print("Error cargando planes_mejora para IA:", ex_p)
+        planes_context_str = "\n".join(planes_summaries) if planes_summaries else "  • Acciones de fortalecimiento continuo proyectadas por el equipo de autoevaluación."
+
+        # 6. Cargar información de Percepción de la Comunidad (Encuestas vinculadas)
+        survey_summaries = []
+        try:
+            import survey_storage
+            try:
+                survey_storage.pull_from_supabase(inst_id, program_id, supabase)
+            except Exception: pass
+            surveys_list = survey_storage.load_local_surveys(inst_id, program_id)
+            for s in surveys_list:
+                stitle = s.get('title') or s.get('name') or 'Encuesta Institucional'
+                for q in (s.get('questions') or []):
+                    if str(q.get('char_id')) == str(char_id) or (q.get('aspect_id') and str(q.get('aspect_id')) in aspect_ids):
+                        qtext = q.get('text', 'Pregunta de Percepción')
+                        survey_summaries.append(f"  • [{stitle}] Indicador/Pregunta: '{qtext}'")
+        except Exception as ex_s:
+            print("Error cargando encuestas para IA:", ex_s)
+        surveys_context_str = "\n".join(survey_summaries) if survey_summaries else "  • Evaluación de la percepción de los estamentos institucionales (estudiantes, docentes, egresados y empleadores)."
+
+        # 7. Construir Master Prompt para la IA (Par Evaluador Sénior CNA)
         char_title = f"Característica {char_obj.get('number', '')}: {char_obj.get('name', '')}" if char_obj else f"Característica ID {char_id}"
         factor_title = f"Factor {factor_obj.get('number', '')}: {factor_obj.get('name', '')}" if factor_obj else "Factor Institucional"
         
         prompt = f"""
 Actúa como un Par Evaluador Sénior del Consejo Nacional de Acreditación (CNA) de Educación Superior y Doctor en Gestión de Calidad Académica e Institucional.
-Tu objetivo es redactar un **JUICIO DE VALOR Y ANÁLISIS CUALITATIVO EXHAUSTIVO, RIGUROSO Y PERFECTO** para la autoevaluación de la siguiente Característica (Modelo CESU Acuerdo 01/2025 y Decreto 1330/2019):
+Tu objetivo es redactar un **JUICIO DE VALOR Y ANÁLISIS CUALITATIVO MAESTRO, EXHAUSTIVO, RIGUROSO Y PERFECTO** para la autoevaluación de la siguiente Característica (Modelo CESU Acuerdo 01/2025 y Decreto 1330/2019).
+
+Este análisis servirá de insumo integral para alimentar los Informes Parciales, Informes Finales de Acreditación, Diagnóstico DOFA y Carpetas de Registro Calificado. Debe hacer un BARRIDO COMPLETO y articular armónicamente todos los aspectos, evidencias, encuestas y planes de mejora.
 
 ==================================================
-INFORMACIÓN DE LA CARACTERÍSTICA EVALUADA:
+1. COMPONENTE EVALUADO:
 ==================================================
 - {factor_title}
 - {char_title}
 - Calificación Cuantitativa Asignada: {rating if rating else 'No especificada'} (Escala CNA 1.0 a 5.0)
 
-ASPECTOS CONSTITUTIVOS EVALUADOS:
+==================================================
+2. ASPECTOS CLAVE EVALUADOS EN LA CARACTERÍSTICA:
+==================================================
 {aspects_str}
 
-EVIDENCIAS Y APORTES CUALITATIVOS SOPORTADOS:
+==================================================
+3. EVIDENCIAS Y SOPORTES DOCUMENTALES AUDITADOS:
+==================================================
 {ev_context_str}
 
 ==================================================
-DIRECTRICES DE REDACCIÓN Y ALTA CALIDAD ACADÉMICA:
+4. PERCEPCIÓN DE LA COMUNIDAD ACADÉMICA (ENCUESTAS & DATASET):
 ==================================================
-1. **Nivel Académico y Estilo**: Escribe en un lenguaje altamente formal, articulado, técnico, argumentativo y explicativo propio de un Par Evaluador Experto de nivel doctoral.
-2. **Profundidad y Extensión**: Construye una redacción amplia, completa y detallada (de 4 a 6 párrafos extensos y densos en contenido). No utilices resúmenes breves ni frases superficiales.
-3. **Articulación de Evidencias**: Cita y analiza explícitamente las evidencias documentadas (mencionando sus nombres completos, periodos y aportes cualitativos), demostrando con rigor cómo respaldan el cumplimiento del modelo.
-4. **Evaluación de Madurez e Impacto**: Analiza la pertinencia, coherencia, sostenibilidad, cultura de autorregulación y madurez alcanzada por la institución en esta característica.
-5. **Formato Unificado**: NO incluyas encabezados como "Introducción:", "Desarrollo:" ni notas al final. Genera directamente el texto fluido y elegante del Juicio de Valor listo para integrarse de forma impecable en el Informe Final de Acreditación.
+{surveys_context_str}
+
+==================================================
+5. PLANES DE MEJORA Y ACCIONES DETERMINADAS POR EL EQUIPO:
+==================================================
+{planes_context_str}
+
+==================================================
+DIRECTRICES MANDATORIAS DE REDACCIÓN (NIVEL EXCELENCIA):
+==================================================
+1. **Barrido e Integración Total**: Articula de manera explícita y fluida:
+   - El cumplimiento sustantivo de cada uno de los Aspectos constitutivos de la característica.
+   - El análisis riguroso de los Soportes Documentales (citando nombres completos de archivos, periodos y aportes técnicos).
+   - Los resultados de la Percepción de la Comunidad Académica y datos estadísticos (estudiantes, docentes, egresados, empleadores).
+   - La articulación con las Acciones de Mejora formuladas por el equipo institucional.
+2. **Estilo y Rigor Académico**: Utiliza un lenguaje sumamente formal, articulado, técnico, argumentativo y explicativo propio de un Par Evaluador de nivel doctoral.
+3. **Extensión y Profundidad**: Redacta una argumentación amplia y completa (de 5 a 7 párrafos extensos y densos en contenido). Evita frases genéricas o párrafos cortos.
+4. **Formato Unificado**: NO incluyas encabezados como "Introducción:", "Desarrollo:" ni notas metatextuales. Genera directamente el texto fluido, elegante e impecable del Juicio de Valor.
 """
         from routes.ai_generator import generar_informe_ia_base
         juicio_valor_texto = generar_informe_ia_base(prompt, max_tokens=4500)
