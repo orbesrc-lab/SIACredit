@@ -3413,8 +3413,7 @@
                 }
 
                 const outcomesUl = document.getElementById('studentOutcomesList');
-                outcomesUl.innerHTML = Object.values(course.outcomes || {}).map(o => `<li>${escapeHtml(o)}</li>
-                <li><a href="/cambio_caracter" id="link-cambio-caracter"><span class="icon">🏛️</span> Cambio de Carácter</a></li>`).join('') || '<li>Sin resultados registrados.</li>';
+                outcomesUl.innerHTML = Object.values(course.outcomes || {}).map(o => `<li>${escapeHtml(o)}</li>`).join('') || '<li>Sin resultados registrados.</li>';
                 
                 const competenciesUl = document.getElementById('studentCompetenciesList');
                 competenciesUl.innerHTML = Object.values(course.competencies || {}).map(c => `<li>${escapeHtml(c)}</li>`).join('') || '<li>Sin competencias registradas.</li>';

@@ -282,8 +282,7 @@
                     data.data.forEach(comp => {
                         let compListHTML = '<ul style="margin: 0; padding-left: 20px; font-size: 0.9rem; color: #64748b;">';
                         comp.comportamientos.forEach(c => {
-                            compListHTML += `<li>${c.descripcion}</li>
-                <li><a href="/cambio_caracter" id="link-cambio-caracter"><span class="icon">🏛️</span> Cambio de Carácter</a></li>`;
+                            compListHTML += `<li>${c.descripcion}</li>`;
                         });
                         compListHTML += '</ul>';
                         
