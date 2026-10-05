@@ -1725,7 +1725,13 @@
                         const targetProj = allProjects.find(p => p.id === savedPid) || allProjects[0];
                         switchProject(targetProj.id);
                     } else {
-                        await createDefaultProject();
+                        currentProject = null;
+                        renderProjectSelect();
+                        localStorage.removeItem('rc_active_project_id');
+                        document.getElementById('projectSummaryLine').textContent = 'Sin proyectos. Haz clic en "+ Nuevo Proyecto"';
+                        document.getElementById('stageTextarea').value = '';
+                        document.getElementById('charCountBadge').textContent = '0 caracteres';
+                        renderMarkdownPreview('');
                     }
                 } else {
                     throw new Error(data.message || 'Error en respuesta de proyectos');
@@ -1745,28 +1751,13 @@
             const sel = document.getElementById('projectSelector');
             sel.innerHTML = '';
             
-            // Deduplicar por nombre normalizado de programa para que nunca se muestren proyectos repetidos
-            const uniqueMap = new Map();
-            allProjects.forEach(p => {
-                if (p && p.id) {
-                    const normName = (p.program_name || '').trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                    const condCount = Object.keys(p.conditions || {}).length;
-                    const charCount = Object.values(p.conditions || {}).reduce((acc, c) => acc + ((c && c.content) ? c.content.length : 0), 0);
-                    
-                    if (!uniqueMap.has(normName)) {
-                        uniqueMap.set(normName, { project: p, score: charCount + condCount * 1000 });
-                    } else {
-                        const existing = uniqueMap.get(normName);
-                        const currentScore = charCount + condCount * 1000;
-                        if (currentScore > existing.score) {
-                            uniqueMap.set(normName, { project: p, score: currentScore });
-                        }
-                    }
-                }
-            });
-
-            // Actualizar allProjects con los únicos
-            allProjects = Array.from(uniqueMap.values()).map(v => v.project);
+            if (!allProjects || allProjects.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = "";
+                opt.textContent = "-- Sin proyectos registrados --";
+                sel.appendChild(opt);
+                return;
+            }
 
             allProjects.forEach(p => {
                 const opt = document.createElement('option');
@@ -3728,11 +3719,19 @@
                         allProjects = allProjects.filter(p => p.id !== targetId);
                         localStorage.removeItem('rc_active_project_id');
                         
+                        renderProjectSelect();
+                        
                         if (allProjects.length > 0) {
-                            renderProjectSelect();
                             switchProject(allProjects[0].id);
                         } else {
-                            await createDefaultProject();
+                            currentProject = null;
+                            const sel = document.getElementById('projectSelector');
+                            if (sel) sel.value = "";
+                            document.getElementById('projectSummaryLine').textContent = 'Sin proyectos. Haz clic en "+ Nuevo Proyecto"';
+                            document.getElementById('stageTextarea').value = '';
+                            document.getElementById('charCountBadge').textContent = '0 caracteres';
+                            renderMarkdownPreview('');
+                            updateNavDots();
                         }
                         
                         Swal.fire({

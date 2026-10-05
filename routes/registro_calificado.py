@@ -85,11 +85,15 @@ def save_project(proj):
     
     # Sincronizar con Supabase
     try:
+        from utils.db import get_active_inst_id
         data_json = json.dumps(proj, ensure_ascii=False)
-        inst_id = proj.get('inst_id', 1)
+        inst_id = proj.get('inst_id') or get_active_inst_id()
+        if not inst_id or int(inst_id) < 2:
+            inst_id = get_active_inst_id()
+        proj['inst_id'] = inst_id
         check = supabase.table('statistics').select('id').eq('table_id', f"RC_PROJ_{project_id}").execute()
         if check.data:
-            supabase.table('statistics').update({'data_json': data_json}).eq('table_id', f"RC_PROJ_{project_id}").execute()
+            supabase.table('statistics').update({'data_json': data_json, 'inst_id': inst_id}).eq('table_id', f"RC_PROJ_{project_id}").execute()
         else:
             supabase.table('statistics').insert({
                 'table_id': f"RC_PROJ_{project_id}",
@@ -434,10 +438,12 @@ def delete_project(project_id):
             del projects[project_id]
             save_local_projects(projects)
         
+        # Eliminar de Supabase por table_id exacto y LIKE
         try:
             supabase.table('statistics').delete().eq('table_id', f"RC_PROJ_{project_id}").execute()
-        except Exception:
-            pass
+            supabase.table('statistics').delete().like('table_id', f"%{project_id}%").execute()
+        except Exception as e:
+            print(f"[RC] Error deleting from Supabase: {e}")
             
         return jsonify({'status': 'success', 'message': 'Proyecto eliminado correctamente'})
     except Exception as e:
