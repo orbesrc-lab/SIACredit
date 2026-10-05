@@ -496,6 +496,139 @@
         .role-lider { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
         .role-operativo { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 
+        /* Req Evidence Modal & Margy IA Styles */
+        .req-subtab-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .req-subtab-btn.active {
+            color: #4f46e5 !important;
+            border-bottom: 3px solid #4f46e5 !important;
+        }
+        .req-subtab-btn:hover:not(.active) {
+            color: #1e293b !important;
+        }
+        .evidence-fase-block {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 14px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            transition: border-color 0.2s;
+        }
+        .evidence-fase-block:hover {
+            border-color: #cbd5e1;
+        }
+        .evidence-fase-header {
+            background: #f8fafc;
+            padding: 10px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #334155;
+        }
+        .evidence-item-row {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.15s;
+        }
+        .evidence-item-row:last-child {
+            border-bottom: none;
+        }
+        .evidence-item-row:hover {
+            background: #f8fafc;
+        }
+        .ev-tag-pill {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        .ev-ver-pill {
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+        .margy-msg-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            max-width: 95%;
+        }
+        .margy-msg-row.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        .margy-msg-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+        }
+        .margy-msg-bubble {
+            padding: 14px 18px;
+            border-radius: 18px 18px 18px 4px;
+            font-size: 0.88rem;
+            line-height: 1.55;
+            color: #1e293b;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .margy-msg-bubble h1, .margy-msg-bubble h2, .margy-msg-bubble h3, .margy-msg-bubble h4 {
+            margin: 10px 0 6px 0;
+            color: #1e1b4b;
+            font-weight: 800;
+        }
+        .margy-msg-bubble ul, .margy-msg-bubble ol {
+            margin: 6px 0 10px 18px;
+            padding: 0;
+        }
+        .margy-msg-bubble li {
+            margin-bottom: 4px;
+        }
+        .margy-msg-row.user .margy-msg-bubble {
+            border-radius: 18px 18px 4px 18px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+        .margy-typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 6px;
+            align-items: center;
+        }
+        .margy-typing-dot {
+            width: 7px;
+            height: 7px;
+            background: #3b82f6;
+            border-radius: 50%;
+            animation: mtyping 1.4s infinite ease-in-out;
+        }
+        .margy-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .margy-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes mtyping { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+
 
         /* Layout & Scrolling Architecture */
         html, body {
@@ -1056,6 +1189,189 @@
     </div>
 </div>
 
+<!-- MODAL: GESTIÓN DE EVIDENCIAS POR FASE Y ASESORÍA EXPERTA MARGY IA -->
+<div id="reqEvidenceModal" class="cc-modal-backdrop">
+    <div class="cc-modal-box req-modal-box" style="width: 1050px; max-width: 95%; max-height: 92vh; display:flex; flex-direction:column; background:#ffffff; border-radius:18px; box-shadow:0 25px 60px -15px rgba(0,0,0,0.3); overflow:hidden;">
+        
+        <!-- MODAL HEADER -->
+        <div class="cc-modal-header" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%); color:white; padding:18px 24px; border-bottom:1px solid rgba(255,255,255,0.1); position:relative;">
+            <div style="padding-right: 45px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+                    <span id="modal-req-id-badge" style="background:#6366f1; color:white; font-size:0.75rem; font-weight:800; padding:3px 9px; border-radius:6px; letter-spacing:0.04em;">REQ-01</span>
+                    <span id="modal-req-factor-badge" style="background:rgba(255,255,255,0.18); color:#e0e7ff; font-size:0.72rem; font-weight:700; padding:3px 8px; border-radius:6px;">Factor</span>
+                    <span id="modal-req-eje-badge" style="background:rgba(6, 182, 212, 0.25); color:#67e8f9; font-size:0.72rem; font-weight:700; padding:3px 8px; border-radius:6px;">Eje</span>
+                    <span id="modal-req-ley-badge" style="background:rgba(245, 158, 11, 0.25); color:#fde68a; font-size:0.72rem; font-weight:600; padding:3px 8px; border-radius:6px;">Ley 749 / Dec. 2038</span>
+                </div>
+                <h3 id="modal-req-title" style="margin:0 0 6px 0; font-size:1.15rem; color:#ffffff; font-weight:800; line-height:1.35;">Título del Requisito</h3>
+                <p id="modal-req-exigencia" style="margin:0; font-size:0.8rem; color:#c7d2fe; line-height:1.45;"><i class="fa-solid fa-file-circle-check"></i> <strong>Exigencia Documental MEN:</strong> Detalle de la exigencia.</p>
+            </div>
+            <button onclick="closeReqEvidenceModal()" style="position:absolute; top:18px; right:20px; background:rgba(255,255,255,0.15); border:none; width:34px; height:34px; border-radius:50%; font-size:1.3rem; color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" title="Cerrar ventana">&times;</button>
+        </div>
+
+        <!-- MODAL SUBNAV TABS -->
+        <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:0 24px; display:flex; gap:12px; align-items:center;">
+            <button id="tab-btn-evidencias" onclick="switchReqModalTab('evidencias')" class="req-subtab-btn active" style="padding:12px 16px; border:none; background:transparent; font-size:0.86rem; font-weight:700; color:#4f46e5; border-bottom:3px solid #4f46e5; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-folder-tree"></i> Evidencias y Trazabilidad por Fase <span id="modal-ev-counter-badge" style="background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:999px; font-size:0.72rem; font-weight:800;">0</span>
+            </button>
+            <button id="tab-btn-margy" onclick="switchReqModalTab('margy')" class="req-subtab-btn" style="padding:12px 16px; border:none; background:transparent; font-size:0.86rem; font-weight:700; color:#64748b; border-bottom:3px solid transparent; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+                <img src="/static/margy_avatar.png" style="width:20px; height:20px; border-radius:50%; object-fit:cover; border:1px solid #cbd5e1;" alt="Margy"> Margy IA - Asesoría Experta MEN <span style="background:#eff6ff; color:#2563eb; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:800;">IA Asesora</span>
+            </button>
+        </div>
+
+        <!-- MODAL BODY WITH 2 TAB PANES -->
+        <div class="cc-modal-body" style="padding:20px 24px; overflow-y:auto; flex:1; background:#f8fafc;">
+            
+            <!-- PANE 1: EVIDENCIAS Y TRAZABILIDAD -->
+            <div id="req-pane-evidencias">
+                
+                <!-- TOP STATUS & 6 PREGUNTAS -->
+                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:18px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+                    <div style="display:grid; grid-template-columns: 220px 1fr; gap:16px; align-items:start;">
+                        <div>
+                            <label style="font-size:0.78rem; font-weight:800; color:#334155; display:block; margin-bottom:6px; text-transform:uppercase;">Estado General:</label>
+                            <select id="modal-req-status" onchange="saveReqStatusOnly()" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.85rem; font-weight:600; background:#fff;">
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En Construcción">🚧 En Construcción</option>
+                                <option value="Completado">✅ Completado</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.78rem; font-weight:800; color:#334155; display:block; margin-bottom:6px; text-transform:uppercase;">Metodología de las 6 Preguntas (Hitos de Madurez):</label>
+                            <div class="q6-badge-grid" style="margin:0; grid-template-columns: repeat(6, 1fr);">
+                                <div id="m-q6-existe" class="q6-pill" onclick="toggleModalP6('existe')">1. ¿Existe?</div>
+                                <div id="m-q6-vigente" class="q6-pill" onclick="toggleModalP6('vigente')">2. ¿Vigente?</div>
+                                <div id="m-q6-aprobado" class="q6-pill" onclick="toggleModalP6('aprobado')">3. ¿Aprobado?</div>
+                                <div id="m-q6-pertinente" class="q6-pill" onclick="toggleModalP6('pertinente')">4. ¿Pertinente?</div>
+                                <div id="m-q6-aplica" class="q6-pill" onclick="toggleModalP6('aplica')">5. ¿Se aplica?</div>
+                                <div id="m-q6-evidencia" class="q6-pill" onclick="toggleModalP6('evidencia')">6. ¿Evidencia?</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top:12px;">
+                        <label style="font-size:0.78rem; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Observaciones Institucionales / Plan de Acción:</label>
+                        <div style="display:flex; gap:10px;">
+                            <textarea id="modal-req-notes" rows="2" placeholder="Escribe aquí las observaciones, acuerdos de equipo o tareas pendientes para este requisito..." style="flex:1; padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.82rem; resize:vertical;"></textarea>
+                            <button onclick="saveReqNotesOnly()" style="background:#3b82f6; color:white; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:700; white-space:nowrap; align-self:flex-end;">
+                                <i class="fa-solid fa-save"></i> Guardar Notas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARGA MULTI-ARCHIVO CON TRAZABILIDAD POR FASE -->
+                <div style="background:#ffffff; border:1px solid #c7d2fe; border-radius:12px; padding:18px; margin-bottom:20px; box-shadow:0 4px 12px rgba(79, 70, 229, 0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <h4 style="margin:0; font-size:0.95rem; color:#1e1b4b; font-weight:800; display:flex; align-items:center; gap:8px;">
+                            <i class="fa-solid fa-cloud-arrow-up" style="color:#6366f1;"></i> Cargar Evidencia(s) al Histórico por Fase
+                        </h4>
+                        <span style="font-size:0.75rem; color:#64748b;">Soporta <strong>uno o múltiples archivos</strong> simultáneos</span>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1.5fr 1fr 100px; gap:12px; margin-bottom:12px;">
+                        <div>
+                            <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:4px;">Fase Institucional del Proceso:</label>
+                            <select id="modal-upload-fase" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.82rem; background:#fff;">
+                                <option value="Fase I: Alineación y levantamiento">Fase I: Alineación y levantamiento</option>
+                                <option value="Fase II: Diagnóstico integral">Fase II: Diagnóstico integral</option>
+                                <option value="Fase III: Escenario y diseño">Fase III: Escenario y diseño</option>
+                                <option value="Fase IV: Desarrollo documental">Fase IV: Desarrollo documental</option>
+                                <option value="Fase V: Validación y cierre de brechas">Fase V: Validación y cierre de brechas</option>
+                                <option value="Fase VI: Consolidación y ruta institucional">Fase VI: Consolidación y ruta institucional</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:4px;">Tipo / Naturaleza del Documento:</label>
+                            <select id="modal-upload-tag" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.82rem; background:#fff;">
+                                <option value="Diagnóstico / Estudio Técnico">Diagnóstico / Estudio Técnico</option>
+                                <option value="Borrador de Trabajo">Borrador de Trabajo</option>
+                                <option value="Acta de Consejo Superior / Directivo">Acta de Consejo Superior / Directivo</option>
+                                <option value="Resolución / Acuerdo Institucional">Resolución / Acuerdo Institucional</option>
+                                <option value="Matriz / Instrumento de Medición">Matriz / Instrumento de Medición</option>
+                                <option value="Radicado / Informe MEN">Radicado / Informe MEN</option>
+                                <option value="Soporte Presupuestal / Financiero">Soporte Presupuestal / Financiero</option>
+                                <option value="Otro Soporte Formal">Otro Soporte Formal</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:4px;">Versión:</label>
+                            <input type="text" id="modal-upload-version" placeholder="v1.0" value="v1.0" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.82rem;">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:12px;">
+                        <label style="font-size:0.78rem; font-weight:700; color:#334155; display:block; margin-bottom:4px;">Notas de Evolución / Trazabilidad (¿Qué cambió o qué sustenta esta evidencia?):</label>
+                        <input type="text" id="modal-upload-notes" placeholder="Ej: Ajuste de brecha detectada en Fase I tras auditoría interna..." style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.82rem;">
+                    </div>
+
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <div style="flex:1;">
+                            <input type="file" id="modal-upload-files" multiple style="width:100%; font-size:0.82rem; padding:6px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:6px;">
+                        </div>
+                        <button id="btn-modal-upload" onclick="uploadReqModalFiles()" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); color:white; border:none; padding:9px 18px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:700; display:inline-flex; align-items:center; gap:8px; white-space:nowrap; box-shadow:0 3px 8px rgba(37, 99, 235, 0.3);">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Cargar al Histórico
+                        </button>
+                    </div>
+                </div>
+
+                <!-- HISTÓRICO Y TRAZABILIDAD DOCUMENTAL POR FASE -->
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <h4 style="margin:0; font-size:0.95rem; color:#1e293b; font-weight:800; display:flex; align-items:center; gap:8px;">
+                            <i class="fa-solid fa-timeline" style="color:#4f46e5;"></i> Histórico de Evidencias por Fase
+                        </h4>
+                        <span id="modal-summary-phases" style="font-size:0.78rem; color:#475569; font-weight:600;">0 fases con evidencia</span>
+                    </div>
+
+                    <div id="modal-evidences-timeline-container">
+                        <!-- Populated dynamically by renderReqModalEvidences() -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- PANE 2: ASESORÍA EXPERTA MARGY IA -->
+            <div id="req-pane-margy" style="display:none;">
+                <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border:1px solid #bfdbfe; border-radius:14px; padding:16px 20px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+                    <div style="display:flex; align-items:center; gap:14px;">
+                        <img src="/static/margy_avatar.png" style="width:48px; height:48px; border-radius:50%; object-fit:cover; border:2px solid #3b82f6; box-shadow:0 4px 10px rgba(59, 130, 246, 0.3);" alt="Margy IA">
+                        <div>
+                            <h4 style="margin:0 0 3px 0; font-size:1rem; color:#1e3a8a; font-weight:800;">Margy IA · Consejera Experta MEN / CONACES</h4>
+                            <p style="margin:0; font-size:0.8rem; color:#1e40af;">Especialista en Cambio de Carácter (Ley 749/2002 y Dec. 2038/2023). Te explico qué busca la comisión y cómo garantizar la aprobación.</p>
+                        </div>
+                    </div>
+                    <button onclick="askMargyOrientation(true)" id="btn-margy-orientar" style="background:linear-gradient(135deg, #2563eb, #4f46e5); color:white; border:none; padding:9px 18px; border-radius:10px; cursor:pointer; font-size:0.84rem; font-weight:700; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(37, 99, 235, 0.3);">
+                        <i class="fa-solid fa-compass"></i> ¿Qué busca realmente el MEN?
+                    </button>
+                </div>
+
+                <!-- MARGY CHAT / GUIDANCE WINDOW -->
+                <div id="margy-chat-box" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:20px; min-height:340px; max-height:460px; overflow-y:auto; margin-bottom:14px; display:flex; flex-direction:column; gap:14px;">
+                    <!-- Messages will be injected here -->
+                </div>
+
+                <!-- MARGY INPUT BAR -->
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="text" id="margy-user-input" onkeydown="if(event.key === 'Enter') sendMargyQuestion();" placeholder="Pregúntale a Margy sobre este requisito... (ej: ¿Cómo estructurar el acta?, ¿Qué pares revisan esto?)" style="flex:1; padding:12px 18px; border-radius:24px; border:1px solid #cbd5e1; font-size:0.88rem; outline:none; background:#ffffff;">
+                    <button onclick="sendMargyQuestion()" id="btn-margy-send" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); color:white; border:none; width:44px; height:44px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1rem; box-shadow:0 3px 8px rgba(37, 99, 235, 0.3); flex-shrink:0;" title="Enviar pregunta">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- MODAL FOOTER -->
+        <div style="padding:14px 24px; background:#f1f5f9; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.75rem; color:#64748b;"><i class="fa-solid fa-shield-halved"></i> Todos los archivos y versiones se guardan con trazabilidad permanente en la nube.</span>
+            <button onclick="closeReqEvidenceModal()" style="background:#475569; color:white; border:none; padding:8px 18px; border-radius:8px; cursor:pointer; font-size:0.82rem; font-weight:700;">
+                Cerrar Ventana
+            </button>
+        </div>
+
+    </div>
+</div>
+
+
 <script>
     const REQUISITOS = {{ requisitos | tojson }};
     let currentData = null;
@@ -1451,15 +1767,19 @@
                 };
                 const p6 = reqData.preguntas_6 || {};
 
+                const evList = reqData.evidences || [];
+                const evCount = evList.length;
+                const distinctPhases = new Set(evList.map(e => e.fase).filter(Boolean)).size;
+
                 const card = document.createElement('div');
-                card.style.cssText = 'background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 1px 3px rgba(0,0,0,0.02);';
+                card.style.cssText = 'background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 1px 3px rgba(0,0,0,0.02); transition:transform 0.15s, box-shadow 0.15s;';
                 card.innerHTML = `
                     <div>
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
                             <span style="font-size:0.7rem; font-weight:800; color:#4f46e5; background:#e0e7ff; padding:2px 7px; border-radius:4px;">${req.factor}</span>
                             <span class="status-pill ${reqData.status === 'Completado' ? 'status-completado' : (reqData.status === 'En Construcción' ? 'status-construccion' : 'status-pendiente')}">${reqData.status}</span>
                         </div>
-                        <h4 style="margin:0 0 6px 0; font-size:0.92rem; color:#1e293b; font-weight:700;">${req.desc}</h4>
+                        <h4 style="margin:0 0 6px 0; font-size:0.92rem; color:#1e293b; font-weight:700; line-height:1.35;">${req.desc}</h4>
                         <p style="margin:0 0 8px 0; font-size:0.75rem; color:#64748b;"><i class="fa-solid fa-file-circle-check"></i> <strong>Exigencia:</strong> ${req.evidencia_requerida || 'Documento soporte formal.'}</p>
                         
                         <!-- 6 PREGUNTAS -->
@@ -1476,40 +1796,20 @@
                         </div>
                     </div>
 
-                    <div style="border-top:1px solid #f1f5f9; padding-top:12px; margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:0.75rem; color:#94a3b8;"><i class="fa-solid fa-paperclip"></i> ${(reqData.evidences || []).length} archivos</span>
+                    <div style="border-top:1px solid #f1f5f9; padding-top:12px; margin-top:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <div>
+                            <span style="font-size:0.75rem; color:${evCount > 0 ? '#2563eb' : '#94a3b8'}; font-weight:700;">
+                                <i class="fa-solid fa-paperclip"></i> ${evCount} archivo${evCount === 1 ? '' : 's'}
+                            </span>
+                            ${distinctPhases > 0 ? `<span style="font-size:0.7rem; color:#10b981; font-weight:700; margin-left:6px;"><i class="fa-solid fa-layer-group"></i> ${distinctPhases} fase${distinctPhases === 1 ? '' : 's'}</span>` : ''}
+                        </div>
                         <div style="display:flex; gap:6px;">
-                            <button onclick="toggleReqInline('${req.id}')" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:5px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:600;">
-                                Gestionar &darr;
+                            <button onclick="openReqEvidenceModal('${req.id}', 'margy')" title="Asesoría experta MEN con Margy IA" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:6px 10px; border-radius:7px; cursor:pointer; font-size:0.74rem; font-weight:700; display:inline-flex; align-items:center; gap:5px; transition:all 0.15s;">
+                                <img src="/static/margy_avatar.png" style="width:16px; height:16px; border-radius:50%; object-fit:cover;" alt="Margy"> Margy MEN
                             </button>
-                        </div>
-                    </div>
-
-                    <!-- INLINE MANAGEMENT -->
-                    <div id="inline-req-${req.id}" style="display:none; margin-top:14px; padding-top:14px; border-top:2px dashed #cbd5e1; background:#f8fafc; padding:12px; border-radius:8px;">
-                        <div style="margin-bottom:10px;">
-                            <label style="font-size:0.78rem; font-weight:700; display:block; margin-bottom:4px;">Estado del Requisito:</label>
-                            <select id="inline-status-${req.id}" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
-                                <option value="Pendiente" ${reqData.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                                <option value="En Construcción" ${reqData.status === 'En Construcción' ? 'selected' : ''}>En Construcción</option>
-                                <option value="Completado" ${reqData.status === 'Completado' ? 'selected' : ''}>Completado</option>
-                            </select>
-                        </div>
-                        <div style="margin-bottom:10px;">
-                            <label style="font-size:0.78rem; font-weight:700; display:block; margin-bottom:4px;">Observaciones / Plan de Acción:</label>
-                            <textarea id="inline-notes-${req.id}" rows="2" style="width:100%; padding:6px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">${reqData.notes || ''}</textarea>
-                        </div>
-                        <div style="margin-bottom:10px;">
-                            <label style="font-size:0.78rem; font-weight:700; display:block; margin-bottom:4px;">Subir Evidencia:</label>
-                            <input type="file" id="inline-file-${req.id}" style="font-size:0.75rem; width:100%; margin-bottom:6px;">
-                            <button onclick="uploadEvidence('${req.id}')" style="background:#2563eb; color:white; border:none; padding:5px 10px; border-radius:4px; font-size:0.75rem; cursor:pointer; width:100%;">
-                                Subir Archivo a la Nube
+                            <button onclick="openReqEvidenceModal('${req.id}', 'evidencias')" style="background:linear-gradient(135deg, #4f46e5, #6366f1); color:white; border:none; padding:6px 12px; border-radius:7px; cursor:pointer; font-size:0.75rem; font-weight:700; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(79, 70, 229, 0.25);">
+                                <i class="fa-solid fa-folder-tree"></i> Gestionar (${evCount})
                             </button>
-                            <div id="inline-ev-list-${req.id}" style="margin-top:8px;"></div>
-                        </div>
-                        <div style="display:flex; gap:8px;">
-                            <button onclick="toggleReqInline('${req.id}')" style="width:50%; padding:6px; background:#e2e8f0; border:none; border-radius:6px; cursor:pointer; font-size:0.78rem;">Cerrar</button>
-                            <button onclick="saveReqInline('${req.id}')" style="width:50%; padding:6px; background:#10b981; color:white; border:none; border-radius:6px; font-weight:700; cursor:pointer; font-size:0.78rem;">Guardar</button>
                         </div>
                     </div>
                 `;
@@ -1530,95 +1830,532 @@
         const curr = currentData.requisitos[reqId].preguntas_6[questionKey];
         currentData.requisitos[reqId].preguntas_6[questionKey] = !curr;
         renderRequisitos();
+        if (currentActiveReqId === reqId) {
+            syncModalP6UI();
+        }
         saveToServer(false);
     }
 
-    function toggleReqInline(id) {
-        const el = document.getElementById('inline-req-' + id);
-        if (el.style.display === 'block') {
-            el.style.display = 'none';
+    /* ==============================================================
+       VENTANA FLOTANTE: TRAZABILIDAD POR FASE Y MARGY IA MEN
+       ============================================================== */
+    let currentActiveReqId = null;
+    let margyReqHistory = {};
+
+    function openReqEvidenceModal(reqId, defaultTab = 'evidencias') {
+        currentActiveReqId = reqId;
+        const reqItem = REQUISITOS.find(r => r.id === reqId);
+        if (!reqItem) return;
+
+        if (!currentData.requisitos[reqId]) {
+            currentData.requisitos[reqId] = {
+                status: 'Pendiente',
+                notes: '',
+                evidences: [],
+                preguntas_6: { existe: false, vigente: false, aprobado: false, pertinente: false, aplica: false, evidencia: false }
+            };
+        }
+        const reqData = currentData.requisitos[reqId];
+
+        // Populate Modal Header
+        document.getElementById('modal-req-id-badge').innerText = reqItem.id.toUpperCase();
+        document.getElementById('modal-req-factor-badge').innerText = reqItem.factor || 'Factor Institucional';
+        document.getElementById('modal-req-eje-badge').innerText = reqItem.eje || 'Eje Estratégico';
+        document.getElementById('modal-req-ley-badge').innerText = reqItem.ley || 'Ley 749 / Dec. 2038';
+        document.getElementById('modal-req-title').innerText = reqItem.title || reqItem.desc;
+        document.getElementById('modal-req-exigencia').innerHTML = `<i class="fa-solid fa-file-circle-check"></i> <strong>Exigencia Documental MEN:</strong> ${reqItem.evidencia_requerida || reqItem.desc}`;
+
+        // Populate Status & Notes
+        document.getElementById('modal-req-status').value = reqData.status || 'Pendiente';
+        document.getElementById('modal-req-notes').value = reqData.notes || '';
+        syncModalP6UI();
+
+        // Populate Fases Selector
+        populateModalFasesDropdown();
+
+        // Render Evidences Timeline
+        renderReqModalEvidences();
+
+        // Switch to chosen tab
+        switchReqModalTab(defaultTab);
+
+        // Open Modal Box
+        document.getElementById('reqEvidenceModal').style.display = 'flex';
+    }
+
+    function closeReqEvidenceModal() {
+        document.getElementById('reqEvidenceModal').style.display = 'none';
+        renderRequisitos();
+    }
+
+    function switchReqModalTab(tabKey) {
+        const btnEv = document.getElementById('tab-btn-evidencias');
+        const btnMargy = document.getElementById('tab-btn-margy');
+        const paneEv = document.getElementById('req-pane-evidencias');
+        const paneMargy = document.getElementById('req-pane-margy');
+
+        if (tabKey === 'evidencias') {
+            btnEv.classList.add('active');
+            btnMargy.classList.remove('active');
+            btnMargy.style.borderBottomColor = 'transparent';
+            btnMargy.style.color = '#64748b';
+            paneEv.style.display = 'block';
+            paneMargy.style.display = 'none';
         } else {
-            el.style.display = 'block';
-            renderInlineEvList(id);
-        }
-    }
+            btnMargy.classList.add('active');
+            btnEv.classList.remove('active');
+            btnEv.style.borderBottomColor = 'transparent';
+            btnEv.style.color = '#64748b';
+            btnMargy.style.borderBottomColor = '#4f46e5';
+            btnMargy.style.color = '#4f46e5';
+            paneEv.style.display = 'none';
+            paneMargy.style.display = 'block';
 
-    function renderInlineEvList(id) {
-        const listDiv = document.getElementById('inline-ev-list-' + id);
-        const reqData = currentData.requisitos[id];
-        if (!reqData || !reqData.evidences || reqData.evidences.length === 0) {
-            listDiv.innerHTML = '<span style="font-size:0.72rem; color:#94a3b8; font-style:italic;">Sin evidencias cargadas.</span>';
-            return;
-        }
-        let html = '<ul style="list-style:none; padding:0; margin:0;">';
-        reqData.evidences.forEach((ev, idx) => {
-            html += `
-                <li style="padding:4px 6px; border:1px solid #e2e8f0; margin-bottom:4px; border-radius:4px; display:flex; justify-content:space-between; align-items:center; background:#fff; font-size:0.75rem;">
-                    <a href="${ev.url}" target="_blank" style="color:#2563eb; text-decoration:none;"><i class="fa-solid fa-file-lines"></i> ${ev.name}</a>
-                    <button onclick="deleteEvidence('${id}', ${idx})" style="background:#fee2e2; color:#ef4444; border:none; border-radius:4px; padding:2px 5px; cursor:pointer; font-size:0.7rem;">&times;</button>
-                </li>
-            `;
-        });
-        html += '</ul>';
-        listDiv.innerHTML = html;
-    }
-
-    async function uploadEvidence(reqId) {
-        const fileInput = document.getElementById('inline-file-' + reqId);
-        if (!fileInput.files.length) return Swal.fire('Atención', 'Selecciona un archivo primero.', 'warning');
-        
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
-        formData.append('req_id', reqId);
-        
-        Swal.fire({title: 'Subiendo...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-        try {
-            const res = await fetch('/api/cambio_caracter/upload', { method: 'POST', body: formData });
-            const d = await res.json();
-            if (d.status === 'success') {
-                if (!currentData.requisitos[reqId]) currentData.requisitos[reqId] = { status: 'Pendiente', notes: '', evidences: [] };
-                if (!currentData.requisitos[reqId].evidences) currentData.requisitos[reqId].evidences = [];
-                currentData.requisitos[reqId].evidences.push({
-                    name: d.name,
-                    url: d.url,
-                    path: d.path,
-                    uploaded_at: new Date().toISOString()
-                });
-                await saveToServer(false);
-                fileInput.value = '';
-                Swal.close();
-                renderRequisitos();
-                toggleReqInline(reqId);
-            } else {
-                Swal.fire('Error', d.message, 'error');
+            // Auto consult Margy if this requirement hasn't been consulted yet
+            if (!margyReqHistory[currentActiveReqId] || margyReqHistory[currentActiveReqId].length === 0) {
+                askMargyOrientation(false);
             }
-        } catch (e) {
-            Swal.fire('Error', 'No se pudo subir la evidencia.', 'error');
         }
     }
 
-    async function deleteEvidence(reqId, idx) {
-        const ev = currentData.requisitos[reqId].evidences[idx];
-        if (confirm(`¿Eliminar la evidencia ${ev.name}?`)) {
-            await fetch('/api/cambio_caracter/delete_file', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({path: ev.path})
-            });
-            currentData.requisitos[reqId].evidences.splice(idx, 1);
-            await saveToServer(false);
-            renderRequisitos();
-            toggleReqInline(reqId);
-        }
+    function populateModalFasesDropdown() {
+        const sel = document.getElementById('modal-upload-fase');
+        sel.innerHTML = '';
+        const fases = (currentData && currentData.fases && currentData.fases.length) ? currentData.fases : [
+            { nombre: "Fase I: Alineación y levantamiento" },
+            { nombre: "Fase II: Diagnóstico integral" },
+            { nombre: "Fase III: Escenario y diseño" },
+            { nombre: "Fase IV: Desarrollo documental" },
+            { nombre: "Fase V: Validación y cierre de brechas" },
+            { nombre: "Fase VI: Consolidación y ruta institucional" }
+        ];
+        fases.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.nombre;
+            opt.innerText = f.nombre;
+            sel.appendChild(opt);
+        });
     }
 
-    async function saveReqInline(reqId) {
-        currentData.requisitos[reqId].status = document.getElementById('inline-status-' + reqId).value;
-        currentData.requisitos[reqId].notes = document.getElementById('inline-notes-' + reqId).value;
+    function syncModalP6UI() {
+        if (!currentActiveReqId) return;
+        const p6 = (currentData.requisitos[currentActiveReqId] && currentData.requisitos[currentActiveReqId].preguntas_6) || {};
+        ['existe', 'vigente', 'aprobado', 'pertinente', 'aplica', 'evidencia'].forEach(k => {
+            const el = document.getElementById('m-q6-' + k);
+            if (el) {
+                if (p6[k]) el.classList.add('active');
+                else el.classList.remove('active');
+            }
+        });
+    }
+
+    function toggleModalP6(questionKey) {
+        if (!currentActiveReqId) return;
+        toggleP6(currentActiveReqId, questionKey);
+    }
+
+    async function saveReqStatusOnly() {
+        if (!currentActiveReqId) return;
+        currentData.requisitos[currentActiveReqId].status = document.getElementById('modal-req-status').value;
         await saveToServer(false);
         renderRequisitos();
-        Swal.fire({icon: 'success', title: 'Requisito Actualizado', timer: 1200, showConfirmButton: false});
     }
+
+    async function saveReqNotesOnly() {
+        if (!currentActiveReqId) return;
+        currentData.requisitos[currentActiveReqId].notes = document.getElementById('modal-req-notes').value;
+        await saveToServer(false);
+        renderRequisitos();
+        Swal.fire({icon: 'success', title: 'Notas Guardadas', timer: 1100, showConfirmButton: false});
+    }
+
+    function renderReqModalEvidences() {
+        if (!currentActiveReqId) return;
+        const container = document.getElementById('modal-evidences-timeline-container');
+        const reqData = currentData.requisitos[currentActiveReqId] || { evidences: [] };
+        const evidences = reqData.evidences || [];
+
+        document.getElementById('modal-ev-counter-badge').innerText = evidences.length;
+
+        if (evidences.length === 0) {
+            container.innerHTML = `
+                <div style="background:#ffffff; border:1px dashed #cbd5e1; border-radius:12px; padding:32px 20px; text-align:center; color:#64748b;">
+                    <i class="fa-solid fa-folder-open" style="font-size:2.2rem; color:#cbd5e1; margin-bottom:10px; display:block;"></i>
+                    <h5 style="margin:0 0 4px 0; font-size:0.95rem; color:#334155; font-weight:700;">No hay evidencias cargadas para este requisito</h5>
+                    <p style="margin:0; font-size:0.8rem; color:#94a3b8;">Utiliza el formulario de arriba para cargar borradores, actas, diagnósticos o resoluciones por fase.</p>
+                </div>
+            `;
+            document.getElementById('modal-summary-phases').innerText = '0 fases con evidencia';
+            return;
+        }
+
+        // Group evidences by fase
+        const grouped = {};
+        evidences.forEach((ev, idx) => {
+            const f = ev.fase || 'Fase I: Alineación y levantamiento';
+            if (!grouped[f]) grouped[f] = [];
+            grouped[f].push({ ...ev, originalIndex: idx });
+        });
+
+        const phaseCount = Object.keys(grouped).length;
+        document.getElementById('modal-summary-phases').innerHTML = `<i class="fa-solid fa-layer-group"></i> <strong>${phaseCount}</strong> fase${phaseCount === 1 ? '' : 's'} con evidencia`;
+
+        let html = '';
+        for (const [faseName, evs] of Object.entries(grouped)) {
+            html += `
+                <div class="evidence-fase-block">
+                    <div class="evidence-fase-header">
+                        <span style="display:flex; align-items:center; gap:8px;">
+                            <i class="fa-solid fa-layer-group" style="color:#6366f1;"></i> ${faseName}
+                        </span>
+                        <span style="font-size:0.75rem; color:#64748b; font-weight:600;">${evs.length} archivo${evs.length === 1 ? '' : 's'}</span>
+                    </div>
+                    <div>
+            `;
+
+            evs.forEach(ev => {
+                const ext = (ev.ext || '').toLowerCase() || (ev.name ? ev.name.split('.').pop().toLowerCase() : '');
+                let fileIcon = 'fa-file-lines';
+                let iconColor = '#64748b';
+                if (ext.includes('pdf')) { fileIcon = 'fa-file-pdf'; iconColor = '#ef4444'; }
+                else if (ext.includes('doc')) { fileIcon = 'fa-file-word'; iconColor = '#2563eb'; }
+                else if (ext.includes('xls')) { fileIcon = 'fa-file-excel'; iconColor = '#10b981'; }
+                else if (ext.includes('png') || ext.includes('jpg') || ext.includes('jpeg')) { fileIcon = 'fa-file-image'; iconColor = '#8b5cf6'; }
+
+                const dateStr = ev.uploaded_at ? new Date(ev.uploaded_at).toLocaleDateString() : '';
+
+                html += `
+                    <div class="evidence-item-row">
+                        <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+                            <i class="fa-solid ${fileIcon}" style="font-size:1.4rem; color:${iconColor}; flex-shrink:0;"></i>
+                            <div style="min-width:0; flex:1;">
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:3px;">
+                                    <a href="${ev.url}" target="_blank" style="color:#1e293b; font-weight:700; font-size:0.86rem; text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:380px;" title="Ver/Descargar archivo">
+                                        ${ev.name} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.7rem; color:#6366f1;"></i>
+                                    </a>
+                                    <span class="ev-tag-pill">${ev.tag || 'Evidencia'}</span>
+                                    <span class="ev-ver-pill">${ev.version || 'v1.0'}</span>
+                                    ${ev.size ? `<span style="font-size:0.7rem; color:#94a3b8; font-weight:600;">${ev.size}</span>` : ''}
+                                    ${dateStr ? `<span style="font-size:0.7rem; color:#94a3b8;">· ${dateStr}</span>` : ''}
+                                </div>
+                                ${ev.notes ? `<div style="font-size:0.78rem; color:#64748b; line-height:1.35;"><i class="fa-solid fa-comment-dots" style="color:#94a3b8;"></i> ${ev.notes}</div>` : ''}
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                            <a href="${ev.url}" target="_blank" download style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; border-radius:6px; padding:5px 9px; font-size:0.75rem; text-decoration:none; font-weight:600;" title="Descargar">
+                                <i class="fa-solid fa-download"></i>
+                            </a>
+                            <button onclick="deleteReqModalEvidence(${ev.originalIndex})" style="background:#fee2e2; color:#ef4444; border:none; border-radius:6px; padding:5px 9px; cursor:pointer; font-size:0.75rem; font-weight:600;" title="Eliminar evidencia">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = html;
+    }
+
+    async function uploadReqModalFiles() {
+        if (!currentActiveReqId) return;
+        const fileInput = document.getElementById('modal-upload-files');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            return Swal.fire('Atención', 'Selecciona al menos un archivo para subir.', 'warning');
+        }
+
+        const fase = document.getElementById('modal-upload-fase').value;
+        const tag = document.getElementById('modal-upload-tag').value;
+        const version = document.getElementById('modal-upload-version').value.trim() || 'v1.0';
+        const notes = document.getElementById('modal-upload-notes').value.trim();
+
+        const formData = new FormData();
+        for (let i = 0; i < fileInput.files.length; i++) {
+            formData.append('files', fileInput.files[i]);
+        }
+        formData.append('req_id', currentActiveReqId);
+
+        const btn = document.getElementById('btn-modal-upload');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo...';
+
+        Swal.fire({
+            title: 'Subiendo a la Nube...',
+            text: `Procesando ${fileInput.files.length} archivo(s) con trazabilidad por fase.`,
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const res = await fetch('/api/cambio_caracter/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const d = await res.json();
+
+            if (d.status === 'success') {
+                if (!currentData.requisitos[currentActiveReqId]) {
+                    currentData.requisitos[currentActiveReqId] = { status: 'Pendiente', notes: '', evidences: [] };
+                }
+                if (!currentData.requisitos[currentActiveReqId].evidences) {
+                    currentData.requisitos[currentActiveReqId].evidences = [];
+                }
+
+                const uploadedList = d.files || [{ url: d.url, name: d.name, path: d.path, size: d.size }];
+                uploadedList.forEach(item => {
+                    currentData.requisitos[currentActiveReqId].evidences.push({
+                        name: item.name,
+                        url: item.url,
+                        path: item.path,
+                        size: item.size,
+                        ext: item.ext,
+                        fase: fase,
+                        tag: tag,
+                        version: version,
+                        notes: notes,
+                        uploaded_at: new Date().toISOString()
+                    });
+                });
+
+                // Si estaba en Pendiente, pasarlo automáticamente a 'En Construcción'
+                if (currentData.requisitos[currentActiveReqId].status === 'Pendiente') {
+                    currentData.requisitos[currentActiveReqId].status = 'En Construcción';
+                    document.getElementById('modal-req-status').value = 'En Construcción';
+                }
+
+                await saveToServer(false);
+                fileInput.value = '';
+                document.getElementById('modal-upload-notes').value = '';
+
+                Swal.close();
+                renderReqModalEvidences();
+                renderRequisitos();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Evidencias Cargadas!',
+                    text: `Se han indexado ${uploadedList.length} archivo(s) en ${fase}.`,
+                    timer: 1600,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Error', d.message || 'No se pudieron subir los archivos.', 'error');
+            }
+        } catch (e) {
+            console.error('uploadReqModalFiles error:', e);
+            Swal.fire('Error', 'Fallo de conexión al cargar archivos.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Cargar al Histórico';
+        }
+    }
+
+    async function deleteReqModalEvidence(idx) {
+        if (!currentActiveReqId) return;
+        const ev = currentData.requisitos[currentActiveReqId].evidences[idx];
+        if (!ev) return;
+
+        const result = await Swal.fire({
+            title: '¿Eliminar evidencia?',
+            text: `Se removerá permanentemente el archivo "${ev.name}" de ${ev.fase || 'este requisito'}.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                if (ev.path) {
+                    await fetch('/api/cambio_caracter/delete_file', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ path: ev.path })
+                    });
+                }
+                currentData.requisitos[currentActiveReqId].evidences.splice(idx, 1);
+                await saveToServer(false);
+                renderReqModalEvidences();
+                renderRequisitos();
+                Swal.fire({ icon: 'success', title: 'Archivo Eliminado', timer: 1100, showConfirmButton: false });
+            } catch (e) {
+                console.error('delete error:', e);
+                Swal.fire('Error', 'No se pudo eliminar el archivo.', 'error');
+            }
+        }
+    }
+
+    /* ==============================================================
+       MARGY IA: ASESORÍA EXPERTA MEN SOBRE REQUISITOS
+       ============================================================== */
+    function renderMargyChatHistory() {
+        const box = document.getElementById('margy-chat-box');
+        box.innerHTML = '';
+        const history = margyReqHistory[currentActiveReqId] || [];
+
+        if (history.length === 0) {
+            box.innerHTML = `
+                <div class="margy-msg-row">
+                    <img src="/static/margy_avatar.png" class="margy-msg-avatar" alt="Margy">
+                    <div class="margy-msg-bubble">
+                        ¡Hola! Soy <strong>Margy IA</strong>, tu consejera técnica senior en Aseguramiento de Calidad del MEN. 
+                        Puedo orientarte sobre qué exige en el fondo el Ministerio de Educación Nacional para este requisito, cómo estructurar las evidencias por fase y qué errores evitar ante los pares académicos evaluadores.
+                        <div style="margin-top:10px;">
+                            <button onclick="askMargyOrientation(true)" style="background:#2563eb; color:white; border:none; padding:7px 14px; border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:700;">
+                                <i class="fa-solid fa-compass"></i> Explicarme qué busca realmente el MEN aquí
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        history.forEach(m => {
+            const row = document.createElement('div');
+            row.className = `margy-msg-row ${m.role === 'user' ? 'user' : ''}`;
+            if (m.role === 'user') {
+                row.innerHTML = `<div class="margy-msg-bubble">${m.content}</div>`;
+            } else {
+                row.innerHTML = `
+                    <img src="/static/margy_avatar.png" class="margy-msg-avatar" alt="Margy">
+                    <div class="margy-msg-bubble">${marked.parse(m.content)}</div>
+                `;
+            }
+            box.appendChild(row);
+        });
+
+        box.scrollTop = box.scrollHeight;
+    }
+
+    async function askMargyOrientation(forceRefresh = false) {
+        if (!currentActiveReqId) return;
+        if (!margyReqHistory[currentActiveReqId]) margyReqHistory[currentActiveReqId] = [];
+
+        if (!forceRefresh && margyReqHistory[currentActiveReqId].length > 0) {
+            renderMargyChatHistory();
+            return;
+        }
+
+        const box = document.getElementById('margy-chat-box');
+        box.innerHTML = `
+            <div class="margy-msg-row">
+                <img src="/static/margy_avatar.png" class="margy-msg-avatar" alt="Margy">
+                <div class="margy-msg-bubble" style="display:flex; align-items:center; gap:8px;">
+                    <div class="margy-typing-indicator">
+                        <span class="margy-typing-dot"></span>
+                        <span class="margy-typing-dot"></span>
+                        <span class="margy-typing-dot"></span>
+                    </div>
+                    <span style="font-size:0.85rem; color:#64748b;">Margy está analizando el marco normativo del MEN y preparando tu orientación experta...</span>
+                </div>
+            </div>
+        `;
+
+        try {
+            const res = await fetch('/api/cambio_caracter/margy_consult', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    req_id: currentActiveReqId,
+                    message: null,
+                    history: []
+                })
+            });
+            const d = await res.json();
+            if (d.status === 'success') {
+                margyReqHistory[currentActiveReqId] = [
+                    { role: 'assistant', content: d.answer }
+                ];
+                renderMargyChatHistory();
+            } else {
+                box.innerHTML = `
+                    <div class="margy-msg-row">
+                        <img src="/static/margy_avatar.png" class="margy-msg-avatar" alt="Margy">
+                        <div class="margy-msg-bubble" style="color:#ef4444;">
+                            ⚠️ No pude generar la asesoría en este momento: ${d.message || 'Error desconocido'}.
+                        </div>
+                    </div>
+                `;
+            }
+        } catch (e) {
+            console.error('Margy consultation error:', e);
+            box.innerHTML = `
+                <div class="margy-msg-row">
+                    <img src="/static/margy_avatar.png" class="margy-msg-avatar" alt="Margy">
+                    <div class="margy-msg-bubble" style="color:#ef4444;">
+                        ⚠️ Error de conexión con el servicio de Margy IA.
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    async function sendMargyQuestion() {
+        if (!currentActiveReqId) return;
+        const input = document.getElementById('margy-user-input');
+        const userText = input.value.trim();
+        if (!userText) return;
+
+        input.value = '';
+        if (!margyReqHistory[currentActiveReqId]) margyReqHistory[currentActiveReqId] = [];
+
+        margyReqHistory[currentActiveReqId].push({ role: 'user', content: userText });
+        renderMargyChatHistory();
+
+        const box = document.getElementById('margy-chat-box');
+        const loadingRow = document.createElement('div');
+        loadingRow.className = 'margy-msg-row';
+        loadingRow.id = 'margy-temp-loading';
+        loadingRow.innerHTML = `
+            <img src="/static/margy_avatar.png" class="margy-msg-avatar" alt="Margy">
+            <div class="margy-msg-bubble" style="display:flex; align-items:center; gap:8px;">
+                <div class="margy-typing-indicator">
+                    <span class="margy-typing-dot"></span>
+                    <span class="margy-typing-dot"></span>
+                    <span class="margy-typing-dot"></span>
+                </div>
+                <span style="font-size:0.85rem; color:#64748b;">Margy está redactando la respuesta...</span>
+            </div>
+        `;
+        box.appendChild(loadingRow);
+        box.scrollTop = box.scrollHeight;
+
+        try {
+            const res = await fetch('/api/cambio_caracter/margy_consult', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    req_id: currentActiveReqId,
+                    message: userText,
+                    history: margyReqHistory[currentActiveReqId].slice(-6)
+                })
+            });
+            const d = await res.json();
+            const tempEl = document.getElementById('margy-temp-loading');
+            if (tempEl) tempEl.remove();
+
+            if (d.status === 'success') {
+                margyReqHistory[currentActiveReqId].push({ role: 'assistant', content: d.answer });
+                renderMargyChatHistory();
+            } else {
+                Swal.fire('Error', d.message || 'Error al consultar a Margy.', 'error');
+            }
+        } catch (e) {
+            const tempEl = document.getElementById('margy-temp-loading');
+            if (tempEl) tempEl.remove();
+            console.error('Margy message error:', e);
+            Swal.fire('Error', 'Fallo al comunicarse con Margy IA.', 'error');
+        }
+    }
+
 
     /* 6. MATRIZ DE BRECHAS */
     function renderBrechas() {

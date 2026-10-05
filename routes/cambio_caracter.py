@@ -183,22 +183,55 @@ def api_cambio_caracter_upload():
     try:
         inst_id = request.form.get('inst_id', get_active_inst_id())
         req_id = request.form.get('req_id', 'general')
-        file = request.files.get('file')
         
-        if not file:
+        # Soportar múltiples archivos o archivo individual
+        files = request.files.getlist('files')
+        if not files or len(files) == 0:
+            single = request.files.get('file')
+            if single:
+                files = [single]
+        
+        if not files:
             return jsonify({"status": "error", "message": "Falta archivo"}), 400
             
-        ext = os.path.splitext(file.filename)[1].lower()
-        new_filename = f"{uuid.uuid4()}{ext}"
-        path = f"inst_{inst_id}/cambio_caracter/{req_id}/{new_filename}"
-        
-        file_bytes = file.read()
-        file_options = {"content-type": file.content_type} if hasattr(file, 'content_type') else {}
-        supabase.storage.from_('evidencias').upload(path, file_bytes, file_options=file_options)
-        
-        public_url = supabase.storage.from_('evidencias').get_public_url(path)
-        
-        return jsonify({"status": "success", "url": public_url, "name": file.filename, "path": path})
+        uploaded_results = []
+        for file in files:
+            if not file or not file.filename:
+                continue
+            ext = os.path.splitext(file.filename)[1].lower()
+            new_filename = f"{uuid.uuid4()}{ext}"
+            path = f"inst_{inst_id}/cambio_caracter/{req_id}/{new_filename}"
+            
+            file_bytes = file.read()
+            file_options = {"content-type": file.content_type} if hasattr(file, 'content_type') else {}
+            supabase.storage.from_('evidencias').upload(path, file_bytes, file_options=file_options)
+            
+            public_url = supabase.storage.from_('evidencias').get_public_url(path)
+            
+            size_kb = len(file_bytes) / 1024
+            size_str = f"{size_kb:.1f} KB" if size_kb < 1024 else f"{(size_kb/1024):.1f} MB"
+            
+            uploaded_results.append({
+                "url": public_url,
+                "name": file.filename,
+                "path": path,
+                "size": size_str,
+                "ext": ext
+            })
+            
+        if not uploaded_results:
+            return jsonify({"status": "error", "message": "No se procesaron archivos válidos"}), 400
+            
+        # Si fue un solo archivo, retornar campos individuales para compatibilidad hacia atrás
+        first_item = uploaded_results[0]
+        return jsonify({
+            "status": "success",
+            "url": first_item["url"],
+            "name": first_item["name"],
+            "path": first_item["path"],
+            "size": first_item["size"],
+            "files": uploaded_results
+        })
     except Exception as e:
         print(f"[CC] Upload error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -211,6 +244,60 @@ def api_cambio_caracter_delete_file():
             supabase.storage.from_('evidencias').remove([path])
         return jsonify({"status": "success"})
     except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@cambio_caracter_bp.route('/api/cambio_caracter/margy_consult', methods=['POST'])
+def api_cc_margy_consult():
+    """Asesoría experta de Margy IA sobre qué exige realmente el MEN para un requisito específico."""
+    try:
+        data = request.json or {}
+        req_id = data.get('req_id')
+        user_message = (data.get('message') or '').strip()
+        history = data.get('history', [])
+        
+        req_item = next((r for r in REQUISITOS if r['id'] == req_id), None)
+        if not req_item:
+            return jsonify({"status": "error", "message": "Requisito no encontrado"}), 404
+            
+        system_prompt = f"""Eres Margy IA, la Consejera Técnica Senior y Consultora Experta en Aseguramiento de Calidad del MEN y CONACES para la institución educativa.
+Estás asesorando a la institución en su proceso estratégico de Cambio de Carácter Académico a Institución Universitaria bajo la Ley 749 de 2002 y el Decreto 2038 de 2023.
+
+Estás orientando sobre el REQUISITO NORMATIVO ESPECÍFICO:
+- Código: {req_item.get('id')}
+- Eje: {req_item.get('eje')}
+- Factor: {req_item.get('factor')}
+- Título: {req_item.get('title')}
+- Descripción del Requisito: {req_item.get('desc')}
+- Exigencia Documental MEN: {req_item.get('evidencia_requerida')}
+- Marco Legal: {req_item.get('ley')}
+
+DIRECTRICES DE RESPUESTA:
+1. Responde de manera profesional, cercana, empática y con profundo rigor técnico y normativo del MEN.
+2. Si el usuario solicita orientación general o inicial, estructura tu respuesta en los siguientes 4 bloques en Markdown con formato claro y viñetas:
+   - 🎯 **¿Qué busca realmente el MEN con este requisito?**: Explica el sentido profundo y por qué los Pares Evaluadores lo exigen (más allá del texto frío de la norma).
+   - 📑 **Evidencias Clave y Coherencia Documental**: Detalla qué documentos específicos (actas, resoluciones, matrices, diagnósticos, firmas) deben existir para que el MEN lo considere plenamente cumplido.
+   - 📈 **Evolución Recomendada por Fase**: Cómo debe madurar este requisito a lo largo del proceso institucional:
+     * *Fase I (Alineación / Levantamiento):* Diagnóstico inicial y mapeo de brechas.
+     * *Fase II (Diagnóstico Integral y Elaboración):* Documento técnico y propuesta fundamentada.
+     * *Fase III (Aprobación Colegiada):* Acta y Acuerdo formal de Consejo Directivo o Superior.
+     * *Fase IV (Radicación SACES / Consolidación):* Inclusión en el Documento Maestro final.
+   - ⚠️ **Riesgos y Errores Comunes**: Qué inconsistencias suelen detectar los Pares Académicos del MEN que originan requerimientos o conceptos negativos.
+3. Si el usuario hace una pregunta puntual (ej. sobre actas, cronogramas, formatos), respóndele de forma concisa y práctica orientada a la solución.
+4. Mantén siempre el avatar y personalidad de Margy IA: pedagógica, rigurosa, motivadora y experta en el MEN."""
+
+        messages = [{"role": "system", "content": system_prompt}]
+        for h in history[-4:]:
+            messages.append({"role": h.get("role", "user"), "content": h.get("content", "")})
+            
+        if user_message:
+            messages.append({"role": "user", "content": user_message})
+        else:
+            messages.append({"role": "user", "content": f"Margy, por favor explícame en detalle qué es lo que realmente busca el MEN con este requisito '{req_item.get('title')}' y cómo debemos construir y madurar las evidencias por fase."})
+
+        answer = call_ai(messages, max_tokens=2000, temperature=0.35)
+        return jsonify({"status": "success", "answer": answer, "req_item": req_item})
+    except Exception as e:
+        print(f"[CC Margy] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @cambio_caracter_bp.route('/api/cambio_caracter/skel_users', methods=['GET'])
