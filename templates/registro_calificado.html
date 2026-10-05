@@ -2058,6 +2058,23 @@
                         force_regenerate: true
                     })
                 });
+
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    let errMsg = `Error del servidor (${res.status})`;
+                    if (res.status === 504 || errorText.includes('FUNCTION_INVOCATION_TIMEOUT') || errorText.includes('timeout') || errorText.includes('An error occurred')) {
+                        errMsg = 'Tiempo de respuesta agotado por el servidor (Timeout). La IA tardó demasiado en completar la sección. Por favor intenta de nuevo.';
+                    } else {
+                        try {
+                            const errJson = JSON.parse(errorText);
+                            errMsg = errJson.message || errMsg;
+                        } catch (_) {
+                            errMsg = errorText.substring(0, 180);
+                        }
+                    }
+                    throw new Error(errMsg);
+                }
+
                 const data = await res.json();
                 if (data.status === 'success') {
                     const rawText = data.content || '';
@@ -2120,6 +2137,23 @@
                         existing_content: existingRaw
                     })
                 });
+
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    let errMsg = `Error del servidor (${res.status})`;
+                    if (res.status === 504 || errorText.includes('FUNCTION_INVOCATION_TIMEOUT') || errorText.includes('timeout') || errorText.includes('An error occurred')) {
+                        errMsg = 'Tiempo de respuesta agotado por el servidor al continuar la redacción. Por favor reintenta.';
+                    } else {
+                        try {
+                            const errJson = JSON.parse(errorText);
+                            errMsg = errJson.message || errMsg;
+                        } catch (_) {
+                            errMsg = errorText.substring(0, 180);
+                        }
+                    }
+                    throw new Error(errMsg);
+                }
+
                 const data = await res.json();
                 if (data.status === 'success') {
                     const rawText = data.content || '';

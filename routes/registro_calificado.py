@@ -1762,83 +1762,20 @@ REGLAS STRICTAS DE SALIDA:
 7. Finaliza el capítulo con la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
 """
 
-        # Pase 1: Generación inicial (máximo de tokens para contenido extenso)
+        # Generación única y robusta optimizada para ventana de ejecución serverless (Vercel)
         response_text = call_ai(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            max_tokens=65536,
+            max_tokens=4000,
             temperature=0.35,
             inst_id=proj.get('inst_id')
         )
         
-        # Limpieza inmediata de posibles degeneraciones de guiones en el Pase 1
+        # Limpieza inmediata de posibles degeneraciones de guiones
         response_text = re.sub(r'(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+', '', response_text, flags=re.MULTILINE)
         response_text = re.sub(r'[-_—–\s]{4,}$', '', response_text).rstrip()
-        
-        # Bucle de Auto-Continuación de IA para garantizar completitud total y bibliografía APA 7.0
-        max_continuation_passes = 2
-        current_pass = 0
-        
-        while current_pass < max_continuation_passes:
-            text_trim = re.sub(r'(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+', '', response_text.strip(), flags=re.MULTILINE).rstrip()
-            
-            # Verificar si el documento ya cuenta con la sección final de referencias APA 7.0 y no está cortado mid-sentence
-            has_references = '### Referencias' in text_trim or 'Referencias Bibliográficas' in text_trim or 'REFERENCIAS BIBLIOGRÁFICAS' in text_trim
-            ends_cleanly = text_trim and text_trim[-1] in ['.', ']', ')', '"', '`', '}']
-            
-            if has_references and ends_cleanly:
-                break
-                
-            # Si el texto está truncado o le faltan las referencias, preparar prompt de continuación exacta
-            last_snippet = text_trim[-500:] if len(text_trim) > 500 else text_trim
-            last_snippet = re.sub(r'[-_—–\s]{4,}$', '', last_snippet).rstrip()
-            
-            # Salvaguarda crítica: verificar que el snippet contenga palabras reales y no solo símbolos/guiones
-            real_words = re.findall(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]{3,}', last_snippet)
-            if len(real_words) < 5:
-                break
-            
-            next_cond_num = str(int(meta.get('num')) + 1) if meta.get('num').isdigit() else 'siguiente'
-            continuation_prompt = f"""ATENCIÓN: Tu respuesta anterior fue exhaustiva pero aún no ha concluido con la sección final de bibliografía en APA 7.0 o quedó en pausa.
-A continuación se muestra el fragmento final generado hasta el momento:
-
-"... {last_snippet}"
-
-REGLAS RIGUROSAS DE CONTINUACIÓN:
-1. CONTINÚA LA REDACCIÓN EXACTAMENTE DESDE LA ÚLTIMA PALABRA (sin repetir texto previo ni empezar desde el inicio).
-2. MANTÉNTE EXCLUSIVAMENTE DENTRO DE LA CONDICIÓN {meta.get('num')}: {meta.get('title')}. ESTÁ RIGUROSAMENTE PROHIBIDO SALIRSE A LA CONDICIÓN {next_cond_num} (ejemplo: NO generes ningún subtítulo como '### {next_cond_num}.1' ni '### {next_cond_num}.2').
-3. PROHIBICIÓN TAXATIVA DE GUIONES REPETIDOS: NUNCA emitas líneas de puros guiones ('---' o '____'). Escribe siempre párrafos sustantivos y tablas completas con datos reales.
-4. CONSTRUYE TABLAS MARKDOWN COMPLETAS Y DETALLADAS DIRECTAMENTE EN EL TEXTO cuando corresponda (mallas curriculares, matrices de RA SOLO, comparativos SNIES/DANE).
-5. Concluye obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
-
-            continuation_text = call_ai(
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": continuation_prompt}
-                ],
-                max_tokens=65536,
-                temperature=0.35,
-                inst_id=proj.get('inst_id')
-            )
-            
-            if not continuation_text or not continuation_text.strip():
-                break
-                
-            # Limpiar de inmediato cualquier guión repetido de la continuación
-            continuation_text = re.sub(r'(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+', '', continuation_text, flags=re.MULTILINE)
-            continuation_words = re.findall(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]{3,}', continuation_text)
-            if len(continuation_words) < 10:
-                # La IA no retornó texto sustantivo, evitar degeneración
-                break
-
-            # Unir limpiamente la continuación sin romper palabras a la mitad
-            ends_mid_word = not response_text.rstrip().endswith((' ', '\n', '.', ',', ';', ':', ')', ']', '}', '`'))
-            separator = "" if ends_mid_word else ("\n\n" if response_text.rstrip().endswith(('.', ':', ')', ']', '}', '`')) else " ")
-            response_text = response_text.rstrip() + separator + continuation_text.lstrip()
-            current_pass += 1
-
         response_text = sanitize_markdown_tables_light(response_text)
         
         # Guardar en el proyecto
@@ -1949,7 +1886,7 @@ REGLAS STRICTAS DE CONTINUACIÓN:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": continuation_prompt}
             ],
-            max_tokens=65536,
+            max_tokens=3500,
             temperature=0.35,
             inst_id=proj.get('inst_id')
         )
