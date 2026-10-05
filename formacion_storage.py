@@ -14,7 +14,25 @@ def _get_supabase():
     global _supabase_client
     if _supabase_client is not None:
         return _supabase_client
+    try:
+        from utils.db import supabase
+        if supabase:
+            _supabase_client = supabase
+            return _supabase_client
+    except Exception:
+        pass
     if not url or not key:
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+            _url = os.environ.get("SUPABASE_URL")
+            _key = os.environ.get("SUPABASE_KEY")
+            if _url and _key:
+                from supabase import create_client
+                _supabase_client = create_client(_url, _key)
+                return _supabase_client
+        except Exception:
+            pass
         return None
     try:
         from supabase import create_client
@@ -249,10 +267,23 @@ def delete_teacher(inst_id, teacher_id):
 def load_students(inst_id):
     result = _sb_load('lms_students', {'inst_id': inst_id})
     if result is not None:
+        if inst_id == 7:
+            legacy = _sb_load('lms_students', {'inst_id': 1})
+            if legacy:
+                existing_emails = {s.get('email', '').strip().lower() for s in result}
+                for s in legacy:
+                    if s.get('email', '').strip().lower() not in existing_emails:
+                        result.append(s)
         return result
     return _local_query("SELECT data FROM lms_students WHERE inst_id=?", (inst_id,))
 
 def save_student(inst_id, student_data):
+    if not inst_id or inst_id == 1:
+        try:
+            from utils.db import get_active_inst_id
+            inst_id = get_active_inst_id(inst_id)
+        except Exception:
+            inst_id = 7
     email = student_data.get('email', '').strip()
     if not student_data.get('id') and email:
         existing_students = load_students(inst_id)

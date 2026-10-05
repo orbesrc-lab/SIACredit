@@ -620,7 +620,7 @@
             name: document.getElementById('enrollName').value.trim(),
             email: document.getElementById('enrollEmail').value.trim(),
             password: document.getElementById('enrollPassword').value,
-            inst_id: 1 // Default to 1
+            inst_id: (typeof getInstId === 'function' ? getInstId() : 7) || 7
         };
 
         try {

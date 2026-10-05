@@ -1,8 +1,10 @@
 from flask import Blueprint, jsonify, request, send_from_directory, render_template, Response
+from werkzeug.security import generate_password_hash
 from utils.auth import require_permission
 from utils.db import supabase, get_active_inst_id
 import json
 import os
+import uuid
 import survey_storage
 import formacion_storage
 surveys_bp = Blueprint('surveys', __name__)
@@ -491,7 +493,7 @@ def get_course_report(course_id):
 @surveys_bp.route('/api/students', methods=['GET', 'POST'])
 @require_permission('capacitacion')
 def handle_api_students():
-    inst_id = request.args.get('inst_id', 1, type=int)
+    inst_id = get_active_inst_id(request.args.get('inst_id'))
     if request.method == 'POST':
         data = request.json
         course_id = data.pop('course_id', None)
@@ -510,7 +512,7 @@ def handle_api_students():
 
 @surveys_bp.route('/api/submissions', methods=['GET', 'POST'])
 def handle_api_submissions():
-    inst_id = request.args.get('inst_id', 1, type=int)
+    inst_id = get_active_inst_id(request.args.get('inst_id'))
     program_id = request.args.get('program_id', 0, type=int)
     if request.method == 'POST':
         data = request.json
@@ -533,7 +535,7 @@ def handle_api_submissions():
 @surveys_bp.route('/api/submissions/<submission_id>/grade', methods=['PUT'])
 @require_permission('capacitacion')
 def handle_api_grade_submission(submission_id):
-    inst_id = request.args.get('inst_id', 1, type=int)
+    inst_id = get_active_inst_id(request.args.get('inst_id'))
     program_id = request.args.get('program_id', 0, type=int)
     data = request.json
     graded = formacion_storage.grade_submission(inst_id, program_id, submission_id, data)
@@ -544,7 +546,7 @@ def handle_api_grade_submission(submission_id):
 @surveys_bp.route('/api/students/<student_id>', methods=['DELETE'])
 @require_permission('capacitacion')
 def delete_api_student(student_id):
-    inst_id = request.args.get('inst_id', 1, type=int)
+    inst_id = get_active_inst_id(request.args.get('inst_id'))
     success = formacion_storage.delete_student(inst_id, student_id)
     if success:
         return jsonify({"status": "success"})
@@ -553,7 +555,7 @@ def delete_api_student(student_id):
 @surveys_bp.route('/api/students/<student_id>/enroll', methods=['POST'])
 @require_permission('capacitacion')
 def enroll_student_api(student_id):
-    inst_id = request.args.get('inst_id', 1, type=int)
+    inst_id = get_active_inst_id(request.args.get('inst_id'))
     course_id = request.json.get('course_id')
     if not course_id:
         return jsonify({"status": "error", "message": "course_id es requerido."})
@@ -565,7 +567,7 @@ def enroll_student_api(student_id):
 @surveys_bp.route('/api/students/<student_id>/unenroll', methods=['POST'])
 @require_permission('capacitacion')
 def unenroll_student_api(student_id):
-    inst_id = request.args.get('inst_id', 1, type=int)
+    inst_id = get_active_inst_id(request.args.get('inst_id'))
     course_id = request.json.get('course_id')
     if not course_id:
         return jsonify({"status": "error", "message": "course_id es requerido."})
@@ -577,33 +579,34 @@ def unenroll_student_api(student_id):
 @surveys_bp.route('/api/courses/<course_id>/students', methods=['GET'])
 @require_permission('capacitacion')
 def get_course_enrolled_students(course_id):
-    inst_id = request.args.get('inst_id', 1, type=int)
+    inst_id = get_active_inst_id(request.args.get('inst_id'))
     all_students = formacion_storage.load_students(inst_id)
     enrolled = [s for s in all_students if 'enrolled_courses' in s and course_id in s['enrolled_courses']]
     return jsonify(enrolled)
 
 @surveys_bp.route('/api/public/enroll_course', methods=['POST'])
 def public_enroll_course():
-    data = request.json
+    data = request.json or {}
     name = data.get('name', '').strip()
-    email = data.get('email', '').strip()
+    email = data.get('email', '').strip().lower()
     password = data.get('password', '').strip()
     course_id = data.get('course_id')
-    inst_id = data.get('inst_id', 1)
+    raw_inst_id = data.get('inst_id')
+    inst_id = get_active_inst_id(raw_inst_id)
     
     if not name or not email or not password or not course_id:
-        return jsonify({"status": "error", "message": "Datos incompletos"})
+        return jsonify({"status": "error", "message": "Por favor completa todos los campos requeridos"})
 
     try:
         sb = formacion_storage._get_supabase()
         if not sb:
-            return jsonify({"status": "error", "message": "No database connection"})
+            return jsonify({"status": "error", "message": "No hay conexión con la base de datos"})
 
         # 1. Check if user already exists
-        user_res = sb.table('users').select("*").eq('email', email).execute()
+        user_res = sb.table('users').select("*").ilike('email', email).execute()
         pending_name = f"[ASPIRANTE] {name}"
         
-        if len(user_res.data) == 0:
+        if not user_res.data:
             new_user = {
                 "id": str(uuid.uuid4()),
                 "name": pending_name,
@@ -611,36 +614,42 @@ def public_enroll_course():
                 "password_hash": generate_password_hash(password),
                 "role": "estudiante",
                 "inst_id": inst_id,
-                "program_id": 0
+                "program_id": None
             }
             sb.table('users').insert(new_user).execute()
+        else:
+            existing_user = user_res.data[0]
+            if existing_user.get('inst_id') and existing_user.get('inst_id') > 1:
+                inst_id = existing_user['inst_id']
 
         # 2. Check or create in lms_students
         students = formacion_storage.load_students(inst_id)
-        student = next((s for s in students if s.get('email') == email), None)
+        student = next((s for s in students if s.get('email', '').strip().lower() == email), None)
         
         if not student:
             # Create student record
             student_data = {
                 "name": pending_name,
                 "email": email,
+                "inst_id": inst_id,
                 "enrolled_courses": [course_id]
             }
             formacion_storage.save_student(inst_id, student_data)
         else:
-            # Add to enrolled_courses if not there
-            if course_id not in student.get('enrolled_courses', []):
-                formacion_storage.enroll_student_in_course(inst_id, student['id'], course_id)
-            
+            if 'enrolled_courses' not in student or not isinstance(student.get('enrolled_courses'), list):
+                student['enrolled_courses'] = []
+            if course_id not in student['enrolled_courses']:
+                student['enrolled_courses'].append(course_id)
             if '[ASPIRANTE]' not in student.get('name', ''):
                 student['name'] = f"[ASPIRANTE] {student.get('name', name).replace('[PENDING] ', '')}"
-                formacion_storage.save_student(inst_id, student)
+            student['inst_id'] = inst_id
+            formacion_storage.save_student(inst_id, student)
                 
         return jsonify({"status": "success", "message": "Inscripción registrada correctamente"})
 
     except Exception as e:
         print(f"Error en enroll_course: {e}")
-        return jsonify({"status": "error", "message": "Error interno"})
+        return jsonify({"status": "error", "message": f"Error al registrar inscripción: {str(e)}"})
 
 
 
