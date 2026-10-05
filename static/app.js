@@ -381,8 +381,12 @@ window.logout = function() {
 // ==========================================
 function closeAllModals() {
     try {
-        const modals = document.querySelectorAll('[id*="modal"], [id*="Modal"], .modal, .modal-backdrop');
+        const modals = document.querySelectorAll('.cc-modal-backdrop, .modal-backdrop, .modal-overlay, .rrc-overlay, [id$="Modal"], [id$="modal"], .modal');
         modals.forEach(m => {
+            const tag = (m.tagName || '').toLowerCase();
+            if (['input', 'select', 'textarea', 'button', 'label', 'option', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5'].includes(tag)) {
+                return;
+            }
             if (m.style && m.style.display !== 'none') {
                 m.style.display = 'none';
             }
@@ -404,11 +408,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. Cerrar modal al hacer clic en el fondo oscuro ("cortina")
+    // 2. Cerrar modal al hacer clic en el fondo oscuro ("cortina") únicamente si se hace clic directo en el backdrop
     document.addEventListener('click', (e) => {
-        if (e.target && e.target.id && (e.target.id.toLowerCase().includes('modal') || e.target.classList.contains('modal'))) {
-            e.target.style.display = 'none';
-            document.body.style.overflow = '';
+        if (!e.target) return;
+        const tag = (e.target.tagName || '').toLowerCase();
+        if (['select', 'input', 'textarea', 'button', 'option', 'label', 'a', 'i', 'svg', 'span', 'p', 'div'].includes(tag)) {
+            // Si el elemento no es explícitamente un backdrop contenedor, nunca ocultarlo
+            const isBackdrop = e.target.classList.contains('cc-modal-backdrop') || 
+                               e.target.classList.contains('modal-backdrop') || 
+                               e.target.classList.contains('modal-overlay') || 
+                               e.target.classList.contains('rrc-overlay');
+            if (isBackdrop) {
+                e.target.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+            return;
         }
     });
 
