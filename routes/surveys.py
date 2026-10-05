@@ -604,12 +604,11 @@ def public_enroll_course():
 
         # 1. Check if user already exists
         user_res = sb.table('users').select("*").ilike('email', email).execute()
-        pending_name = f"[ASPIRANTE] {name}"
         
         if not user_res.data:
             new_user = {
                 "id": str(uuid.uuid4()),
-                "name": pending_name,
+                "name": name,
                 "email": email,
                 "password_hash": generate_password_hash(password),
                 "role": "estudiante",
@@ -621,6 +620,10 @@ def public_enroll_course():
             existing_user = user_res.data[0]
             if existing_user.get('inst_id') and existing_user.get('inst_id') > 1:
                 inst_id = existing_user['inst_id']
+            sb.table('users').update({
+                "password_hash": generate_password_hash(password),
+                "name": name
+            }).eq('id', existing_user['id']).execute()
 
         # 2. Check or create in lms_students
         students = formacion_storage.load_students(inst_id)
@@ -629,7 +632,7 @@ def public_enroll_course():
         if not student:
             # Create student record
             student_data = {
-                "name": pending_name,
+                "name": name,
                 "email": email,
                 "inst_id": inst_id,
                 "enrolled_courses": [course_id]
@@ -640,8 +643,7 @@ def public_enroll_course():
                 student['enrolled_courses'] = []
             if course_id not in student['enrolled_courses']:
                 student['enrolled_courses'].append(course_id)
-            if '[ASPIRANTE]' not in student.get('name', ''):
-                student['name'] = f"[ASPIRANTE] {student.get('name', name).replace('[PENDING] ', '')}"
+            student['name'] = name
             student['inst_id'] = inst_id
             formacion_storage.save_student(inst_id, student)
                 

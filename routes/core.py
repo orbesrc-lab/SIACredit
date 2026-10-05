@@ -954,17 +954,18 @@ def handle_public_register():
 
 @core_bp.route('/api/login', methods=['POST'])
 def handle_login():
-    data = request.json
-    email = data.get('email')
+    data = request.json or {}
+    email = (data.get('email') or '').strip()
     password = data.get('password')
     try:
-        res = supabase.table('users').select("*").eq("email", email).execute()
+        res = supabase.table('users').select("*").ilike("email", email).execute()
         if not res.data:
             # Buscar si el correo pertenece a un estudiante matriculado localmente
             try:
                 import formacion_storage
-                students = formacion_storage.load_students(1)
-                student = next((s for s in students if s.get('email') == email), None)
+                inst_id = get_active_inst_id()
+                students = formacion_storage.load_students(inst_id)
+                student = next((s for s in students if s.get('email', '').strip().lower() == email.lower()), None)
                 if student:
                     # Permitir ingresar con contraseña temporal estándar o el prefijo de su correo
                     if password in ['123456', 'SIACTemp2025!', email.split('@')[0]]:
@@ -974,7 +975,7 @@ def handle_login():
                                 "id": student['id'],
                                 "email": student['email'], 
                                 "role": "estudiante",
-                                "inst_id": 1,
+                                "inst_id": inst_id,
                                 "program_id": 0
                             }
                         })
@@ -984,9 +985,9 @@ def handle_login():
             return jsonify({"status": "error", "message": "Usuario no encontrado"})
         user = res.data[0]
         
-        # Bloquear usuarios pendientes verificando el prefijo en su nombre
-        if user.get('name') and (str(user.get('name')).startswith('[PENDING]') or str(user.get('name')).startswith('[ASPIRANTE]')):
-            return jsonify({"status": "error", "message": "Tu cuenta está pendiente de activación por un Administrador."}), 403
+        # Bloquear usuarios institucionales pendientes verificando el prefijo en su nombre
+        if user.get('name') and str(user.get('name')).startswith('[PENDING]'):
+            return jsonify({"status": "error", "message": "Tu cuenta institucional está pendiente de activación por un Administrador."}), 403
             
         if check_password_hash(user['password_hash'], password):
             # Check if institution is suspended
