@@ -1450,11 +1450,13 @@ def get_bot_dataset():
 def get_form_permissions():
     try:
         inst_id = request.args.get('inst_id', 1, type=int)
-        program_id = request.args.get('program_id', 0, type=int)
         
         # Guardaremos los permisos en la tabla statistics con el table_id 'FORM_PERMISSIONS'
         res = supabase.table('statistics').select("data_json").eq("table_id", "FORM_PERMISSIONS").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
         
+        if not res.data:
+            res = supabase.table('statistics').select("data_json").eq("table_id", "FORM_PERMISSIONS").order("id", desc=True).limit(1).execute()
+
         if res.data:
             permissions = json.loads(res.data[0]['data_json']) if isinstance(res.data[0]['data_json'], str) else res.data[0]['data_json']
             return jsonify({"status": "success", "permissions": permissions})
@@ -1466,15 +1468,29 @@ def get_form_permissions():
 @core_bp.route('/api/permissions/form', methods=['POST'])
 @require_permission('configuracion')
 def save_form_permissions():
-    invalidate_permissions_cache()
     import json
     try:
-        payload = request.json
-        inst_id = payload.get('inst_id', 1)
-        program_id = payload.get('program_id', 0)
+        payload = request.json or {}
+        try:
+            inst_id = int(payload.get('inst_id', 1))
+        except (ValueError, TypeError):
+            inst_id = 1
+            
+        program_id = payload.get('program_id')
+        valid_prog_id = None
+        if program_id not in (None, 0, '0', '', 'null'):
+            try:
+                pid = int(program_id)
+                if pid > 0:
+                    prog_chk = supabase.table('programs').select("id").eq("id", pid).execute()
+                    if prog_chk.data:
+                        valid_prog_id = pid
+            except (ValueError, TypeError):
+                valid_prog_id = None
+
         permissions = payload.get('permissions', {})
         
-        res = supabase.table('statistics').select("id").eq("table_id", "FORM_PERMISSIONS").order("id", desc=True).limit(1).execute()
+        res = supabase.table('statistics').select("id").eq("table_id", "FORM_PERMISSIONS").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
         
         if res.data:
             db_id = res.data[0]['id']
@@ -1486,9 +1502,10 @@ def save_form_permissions():
                 "table_id": "FORM_PERMISSIONS",
                 "data_json": json.dumps(permissions),
                 "inst_id": inst_id,
-                "program_id": program_id
+                "program_id": valid_prog_id
             }).execute()
             
+        invalidate_permissions_cache(inst_id)
         return jsonify({"status": "success"})
     except Exception as e:
         print("Error saving permissions:", str(e))
