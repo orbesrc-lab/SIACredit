@@ -70,11 +70,11 @@ def invalidate_permissions_cache(inst_id=None):
 
 
 DEFAULT_PERMISSIONS = {
-    "autoevaluacion": ["admin", "inst_admin", "lider"],
+    "autoevaluacion": ["admin", "inst_admin", "lider", "auditor"],
     "informes": ["admin", "inst_admin", "lider", "consultor", "auditor"],
     "planificacion": ["admin", "inst_admin", "lider", "consultor"],
     "hub_estrategico": ["admin", "inst_admin", "consultor"],
-    "iso9001": ["admin", "inst_admin", "consultor", "auditor"],
+    "iso9001": ["admin", "inst_admin", "lider", "consultor", "auditor"],
     "capacitacion": ["admin", "inst_admin", "lider", "profesor", "estudiante"],
     "herramientas": ["admin", "inst_admin"],
     "skel_hc360": ["admin", "inst_admin", "lider", "consultor"],

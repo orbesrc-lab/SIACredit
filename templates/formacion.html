@@ -1775,8 +1775,9 @@
         }
         if (!user) { window.top.location.href = 'login.html'; }
         
-        // Bloqueo de acceso directo para roles de la institución
-        if (user && user.role !== 'admin' && user.role !== 'estudiante' && user.role !== 'profesor') {
+        // Bloqueo de acceso directo según roles autorizados
+        const allowedFormacionRoles = ['admin', 'superadmin', 'super_admin', 'inst_admin', 'lider', 'profesor', 'estudiante'];
+        if (user && !allowedFormacionRoles.includes(user.role)) {
             window.top.location.href = 'dashboard.html';
         }
         
@@ -4614,7 +4615,7 @@
             preloadTeacherDropdown();
             
             // Verificar rol de usuario
-            if (user && (user.role === 'estudiante' || user.role === 'profesor')) {
+            if (user && user.role === 'estudiante') {
                 // Ocultar la barra lateral por completo para no ver el resto de la aplicación
                 const sidebarEl = document.querySelector('.sidebar');
                 if (sidebarEl) sidebarEl.style.display = 'none';
@@ -4709,8 +4710,15 @@
                 // Mostrar Aula del Estudiante
                 document.getElementById('studentClassroom').style.display = 'block';
                 loadStudentCourses();
+            } else if (user && user.role === 'profesor') {
+                // Entorno para Profesor / Docente
+                const tabTeachersBtn = document.getElementById('tabTeachers');
+                if (tabTeachersBtn) tabTeachersBtn.style.display = 'none'; // Un docente no gestiona a otros docentes
+                const titleEl = document.getElementById('mainTitle');
+                if (titleEl) titleEl.textContent = '🎓 Panel de Gestión Docente y Cursos';
+                loadCoursesList();
             } else {
-                // Admin flow normal
+                // Administradores e Institución (Super Admin, Inst Admin, Líder)
                 loadCoursesList();
             }
         }
