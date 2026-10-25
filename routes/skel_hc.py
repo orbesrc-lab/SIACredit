@@ -1247,139 +1247,97 @@ def generar_plan_formacion_ia(empresa_id):
         if not resultados:
             return jsonify({"status": "error", "message": "No hay resultados para analizar"}), 400
             
-        # 1. Obtener contexto detallado de la empresa
-        empresa_nombre = "Organización"
-        sector = "Servicios / Educación"
-        num_empleados = 0
+        # 1. Obtener nombre de la empresa
+        empresa_nombre = "la organización"
         try:
-            emp_info = sb.table('skel_empresas').select('*').eq('id', empresa_id).execute().data
-            if emp_info:
-                empresa_nombre = emp_info[0].get('nombre', 'Organización')
-                sector = emp_info[0].get('sector', 'Educativo / Servicios')
-                num_empleados = emp_info[0].get('num_empleados', 0)
+            emp_info = sb.table('skel_empresas').select('nombre').eq('id', empresa_id).execute().data
+            if emp_info and emp_info[0].get('nombre'):
+                empresa_nombre = emp_info[0]['nombre']
         except Exception:
             pass
 
-        # 2. Obtener estadísticas de evaluación y colaboradores evaluados
-        total_evaluados = 0
-        cargos_str = "Personal directivo, docente, administrativo y operativo"
-        total_respuestas = 0
-        try:
-            colabs = sb.table('skel_colaboradores').select('id, cargo_id, skel_cargos(nombre)').eq('empresa_id', empresa_id).execute().data or []
-            total_evaluados = len(colabs)
-            cargos = list(filter(None, set([c.get('skel_cargos', {}).get('nombre') if c.get('skel_cargos') else None for c in colabs])))
-            if cargos:
-                cargos_str = ", ".join(cargos[:10])
-            
-            evals = sb.table('skel_evaluaciones').select('id').eq('empresa_id', empresa_id).execute().data or []
-            eval_ids = [e['id'] for e in evals]
-            if eval_ids:
-                rc = sb.table('skel_360_respuestas').select('id', count='exact').in_('evaluacion_id', eval_ids).execute()
-                total_respuestas = rc.count if rc.count is not None else len(rc.data or [])
-        except Exception:
-            pass
-
-        # 3. Métricas y desglose cuantitativo de competencias
-        prom_empresa = round(sum([r.get('promedio_empresa', 0) for r in resultados]) / len(resultados), 2) if resultados else 0
-        brecha_global = round(sum([r.get('brecha', 0) for r in resultados]) / len(resultados), 2) if resultados else 0
+        # 2. Filtrar brechas negativas (necesidad de capacitación) y fortalezas
+        brechas_urgentes = [r for r in resultados if r.get('brecha', 0) < 0]
+        fortalezas = [r for r in resultados if r.get('brecha', 0) >= 0]
         
-        # Ordenar de mayor brecha negativa (más crítica) a positiva
-        resultados_ordenados = sorted(resultados, key=lambda x: x.get('brecha', 0))
-        brecha_max_critica = resultados_ordenados[0].get('brecha', 0) if resultados_ordenados else 0
-        
-        tabla_datos_str = ""
-        for r in resultados_ordenados:
-            c_nom = r.get('nombre', 'Competencia')
-            c_tip = r.get('tipo', 'Transversal')
-            c_esp = r.get('nivel_esperado', 4.0)
-            c_obt = r.get('promedio_empresa', 0)
-            c_bre = r.get('brecha', 0)
-            c_cumpl = round((c_obt / c_esp) * 100, 1) if c_esp > 0 else 0
-            tabla_datos_str += f"- Competencia: {c_nom} ({c_tip}) | Nivel Requerido: {c_esp} | Promedio Obtenido: {c_obt} | Brecha: {c_bre:+} | Cumplimiento: {c_cumpl}%\n"
+        datos_brechas_txt = ""
+        for r in brechas_urgentes:
+            datos_brechas_txt += f"- Competencia: {r.get('nombre')} ({r.get('tipo', 'Competencia')}) | Brecha: {r.get('brecha')} (Puntaje: {r.get('promedio_empresa', 0)} / Requerido: 4.0)\n"
 
-        prompt = f"""Actúa como Consultor Senior Internacional en Estrategia de Capital Humano, Desarrollo Organizacional y Transformación Digital (McKinsey / BCG).
+        datos_fortalezas_txt = ""
+        for r in fortalezas:
+            datos_fortalezas_txt += f"- Competencia: {r.get('nombre')} ({r.get('tipo', 'Competencia')}) | Brecha: {r.get('brecha'):+} (Puntaje: {r.get('promedio_empresa', 0)} / Requerido: 4.0)\n"
 
-Debes estructurar un 'PLAN MAESTRO DE CAPACITACIÓN INSTITUCIONAL Y DESARROLLO DE CAPACIDADES ORGANIZACIONALES' de nivel ejecutivo directivo, altamente riguroso, explicativo, argumentativo y fundamentado cuantitativamente.
+        prompt = f"""Actúa como Consultor Senior en Desarrollo Organizacional y Gestión del Talento Humano.
+A continuación tienes los resultados consolidados de las evaluaciones 360° de la empresa {empresa_nombre}:
 
-DATOS INSTITUCIONALES CONSOLIDADOS (EVALUACIÓN 360°):
-- Empresa / Institución: {empresa_nombre}
-- Sector Económico: {sector}
-- Tamaño de Planta: {num_empleados} colaboradores ({total_evaluados} evaluados en este ciclo)
-- Muestra Evaluativa: {total_respuestas} respuestas 360° recopiladas y procesadas
-- Perfiles Clave Evaluados: {cargos_str}
-- Promedio General de Competencias: {prom_empresa} / 4.00
-- Brecha Neta Organizacional: {brecha_global:+} puntos
-- Brecha Crítica Más Aguda: {brecha_max_critica:+} puntos
+COMPETENCIAS CON BRECHA CRÍTICA (VALORES NEGATIVOS = NECESIDADES DE FORMACIÓN):
+{datos_brechas_txt}
 
-MATRIZ ESTADÍSTICA DE TODAS LAS COMPETENCIAS EVALUADAS:
-{tabla_datos_str}
+COMPETENCIAS EN NIVEL ESPERADO O SUPERIOR (FORTALEZAS IDENTIFICADAS):
+{datos_fortalezas_txt}
 
-REQUERIMIENTOS OBLIGATORIOS DE CONTENIDO, ESTRUCTURA Y ARGUMENTACIÓN:
-El informe debe redactarse en ESPAÑOL DIRECTIVO, PROFESIONAL, PERSUASIVO Y DE ALTO IMPACTO (apto para Junta Directiva, Rectoría y Gerencia General). NO resumas ni uses textos genéricos o introducciones vacías. Justifica cada inversión en formación con impacto directo en productividad, reducción de riesgos de ciberseguridad, eficiencia operativa y retorno de inversión (ROI / ROTI).
+INSTRUCCIÓN PRINCIPAL:
+Redacta un 'Plan Maestro de Capacitación Institucional y Desarrollo de Capacidades' de alto impacto, profundo, explicativo, argumentativo y con un plan de desarrollo detallado para la empresa.
 
-ESTRUCTURA OBLIGATORIA DEL DOCUMENTO (EN HTML PURO, SIN BLOQUES MARKDOWN ```html):
+REGLAS DE FORMATO Y PRESENTACIÓN (ESTRICTAS):
+- NO incluyas tablas gigantescas ni porcentajes de madurez confusos (la plataforma ya muestra la gráfica interactiva arriba).
+- Céntrate directamente en el DIAGNÓSTICO EXPLICATIVO y en el PLAN DE CAPACITACIÓN estructurado en tres horizontes (Inmediato, Táctico y Estratégico).
+- Formato: Redacta en HTML limpio y estructurado (usando <h2>, <h3>, <h4>, <p>, <ul>, <li>, <strong>, <em>, <blockquote>).
+- PROHIBIDO usar bloques de código markdown como ```html o ```. Escribe directamente el código HTML.
 
-1. RESUMEN EJECUTIVO Y DIAGNÓSTICO ESTADÍSTICO INSTITUCIONAL:
-   - Tarjetas de KPIs visuales en HTML con estilo moderno (tarjetas con borde suave, fondo contrastado, cifras destacadas en color):
-     * Promedio Global Institucional ({prom_empresa} / 4.00)
-     * Total de Evaluaciones y Respuestas Procesadas ({total_respuestas})
-     * Brecha Crítica Máxima ({brecha_max_critica:+})
-     * Porcentaje de Madurez y Cumplimiento de Capacidades ({round((prom_empresa/4.0)*100, 1)}%)
-   - TABLA ANALÍTICA COMPARATIVA COMPLETA:
-     Diseña una tabla HTML estilizada con todas las competencias evaluadas, incluyendo: Competencia, Tipo, Nivel Requerido (4.0), Calificación Obtenida, Brecha Numérica, Barra visual de cumplimiento (HTML/CSS con barra de progreso estilizada con colores rojo, naranja o verde) y Nivel de Prioridad (CRÍTICA / TÁCTICA / ESTRATÉGICA).
-   - Diagnóstico Cuantitativo y Cualitativo: Análisis profundo de la dispersión de los datos, impacto de las brechas en la continuidad de negocio, seguridad de la información, fuga de eficiencia y productividad diaria.
+ESTRUCTURA EXACTA REQUERIDA:
 
-2. CONSOLIDACIÓN DEL PLAN DE FORMACIÓN EN TRES HORIZONTES TEMPORALES (JUSTIFICACIÓN Y MALLA CURRICULAR):
+<h2>1. Diagnóstico Integral y Justificación del Plan de Formación</h2>
+Redacta un análisis explicativo y argumentativo detallado:
+- <strong>Análisis de Brechas Críticas:</strong> Explica por qué las competencias con mayor déficit (como Google Workspace, gestión de contraseñas/ciberseguridad y herramientas de IA) impactan la operatividad, seguridad de la información y productividad del equipo.
+- <strong>Apalancamiento de Fortalezas:</strong> Analiza cómo las competencias en nivel sobresaliente (análisis de información, Excel, gestión del cambio) facilitarán la rápida asimilación de los nuevos conocimientos.
+- <strong>Justificación de la Inversión:</strong> Argumenta el valor agregado y la mitigación de riesgos que obtendrá la institución al ejecutar este plan.
 
-   A. HORIZONTE 1: PLAN DE FORMACIÓN INMEDIATO (0 A 3 MESES) - MITIGACIÓN DE RIESGOS CRÍTICOS Y ESTABILIZACIÓN OPERATIVA
-      - Justificación argumentativa: Por qué este bloque no da espera y los riesgos operacionales, financieros y de ciberseguridad que mitiga de inmediato.
-      - Mínimo 2 a 3 Programas / Talleres de Choque detallados para las brechas más severas (ej. Google Workspace y productividad colaborativa, Ciberseguridad y Gestión de contraseñas, Protección de datos sensibles).
-      - Para cada programa debes incluir obligatoriamente:
-        * Nombre formal del curso / taller intensivo
-        * Duración total estimada (en horas) y modalidad sugerida
-        * Población objetivo y áreas prioritarias
-        * Contenido temático estructurado por unidades / módulos (mínimo 3 módulos por curso con sus temas específicos)
-        * Metodología de aprendizaje activo (workshops, simulaciones, retos prácticos)
-        * Indicador de Éxito / KPI medible post-capacitación
-        * Promesa de valor e impacto directo en el puesto de trabajo
+<h2>2. Plan de Desarrollo de Capacidades por Horizontes Formativos</h2>
 
-   B. HORIZONTE 2: PLAN DE FORMACIÓN TÁCTICO (3 A 6 MESES) - PRODUCTIVIDAD, EFICIENCIA Y APLICACIÓN DE INTELIGENCIA ARTIFICIAL
-      - Justificación argumentativa: Cómo este horizonte estandariza procesos, reduce costos operativos y potencia la capacidad analítica del personal.
-      - Mínimo 2 a 3 Programas aplicados enfocados en competencias intermedias y aceleración digital (ej. Automatización de tareas repetitivas de oficina con IA, Redacción de documentos e informes institucionales con IA Generativa, Análisis de datos y toma de decisiones operativas con herramientas digitales).
-      - Para cada programa detallar:
-        * Nombre del curso
-        * Duración en horas y modalidad
-        * Temario modular detallado (mínimo 3 módulos)
-        * Casos de uso prácticos aplicados a la realidad de la empresa
-        * KPI de impacto (ej. % de reducción en tiempos de entrega de informes)
-        * Promesa de valor institucional
+<h3>A. Plan Inmediato (Corto Plazo / Prioridad Alta: 0 a 3 Meses) — Mitigación Crítica y Seguridad Operativa</h3>
+Enfocado en las brechas más agudas detectadas en la evaluación 360°.
+Para cada curso propuesto (desarrolla 2 a 3 cursos de choque, ej. Productividad Colaborativa con Google Workspace, Ciberseguridad Práctica y Protección de Datos Institucionales):
+- <strong>Nombre del curso:</strong> Título atractivo y profesional.
+- <strong>Intensidad horaria y modalidad:</strong> Horas estimadas y formato (Virtual sincrónico / Talleres presenciales).
+- <strong>Población objetivo:</strong> Áreas y roles que deben tomarlo prioritariamente.
+- <strong>Justificación basada en los resultados 360:</strong> Brechas específicas que interviene.
+- <strong>Malla Curricular Modular:</strong> Desarrolla detalladamente 3 a 4 módulos con sus temas específicos explicados.
+- <strong>Metodología de aprendizaje:</strong> Ejercicios prácticos, simulaciones y talleres de aplicación inmediata.
+- <strong>Promesa de valor:</strong> Impacto tangible en el puesto de trabajo.
 
-   C. HORIZONTE 3: PLAN DE FORMACIÓN ESTRATÉGICO (6 A 12 MESES) - MADUREZ DIGITAL, PENSAMIENTO CRÍTICO Y LIDERAZGO ADAPTATIVO
-      - Justificación argumentativa: Proyección de sostenibilidad, liderazgo en el sector, cultura de innovación continua y gobernanza ética de tecnología.
-      - Mínimo 2 a 3 Programas avanzados (ej. Pensamiento crítico y validación rigurosa de resultados generados por IA, Formulación de prompts avanzados y arquitectura de prompts para directivos, Liderazgo digital y gestión ágil del cambio).
-      - Para cada programa detallar:
-        * Nombre del programa / diplomado
-        * Horas y modalidad
-        * Unidades temáticas avanzadas
-        * Entregable estratégico institucional (ej. Guía de gobernanza de IA institucional, proyecto de mejora)
-        * Impacto a largo plazo y proyección de retorno sobre inversión (ROTI / ROI)
+<h3>B. Plan Táctico (Mediano Plazo / Prioridad Media: 3 a 6 Meses) — Productividad y Eficiencia con Inteligencia Artificial</h3>
+Enfocado en automatización de tareas y optimización de flujos de trabajo diarios.
+Para cada curso propuesto (desarrolla 2 a 3 cursos, ej. Automatización de Procesos de Oficina con IA, Redacción de Informes y Documentos con IA Generativa):
+- <strong>Nombre del curso:</strong>
+- <strong>Intensidad horaria y modalidad:</strong>
+- <strong>Población objetivo:</strong>
+- <strong>Justificación explicativa:</strong>
+- <strong>Malla Curricular Modular (3 módulos desarrollados):</strong>
+- <strong>Casos prácticos de aplicación en la institución:</strong>
+- <strong>Promesa de valor y KPI esperado:</strong>
 
-3. RUTA DE IMPLEMENTACIÓN, GOBERNANZA Y MODELO DE EVALUACIÓN DE IMPACTO (MODELO KIRKPATRICK):
-   - Cronograma Trimestral (Q1 Inmediato, Q2 Táctico, Q3-Q4 Estratégico) en tabla visual o línea de tiempo estructurada.
-   - Modelo de Evaluación en 4 Niveles de Kirkpatrick aplicado a este plan:
-     * Nivel 1 (Reacción): Encuestas de satisfacción y utilidad percibida.
-     * Nivel 2 (Aprendizaje): Evaluaciones prácticas de conocimientos adquiridos.
-     * Nivel 3 (Comportamiento/Transferencia): Evaluación 360° de seguimiento a los 6 meses para medir cierre efectivo de brechas.
-     * Nivel 4 (Resultados/Negocio): Reducción de incidentes de seguridad, ahorro de horas operativas y mejora en clima laboral.
-   - Recomendaciones Finales y Compromiso del Comité de Talento Humano y Dirección.
+<h3>C. Plan Estratégico (Largo Plazo / Prioridad Consolidación: 6 a 12 Meses) — Pensamiento Crítico y Liderazgo Digital</h3>
+Enfocado en madurez analítica, toma de decisiones y liderazgo adaptativo.
+Para cada curso propuesto (desarrolla 2 cursos, ej. Verificación Crítica y Ética de Resultados de IA, Formulación de Prompts Avanzados y Liderazgo Digital):
+- <strong>Nombre del programa / curso:</strong>
+- <strong>Intensidad horaria y modalidad:</strong>
+- <strong>Malla Curricular Modular detallada:</strong>
+- <strong>Proyecto de aplicación institucional (Entregable):</strong>
+- <strong>Promesa de valor institucional:</strong>
 
-REGLA TÉCNICA OBLIGATORIA:
-Genera ÚNICAMENTE código HTML semántico, elegante y auto-contenido, utilizando etiquetas estándar (div, h2, h3, h4, p, table, thead, tbody, tr, th, td, ul, li, strong, span). NO incluyas las etiquetas ```html ni ``` al inicio o al final. NO cortes el texto ni dejes secciones a la mitad; entrega el documento completamente terminado.
+<h2>3. Metodología de Implementación y Evaluación de Impacto</h2>
+- <strong>Ruta de Ejecución:</strong> Recomendaciones prácticas para que las jornadas de capacitación no afecten la operación institucional.
+- <strong>Medición de Transferencia:</strong> Mecanismos de seguimiento a los 3 y 6 meses para evaluar el cierre real de las brechas en la próxima evaluación 360°.
+- <strong>Conclusión y Recomendaciones para la Dirección:</strong> Mensaje de cierre estratégico.
+
+REGLA DE CALIDAD: Asegúrate de completar TODO el informe de principio a fin sin dejar frases incompletas ni secciones sin terminar.
 """
         
         try:
             from routes.ai_generator import generar_informe_ia_base
-            texto_ia = generar_informe_ia_base(prompt, max_tokens=8000)
+            texto_ia = generar_informe_ia_base(prompt, max_tokens=6000)
             
             # Limpiar posibles bloques markdown ```html del texto generado
             import re
