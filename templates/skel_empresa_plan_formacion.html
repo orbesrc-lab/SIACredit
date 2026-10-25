@@ -80,12 +80,36 @@
             height: 8px; width: 0; background-color: var(--primary-color);
             transition: width 0.5s ease;
         }
+        /* Estilos enriquecidos para Plan Maestro */
+        #plan-ia-content { color: #e2e8f0; line-height: 1.7; font-size: 0.98rem; }
+        #plan-ia-content h1, #plan-ia-content h2 { color: #60a5fa; border-bottom: 2px solid rgba(96, 165, 250, 0.3); padding-bottom: 8px; margin-top: 30px; margin-bottom: 15px; font-size: 1.35rem; }
+        #plan-ia-content h3 { color: #38bdf8; margin-top: 25px; margin-bottom: 12px; font-size: 1.15rem; }
+        #plan-ia-content h4 { color: #f1f5f9; margin-top: 18px; margin-bottom: 8px; font-size: 1.05rem; }
+        #plan-ia-content p { margin-bottom: 14px; }
+        #plan-ia-content ul, #plan-ia-content ol { padding-left: 24px; margin-bottom: 18px; }
+        #plan-ia-content li { margin-bottom: 7px; }
+        #plan-ia-content table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.92rem; background: rgba(15, 23, 42, 0.6); border-radius: 8px; overflow: hidden; }
+        #plan-ia-content th { background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 12px 14px; text-align: left; border-bottom: 2px solid #3b82f6; font-weight: 600; }
+        #plan-ia-content td { padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: middle; }
+        #plan-ia-content tr:hover { background: rgba(255,255,255,0.03); }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .kpi-card { background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 18px; text-align: center; }
+        .kpi-val { font-size: 1.75rem; font-weight: bold; color: #38bdf8; margin-top: 5px; }
+        .kpi-lbl { font-size: 0.82rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-critica { background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 3px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: bold; border: 1px solid rgba(239, 68, 68, 0.4); display: inline-block; }
+        .badge-tactica { background: rgba(245, 158, 11, 0.2); color: #fcd34d; padding: 3px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: bold; border: 1px solid rgba(245, 158, 11, 0.4); display: inline-block; }
+        .badge-estrategica { background: rgba(16, 185, 129, 0.2); color: #86efac; padding: 3px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: bold; border: 1px solid rgba(16, 185, 129, 0.4); display: inline-block; }
+        
         /* Estilos para impresión */
         @media print {
             body { background: white; color: black; }
-            .sidebar, .dashboard-header, #btnGenerar, #btnPrint, .card:not(#printableArea) { display: none !important; }
-            #printableArea { width: 100%; border: none; box-shadow: none; margin: 0; padding: 0; }
+            .sidebar, .dashboard-header, #btnGenerar, #btnEditar, #btnGuardarEdicion, #btnPrint, .btn-back, .card:not(#printableArea) { display: none !important; }
+            #printableArea { width: 100%; border: none; box-shadow: none; margin: 0; padding: 0; background: white; color: black; }
             #plan-ia-content { color: black; background: white; border: none; }
+            #plan-ia-content th { background: #f1f5f9; color: black; border-bottom: 2px solid black; }
+            #plan-ia-content td { border-bottom: 1px solid #e2e8f0; color: black; }
+            .kpi-card { background: #f8fafc; border: 1px solid #cbd5e1; color: black; }
+            .kpi-val { color: #0284c7; }
         }
 
     </style>
@@ -150,6 +174,18 @@
         const empresaId = window.location.pathname.split('/')[3];
         let brechasGlobal = [];
         let modoEdicionActivo = false;
+
+        function cleanPlanHTML(str) {
+            if (!str) return "";
+            let s = str.trim();
+            const codeMatch = s.match(/```(?:html)?\s*([\s\S]*?)\s*```/i);
+            if (codeMatch && codeMatch[1]) {
+                s = codeMatch[1].trim();
+            } else {
+                s = s.replace(/^```(?:html)?\s*/i, '').replace(/\s*```$/i, '').trim();
+            }
+            return s;
+        }
         
         async function loadPlan() {
             try {
@@ -164,7 +200,7 @@
                     renderChart(data.data);
                     
                     if (data.saved_plan) {
-                        document.getElementById('plan-ia-content').innerHTML = data.saved_plan;
+                        document.getElementById('plan-ia-content').innerHTML = cleanPlanHTML(data.saved_plan);
                         document.getElementById('btnPrint').style.display = 'inline-block';
                         document.getElementById('btnEditar').style.display = 'inline-block';
                         document.getElementById('plan-empresa-badge').style.display = 'inline-block';
@@ -348,7 +384,7 @@
                 }, 1500);
 
                 if (data.status === 'success') {
-                    container.innerHTML = data.plan;
+                    container.innerHTML = cleanPlanHTML(data.plan);
                     document.getElementById('btnPrint').style.display = 'inline-block';
                     document.getElementById('btnEditar').style.display = 'inline-block';
                     document.getElementById('plan-empresa-badge').style.display = 'inline-block';
