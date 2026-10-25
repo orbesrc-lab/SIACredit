@@ -43,6 +43,63 @@ function authFetch(url, options = {}) {
     return fetch(url, { ...options, headers });
 }
 
+// ── Prevención Inmediata de Parpadeo (Anti-Flicker CSS según Rol) ──
+(function applyAntiFlickerStyle() {
+    try {
+        const user = JSON.parse(localStorage.getItem('siac_user') || 'null');
+        if (!user || !user.role) return;
+        const role = (user.role || '').toLowerCase();
+        const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'super-admin'].includes(role);
+        if (isSuperAdmin) return; // SuperAdmin tiene acceso total sin restricciones
+
+        let css = '';
+        // Registro Calificado siempre oculto para no superadmin
+        css += '.superadmin-rc-link, #menuRegistroCalificado { display: none !important; }\n';
+
+        // Configuración solo para superadmin e inst_admin
+        if (role !== 'inst_admin') {
+            css += 'a[href*="configuracion"], #menuConfiguracion { display: none !important; }\n';
+        }
+
+        if (role === 'estudiante') {
+            // Estudiante: Ocultar todas las categorías administrativas del sidebar
+            css += `
+                .sidebar-group,
+                #menuConsultoriaB2B,
+                #menuConfiguracion,
+                a[href*="configuracion"],
+                .sidebar-item:not([href*="formacion"]):not([onclick*="logout"]):not(.logout-item) {
+                    display: none !important;
+                }
+            `;
+        } else {
+            // Otros roles: Filtrar según permisos cacheados
+            let perms = {};
+            try { perms = JSON.parse(localStorage.getItem('siac_role_permissions') || '{}'); } catch(e) {}
+            if (perms && Object.keys(perms).length > 0) {
+                const isAllowed = (mod) => Array.isArray(perms[mod]) && perms[mod].includes(role);
+                if (!isAllowed('autoevaluacion')) css += '.sidebar-group-autoeval { display: none !important; }\n';
+                if (!isAllowed('informes')) css += '.sidebar-group-informes { display: none !important; }\n';
+                if (!isAllowed('planificacion')) css += '.sidebar-group-planif { display: none !important; }\n';
+                if (!isAllowed('hub_estrategico')) css += '#menuConsultoriaB2B, [data-module="hub_estrategico"] { display: none !important; }\n';
+                if (!isAllowed('iso9001')) css += 'a[href*="empresa_iso"] { display: none !important; }\n';
+                if (!isAllowed('capacitacion')) css += '#menuCapacitacion, a[href*="formacion.html"] { display: none !important; }\n';
+                if (!isAllowed('herramientas')) css += '.sidebar-group-herramientas, #menuCrm, #menuBackup, a[href*="biblioteca"] { display: none !important; }\n';
+                if (!isAllowed('skel_hc360')) css += '.sidebar-group-skel360 { display: none !important; }\n';
+            }
+        }
+
+        if (css) {
+            const style = document.createElement('style');
+            style.id = 'siac-anti-flicker';
+            style.textContent = css;
+            (document.head || document.documentElement).appendChild(style);
+        }
+    } catch(e) {
+        console.error("Error al aplicar anti-flicker:", e);
+    }
+})();
+
 // Inicialización de Menú y Permisos Rápida y Reactiva
 async function initFastSidebar() {
     const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
@@ -50,7 +107,6 @@ async function initFastSidebar() {
 
     const role = (user.role || '').toLowerCase();
     const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'super-admin'].includes(role);
-    const isDocenteEst = (role === 'estudiante' || role === 'profesor');
 
     // 1. Registro Calificado (Exclusivo SuperAdmin)
     document.querySelectorAll('.superadmin-rc-link, #menuRegistroCalificado').forEach(el => {
@@ -58,20 +114,45 @@ async function initFastSidebar() {
         if (window.location.pathname.includes('registro_calificado')) el.classList.add('active');
     });
 
-    // 2. Obtener matriz de permisos activa (desde cache local o API)
+    // 2. Configuración del Sistema (Exclusivo SuperAdmin e Inst_Admin)
+    const configLinks = document.querySelectorAll('a[href*="configuracion"], #menuConfiguracion');
+    const canAccessConfig = isSuperAdmin || (role === 'inst_admin');
+    configLinks.forEach(el => {
+        el.style.display = canAccessConfig ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
+    });
+
+    // 3. Caso especial Estudiante: entorno exclusivo y limpio
+    if (role === 'estudiante') {
+        document.querySelectorAll('.sidebar-group, #menuConsultoriaB2B, #menuConfiguracion, a[href*="configuracion"]').forEach(el => {
+            el.style.display = 'none';
+        });
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            const href = (item.getAttribute('href') || '').toLowerCase();
+            const text = item.textContent.toLowerCase();
+            if (!href.includes('formacion') && !text.includes('formaci') && !text.includes('cerrar') && !text.includes('salir')) {
+                item.style.display = 'none';
+            } else {
+                item.style.display = item.tagName === 'A' ? 'flex' : 'block';
+            }
+        });
+        return; // Terminar ejecución temprana para estudiante
+    }
+
+    // 4. Obtener matriz de permisos activa
     let permissions = {};
     try {
         const cached = localStorage.getItem('siac_role_permissions');
         if (cached) permissions = JSON.parse(cached);
     } catch(e) {}
 
-    // Si es SuperAdmin, tiene acceso a todos los módulos
     const canAccess = (moduleKey) => {
         if (isSuperAdmin) return true;
+        if (role === 'estudiante') return moduleKey === 'capacitacion';
         if (!permissions || Object.keys(permissions).length === 0) {
-            // Valores por defecto seguros si aún no ha cargado la matriz
             if (moduleKey === 'skel_hc360') return false;
-            if (moduleKey === 'hub_estrategico' || moduleKey === 'consultoria') return ['admin', 'inst_admin', 'consultor'].includes(role);
+            if (moduleKey === 'hub_estrategico' || moduleKey === 'consultoria') return ['inst_admin', 'consultor'].includes(role);
+            if (moduleKey === 'configuracion') return ['inst_admin'].includes(role);
+            if (moduleKey === 'capacitacion') return ['inst_admin', 'lider', 'profesor', 'estudiante'].includes(role);
             return true;
         }
         const allowed = permissions[moduleKey];
@@ -79,7 +160,6 @@ async function initFastSidebar() {
         return allowed.includes(role);
     };
 
-    // Función auxiliar para aplicar visibilidad a selectores o elementos
     const applyVisibility = (elements, isVisible) => {
         elements.forEach(el => {
             if (!isVisible) {
@@ -113,6 +193,10 @@ async function initFastSidebar() {
     const b2bGroups = document.querySelectorAll('#menuConsultoriaB2B, [data-module="hub_estrategico"]');
     applyVisibility(Array.from(b2bGroups), canAccess('hub_estrategico'));
 
+    // ISO 9001
+    const isoElements = document.querySelectorAll('a[href*="empresa_iso"]');
+    applyVisibility(Array.from(isoElements), canAccess('iso9001'));
+
     // SKEL HC 360
     const skel360Groups = Array.from(document.querySelectorAll('.sidebar-group')).filter(g => {
         const t = (g.querySelector('.sidebar-group-title') || {}).textContent || '';
@@ -127,7 +211,6 @@ async function initFastSidebar() {
     });
     applyVisibility(herramGroups, canAccess('herramientas'));
 
-    // CRM B2B y Backup específicos
     const crmElements = document.querySelectorAll('#menuCrm');
     applyVisibility(Array.from(crmElements), canAccess('herramientas'));
     const backupElements = document.querySelectorAll('#menuBackup');
@@ -137,18 +220,7 @@ async function initFastSidebar() {
     const capElements = document.querySelectorAll('#menuCapacitacion, a[href*="formacion.html"]');
     applyVisibility(Array.from(capElements), canAccess('capacitacion'));
 
-    // Restricciones específicas para Estudiantes / Profesores
-    if (isDocenteEst) {
-        document.querySelectorAll('.sidebar-item').forEach(item => {
-            const href = (item.getAttribute('href') || '').toLowerCase();
-            const text = item.textContent.toLowerCase();
-            if (!href.includes('formacion') && !text.includes('formaci') && !text.includes('cerrar')) {
-                item.style.display = 'none';
-            }
-        });
-    }
-
-    // Ocultar grupos del acordeón vacíos
+    // Ocultar grupos del acordeón cuyos subelementos estén todos ocultos
     document.querySelectorAll('.sidebar-group').forEach(group => {
         const submenuItems = group.querySelectorAll('.sidebar-submenu a, .sidebar-submenu .sidebar-item');
         if (submenuItems.length > 0) {

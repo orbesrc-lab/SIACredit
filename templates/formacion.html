@@ -1789,14 +1789,26 @@
 
         // Ocultar items del sidebar que no sean formación para profesor y estudiante
         if (user && (user.role === 'profesor' || user.role === 'estudiante')) {
-            document.addEventListener('DOMContentLoaded', () => {
+            const hideUnauthorizedSidebar = () => {
+                if (user.role === 'estudiante') {
+                    const sb = document.querySelector('.sidebar');
+                    if (sb) sb.style.display = 'none';
+                }
+                document.querySelectorAll('.sidebar-group, #menuConsultoriaB2B, #menuConfiguracion, a[href*="configuracion"]').forEach(el => {
+                    el.style.display = 'none';
+                });
                 document.querySelectorAll('.sidebar-item').forEach(item => {
                     const text = item.textContent.toLowerCase();
-                    if (!text.includes('formacion') && !text.includes('formación') && !text.includes('cerrar')) {
+                    if (!text.includes('formacion') && !text.includes('formación') && !text.includes('cerrar') && !text.includes('salir')) {
                         item.style.display = 'none';
                     }
                 });
-            });
+            };
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', hideUnauthorizedSidebar);
+            } else {
+                hideUnauthorizedSidebar();
+            }
         }
 
         function logout() {

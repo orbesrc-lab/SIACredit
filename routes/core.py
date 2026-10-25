@@ -1457,11 +1457,16 @@ def get_form_permissions():
         if not res.data:
             res = supabase.table('statistics').select("data_json").eq("table_id", "FORM_PERMISSIONS").order("id", desc=True).limit(1).execute()
 
+        from utils.auth import DEFAULT_PERMISSIONS
         if res.data:
             permissions = json.loads(res.data[0]['data_json']) if isinstance(res.data[0]['data_json'], str) else res.data[0]['data_json']
+            # Asegurar claves mínimas de DEFAULT_PERMISSIONS
+            for mod, default_roles in DEFAULT_PERMISSIONS.items():
+                if mod not in permissions:
+                    permissions[mod] = default_roles
             return jsonify({"status": "success", "permissions": permissions})
         else:
-            return jsonify({"status": "success", "permissions": {}})
+            return jsonify({"status": "success", "permissions": DEFAULT_PERMISSIONS})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 

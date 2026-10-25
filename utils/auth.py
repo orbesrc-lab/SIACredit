@@ -69,13 +69,24 @@ def invalidate_permissions_cache(inst_id=None):
         _perms_cache.pop(inst_id, None)
 
 
+DEFAULT_PERMISSIONS = {
+    "autoevaluacion": ["admin", "inst_admin", "lider"],
+    "informes": ["admin", "inst_admin", "lider", "consultor", "auditor"],
+    "planificacion": ["admin", "inst_admin", "lider", "consultor"],
+    "hub_estrategico": ["admin", "inst_admin", "consultor"],
+    "iso9001": ["admin", "inst_admin", "consultor", "auditor"],
+    "capacitacion": ["admin", "inst_admin", "lider", "profesor", "estudiante"],
+    "herramientas": ["admin", "inst_admin"],
+    "skel_hc360": ["admin", "inst_admin", "lider", "consultor"],
+    "configuracion": ["admin", "inst_admin"]
+}
+
 def get_permissions_for_inst(inst_id):
     """
     Lee la matriz FORM_PERMISSIONS de Supabase para la institucion dada.
     Usa cache con TTL para minimizar consultas.
 
     Retorna: dict con forma { module_key: [lista de roles permitidos] }
-    Ejemplo: { "autoevaluacion": ["inst_admin", "lider", "consultor", "auditor"] }
     """
     now = time.time()
 
@@ -86,6 +97,7 @@ def get_permissions_for_inst(inst_id):
             return cached_data
 
     # Consultar Supabase
+    perms = {}
     try:
         sb = _get_supabase()
         res = (
@@ -97,14 +109,27 @@ def get_permissions_for_inst(inst_id):
             .limit(1)
             .execute()
         )
+        if not res.data:
+            res = (
+                sb.table('statistics')
+                .select("data_json")
+                .eq("table_id", "FORM_PERMISSIONS")
+                .order("id", desc=True)
+                .limit(1)
+                .execute()
+            )
+
         if res.data:
             raw = res.data[0]['data_json']
             perms = json.loads(raw) if isinstance(raw, str) else raw
         else:
-            perms = {}
+            perms = dict(DEFAULT_PERMISSIONS)
     except Exception as e:
         print(f"[auth] Error leyendo FORM_PERMISSIONS para inst_id={inst_id}: {e}")
-        perms = {}
+        perms = dict(DEFAULT_PERMISSIONS)
+
+    if not perms:
+        perms = dict(DEFAULT_PERMISSIONS)
 
     _perms_cache[inst_id] = (now, perms)
     return perms
