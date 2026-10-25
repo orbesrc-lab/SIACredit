@@ -19,6 +19,32 @@ def get_supabase():
         supabase = app_supabase
     return supabase
 
+def _get_valid_inst_id(sb, requested_id=None):
+    if requested_id:
+        try:
+            req_int = int(requested_id)
+            chk = sb.table('institution').select('id').eq('id', req_int).execute()
+            if chk.data:
+                return req_int
+        except Exception:
+            pass
+    try:
+        from flask import session, g
+        s_id = session.get('inst_id') or (getattr(g, 'current_user', {}) or {}).get('inst_id')
+        if s_id:
+            chk = sb.table('institution').select('id').eq('id', int(s_id)).execute()
+            if chk.data:
+                return int(s_id)
+    except Exception:
+        pass
+    try:
+        res = sb.table('institution').select('id').order('id', desc=False).limit(1).execute()
+        if res.data:
+            return res.data[0]['id']
+    except Exception:
+        pass
+    return 7
+
 # ==============================================================================
 # Módulo 01: Administración General - Empresas (Tenants)
 # ==============================================================================
@@ -921,15 +947,15 @@ def get_reporte_individual(evaluado_id):
         saved_plan = ""
         saved_comments = ""
         table_id = f"SKEL_PLAN_INDIVIDUAL_{evaluado_id}"
-        plan_check = sb.table('statistics').select('data_json').eq('table_id', table_id).execute().data
+        plan_check = sb.table('statistics').select('data_json').eq('table_id', table_id).order('id', desc=True).limit(1).execute().data
         if plan_check:
             import json
             try:
-                saved_data = json.loads(plan_check[0]['data_json'])
+                saved_data = json.loads(plan_check[0]['data_json']) if isinstance(plan_check[0]['data_json'], str) else plan_check[0]['data_json']
                 saved_plan = saved_data.get('plan', '')
                 saved_comments = saved_data.get('comentarios', '')
-            except:
-                pass
+            except Exception as pe:
+                print("Error reading saved individual plan:", pe)
 
         return jsonify({
             "status": "success",
@@ -950,27 +976,38 @@ def get_reporte_individual(evaluado_id):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @skel_hc_bp.route('/reporte/individual/<evaluado_id>/plan_accion', methods=['POST'])
+@require_permission('skel_hc360')
 def save_plan_accion_individual(evaluado_id):
     try:
-        data = request.json
+        data = request.json or {}
         plan = data.get('plan', '')
         comentarios = data.get('comentarios', '')
+        inst_id = data.get('inst_id')
         
         import json
         sb = get_supabase()
-        
+        valid_inst_id = _get_valid_inst_id(sb, inst_id)
         table_id = f"SKEL_PLAN_INDIVIDUAL_{evaluado_id}"
-        # Delete any previous record
-        sb.table('statistics').delete().eq('table_id', table_id).execute()
-        # Insert new record
-        sb.table('statistics').insert({
-            'table_id': table_id,
-            'data_json': json.dumps({
-                "plan": plan,
-                "comentarios": comentarios
-            })
-        }).execute()
-        return jsonify({"status": "success", "message": "Plan guardado correctamente"})
+        
+        save_payload = {
+            "plan": plan,
+            "comentarios": comentarios
+        }
+        
+        existing = sb.table('statistics').select('id').eq('table_id', table_id).limit(1).execute()
+        if existing.data:
+            sb.table('statistics').update({
+                'data_json': json.dumps(save_payload, ensure_ascii=False)
+            }).eq('id', existing.data[0]['id']).execute()
+        else:
+            sb.table('statistics').insert({
+                'table_id': table_id,
+                'data_json': json.dumps(save_payload, ensure_ascii=False),
+                'inst_id': valid_inst_id,
+                'program_id': None
+            }).execute()
+            
+        return jsonify({"status": "success", "message": "Plan guardado correctamente en la base de datos"})
     except Exception as e:
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -979,7 +1016,30 @@ def save_plan_accion_individual(evaluado_id):
 @require_permission('skel_hc360')
 def generar_plan_ia():
     try:
-        data = request.json
+        data = request.json or {}
+        evaluado_id = data.get('evaluado_id')
+        inst_id = data.get('inst_id')
+        force = data.get('force', False)
+        sb = get_supabase()
+
+        # Si no se fuerza la regeneración y ya tenemos un plan guardado en BD, devolverlo directamente para evitar consumo innecesario de tokens
+        if evaluado_id and not force:
+            table_id = f"SKEL_PLAN_INDIVIDUAL_{evaluado_id}"
+            plan_check = sb.table('statistics').select('data_json').eq('table_id', table_id).order('id', desc=True).limit(1).execute().data
+            if plan_check:
+                try:
+                    saved_data = json.loads(plan_check[0]['data_json']) if isinstance(plan_check[0]['data_json'], str) else plan_check[0]['data_json']
+                    saved_text = saved_data.get('plan')
+                    if saved_text and len(saved_text.strip()) > 30:
+                        return jsonify({
+                            "status": "success",
+                            "plan": saved_text,
+                            "from_cache": True,
+                            "message": "Cargado desde base de datos sin consumo de tokens"
+                        })
+                except Exception:
+                    pass
+
         resultados = data.get('resultados', [])
         
         if not resultados:
@@ -1050,7 +1110,33 @@ REGLA MANDATORIA DE FINALIZACIÓN: Completa ÍNTEGRAMENTE todas las 3 secciones 
             print("Error IA:", ai_e)
             texto_ia = "⚠️ Análisis IA no disponible. Por favor, verifica la llave de Inteligencia Artificial en la configuración."
             
-        return jsonify({"status": "success", "plan": texto_ia})
+        # Guardar automáticamente en BD si evaluado_id fue provisto y la generación fue exitosa
+        if evaluado_id and texto_ia and not texto_ia.startswith("⚠️"):
+            try:
+                valid_inst_id = _get_valid_inst_id(sb, inst_id)
+                table_id = f"SKEL_PLAN_INDIVIDUAL_{evaluado_id}"
+                existing = sb.table('statistics').select('id, data_json').eq('table_id', table_id).limit(1).execute()
+                comentarios = ""
+                if existing.data:
+                    try:
+                        prev = json.loads(existing.data[0]['data_json']) if isinstance(existing.data[0]['data_json'], str) else existing.data[0]['data_json']
+                        comentarios = prev.get('comentarios', '')
+                    except Exception:
+                        pass
+                    sb.table('statistics').update({
+                        'data_json': json.dumps({"plan": texto_ia, "comentarios": comentarios}, ensure_ascii=False)
+                    }).eq('id', existing.data[0]['id']).execute()
+                else:
+                    sb.table('statistics').insert({
+                        'table_id': table_id,
+                        'data_json': json.dumps({"plan": texto_ia, "comentarios": comentarios}, ensure_ascii=False),
+                        'inst_id': valid_inst_id,
+                        'program_id': None
+                    }).execute()
+            except Exception as save_err:
+                print("Error autosaving individual plan to DB:", save_err)
+
+        return jsonify({"status": "success", "plan": texto_ia, "from_cache": False})
         
     except Exception as e:
         traceback.print_exc()
@@ -1119,14 +1205,14 @@ def get_plan_formacion_empresa(empresa_id):
         # 5. Fetch saved AI Plan (if any)
         saved_plan = None
         table_id = f"SKEL_PLAN_IA_{empresa_id}"
-        plan_check = sb.table('statistics').select('data_json').eq('table_id', table_id).execute().data
+        plan_check = sb.table('statistics').select('data_json').eq('table_id', table_id).order('id', desc=True).limit(1).execute().data
         if plan_check:
             import json
             try:
-                saved_data = json.loads(plan_check[0]['data_json'])
+                saved_data = json.loads(plan_check[0]['data_json']) if isinstance(plan_check[0]['data_json'], str) else plan_check[0]['data_json']
                 saved_plan = saved_data.get('plan')
-            except:
-                pass
+            except Exception as pe:
+                print("Error reading saved company plan:", pe)
         
         return jsonify({"status": "success", "data": resultados, "saved_plan": saved_plan})
         
@@ -1136,10 +1222,27 @@ def get_plan_formacion_empresa(empresa_id):
 
 
 @skel_hc_bp.route('/empresa/<empresa_id>/plan_formacion/ia', methods=['POST'])
+@require_permission('skel_hc360')
 def generar_plan_formacion_ia(empresa_id):
     try:
-        data = request.json
+        data = request.json or {}
         resultados = data.get('resultados', [])
+        force = data.get('force', False)
+        sb = get_supabase()
+
+        table_id = f"SKEL_PLAN_IA_{empresa_id}"
+        
+        # Si no se fuerza la regeneración y ya tenemos un plan guardado en BD, devolverlo directamente para NO consumir tokens
+        if not force:
+            plan_check = sb.table('statistics').select('data_json').eq('table_id', table_id).order('id', desc=True).limit(1).execute().data
+            if plan_check:
+                try:
+                    saved_data = json.loads(plan_check[0]['data_json']) if isinstance(plan_check[0]['data_json'], str) else plan_check[0]['data_json']
+                    saved_plan = saved_data.get('plan')
+                    if saved_plan and len(saved_plan.strip()) > 30 and not "⚠️ Análisis IA no disponible" in saved_plan:
+                        return jsonify({"status": "success", "plan": saved_plan, "from_cache": True})
+                except Exception:
+                    pass
         
         if not resultados:
             return jsonify({"status": "error", "message": "No hay resultados para analizar"}), 400
@@ -1149,7 +1252,7 @@ def generar_plan_formacion_ia(empresa_id):
         prompt += "identificando las brechas en competencias (valores negativos = urgencia de capacitación):\n\n"
         
         for r in resultados:
-            prompt += f"- {r['nombre']} ({r['tipo']}): Brecha {r['brecha']}\n"
+            prompt += f"- {r.get('nombre', 'Competencia')} ({r.get('tipo', 'Transversal')}): Brecha {r.get('brecha', 0)}\n"
             
         prompt += "\nBasado en esto, redacta un 'Plan Maestro de Capacitación Institucional'. "
         prompt += "Agrupa las necesidades por prioridad. Sé ejecutivo, usa formato HTML (usando <ul>, <li>, <h3>, <p>, <strong>, etc.) "
@@ -1163,20 +1266,8 @@ def generar_plan_formacion_ia(empresa_id):
         try:
             from routes.ai_generator import generar_informe_ia_base
             texto_ia = generar_informe_ia_base(prompt)
-            
-            # Guardar el plan generado en la base de datos
-            import json
-            sb = get_supabase()
-            table_id = f"SKEL_PLAN_IA_{empresa_id}"
-            # Delete any previous plan for this company
-            sb.table('statistics').delete().eq('table_id', table_id).execute()
-            # Insert the new plan
-            sb.table('statistics').insert({
-                'table_id': table_id,
-                'data_json': json.dumps({"plan": texto_ia})
-            }).execute()
-            
         except Exception as ai_e:
+            print("Error IA Plan Formacion:", ai_e)
             texto_ia = """
             <div style="background-color: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 15px; border-radius: 4px;">
                 <h3 style="color: #ef4444; margin-top: 0; display: flex; align-items: center; gap: 8px;">
@@ -1185,9 +1276,61 @@ def generar_plan_formacion_ia(empresa_id):
                 <p style="margin-bottom: 0;">El sistema no pudo generar el plan maestro personalizado porque la <strong>llave API de Inteligencia Artificial es inválida o no está configurada</strong>. Por favor, ingresa una API Key válida en el panel de <strong>Configuración Global</strong> para habilitar los insights generativos.</p>
             </div>
             """
+
+        # Guardar en base de datos si la generación fue exitosa
+        if texto_ia and not "⚠️ Análisis IA no disponible" in texto_ia:
+            try:
+                import json
+                valid_inst_id = _get_valid_inst_id(sb, data.get('inst_id'))
+                existing = sb.table('statistics').select('id').eq('table_id', table_id).limit(1).execute()
+                if existing.data:
+                    sb.table('statistics').update({
+                        'data_json': json.dumps({"plan": texto_ia}, ensure_ascii=False)
+                    }).eq('id', existing.data[0]['id']).execute()
+                else:
+                    sb.table('statistics').insert({
+                        'table_id': table_id,
+                        'data_json': json.dumps({"plan": texto_ia}, ensure_ascii=False),
+                        'inst_id': valid_inst_id,
+                        'program_id': None
+                    }).execute()
+            except Exception as save_err:
+                print("Error saving company plan to DB:", save_err)
             
-        return jsonify({"status": "success", "plan": texto_ia})
+        return jsonify({"status": "success", "plan": texto_ia, "from_cache": False})
         
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@skel_hc_bp.route('/empresa/<empresa_id>/plan_formacion/guardar', methods=['POST'])
+@require_permission('skel_hc360')
+def guardar_plan_formacion_manual(empresa_id):
+    try:
+        data = request.json or {}
+        plan = data.get('plan', '')
+        inst_id = data.get('inst_id')
+        
+        import json
+        sb = get_supabase()
+        valid_inst_id = _get_valid_inst_id(sb, inst_id)
+        table_id = f"SKEL_PLAN_IA_{empresa_id}"
+        
+        existing = sb.table('statistics').select('id').eq('table_id', table_id).limit(1).execute()
+        if existing.data:
+            sb.table('statistics').update({
+                'data_json': json.dumps({"plan": plan}, ensure_ascii=False)
+            }).eq('id', existing.data[0]['id']).execute()
+        else:
+            sb.table('statistics').insert({
+                'table_id': table_id,
+                'data_json': json.dumps({"plan": plan}, ensure_ascii=False),
+                'inst_id': valid_inst_id,
+                'program_id': None
+            }).execute()
+            
+        return jsonify({"status": "success", "message": "Plan maestro guardado exitosamente en la base de datos"})
     except Exception as e:
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500

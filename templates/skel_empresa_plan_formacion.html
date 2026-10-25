@@ -117,12 +117,21 @@
             </div>
 
             <div class="card" style="margin-top:20px;" id="printableArea">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h3 style="color:var(--primary-color);">Plan Maestro de Capacitación (IA)</h3>
-                    <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <h3 style="color:var(--primary-color); margin:0;">Plan Maestro de Capacitación (IA)</h3>
+                        <span id="plan-empresa-badge" style="display:none; font-size:0.75rem; background:#065f46; color:#a7f3d0; padding:4px 10px; border-radius:12px; font-weight:600;">💾 Plan Guardado en Base de Datos</span>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn" id="btnEditar" onclick="toggleModoEdicion()" style="display:none; background:#0284c7;">✏️ Editar Plan</button>
+                        <button class="btn" id="btnGuardarEdicion" onclick="guardarEdicionManual()" style="display:none; background:#10b981; font-weight:700;">💾 Guardar Cambios</button>
                         <button class="btn" id="btnGenerar" onclick="generarPlanIA()">🤖 Generar Plan con IA</button>
                         <button class="btn btn-secondary" id="btnPrint" onclick="window.print()" style="display:none;">🖨️ Imprimir Informe</button>
                     </div>
+                </div>
+
+                <div id="edit-notice" style="display:none; background:rgba(14, 165, 233, 0.15); border:1px solid #0ea5e9; color:#bae6fd; padding:10px 15px; border-radius:6px; margin-bottom:15px; font-size:0.9rem;">
+                    ℹ️ <strong>Modo Edición Habilitado:</strong> Puedes hacer clic sobre el contenido para redactar, agregar o ajustar cursos, horas o textos. Cuando termines, haz clic en el botón verde <strong>"💾 Guardar Cambios"</strong> para actualizar la base de datos.
                 </div>
                 
                 <div id="progress-container" class="progress-bar-container">
@@ -130,7 +139,7 @@
                 </div>
                 <p id="progress-text" style="color:#3b82f6; font-size:0.9rem; text-align:center; display:none; margin-top:10px;">Iniciando análisis...</p>
 
-                <div id="plan-ia-content" style="background:var(--secondary-color); padding:20px; border-radius:8px; min-height:100px; border:1px solid var(--glass-border); line-height:1.6; color:#e2e8f0; margin-top:20px;">
+                <div id="plan-ia-content" style="background:var(--secondary-color); padding:20px; border-radius:8px; min-height:100px; border:1px solid var(--glass-border); line-height:1.6; color:#e2e8f0; margin-top:15px; transition: border-color 0.2s, background 0.2s;">
                     <p style="color:#64748b; text-align:center; padding:30px;">Haz clic en el botón para que la Inteligencia Artificial estructure el plan de formación basado en las brechas críticas.</p>
                 </div>
             </div>
@@ -140,6 +149,7 @@
     <script>
         const empresaId = window.location.pathname.split('/')[3];
         let brechasGlobal = [];
+        let modoEdicionActivo = false;
         
         async function loadPlan() {
             try {
@@ -156,6 +166,9 @@
                     if (data.saved_plan) {
                         document.getElementById('plan-ia-content').innerHTML = data.saved_plan;
                         document.getElementById('btnPrint').style.display = 'inline-block';
+                        document.getElementById('btnEditar').style.display = 'inline-block';
+                        document.getElementById('plan-empresa-badge').style.display = 'inline-block';
+                        document.getElementById('btnGenerar').innerText = '🔄 Regenerar con IA';
                     }
                 } else {
                     document.getElementById('results-container').innerHTML = "<div class='card'><p style='text-align:center;'>No hay datos suficientes para generar el plan.</p></div>";
@@ -207,14 +220,84 @@
                 }
             });
         }
+
+        function toggleModoEdicion() {
+            const container = document.getElementById('plan-ia-content');
+            const notice = document.getElementById('edit-notice');
+            const btnEdit = document.getElementById('btnEditar');
+            const btnSave = document.getElementById('btnGuardarEdicion');
+            
+            modoEdicionActivo = !modoEdicionActivo;
+            
+            if (modoEdicionActivo) {
+                container.contentEditable = "true";
+                container.style.border = "2px dashed #0ea5e9";
+                container.style.background = "rgba(15, 23, 42, 0.9)";
+                container.focus();
+                notice.style.display = "block";
+                btnSave.style.display = "inline-block";
+                btnEdit.innerText = "👁️ Vista Previa";
+                btnEdit.style.background = "#64748b";
+            } else {
+                container.contentEditable = "false";
+                container.style.border = "1px solid var(--glass-border)";
+                container.style.background = "var(--secondary-color)";
+                notice.style.display = "none";
+                btnSave.style.display = "none";
+                btnEdit.innerText = "✏️ Editar Plan";
+                btnEdit.style.background = "#0284c7";
+            }
+        }
+
+        async function guardarEdicionManual() {
+            const container = document.getElementById('plan-ia-content');
+            const planHtml = container.innerHTML;
+            const btnSave = document.getElementById('btnGuardarEdicion');
+            btnSave.disabled = true;
+            btnSave.innerText = "💾 Guardando...";
+            
+            try {
+                const res = await authFetch(`/api/skel360/empresa/${empresaId}/plan_formacion/guardar`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        plan: planHtml,
+                        inst_id: (typeof getInstId === 'function' ? getInstId() : 7)
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    alert("✅ Plan Maestro de Capacitación guardado y actualizado exitosamente en la base de datos.");
+                    toggleModoEdicion();
+                    document.getElementById('plan-empresa-badge').style.display = 'inline-block';
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Error de red al guardar los cambios.");
+            } finally {
+                btnSave.disabled = false;
+                btnSave.innerText = "💾 Guardar Cambios";
+            }
+        }
         
         async function generarPlanIA() {
-            const btn = document.getElementById('btnGenerar');
             const container = document.getElementById('plan-ia-content');
+            const currentText = container.innerText || '';
+            
+            if (currentText.length > 50 && !currentText.includes("Haz clic en el botón")) {
+                const proceed = confirm("⚠️ Ya existe un Plan Maestro guardado en la base de datos para esta empresa.\n\n¿Deseas volver a llamar a la IA para regenerarlo? (Esto consumirá nuevos tokens y sobrescribirá el contenido actual).");
+                if (!proceed) return;
+            }
+
+            const btn = document.getElementById('btnGenerar');
             const progressContainer = document.getElementById('progress-container');
             const progressBar = document.getElementById('progress-bar');
             const progressText = document.getElementById('progress-text');
             
+            if (modoEdicionActivo) toggleModoEdicion();
+
             btn.disabled = true;
             btn.style.opacity = '0.5';
             
@@ -247,7 +330,11 @@
                 const res = await authFetch(`/api/skel360/empresa/${empresaId}/plan_formacion/ia`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ resultados: brechasGlobal })
+                    body: JSON.stringify({ 
+                        resultados: brechasGlobal,
+                        force: true,
+                        inst_id: (typeof getInstId === 'function' ? getInstId() : 7)
+                    })
                 });
                 const data = await res.json();
                 
@@ -263,6 +350,9 @@
                 if (data.status === 'success') {
                     container.innerHTML = data.plan;
                     document.getElementById('btnPrint').style.display = 'inline-block';
+                    document.getElementById('btnEditar').style.display = 'inline-block';
+                    document.getElementById('plan-empresa-badge').style.display = 'inline-block';
+                    btn.innerText = '🔄 Regenerar con IA';
                 } else {
                     container.innerHTML = `<p style="color:red;">Error: ${data.message}</p>`;
                 }

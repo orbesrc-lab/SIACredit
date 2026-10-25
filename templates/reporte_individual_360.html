@@ -115,20 +115,23 @@
 
         <!-- Plan de Acción IA -->
         <div class="action-plan">
-            <h3>
-                <span>✍️ Plan de Acción y Análisis Experto IA</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <h3 style="margin:0; color:#1e293b;">✍️ Plan de Acción y Análisis Experto IA</h3>
+                    <span id="plan-guardado-badge" style="display:none; font-size:0.75rem; background:#065f46; color:#a7f3d0; padding:4px 10px; border-radius:12px; font-weight:600;">💾 Guardado en Base de Datos</span>
+                </div>
                 <button id="btn-generar-ia" class="btn btn-primary" style="font-size:0.85rem; padding:8px 15px; cursor:pointer;" onclick="generarPlanIA()">
                     ✨ Generar Análisis con IA
                     <span class="ai-loading" id="ai-spinner">⏳</span>
                 </button>
-            </h3>
-            <p style="font-size:0.9rem; color:#64748b; margin-bottom:15px;">Diagnóstico de fortalezas, brechas y compromisos a 30, 60 y 90 días.</p>
+            </div>
+            <p style="font-size:0.9rem; color:#64748b; margin-bottom:15px;">Diagnóstico de fortalezas, brechas y compromisos a 30, 60 y 90 días. Puedes <strong>editar el texto libremente</strong> en el cuadro a continuación y presionar <strong>"Guardar Informe"</strong> para actualizarlo en la base de datos.</p>
             <textarea id="texto-compromisos" placeholder="Haga clic en 'Generar Análisis con IA' para obtener la interpretación experta..."></textarea>
             <h4 style="color:#334155; margin-bottom:10px;">Comentarios Adicionales / Retroalimentación</h4>
             <textarea id="texto-comentarios" style="min-height:80px;" placeholder="Observaciones adicionales o compromisos de la sesión..."></textarea>
             <div style="text-align:center; margin-top:30px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
                 <button class="btn btn-secondary" onclick="window.history.back()" style="padding:12px 20px; font-size:1rem; cursor:pointer;">⬅ Volver a Resultados</button>
-                <button id="btn-guardar-hv" class="btn btn-primary" onclick="guardarPlanAccion()" style="padding:12px 22px; font-size:1rem; background:#2563eb; font-weight:700; cursor:pointer;">📂 Guardar Informe en HV del Empleado</button>
+                <button id="btn-guardar-hv" class="btn btn-primary" onclick="guardarPlanAccion(false)" style="padding:12px 22px; font-size:1rem; background:#2563eb; font-weight:700; cursor:pointer;">💾 Guardar Informe en HV del Empleado</button>
                 <button id="btn-ver-informe" class="btn-ver-informe" onclick="abrirVisorInforme()" style="padding:12px 24px; font-size:1rem; cursor:pointer !important; display:inline-flex !important;">📋 Ver Informe Gerencial (Carta)</button>
             </div>
         </div>
@@ -160,8 +163,16 @@
                     renderTabla(data.resultados);
                     renderRadar(data.resultados);
                     calcularSesgos(data.resultados);
-                    if (data.saved_plan) document.getElementById('texto-compromisos').value = data.saved_plan;
-                    if (data.saved_comments) document.getElementById('texto-comentarios').value = data.saved_comments;
+                    if (data.saved_plan) {
+                        document.getElementById('texto-compromisos').value = data.saved_plan;
+                        const badge = document.getElementById('plan-guardado-badge');
+                        if (badge) badge.style.display = 'inline-block';
+                        const btn = document.getElementById('btn-generar-ia');
+                        if (btn) btn.innerHTML = '🔄 Regenerar con IA <span class="ai-loading" id="ai-spinner">⏳</span>';
+                    }
+                    if (data.saved_comments) {
+                        document.getElementById('texto-comentarios').value = data.saved_comments;
+                    }
                 } else {
                     alert("Error: " + data.message);
                 }
@@ -859,6 +870,13 @@
 
         async function generarPlanIA() {
             if (resultadosGlobal.length === 0) return alert("No hay datos para analizar.");
+            
+            const existingText = document.getElementById('texto-compromisos').value.trim();
+            if (existingText.length > 30) {
+                const proceed = confirm("⚠️ Ya existe un informe generado y guardado en la base de datos para este colaborador.\n\n¿Deseas volver a llamar a la IA para regenerarlo? (Esto consumirá nuevos tokens y sobrescribirá el texto actual).");
+                if (!proceed) return;
+            }
+
             const spinner = document.getElementById('ai-spinner');
             const btn = document.getElementById('btn-generar-ia');
             if (btn) btn.disabled = true;
@@ -868,7 +886,12 @@
                 const res  = await authFetch('/api/skel360/reporte/ia', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ resultados: resultadosGlobal })
+                    body: JSON.stringify({ 
+                        resultados: resultadosGlobal,
+                        evaluado_id: evaluadoId,
+                        inst_id: (typeof getInstId === 'function' ? getInstId() : 7),
+                        force: true 
+                    })
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
@@ -879,8 +902,18 @@
                     function typeWriter() {
                         if (i < txt.length) {
                             textArea.value += txt.charAt(i++);
-                            typeWriterTimeout = setTimeout(typeWriter, 10);
-                        } else { typeWriterTimeout = null; }
+                            typeWriterTimeout = setTimeout(typeWriter, 8);
+                        } else { 
+                            typeWriterTimeout = null;
+                            // Actualizar UI y auto-guardar
+                            const badge = document.getElementById('plan-guardado-badge');
+                            if (badge) {
+                                badge.style.display = 'inline-block';
+                                badge.innerText = '💾 Guardado en Base de Datos';
+                            }
+                            if (btn) btn.innerHTML = '🔄 Regenerar con IA <span class="ai-loading" id="ai-spinner">⏳</span>';
+                            guardarPlanAccion(true); // Auto-save silencioso para asegurar consistencia
+                        }
                     }
                     typeWriter();
                 } else {
@@ -895,22 +928,42 @@
             }
         }
 
-        async function guardarPlanAccion() {
+        async function guardarPlanAccion(isSilent = false) {
             const plan = document.getElementById('texto-compromisos').value;
             const obs  = document.getElementById('texto-comentarios').value;
+            const btnSave = document.getElementById('btn-guardar-hv');
+            if (btnSave && !isSilent) btnSave.disabled = true;
+
             try {
                 const res  = await authFetch(`/api/skel360/reporte/individual/${evaluadoId}/plan_accion`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ plan, comentarios: obs })
+                    body: JSON.stringify({ 
+                        plan, 
+                        comentarios: obs,
+                        inst_id: (typeof getInstId === 'function' ? getInstId() : 7)
+                    })
                 });
                 const data = await res.json();
-                data.status === 'success'
-                    ? alert('✅ Informe, Plan y Diagnóstico 360° guardados exitosamente en la Hoja de Vida (HV) del colaborador.')
-                    : alert('Error: ' + data.message);
+                if (data.status === 'success') {
+                    const badge = document.getElementById('plan-guardado-badge');
+                    if (badge) {
+                        badge.style.display = 'inline-block';
+                        badge.innerText = '💾 Guardado en Base de Datos';
+                    }
+                    const btn = document.getElementById('btn-generar-ia');
+                    if (btn) btn.innerHTML = '🔄 Regenerar con IA <span class="ai-loading" id="ai-spinner">⏳</span>';
+                    if (!isSilent) {
+                        alert('✅ Informe, Plan y Diagnóstico 360° guardados exitosamente en la Hoja de Vida (HV) del colaborador y en la base de datos.');
+                    }
+                } else {
+                    if (!isSilent) alert('Error: ' + data.message);
+                }
             } catch(e) {
                 console.error(e);
-                alert('Error de conexión al guardar en la Hoja de Vida');
+                if (!isSilent) alert('Error de conexión al guardar en la Hoja de Vida');
+            } finally {
+                if (btnSave && !isSilent) btnSave.disabled = false;
             }
         }
 
