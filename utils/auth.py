@@ -198,10 +198,12 @@ def require_permission(module_key):
       6. Permite (200) o rechaza (403).
 
     Args:
-        module_key: Clave del modulo a proteger, e.g. 'skel_hc360', 'autoevaluacion'.
+        module_key: Clave del modulo a proteger (str) o lista/tupla de modulos
+                    (e.g. ['autoevaluacion', 'herramientas']). Si es una lista,
+                    se permite el acceso si el usuario tiene permiso en al menos uno.
 
     Returns:
-        Respuesta 401 si falta el header.
+        Respuesta 401 si falta el header o usuario no existe.
         Respuesta 403 si el rol no tiene acceso.
         El resultado de la funcion original si el acceso es permitido.
     """
@@ -227,7 +229,6 @@ def require_permission(module_key):
                     "message": "Usuario no encontrado o sesion invalida."
                 }), 401
 
-
             role = user.get('role', '')
             inst_id = user.get('inst_id', 1)
 
@@ -235,32 +236,43 @@ def require_permission(module_key):
             if role == 'admin':
                 return f(*args, **kwargs)
 
-            # 4. El módulo de configuración y herramientas gerenciales son de uso exclusivo para Administradores (admin e inst_admin)
-            if module_key in ['configuracion', 'herramientas']:
+            # 4. Normalizar lista de módulos a validar
+            keys = [module_key] if isinstance(module_key, str) else list(module_key)
+
+            # 5. Si es un único módulo estricto de administración
+            if isinstance(module_key, str) and module_key in ['configuracion', 'herramientas']:
                 if role not in ['admin', 'inst_admin']:
                     return jsonify({
                         "status": "error",
-                        "message": f"Acceso denegado: El módulo es de uso exclusivo para Administradores."
+                        "message": "Acceso denegado: El módulo es de uso exclusivo para Administradores."
                     }), 403
                 return f(*args, **kwargs)
 
-            # 5. Leer permisos de la institucion
+            # 6. Leer permisos de la institucion
             perms = get_permissions_for_inst(inst_id)
 
-            # 5. Si el modulo no tiene configuracion de permisos, permitir por defecto
-            #    (evita bloquear en instalaciones nuevas sin permisos configurados)
-            if module_key not in perms:
-                return f(*args, **kwargs)
+            has_access = False
+            for m in keys:
+                if m in ['configuracion', 'herramientas']:
+                    if role in ['admin', 'inst_admin']:
+                        has_access = True
+                        break
+                else:
+                    if m not in perms or role in perms.get(m, []):
+                        has_access = True
+                        break
 
-            # 6. Verificar rol
-            allowed_roles = perms.get(module_key, [])
-            if role not in allowed_roles:
+            if not has_access:
+                msg = (
+                    f"Acceso denegado: tu rol '{role}' no tiene permiso "
+                    f"sobre el modulo '{module_key}'."
+                ) if isinstance(module_key, str) else (
+                    f"Acceso denegado: tu rol '{role}' no tiene permiso "
+                    f"sobre los módulos requeridos ({', '.join(keys)})."
+                )
                 return jsonify({
                     "status": "error",
-                    "message": (
-                        f"Acceso denegado: tu rol '{role}' no tiene permiso "
-                        f"sobre el modulo '{module_key}'."
-                    )
+                    "message": msg
                 }), 403
 
             return f(*args, **kwargs)

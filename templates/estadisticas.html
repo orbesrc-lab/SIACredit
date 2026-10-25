@@ -596,7 +596,7 @@
                 
                 const urlData = await urlRes.json();
                 if (!urlRes.ok || urlData.error) {
-                    throw new Error(urlData.error || 'Error obteniendo URL de subida');
+                    throw new Error(urlData.error || urlData.message || 'Error obteniendo URL de subida');
                 }
                 
                 const { signed_url, file_url } = urlData;

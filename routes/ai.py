@@ -194,7 +194,7 @@ def analyze_stats():
         return jsonify({"analysis": f"Error procesando análisis: {str(e)}"})
 
 @ai_bp.route('/api/direct_upload/url', methods=['POST'])
-@require_permission('herramientas')
+@require_permission(['autoevaluacion', 'herramientas'])
 def library_upload_url():
     try:
         data = request.json
