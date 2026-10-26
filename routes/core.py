@@ -1472,10 +1472,7 @@ def get_form_permissions():
         inst_id = request.args.get('inst_id', 1, type=int)
         
         # Guardaremos los permisos en la tabla statistics con el table_id 'FORM_PERMISSIONS'
-        res = supabase.table('statistics').select("data_json").eq("table_id", "FORM_PERMISSIONS").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
-        
-        if not res.data:
-            res = supabase.table('statistics').select("data_json").eq("table_id", "FORM_PERMISSIONS").order("id", desc=True).limit(1).execute()
+        res = supabase.table('statistics').select("data_json").eq("table_id", "FORM_PERMISSIONS").order("id", desc=True).limit(1).execute()
 
         from utils.auth import DEFAULT_PERMISSIONS
         if res.data:
@@ -1515,7 +1512,24 @@ def save_form_permissions():
 
         permissions = payload.get('permissions', {})
         
-        res = supabase.table('statistics').select("id").eq("table_id", "FORM_PERMISSIONS").eq("inst_id", inst_id).order("id", desc=True).limit(1).execute()
+        # Validar inst_id con tabla institution para evitar violación de foreign key
+        valid_inst_id = None
+        if inst_id:
+            try:
+                chk = supabase.table('institution').select('id').eq('id', inst_id).execute()
+                if chk.data:
+                    valid_inst_id = inst_id
+            except Exception:
+                valid_inst_id = None
+        if not valid_inst_id:
+            try:
+                first_inst = supabase.table('institution').select('id').order('id', desc=False).limit(1).execute()
+                valid_inst_id = first_inst.data[0]['id'] if first_inst.data else 7
+            except Exception:
+                valid_inst_id = 7
+
+        # Buscar registro existente de FORM_PERMISSIONS (por constraint única en table_id)
+        res = supabase.table('statistics').select("id").eq("table_id", "FORM_PERMISSIONS").order("id", desc=True).limit(1).execute()
         
         if res.data:
             db_id = res.data[0]['id']
@@ -1526,11 +1540,11 @@ def save_form_permissions():
             supabase.table('statistics').insert({
                 "table_id": "FORM_PERMISSIONS",
                 "data_json": json.dumps(permissions),
-                "inst_id": inst_id,
+                "inst_id": valid_inst_id,
                 "program_id": valid_prog_id
             }).execute()
             
-        invalidate_permissions_cache(inst_id)
+        invalidate_permissions_cache()
         return jsonify({"status": "success"})
     except Exception as e:
         print("Error saving permissions:", str(e))

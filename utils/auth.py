@@ -104,20 +104,10 @@ def get_permissions_for_inst(inst_id):
             sb.table('statistics')
             .select("data_json")
             .eq("table_id", "FORM_PERMISSIONS")
-            .eq("inst_id", inst_id)
             .order("id", desc=True)
             .limit(1)
             .execute()
         )
-        if not res.data:
-            res = (
-                sb.table('statistics')
-                .select("data_json")
-                .eq("table_id", "FORM_PERMISSIONS")
-                .order("id", desc=True)
-                .limit(1)
-                .execute()
-            )
 
         if res.data:
             raw = res.data[0]['data_json']
