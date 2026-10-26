@@ -8,7 +8,7 @@
     function enforceAccess() {
         const fullPath = (window.location.pathname || '').toLowerCase();
         // Páginas públicas que no requieren validación
-        if (fullPath.includes('public') || fullPath.includes('report') || fullPath.includes('encuesta_publica') || fullPath.includes('login') || fullPath.includes('registro') || fullPath.endsWith('/')) return;
+        if (fullPath.includes('public') || fullPath.includes('report') || fullPath.includes('encuesta_publica') || fullPath.includes('evaluar') || fullPath.includes('login') || fullPath.includes('registro') || fullPath.endsWith('/')) return;
 
         let user = null;
         try {
@@ -23,17 +23,18 @@
         // SuperAdmin tiene acceso total a todos los módulos
         if (isSuperAdmin) return;
 
-        const currentPage = (window.location.pathname.split('/').pop() || '').toLowerCase();
-
         // 1. Módulo exclusivo de Registro Calificado (Solo Super Administrador)
-        if (currentPage.includes('registro_calificado')) {
+        if (fullPath.includes('registro_calificado')) {
             window.location.href = '/dashboard.html';
             return;
         }
 
         // 2. Rol Estudiante: Su único entorno es Capacitación / Aula Virtual
         if (role === 'estudiante') {
-            if (currentPage.includes('formacion') || currentPage.includes('curso_')) {
+            const isEstudiantePermitted = (fullPath.includes('formacion') || fullPath.includes('curso_')) &&
+                                          !fullPath.includes('skel') &&
+                                          !fullPath.includes('plan-formacion');
+            if (isEstudiantePermitted) {
                 // Permitido siempre en su entorno formativo
                 return;
             }
@@ -43,7 +44,7 @@
         }
 
         // 3. Módulo de Configuración: Exclusivo para SuperAdmin e Inst_Admin
-        if (currentPage.includes('configuracion')) {
+        if (fullPath.includes('configuracion')) {
             if (role !== 'admin' && role !== 'inst_admin') {
                 const redirectTarget = (role === 'profesor') ? '/formacion.html' : '/dashboard.html';
                 window.location.href = redirectTarget;
@@ -58,23 +59,23 @@
             if (cached) permissions = JSON.parse(cached);
         } catch(e) {}
 
-        // Mapear rutas de páginas a las claves oficiales de módulos
+        // Mapear rutas de páginas a las claves oficiales de módulos (evaluando la ruta completa)
         let requiredModule = null;
-        if (currentPage.includes('skel360') || currentPage.includes('skel_') || currentPage.includes('reporte_individual')) {
+        if (fullPath.includes('skel360') || fullPath.includes('skel_') || fullPath.includes('reporte_individual') || fullPath.includes('plan-formacion')) {
             requiredModule = 'skel_hc360';
-        } else if (currentPage.includes('empresa_') && !currentPage.includes('empresa_iso')) {
-            requiredModule = 'hub_estrategico';
-        } else if (currentPage.includes('empresa_iso')) {
+        } else if (fullPath.includes('empresa_iso') || fullPath.includes('iso9001')) {
             requiredModule = 'iso9001';
-        } else if (currentPage.includes('planificacion')) {
+        } else if (fullPath.includes('empresa_')) {
+            requiredModule = 'hub_estrategico';
+        } else if (fullPath.includes('planificacion')) {
             requiredModule = 'planificacion';
-        } else if (currentPage.includes('informes') || currentPage.includes('dofa')) {
+        } else if (fullPath.includes('informes') || fullPath.includes('dofa')) {
             requiredModule = 'informes';
-        } else if (currentPage.includes('formacion') || currentPage.includes('curso_')) {
+        } else if (fullPath.includes('formacion') || fullPath.includes('curso_')) {
             requiredModule = 'capacitacion';
-        } else if (currentPage.includes('biblioteca') || currentPage.includes('crm') || currentPage.includes('backup')) {
+        } else if (fullPath.includes('biblioteca') || fullPath.includes('crm') || fullPath.includes('backup')) {
             requiredModule = 'herramientas';
-        } else if (currentPage.includes('dashboard') || currentPage.includes('normatividad') || currentPage.includes('autoevaluacion') || currentPage.includes('evidencias') || currentPage.includes('encuestas') || currentPage.includes('estadisticas')) {
+        } else if (fullPath.includes('dashboard') || fullPath.includes('normatividad') || fullPath.includes('autoevaluacion') || fullPath.includes('evidencias') || fullPath.includes('encuestas') || fullPath.includes('estadisticas')) {
             requiredModule = 'autoevaluacion';
         }
 

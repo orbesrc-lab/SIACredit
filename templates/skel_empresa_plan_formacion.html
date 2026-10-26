@@ -122,7 +122,7 @@
                 <h1 style="margin:0; color:var(--primary-color);">Plan Maestro de Capacitación</h1>
                 <p style="margin:5px 0 0 0; color:#94a3b8;">Dashboard Analítico Organizacional (IA)</p>
             </div>
-            <a href="/skel360/empresa/{{ empresa_id }}" class="btn-back">⬅ Volver al Dashboard</a>
+            <a href="/skel360/empresa/{{ empresa_id }}" class="btn-back">⬅ Volver a Administración de Empresa</a>
         </div>
         
         <div id="loader" style="text-align: center; padding: 50px; color: #94a3b8;">
@@ -171,7 +171,8 @@
     </div>
 
     <script>
-        const empresaId = window.location.pathname.split('/')[3];
+        const pathParts = window.location.pathname.split('/');
+        const empresaId = "{{ empresa_id }}" || (pathParts.includes('empresa') ? pathParts[pathParts.indexOf('empresa') + 1] : pathParts[3]) || new URLSearchParams(window.location.search).get('empresa_id');
         let brechasGlobal = [];
         let modoEdicionActivo = false;
 
