@@ -1353,67 +1353,74 @@ def sanitize_markdown_tables(text):
 
 
 def sanitize_markdown_tables_light(text):
-    """Versión ligera: sólo limpia artículos repetitivos y filas vacías/duplicadas, SIN truncar tablas a 10 filas. 
-    Usar para almacenamiento de contenido generado por IA (preserva tablas completas)."""
+    """Versión ultra-robusta: limpia bucles degenerativos de guiones/subrayados en divisores de tablas Markdown,
+    filas vacías/duplicadas y colapsa artículos repetitivos, preservando tablas completas."""
     if not text:
         return text
-        
-    # 0. Eliminar de raíz cualquier bloque o línea de puros guiones repetitivos (degeneración de LLM)
-    text = re.sub(r'(?:^\s*[-_—–\s]{4,}\s*$\n?)+', '', text, flags=re.MULTILINE)
+
+    # 1. Colapsar de raíz cualquier secuencia horizontal de 5 o más guiones/subrayados/rayas
+    text = re.sub(r'[-_—–]{5,}', '---', text)
 
     # Colapsar bucles de enumeración repetitiva de artículos legales
     text = re.sub(r'(\b\d+\.\d+\.\d+(?:\.\d+)*(?:,\s*|\s+y\s+)){3,}\b\d+\.\d+\.\d+(?:\.\d+)*', r'2.5.3.2.3.2.1 y ss.', text)
     text = re.sub(r'(?:2\.5\.3\.2\.3\.\d+\.\d+(?:,\s*|\s+y\s+)){3,}', '2.5.3.2.3.2.1 y ss. ', text)
     
-    # Colapsar bloques idénticos de filas en tablas Markdown
-    text = re.sub(r'(\|[^\n]+\|\n)(?:\s*\1){2,}', r'\1', text)
-    
     lines = text.split('\n')
     cleaned_lines = []
     prev_table_row = None
-    dup_count = 0
-    in_table = False
+    prev_was_header = False
+    prev_header_cols = 0
     
     for line in lines:
         stripped = line.strip()
-        
-        # Ignorar cualquier línea compuesta exclusivamente de guiones o guiones bajos
-        if re.match(r'^[-_—–\s]{4,}$', stripped):
+        if not stripped:
+            cleaned_lines.append('')
+            prev_table_row = None
+            prev_was_header = False
             continue
 
-        if stripped.startswith('|') and stripped.endswith('|'):
-            in_table = True
-            
-            # 1. Eliminar filas vacías compuestas solo por guiones bajos, guiones o espacios
-            inner_content = re.sub(r'[\s|_:\-—–]', '', stripped)
-            if not inner_content and not re.match(r'^\|[\s|:_\-—–]+\|$', stripped):
+        # Detectar líneas compuestas exclusivamente por caracteres de tabla/formato (: - _ | = espacio)
+        inner_content = re.sub(r'[\s|_:\-—–=]', '', stripped)
+        if not inner_content:
+            # Es puramente una línea divisoria o de guiones
+            if prev_was_header and prev_header_cols > 0:
+                divider = '| ' + ' | '.join([':---' for _ in range(prev_header_cols)]) + ' |'
+                cleaned_lines.append(divider)
+                prev_was_header = False
+                prev_table_row = divider
+            continue
+
+        # Si la línea es una fila con pipes
+        if stripped.startswith('|') or (stripped.endswith('|') and '|' in stripped):
+            if not stripped.startswith('|'): stripped = '| ' + stripped
+            if not stripped.endswith('|'): stripped = stripped + ' |'
+
+            parts = [p.strip() for p in stripped.split('|')[1:-1]]
+            # Verificar si todas las celdas son divisores (:---)
+            is_all_divider = all(not re.sub(r'[\s:_—–\-]', '', p) for p in parts)
+
+            if is_all_divider:
+                if prev_was_header and prev_header_cols > 0:
+                    divider = '| ' + ' | '.join([':---' for _ in range(prev_header_cols)]) + ' |'
+                    cleaned_lines.append(divider)
+                    prev_table_row = divider
+                prev_was_header = False
                 continue
-                
-            # 2. Eliminar filas duplicadas consecutivas
+
+            # Fila de datos o cabecera
             if stripped == prev_table_row:
-                dup_count += 1
-                if dup_count > 1:
-                    continue
-            else:
-                dup_count = 0
-                prev_table_row = stripped
-                
-            # 3. Sanitizar divisores excesivos (|:--------...---|)
-            if re.match(r'^\|[\s|:_\-—–]+\|$', stripped) and ('---' in stripped or '___' in stripped):
-                parts = stripped.split('|')
-                new_parts = [' :--- ' if p.strip() else '' for p in parts]
-                cleaned_lines.append('|'.join(new_parts))
                 continue
-                
-            cleaned_lines.append(line)
+            prev_table_row = stripped
+            prev_was_header = any(re.search(r'[a-zA-Z0-9]', p) for p in parts)
+            prev_header_cols = len(parts)
+            cleaned_lines.append(stripped)
         else:
-            in_table = False
+            prev_was_header = False
             prev_table_row = None
-            dup_count = 0
             if re.match(r'^[-_—–\s]{4,}$', stripped):
                 continue
             cleaned_lines.append(line)
-            
+
     return '\n'.join(cleaned_lines)
 
 
@@ -1549,11 +1556,12 @@ DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - INTRODUCCIÓN Y CONTEXTO INSTITUCION
         return f"""
 DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 1: DENOMINACIÓN DEL PROGRAMA:
 - Coherencia y Racionalidad: Fundamentar la denominación '{prog_name}' con el nivel de formación ({level}), el título otorgado ('{proj.get('target_title')}'), el campo de conocimiento y el perfil de egreso (Decreto 1330 de 2019 Art. 2.5.3.2.3.2.1 & Decreto 0529 de 2024).
-- Clasificaciones Oficiales MEN/DANE: Incluir y desglosar detalladamente la tabla de clasificaciones normativas:
-  | Clasificación Oficial | Código | Denominación Oficial | Justificación Técnica de Coherencia |
+- Clasificaciones Oficiales MEN/DANE: Incluir y desglosar detalladamente la tabla de clasificaciones normativas (usar exactamente 3 guiones por celda divisoria):
+  | Clasificación Oficial | Código | Denominación Oficial | Justificación de Coherencia |
+  | :--- | :--- | :--- | :--- |
   | CINE-F 2013 A.C. | {proj.get('cine_f_code', 'Campo Amplio / Específico')} | Área de Conocimiento | Articulación con el núcleo de formación |
   | CIUO-08 DANE | {proj.get('ciuo_08_code', 'Ocupaciones')} | Ocupaciones Principales | Perfil ocupacional del graduado |
-  | Marco Nacional de Cualificaciones (MNC) | {proj.get('mnc_code', 'Nivel MNC')} | Cualificación Nacional | Descriptores de conocimientos, destrezas y autonomía |
+  | Marco Nacional de Cualificaciones (MNC) | {proj.get('mnc_code', 'Nivel MNC')} | Cualificación Nacional | Descriptores de destrezas y competencias |
   | Clasificación Única de Ocupaciones (CUO) | {proj.get('cuo_code', 'CUO')} | Ocupaciones CUO Colombia | Demanda laboral y sectores económicos |
 - Alineación ODS: Detallar la contribución concreta a los Objetivos de Desarrollo Sostenible ({proj.get('ods_alignment', 'ODS 4, ODS 8, ODS 9')}).
 """
@@ -1561,98 +1569,107 @@ DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 1: DENOMINACIÓN DEL PROG
         return f"""
 DIRECTRICES AVANZADAS Y MATRICES DE JUSTIFICACIÓN (DECRETO 1330 DE 2019, ART. 2.5.3.2.3.2.2 & RES. 021795 DE 2020):
 1. Pertinencia en los 4 Contextos Obligatorios:
-   a) Contexto Internacional: Análisis de tendencias globales, recomendaciones de organismos multilaterales (UNESCO, OCDE, OIT, Banco Mundial), estándares internacionales y avances científicos/tecnológicos de vanguardia en {prog_name}.
-   b) Contexto Nacional: Articulación explícita con el Plan Nacional de Desarrollo (PND) vigente, el Plan Decenal de Educación 2016-2026, políticas de reindustrialización, transición digital y sostenibilidad productiva de Colombia.
-   c) Contexto Regional y Local: Vocación económica, apuestas productivas territoriales, planes de desarrollo departamentales y municipales en {places}.
+   a) Contexto Internacional: Tendencias globales, recomendaciones de organismos multilaterales (UNESCO, OCDE, OIT), estándares internacionales de vanguardia en {prog_name}.
+   b) Contexto Nacional: Articulación explícita con el Plan Nacional de Desarrollo (PND), Plan Decenal de Educación 2016-2026, reindustrialización y transición digital.
+   c) Contexto Regional y Local: Vocación económica territorial y planes de desarrollo en {places}.
    d) Coherencia con el PDI: Tabla de articulación entre los objetivos del programa y los ejes estratégicos del PDI de {inst_name}.
 
 2. Estudio de Mercado, Demanda Laboral y Tendencias Ocupacionales:
-   - Análisis de estadísticas DANE (Gran Encuesta Integrada de Hogares, tasa de ocupación sectorial, valor agregado económico territorial).
-   - Datos del Observatorio Laboral para la Educación (OLE): Tasas de cotización y vinculación formal de graduados de programas afines en Colombia, salarios promedio de enganche a 1 y 3 años de graduación, tiempo promedio de colocación laboral.
-   - Demanda de competencias y perfiles ocupacionales proyectados por gremios y sectores empleadores (ANDI, ACOPI, cámaras de comercio, sectores líderes).
+   - Estadísticas DANE (tasa de ocupación sectorial, valor agregado económico).
+   - Observatorio Laboral para la Educación (OLE): Tasas de cotización formal, salarios promedio de enganche a 1 y 3 años, tiempo de colocación.
+   - Demanda de competencias proyectada por gremios y sectores empleadores (ANDI, ACOPI, cámaras de comercio).
 
 3. Estado de la Oferta Académica (SNIES / SPADIES):
-   - Análisis cuantitativo del SNIES a nivel nacional y en el área de influencia ({places}): programas activos, instituciones oferentes, modalidades, cupos anuales y evolución de la matrícula.
-   - Construir OBLIGATORIAMENTE la Tabla de Benchmarking y Oferta Comparativa SNIES:
-     | IES Oferente | Denominación del Programa | Sede / Municipio | Nivel Formación | Modalidad | Créditos | Acreditación Alta Calidad | Valor Matrícula (COP) |
-   - Análisis SPADIES: Tasas de deserción y retención por cohorte en el área de conocimiento, con las estrategias institucionales de permanencia y graduación oportuna.
+   - Análisis cuantitativo del SNIES en {places}: programas activos, modalidades, cupos anuales y evolución de la matrícula.
+   - Tabla comparativa de oferta SNIES (usar exactamente 3 guiones por celda divisoria):
+     | IES Oferente | Programa | Municipio | Nivel | Modalidad | Créditos | Acreditado | Matrícula Semestral |
+     | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+     | Universidad / Institución Referente | {prog_name} | {places} | {level} | Presencial | 96 | Sí/No | $2.500.000 |
+   - Análisis SPADIES: Tasas de retención y estrategias institucionales de permanencia y graduación oportuna.
 
-4. Atributos Diferenciadores y Factores de Innovación:
-   - Sustentar con total claridad los factores que hacen único, pertinente, competitivo e innovador a este programa frente a toda la oferta existente en Colombia (enfoque curricular, certificaciones, mediaciones tecnológicas, articulación con el sector productivo, flexibilidad).
+4. Atributos Diferenciadores e Innovación:
+   - Factores que hacen único, pertinente y competitivo al programa (enfoque curricular, mediaciones tecnológicas, articulación productiva, certificaciones).
 """
     elif cond_key == 'cond_3':
         return f"""
 DIRECTRICES AVANZADAS Y MATRICES DE ASPECTOS CURRICULARES (DECRETO 1330 DE 2019, RES. 021795 DE 2020 & DECRETO 0529 DE 2024):
 1. Conceptualización Epistemológica, Teórica y Pedagógica:
-   - Fundamentación epistemológica profunda de la disciplina, corrientes teóricas contemporáneas y su articulación con el Proyecto Educativo Institucional (PEI) y el Modelo Pedagógico y Curricular de {inst_name}.
-   - Enfoque pedagógico activo, constructivista y centrado en el aprendizaje autónomo y colaborativo del estudiante.
+   - Fundamentación epistemológica profunda de la disciplina, corrientes teóricas contemporáneas y articulación con el PEI y el Modelo Pedagógico de {inst_name}.
+   - Enfoque pedagógico activo, constructivista y centrado en el aprendizaje autónomo y colaborativo.
 
 2. Matriz Exhaustiva de RESULTADOS DE APRENDIZAJE (RA) bajo TAXONOMÍA SOLO & BLOOM:
-   - Estructuración metodológica obligatoria bajo los 5 niveles de la TAXONOMÍA SOLO (Structure of Observed Learning Outcomes: Preestructural, Uniestructural, Multiestructural, Relacional y Abstracto Ampliado), complementados con los niveles cognitivos de Bloom (Recordar, Comprender, Aplicar, Analizar, Evaluar, Crear).
-   - Formulación canónica de cada RA: Verbo de desempeño en tercera persona + Objeto de conocimiento + Contexto de aplicación + Finalidad / Criterio de idoneidad.
-   - Construir OBLIGATORIAMENTE la Tabla / Matriz Completa de Resultados de Aprendizaje:
-     | Nivel Taxonómico SOLO | Nivel Cognitivo Bloom | Código RA | Enunciado del Resultado de Aprendizaje (RA) | Competencia / Perfil de Egreso Vinculado | Evidencia / Instrumento Evaluativo Asociado |
+   - Estructuración metodológica bajo los 5 niveles SOLO (Preestructural, Uniestructural, Multiestructural, Relacional, Abstracto Ampliado) y niveles cognitivos de Bloom.
+   - Formulación canónica de cada RA: Verbo de desempeño en 3.ª persona + Objeto de conocimiento + Contexto + Finalidad.
+   - Construir OBLIGATORIAMENTE la Matriz de Resultados de Aprendizaje (usar exactamente 3 guiones `:---` por divisor):
+     | Nivel SOLO | Nivel Bloom | Código | Enunciado del Resultado de Aprendizaje (RA) | Competencia Vinculada | Instrumento Evaluativo |
+     | :--- | :--- | :--- | :--- | :--- | :--- |
+     | Uniestructural | Recordar | RA-01 | Identifica la estructura normativa y conceptual... | Fundamentación Disciplinar | Prueba objetiva y conceptual |
+     | Multiestructural | Comprender | RA-02 | Explica los componentes y metodologías de gestión... | Operación Técnica | Taller de aplicación práctica |
+     | Relacional | Aplicar | RA-03 | Integra variables y herramientas para resolver... | Gestión Estratégica | Estudio de caso y simulación |
+     | Abstracto Ampliado | Evaluar | RA-04 | Diseña propuestas de innovación y optimización... | Toma de Decisiones | Proyecto integrador aplicado |
 
 3. Plan de Estudios, Malla Curricular y Créditos Académicos (HAD vs. HTI):
-   - Malla curricular completa y semestralizada ({proj.get('total_duration', 'Semestres')}, {proj.get('total_credits', 96)} Créditos).
-   - Cumplimiento de la proporción de horas normativas (Res. 021795/2020): 1 crédito = 48 horas totales (horas de acompañamiento docente directo HAD + horas de trabajo independiente HTI) según modalidad ({modalities}).
-   - Construir OBLIGATORIAMENTE la Tabla Completa del Plan de Estudios:
-     | Sem. | Código | Nombre de la Asignatura | Área / Componente de Formación | Créditos | Horas HAD | Horas HTI | Total Horas | Prerrequisitos / Correquisitos |
+   - Malla curricular semestralizada ({proj.get('total_duration', 'Semestres')}, {proj.get('total_credits', 96)} Créditos).
+   - Proporción de horas (Res. 021795/2020): 1 crédito = 48 horas totales (horas HAD + horas HTI).
+   - Construir OBLIGATORIAMENTE la Tabla del Plan de Estudios (usar exactamente 3 guiones `:---` por divisor):
+     | Sem | Código | Asignatura | Componente | Créditos | Horas HAD | Horas HTI | Total Horas | Prerrequisito |
+     | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+     | 1 | ASG101 | Asignatura de Fundamentación I | Disciplinar | 3 | 32 | 112 | 144 | Ninguno |
+     | 1 | ASG102 | Asignatura Básica I | Básica | 3 | 32 | 112 | 144 | Ninguno |
 
 4. Componentes de Formación, Interdisciplinariedad y Flexibilidad Curricular:
-   - Desglose porcentual y en créditos por componentes: Formación Básica / Fundamentación, Formación Disciplinar / Específica, Formación Sociohumanística / General, y Formación Electiva / Profundización.
-   - Rutas de electividad, líneas de profundización, doble titulación, homologación y movilidad académica (Decreto 0529 de 2024).
+   - Desglose por componentes: Formación Básica, Disciplinar/Específica, Sociohumanística y Electiva/Profundización.
+   - Rutas de electividad, homologación y movilidad académica (Decreto 0529 de 2024).
 
 5. Estrategias de Evaluación de los Resultados de Aprendizaje:
-   - Momentos evaluativos: Diagnóstica, Formativa y Sumativa. Rúbricas analíticas de evaluación del desempeño, comités curriculares y mecanismos de aseguramiento del aprendizaje (Assurance of Learning).
+   - Momentos evaluativos: Diagnóstica, Formativa y Sumativa. Rúbricas analíticas y aseguramiento del aprendizaje.
 
 6. Componente Propedéutico (si aplica):
-   - Sustentación de la articulación vertical de créditos, competencias y perfiles formativos entre niveles si aplica ciclos propedéuticos ({proj.get('has_propedeutic_cycle')}).
+   - Articulación vertical de créditos y competencias entre niveles ({proj.get('has_propedeutic_cycle')}).
 """
     elif cond_key == 'cond_4':
         return f"""
 DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 4: ORGANIZACIÓN FORMATIVA Y MODALIDADES (REGISTRO ÚNICO MULTIMODAL):
-- Decreto 1330 de 2019 Art. 2.5.3.2.3.2.4 & Registro Único Multimodal: Desarrollar con exhaustividad las estrategias pedagógicas para cada modalidad solicitada ({modalities}).
-- Mediaciones Tecnológicas y Ambientes de Aprendizaje: Plataformas LMS, aulas virtuales, herramientas interactivas, laboratorios remotos y simuladores.
-- Interacciones Sincrónicas y Asincrónicas: Acompañamiento tutorial, foros de discusión, tutorías académicas y retroalimentación formativa.
-- Tabla de Equivalencia Académica y Créditos: Demostrar que los resultados de aprendizaje y la exigencia académica son equivalentes en todas las modalidades.
+- Estrategias pedagógicas discriminadas por cada modalidad solicitada ({modalities}).
+- Mediaciones Tecnológicas y Ambientes de Aprendizaje: LMS, aulas virtuales, herramientas interactivas, simuladores.
+- Interacciones Sincrónicas y Asincrónicas: Acompañamiento tutorial, foros y retroalimentación formativa.
+- Tabla de Equivalencia Académica y Créditos entre modalidades (usar divisor compacto de 3 guiones `:---`).
 """
     elif cond_key == 'cond_5':
         return f"""
 DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 5: INVESTIGACIÓN, INNOVACIÓN Y CREACIÓN:
-- Formación Investigativa en el Currículo: Asignaturas de metodología de investigación, proyectos integradores y trabajo de grado.
-- Grupos y Semilleros de Investigación: Líneas de investigación institucionales de {inst_name} vinculadas al programa {prog_name}, grupos categorizados en MinCiencias y semilleros de estudiantes.
-- Tabla de Proyección de Producción Científica/Tecnológica a 7 Años: Artículos, ponencias, software, prototipos y proyectos de investigación formativa proyectados durante la vigencia del registro.
+- Formación Investigativa en el Currículo: Metodología de investigación, proyectos integradores y trabajo de grado.
+- Grupos y Semilleros de Investigación: Líneas de investigación institucionales de {inst_name} vinculadas al programa.
+- Tabla de Proyección de Producción Científica/Tecnológica a 7 Años (usar divisor compacto de 3 guiones `:---`).
 """
     elif cond_key == 'cond_6':
         return f"""
 DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 6: RELACIÓN CON EL SECTOR EXTERNO:
-- Proyección Social y Extensión: Programas de consultoría, proyectos de impacto comunitario, voluntariado y educación continua.
-- Convenios de Prácticas y Sector Productivo: Acuerdos marco y específicos con empresas, entidades públicas y gremios del sector ({places}).
-- Internacionalización del Currículo: Bilingüismo, clases espejo, cátedras internacionales, movilidad docente/estudiantil y redes académicas internacionales.
-- Seguimiento a Egresados: Observatorio de graduados, bolsa de empleo, actualización profesional y vinculación a los órganos de gobierno institucional.
+- Proyección Social, Extensión y Articulación con el Sector Productivo ({places}).
+- Convenios de Prácticas Profesionales y Seguimiento a Egresados.
+- Internacionalización del Currículo: Bilingüismo, clases espejo, movilidad docente y estudiantil.
 """
     elif cond_key == 'cond_7':
         return f"""
 DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 7: PROFESORES:
-- Proyección de la Planta Docente: Perfiles de formación (Doctorado, Maestría, Especialización) y experiencia profesional/pedagógica requeridos según las modalidades ({modalities}).
-- Dedicación Horaria: Distribución equilibrada entre Tiempo Completo (TC), Medio Tiempo (MT) y Cátedra en docencia, investigación y extensión.
-- Estatuto y Cualificación Docente: Plan institucional de formación pedagógica, disciplinar y tecnológica, sistema de evaluación docente y escalafón.
-- Tabla de Planta Docente Proyectada: Cuadro estructurado con perfiles, áreas de conocimiento, dedicación y asignaturas asignadas.
+- Proyección de la Planta Docente y perfiles académicos (Doctorado, Maestría) acordes a las modalidades ({modalities}).
+- Dedicación Horaria: Distribución equilibrada entre Tiempo Completo (TC), Medio Tiempo (MT) y Cátedra.
+- Estatuto y Cualificación Docente: Plan de formación pedagógica, disciplinar y sistema de evaluación docente.
+- Tabla de Planta Docente Proyectada con perfiles y asignaturas (usar divisor compacto de 3 guiones `:---`).
 """
     elif cond_key == 'cond_8':
         return f"""
 DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 8: MEDIOS EDUCATIVOS:
-- Recursos Bibliográficos Físicos y Digitales: Suscripciones activas a bases de datos científicas indexadas (Scopus, ScienceDirect, EBSCO, IEEE, SciELO, e-Libro, etc.), convenios interbibliotecarios y repositorios.
-- Plataforma LMS y Software Especializado: Licenciamiento de plataformas virtuales, software técnico y disciplinar del programa, laboratorios virtuales y simuladores.
-- Políticas de Accesibilidad e Inclusión: Medios educativos adaptados para estudiantes con discapacidad o diversidad funcional, y plan de capacitación continua.
+- Recursos Bibliográficos Físicos y Digitales: Bases de datos científicas indexadas (Scopus, ScienceDirect, EBSCO, e-Libro).
+- Plataforma LMS y Software Especializado: Licenciamiento de software disciplinar, laboratorios virtuales y simuladores.
+- Accesibilidad, Inclusión y Capacitación a Usuarios.
 """
     elif cond_key == 'cond_9':
         return f"""
 DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 9: INFRAESTRUCTURA FÍSICA Y TECNOLÓGICA:
-- Espacios Físicos Especializados: Aulas, talleres, laboratorios físicos, conectividad a internet de alta velocidad, ancho de banda y salas de cómputo en {places}.
-- Bioseguridad, Bienestar y Accesibilidad: Espacios de bienestar universitario (deporte, cultura, salud), protocolos de bioseguridad y accesibilidad universal (rampas, ascensores).
-- Plan de Mantenimiento y Presupuesto Proyectado a 7 Años: Tabla financiera de inversiones en infraestructura y renovación tecnológica proyectada para los 7 años de vigencia del registro calificado.
+- Espacios Físicos Especializados: Aulas, talleres, laboratorios, conectividad de alta velocidad y salas de cómputo en {places}.
+- Bioseguridad, Bienestar y Accesibilidad Universal.
+- Plan de Mantenimiento y Presupuesto Proyectado a 7 Años: Tabla de inversión financiera (usar divisor compacto de 3 guiones `:---`).
 """
     return ""
 
@@ -1860,9 +1877,11 @@ DIRECTRICES METODOLÓGICAS DE ESTRUCTURACIÓN Y RIGOR ACADÉMICO:
    - Tus subtítulos principales (###) deben ser EXCLUSIVAMENTE los sub-numerales correspondientes a esta condición: {', '.join([s.split()[0] for s in meta.get('subnumerals', [])])}.
    - ESTÁ RIGUROSAMENTE PROHIBIDO desviar la redacción a otras condiciones posteriores.
 
-4. CONSTRUCCIÓN DE TABLAS MARKDOWN COMPLETAS Y EXHAUSTIVAS:
-   - Construye todas las tablas y matrices requeridas directamente en sintaxis Markdown (| Columna 1 | Columna 2 |) con datos cuantitativos reales (Benchmarking SNIES, Demanda DANE/OLE, Matriz de RA bajo Taxonomía SOLO, Plan de Estudios con horas HAD/HTI y créditos, o tablas presupuestales).
-   - NUNCA uses líneas de guiones repetidos ('---' o '____') para separar o decorar.
+4. CONSTRUCCIÓN DE TABLAS MARKDOWN (REGLA ANTI-BLOQUEO OBLIGATORIA):
+   - Al construir tablas Markdown, el divisor entre cabecera y datos DEBE contener ÚNICAMENTE 3 guiones por columna: `| :--- | :--- | :--- |`.
+   - PROHIBICIÓN TAXATIVA: NUNCA alargues los guiones de separación al ancho del texto de la cabecera. Máximo 3 guiones `:---` por columna.
+   - NUNCA escribas líneas de subrayado `___` ni secuencias continuas de guiones repetidos.
+   - Inmediatamente después del divisor de 3 guiones `| :--- | :--- |`, debes escribir de inmediato las filas de datos con texto sustantivo: `| Fila 1 | Dato | ... |`.
 
 5. CITACIÓN EN TEXTO Y BIBLIOGRAFÍA EN FORMATO APA 7.ª EDICIÓN:
    - Cita rigurosamente en el cuerpo del texto en formato APA 7.ª edición (ej: Martínez, 2023; DANE, 2024; Ministerio de Educación Nacional [MEN], 2020; UNESCO, 2022; PEI Institucional, 2022).
@@ -1908,7 +1927,7 @@ REGLAS STRICTAS DE SALIDA:
 1. Comienza DIRECTAMENTE con: `## CONDICIÓN {meta.get('num')}: {meta.get('title')}`. CERO PREÁMBULOS CONVERSACIONALES O SALUDOS.
 2. Desarrolla exhaustivamente cada uno de los sub-numerales obligatorios con encabezados `### [Número] [Nombre]`.
 3. Desarrolla argumentaciones densas, humanizadas y ricas en conceptos disciplinares del área de {area_disciplinar}.
-4. Construye directamente dentro del texto todas las tablas Markdown completas con datos reales.
+4. TABLAS MARKDOWN (ANTI-BLOQUEO): Toda tabla Markdown DEBE usar divisores compactos de exactamente 3 guiones `| :--- | :--- |`. PROHIBIDO alargar los guiones de separación. Escribe de inmediato las filas de datos reales.
 5. Finaliza el capítulo con la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 12 referencias completas. CERO DESPEDIDAS DE CHATBOT.
 """
 
@@ -1987,7 +2006,8 @@ def continue_condition_ai():
                     evidences_context.append(f"--- [DOCUMENTO FUENTE: {ev.get('name') or ev.get('original_filename')} | TIPO: {ev.get('doc_type')}] ---\n{sample}\n")
         evidences_str = "\n".join(evidences_context) if evidences_context else "Fundamenta con base en evidencias institucionales, enlaces web, normatividad del MEN y datos de mercado."
 
-        existing_content = re.sub(r'(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+', '', existing_content, flags=re.MULTILINE)
+        # Sanitizar el contenido existente antes de continuar para no arrastrar bucles previos
+        existing_content = sanitize_markdown_tables_light(existing_content)
         existing_content = re.sub(r'[-_—–\s]{4,}$', '', existing_content).rstrip()
         
         # Tomar los últimos 1800 caracteres para un contexto de enlace mucho más sólido
@@ -2026,7 +2046,7 @@ REGLAS STRICTAS DE CONTINUACIÓN:
 1. CONTINUIDAD FLUIDA: Continúa la redacción exactamente donde quedó cortado el último fragmento, sin reiniciar el capítulo ni repetir párrafos o sub-numerales ya redactados arriba ({', '.join([s.split()[0] for s in developed_subs]) if developed_subs else 'ninguno'}). CERO PREÁMBULOS CONVERSACIONALES ('Como doctor...', 'A continuación continúo...').
 2. DESARROLLO DE SUB-NUMERALES PENDIENTES: Procede a desarrollar de forma exhaustiva los sub-numerales pendientes: {', '.join([s.split()[0] for s in pending_subs]) if pending_subs else 'la sección final de referencias'}. Cada sub-numeral debe ser un encabezado '###'.
 3. AISLAMIENTO DE CONDICIÓN: MANTÉNTE EXCLUSIVAMENTE DENTRO DE LA CONDICIÓN {meta.get('num')}. ESTÁ RIGUROSAMENTE PROHIBIDO SALIRSE A LA CONDICIÓN {next_cond_num} (NO generes ### {next_cond_num}.1 ni ### {next_cond_num}.2).
-4. CONSTRUCCIÓN DE TABLAS Y MATRICES: Desarrolla y construye tablas Markdown completas y detalladas directamente en el texto con datos reales.
+4. CONSTRUCCIÓN DE TABLAS Y MATRICES (ANTI-BLOQUEO): Toda tabla Markdown debe usar divisores compactos de exactamente 3 guiones `| :--- | :--- |`. PROHIBIDO alargar los guiones de separación. Escribe de inmediato las filas de datos reales.
 5. REFERENCIAS APA 7.0: Si es la última parte del capítulo, finaliza obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 12 referencias completas en formato APA 7.0. CERO DESPEDIDAS DE CHATBOT."""
 
         continuation_text = call_ai(
