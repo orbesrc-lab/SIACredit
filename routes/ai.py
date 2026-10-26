@@ -150,6 +150,10 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
             }
             model_max = MODEL_MAX_TOKENS.get(model, 8192)
             effective_max_tokens = min(max_tokens, model_max) if max_tokens else model_max
+            # Modelos Gemini 2.5 incluyen tokens de razonamiento interno dentro de max_tokens;
+            # garantizar un mínimo de 3500 para evitar truncamiento de respuestas JSON/Markdown
+            if ('gemini' in model or 'flash' in model) and effective_max_tokens < 3500:
+                effective_max_tokens = 3500
             
             kwargs = {
                 "model": model,

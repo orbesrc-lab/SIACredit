@@ -956,26 +956,32 @@ def suggest_classifications():
         if not prog_name:
             return jsonify({'status': 'error', 'message': 'El nombre del programa es requerido'}), 400
             
-        prompt = f"""Eres un experto consultor pedagógico y regulatorio del Ministerio de Educación Nacional de Colombia (MEN), DANE y SACES.
-Analiza la siguiente información de un programa académico universitario o tecnológico:
-- Denominación del Programa: "{prog_name}"
+        prompt = f"""Eres un consultor experto y evaluador de salas de CONACES y SACES del Ministerio de Educación Nacional de Colombia (MEN) y DANE.
+Tu tarea es asignar con estricto rigor y coherencia normativa oficial las clasificaciones exigidas en el trámite de Registro Calificado (Decreto 1330 de 2019, Decreto 1649 de 2021 y Resolución 021795 de 2020) para el siguiente programa:
+- Denominación: "{prog_name}"
 - Nivel de Formación: "{level}"
 - Título a Otorgar: "{target_title}"
 
-Genera las clasificaciones oficiales y normativas vigentes en Colombia según la reglamentación del MEN, DANE y el MNC (Decreto 1330 y Resolución 021795).
-Responde EXCLUSIVAMENTE en formato JSON con la siguiente estructura exacta (sin markdown extra, solo el objeto JSON):
+Determina con precisión según las clasificaciones oficiales de Colombia:
+1. CINE-F 2013 A.C. (MEN / DANE): Código de 4 dígitos y denominación oficial del campo detallado o específico. Ejemplo: si es Contabilidad es "0411 - Contabilidad y fiscalidad"; si es Finanzas es "0412 - Finanzas, banca y seguros"; si es Administración es "0413 - Gestión y administración"; si es Mercadeo es "0414 - Marketing y publicidad"; si es Software es "0613 - Desarrollo y análisis de software y aplicaciones"; si es Derecho es "0421 - Derecho".
+2. CIUO-08 A.C. (DANE): Código de 4 dígitos y denominación de la ocupación acorde al nivel formativo (Para Técnico/Tecnológico usar Gran Grupo 3 'Técnicos y profesionales de nivel medio', ej: 3313 para contabilidad y finanzas; Para Nivel Universitario usar Gran Grupo 2 'Profesionales científicos e intelectuales', ej: 2411 Contadores, 2421 Administradores, 2512 Desarrolladores).
+3. MNC (Marco Nacional de Cualificaciones - Decreto 1649 de 2021): Nivel exacto (Nivel 4 Técnico Profesional, Nivel 5 Tecnológico, Nivel 6 Universitario/Especialización, Nivel 7 Maestría, Nivel 8 Doctorado) y nombre de la cualificación del sector productivo.
+4. CUO (Clasificación Única de Ocupaciones para Colombia - DANE): Código y denominación de la ocupación normalizada.
+5. ODS (Objetivos de Desarrollo Sostenible - Agenda 2030): Los 3 o 4 ODS principales con impacto directo (con número y denominación oficial en un solo texto separado por comas).
+
+Responde EXCLUSIVAMENTE un objeto JSON válido con estas 5 claves (texto plano en cada valor, sin objetos anidados):
 {{
-  "cine_f_code": "Código CINE-F 2013 A.C. de 4 dígitos y nombre del campo detallado",
-  "ciuo_08_code": "Código CIUO-08 de 4 dígitos y denominación oficial de la ocupación",
-  "mnc_code": "Nivel MNC (ej: Nivel 5 MNC) y denominación de la cualificación del sector",
-  "cuo_code": "Código CUO (Clasificación Única de Ocupaciones para Colombia) y ocupación",
-  "ods_alignment": "ODS principales aplicables (ej: ODS 4, ODS 8, ODS 9 con nombres)"
+  "cine_f_code": "código de 4 dígitos y denominación oficial",
+  "ciuo_08_code": "código de 4 dígitos y denominación oficial",
+  "mnc_code": "Nivel X MNC - Denominación oficial de la cualificación",
+  "cuo_code": "código y denominación de la ocupación",
+  "ods_alignment": "ODS aplicables con número y nombre oficial en una sola línea"
 }}"""
 
         ai_response = call_ai([
-            {"role": "system", "content": "Eres un asistente experto en normatividad de educación superior colombiana. Responde únicamente en formato JSON estricto."},
+            {"role": "system", "content": "Eres un asesor técnico y evaluador de CONACES, MEN y DANE en Colombia. Responde exclusivamente en JSON estricto."},
             {"role": "user", "content": prompt}
-        ], max_tokens=800, temperature=0.2, inst_id=inst_id)
+        ], max_tokens=3500, temperature=0.1, inst_id=inst_id)
         
         raw_text = (ai_response or '').strip()
         # Intentar extraer el objeto JSON incluso si el modelo incluyó texto antes o después
@@ -989,14 +995,22 @@ Responde EXCLUSIVAMENTE en formato JSON con la siguiente estructura exacta (sin 
                 cleaned = re.sub(r"\s*```$", "", cleaned)
             
         result = json.loads(cleaned)
+        
+        # Formatear ODS si viene como lista
+        ods_raw = result.get('ods_alignment', '')
+        if isinstance(ods_raw, list):
+            ods_formatted = ", ".join(str(item) for item in ods_raw)
+        else:
+            ods_formatted = str(ods_raw).strip()
+
         return jsonify({
             'status': 'success',
             'suggestions': {
-                'cine_f_code': result.get('cine_f_code', ''),
-                'ciuo_08_code': result.get('ciuo_08_code', ''),
-                'mnc_code': result.get('mnc_code', ''),
-                'cuo_code': result.get('cuo_code', ''),
-                'ods_alignment': result.get('ods_alignment', '')
+                'cine_f_code': str(result.get('cine_f_code', '')).strip(),
+                'ciuo_08_code': str(result.get('ciuo_08_code', '')).strip(),
+                'mnc_code': str(result.get('mnc_code', '')).strip(),
+                'cuo_code': str(result.get('cuo_code', '')).strip(),
+                'ods_alignment': ods_formatted
             }
         })
     except Exception as e:
@@ -1004,6 +1018,7 @@ Responde EXCLUSIVAMENTE en formato JSON con la siguiente estructura exacta (sin 
         # Fallback heurístico normativo inteligente según área de conocimiento (MEN / DANE)
         prog_upper = prog_name.upper() if 'prog_name' in locals() and prog_name else ''
         level_str = level.upper() if 'level' in locals() and level else ''
+        is_tecnologico = ("TECNÓLOGO" in level_str or "TECNOLÓGICO" in level_str or "TECNOLOG" in prog_upper or "TECNICA" in level_str or "TÉCNICO" in level_str)
         
         # Determinar nivel MNC
         if "TECNÓLOGO" in level_str or "TECNOLÓGICO" in level_str or "TECNOLOG" in prog_upper:
@@ -1019,53 +1034,76 @@ Responde EXCLUSIVAMENTE en formato JSON con la siguiente estructura exacta (sin 
         else:
             mnc_lvl = "Nivel 6 MNC - Cualificación Profesional Universitaria"
 
-        if any(k in prog_upper for k in ["MARKET", "VENTA", "COMERC", "MERCAD", "PUBLICID"]):
+        # 1. Contabilidad, Finanzas, Tributaria, Auditoría
+        if any(k in prog_upper for k in ["CONTAB", "FINANZ", "TRIBUTAR", "FISCAL", "AUDITOR"]):
+            cine_f = "0411 - Contabilidad y fiscalidad / 0412 - Finanzas, banca y seguros"
+            ciuo = "3313 - Profesionales de nivel medio de contabilidad y finanzas" if is_tecnologico else "2411 - Contadores y auditores financieros"
+            mnc = f"{mnc_lvl} en Gestión Contable, Tributaria y Financiera"
+            cuo = "3313 - Técnicos y tecnólogos en contabilidad y finanzas" if is_tecnologico else "2411 - Contadores y especialistas en finanzas"
+            ods = "ODS 8 (Trabajo Decente y Crecimiento Económico), ODS 9 (Industria e Innovación), ODS 12 (Producción y Consumo Responsables), ODS 16 (Paz, Justicia e Instituciones Sólidas)"
+        
+        # 2. Marketing, Mercadeo, Ventas, Publicidad
+        elif any(k in prog_upper for k in ["MARKET", "VENTA", "COMERC", "MERCAD", "PUBLICID"]):
             cine_f = "0414 - Marketing y publicidad"
-            ciuo = "2431 - Especialistas en publicidad y comercialización"
+            ciuo = "3322 - Representantes comerciales y de ventas" if is_tecnologico else "2431 - Especialistas en publicidad y comercialización"
             mnc = f"{mnc_lvl} en Gestión Estratégica de Marketing y Mercados Digitales"
-            cuo = "2431 - Especialistas en publicidad, mercadotecnia y ventas"
+            cuo = "3322 - Agentes comerciales y mercadotecnia" if is_tecnologico else "2431 - Especialistas en publicidad, mercadotecnia y ventas"
             ods = "ODS 8 (Trabajo Decente y Crecimiento Económico), ODS 9 (Industria, Innovación e Infraestructura), ODS 12 (Producción y Consumo Responsables)"
-        elif any(k in prog_upper for k in ["SISTEMA", "SOFTWARE", "DATOS", "IA", "INTELIGENCIA", "INFORMÁTIC", "COMPUT", "REDES", "TI"]):
-            cine_f = "0612 - Diseño y administración de bases de datos y redes / 0613 - Desarrollo y análisis de software"
-            ciuo = "2512 - Desarrolladores de software y aplicaciones / 2511 - Analistas de sistemas"
-            mnc = f"{mnc_lvl} en Desarrollo de Soluciones Digitales y Tecnologías de la Información"
-            cuo = "2512 - Desarrolladores de aplicaciones y analistas de sistemas"
-            ods = "ODS 4 (Educación de Calidad), ODS 8 (Trabajo Decente), ODS 9 (Industria, Innovación e Infraestructura)"
-        elif any(k in prog_upper for k in ["ADMINISTR", "GESTIÓN", "GERENC", "FINANZ", "CONTAB", "ECONOM"]):
+        
+        # 3. Administración, Gestión, Negocios, Gerencia
+        elif any(k in prog_upper for k in ["ADMINISTR", "GESTIÓN", "GESTION", "GERENC", "EMPRESARIAL", "NEGOCIO"]):
             cine_f = "0413 - Gestión y administración"
-            ciuo = "2421 - Especialistas en gestión y organización"
+            ciuo = "3341 - Supervisores de oficina y personal administrativo" if is_tecnologico else "2421 - Especialistas en gestión y organización"
             mnc = f"{mnc_lvl} en Gestión Empresarial, Productividad y Sostenibilidad Organizacional"
-            cuo = "2421 - Analistas de gestión y organización empresarial"
+            cuo = "3341 - Auxiliares y tecnólogos en gestión empresarial" if is_tecnologico else "2421 - Analistas de gestión y organización empresarial"
             ods = "ODS 8 (Trabajo Decente y Crecimiento Económico), ODS 9 (Industria e Innovación), ODS 12 (Consumo y Producción Sostenibles)"
+        
+        # 4. Software, Sistemas, Computación, Informática, Redes (términos completos, NO 'IA' ni 'TI')
+        elif any(k in prog_upper for k in ["SOFTWARE", "SISTEMA", "PROGRAMAC", "DESARROLLO WEB", "COMPUTAC", "INFORMÁTIC", "INFORMATIC", "CIBERSEGURIDAD", "REDES DE DATOS", "TELECOMUNICAC"]):
+            cine_f = "0613 - Desarrollo y análisis de software y aplicaciones / 0612 - Diseño y administración de bases de datos y redes"
+            ciuo = "3512 - Técnicos en tecnologías de la información" if is_tecnologico else "2512 - Desarrolladores de software y aplicaciones"
+            mnc = f"{mnc_lvl} en Desarrollo de Soluciones Digitales y Tecnologías de la Información"
+            cuo = "3512 - Tecnólogos y desarrolladores de software" if is_tecnologico else "2512 - Ingenieros y desarrolladores de aplicaciones"
+            ods = "ODS 4 (Educación de Calidad), ODS 8 (Trabajo Decente), ODS 9 (Industria, Innovación e Infraestructura)"
+        
+        # 5. Salud, Enfermería, Medicina, Odontología
         elif any(k in prog_upper for k in ["SALUD", "ENFERMER", "MEDICIN", "ODONTOLOG", "PSICOLOG", "TERAP"]):
             cine_f = "0913 - Enfermería y partería / 0912 - Medicina"
-            ciuo = "2221 - Profesionales de enfermería / 2212 - Médicos especialistas"
+            ciuo = "3221 - Profesionales de nivel medio de enfermería" if is_tecnologico else "2221 - Profesionales de enfermería / 2212 - Médicos especialistas"
             mnc = f"{mnc_lvl} en Atención y Cuidado Integral en Salud"
-            cuo = "2221 - Profesionales en enfermería y servicios de salud"
+            cuo = "3221 - Personal técnico en enfermería y salud" if is_tecnologico else "2221 - Profesionales en enfermería y servicios de salud"
             ods = "ODS 3 (Salud y Bienestar), ODS 4 (Educación de Calidad), ODS 10 (Reducción de las Desigualdades)"
+        
+        # 6. Educación, Licenciatura, Pedagogía
         elif any(k in prog_upper for k in ["EDUCAC", "LICENCIAT", "PEDAGOG", "DOCENC"]):
             cine_f = "0114 - Formación para docentes con especialización en asignaturas"
             ciuo = "2341 - Profesores de educación primaria / 2351 - Especialistas en métodos pedagógicos"
             mnc = f"{mnc_lvl} en Innovación Pedagógica y Gestión Educativa"
             cuo = "2351 - Especialistas en métodos pedagógicos e instrucción"
             ods = "ODS 4 (Educación de Calidad), ODS 10 (Reducción de las Desigualdades)"
+        
+        # 7. Derecho, Leyes, Jurídico
         elif any(k in prog_upper for k in ["DERECHO", "JURIDIC", "LEYES", "CIENCIA POLITICA"]):
             cine_f = "0421 - Derecho"
-            ciuo = "2611 - Abogados"
-            mnc = f"{mnc_lvl} en Práctica Jurídica, Resolución de Conflictos y Asesoría Legal"
-            cuo = "2611 - Abogados y asesores jurídicos"
+            ciuo = "3411 - Profesionales de nivel medio de servicios jurídicos" if is_tecnologico else "2611 - Abogados"
+            mnc = f"{mnc_lvl} en Práctica Jurídica, Asesoría Legal y Resolución de Conflictos"
+            cuo = "3411 - Asistentes y auxiliares jurídicos" if is_tecnologico else "2611 - Abogados y asesores jurídicos"
             ods = "ODS 16 (Paz, Justicia e Instituciones Sólidas), ODS 8 (Trabajo Decente)"
+        
+        # 8. Ingenierías (Industrial, Civil, Ambiental, etc.)
         elif any(k in prog_upper for k in ["INDUSTRIAL", "CIVIL", "AMBIENTAL", "MECANIC", "ELECTR", "INGENIER"]):
             cine_f = "0710 - Ingeniería y profesiones afines"
-            ciuo = "2141 - Ingenieros industriales y de producción"
+            ciuo = "3115 - Técnicos en ingeniería y producción" if is_tecnologico else "2141 - Ingenieros industriales y de producción"
             mnc = f"{mnc_lvl} en Ingeniería, Optimización de Procesos y Operaciones"
-            cuo = "2141 - Ingenieros industriales, de producción y afines"
+            cuo = "3115 - Técnicos en producción industrial" if is_tecnologico else "2141 - Ingenieros industriales, de producción y afines"
             ods = "ODS 9 (Industria, Innovación e Infraestructura), ODS 12 (Producción Responsable), ODS 13 (Acción por el Clima)"
+        
+        # 9. General / Otros
         else:
             cine_f = "0413 - Gestión, administración y afines"
-            ciuo = "2421 - Profesionales de la gestión y afines"
+            ciuo = "3341 - Técnicos y profesionales de nivel medio" if is_tecnologico else "2421 - Profesionales de la gestión y afines"
             mnc = f"{mnc_lvl} en el Campo de Formación del Programa"
-            cuo = "2421 - Especialistas y profesionales del sector ocupacional"
+            cuo = "3341 - Asistentes y tecnólogos sectoriales" if is_tecnologico else "2421 - Especialistas y profesionales del sector ocupacional"
             ods = "ODS 4 (Educación de Calidad), ODS 8 (Trabajo Decente), ODS 9 (Industria, Innovación e Infraestructura)"
 
         return jsonify({
