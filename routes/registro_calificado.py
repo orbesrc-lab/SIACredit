@@ -1543,6 +1543,8 @@ def get_condition_specific_guidelines(cond_key, proj):
     level = proj.get('level', 'Tecnológico')
     modalities = ", ".join(proj.get('modalities', ['Presencial']))
     places = ", ".join(proj.get('places_of_development', ['Sede Principal']))
+    total_credits = proj.get('total_credits') or '96'
+    total_duration = proj.get('total_duration') or '6 semestres'
 
     if cond_key == 'cond_intro':
         return f"""
@@ -1609,21 +1611,24 @@ DIRECTRICES AVANZADAS Y MATRICES DE ASPECTOS CURRICULARES (DECRETO 1330 DE 2019,
      | Abstracto Ampliado | Evaluar | RA-04 | Diseña propuestas de innovación y optimización... | Toma de Decisiones | Proyecto integrador aplicado |
 
 3. Plan de Estudios, Malla Curricular y Créditos Académicos (HAD vs. HTI):
-   - Malla curricular semestralizada ({proj.get('total_duration', 'Semestres')}, {proj.get('total_credits', 96)} Créditos).
-   - Proporción de horas (Res. 021795/2020): 1 crédito = 48 horas totales (horas HAD + horas HTI).
-   - Construir OBLIGATORIAMENTE la Tabla del Plan de Estudios (usar exactamente 3 guiones `:---` por divisor):
+   - Malla curricular semestralizada para el programa {prog_name} ({total_duration}, {total_credits} Créditos Académicos Totales).
+   - Proporción de horas (Decreto 1330/2019 & Res. 021795/2020): 1 crédito = 48 horas de trabajo total del estudiante (Horas de Acompañamiento Docente HAD + Horas de Trabajo Independiente HTI).
+   - Construir OBLIGATORIAMENTE la Tabla del Plan de Estudios semestralizado (usar exactamente 3 guiones `:---` por divisor):
      | Sem | Código | Asignatura | Componente | Créditos | Horas HAD | Horas HTI | Total Horas | Prerrequisito |
      | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
      | 1 | ASG101 | Asignatura de Fundamentación I | Disciplinar | 3 | 32 | 112 | 144 | Ninguno |
      | 1 | ASG102 | Asignatura Básica I | Básica | 3 | 32 | 112 | 144 | Ninguno |
 
 4. Áreas y Componentes de Formación, Interdisciplinariedad y Flexibilidad Curricular:
-   - Construir OBLIGATORIAMENTE tres (3) matrices cuantitativas detalladas (usando divisores compactos `:---`):
-     a) Tabla de Distribución por Áreas de Formación (Ciencias Básicas, Profesional/Disciplinar, Socio-Humanística, Institucional, Requisitos de Grado): Columnas obligatorias: No. Cursos, Sumatoria de Créditos, % Participación en el Plan, Horas HAD, Horas HTI, Total Horas y Propósito.
+   - REGLA CUANTITATIVA DINÁMICA OBLIGATORIA (VÁLIDA PARA CUALQUIER PROGRAMA Y CUALQUIER ÁREA DE CONOCIMIENTO):
+     * Carga Total Oficial: exactamente {total_credits} créditos académicos en {total_duration}.
+     * PRIORIDAD DE DATOS REALES DE EVIDENCIAS: Si en los documentos cargados existe la Malla Curricular, Plan de Estudios o Documento Maestro, DEBES EXTRAER los nombres de asignaturas, créditos por área y datos reales de dicha evidencia. Si no se cargó archivo, genera una proyección curricular canónica matemáticamente coherente para el campo disciplinar de {prog_name}.
+     * Construir OBLIGATORIAMENTE tres (3) matrices cuantitativas detalladas donde la sumatoria coincida EXACTAMENTE con {total_credits} créditos y el 100.00%:
+     a) Tabla de Distribución por Áreas de Formación (Ciencias Básicas, Profesional/Disciplinar, Socio-Humanística, Institucional/Transversal, y Requisitos de Grado/Práctica): Columnas obligatorias: No. Cursos, Sumatoria de Créditos, % Participación en el Plan, Horas HAD, Horas HTI, Total Horas y Propósito.
      b) Tabla por Componentes de Formación (Fundamentación Básica, Disciplinar y Específico, Electivo/Profundización, Aplicación y Práctica): Columnas obligatorias: Componente, Cursos, Sumatoria de Créditos, % Participación y Saberes Integrados.
-     c) Balance Curricular de Obligatoriedad vs. Electividad: Columnas obligatorias: Carácter del Crédito, No. Asignaturas, % Asignaturas, Sumatoria de Créditos, % Participación en Créditos y Justificación Pedagógica.
-   - Interdisciplinariedad Curricular: Articulación interdisciplinar de saberes, convergencia con tecnologías digitales y Proyectos Integradores de Semestre (PIS).
-   - Flexibilidad Curricular (Decretos 1330/2019 y 0529/2024): Rutas temáticas de electividad y profundización, movilidad académica nacional/internacional, homologación, Reconocimiento de Aprendizajes Previos (RAP) y multimodalidad flexible.
+     c) Balance Curricular de Obligatoriedad vs. Electividad: Columnas obligatorias: Carácter del Crédito (Obligatorios vs. Electivos), No. Asignaturas, % Asignaturas, Sumatoria de Créditos, % Participación en Créditos y Justificación Pedagógica.
+   - Interdisciplinariedad Curricular: Articulación interdisciplinar de saberes entre la disciplina principal y áreas convergentes (ciencias de datos, legislación, gestión, ética) y Proyectos Integradores de Semestre (PIS).
+   - Flexibilidad Curricular (Decretos 1330/2019 y 0529/2024): Portafolio y rutas temáticas de electividad y profundización, movilidad académica nacional/internacional, homologación, Reconocimiento de Aprendizajes Previos (RAP) y multimodalidad flexible.
 
 5. Estrategias de Evaluación de los Resultados de Aprendizaje:
    - Momentos evaluativos: Diagnóstica, Formativa y Sumativa. Rúbricas analíticas y aseguramiento del aprendizaje.
