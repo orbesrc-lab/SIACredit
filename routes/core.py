@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, session, render_template
-from utils.auth import require_permission, invalidate_permissions_cache
+from utils.auth import require_permission, invalidate_permissions_cache, _get_user
 from utils.db import supabase
 from utils.mail import send_email
 from utils.db import get_active_inst_id
@@ -298,7 +298,7 @@ def calculate_plan_avance(plan, inst_id, program_id):
         return 0
 
 @core_bp.route('/api/planes_mejora', methods=['GET', 'POST'])
-@require_permission('planificacion')
+@require_permission(['planificacion', 'autoevaluacion', 'informes'])
 def handle_planes_mejora():
     raw_inst_id = request.args.get('inst_id', 1, type=int)
     inst_id = get_active_inst_id(raw_inst_id)
@@ -1098,12 +1098,27 @@ def init_admin():
 # --- Gestión de Usuarios por Institución ---
 
 @core_bp.route('/api/users', methods=['GET', 'POST'])
-@require_permission('configuracion')
+@require_permission(['configuracion', 'autoevaluacion', 'informes'])
 def handle_users():
     inst_id = request.args.get('inst_id', 1, type=int)
     program_id = request.args.get('program_id', 0, type=int)
     print(f"DEBUG: Fetching users for inst_id={inst_id}, program_id={program_id}")
     if request.method == 'POST':
+        # Creación de usuario restringida a Administradores
+        user_id = (
+            request.headers.get('X-User-Id', '').strip()
+            or request.headers.get('X-User-Email', '').strip()
+            or str(session.get('user_id') or '').strip()
+            or str(session.get('email') or '').strip()
+        )
+        current_u = _get_user(user_id) if user_id else None
+        role = current_u.get('role', '') if current_u else ''
+        if role not in ['admin', 'inst_admin']:
+            return jsonify({
+                "status": "error",
+                "message": "Acceso denegado: Creación de usuarios reservada para Administradores."
+            }), 403
+
         data = request.json
         email = data.get('email')
         if not email:
@@ -1181,7 +1196,12 @@ def handle_users():
                 if res_str.data:
                     res = res_str
         
-        return jsonify(res.data)
+        # Excluir password_hash de la respuesta pública
+        safe_users = []
+        for u in (res.data or []):
+            if isinstance(u, dict):
+                safe_users.append({k: v for k, v in u.items() if k != 'password_hash'})
+        return jsonify(safe_users)
     except Exception as e:
         print(f"Error fetching users: {e}")
         return jsonify([])

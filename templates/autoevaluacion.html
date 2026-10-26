@@ -1005,29 +1005,20 @@
 
             
 
-            if (!window.systemUsers || window.systemUsers.length === 0) {
-
+            if (!Array.isArray(window.systemUsers) || window.systemUsers.length === 0) {
                 try {
-
                     const uResp = await authFetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-
-                    window.systemUsers = await uResp.json();
-
+                    const uData = await uResp.json();
+                    window.systemUsers = Array.isArray(uData) ? uData : [];
                 } catch (err) {
-
                     console.error("Error loading system users:", err);
-
+                    window.systemUsers = [];
                 }
-
             }
-
             
-
             const selectedRol = rolSelect.value;
-
-            
-
-            const filteredUsers = (window.systemUsers || []).filter(u => {
+            const userList = Array.isArray(window.systemUsers) ? window.systemUsers : [];
+            const filteredUsers = userList.filter(u => {
 
                 const uRole = (u.role || '').toLowerCase();
 
@@ -1175,20 +1166,15 @@
 
 
 
-            if (!window.systemUsers || window.systemUsers.length === 0) {
-
+            if (!Array.isArray(window.systemUsers) || window.systemUsers.length === 0) {
                 try {
-
                     const uResp = await authFetch(`/api/users?inst_id=${getInstId()}&program_id=${getProgramId()}`);
-
-                    window.systemUsers = await uResp.json();
-
+                    const uData = await uResp.json();
+                    window.systemUsers = Array.isArray(uData) ? uData : [];
                 } catch (err) {
-
                     console.error("Error loading system users:", err);
-
+                    window.systemUsers = [];
                 }
-
             }
 
 
@@ -1505,7 +1491,8 @@
 
                                 <div>👤 <strong>Responsable:</strong> ${(function() {
 
-                                    const uObj = (window.systemUsers || []).find(u => u.email === plan.responsable);
+                                    const userList = Array.isArray(window.systemUsers) ? window.systemUsers : [];
+                                    const uObj = userList.find(u => u && u.email === plan.responsable);
 
                                     return uObj ? (uObj.name || uObj.email) : plan.responsable;
 
