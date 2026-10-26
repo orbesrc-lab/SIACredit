@@ -1657,6 +1657,104 @@ DIRECTRICES NORMATIVAS Y EVIDENCIAS CLAVE - CONDICIÓN 9: INFRAESTRUCTURA FÍSIC
     return ""
 
 
+def get_program_expert_profile(program_name, level):
+    """
+    Retorna el área disciplinar y el perfil académico de Doctor/Magíster experto
+    correspondiente al programa para la formulación del Documento Maestro ante CONACES.
+    """
+    prog_upper = (program_name or "").upper()
+    if any(k in prog_upper for k in ["CONTAB", "FINANZ", "TRIBUTAR", "FISCAL", "AUDITOR"]):
+        area = "Ciencias Económicas, Contables, Finanzas Corporativas, Gestión Tributaria y Normas Internacionales de Información Financiera (NIIF/NIC)"
+        perfil = "Doctor en Ciencias de la Educación Superior y Magíster en Gestión Contable, Tributaria y Finanzas"
+    elif any(k in prog_upper for k in ["ADMINISTR", "GESTIÓN", "GESTION", "GERENC", "EMPRESARIAL", "NEGOCIO", "LOGÍSTIC", "LOGISTIC"]):
+        area = "Ciencias Administrativas, Gestión Estratégica Organizacional, Dirección de Empresas, Competitividad y Sostenibilidad"
+        perfil = "Doctor en Ciencias de la Educación Superior y Magíster en Administración, Dirección de Empresas y Gestión Estratégica"
+    elif any(k in prog_upper for k in ["MARKET", "VENTA", "COMERC", "MERCAD", "PUBLICID"]):
+        area = "Mercadeo Estratégico, Negocios Digitales, Comunicación Comercial y Analítica de Mercados"
+        perfil = "Doctor en Ciencias de la Educación Superior y Magíster en Mercadeo Estratégico y Gestión Comercial"
+    elif any(k in prog_upper for k in ["SOFTWARE", "SISTEMA", "COMPUT", "INFORMÁTIC", "INFORMATIC", "PROGRAMAC", "REDES", "DATOS", "IA", "CIBER"]):
+        area = "Ingeniería de Software, Ciencias de la Computación, Arquitectura de Sistemas y Analítica de Datos"
+        perfil = "Doctor en Ciencias de la Educación Superior y Magíster en Ingeniería de Software y Sistemas de Información"
+    elif any(k in prog_upper for k in ["INDUSTRIAL", "CIVIL", "AMBIENTAL", "MECANIC", "ELECTR", "INGENIER"]):
+        area = "Ingeniería, Optimización de Procesos, Cadena de Suministro y Sostenibilidad Productiva"
+        perfil = "Doctor en Ciencias de la Educación Superior y Magíster en Ingeniería y Gestión de Operaciones"
+    elif any(k in prog_upper for k in ["SALUD", "ENFERMER", "MEDICIN", "ODONTOLOG", "PSICOLOG", "TERAP"]):
+        area = "Ciencias de la Salud, Cuidado Integral, Epidemiología y Educación Médica"
+        perfil = "Doctor en Educación Superior y Especialista/Magíster en Educación para Profesionales de la Salud"
+    elif any(k in prog_upper for k in ["EDUCAC", "LICENCIAT", "PEDAGOG", "DOCENC"]):
+        area = "Ciencias de la Educación, Teoría Curricular, Pedagogía y Didácticas Contemporáneas"
+        perfil = "Doctor en Ciencias de la Educación y Magíster en Pedagogía y Evaluación del Aprendizaje"
+    elif any(k in prog_upper for k in ["DERECHO", "JURIDIC", "LEYES"]):
+        area = "Ciencias Jurídicas, Derecho Público, Privado y Resolución Alternativa de Conflictos"
+        perfil = "Doctor en Ciencias de la Educación Superior y Magíster en Derecho y Argumentación Jurídica"
+    else:
+        area = f"el campo epistemológico, teórico y profesional de {program_name}"
+        perfil = f"Doctor en Ciencias de la Educación Superior y Magíster Especialista en {program_name}"
+    return area, perfil
+
+
+def clean_master_document_output(text, cond_num=None, cond_title=None, is_continuation=False):
+    """
+    Sanitiza y garantiza que el texto generado sea estrictamente el contenido formal del Documento Maestro,
+    eliminando cualquier preámbulo de IA/chatbot ('Como Evaluador...', 'Como Doctor...', 'A continuación procedo...'),
+    notas de despedida, y aplicando la limpieza de tablas y guiones degenerativos.
+    """
+    if not text:
+        return ""
+
+    # 1. Si no es continuación, asegurar inicio directo con contenido sustantivo
+    if not is_continuation:
+        lines = text.splitlines()
+        first_content_idx = 0
+        found_heading = False
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            # Si encontramos un título Markdown o encabezado formal
+            if re.match(r'^(?:#|\*\*CONDICI[ÓO]N|\*\*Condici[óo]n)', stripped):
+                first_content_idx = i
+                found_heading = True
+                break
+            # Líneas con frases conversacionales / meta-discurso de chatbot
+            if any(phrase in stripped.lower() for phrase in [
+                "como evaluador", "como doctor", "como consultor", "procedo a redactar",
+                "a continuación presento", "a continuación redacto", "aquí tienes la propuesta",
+                "con gusto procedo", "¡excelente!", "estimado", "cordial saludo", "en respuesta a"
+            ]):
+                continue
+            # Línea vacía antes del título
+            if not stripped:
+                continue
+            # Párrafo corto conversacional antes del título
+            if i < 4 and len(stripped) < 260 and not stripped.startswith('|'):
+                continue
+            first_content_idx = i
+            break
+
+        clean_lines = lines[first_content_idx:]
+        text = "\n".join(clean_lines).strip()
+
+        # Si el texto no inicia con el título de la condición, anteponerlo de forma limpia
+        if cond_num is not None and cond_title:
+            expected_title = f"CONDICIÓN {cond_num}"
+            if expected_title.lower() not in text[:120].lower():
+                text = f"## CONDICIÓN {cond_num}: {cond_title}\n\n" + text
+
+    # 2. Eliminar notas de cierre o despedidas de chatbot al final
+    text = re.sub(
+        r'(?:\n+)[^\n]*(?:mucha suerte|mucho éxito|éxito en el proceso|quedo a su disposición|espero que este documento|espero que esta propuesta|saludos cordiales|buena suerte con la radicación)[^\n]*$',
+        '',
+        text,
+        flags=re.IGNORECASE
+    ).rstrip()
+
+    # 3. Limpieza de guiones degenerativos y sanitización ligera de tablas
+    text = re.sub(r'(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+', '', text, flags=re.MULTILINE)
+    text = re.sub(r'[-_—–\s]{4,}$', '', text).rstrip()
+    text = sanitize_markdown_tables_light(text)
+
+    return text
+
+
 @registro_calificado_bp.route('/api/rc/generate_condition', methods=['POST'])
 def generate_condition_ai():
     try:
@@ -1688,7 +1786,6 @@ def generate_condition_ai():
         for ev in sorted_evidences:
             ev_text = ev.get('full_text', '') or ev.get('text_sample', '')
             if ev_text:
-                # Pasar un muestreo amplio y profundo (hasta 30.000 caracteres por documento para capturar detalles sustantivos)
                 sample = ev_text[:30000] if len(ev_text) > 30000 else ev_text
                 if ev.get('is_url') or ev.get('url'):
                     header_line = f"ENLACE WEB / URL FUENTE: {ev.get('name')}\nURL DIRECTA: {ev.get('url')}\nFORMATO: {ev.get('doc_format', 'web').upper()}"
@@ -1704,7 +1801,7 @@ def generate_condition_ai():
                     f"{sample}\n"
                 )
                 
-        evidences_str = "\n\n".join(evidences_context) if evidences_context else "No se adjuntaron documentos o enlaces adicionales. Fundamenta con base en los estándares normativos del MEN y la información suministrada del programa."
+        evidences_str = "\n\n".join(evidences_context) if evidences_context else "No se adjuntaron documentos o enlaces adicionales. Fundamenta con base en los estándares normativos del MEN, el PEI institucional y la información suministrada del programa."
         
         modalities_str = ", ".join(proj.get('modalities', ['Presencial']))
         propedeutic_str = "SÍ aplica ciclos propedéuticos. Niveles articulados: " + ", ".join(proj.get('propedeutic_levels', [])) if proj.get('has_propedeutic_cycle') else "NO aplica ciclos propedéuticos (programa estructurado en un solo nivel)."
@@ -1714,74 +1811,85 @@ def generate_condition_ai():
         if procedure_type == 'renovacion':
             procedure_instructions = """
 ATENCIÓN ESPECIAL - TRÁMITE DE RENOVACIÓN DE REGISTRO CALIFICADO:
-Este documento corresponde a una RENOVACIÓN de Registro Calificado. Debes enfatizar la evolución institucional, resultados de autoevaluación, impacto de egresados y planes de mejoramiento continuo."""
+Este documento corresponde a una RENOVACIÓN de Registro Calificado. Debes enfatizar la evolución institucional, resultados del proceso de autoevaluación con fines de renovación, impacto de los egresados, consolidación de la planta docente e infraestructura, y avance del plan de mejoramiento continuo."""
         elif procedure_type == 'modificacion':
             procedure_instructions = """
 ATENCIÓN ESPECIAL - TRÁMITE DE MODIFICACIÓN DE REGISTRO CALIFICADO:
-Este documento sustenta una modificación sustancial (e.g. ampliación de modalidades para Registro Único Multimodal). Sustenta la pertinencia y coherencia del cambio."""
+Este documento sustenta una modificación sustancial (e.g. ampliación de modalidades para Registro Único Multimodal). Sustenta con sólidos argumentos la pertinencia, coherencia y sostenibilidad académica de la modificación solicitada."""
 
         condition_specific_guidelines = get_condition_specific_guidelines(cond_key, proj)
+        area_disciplinar, perfil_experto = get_program_expert_profile(proj.get('program_name'), proj.get('level'))
+        inst_name = proj.get('inst_name', 'la Institución')
+        prog_name = proj.get('program_name', 'el Programa')
 
-        system_prompt = f"""Eres un Evaluador Senior de la Sala de CONACES, Par Académico del CNA y Consultor Senior de Alto Nivel para el Ministerio de Educación Nacional de Colombia (MEN).
+        system_prompt = f"""Eres un {perfil_experto}.
+Actúas como el FORMULADOR Y AUTOR PRINCIPAL DEL DOCUMENTO MAESTRO DE REGISTRO CALIFICADO para {inst_name}, responsable de la sustentación técnica, epistemológica, curricular y pedagógica ante el Ministerio de Educación Nacional de Colombia (MEN) y la Sala correspondiente de CONACES.
 
-Tu misión es redactar capítulos técnicos de máxima profundidad, rigor conceptual, riqueza argumentativa, citas fidedignas de las evidencias institucionales reales y datos estadísticos actualizados para un DOCUMENTO MAESTRO DE REGISTRO CALIFICADO (expediente de alta calidad técnica).
+OBJETIVO SUPREMO:
+Construir directamente el capítulo o sección oficial del DOCUMENTO MAESTRO con el más alto estándar de excelencia argumentativa, explicativa, científica y humana, listo en su redacción final y definitiva para ser radicado formalmente en SACES/MEN y sustentado exitosamente ante los Pares Académicos y la Sala de CONACES.
+
+PROHIBICIÓN TAXATIVA DE PREÁMBULOS CONVERSACIONALES Y META-DISCURSO:
+1. ESTÁ TERMINANTEMENTE PROHIBIDO incluir introducciones conversacionales, saludos o frases en primera persona tipo chatbot (ejemplos prohibidos: 'Como Evaluador...', 'Como Doctor...', 'A continuación procedo a...', 'Procedo a redactar...', '¡Excelente propuesta!', 'Estimado equipo...').
+2. NUNCA escribas notas de cierre ni despedidas tipo chatbot (ejemplos prohibidos: '¡Mucho éxito con el trámite!', 'Espero que te sirva', 'Quedo a su disposición...').
+3. El texto generado DEBE EMPEZAR DIRECTAMENTE con el título del capítulo en Markdown (## CONDICIÓN {meta.get('num')}: {meta.get('title')}) e inmediatamente continuar con los párrafos sustantivos, argumentativos y explicativos del Documento Maestro.
 
 MARCO NORMATIVO Y REGULATORIO OBLIGATORIO VIGENTE EN COLOMBIA:
-- Decreto 1330 de 2019 (Condiciones de calidad de programas de educación superior).
+- Decreto 1075 de 2015 (Decreto Único Reglamentario del Sector Educación).
+- Decreto 1330 de 2019 (Condiciones de calidad para la oferta y desarrollo de programas de educación superior).
 - Decreto 0529 de 2024 (Flexibilización curricular, movilidad y Registro Único Multimodal).
 - Resolución 021795 de 2020 (Parámetros técnicos y aspectos obligatorios a evaluar por el MEN/CONACES).
+- Marco Nacional de Cualificaciones (MNC - Decreto 1649 de 2021) y CUO Colombia (Resolución DANE 1658 de 2023).
+- CINE-F 2013 A.C. (Campos de Educación y Formación adaptados para Colombia).
 - TAXONOMÍA SOLO (Structure of Observed Learning Outcomes) y Bloom revisada para Resultados de Aprendizaje (RA).
-- Marco Nacional de Cualificaciones (MNC), CUO Colombia (Res. 1658/2023) y CINE-F 2013 A.C.
 - Objetivos de Desarrollo Sostenible (ODS - Agenda 2030).
 
-DIRECTRICES CRÍTICAS DE ESTRUCTURACIÓN Y USO DE EVIDENCIAS:
+DIRECTRICES METODOLÓGICAS DE ESTRUCTURACIÓN Y RIGOR ACADÉMICO:
 
-1. USO OBLIGATORIO Y CITACIÓN DE TODAS LAS EVIDENCIAS Y DOCUMENTOS REALES ADJUNTOS:
-   - DEBES UTILIZAR ACTIVAMENTE TODO EL CONTENIDO Y DATOS DE LAS EVIDENCIAS PROVISTAS EN 'EVIDENCIAS Y DOCUMENTOS INSTITUCIONALES DISPONIBLES EN EL PROYECTO'.
-   - Extrae e integra de forma precisa: citas textuales y conceptuales del PEI, principios institucionales, modelo pedagógico, estatutos, reglamentos, políticas de créditos, mallas curriculares, matrices de RA, convenios, grupos de investigación o planes de desarrollo.
-   - Cita explícitamente en el texto el nombre de la institución y sus documentos rectores (ejemplo: "De conformidad con el Proyecto Educativo Institucional (PEI) de {proj.get('inst_name')}...", "En concordancia con el Modelo Pedagógico y Curricular institucional...", "Según lo dispuesto en la Política Institucional de Créditos...").
-   - Cruza y articula armónicamente esta evidencia institucional real con los referentes normativos y estadísticos del MEN (SNIES, SPADIES, OLE, DANE, PND, Plan Decenal).
+1. USO OBLIGATORIO Y ARTICULACIÓN DE EVIDENCIAS Y HERRAMIENTAS VINCULADAS:
+   - Debes utilizar e integrar activamente los datos, reglamentos y contenidos de las evidencias adjuntas en el proyecto, así como los aportes de cuadernos de investigación (Google NotebookLM) y búsquedas de vigilancia sectorial/tecnológica (DeepSeek Research).
+   - Cita explícitamente a {inst_name} y sus documentos rectores (Proyecto Educativo Institucional - PEI, Modelo Pedagógico y Curricular, Plan de Desarrollo Institucional - PDI, Estatutos, Reglamentos Estudiantil y Docente, Resoluciones internas de créditos y currículo).
+   - Cruza armónicamente la evidencia institucional con los referentes normativos y estadísticos oficiales (SNIES, SPADIES, OLE, DANE, PND, Plan Decenal).
+   - Si un parámetro específico de la Res. 021795 de 2020 no figura en los adjuntos, investígalo y dedúcelo con máximo rigor académico para dejar el capítulo completamente justificado, sin dejar interrogantes o corchetes sin resolver.
 
-2. LÍMITE STRICTO Y AISLAMIENTO DE LA CONDICIÓN (SIN MEZCLAR OTRAS CONDICIONES):
-   Estás redactando EXCLUSIVAMENTE la Condición {meta.get('num')}: {meta.get('title')}.
-   Tus subtítulos principales (###) deben ser EXCLUSIVAMENTE los sub-numerales correspondientes a esta condición: {', '.join([s.split()[0] for s in meta.get('subnumerals', [])])}.
-   ESTÁ RIGUROSAMENTE PROHIBIDO desviar la redacción o generar subtítulos pertenecientes a otras condiciones (por ejemplo, si estás en Condición 2, NO generes subtítulos de la Condición 3 como ### 3.1, ### 3.2 o ### 3.3).
+2. EXTENSIÓN, DENSIDAD Y HUMANIZACIÓN:
+   - Redacta con profundidad doctoral: evita resúmenes superficiales o viñetas esquemáticas vacías. Desarrolla ampliamente los conceptos, las justificaciones teóricas, la pertinencia social y el modelo formativo.
+   - Cada sub-numeral debe contener varios párrafos argumentativos, densos y humanizados.
 
-3. CUMPLIMIENTO DE ASPECTOS A EVALUAR (RESOLUCIÓN 021795 DE 2020):
-   Debes responder de manera exhaustiva a todos los aspectos a evaluar fijados por la Res. 021795 de 2020 para esta condición. Si un parámetro técnico o dato específico no aparece en los adjuntos suministrados por el usuario, DEBES investigarlo / deducirlo con rigor profesional en internet/bases normativas, fundamentándolo de forma completa en el texto sin dejar preguntas o corchetes sin responder.
+3. DELIMITACIÓN Y AISLAMIENTO DE LA CONDICIÓN:
+   - Estás redactando EXCLUSIVAMENTE la Condición {meta.get('num')}: {meta.get('title')}.
+   - Tus subtítulos principales (###) deben ser EXCLUSIVAMENTE los sub-numerales correspondientes a esta condición: {', '.join([s.split()[0] for s in meta.get('subnumerals', [])])}.
+   - ESTÁ RIGUROSAMENTE PROHIBIDO desviar la redacción a otras condiciones posteriores.
 
-4. GENERACIÓN DE TABLAS MARKDOWN COMPLETAS, REALES Y EXHAUSTIVAS:
-   DEBES CONSTRUIR LAS TABLAS MARKDOWN COMPLETAS Y RICAS DIRECTAMENTE DENTRO DEL TEXTO.
-   No las reemplaces por meras instrucciones vacías; incluye la tabla completa en sintaxis Markdown (| Columna 1 | Columna 2 |) con todos sus datos cuantitativos, matrices de pertinencia, oferta comparativa SNIES/DANE, matriz de Resultados de Aprendizaje bajo Taxonomía SOLO, plan de estudios con horas presenciales e independientes (HAD vs HTI), o cuadros de equivalencia entre modalidades.
+4. CONSTRUCCIÓN DE TABLAS MARKDOWN COMPLETAS Y EXHAUSTIVAS:
+   - Construye todas las tablas y matrices requeridas directamente en sintaxis Markdown (| Columna 1 | Columna 2 |) con datos cuantitativos reales (Benchmarking SNIES, Demanda DANE/OLE, Matriz de RA bajo Taxonomía SOLO, Plan de Estudios con horas HAD/HTI y créditos, o tablas presupuestales).
+   - NUNCA uses líneas de guiones repetidos ('---' o '____') para separar o decorar.
 
-5. PROHIBICIÓN TAXATIVA DE GUIONES REPETIDOS Y LÍNEAS DE RELLENO:
-   ESTÁ TOTALMENTE PROHIBIDO generar secuencias de guiones repetidos (como '----------------' o '________________') para separar párrafos, rellenar espacios o decorar el texto.
-   En las tablas Markdown, utiliza ÚNICAMENTE una sola línea divisoria con formato estándar (| :--- | :--- |) seguida INMEDIATAMENTE de las filas de datos con texto sustantivo real. NUNCA emitas líneas de puros guiones.
-
-6. CITACIÓN EN TEXTO Y BIBLIOGRAFÍA EN FORMATO APA 7.0:
-   - Citas en texto formato APA 7.0 (DANE, 2024; SPADIES, 2024; UNESCO, 2024; Biggs & Tang, 2020, documentos institucionales).
-   - Concluye la condición obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
+5. CITACIÓN EN TEXTO Y BIBLIOGRAFÍA EN FORMATO APA 7.ª EDICIÓN:
+   - Cita rigurosamente en el cuerpo del texto en formato APA 7.ª edición (ej: Martínez, 2023; DANE, 2024; Ministerio de Educación Nacional [MEN], 2020; UNESCO, 2022; PEI Institucional, 2022).
+   - Finaliza obligatoriamente la condición con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 12 fuentes completas y fidedignas (normativas, institucionales, bases de datos y referentes disciplinares).
 """
 
-        user_prompt = f"""DESCRIPCIÓN DEL PROYECTO DE REGISTRO CALIFICADO:
-- Institución: {proj.get('inst_name')}
-- Nombre del Programa: {proj.get('program_name')}
-- Título a Otorgar: {proj.get('target_title')}
-- Nivel de Formación: {proj.get('level')}
-- Tipo de Trámite: {procedure_type.upper()}
-- Modalidades (Registro Único): {modalities_str}
-- Lugares de Desarrollo / Sedes: {', '.join(proj.get('places_of_development', ['Sede Principal']))}
-- Ciclos Propedéuticos: {propedeutic_str}
-- Créditos Totales: {proj.get('total_credits')} | Duración estimada: {proj.get('total_duration')}
-- Cupo Anual Proyectado: {proj.get('annual_quota')}
-- Clasificación CINE-F: {proj.get('cine_f_code', '')} | CIUO-08: {proj.get('ciuo_08_code', '')}
-- Marco Nacional de Cualificaciones (MNC): {proj.get('mnc_code', '')} | CUO Colombia: {proj.get('cuo_code', '')}
-- Alineación ODS: {proj.get('ods_alignment', '')}
+        user_prompt = f"""DOCUMENTO MAESTRO DE REGISTRO CALIFICADO - {inst_name.upper()}
+PROGRAMA ACADÉMICO: {prog_name}
+TÍTULO A OTORGAR: {proj.get('target_title')}
+NIVEL DE FORMACIÓN: {proj.get('level')}
+TIPO DE TRÁMITE: {procedure_type.upper()}
+MODALIDADES SOLICITADAS (REGISTRO ÚNICO): {modalities_str}
+LUGARES DE DESARROLLO / SEDES: {', '.join(proj.get('places_of_development', ['Sede Principal']))}
+ESTRUCTURACIÓN POR CICLOS PROPEDÉUTICOS: {propedeutic_str}
+CRÉDITOS ACADÉMICOS TOTALES: {proj.get('total_credits')} | DURACIÓN ESTIMADA: {proj.get('total_duration')}
+CUPO ANUAL PROYECTADO: {proj.get('annual_quota')}
+CLASIFICACIONES NORMATIVAS OFICIALES:
+- CINE-F 2013 A.C.: {proj.get('cine_f_code', '')}
+- CIUO-08: {proj.get('ciuo_08_code', '')}
+- Marco Nacional de Cualificaciones (MNC): {proj.get('mnc_code', '')}
+- CUO Colombia: {proj.get('cuo_code', '')}
+- Alineación con ODS: {proj.get('ods_alignment', '')}
 
 {procedure_instructions}
 {condition_specific_guidelines}
 
-SECCIÓN A REDACTAR (LÍMITE STRICTO - MANTENERSE EXCLUSIVAMENTE EN ESTA CONDICIÓN):
+CONDICIÓN A REDACTAR EXCLUSIVAMENTE (DOCUMENTO MAESTRO):
 CONDICIÓN {meta.get('num')}: {meta.get('title')}
 
 SUB-NUMERALES ESTRUCTURALES OBLIGATORIOS A DESARROLLAR:
@@ -1790,37 +1898,33 @@ SUB-NUMERALES ESTRUCTURALES OBLIGATORIOS A DESARROLLAR:
 ENFOQUE NORMATIVO Y ASPECTOS A EVALUAR DE LA RES. 021795 DE 2020:
 {meta.get('focus')}
 
-INSTRUCCIONES ADICIONALES DEL USUARIO:
-{user_instructions if user_instructions else 'Generar la sección con la máxima extensión y profundidad académica, respondiendo a todos los aspectos a evaluar de la Res. 021795 de 2020, utilizando e integrando obligatoriamente todas las evidencias reales adjuntas, construyendo las tablas Markdown completas directamente en el texto, e incorporando datos estadísticos externos fidedignos (DANE, SPADIES, UNESCO 2024-2026) y citas en APA 7.0.'}
+INSTRUCCIONES ESPECÍFICAS DE REDACCIÓN:
+{user_instructions if user_instructions else 'Generar el capítulo completo del Documento Maestro con la máxima extensión y profundidad académica doctoral, respondiendo exhaustivamente a todos los aspectos a evaluar de la Res. 021795 de 2020. Articula e integra activamente todas las evidencias institucionales reales adjuntas, reglamentos, anexos y herramientas de investigación vinculadas (Google NotebookLM, DeepSeek Research). Construye directamente las matrices y tablas Markdown con datos cuantitativos reales. Emplea citación APA 7.ª edición y concluye con el listado de referencias bibliográficas.'}
 
-EVIDENCIAS Y DOCUMENTOS INSTITUCIONALES DISPONIBLES EN EL PROYECTO (DEBES USARLOS Y CITARLOS OBLIGATORIAMENTE EN LA REDACCIÓN):
+EVIDENCIAS Y FUENTES INSTITUCIONALES DISPONIBLES EN EL PROYECTO (DEBES ARTICULARLAS Y CITARLAS EN EL TEXTO):
 {evidences_str}
 
 REGLAS STRICTAS DE SALIDA:
-1. Desarrolla EXCLUSIVAMENTE la Condición {meta.get('num')}. ESTÁ PROHIBIDO escribir subtítulos de la Condición siguiente.
-2. Utiliza obligatoriamente los sub-numerales indicados arriba como subtítulos principales de tercer nivel (###).
-3. Integra, cita y articula activamente los fragmentos y datos de las evidencias institucionales cargadas arriba.
-4. Construye directamente en el texto todas las tablas Markdown completas (Benchmarking SNIES, Demanda DANE, Matriz de RA bajo Taxonomía SOLO, Plan de Estudios con HAD/HTI/Créditos, etc.). Cada tabla debe tener datos reales inmediatamente después de la línea de formato.
-5. PROHIBIDO GENERAR LÍNEAS DE GUIONES REPETIDOS ('---' o '____'). Escribe siempre párrafos sustantivos.
-6. Si un aspecto de la Res. 021795 de 2020 no aparece en las evidencias adjuntas, investígalo/dedúcelo técnicamente para responderlo completamente.
-7. Finaliza el capítulo con la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas.
+1. Comienza DIRECTAMENTE con: `## CONDICIÓN {meta.get('num')}: {meta.get('title')}`. CERO PREÁMBULOS CONVERSACIONALES O SALUDOS.
+2. Desarrolla exhaustivamente cada uno de los sub-numerales obligatorios con encabezados `### [Número] [Nombre]`.
+3. Desarrolla argumentaciones densas, humanizadas y ricas en conceptos disciplinares del área de {area_disciplinar}.
+4. Construye directamente dentro del texto todas las tablas Markdown completas con datos reales.
+5. Finaliza el capítulo con la sección `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 12 referencias completas. CERO DESPEDIDAS DE CHATBOT.
 """
 
-        # Generación única y robusta optimizada para ventana de ejecución serverless (Vercel)
+        # Presupuesto amplio de tokens (14.000) para garantizar razonamiento doctoral y redacción extensa sin truncamiento
         response_text = call_ai(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            max_tokens=4000,
-            temperature=0.35,
+            max_tokens=14000,
+            temperature=0.3,
             inst_id=proj.get('inst_id')
         )
         
-        # Limpieza inmediata de posibles degeneraciones de guiones
-        response_text = re.sub(r'(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+', '', response_text, flags=re.MULTILINE)
-        response_text = re.sub(r'[-_—–\s]{4,}$', '', response_text).rstrip()
-        response_text = sanitize_markdown_tables_light(response_text)
+        # Limpieza rigurosa de preámbulos, despedidas y formato de tablas
+        response_text = clean_master_document_output(response_text, meta.get('num'), meta.get('title'), is_continuation=False)
         
         # Guardar en el proyecto
         if 'conditions' not in proj:
@@ -1876,7 +1980,7 @@ def continue_condition_ai():
         for ev in proj.get('evidences', []):
             ev_text = ev.get('full_text', '') or ev.get('text_sample', '')
             if ev_text:
-                sample = ev_text[:8000] if len(ev_text) > 8000 else ev_text
+                sample = ev_text[:12000] if len(ev_text) > 12000 else ev_text
                 if ev.get('is_url') or ev.get('url'):
                     evidences_context.append(f"--- [ENLACE WEB: {ev.get('name')} | URL: {ev.get('url')} | TIPO: {ev.get('doc_type')}] ---\n{sample}\n")
                 else:
@@ -1886,16 +1990,17 @@ def continue_condition_ai():
         existing_content = re.sub(r'(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+', '', existing_content, flags=re.MULTILINE)
         existing_content = re.sub(r'[-_—–\s]{4,}$', '', existing_content).rstrip()
         
-        # Tomar los últimos 1500 caracteres para un contexto de enlace mucho más sólido
-        last_snippet = existing_content[-1500:] if len(existing_content) > 1500 else existing_content
+        # Tomar los últimos 1800 caracteres para un contexto de enlace mucho más sólido
+        last_snippet = existing_content[-1800:] if len(existing_content) > 1800 else existing_content
         last_snippet = re.sub(r'[-_—–\s]{4,}$', '', last_snippet).rstrip()
         next_cond_num = str(int(meta.get('num')) + 1) if meta.get('num').isdigit() else 'siguiente'
         
         condition_specific_guidelines = get_condition_specific_guidelines(cond_key, proj)
+        area_disciplinar, perfil_experto = get_program_expert_profile(proj.get('program_name'), proj.get('level'))
 
-        system_prompt = f"""Eres un Evaluador Senior de la Sala de CONACES, Par Académico del CNA y Consultor Senior del MEN de Colombia.
-Tu misión es CONTINUAR la redacción de alta densidad técnica y académica de la CONDICIÓN {meta.get('num')}: {meta.get('title')} para el programa '{proj.get('program_name')}'.
-Mantén el máximo rigor conceptual, investigación de fuentes (DANE, SPADIES, OLE, UNESCO 2024-2026), citas en APA 7.0, tablas completas de datos y sin repetir numerales ya redactados."""
+        system_prompt = f"""Eres un {perfil_experto}, formulador principal del Documento Maestro de Registro Calificado de {proj.get('inst_name')}.
+Tu misión es CONTINUAR la redacción oficial de máxima densidad académica, rigor epistemológico y soporte normativo de la CONDICIÓN {meta.get('num')}: {meta.get('title')} para el programa '{proj.get('program_name')}'.
+Continúa el texto de manera fluida y coherente exactamente en el punto de interrupción, sin preámbulos conversacionales, sin reiniciar el documento y sin repetir numerales ya redactados."""
 
         continuation_prompt = f"""DOCUMENTO MAESTRO - CONDICIÓN {meta.get('num')}: {meta.get('title')}
 PROGRAMA: {proj.get('program_name')} | NIVEL: {proj.get('level')} | MODALIDADES: {', '.join(proj.get('modalities', ['Presencial']))}
@@ -1903,7 +2008,7 @@ PROGRAMA: {proj.get('program_name')} | NIVEL: {proj.get('level')} | MODALIDADES:
 {condition_specific_guidelines}
 
 ESTADO DE LA REDACCIÓN HASTA ESTE MOMENTO:
-- Sub-numerales ya desarrollados previamente:
+- Sub-numerales ya desarrollados previamente en el texto:
 {chr(10).join([f"  ✓ {s}" for s in developed_subs]) if developed_subs else "  (Inicio del capítulo)"}
 
 - Sub-numerales PENDIENTES por desarrollar y redactar con profundidad:
@@ -1918,37 +2023,34 @@ EVIDENCIAS Y FUENTES INSTITUCIONALES DISPONIBLES:
 {evidences_str}
 
 REGLAS STRICTAS DE CONTINUACIÓN:
-1. CONTINUIDAD FLUIDA: Continúa el texto exactamente donde quedó cortado el último fragmento, sin reiniciar el capítulo ni repetir párrafos o sub-numerales ya redactados arriba ({', '.join([s.split()[0] for s in developed_subs]) if developed_subs else 'ninguno'}).
+1. CONTINUIDAD FLUIDA: Continúa la redacción exactamente donde quedó cortado el último fragmento, sin reiniciar el capítulo ni repetir párrafos o sub-numerales ya redactados arriba ({', '.join([s.split()[0] for s in developed_subs]) if developed_subs else 'ninguno'}). CERO PREÁMBULOS CONVERSACIONALES ('Como doctor...', 'A continuación continúo...').
 2. DESARROLLO DE SUB-NUMERALES PENDIENTES: Procede a desarrollar de forma exhaustiva los sub-numerales pendientes: {', '.join([s.split()[0] for s in pending_subs]) if pending_subs else 'la sección final de referencias'}. Cada sub-numeral debe ser un encabezado '###'.
 3. AISLAMIENTO DE CONDICIÓN: MANTÉNTE EXCLUSIVAMENTE DENTRO DE LA CONDICIÓN {meta.get('num')}. ESTÁ RIGUROSAMENTE PROHIBIDO SALIRSE A LA CONDICIÓN {next_cond_num} (NO generes ### {next_cond_num}.1 ni ### {next_cond_num}.2).
-4. PROHIBICIÓN TAXATIVA DE GUIONES REPETIDOS: NUNCA emitas líneas de puros guiones ('---' o '____'). Escribe siempre párrafos sustantivos y tablas completas con datos reales.
-5. CONSTRUCCIÓN DE TABLAS Y MATRICES: Desarrolla y construye tablas Markdown completas y detalladas directamente en el texto cuando el subnumeral lo requiera (matrices de RA SOLO, mallas curriculares, comparativos SNIES/DANE).
-6. REFERENCIAS APA 7.0: Si es la última parte del capítulo, finaliza obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 10 referencias completas en formato APA 7.0."""
+4. CONSTRUCCIÓN DE TABLAS Y MATRICES: Desarrolla y construye tablas Markdown completas y detalladas directamente en el texto con datos reales.
+5. REFERENCIAS APA 7.0: Si es la última parte del capítulo, finaliza obligatoriamente con la sección: `### Referencias Bibliográficas y Documentales (Normativa APA 7.0)` conteniendo mínimo 6 a 12 referencias completas en formato APA 7.0. CERO DESPEDIDAS DE CHATBOT."""
 
         continuation_text = call_ai(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": continuation_prompt}
             ],
-            max_tokens=3500,
-            temperature=0.35,
+            max_tokens=10000,
+            temperature=0.3,
             inst_id=proj.get('inst_id')
         )
         
         if not continuation_text or not continuation_text.strip():
             return jsonify({'status': 'error', 'message': 'La IA no retornó contenido adicional'}), 500
 
-        continuation_text = re.sub(r'(?:^[ \t]*[-_—–\s]{4,}[ \t]*$\n?)+', '', continuation_text, flags=re.MULTILINE)
-        continuation_text = re.sub(r'[-_—–\s]{4,}$', '', continuation_text).rstrip()
-        continuation_words = re.findall(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]{3,}', continuation_text)
+        # Sanitizar continuación
+        clean_continuation = clean_master_document_output(continuation_text.lstrip(), is_continuation=True)
+        continuation_words = re.findall(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]{3,}', clean_continuation)
         if len(continuation_words) < 10:
             return jsonify({'status': 'error', 'message': 'La IA no aportó texto sustantivo adicional'}), 500
             
         ends_mid_word = not existing_content.endswith((' ', '\n', '.', ',', ';', ':', ')', ']', '}', '`'))
         separator = "" if ends_mid_word else ("\n\n" if existing_content.endswith(('.', ':', ')', ']', '}', '`')) else " ")
         
-        # Sanitizar el texto añadido y anexar al final
-        clean_continuation = sanitize_markdown_tables_light(continuation_text.lstrip())
         combined_content = existing_content + separator + clean_continuation
         
         if 'conditions' not in proj:
@@ -1965,7 +2067,7 @@ REGLAS STRICTAS DE CONTINUACIÓN:
             'cond_key': cond_key,
             'title': meta.get('title'),
             'content': combined_content,
-            'added_length': len(continuation_text)
+            'added_length': len(clean_continuation)
         })
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
