@@ -231,20 +231,25 @@ async function initFastSidebar() {
         }
     });
 
-    // Si no teníamos la matriz en memoria, consultarla asíncronamente y reaplicar
-    if (!localStorage.getItem('siac_role_permissions')) {
-        try {
-            const res = await authFetch(`/api/permissions/form?inst_id=${getInstId()}&program_id=0`);
-            if (res.ok) {
-                const data = await res.json();
-                if (data.status === 'success' && data.permissions) {
-                    localStorage.setItem('siac_role_permissions', JSON.stringify(data.permissions));
-                    initFastSidebar(); // Re-ejecutar con los permisos frescos
+    // Sincronizar en segundo plano de forma no bloqueante para aplicar cambios de permisos inmediatamente
+    if (!window._syncingRolePermissions) {
+        window._syncingRolePermissions = true;
+        authFetch(`/api/permissions/form?inst_id=${typeof getInstId === 'function' ? getInstId() : 1}&program_id=0`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.status === 'success' && data.permissions) {
+                    const currentStr = localStorage.getItem('siac_role_permissions');
+                    const newStr = JSON.stringify(data.permissions);
+                    if (currentStr !== newStr) {
+                        localStorage.setItem('siac_role_permissions', newStr);
+                        initFastSidebar(); // Reaplicar visibilidad del menú si la matriz cambió
+                    }
                 }
-            }
-        } catch(e) {
-            console.error("Error al sincronizar permisos:", e);
-        }
+            })
+            .catch(() => {})
+            .finally(() => {
+                window._syncingRolePermissions = false;
+            });
     }
 }
 
