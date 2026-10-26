@@ -1617,9 +1617,13 @@ DIRECTRICES AVANZADAS Y MATRICES DE ASPECTOS CURRICULARES (DECRETO 1330 DE 2019,
      | 1 | ASG101 | Asignatura de Fundamentación I | Disciplinar | 3 | 32 | 112 | 144 | Ninguno |
      | 1 | ASG102 | Asignatura Básica I | Básica | 3 | 32 | 112 | 144 | Ninguno |
 
-4. Componentes de Formación, Interdisciplinariedad y Flexibilidad Curricular:
-   - Desglose por componentes: Formación Básica, Disciplinar/Específica, Sociohumanística y Electiva/Profundización.
-   - Rutas de electividad, homologación y movilidad académica (Decreto 0529 de 2024).
+4. Áreas y Componentes de Formación, Interdisciplinariedad y Flexibilidad Curricular:
+   - Construir OBLIGATORIAMENTE tres (3) matrices cuantitativas detalladas (usando divisores compactos `:---`):
+     a) Tabla de Distribución por Áreas de Formación (Ciencias Básicas, Profesional/Disciplinar, Socio-Humanística, Institucional, Requisitos de Grado): Columnas obligatorias: No. Cursos, Sumatoria de Créditos, % Participación en el Plan, Horas HAD, Horas HTI, Total Horas y Propósito.
+     b) Tabla por Componentes de Formación (Fundamentación Básica, Disciplinar y Específico, Electivo/Profundización, Aplicación y Práctica): Columnas obligatorias: Componente, Cursos, Sumatoria de Créditos, % Participación y Saberes Integrados.
+     c) Balance Curricular de Obligatoriedad vs. Electividad: Columnas obligatorias: Carácter del Crédito, No. Asignaturas, % Asignaturas, Sumatoria de Créditos, % Participación en Créditos y Justificación Pedagógica.
+   - Interdisciplinariedad Curricular: Articulación interdisciplinar de saberes, convergencia con tecnologías digitales y Proyectos Integradores de Semestre (PIS).
+   - Flexibilidad Curricular (Decretos 1330/2019 y 0529/2024): Rutas temáticas de electividad y profundización, movilidad académica nacional/internacional, homologación, Reconocimiento de Aprendizajes Previos (RAP) y multimodalidad flexible.
 
 5. Estrategias de Evaluación de los Resultados de Aprendizaje:
    - Momentos evaluativos: Diagnóstica, Formativa y Sumativa. Rúbricas analíticas y aseguramiento del aprendizaje.
