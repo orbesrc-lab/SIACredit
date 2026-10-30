@@ -1672,7 +1672,7 @@
             },
             'cond_2': {
                 title: 'Condición 2: Justificación del Programa',
-                focus: 'Decreto 1330/2019 Art. 2.5.3.2.3.2.2. Pertinencia en los contextos internacional, nacional y regional; estudio de demanda laboral y tendencias ocupacionales; estado de la oferta académica (SNIES, SPADIES, DANE); atributos diferenciadores del programa y articulación con el Plan de Desarrollo Institucional.'
+                focus: 'Decreto 1330/2019 Art. 2.5.3.2.3.2.2, Decreto 0529/2024 y Res. 021795/2020. Pertinencia en los 4 contextos (internacional, nacional, regional, PDI), estudio de demanda laboral y tendencias ocupacionales (DANE/OLE/MNC), estado de la oferta académica con benchmarking internacional y regional (SNIES), matriz comparativa de competencias y resultados de aprendizaje, atributos diferenciadores, políticas de permanencia SPADIES, prompts de generación visual para IA experta y referencias APA 7.0.'
             },
             'cond_3': {
                 title: 'Condición 3: Aspectos Curriculares',
@@ -3393,24 +3393,122 @@
             }
         }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         async function onFileSelected(input) {
             const file = input.files[0];
             if (!file) return;
 
-            document.getElementById('uploadSelectedFileName').textContent = `Subiendo e indexando: ${file.name}...`;
+            if (!currentProject || !currentProject.id) {
+                Swal.fire('Atención', 'Por favor selecciona o crea un proyecto primero antes de subir evidencias.', 'warning');
+                input.value = '';
+                return;
+            }
 
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('project_id', currentProject.id);
-            formData.append('doc_type', document.getElementById('uploadDocType').value);
-            formData.append('name', document.getElementById('uploadCustomName').value);
+            const docType = document.getElementById('uploadDocType').value;
+            const customName = document.getElementById('uploadCustomName').value;
+            const fileNameSpan = document.getElementById('uploadSelectedFileName');
+            const fileSizeMb = (file.size / (1024 * 1024)).toFixed(2);
+
+            if (fileNameSpan) {
+                fileNameSpan.textContent = `Preparando subida: ${file.name} (${fileSizeMb} MB)...`;
+            }
+
+            // Mostrar modal de progreso interactivo
+            Swal.fire({
+                title: 'Subiendo Documento a la Nube',
+                html: `
+                    <div style="text-align: center; font-size: 0.95rem;">
+                        <p style="margin-bottom: 8px;"><strong>${escapeHtml(file.name)}</strong></p>
+                        <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 12px;">Tamaño: ${fileSizeMb} MB</p>
+                        <div id="uploadStatusText" style="color: #4f46e5; font-size: 0.88rem; font-weight: 500;">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Generando enlace seguro en Supabase Storage...
+                        </div>
+                    </div>
+                `,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
             try {
-                const res = await fetch('/api/rc/upload_evidence', {
+                // Paso 1: Obtener URL firmada de Supabase Storage (permite subir hasta 50MB sin pasar por el límite 4.5MB de Vercel)
+                const urlReq = await fetch('/api/rc/get_upload_url', {
                     method: 'POST',
-                    body: formData
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        project_id: currentProject.id,
+                        filename: file.name,
+                        doc_type: docType,
+                        name: customName
+                    })
                 });
-                const data = await res.json();
+
+                if (!urlReq.ok) {
+                    const errText = await urlReq.text();
+                    throw new Error(`Error en el servidor (${urlReq.status}): ${errText}`);
+                }
+
+                const urlData = await urlReq.json();
+                if (urlData.status !== 'success' || !urlData.signed_url) {
+                    throw new Error(urlData.message || 'No se pudo generar la URL de subida a Supabase');
+                }
+
+                const statusEl = document.getElementById('uploadStatusText');
+                if (statusEl) {
+                    statusEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up fa-fade"></i> Transfiriendo archivo directamente a Supabase...';
+                }
+
+                // Paso 2: Subida directa a Supabase Storage (bypasses Vercel gateway)
+                const uploadRes = await fetch(urlData.signed_url, {
+                    method: 'PUT',
+                    body: file,
+                    headers: {
+                        'Content-Type': file.type || 'application/octet-stream'
+                    }
+                });
+
+                if (!uploadRes.ok) {
+                    throw new Error(`Fallo en la transferencia a Supabase Storage (HTTP ${uploadRes.status})`);
+                }
+
+                if (statusEl) {
+                    statusEl.innerHTML = '<i class="fa-solid fa-microchip fa-spin"></i> Indexando y extrayendo texto con IA...';
+                }
+
+                // Paso 3: Confirmación e indexación en el backend
+                const confirmRes = await fetch('/api/rc/confirm_evidence', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        project_id: currentProject.id,
+                        file_id: urlData.file_id,
+                        original_filename: file.name,
+                        storage_path: urlData.storage_path,
+                        public_url: urlData.public_url,
+                        doc_type: docType,
+                        name: customName,
+                        size_bytes: file.size
+                    })
+                });
+
+                if (!confirmRes.ok) {
+                    const confirmErr = await confirmRes.text();
+                    throw new Error(`Error confirmando evidencia (${confirmRes.status}): ${confirmErr}`);
+                }
+
+                const data = await confirmRes.json();
                 if (data.status === 'success') {
                     if (!currentProject.evidences) currentProject.evidences = [];
                     currentProject.evidences.push(data.evidence);
@@ -3419,20 +3517,36 @@
                     
                     document.getElementById('uploadCustomName').value = '';
                     input.value = '';
-                    document.getElementById('uploadSelectedFileName').textContent = 'Documento indexado con éxito.';
+                    if (fileNameSpan) fileNameSpan.textContent = 'Documento indexado con éxito.';
 
                     Swal.fire({
                         icon: 'success',
                         title: 'Documento Indexado',
                         text: `${data.evidence.name} ha sido procesado con éxito para fundamentar la IA.`,
-                        timer: 2000,
+                        timer: 2500,
                         showConfirmButton: false
                     });
                 } else {
-                    Swal.fire('Error', data.message || 'No se pudo subir el archivo', 'error');
+                    throw new Error(data.message || 'No se pudo registrar la evidencia');
                 }
             } catch (e) {
-                Swal.fire('Error', 'Fallo al subir evidencia: ' + e.message, 'error');
+                console.error("Error al subir evidencia:", e);
+                input.value = '';
+                if (fileNameSpan) fileNameSpan.textContent = 'Error al subir documento.';
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Fallo al subir evidencia',
+                    html: `
+                        <div style="text-align: left; font-size: 0.88rem; color: #334155;">
+                            <p style="margin-bottom: 8px;">No se pudo completar la indexación del archivo:</p>
+                            <div style="background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 0.82rem; word-break: break-all;">
+                                ${escapeHtml(e.message)}
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonColor: '#6366f1'
+                });
             }
         }
 
