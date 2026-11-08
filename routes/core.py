@@ -1100,7 +1100,8 @@ def init_admin():
 @core_bp.route('/api/users', methods=['GET', 'POST'])
 @require_permission(['configuracion', 'autoevaluacion', 'informes'])
 def handle_users():
-    inst_id = request.args.get('inst_id', 1, type=int)
+    raw_inst_id = request.args.get('inst_id', 1, type=int)
+    inst_id = 0 if raw_inst_id == 0 else get_active_inst_id(raw_inst_id)
     program_id = request.args.get('program_id', 0, type=int)
     print(f"DEBUG: Fetching users for inst_id={inst_id}, program_id={program_id}")
     if request.method == 'POST':
@@ -1119,44 +1120,83 @@ def handle_users():
                 "message": "Acceso denegado: Creación de usuarios reservada para Administradores."
             }), 403
 
-        data = request.json
-        email = data.get('email')
+        data = request.json or {}
+        email = (data.get('email') or '').strip().lower()
         if not email:
             return jsonify({"status": "error", "message": "Email requerido"})
-        # Check if user exists
-        existing = supabase.table('users').select("id").eq("email", email).execute()
-        if existing.data:
-            return jsonify({"status": "error", "message": "El usuario ya existe"}), 409
+
+        target_inst_id = inst_id if (inst_id and inst_id > 0) else get_active_inst_id()
         temp_password = data.get('password', 'SIACTemp2025!')
         password_hash = generate_password_hash(temp_password)
+        name_val = (data.get('name') or '').strip() or email.split('@')[0]
+        role_val = data.get('role', 'lider')
+
+        # Check if user already exists (case-insensitive) -> Update & link to active institution
+        existing = supabase.table('users').select("*").ilike("email", email).execute()
+        if existing.data:
+            existing_id = existing.data[0]['id']
+            try:
+                upd_res = supabase.table('users').update({
+                    "name": name_val,
+                    "role": role_val,
+                    "inst_id": target_inst_id,
+                    "program_id": program_id,
+                    "password_hash": password_hash
+                }).eq("id", existing_id).execute()
+            except Exception:
+                upd_res = supabase.table('users').update({
+                    "name": name_val,
+                    "role": role_val,
+                    "inst_id": target_inst_id,
+                    "password_hash": password_hash
+                }).eq("id", existing_id).execute()
+            user_row = upd_res.data[0] if upd_res.data else existing.data[0]
+            return jsonify({
+                "status": "success",
+                "updated": True,
+                "data": user_row,
+                "temp_password": temp_password,
+                "message": "Usuario actualizado y vinculado a la institución activa."
+            })
+
         try:
             try:
                 # Intento con todos los campos (name y program_id)
                 res = supabase.table('users').insert({
                     "email": email,
                     "password_hash": password_hash,
-                    "role": data.get('role', 'lider'),
-                    "inst_id": inst_id,
+                    "role": role_val,
+                    "inst_id": target_inst_id,
                     "program_id": program_id,
-                    "name": data.get('name', email.split('@')[0])
+                    "name": name_val
                 }).execute()
-            except Exception:
+            except Exception as ins_err:
+                if "23505" in str(ins_err) or "duplicate key" in str(ins_err).lower():
+                    ex_retry = supabase.table('users').select("*").ilike("email", email).execute()
+                    if ex_retry.data:
+                        upd_res = supabase.table('users').update({
+                            "name": name_val,
+                            "role": role_val,
+                            "inst_id": target_inst_id,
+                            "password_hash": password_hash
+                        }).eq("id", ex_retry.data[0]['id']).execute()
+                        return jsonify({"status": "success", "updated": True, "data": upd_res.data[0] if upd_res.data else ex_retry.data[0], "temp_password": temp_password})
                 try:
                     # Fallback sin program_id pero con name
                     res = supabase.table('users').insert({
                         "email": email,
                         "password_hash": password_hash,
-                        "role": data.get('role', 'lider'),
-                        "inst_id": inst_id,
-                        "name": data.get('name', email.split('@')[0])
+                        "role": role_val,
+                        "inst_id": target_inst_id,
+                        "name": name_val
                     }).execute()
                 except Exception:
                     # Fallback extremo: sin program_id y sin name
                     res = supabase.table('users').insert({
                         "email": email,
                         "password_hash": password_hash,
-                        "role": data.get('role', 'lider'),
-                        "inst_id": inst_id
+                        "role": role_val,
+                        "inst_id": target_inst_id
                     }).execute()
             
             # Enviar correo de bienvenida
@@ -1174,7 +1214,10 @@ def handle_users():
                 <p style="color: #64748b; font-size: 0.9em;">Saludos,<br>El equipo de SKEL 360</p>
             </div>
             """
-            send_email(email, "¡Bienvenido a SKEL 360! - Tus credenciales de acceso", html_content)
+            try:
+                send_email(email, "¡Bienvenido a SKEL 360! - Tus credenciales de acceso", html_content)
+            except Exception as mail_e:
+                print(f"Warning mail send: {mail_e}")
             
             return jsonify({"status": "success", "data": res.data[0], "temp_password": temp_password})
         except Exception as e:

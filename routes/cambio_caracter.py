@@ -424,7 +424,7 @@ def api_cc_skel_users():
         res = supabase.table('users').select('id, email, name, role, inst_id').execute()
         valid_users = [
             u for u in (res.data or [])
-            if u.get('role') in ['inst_admin', 'lider', 'operativo', 'admin']
+            if u.get('role') in ['inst_admin', 'lider', 'operativo', 'profesor', 'consultor', 'auditor', 'admin']
             and (u.get('inst_id') in [inst_id, 7, None] or u.get('role') == 'admin')
         ]
         return jsonify({"status": "success", "users": valid_users})

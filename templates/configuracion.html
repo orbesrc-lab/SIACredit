@@ -2728,7 +2728,10 @@
                 });
                 var result = await resp.json();
                 if (result.status === 'success') {
-                    alert('✅ Usuario creado.\n\nEmail: ' + email + '\nContraseña: ' + result.temp_password);
+                    var actionLabel = result.updated ? '✅ Usuario actualizado (el correo ya estaba registrado y se actualizaron sus datos/rol).' : '✅ Usuario creado.';
+                    alert(actionLabel + '\n\nEmail: ' + email + '\nContraseña: ' + result.temp_password);
+                    document.getElementById('inv_name').value = '';
+                    document.getElementById('inv_email').value = '';
                     closeInviteModal();
                     loadUsersFromAPI();
                     renderFactorLeaders();
