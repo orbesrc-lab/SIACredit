@@ -228,8 +228,40 @@ def get_cc_project(inst_id):
                 ]
             else:
                 item["equipo_documento"] = []
+        # Garantizar que contenido y snapshots estén siempre limpios de envoltorios JSON
+        if item.get("contenido"):
+            item["contenido"] = sanitize_doc_markdown_text(item["contenido"])
+        for v_item in (item.get("bitacora_versiones") or []):
+            if isinstance(v_item, dict) and v_item.get("contenido_snapshot"):
+                v_item["contenido_snapshot"] = sanitize_doc_markdown_text(v_item["contenido_snapshot"])
 
     return project
+
+
+def sanitize_doc_markdown_text(raw_text):
+    """Limpia cualquier rastro de envoltorio JSON ('markdown_report', 'evaluations', bloques ```json, \\n literales) de un documento."""
+    if not raw_text or not isinstance(raw_text, str):
+        return ""
+    import re
+    txt = raw_text.strip()
+    # 1. Si viene con etiquetas <DOCUMENTO_MARKDOWN> ... </DOCUMENTO_MARKDOWN>
+    doc_tag = re.search(r'<DOCUMENTO_MARKDOWN>([\s\S]*?)(?:</DOCUMENTO_MARKDOWN>|$)', txt, re.IGNORECASE)
+    if doc_tag:
+        txt = doc_tag.group(1).strip()
+    # 2. Remover bloque <EVALUATIONS_JSON> ... </EVALUATIONS_JSON> si quedó incluido
+    txt = re.sub(r'<EVALUATIONS_JSON>[\s\S]*?</EVALUATIONS_JSON>', '', txt, flags=re.IGNORECASE).strip()
+    # 3. Si empieza con ```json o { "markdown_report": "
+    txt = re.sub(r'^```(?:json)?\s*', '', txt, flags=re.IGNORECASE).strip()
+    txt = re.sub(r'\s*```$', '', txt).strip()
+    if re.match(r'^\{\s*"markdown_report"\s*:\s*"', txt):
+        txt = re.sub(r'^\{\s*"markdown_report"\s*:\s*"', '', txt, count=1).strip()
+        if '\\n' in txt:
+            txt = txt.replace('\\n', '\n').replace('\\"', '"').replace('\\t', '\t')
+    # 4. Cortar cualquier cola JSON '", "evaluations": {' al final
+    txt = re.sub(r'"?\s*,\s*"evaluations"\s*:\s*\{[\s\S]*$', '', txt, flags=re.IGNORECASE).strip()
+    if txt.endswith('"}'):
+        txt = txt[:-2].strip()
+    return txt
 
 
 def merge_team_members_into_doc(doc_item, members_list, default_rol="Co-Autor / Integrante"):
@@ -551,26 +583,28 @@ INSTRUCCIONES ESPECÍFICAS DEL USUARIO:
 TEXTO / EVIDENCIA BASE:
 {text_to_process}
 
-Debes responder con un bloque de código JSON válido con esta estructura exacta (NO incluyas texto fuera del JSON):
-```json
+Debes responder utilizando EXACTAMENTE estas dos etiquetas XML (NO envuelvas el documento Markdown dentro de un string JSON):
+
+<EVALUATIONS_JSON>
 {{
-  "markdown_report": "Aquí redacta el INFORME TÉCNICO Y LA PROPUESTA REDACTADA (articulados, políticas, planes de acción) en formato Markdown para INTENALCO EDUCACIÓN SUPERIOR.",
-  "evaluations": {{
-    "req_X": {{
-      "status": "En Construcción",
-      "notes": "Justificación técnica del estado y recomendación.",
-      "preguntas_6": {{
-        "existe": true,
-        "vigente": true,
-        "aprobado": false,
-        "pertinente": true,
-        "aplica": false,
-        "evidencia": false
-      }}
+  "req_X": {{
+    "status": "En Construcción",
+    "notes": "Justificación técnica del estado y recomendación.",
+    "preguntas_6": {{
+      "existe": true,
+      "vigente": true,
+      "aprobado": false,
+      "pertinente": true,
+      "aplica": false,
+      "evidencia": false
     }}
   }}
 }}
-```
+</EVALUATIONS_JSON>
+
+<DOCUMENTO_MARKDOWN>
+Aquí redacta directamente el INFORME TÉCNICO Y LA PROPUESTA REDACTADA (articulados, políticas, planes de acción) en formato Markdown limpio para INTENALCO EDUCACIÓN SUPERIOR.
+</DOCUMENTO_MARKDOWN>
 """
 
         elif mode == 'draft_product':
@@ -596,13 +630,14 @@ INSTRUCCIONES ESPECÍFICAS:
 INSUMOS / BASE DOCUMENTAL (si aplica):
 {text_to_process or 'No se adjuntó texto previo; redacta la propuesta estándar de máxima calidad institucional para INTENALCO EDUCACIÓN SUPERIOR.'}
 
-Devuelve un bloque JSON:
-```json
-{{
-  "markdown_report": "Aquí redacta el DOCUMENTO COMPLETO en formato Markdown formal y riguroso para INTENALCO EDUCACIÓN SUPERIOR.",
-  "evaluations": {{}}
-}}
-```
+Responde utilizando estas etiquetas:
+<EVALUATIONS_JSON>
+{{}}
+</EVALUATIONS_JSON>
+
+<DOCUMENTO_MARKDOWN>
+Aquí redacta directamente el DOCUMENTO COMPLETO en formato Markdown formal y riguroso para INTENALCO EDUCACIÓN SUPERIOR.
+</DOCUMENTO_MARKDOWN>
 """
 
         elif mode == 'solve_brecha':
@@ -641,26 +676,27 @@ INSUMOS / DOCUMENTO DE REFERENCIA ADICIONAL:
 {text_to_process or 'Toma como base el contexto institucional de INTENALCO EDUCACIÓN SUPERIOR.'}
 (Importante: Si el documento adjunto menciona otra institución por ser un referente comparativo, adapta todo el texto, títulos y articulados exclusivamente a INTENALCO EDUCACIÓN SUPERIOR).
 
-Devuelve un bloque JSON:
-```json
+Responde utilizando EXACTAMENTE estas dos etiquetas (NO envuelvas el documento Markdown dentro de un string JSON):
+<EVALUATIONS_JSON>
 {{
-  "markdown_report": "Redacta el informe de cierre de brecha, propuesta de texto legal/académico para INTENALCO EDUCACIÓN SUPERIOR y protocolo de evidencias.",
-  "evaluations": {{
-    "{default_req_id}": {{
-      "status": "En Construcción",
-      "notes": "Síntesis del estado actual y cómo esta propuesta cierra la brecha en INTENALCO.",
-      "preguntas_6": {{
-        "existe": true,
-        "vigente": false,
-        "aprobado": false,
-        "pertinente": true,
-        "aplica": false,
-        "evidencia": false
-      }}
+  "{default_req_id}": {{
+    "status": "En Construcción",
+    "notes": "Síntesis del estado actual y cómo esta propuesta cierra la brecha en INTENALCO.",
+    "preguntas_6": {{
+      "existe": true,
+      "vigente": false,
+      "aprobado": false,
+      "pertinente": true,
+      "aplica": false,
+      "evidencia": false
     }}
   }}
 }}
-```
+</EVALUATIONS_JSON>
+
+<DOCUMENTO_MARKDOWN>
+Redacta aquí el informe de cierre de brecha, propuesta de texto legal/académico para INTENALCO EDUCACIÓN SUPERIOR y protocolo de evidencias en formato Markdown limpio.
+</DOCUMENTO_MARKDOWN>
 """
 
         elif mode == 'evaluate_evidence':
@@ -680,26 +716,27 @@ DOCUMENTO / EVIDENCIAS REVISADAS:
 INSTRUCCIONES ESPECÍFICAS:
 {custom_instructions or 'Emite dictamen de auditoría para INTENALCO EDUCACIÓN SUPERIOR por cada requisito evidenciado y califica cada una de las 6 preguntas.'}
 
-Devuelve un bloque JSON:
-```json
+Responde utilizando estas dos etiquetas:
+<EVALUATIONS_JSON>
 {{
-  "markdown_report": "Dictamen de auditoría con hallazgos, recomendaciones y plan de subsanación para INTENALCO EDUCACIÓN SUPERIOR.",
-  "evaluations": {{
-    "req_X": {{
-      "status": "Completado",
-      "notes": "Dictamen fundado.",
-      "preguntas_6": {{
-        "existe": true,
-        "vigente": true,
-        "aprobado": true,
-        "pertinente": true,
-        "aplica": true,
-        "evidencia": true
-      }}
+  "req_X": {{
+    "status": "Completado",
+    "notes": "Dictamen fundado.",
+    "preguntas_6": {{
+      "existe": true,
+      "vigente": true,
+      "aprobado": true,
+      "pertinente": true,
+      "aplica": true,
+      "evidencia": true
     }}
   }}
 }}
-```
+</EVALUATIONS_JSON>
+
+<DOCUMENTO_MARKDOWN>
+Redacta aquí el dictamen de auditoría con hallazgos, recomendaciones y plan de subsanación para INTENALCO EDUCACIÓN SUPERIOR en formato Markdown limpio.
+</DOCUMENTO_MARKDOWN>
 """
 
         else: # full_diagnosis (default)
@@ -723,26 +760,27 @@ INSTRUCCIONES ESPECÍFICAS:
 DOCUMENTO BASE EXTRAÍDO:
 {text_to_process}
 
-Devuelve EXCLUSIVAMENTE un bloque de código JSON:
-```json
+Responde utilizando estas dos etiquetas:
+<EVALUATIONS_JSON>
 {{
-  "markdown_report": "Redacta el informe técnico de brechas y las propuestas de redacción formal de estatutos/políticas en formato Markdown para INTENALCO EDUCACIÓN SUPERIOR.",
-  "evaluations": {{
-    "req_1": {{
-      "status": "En Construcción",
-      "notes": "Breve nota de cumplimiento.",
-      "preguntas_6": {{
-        "existe": true,
-        "vigente": true,
-        "aprobado": false,
-        "pertinente": true,
-        "aplica": false,
-        "evidencia": false
-      }}
+  "req_1": {{
+    "status": "En Construcción",
+    "notes": "Breve nota de cumplimiento.",
+    "preguntas_6": {{
+      "existe": true,
+      "vigente": true,
+      "aprobado": false,
+      "pertinente": true,
+      "aplica": false,
+      "evidencia": false
     }}
   }}
 }}
-```
+</EVALUATIONS_JSON>
+
+<DOCUMENTO_MARKDOWN>
+Redacta aquí el informe técnico de brechas y las propuestas de redacción formal de estatutos/políticas en formato Markdown limpio para INTENALCO EDUCACIÓN SUPERIOR.
+</DOCUMENTO_MARKDOWN>
 """
 
         messages = [
@@ -753,59 +791,54 @@ Devuelve EXCLUSIVAMENTE un bloque de código JSON:
         ai_response = call_ai(messages, max_tokens=32000, inst_id=inst_id)
 
         import re
-        match = re.search(r'```(?:json)?\s*\n(.*?)\n```', ai_response, re.DOTALL)
-        if match:
-            json_str = match.group(1).strip()
-        else:
-            json_str = ai_response.strip()
-            if json_str.startswith('```'):
-                json_str = re.sub(r'^```(?:json)?\s*', '', json_str)
-            if json_str.endswith('```'):
-                json_str = re.sub(r'\s*```$', '', json_str)
-
-        analysis_html = ""
         evaluations = {}
-        try:
-            parsed_data = json.loads(json_str)
-            analysis_html = parsed_data.get("markdown_report", "")
-            evaluations = parsed_data.get("evaluations", {}) or {}
-        except Exception as json_e:
-            print("[CC AI] JSON Parse fallback:", json_e)
-            # 1) Extraer el bloque "evaluations": { ... } permitiendo saltos de línea y espacios
-            eval_split = re.search(r'"\s*,\s*"evaluations"\s*:\s*(\{[\s\S]*\})\s*\}?\s*$', json_str)
-            if eval_split:
-                raw_report_part = json_str[:eval_split.start()]
-                raw_eval_part = eval_split.group(1).strip()
-                # Balancear llaves para extraer el objeto evaluations exacto
-                depth = 0
-                end_idx = len(raw_eval_part)
-                for idx_ch, ch in enumerate(raw_eval_part):
-                    if ch == '{':
-                        depth += 1
-                    elif ch == '}':
-                        depth -= 1
-                        if depth == 0:
-                            end_idx = idx_ch + 1
-                            break
-                try:
-                    evaluations = json.loads(raw_eval_part[:end_idx])
-                except Exception as ev_err:
-                    print("[CC AI] Evaluations block parse warning:", ev_err)
-                    evaluations = {}
-                analysis_html = re.sub(r'^\s*\{\s*"markdown_report"\s*:\s*"', '', raw_report_part, flags=re.DOTALL)
-                analysis_html = analysis_html.replace('\\n', '\n').replace('\\"', '"').replace('\\t', '\t')
-            else:
-                rescate = re.search(r'"markdown_report"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"evaluations"|"\s*\}|$)', json_str, re.IGNORECASE)
-                if rescate:
-                    analysis_html = rescate.group(1).replace('\\n', '\n').replace('\\"', '"')
-                else:
-                    analysis_html = ai_response
+        analysis_html = ""
 
-        # Limpieza garantizada: jamás permitir que código JSON '"evaluations": {' quede pegado dentro del documento
-        analysis_html = re.sub(r'"?\s*,\s*"evaluations"\s*:\s*\{[\s\S]*$', '', analysis_html).strip()
-        analysis_html = re.sub(r'^\s*\{\s*"markdown_report"\s*:\s*"', '', analysis_html).strip()
-        if analysis_html.endswith('"}'):
-            analysis_html = analysis_html[:-2].strip()
+        # 1) Formato preferido: <EVALUATIONS_JSON> + <DOCUMENTO_MARKDOWN>
+        ev_tag_match = re.search(r'<EVALUATIONS_JSON>([\s\S]*?)</EVALUATIONS_JSON>', ai_response, re.IGNORECASE)
+        if ev_tag_match:
+            ev_raw = ev_tag_match.group(1).strip()
+            ev_raw = re.sub(r'^```(?:json)?\s*', '', ev_raw).strip()
+            ev_raw = re.sub(r'\s*```$', '', ev_raw).strip()
+            try:
+                parsed_ev = json.loads(ev_raw)
+                evaluations = parsed_ev.get("evaluations", parsed_ev) if isinstance(parsed_ev, dict) else {}
+            except Exception as e_xml:
+                print("[CC AI] XML evaluations JSON warning:", e_xml)
+
+        doc_tag_match = re.search(r'<DOCUMENTO_MARKDOWN>([\s\S]*?)(?:</DOCUMENTO_MARKDOWN>|$)', ai_response, re.IGNORECASE)
+        if doc_tag_match:
+            analysis_html = sanitize_doc_markdown_text(doc_tag_match.group(1))
+        else:
+            # 2) Fallback por si la IA devolvió un objeto JSON {"markdown_report": "...", "evaluations": {...}}
+            match = re.search(r'```(?:json)?\s*\n(.*?)\n```', ai_response, re.DOTALL)
+            json_str = match.group(1).strip() if match else ai_response.strip()
+            try:
+                parsed_data = json.loads(json_str)
+                analysis_html = parsed_data.get("markdown_report", "")
+                if not evaluations:
+                    evaluations = parsed_data.get("evaluations", {}) or {}
+            except Exception:
+                eval_split = re.search(r'"\s*,\s*"evaluations"\s*:\s*(\{[\s\S]*\})\s*\}?\s*$', json_str)
+                if eval_split and not evaluations:
+                    raw_eval_part = eval_split.group(1).strip()
+                    depth = 0
+                    end_idx = len(raw_eval_part)
+                    for idx_ch, ch in enumerate(raw_eval_part):
+                        if ch == '{':
+                            depth += 1
+                        elif ch == '}':
+                            depth -= 1
+                            if depth == 0:
+                                end_idx = idx_ch + 1
+                                break
+                    try:
+                        evaluations = json.loads(raw_eval_part[:end_idx])
+                    except Exception:
+                        evaluations = {}
+                analysis_html = sanitize_doc_markdown_text(json_str)
+
+        analysis_html = sanitize_doc_markdown_text(analysis_html)
 
         if evaluations and isinstance(evaluations, dict):
             first_eval_req = next((k for k in evaluations.keys() if k.startswith('req_')), None)
