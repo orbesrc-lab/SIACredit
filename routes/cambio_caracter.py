@@ -1390,6 +1390,172 @@ def api_cc_ai_history_save():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+def extract_rich_markdown_from_docx(file_bytes):
+    """Extrae un documento .docx respetando el orden exacto de párrafos y tablas, negrillas, capítulos, artículos, considerandos y listas."""
+    import re
+    from docx.text.paragraph import Paragraph
+    from docx.table import Table
+
+    d_obj = docx.Document(io.BytesIO(file_bytes))
+    blocks = []
+
+    def format_para_with_inline_bold(para):
+        if not para.runs:
+            return para.text.strip()
+        parts = []
+        for r in para.runs:
+            txt_r = r.text
+            if not txt_r:
+                continue
+            if r.bold and txt_r.strip():
+                lead = len(txt_r) - len(txt_r.lstrip())
+                trail = len(txt_r) - len(txt_r.rstrip())
+                core = txt_r.strip()
+                parts.append(f"{txt_r[:lead]}**{core}**{txt_r[len(txt_r)-trail:] if trail else ''}")
+            else:
+                parts.append(txt_r)
+        joined = "".join(parts).strip()
+        # Colapsar negrillas adyacentes **a****b** -> **ab**
+        joined = re.sub(r'\*\*\s*\*\*', ' ', joined)
+        return joined
+
+    raw_items = []
+    for child in d_obj.element.body.iterchildren():
+        tag = child.tag.split('}')[-1] if '}' in child.tag else child.tag
+        if tag == 'p':
+            p_obj = Paragraph(child, d_obj)
+            plain = p_obj.text.strip()
+            if plain:
+                raw_items.append(('p', p_obj, plain))
+        elif tag == 'tbl':
+            t_obj = Table(child, d_obj)
+            raw_items.append(('tbl', t_obj, ''))
+
+    idx = 0
+    total = len(raw_items)
+    while idx < total:
+        kind, obj, plain = raw_items[idx]
+        if kind == 'tbl':
+            tbl_lines = []
+            for r_i, row in enumerate(obj.rows):
+                raw_cells = [c.text.strip().replace('\n', ' ') for c in row.cells]
+                # Evitar celdas duplicadas por celdas combinadas horizontalmente en Word
+                dedup_cells = []
+                for c_val in raw_cells:
+                    if len(dedup_cells) > 0 and c_val == dedup_cells[-1] and len(raw_cells) > 4:
+                        continue
+                    dedup_cells.append(c_val)
+                if not any(dedup_cells):
+                    continue
+                tbl_lines.append("| " + " | ".join(dedup_cells) + " |")
+                if len(tbl_lines) == 1:
+                    tbl_lines.append("| " + " | ".join(["---"] * len(dedup_cells)) + " |")
+            if tbl_lines:
+                blocks.append("\n".join(tbl_lines))
+            idx += 1
+            continue
+
+        # Es un párrafo
+        style_name = (obj.style.name if obj.style else "").lower()
+        upper_p = plain.upper()
+
+        # 1) Detectar CAPÍTULO / TÍTULO / SECCIÓN y unir con el subtítulo inmediatamente siguiente si está en mayúsculas
+        if re.match(r'^(CAP[ÍI]TULO|T[ÍI]TULO|SECCI[ÓO]N)\s+[IVXLCDM0-9]+', upper_p) and len(plain) < 60:
+            if idx + 1 < total and raw_items[idx + 1][0] == 'p':
+                next_plain = raw_items[idx + 1][2]
+                if len(next_plain) < 110 and (next_plain.isupper() or all(r.bold for r in raw_items[idx + 1][1].runs if r.text.strip())):
+                    blocks.append(f"## 🏛️ {plain} — {next_plain}")
+                    idx += 2
+                    continue
+            blocks.append(f"## 🏛️ {plain}")
+            idx += 1
+            continue
+
+        # 2) Encabezados mayores de Actos Administrativos y Políticas
+        if upper_p in [
+            "CONSIDERANDO", "CONSIDERANDO:", "ACUERDA", "ACUERDA:", "RESUELVE", "RESUELVE:",
+            "TABLA DE CONTENIDO", "PRESENTACIÓN", "INTRODUCCIÓN", "JUSTIFICACIÓN",
+            "DISPOSICIONES GENERALES", "DISPOSICIONES TRANSITORIAS", "DISPOSICIONES FINALES"
+        ]:
+            blocks.append(f"## 📌 {plain}")
+            idx += 1
+            continue
+
+        if re.match(r'^(ACUERDO|RESOLUCI[ÓO]N)\s+(DEL\s+CONSEJO|N\.?°|No\.?)', upper_p) and len(plain) < 90:
+            blocks.append(f"## 📜 {plain}")
+            idx += 1
+            continue
+
+        if re.match(r'^POR\s+(MEDIO\s+DEL\s+CUAL|EL\s+CUAL)\b', upper_p) and len(plain) < 280:
+            blocks.append(f"> **{plain}**")
+            idx += 1
+            continue
+
+        # 3) Artículos normativos
+        art_match = re.match(r'^(ART[ÍI]CULO\s+(?:DE\s+APROBACI[ÓO]N|\d+[°º.]?)\s*[-.:]?\s*)(.*)$', plain, re.IGNORECASE)
+        if art_match:
+            art_prefix = art_match.group(1).strip()
+            art_rest = art_match.group(2).strip()
+            # Si la primera oración del artículo es el epígrafe en negrilla
+            epigrafe_split = re.match(r'^([^.]{3,95}\.)\s+(.*)$', art_rest)
+            if epigrafe_split:
+                blocks.append(f"### ⚖️ {art_prefix} {epigrafe_split.group(1)}\n\n{epigrafe_split.group(2)}")
+            else:
+                blocks.append(f"### ⚖️ {art_prefix}\n\n{art_rest}" if len(art_rest) > 90 else f"### ⚖️ {plain}")
+            idx += 1
+            continue
+
+        # 4) Parágrafos
+        if re.match(r'^PAR[ÁA]GRAFO\b', upper_p):
+            rich_p = format_para_with_inline_bold(obj)
+            if not rich_p.startswith('**'):
+                rich_p = re.sub(r'^(Par[áa]grafo\s*(?:transitorio|\d+)?[.:]?)', r'**\1**', plain, flags=re.IGNORECASE)
+            blocks.append(f"> {rich_p}")
+            idx += 1
+            continue
+
+        # 5) Considerandos ("Que, ...")
+        if re.match(r'^Que,?\s+', plain):
+            rich_q = format_para_with_inline_bold(obj)
+            blocks.append(f"- {rich_q}")
+            idx += 1
+            continue
+
+        # 6) Literales y numerales (a), b), i), ii), 1., 1.1.)
+        lit_match = re.match(r'^([a-z]|[ivxlcdm]{1,5})\)\s+(.*)$', plain, re.IGNORECASE)
+        if lit_match:
+            blocks.append(f"- **{lit_match.group(1)})** {lit_match.group(2)}")
+            idx += 1
+            continue
+
+        num_heading = re.match(r'^(\d+(?:\.\d+){0,2}\.?)\s+([A-ZÁÉÍÓÚÑ][^\n]{3,95})$', plain)
+        if num_heading and len(plain) < 110 and not plain.endswith('.'):
+            lvl = "###" if "." in num_heading.group(1).strip(".") else "##"
+            blocks.append(f"{lvl} {plain}")
+            idx += 1
+            continue
+
+        # 7) Estilos nativos de Word o líneas cortas en negrilla/mayúscula sostenida
+        if "heading 1" in style_name or "título 1" in style_name:
+            blocks.append(f"# {plain}")
+        elif "heading 2" in style_name or "título 2" in style_name:
+            blocks.append(f"## {plain}")
+        elif "heading 3" in style_name or "título 3" in style_name:
+            blocks.append(f"### {plain}")
+        elif "list" in style_name or "viñeta" in style_name:
+            blocks.append(f"- {format_para_with_inline_bold(obj)}")
+        elif len(plain) < 95 and plain.isupper():
+            blocks.append(f"### {plain}")
+        elif len(plain) < 115 and obj.runs and all(r.bold for r in obj.runs if r.text.strip()):
+            blocks.append(f"#### {plain}")
+        else:
+            blocks.append(format_para_with_inline_bold(obj))
+
+        idx += 1
+
+    return "\n\n".join(blocks).strip()
+
+
 @cambio_caracter_bp.route('/api/cambio_caracter/doc/import_file', methods=['POST'])
 def api_cc_doc_import_file():
     """Importa un archivo .docx o .pdf construido por el equipo y lo convierte en un documento colaborativo con trazabilidad."""
@@ -1444,35 +1610,9 @@ def api_cc_doc_import_file():
 
             if ext == '.docx':
                 try:
-                    d_obj = docx.Document(io.BytesIO(file_bytes))
-                    md_lines = []
-                    for para in d_obj.paragraphs:
-                        t = para.text.strip()
-                        if not t:
-                            md_lines.append("")
-                            continue
-                        style_name = (para.style.name if para.style else "").lower()
-                        if "heading 1" in style_name or "título 1" in style_name:
-                            md_lines.append(f"# {t}")
-                        elif "heading 2" in style_name or "título 2" in style_name:
-                            md_lines.append(f"## {t}")
-                        elif "heading 3" in style_name or "título 3" in style_name:
-                            md_lines.append(f"### {t}")
-                        elif "list" in style_name or "viñeta" in style_name:
-                            md_lines.append(f"- {t}")
-                        else:
-                            md_lines.append(t)
-                    # Also extract tables if any
-                    for tbl in d_obj.tables:
-                        md_lines.append("")
-                        for r_i, row in enumerate(tbl.rows):
-                            cells_txt = [c.text.strip().replace('\n', ' ') for c in row.cells]
-                            md_lines.append("| " + " | ".join(cells_txt) + " |")
-                            if r_i == 0:
-                                md_lines.append("| " + " | ".join(["---"] * len(cells_txt)) + " |")
-                        md_lines.append("")
-                    extracted_md = "\n".join(md_lines).strip()
-                except Exception:
+                    extracted_md = extract_rich_markdown_from_docx(file_bytes)
+                except Exception as docx_e:
+                    print(f"[CC Rich DOCX Extract] Fallback: {docx_e}")
                     extracted_md = docx2txt.process(io.BytesIO(file_bytes))
             elif ext == '.doc':
                 extracted_md = docx2txt.process(io.BytesIO(file_bytes))
