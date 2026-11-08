@@ -34,6 +34,77 @@ def load_defaults():
             return json.load(f)
     return {}
 
+
+def build_clean_cc_project(inst_id):
+    """Construye la estructura base en limpio (0% avance, sin documentos de prueba ni evidencias previas)."""
+    defaults = load_defaults()
+    now_iso = datetime.datetime.now().isoformat()
+
+    clean_fases = []
+    for f in defaults.get("fases", []):
+        fc = dict(f)
+        fc["progreso"] = 0
+        fc["estado"] = "Pendiente"
+        clean_fases.append(fc)
+
+    clean_quincenas = []
+    for q in defaults.get("quincenas", []):
+        qc = dict(q)
+        qc["estado"] = "Pendiente"
+        qc["notas"] = ""
+        clean_quincenas.append(qc)
+
+    clean_frentes = []
+    for fr in defaults.get("frentes", []):
+        frc = dict(fr)
+        frc["progreso"] = 0
+        frc["estado"] = "Pendiente"
+        clean_frentes.append(frc)
+
+    clean_productos = []
+    for pr in defaults.get("productos", []):
+        prc = dict(pr)
+        prc["estado"] = "Pendiente"
+        prc["version"] = "1.0"
+        prc["documento_contenido"] = ""
+        clean_productos.append(prc)
+
+    clean_riesgos = []
+    for rk in defaults.get("riesgos", []):
+        rkc = dict(rk)
+        rkc["estado"] = "Activo"
+        clean_riesgos.append(rkc)
+
+    return {
+        "inst_id": inst_id,
+        "created_at": now_iso,
+        "updated_at": now_iso,
+        "fases": clean_fases,
+        "quincenas": clean_quincenas,
+        "frentes": clean_frentes,
+        "productos": clean_productos,
+        "riesgos": clean_riesgos,
+        "brechas": [],
+        "requisitos": {
+            req["id"]: {
+                "status": "Pendiente",
+                "notes": "",
+                "evidences": [],
+                "preguntas_6": {
+                    "existe": False,
+                    "vigente": False,
+                    "aprobado": False,
+                    "pertinente": False,
+                    "aplica": False,
+                    "evidencia": False
+                }
+            } for req in REQUISITOS
+        },
+        "ai_history": [],
+        "ai_gap_analysis": ""
+    }
+
+
 def get_cc_project(inst_id):
     table_id = f"CC_PROJ_{inst_id}"
     project = None
@@ -43,43 +114,19 @@ def get_cc_project(inst_id):
             project = json.loads(res.data[0]['data_json'])
     except Exception as e:
         print(f"[CC] Error fetch: {e}")
-    
+
     defaults = load_defaults()
 
     if not project:
-        project = {
-            "inst_id": inst_id,
-            "created_at": datetime.datetime.now().isoformat(),
-            "updated_at": datetime.datetime.now().isoformat(),
-            "fases": defaults.get("fases", []),
-            "quincenas": defaults.get("quincenas", []),
-            "frentes": defaults.get("frentes", []),
-            "productos": defaults.get("productos", []),
-            "riesgos": defaults.get("riesgos", []),
-            "brechas": defaults.get("brechas", []),
-            "requisitos": {
-                req["id"]: {
-                    "status": "Pendiente",
-                    "notes": "",
-                    "evidences": [],
-                    "preguntas_6": {
-                        "existe": False,
-                        "vigente": False,
-                        "aprobado": False,
-                        "pertinente": False,
-                        "aplica": False,
-                        "evidencia": False
-                    }
-                } for req in REQUISITOS
-            },
-            "ai_history": []
-        }
+        project = build_clean_cc_project(inst_id)
     else:
-        # Merge missing sections
-        for key in ["fases", "quincenas", "frentes", "productos", "riesgos", "brechas"]:
+        # Merge missing structural sections
+        for key in ["fases", "quincenas", "frentes", "productos", "riesgos"]:
             if key not in project or not project[key]:
                 project[key] = defaults.get(key, [])
-                
+        if "brechas" not in project or project["brechas"] is None:
+            project["brechas"] = []
+
         if "requisitos" not in project or not project["requisitos"]:
             project["requisitos"] = {
                 req["id"]: {
@@ -124,99 +171,8 @@ def get_cc_project(inst_id):
                         "evidencia": False
                     }
 
-        if "ai_history" not in project:
+        if "ai_history" not in project or project["ai_history"] is None:
             project["ai_history"] = []
-            if project.get("ai_gap_analysis"):
-                project["ai_history"].append({
-                    "id": str(uuid.uuid4()),
-                    "titulo": "Diagnóstico y Análisis de Brechas Base (MEN Ley 749)",
-                    "fecha": project.get("created_at", datetime.datetime.now().isoformat()),
-                    "tipo": "full_diagnosis",
-                    "frente": "Institucional General",
-                    "producto": "P2",
-                    "autor": "Asesor Experto MEN (IA)",
-                    "tokens_est": len(project.get("ai_gap_analysis", "")) // 4,
-                    "contenido": project.get("ai_gap_analysis", "")
-                })
-
-    # Seed exemplary collaborative document if ai_history is completely empty
-    if not project.get("ai_history"):
-        now_iso = datetime.datetime.now().isoformat()
-        sample_content = (
-            "# MODELO PEDAGÓGICO INSTITUCIONAL\n"
-            "## Redefinición hacia el Carácter de Institución Universitaria (Ley 749 de 2002 / Decreto 1330 de 2019)\n\n"
-            "### 1. Identidad Pedagógica y Fundamentación Epistemológica\n"
-            "El Modelo Pedagógico Institucional articula la formación integral por competencias y resultados de aprendizaje "
-            "con la generación, apropiación social y transferencia del conocimiento propia del carácter de **Institución Universitaria**. "
-            "Se sustenta en el aprendizaje significativo, situado y problémico, manteniendo la flexibilidad curricular y los ciclos propedéuticos.\n\n"
-            "### 2. Estructura Curricular, Créditos y Resultados de Aprendizaje\n"
-            "- **Organización por Créditos Académicos:** En cumplimiento del Decreto 1330 de 2019 y Acuerdo CESU 01 de 2025.\n"
-            "- **Flexibilidad e Interdisciplinariedad:** Rutas formativas electivas, homologación entre niveles y articulación pregrado-posgrado (especialización y maestría).\n"
-            "- **Evaluación de Resultados de Aprendizaje (RA):** Seguimiento longitudinal en tres momentos del plan de estudios.\n\n"
-            "### 3. Articulación de las Funciones Sustantivas\n"
-            "1. **Docencia centrada en el estudiante:** Mediaciones pedagógicas activas y acompañamiento tutorial.\n"
-            "2. **Investigación formativa y aplicada:** Vinculación de semilleros y grupos de investigación al currículo.\n"
-            "3. **Proyección social y relación con el sector externo:** Prácticas, consultoría e impacto regional."
-        )
-        project["ai_history"] = [
-            {
-                "id": "doc_modelo_pedagogico_base",
-                "codigo_doc": "DOC-P5-01",
-                "titulo": "Modelo Pedagógico Institucional (Transición a Institución Universitaria)",
-                "categoria": "Políticas y Modelos",
-                "fecha": now_iso,
-                "fecha_modificacion": now_iso,
-                "tipo": "collaborative_doc",
-                "frente": "Oferta y currículo",
-                "producto": "P5",
-                "requisito_id": "req_17",
-                "fase": "Fase III: Escenario y diseño",
-                "version_actual": "v1.1",
-                "estado_editorial": "En Revisión del Equipo",
-                "autor": "Vicerrectoría Académica",
-                "cargo_dependencia": "Vicerrectoría Académica",
-                "rol_skel": "lider",
-                "tokens_est": 0,
-                "contenido": sample_content,
-                "bitacora_versiones": [
-                    {
-                        "version": "v1.0",
-                        "fecha": now_iso,
-                        "autor": "Vicerrectoría Académica",
-                        "cargo_dependencia": "Vicerrectoría Académica",
-                        "rol_skel": "lider",
-                        "fase": "Fase II: Diagnóstico integral",
-                        "tipo_actuacion": "Redacción Inicial",
-                        "resumen_cambio": "Estructuración base del Modelo Pedagógico alineado a Ley 749/2002 y Decreto 1330/2019.",
-                        "contenido_snapshot": sample_content
-                    },
-                    {
-                        "version": "v1.1",
-                        "fecha": now_iso,
-                        "autor": "Dirección de Calidad / Comité Curricular",
-                        "cargo_dependencia": "Dirección de Calidad",
-                        "rol_skel": "lider",
-                        "fase": "Fase III: Escenario y diseño",
-                        "tipo_actuacion": "Aporte Mesa de Trabajo",
-                        "resumen_cambio": "Incorporación de lineamientos de Resultados de Aprendizaje y articulación con investigación formativa.",
-                        "contenido_snapshot": sample_content
-                    }
-                ],
-                "aportes_equipo": [
-                    {
-                        "id": "ap_sample_1",
-                        "fecha": now_iso,
-                        "autor": "Comité Curricular Institucional",
-                        "cargo_dependencia": "Directores de Programa y Docentes",
-                        "tipo": "Acuerdo de Mesa de Trabajo",
-                        "seccion_referencia": "Cap. 2 - Estructura Curricular y RA",
-                        "comentario": "En mesa de trabajo ampliada con representantes docentes y directores de programa se validó la taxonomía de Resultados de Aprendizaje y las rutas de flexibilidad interdisciplinar.",
-                        "estado": "Aplicado"
-                    }
-                ],
-                "auditorias_ia": []
-            }
-        ]
 
     # Ensure every item in ai_history has collaborative & traceability fields
     for idx_h, item in enumerate(project.get("ai_history", [])):
@@ -2163,3 +2119,231 @@ def api_cc_export_excel():
     except Exception as e:
         print(f"[CC] Excel Export Error: {e}")
         return str(e), 500
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/reset_project', methods=['POST'])
+def api_cc_reset_project():
+    """Elimina todos los registros de prueba, evidencias y versiones previas del proyecto de Cambio de Carácter y lo reinicia en 0%."""
+    try:
+        data = request.json or {}
+        inst_id = int(data.get("inst_id") or get_active_inst_id())
+        existing = get_cc_project(inst_id)
+
+        paths_to_delete = []
+        for r_val in (existing.get("requisitos") or {}).values():
+            for ev in (r_val.get("evidences") or []):
+                if ev.get("path"):
+                    paths_to_delete.append(ev["path"])
+
+        for doc_item in (existing.get("ai_history") or []):
+            if doc_item.get("storage_path"):
+                paths_to_delete.append(doc_item["storage_path"])
+            for v in (doc_item.get("bitacora_versiones") or []):
+                if v.get("storage_path"):
+                    paths_to_delete.append(v["storage_path"])
+
+        unique_paths = list({p for p in paths_to_delete if p})
+        try:
+            col_items = supabase.storage.from_('evidencias').list(f"inst_{inst_id}/cambio_caracter/documentos_colectivos") or []
+            for x in col_items:
+                if x.get("name"):
+                    unique_paths.append(f"inst_{inst_id}/cambio_caracter/documentos_colectivos/{x['name']}")
+        except Exception:
+            pass
+        unique_paths = list(set(unique_paths))
+        if unique_paths:
+            try:
+                supabase.storage.from_('evidencias').remove(unique_paths)
+            except Exception as st_err:
+                print(f"[CC] Storage cleanup warning: {st_err}")
+
+        clean_project = build_clean_cc_project(inst_id)
+        save_cc_project(inst_id, clean_project)
+        return jsonify({
+            "status": "success",
+            "message": "El módulo de Cambio de Carácter ha sido reiniciado completamente en limpio (0%).",
+            "deleted_files_count": len(unique_paths),
+            "data": clean_project
+        })
+    except Exception as e:
+        print(f"[CC] Reset Project Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+def generate_manual_operativo_docx_bytes():
+    """Genera el Manual Operativo y Metodológico Paso a Paso del Módulo de Cambio de Carácter Académico (SKEL360)."""
+    doc = docx.Document()
+    for section in doc.sections:
+        section.top_margin = Inches(0.85)
+        section.bottom_margin = Inches(0.85)
+        section.left_margin = Inches(0.95)
+        section.right_margin = Inches(0.95)
+
+    h0 = doc.add_heading("MANUAL OPERATIVO Y METODOLÓGICO PASO A PASO", level=0)
+    h0.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    sub = doc.add_paragraph()
+    sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    r_sub = sub.add_run(
+        "Módulo de Cambio de Carácter Académico (Ley 749 de 2002 · Decreto 1330 de 2019 · Decreto 2038 de 2023)\n"
+        "Guía de Utilización de Botones, Flujo Cronológico de Trabajo en Equipo y Trazabilidad Probatoria en Supabase (skel360.online)"
+    )
+    r_sub.font.bold = True
+    r_sub.font.size = Pt(10.5)
+    r_sub.font.color.rgb = RGBColor(79, 70, 229)
+
+    doc.add_paragraph()
+
+    # SECCIÓN 1: ARQUITECTURA DE ALMACENAMIENTO Y TRAZABILIDAD
+    doc.add_heading("1. ¿Cómo funciona la Trazabilidad y dónde reposan los documentos?", level=1)
+    p1 = doc.add_paragraph(
+        "Todo el trabajo realizado por el equipo institucional en https://skel360.online/cambio_caracter queda respaldado en tiempo real en dos capas de Supabase:"
+    )
+    doc.add_paragraph("Base de Datos (Tabla 'statistics' -> Clave CC_PROJ_7): Guarda el estado de las 6 Fases, 12 Quincenas, 13 Frentes, 56 Requisitos (con las 6 preguntas de verificación), Matriz de Brechas, Productos P1-P10, bitácora de versiones, aportes de mesas de trabajo y dictámenes de auditoría IA.", style='List Bullet')
+    doc.add_paragraph("Repositorio Cloud de Archivos (Supabase Storage -> Bucket 'evidencias'): Guarda todos los archivos probatorios (.pdf, .docx, .xlsx) subidos en los 56 requisitos y genera automáticamente un archivo Word (.docx) en la nube por cada versión de los documentos trabajados en equipo, indexándolo automáticamente al requisito normativo correspondiente.", style='List Bullet')
+
+    # SECCIÓN 2: BOTONES DE LA BARRA SUPERIOR (HERO BANNER)
+    doc.add_heading("2. Función de cada Botón de la Barra Superior Principal", level=1)
+    t_hero = doc.add_table(rows=1, cols=3)
+    t_hero.style = 'Table Grid'
+    hdr_h = ["Botón en Pantalla", "¿Para qué sirve?", "¿Cuándo utilizarlo?"]
+    for i, h_txt in enumerate(hdr_h):
+        c = t_hero.cell(0, i)
+        c.text = h_txt
+        for r in c.paragraphs[0].runs:
+            r.font.bold = True
+            r.font.size = Pt(9)
+
+    hero_rows = [
+        ("Guía / Manual Paso a Paso", "Abre en pantalla la guía metodológica interactiva y permite descargar este Manual Operativo en Word (.docx).", "En cualquier momento para orientar a los líderes de frente o al equipo de calidad."),
+        ("Subir / Crear Documento en Equipo", "Abre la ventana para importar un documento que usted ya tenga en Word/PDF (ej. Modelo Pedagógico, Estatuto General, PEI) o crear uno nuevo en la Mesa de Co-Construcción.", "Cada vez que vaya a poner un documento institucional a disposición del equipo para lectura, co-edición y auditoría IA."),
+        ("Asistente IA Experto MEN", "Genera borradores técnicos, diagnósticos o capítulos desde cero con apoyo de Inteligencia Artificial especializada en Ley 749 y Decreto 2038.", "Cuando necesite estructurar un capítulo nuevo o analizar brechas de un frente completo."),
+        ("Exportar Master (Excel)", "Descarga el libro Excel maestro con 8 hojas (Cronograma, Frentes, Brechas, Productos, Riesgos, 56 Requisitos y Trazabilidad de Documentos).", "Al cierre de cada quincena o para presentar el tablero consolidado al Comité Directivo y Pares."),
+        ("Guardar Todo", "Sincroniza manualmente cualquier cambio realizado en las tablas con la base de datos de Supabase.", "Después de actualizar porcentajes o estados generales (aunque los modales guardan automáticamente)."),
+        ("Reiniciar en Limpio (0%)", "Elimina datos previos o de prueba y deja todo el módulo en 0% de avance para iniciar un proceso desde cero.", "Únicamente al iniciar formalmente el proceso con los documentos definitivos de la institución.")
+    ]
+    for b_name, b_purpose, b_when in hero_rows:
+        rc = t_hero.add_row().cells
+        rc[0].text = b_name
+        rc[1].text = b_purpose
+        rc[2].text = b_when
+        for cell in rc:
+            for r in cell.paragraphs[0].runs:
+                r.font.size = Pt(8.5)
+
+    doc.add_paragraph()
+
+    # SECCIÓN 3: RUTA CRONOLÓGICA PASO A PASO (LOS 7 PASOS MAESTROS)
+    doc.add_heading("3. Ruta Metodológica Paso a Paso (Orden Recomendado de Trabajo)", level=1)
+
+    steps = [
+        (
+            "PASO 1: Configurar Responsables en la Pestaña 2 (Frentes y Líderes) y Pestaña 1 (Cronograma)",
+            [
+                "Ingrese a la Pestaña '2. Frentes y Líderes (13)'.",
+                "En cada uno de los 13 frentes sectoriales (Gobierno, PEI, Oferta y Currículo, Investigación, Bienestar, Financiero, etc.), haga clic en el botón 'Editar (Lápiz)'.",
+                "Asigne el nombre y correo del Líder Responsable (conectado a los usuarios de SKEL360) y deje el estado inicial en 'En Ejecución' o 'Pendiente'.",
+                "Luego pase a la Pestaña '1. Fases y Cronograma (12 Q)' y active la Fase I ('En Ejecución') y la Quincena 1 (Q1) usando el botón de edición de cada fila."
+            ]
+        ),
+        (
+            "PASO 2: Evaluar la Línea Base en la Pestaña 3 (Requisitos Normativos - 6 Preguntas)",
+            [
+                "Ingrese a la Pestaña '3. Requisitos (6 Preguntas)' donde están los 56 requisitos de la Ley 749 de 2002 y Decreto 2038 de 2023 organizados por Ejes.",
+                "En cada requisito, marque los 6 botones de verificación diagnóstica: [1. ¿Existe?] [2. ¿Vigente?] [3. ¿Aprobado?] [4. ¿Pertinente?] [5. ¿Se aplica?] [6. ¿Evidencia?].",
+                "Haga clic en el botón 'Gestionar Evidencias / Margy IA' de cada requisito para abrir su expediente:",
+                "  - En la sub-pestaña 'Repositorio de Evidencias por Fase': Seleccione la Fase (ej. Fase I o II), el Tipo de Soporte (Acto Administrativo, Documento Maestro, Acta de Socialización), la versión (v1.0) y suba el archivo PDF/Word a Supabase con el botón 'Cargar al Histórico'.",
+                "  - En la sub-pestaña 'Asesoría Experta Margy IA': Use los botones rápidos ('¿Qué evidencia exacta exige el MEN aquí?', '¿Cómo demostrar que se aplica con resultados?') si tiene dudas sobre cómo cumplir ese requisito."
+            ]
+        ),
+        (
+            "PASO 3: Subir sus Documentos Maestros (ej. Modelo Pedagógico, Reglamentos) para Trabajo en Equipo",
+            [
+                "Diríjase a la Pestaña '5. Productos Entregables (P1-P10)' o a la Pestaña '7. Mesa Co-Construcción, IA & Trazabilidad'.",
+                "Observe que un mismo Producto (por ejemplo P5: Propuesta Académica y Curricular, o P4: Reforma Estatutaria y Reglamentaria) agrupa varios documentos independientes.",
+                "Haga clic en el botón '+ Subir / Crear Documento del Equipo'.",
+                "En la ventana que se abre:",
+                "  1. Escriba el Título del documento (ej. 'Modelo Pedagógico Institucional', 'Reglamento Estudiantil', 'Política de Investigación').",
+                "  2. Seleccione la Categoría ('Políticas y Modelos', 'Reglamentos y Estatutos', etc.).",
+                "  3. Asócielo al Producto Entregable (P1 a P10), al Frente Sectorial y al Requisito Normativo MEN exacto (ej. req_17 Modelo Pedagógico).",
+                "  4. Indique la Fase actual, la Versión inicial (v1.0) y el Autor/Dependencia que lo carga.",
+                "  5. En el recuadro azul, seleccione su archivo Word (.docx) o PDF desde su computador y haga clic en 'Crear y Publicar para el Equipo'.",
+                "El sistema extraerá todo el texto para edición colaborativa, guardará el archivo Word v1.0 en Supabase Storage y lo vinculará automáticamente como evidencia del requisito seleccionado."
+            ]
+        ),
+        (
+            "PASO 4: Co-Edición, Mesas de Trabajo y Trazabilidad de Equipo (Pestaña 7)",
+            [
+                "En la Pestaña '7. Mesa Co-Construcción, IA & Trazabilidad', seleccione el documento en la columna izquierda.",
+                "En el panel central (Editor Colaborativo), cualquier líder o miembro del equipo puede enriquecer o ajustar el contenido.",
+                "Antes de guardar una modificación, diligencie la barra 'Registrar Nueva Versión en Bitácora': indique su Nombre/Dependencia, la Fase, el Tipo de Actuación ('Aporte Mesa de Trabajo', 'Revisión Par Interno', 'Ajuste por Auditoría IA', 'Aval Consejo Académico') y el resumen de qué se modificó.",
+                "Haga clic en el botón verde 'Guardar Nueva Versión':",
+                "  - El sistema incrementa automáticamente la versión (v1.0 -> v1.1 -> v1.2).",
+                "  - Guarda la foto exacta (snapshot) de esa versión en la pestaña 'Bitácora de Versiones' (con el botón 'Ver texto de esta versión').",
+                "  - Genera y sube automáticamente el nuevo archivo .docx con Anexo de Trazabilidad a Supabase Storage y actualiza la evidencia en el Requisito MEN.",
+                "Además, en la sub-pestaña 'Aportes y Avales del Equipo' del panel derecho, haga clic en '+ Registrar Aporte / Acta / Aval' para dejar constancia de los acuerdos de mesas de trabajo con docentes, directivos, estudiantes o egresados."
+            ]
+        ),
+        (
+            "PASO 5: Auditar el Documento con IA contra la Norma MEN (Pestaña 7 - Panel Derecho)",
+            [
+                "Con el documento abierto en la Pestaña 7, vaya al panel derecho, sub-pestaña 'Auditoría IA MEN', y haga clic en el botón 'Ejecutar Auditoría IA'.",
+                "La IA contrastará el contenido real de su documento contra el Requisito legal de la Ley 749 de 2002 / Decreto 1330 / Decreto 2038.",
+                "Le entregará:",
+                "  - El Porcentaje de Cumplimiento Normativo (0% a 100%) y el Nivel de Concepto.",
+                "  - La evaluación de las 6 Preguntas Institucionales.",
+                "  - Las Fortalezas detectadas para defender ante los Pares.",
+                "  - Los Vacíos o Aspectos Faltantes.",
+                "  - Un bloque de 'Texto Sugerido para Completar el Requisito' con el botón '+ Insertar Texto Sugerido en el Editor'. Al pulsarlo, el texto se incorpora al documento para que el equipo lo revise y guarde una nueva versión auditada."
+            ]
+        ),
+        (
+            "PASO 6: Gestionar Brechas y Riesgos (Pestañas 4 y 6)",
+            [
+                "En la Pestaña '4. Matriz de Brechas':",
+                "  - Puede hacer clic en '+ Nueva Brecha' para registrar manualmente hallazgos derivados de la autoevaluación de los 56 requisitos.",
+                "  - O hacer clic en 'Generar Brechas con IA' para que el sistema proponga brechas y su plan de tratamiento a partir del diagnóstico.",
+                "  - Conforme el equipo cierre los documentos y evidencias, edite la brecha y cambie su estado a 'Cerrada'.",
+                "En la Pestaña '6. Riesgos y Controles (12)': Revise periódicamente los 12 riesgos críticos del proceso y actualice sus controles preventivos."
+            ]
+        ),
+        (
+            "PASO 7: Descargar Soportes con Anexo Probatorio para Pares Académicos",
+            [
+                "En la Pestaña 7, cada documento cuenta con los botones 'Word + Anexo Trazabilidad' y 'PDF Oficial':",
+                "  - Al descargarlos, el documento incluye el contenido técnico completo MÁS el 'ANEXO DE TRAZABILIDAD Y CONSTRUCCIÓN COLECTIVA', que contiene: (1) Tabla de Historial de Versiones y Co-Autores, (2) Tabla de Mesas de Trabajo y Avales Colegiados, y (3) Dictamen Interno de Cumplimiento Normativo IA.",
+                "En la Pestaña 5 ('Productos Entregables P1-P10'), una vez todos los sub-documentos de un producto (ej. P5) estén aprobados, puede usar el botón 'Consolidar en Dossier' para integrar la síntesis ejecutiva del producto.",
+                "Finalmente, descargue el 'Exportar Master (Excel)' en la barra superior como índice maestro de todo el Dossier."
+            ]
+        )
+    ]
+
+    for title_step, bullets in steps:
+        doc.add_heading(title_step, level=2)
+        for b in bullets:
+            doc.add_paragraph(b, style='List Bullet')
+
+    io_stream = io.BytesIO()
+    doc.save(io_stream)
+    io_stream.seek(0)
+    return io_stream.getvalue()
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/download_manual', methods=['GET'])
+def api_cc_download_manual():
+    """Descarga el Manual Operativo y Metodológico Paso a Paso en formato Word (.docx)."""
+    try:
+        docx_bytes = generate_manual_operativo_docx_bytes()
+        io_stream = io.BytesIO(docx_bytes)
+        io_stream.seek(0)
+        filename = "Manual_Operativo_Paso_a_Paso_Cambio_Caracter_SKEL360.docx"
+        return send_file(
+            io_stream,
+            as_attachment=True,
+            download_name=filename,
+            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+    except Exception as e:
+        print(f"[CC] Manual Download Error: {e}")
+        return str(e), 500
+

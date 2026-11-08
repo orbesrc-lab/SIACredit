@@ -749,6 +749,9 @@
                         <p>Preparación institucional integral para la transformación a <strong>Institución Universitaria</strong> bajo el principio <em>"conocer antes de transformar"</em>. Ruta técnica, académica, normativa y financiera (Ley 749 de 2002, Ley 30 de 1992, Decretos 2216/2003, 1330/2019, 2038/2023 y 0529/2024).</p>
                     </div>
                     <div class="cc-hero-actions">
+                        <button class="btn-cc-hero" style="background:linear-gradient(135deg, #0ea5e9, #0284c7); color:#fff; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);" onclick="openStepByStepGuideModal()">
+                            <i class="fa-solid fa-book-open-reader"></i> Guía Paso a Paso (Manual)
+                        </button>
                         <button class="btn-cc-hero btn-cc-primary" onclick="switchCcTab('ai_hub'); openImportCollabDocModal()">
                             <i class="fa-solid fa-file-circle-plus"></i> Subir / Crear Documento en Equipo
                         </button>
@@ -760,6 +763,9 @@
                         </a>
                         <button class="btn-cc-hero btn-cc-save" onclick="saveToServer(true)">
                             <i class="fa-solid fa-cloud-arrow-up"></i> Guardar Todo
+                        </button>
+                        <button class="btn-cc-hero" style="background:rgba(239, 68, 68, 0.18); color:#fecaca; border:1px solid rgba(248, 113, 113, 0.45);" onclick="confirmResetCcProject()" title="Reiniciar el módulo en 0% eliminando registros previos">
+                            <i class="fa-solid fa-rotate-left"></i> Reiniciar (0%)
                         </button>
                     </div>
                 </div>
@@ -1712,6 +1718,101 @@
             </button>
         </div>
 
+    </div>
+</div>
+
+<!-- MODAL GUÍA OPERATIVA Y MANUAL PASO A PASO -->
+<div class="cc-modal-backdrop" id="modal-guide-cc">
+    <div class="cc-modal-box" style="max-width: 1020px; width: 96%; max-height: 92vh; display:flex; flex-direction:column; overflow:hidden;">
+        <div class="cc-modal-header" style="background:linear-gradient(135deg, #0f172a, #1e1b4b); color:#fff;">
+            <div>
+                <div style="font-size:0.74rem; color:#38bdf8; font-weight:800; text-transform:uppercase; letter-spacing:0.06em;">Guía Oficial de Operación y Trazabilidad · SKEL360</div>
+                <h3 style="margin:2px 0 0 0; font-size:1.18rem; color:#ffffff; font-weight:800;"><i class="fa-solid fa-book-open-reader" style="color:#38bdf8;"></i> Manual Paso a Paso: Cómo Trabajar el Cambio de Carácter con Trazabilidad para Pares MEN</h3>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <a href="/api/cambio_caracter/download_manual" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; text-decoration:none; padding:9px 16px; border-radius:8px; font-size:0.82rem; font-weight:800; display:inline-flex; align-items:center; gap:7px; box-shadow:0 4px 12px rgba(16,185,129,0.35);">
+                    <i class="fa-solid fa-file-word"></i> Descargar Manual en Word (.docx)
+                </a>
+                <button onclick="closeStepByStepGuideModal()" style="background:rgba(255,255,255,0.12); border:none; color:white; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:1rem;">&times;</button>
+            </div>
+        </div>
+        <div class="cc-modal-body" style="overflow-y:auto; padding:24px 28px; background:#f8fafc;">
+            <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:16px 20px; margin-bottom:20px;">
+                <div style="font-weight:800; color:#1e3a8a; font-size:0.94rem; margin-bottom:6px;"><i class="fa-solid fa-database"></i> ¿Dónde reposa la información y cómo se garantiza la trazabilidad ante Pares?</div>
+                <div style="font-size:0.84rem; color:#1e40af; line-height:1.55;">
+                    Todo lo que usted y su equipo carguen o editen en <strong>skel360.online/cambio_caracter</strong> queda guardado automáticamente en <strong>Supabase</strong> en dos niveles:
+                    <ul style="margin:6px 0 0 18px; padding:0;">
+                        <li><strong>Base de Datos Institucional (<code>CC_PROJ_7</code>):</strong> Registra el progreso de las 6 Fases, 12 Quincenas, 13 Frentes, las 6 preguntas de los 56 Requisitos, bitácora de versiones, acuerdos de mesas de trabajo y dictámenes de auditoría IA.</li>
+                        <li><strong>Repositorio Cloud de Evidencias (Bucket <code>evidencias</code> en Supabase Storage):</strong> Guarda cada soporte documental y genera un archivo <code>.docx</code> físico por cada versión que el equipo co-edite, vinculándolo automáticamente al Requisito MEN.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h4 style="margin:0 0 12px 0; color:#0f172a; font-size:1rem; font-weight:800;"><i class="fa-solid fa-list-ol" style="color:#4f46e5;"></i> Ruta Cronológica de Trabajo en 7 Pasos</h4>
+
+            <div style="display:grid; grid-template-columns:1fr; gap:12px; margin-bottom:20px;">
+                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #4f46e5; border-radius:10px; padding:14px 18px;">
+                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 1 · Asignar Líderes y Activar Cronograma (Pestañas 2 y 1)</div>
+                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
+                        1. Vaya a la <strong>Pestaña 2 (Frentes y Líderes)</strong>, pulse el botón <span style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-pen"></i> Editar</span> en cada uno de los 13 frentes y asigne el nombre/correo del líder responsable.<br>
+                        2. Vaya a la <strong>Pestaña 1 (Fases y Cronograma)</strong>, pulse <span style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-pen-to-square"></i></span> en la <strong>Fase I</strong> para ponerla <em>"En Ejecución"</em> y active la <strong>Quincena Q1</strong>.
+                    </div>
+                </div>
+
+                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #2563eb; border-radius:10px; padding:14px 18px;">
+                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 2 · Diagnosticar los 56 Requisitos con las 6 Preguntas y Subir Soportes Base (Pestaña 3)</div>
+                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
+                        1. En la <strong>Pestaña 3 (Requisitos - 6 Preguntas)</strong>, revise cada requisito y haga clic sobre los 6 botones diagnósticos: <strong>¿Existe? · ¿Vigente? · ¿Aprobado? · ¿Pertinente? · ¿Se aplica? · ¿Evidencia?</strong>.<br>
+                        2. Pulse el botón <span style="background:#eff6ff; color:#1d4ed8; padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-folder-tree"></i> Gestionar Evidencias / Margy IA</span> para subir actos administrativos, acuerdos o actas por Fase a Supabase Storage, o consultar a <strong>Margy IA</strong> cómo demostrar ese requisito ante los Pares.
+                    </div>
+                </div>
+
+                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #059669; border-radius:10px; padding:14px 18px;">
+                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 3 · Subir sus Documentos Institucionales (Modelo Pedagógico, Reglamentos, Políticas) para Trabajo en Equipo (Pestañas 5 y 7)</div>
+                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
+                        1. Pulse el botón superior <span style="background:#eef2ff; color:#4f46e5; padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-file-circle-plus"></i> Subir / Crear Documento en Equipo</span> (o desde la tarjeta de cada Producto P1–P10 en la Pestaña 5).<br>
+                        2. Indique el <strong>Título</strong> (ej. <em>Modelo Pedagógico Institucional</em>, <em>Reglamento Docente</em>), el <strong>Producto (P1–P10)</strong>, el <strong>Frente</strong> y el <strong>Requisito MEN</strong> al que tributa (ej. <code>req_17</code>).<br>
+                        3. Adjunte su archivo <code>.docx</code> o <code>.pdf</code> y pulse <strong>"Crear y Publicar para el Equipo"</strong>. El documento quedará disponible para lectura y edición en la Pestaña 7 y guardado como evidencia <code>v1.0</code> en Supabase.
+                    </div>
+                </div>
+
+                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #7c3aed; border-radius:10px; padding:14px 18px;">
+                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 4 · Co-Edición del Equipo, Bitácora de Versiones y Actas de Mesas de Trabajo (Pestaña 7)</div>
+                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
+                        1. En la <strong>Pestaña 7 (Mesa Co-Construcción, IA & Trazabilidad)</strong>, seleccione el documento a la izquierda.<br>
+                        2. Cuando un miembro del equipo edite el documento en el panel central, debe registrar abajo su <strong>Nombre/Dependencia</strong>, <strong>Tipo de Actuación</strong> (<em>Aporte Mesa de Trabajo, Revisión Par Interno, Aval Consejo Académico</em>) y el <strong>Resumen del cambio</strong>, y pulsar <span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-code-commit"></i> Guardar Nueva Versión</span>.<br>
+                        3. En el panel derecho, sub-pestaña <strong>"Aportes y Avales del Equipo"</strong>, pulse <span style="background:#eef2ff; color:#4338ca; padding:2px 8px; border-radius:4px; font-weight:700;">+ Registrar Aporte / Acta / Aval</span> para documentar las sesiones de trabajo con docentes, directores de programa, estudiantes o consejos.
+                    </div>
+                </div>
+
+                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #0284c7; border-radius:10px; padding:14px 18px;">
+                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 5 · Auditar con IA el Cumplimiento Normativo del Documento (Pestaña 7 · Panel Derecho)</div>
+                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
+                        1. En el panel derecho de la Pestaña 7 (sub-pestaña <strong>"Auditoría IA MEN"</strong>), pulse <span style="background:#0284c7; color:#fff; padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-wand-magic-sparkles"></i> Ejecutar Auditoría IA</span>.<br>
+                        2. La IA verificará si su documento cumple el requisito normativo (Ley 749 / Dec. 1330 / Dec. 2038) y las 6 preguntas institucionales, calculando el <strong>% de Cumplimiento</strong>, fortalezas, vacíos y redactando el <strong>Texto Sugerido</strong>.<br>
+                        3. Si desea incorporar las mejoras sugeridas por la IA, pulse <strong>"+ Insertar Texto Sugerido en el Editor"</strong> y guarde una nueva versión.
+                    </div>
+                </div>
+
+                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #d97706; border-radius:10px; padding:14px 18px;">
+                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 6 · Controlar Brechas y Riesgos (Pestañas 4 y 6)</div>
+                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
+                        En la <strong>Pestaña 4 (Matriz de Brechas)</strong> registre o genere con IA las brechas detectadas en el diagnóstico y actualice su estado a <em>"Cerrada"</em> conforme los documentos sean aprobados. En la <strong>Pestaña 6 (Riesgos)</strong> monitoree los 12 riesgos preventivos.
+                    </div>
+                </div>
+
+                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #0f172a; border-radius:10px; padding:14px 18px;">
+                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 7 · Descargar Documentos con Anexo Probatorio para Pares Evaluadores (Pestañas 7 y 5)</div>
+                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
+                        Al pulsar <span style="background:#eff6ff; color:#1d4ed8; padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-file-word"></i> Word + Anexo Trazabilidad</span> o <span style="background:#fef2f2; color:#dc2626; padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-file-pdf"></i> PDF Oficial</span> en la Pestaña 7, el documento se descarga con el <strong>Anexo de Trazabilidad y Construcción Colectiva</strong> (tabla de versiones y co-autores, tabla de mesas de trabajo/avales y dictamen de cumplimiento IA), listo para sustentar el trabajo en equipo ante los Pares Académicos del MEN.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="padding:14px 24px; background:#fff; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+            <a href="/api/cambio_caracter/download_manual" style="color:#2563eb; font-size:0.84rem; font-weight:700; text-decoration:none;"><i class="fa-solid fa-download"></i> Descargar este Manual completo en Word (.docx)</a>
+            <button onclick="closeStepByStepGuideModal()" style="background:#1e293b; color:white; border:none; padding:9px 20px; border-radius:8px; cursor:pointer; font-size:0.84rem; font-weight:700;">Entendido, ir al módulo</button>
+        </div>
     </div>
 </div>
 
@@ -3784,6 +3885,75 @@
             }
         } catch(e) {
             console.error('fetchSkelUsers error:', e);
+        }
+    }
+
+    function openStepByStepGuideModal() {
+        document.getElementById('modal-guide-cc').classList.add('open');
+    }
+
+    function closeStepByStepGuideModal() {
+        document.getElementById('modal-guide-cc').classList.remove('open');
+    }
+
+    async function confirmResetCcProject() {
+        const resConfirm = await Swal.fire({
+            title: '¿Reiniciar Módulo en Limpio (0%)?',
+            html: `
+                <div style="text-align:left; font-size:0.88rem; color:#334155; line-height:1.5;">
+                    Esta acción eliminará de <strong>Supabase</strong>:
+                    <ul style="margin:8px 0 8px 18px;">
+                        <li>Todos los documentos de prueba de la Mesa de Co-Construcción</li>
+                        <li>Todas las evidencias previas subidas en los 56 requisitos</li>
+                        <li>Todas las brechas previas</li>
+                    </ul>
+                    Y dejará las <strong>6 Fases, 12 Quincenas, 13 Frentes, 10 Productos y 56 Requisitos en 0% (Pendiente)</strong> para iniciar su proceso real desde cero.
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Sí, eliminar y reiniciar en 0%',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!resConfirm.isConfirmed) return;
+
+        Swal.fire({
+            title: 'Reiniciando en Supabase...',
+            text: 'Limpiando base de datos y repositorio de evidencias.',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const res = await fetch('/api/cambio_caracter/reset_project', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({})
+            });
+            const d = await res.json();
+            if (d.status === 'success') {
+                selectedHistoryId = null;
+                currentData = d.data;
+                const edTitle = document.getElementById('editor-title');
+                if (edTitle) edTitle.value = '';
+                const edArea = document.getElementById('ai-editor-textarea');
+                if (edArea) edArea.value = '';
+                renderAll();
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Módulo Reiniciado en 0%!',
+                    text: 'La base de datos en Supabase quedó completamente limpia para iniciar con sus documentos institucionales reales.',
+                    confirmButtonColor: '#4f46e5'
+                });
+            } else {
+                Swal.fire('Error', d.message || 'No se pudo reiniciar el proyecto.', 'error');
+            }
+        } catch (e) {
+            console.error('reset error:', e);
+            Swal.fire('Error', 'Fallo de conexión al reiniciar el proyecto.', 'error');
         }
     }
 
