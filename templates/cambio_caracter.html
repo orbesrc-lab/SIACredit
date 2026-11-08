@@ -432,6 +432,9 @@
             justify-content: center;
             align-items: center;
         }
+        .cc-modal-backdrop.open {
+            display: flex !important;
+        }
 
         .cc-modal-box {
             background: #ffffff;
@@ -3889,11 +3892,19 @@
     }
 
     function openStepByStepGuideModal() {
-        document.getElementById('modal-guide-cc').classList.add('open');
+        const m = document.getElementById('modal-guide-cc');
+        if (m) {
+            m.style.display = 'flex';
+            m.classList.add('open');
+        }
     }
 
     function closeStepByStepGuideModal() {
-        document.getElementById('modal-guide-cc').classList.remove('open');
+        const m = document.getElementById('modal-guide-cc');
+        if (m) {
+            m.style.display = 'none';
+            m.classList.remove('open');
+        }
     }
 
     async function confirmResetCcProject() {
