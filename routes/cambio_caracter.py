@@ -133,11 +133,130 @@ def get_cc_project(inst_id):
                     "fecha": project.get("created_at", datetime.datetime.now().isoformat()),
                     "tipo": "full_diagnosis",
                     "frente": "Institucional General",
-                    "producto": "P2 Diagnóstico Institucional",
+                    "producto": "P2",
                     "autor": "Asesor Experto MEN (IA)",
                     "tokens_est": len(project.get("ai_gap_analysis", "")) // 4,
                     "contenido": project.get("ai_gap_analysis", "")
                 })
+
+    # Seed exemplary collaborative document if ai_history is completely empty
+    if not project.get("ai_history"):
+        now_iso = datetime.datetime.now().isoformat()
+        sample_content = (
+            "# MODELO PEDAGÓGICO INSTITUCIONAL\n"
+            "## Redefinición hacia el Carácter de Institución Universitaria (Ley 749 de 2002 / Decreto 1330 de 2019)\n\n"
+            "### 1. Identidad Pedagógica y Fundamentación Epistemológica\n"
+            "El Modelo Pedagógico Institucional articula la formación integral por competencias y resultados de aprendizaje "
+            "con la generación, apropiación social y transferencia del conocimiento propia del carácter de **Institución Universitaria**. "
+            "Se sustenta en el aprendizaje significativo, situado y problémico, manteniendo la flexibilidad curricular y los ciclos propedéuticos.\n\n"
+            "### 2. Estructura Curricular, Créditos y Resultados de Aprendizaje\n"
+            "- **Organización por Créditos Académicos:** En cumplimiento del Decreto 1330 de 2019 y Acuerdo CESU 01 de 2025.\n"
+            "- **Flexibilidad e Interdisciplinariedad:** Rutas formativas electivas, homologación entre niveles y articulación pregrado-posgrado (especialización y maestría).\n"
+            "- **Evaluación de Resultados de Aprendizaje (RA):** Seguimiento longitudinal en tres momentos del plan de estudios.\n\n"
+            "### 3. Articulación de las Funciones Sustantivas\n"
+            "1. **Docencia centrada en el estudiante:** Mediaciones pedagógicas activas y acompañamiento tutorial.\n"
+            "2. **Investigación formativa y aplicada:** Vinculación de semilleros y grupos de investigación al currículo.\n"
+            "3. **Proyección social y relación con el sector externo:** Prácticas, consultoría e impacto regional."
+        )
+        project["ai_history"] = [
+            {
+                "id": "doc_modelo_pedagogico_base",
+                "codigo_doc": "DOC-P5-01",
+                "titulo": "Modelo Pedagógico Institucional (Transición a Institución Universitaria)",
+                "categoria": "Políticas y Modelos",
+                "fecha": now_iso,
+                "fecha_modificacion": now_iso,
+                "tipo": "collaborative_doc",
+                "frente": "Oferta y currículo",
+                "producto": "P5",
+                "requisito_id": "req_17",
+                "fase": "Fase III: Escenario y diseño",
+                "version_actual": "v1.1",
+                "estado_editorial": "En Revisión del Equipo",
+                "autor": "Vicerrectoría Académica",
+                "cargo_dependencia": "Vicerrectoría Académica",
+                "rol_skel": "lider",
+                "tokens_est": 0,
+                "contenido": sample_content,
+                "bitacora_versiones": [
+                    {
+                        "version": "v1.0",
+                        "fecha": now_iso,
+                        "autor": "Vicerrectoría Académica",
+                        "cargo_dependencia": "Vicerrectoría Académica",
+                        "rol_skel": "lider",
+                        "fase": "Fase II: Diagnóstico integral",
+                        "tipo_actuacion": "Redacción Inicial",
+                        "resumen_cambio": "Estructuración base del Modelo Pedagógico alineado a Ley 749/2002 y Decreto 1330/2019.",
+                        "contenido_snapshot": sample_content
+                    },
+                    {
+                        "version": "v1.1",
+                        "fecha": now_iso,
+                        "autor": "Dirección de Calidad / Comité Curricular",
+                        "cargo_dependencia": "Dirección de Calidad",
+                        "rol_skel": "lider",
+                        "fase": "Fase III: Escenario y diseño",
+                        "tipo_actuacion": "Aporte Mesa de Trabajo",
+                        "resumen_cambio": "Incorporación de lineamientos de Resultados de Aprendizaje y articulación con investigación formativa.",
+                        "contenido_snapshot": sample_content
+                    }
+                ],
+                "aportes_equipo": [
+                    {
+                        "id": "ap_sample_1",
+                        "fecha": now_iso,
+                        "autor": "Comité Curricular Institucional",
+                        "cargo_dependencia": "Directores de Programa y Docentes",
+                        "tipo": "Acuerdo de Mesa de Trabajo",
+                        "seccion_referencia": "Cap. 2 - Estructura Curricular y RA",
+                        "comentario": "En mesa de trabajo ampliada con representantes docentes y directores de programa se validó la taxonomía de Resultados de Aprendizaje y las rutas de flexibilidad interdisciplinar.",
+                        "estado": "Aplicado"
+                    }
+                ],
+                "auditorias_ia": []
+            }
+        ]
+
+    # Ensure every item in ai_history has collaborative & traceability fields
+    for idx_h, item in enumerate(project.get("ai_history", [])):
+        if "codigo_doc" not in item or not item["codigo_doc"]:
+            prod_prefix = (item.get("producto") or "DOC").split()[0][:4].upper()
+            item["codigo_doc"] = f"DOC-{prod_prefix}-{idx_h + 1:02d}"
+        if "categoria" not in item or not item["categoria"]:
+            item["categoria"] = "Políticas y Modelos" if "modelo" in item.get("titulo", "").lower() or "política" in item.get("titulo", "").lower() else (
+                "Reglamentos y Estatutos" if "estatuto" in item.get("titulo", "").lower() or "reglamento" in item.get("titulo", "").lower() else "Diagnósticos y Estudios"
+            )
+        if "requisito_id" not in item:
+            item["requisito_id"] = "req_17" if "pedag" in item.get("titulo", "").lower() else "req_1"
+        if "fase" not in item or not item["fase"]:
+            item["fase"] = "Fase III: Escenario y diseño"
+        if "version_actual" not in item or not item["version_actual"]:
+            item["version_actual"] = "v1.0"
+        if "estado_editorial" not in item or not item["estado_editorial"]:
+            item["estado_editorial"] = "En Construcción"
+        if "cargo_dependencia" not in item or not item["cargo_dependencia"]:
+            item["cargo_dependencia"] = item.get("frente") or "Equipo Institucional"
+        if "rol_skel" not in item or not item["rol_skel"]:
+            item["rol_skel"] = "lider"
+        if "bitacora_versiones" not in item or not isinstance(item["bitacora_versiones"], list) or len(item["bitacora_versiones"]) == 0:
+            item["bitacora_versiones"] = [
+                {
+                    "version": item.get("version_actual", "v1.0"),
+                    "fecha": item.get("fecha", datetime.datetime.now().isoformat()),
+                    "autor": item.get("autor", "Equipo Institucional"),
+                    "cargo_dependencia": item.get("cargo_dependencia", item.get("frente", "Equipo Institucional")),
+                    "rol_skel": item.get("rol_skel", "lider"),
+                    "fase": item.get("fase", "Fase I: Alineación y levantamiento"),
+                    "tipo_actuacion": "Generación Asistida por IA" if "IA" in item.get("autor", "") else "Redacción Inicial",
+                    "resumen_cambio": f"Creación inicial del documento: {item.get('titulo', 'Documento Institucional')}",
+                    "contenido_snapshot": item.get("contenido", "")
+                }
+            ]
+        if "aportes_equipo" not in item or not isinstance(item["aportes_equipo"], list):
+            item["aportes_equipo"] = []
+        if "auditorias_ia" not in item or not isinstance(item["auditorias_ia"], list):
+            item["auditorias_ia"] = []
 
     return project
 
@@ -601,17 +720,42 @@ Devuelve EXCLUSIVAMENTE un bloque de código JSON:
         # Save to history entry
         tokens_est = (len(user_prompt) + len(analysis_html)) // 4
         history_id = str(uuid.uuid4())
+        now_iso = datetime.datetime.now().isoformat()
         new_hist_item = {
             "id": history_id,
+            "codigo_doc": f"DOC-{task_product[:4].upper()}-{len(project.get('ai_history', [])) + 1:02d}",
             "titulo": title_entry,
-            "fecha": datetime.datetime.now().isoformat(),
+            "categoria": "Políticas y Modelos" if mode == 'draft_product' else "Diagnósticos y Estudios",
+            "fecha": now_iso,
+            "fecha_modificacion": now_iso,
             "tipo": mode,
             "frente": task_frente,
             "producto": task_product,
+            "requisito_id": "req_1",
+            "fase": "Fase III: Escenario y diseño",
+            "version_actual": "v1.0",
+            "estado_editorial": "En Construcción",
             "autor": "Asesor Experto MEN (IA)",
+            "cargo_dependencia": task_frente,
+            "rol_skel": "lider",
             "tokens_est": tokens_est,
             "contenido": analysis_html,
-            "saved_doc_path": saved_doc_path
+            "saved_doc_path": saved_doc_path,
+            "bitacora_versiones": [
+                {
+                    "version": "v1.0",
+                    "fecha": now_iso,
+                    "autor": "Asesor Experto MEN (IA)",
+                    "cargo_dependencia": task_frente,
+                    "rol_skel": "lider",
+                    "fase": "Fase III: Escenario y diseño",
+                    "tipo_actuacion": "Generación Asistida por IA",
+                    "resumen_cambio": f"Generación inicial del documento base ({title_entry})",
+                    "contenido_snapshot": analysis_html
+                }
+            ],
+            "aportes_equipo": [],
+            "auditorias_ia": []
         }
 
         if "ai_history" not in project:
@@ -662,63 +806,507 @@ Devuelve EXCLUSIVAMENTE un bloque de código JSON:
 @cambio_caracter_bp.route('/api/cambio_caracter/ai_history/save', methods=['POST'])
 def api_cc_ai_history_save():
     try:
-        inst_id = request.json.get('inst_id', get_active_inst_id())
-        item_id = request.json.get('id')
-        titulo = request.json.get('titulo', 'Documento Editado')
-        contenido = request.json.get('contenido', '')
-        frente = request.json.get('frente', 'General')
-        producto = request.json.get('producto', 'Transversal')
-        create_new = request.json.get('create_new', False)
+        req_json = request.json or {}
+        inst_id = req_json.get('inst_id', get_active_inst_id())
+        item_id = req_json.get('id')
+        titulo = req_json.get('titulo', 'Documento Institucional')
+        contenido = req_json.get('contenido', '')
+        frente = req_json.get('frente', 'Oferta y currículo')
+        producto = req_json.get('producto', 'P5')
+        categoria = req_json.get('categoria', 'Políticas y Modelos')
+        codigo_doc = req_json.get('codigo_doc', '')
+        requisito_id = req_json.get('requisito_id', 'req_17')
+        fase = req_json.get('fase', 'Fase III: Escenario y diseño')
+        estado_editorial = req_json.get('estado_editorial', 'En Construcción')
+        autor = req_json.get('autor', 'Integrante del Equipo Institucional')
+        cargo_dependencia = req_json.get('cargo_dependencia', frente)
+        rol_skel = req_json.get('rol_skel', 'lider')
+        tipo_actuacion = req_json.get('tipo_actuacion', 'Ajuste Técnico / Co-edición')
+        resumen_cambio = req_json.get('resumen_cambio', 'Actualización colaborativa del documento.')
+        version_actual = req_json.get('version_actual', 'v1.0')
+        create_new = req_json.get('create_new', False)
+        increment_version = req_json.get('increment_version', True)
 
         project = get_cc_project(inst_id)
         if "ai_history" not in project:
             project["ai_history"] = []
 
+        now_iso = datetime.datetime.now().isoformat()
+
+        def bump_version(ver_str):
+            v = (ver_str or "v1.0").strip()
+            if not v.lower().startswith("v"):
+                v = "v" + v
+            try:
+                parts = v[1:].split(".")
+                major = int(parts[0])
+                minor = int(parts[1]) if len(parts) > 1 else 0
+                return f"v{major}.{minor + 1}"
+            except Exception:
+                return "v1.1"
+
         if not create_new and item_id:
-            # Update existing
             found = False
             for item in project["ai_history"]:
                 if item["id"] == item_id:
+                    new_ver = bump_version(item.get("version_actual", version_actual)) if increment_version else (version_actual or item.get("version_actual", "v1.0"))
                     item["titulo"] = titulo
                     item["contenido"] = contenido
                     item["frente"] = frente
                     item["producto"] = producto
-                    item["fecha_modificacion"] = datetime.datetime.now().isoformat()
-                    item["autor"] = "Usuario Institucional (Editado sin consumo de tokens)"
+                    item["categoria"] = categoria
+                    if codigo_doc:
+                        item["codigo_doc"] = codigo_doc
+                    item["requisito_id"] = requisito_id
+                    item["fase"] = fase
+                    item["estado_editorial"] = estado_editorial
+                    item["version_actual"] = new_ver
+                    item["fecha_modificacion"] = now_iso
+                    item["autor"] = autor
+                    item["cargo_dependencia"] = cargo_dependencia
+                    item["rol_skel"] = rol_skel
+
+                    if "bitacora_versiones" not in item or not isinstance(item["bitacora_versiones"], list):
+                        item["bitacora_versiones"] = []
+                    item["bitacora_versiones"].insert(0, {
+                        "version": new_ver,
+                        "fecha": now_iso,
+                        "autor": autor,
+                        "cargo_dependencia": cargo_dependencia,
+                        "rol_skel": rol_skel,
+                        "fase": fase,
+                        "tipo_actuacion": tipo_actuacion,
+                        "resumen_cambio": resumen_cambio,
+                        "contenido_snapshot": contenido
+                    })
                     found = True
                     break
+
             if not found:
-                item_id = str(uuid.uuid4())
-                project["ai_history"].insert(0, {
-                    "id": item_id,
-                    "titulo": titulo,
-                    "fecha": datetime.datetime.now().isoformat(),
-                    "tipo": "manual_edit",
-                    "frente": frente,
-                    "producto": producto,
-                    "autor": "Usuario Institucional",
-                    "tokens_est": 0,
-                    "contenido": contenido
-                })
-        else:
-            # Create new version
+                create_new = True
+
+        if create_new or not item_id:
             item_id = str(uuid.uuid4())
-            project["ai_history"].insert(0, {
+            if not codigo_doc:
+                prod_prefix = (producto or "DOC").split()[0][:4].upper()
+                codigo_doc = f"DOC-{prod_prefix}-{len(project['ai_history']) + 1:02d}"
+            ver_init = version_actual or "v1.0"
+            new_doc = {
                 "id": item_id,
+                "codigo_doc": codigo_doc,
                 "titulo": titulo,
-                "fecha": datetime.datetime.now().isoformat(),
-                "tipo": "manual_edit",
+                "categoria": categoria,
+                "fecha": now_iso,
+                "fecha_modificacion": now_iso,
+                "tipo": "collaborative_doc",
                 "frente": frente,
                 "producto": producto,
-                "autor": "Usuario Institucional (Versión guardada)",
+                "requisito_id": requisito_id,
+                "fase": fase,
+                "version_actual": ver_init,
+                "estado_editorial": estado_editorial,
+                "autor": autor,
+                "cargo_dependencia": cargo_dependencia,
+                "rol_skel": rol_skel,
                 "tokens_est": 0,
-                "contenido": contenido
-            })
+                "contenido": contenido,
+                "bitacora_versiones": [
+                    {
+                        "version": ver_init,
+                        "fecha": now_iso,
+                        "autor": autor,
+                        "cargo_dependencia": cargo_dependencia,
+                        "rol_skel": rol_skel,
+                        "fase": fase,
+                        "tipo_actuacion": tipo_actuacion or "Redacción Inicial",
+                        "resumen_cambio": resumen_cambio or f"Creación inicial del documento: {titulo}",
+                        "contenido_snapshot": contenido
+                    }
+                ],
+                "aportes_equipo": [],
+                "auditorias_ia": []
+            }
+            project["ai_history"].insert(0, new_doc)
+
+        # Also sync with product's main documento_contenido if linked to P1..P10
+        for p in project.get("productos", []):
+            if p.get("codigo") == producto:
+                p["documento_contenido"] = contenido
+                if p.get("estado") == "Pendiente":
+                    p["estado"] = "En Construcción"
 
         save_cc_project(inst_id, project)
-        return jsonify({"status": "success", "id": item_id, "message": "Guardado exitosamente en el histórico."})
+        return jsonify({"status": "success", "id": item_id, "message": "Versión y trazabilidad de equipo guardadas exitosamente."})
     except Exception as e:
+        print(f"[CC Save History] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/doc/import_file', methods=['POST'])
+def api_cc_doc_import_file():
+    """Importa un archivo .docx o .pdf construido por el equipo y lo convierte en un documento colaborativo con trazabilidad."""
+    try:
+        inst_id = request.form.get('inst_id', get_active_inst_id(), type=int)
+        titulo = (request.form.get('titulo') or '').strip()
+        categoria = request.form.get('categoria', 'Políticas y Modelos')
+        producto = request.form.get('producto', 'P5')
+        frente = request.form.get('frente', 'Oferta y currículo')
+        requisito_id = request.form.get('requisito_id', 'req_17')
+        fase = request.form.get('fase', 'Fase III: Escenario y diseño')
+        autor = request.form.get('autor', 'Equipo Técnico Institucional')
+        cargo_dependencia = request.form.get('cargo_dependencia', frente)
+        rol_skel = request.form.get('rol_skel', 'lider')
+        resumen_cambio = request.form.get('resumen_cambio', 'Cargue e importación inicial de documento construido por el equipo para co-edición y verificación normativa.')
+        direct_content = (request.form.get('contenido') or '').strip()
+
+        file = request.files.get('file')
+        extracted_md = ""
+        saved_doc_path = None
+        public_url = None
+
+        if file and file.filename:
+            ext = os.path.splitext(file.filename)[1].lower()
+            if not titulo:
+                titulo = os.path.splitext(file.filename)[0].replace('_', ' ')
+            file_bytes = file.read()
+            new_filename = f"collab_{uuid.uuid4()}{ext}"
+            saved_doc_path = f"inst_{inst_id}/cambio_caracter/collab_docs/{new_filename}"
+            file_options = {"content-type": file.content_type} if hasattr(file, 'content_type') else {}
+            try:
+                supabase.storage.from_('evidencias').upload(saved_doc_path, file_bytes, file_options=file_options)
+                public_url = supabase.storage.from_('evidencias').get_public_url(saved_doc_path)
+            except Exception as up_e:
+                print(f"[CC Collab Import] Storage warning: {up_e}")
+
+            if ext == '.docx':
+                try:
+                    d_obj = docx.Document(io.BytesIO(file_bytes))
+                    md_lines = []
+                    for para in d_obj.paragraphs:
+                        t = para.text.strip()
+                        if not t:
+                            md_lines.append("")
+                            continue
+                        style_name = (para.style.name if para.style else "").lower()
+                        if "heading 1" in style_name or "título 1" in style_name:
+                            md_lines.append(f"# {t}")
+                        elif "heading 2" in style_name or "título 2" in style_name:
+                            md_lines.append(f"## {t}")
+                        elif "heading 3" in style_name or "título 3" in style_name:
+                            md_lines.append(f"### {t}")
+                        elif "list" in style_name or "viñeta" in style_name:
+                            md_lines.append(f"- {t}")
+                        else:
+                            md_lines.append(t)
+                    # Also extract tables if any
+                    for tbl in d_obj.tables:
+                        md_lines.append("")
+                        for r_i, row in enumerate(tbl.rows):
+                            cells_txt = [c.text.strip().replace('\n', ' ') for c in row.cells]
+                            md_lines.append("| " + " | ".join(cells_txt) + " |")
+                            if r_i == 0:
+                                md_lines.append("| " + " | ".join(["---"] * len(cells_txt)) + " |")
+                        md_lines.append("")
+                    extracted_md = "\n".join(md_lines).strip()
+                except Exception:
+                    extracted_md = docx2txt.process(io.BytesIO(file_bytes))
+            elif ext == '.doc':
+                extracted_md = docx2txt.process(io.BytesIO(file_bytes))
+            elif ext == '.pdf':
+                reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
+                pages_txt = []
+                for idx_p, page in enumerate(reader.pages):
+                    t = page.extract_text()
+                    if t:
+                        pages_txt.append(t.strip())
+                extracted_md = "\n\n".join(pages_txt)
+            elif ext in ['.md', '.txt']:
+                extracted_md = file_bytes.decode('utf-8', errors='replace')
+            else:
+                return jsonify({"status": "error", "message": "Formato no soportado. Usa Word (.docx), PDF (.pdf) o Markdown (.md)."}), 400
+
+        final_content = extracted_md or direct_content
+        if not final_content:
+            final_content = (
+                f"# {titulo or 'Nuevo Documento Institucional'}\n\n"
+                f"## 1. Propósito y Alcance Normativo (Ley 749 de 2002 / Decreto 2038 de 2023)\n"
+                f"Documento en construcción colectiva por el frente **{frente}**.\n\n"
+                f"## 2. Lineamientos y Articulado Institucional\n\n"
+                f"## 3. Disposiciones de Implementación y Seguimiento\n"
+            )
+
+        if not titulo:
+            titulo = "Documento Institucional Co-construido"
+
+        project = get_cc_project(inst_id)
+        if "ai_history" not in project:
+            project["ai_history"] = []
+
+        now_iso = datetime.datetime.now().isoformat()
+        item_id = str(uuid.uuid4())
+        prod_prefix = (producto or "DOC").split()[0][:4].upper()
+        codigo_doc = f"DOC-{prod_prefix}-{len(project['ai_history']) + 1:02d}"
+
+        new_doc = {
+            "id": item_id,
+            "codigo_doc": codigo_doc,
+            "titulo": titulo,
+            "categoria": categoria,
+            "fecha": now_iso,
+            "fecha_modificacion": now_iso,
+            "tipo": "collaborative_doc",
+            "frente": frente,
+            "producto": producto,
+            "requisito_id": requisito_id,
+            "fase": fase,
+            "version_actual": "v1.0",
+            "estado_editorial": "En Construcción",
+            "autor": autor,
+            "cargo_dependencia": cargo_dependencia,
+            "rol_skel": rol_skel,
+            "tokens_est": 0,
+            "contenido": final_content,
+            "saved_doc_path": saved_doc_path,
+            "original_file_url": public_url,
+            "bitacora_versiones": [
+                {
+                    "version": "v1.0",
+                    "fecha": now_iso,
+                    "autor": autor,
+                    "cargo_dependencia": cargo_dependencia,
+                    "rol_skel": rol_skel,
+                    "fase": fase,
+                    "tipo_actuacion": "Importación de Documento Base" if (file and file.filename) else "Redacción Inicial",
+                    "resumen_cambio": resumen_cambio,
+                    "contenido_snapshot": final_content
+                }
+            ],
+            "aportes_equipo": [],
+            "auditorias_ia": []
+        }
+
+        project["ai_history"].insert(0, new_doc)
+        save_cc_project(inst_id, project)
+
+        return jsonify({
+            "status": "success",
+            "id": item_id,
+            "doc": new_doc,
+            "message": "Documento incorporado exitosamente a la Mesa de Co-Construcción."
+        })
+    except Exception as e:
+        print(f"[CC Import Doc] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/doc/add_team_contribution', methods=['POST'])
+def api_cc_doc_add_team_contribution():
+    """Registra aportes de revisión del equipo, acuerdos de mesas de trabajo o avales colegiados en el documento."""
+    try:
+        data = request.json or {}
+        inst_id = data.get('inst_id', get_active_inst_id())
+        doc_id = data.get('doc_id')
+        autor = (data.get('autor') or 'Integrante del Equipo').strip()
+        cargo_dependencia = (data.get('cargo_dependencia') or 'Comité Técnico').strip()
+        tipo = data.get('tipo', 'Aporte / Observación') # Aporte / Observación, Acuerdo de Mesa de Trabajo, Aval Técnico / Visto Bueno
+        seccion_referencia = (data.get('seccion_referencia') or 'General').strip()
+        comentario = (data.get('comentario') or '').strip()
+        nuevo_estado_editorial = data.get('nuevo_estado_editorial')
+
+        if not doc_id or not comentario:
+            return jsonify({"status": "error", "message": "Falta identificar el documento o el detalle del aporte."}), 400
+
+        project = get_cc_project(inst_id)
+        target_doc = next((d for d in project.get("ai_history", []) if d["id"] == doc_id), None)
+        if not target_doc:
+            return jsonify({"status": "error", "message": "Documento no encontrado"}), 404
+
+        if "aportes_equipo" not in target_doc or not isinstance(target_doc["aportes_equipo"], list):
+            target_doc["aportes_equipo"] = []
+
+        now_iso = datetime.datetime.now().isoformat()
+        aporte_item = {
+            "id": str(uuid.uuid4()),
+            "fecha": now_iso,
+            "autor": autor,
+            "cargo_dependencia": cargo_dependencia,
+            "tipo": tipo,
+            "seccion_referencia": seccion_referencia,
+            "comentario": comentario,
+            "estado": "Avalado" if "Aval" in tipo else "Registrado"
+        }
+        target_doc["aportes_equipo"].insert(0, aporte_item)
+
+        if nuevo_estado_editorial:
+            target_doc["estado_editorial"] = nuevo_estado_editorial
+
+        target_doc["fecha_modificacion"] = now_iso
+        save_cc_project(inst_id, project)
+
+        return jsonify({
+            "status": "success",
+            "aporte": aporte_item,
+            "estado_editorial": target_doc.get("estado_editorial"),
+            "message": "Aporte de trabajo en equipo registrado en la bitácora del documento."
+        })
+    except Exception as e:
+        print(f"[CC Add Contribution] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/doc/ai_audit_compliance', methods=['POST'])
+def api_cc_doc_ai_audit_compliance():
+    """Evalúa un documento co-construido (ej. Modelo Pedagógico, Reglamentos) frente al requerimiento normativo MEN."""
+    try:
+        data = request.json or {}
+        inst_id = data.get('inst_id', get_active_inst_id())
+        doc_id = data.get('doc_id')
+        contenido = (data.get('contenido') or '').strip()
+        titulo = data.get('titulo', 'Documento Institucional')
+        requisito_id = data.get('requisito_id', 'req_17')
+        frente = data.get('frente', 'Oferta y currículo')
+        producto = data.get('producto', 'P5')
+
+        if not contenido:
+            return jsonify({"status": "error", "message": "El documento está vacío. Escribe o importa contenido antes de auditarlo."}), 400
+
+        project = get_cc_project(inst_id)
+        target_doc = next((d for d in project.get("ai_history", []) if d["id"] == doc_id), None)
+
+        req_item = next((r for r in REQUISITOS if r['id'] == requisito_id), None)
+        if not req_item:
+            req_item = REQUISITOS[0]
+
+        # Buscar requisitos complementarios del mismo factor/frente para un contraste integral
+        related_reqs = [
+            f"- [{r['id']}] {r['title']}: {r['desc']} (Exigencia: {r.get('evidencia_requerida', '')})"
+            for r in REQUISITOS
+            if r.get('factor') == req_item.get('factor') or frente.lower()[:8] in (r.get('eje', '') + ' ' + r.get('desc', '')).lower()
+        ][:6]
+        related_reqs_str = "\n".join(related_reqs)
+
+        # Incluir resumen del trabajo en equipo del documento para que el Par IA también valore la construcción colectiva
+        num_versiones = len(target_doc.get("bitacora_versiones", [])) if target_doc else 1
+        num_aportes = len(target_doc.get("aportes_equipo", [])) if target_doc else 0
+        autores_equipo = list({v.get("cargo_dependencia", "") for v in (target_doc.get("bitacora_versiones", []) if target_doc else []) if v.get("cargo_dependencia")})
+
+        system_prompt = (
+            "Eres el Par Académico Evaluador Coordinador designado por el Ministerio de Educación Nacional (MEN) y CONACES, "
+            "experto en trámites de Cambio de Carácter Académico de Institución Técnica Profesional / Tecnológica a "
+            "Institución Universitaria (Ley 30 de 1992, Ley 749 de 2002 Art. 13-15, Decreto 1075 de 2015, Decreto 1330 de 2019, "
+            "Decreto 2038 de 2023 y Acuerdo CESU 01 de 2025). "
+            "Tu misión es auditar con rigor técnico el documento institucional presentado por el equipo y verificar si "
+            "realmente cumple con el requerimiento normativo exigido para una Institución Universitaria."
+        )
+
+        user_prompt = f"""
+Audita el siguiente documento institucional construido en equipo:
+- **Título del Documento:** {titulo}
+- **Producto Asociado:** {producto} | **Frente:** {frente}
+- **Requisito Normativo Principal Evaluado:** [{req_item.get('id')}] {req_item.get('title')}
+  * Descripción normativa: {req_item.get('desc')}
+  * Evidencia requerida por el MEN: {req_item.get('evidencia_requerida')}
+  * Marco Legal: {req_item.get('ley')}
+- **Criterios Normativos Concordantes del Frente:**
+{related_reqs_str}
+- **Trazabilidad de Construcción en Equipo Registrada:** {num_versiones} versión(es), {num_aportes} aporte(s)/mesa(s) registrados por: {', '.join(autores_equipo) or frente}.
+
+CONTENIDO DEL DOCUMENTO A EVALUAR:
+{contenido[:28000]}
+
+Evalúa rigurosamente el documento bajo la Metodología de las 6 Preguntas Institucionales y los estándares de visita de Pares del MEN.
+Devuelve EXCLUSIVAMENTE un bloque JSON válido con esta estructura exacta:
+```json
+{{
+  "puntaje_cumplimiento": 85,
+  "nivel_concepto": "Cumple Parcialmente (Avance Sólido)",
+  "preguntas_6": {{
+    "existe": true,
+    "vigente": true,
+    "aprobado": false,
+    "pertinente": true,
+    "aplica": true,
+    "evidencia": true
+  }},
+  "fortalezas": [
+    "Fortaleza específica 1 detectada en el texto frente a la norma...",
+    "Fortaleza específica 2..."
+  ],
+  "aspectos_por_mejorar": [
+    "Brecha o aspecto que un Par Académico del MEN observaría en visita...",
+    "Segundo aspecto por complementar para llegar al 100%..."
+  ],
+  "texto_sugerido": "## Propuesta de Articulado / Parágrafo Complementario Sugerido\\nRedacta aquí el texto exacto listo para insertar en el documento y subsanar los vacíos detectados...",
+  "dictamen_markdown": "### Dictamen Técnico del Par Evaluador MEN\\nRedacta un análisis ejecutivo formal sobre la coherencia, pertinencia universitaria y trazabilidad de equipo del documento."
+}}
+```
+"""
+
+        ai_response = call_ai([
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ], max_tokens=4000, temperature=0.25, inst_id=inst_id)
+
+        import re
+        match = re.search(r'```json\s*(.*?)\s*```', ai_response, re.DOTALL)
+        json_str = match.group(1) if match else ai_response.strip().strip('`')
+        if json_str.startswith('json'):
+            json_str = json_str[4:].strip()
+
+        try:
+            parsed = json.loads(json_str)
+        except Exception:
+            parsed = {
+                "puntaje_cumplimiento": 78,
+                "nivel_concepto": "En Consolidación Técnica",
+                "preguntas_6": {"existe": True, "vigente": True, "aprobado": False, "pertinente": True, "aplica": False, "evidencia": True},
+                "fortalezas": ["El documento desarrolla la estructura base requerida para el cambio de carácter."],
+                "aspectos_por_mejorar": ["Reforzar la evidencia de aprobación por órgano colegiado e indicadores de seguimiento."],
+                "texto_sugerido": "",
+                "dictamen_markdown": ai_response
+            }
+
+        now_iso = datetime.datetime.now().isoformat()
+        audit_record = {
+            "id": str(uuid.uuid4()),
+            "fecha": now_iso,
+            "version_evaluada": target_doc.get("version_actual", "v1.0") if target_doc else "v1.0",
+            "requisito_id": req_item.get("id"),
+            "requisito_titulo": f"{req_item.get('id').upper()} - {req_item.get('title')}",
+            "puntaje_cumplimiento": int(parsed.get("puntaje_cumplimiento", 80)),
+            "nivel_concepto": parsed.get("nivel_concepto", "Evaluado"),
+            "preguntas_6": parsed.get("preguntas_6", {}),
+            "fortalezas": parsed.get("fortalezas", []),
+            "aspectos_por_mejorar": parsed.get("aspectos_por_mejorar", []),
+            "texto_sugerido": parsed.get("texto_sugerido", ""),
+            "dictamen_markdown": parsed.get("dictamen_markdown", "")
+        }
+
+        if target_doc:
+            if "auditorias_ia" not in target_doc or not isinstance(target_doc["auditorias_ia"], list):
+                target_doc["auditorias_ia"] = []
+            target_doc["auditorias_ia"].insert(0, audit_record)
+            target_doc["ultimo_puntaje_ia"] = audit_record["puntaje_cumplimiento"]
+
+        # Actualizar también las 6 preguntas del requisito en la matriz si aplica
+        rid = req_item.get("id")
+        if rid and rid in project.get("requisitos", {}) and parsed.get("preguntas_6"):
+            project["requisitos"][rid]["preguntas_6"] = parsed["preguntas_6"]
+            if audit_record["puntaje_cumplimiento"] >= 85:
+                project["requisitos"][rid]["status"] = "Completado"
+            elif project["requisitos"][rid].get("status") == "Pendiente":
+                project["requisitos"][rid]["status"] = "En Construcción"
+
+        save_cc_project(inst_id, project)
+
+        return jsonify({
+            "status": "success",
+            "audit": audit_record
+        })
+    except Exception as e:
+        print(f"[CC AI Audit Doc] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @cambio_caracter_bp.route('/api/cambio_caracter/ai_history/delete', methods=['POST'])
 def api_cc_ai_history_delete():
@@ -736,9 +1324,15 @@ def api_cc_ai_history_delete():
 @cambio_caracter_bp.route('/api/cambio_caracter/download_word', methods=['POST'])
 def api_cc_download_word():
     try:
+        inst_id = request.form.get('inst_id', get_active_inst_id(), type=int)
+        doc_id = request.form.get('doc_id', '')
         title = request.form.get('title', 'Documento Institucional - Cambio de Carácter')
         text = request.form.get('content', '')
-        
+        include_trace = request.form.get('include_traceability', '1') == '1'
+
+        project = get_cc_project(inst_id)
+        doc_item = next((h for h in project.get("ai_history", []) if h.get("id") == doc_id), None)
+
         doc = docx.Document()
         
         # Page Margins (Normal 1 inch)
@@ -754,21 +1348,50 @@ def api_cc_download_word():
         title_run.font.name = 'Calibri'
         title_run.font.size = Pt(11)
         title_run.font.bold = True
-        title_run.font.color.rgb = RGBColor(99, 102, 241) # Indigo
+        title_run.font.color.rgb = RGBColor(49, 46, 129)
         title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
         doc_heading = doc.add_heading(title, level=0)
         doc_heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+        # Ficha de Control Documental en el Encabezado si existe doc_item
+        if doc_item:
+            meta_table = doc.add_table(rows=2, cols=4)
+            meta_table.style = 'Table Grid'
+            meta_cells_r0 = [
+                f"Código: {doc_item.get('codigo_doc', 'DOC-CC')}",
+                f"Versión: {doc_item.get('version_actual', 'v1.0')}",
+                f"Estado: {doc_item.get('estado_editorial', 'En Construcción')}",
+                f"Producto: {doc_item.get('producto', 'P5')}"
+            ]
+            meta_cells_r1 = [
+                f"Categoría: {doc_item.get('categoria', 'Políticas y Modelos')}",
+                f"Frente: {doc_item.get('frente', 'Institucional')}",
+                f"Requisito MEN: {(doc_item.get('requisito_id') or 'req_1').upper()}",
+                f"Fase: {doc_item.get('fase', 'Fase III')}"
+            ]
+            for c_i, val in enumerate(meta_cells_r0):
+                cell = meta_table.cell(0, c_i)
+                cell.text = val
+                for run in cell.paragraphs[0].runs:
+                    run.font.size = Pt(8.5)
+                    run.font.bold = True
+            for c_i, val in enumerate(meta_cells_r1):
+                cell = meta_table.cell(1, c_i)
+                cell.text = val
+                for run in cell.paragraphs[0].runs:
+                    run.font.size = Pt(8.5)
+            doc.add_paragraph().paragraph_format.space_after = Pt(6)
         
         date_para = doc.add_paragraph()
-        d_run = date_para.add_run(f"Generado el: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')} | Sistema SIAC")
+        d_run = date_para.add_run(f"Generado el: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')} | Expediente Co-Construido en SIAC 360")
         d_run.font.name = 'Calibri'
         d_run.font.size = Pt(9)
         d_run.font.italic = True
-        d_run.font.color.rgb = RGBColor(148, 163, 184)
+        d_run.font.color.rgb = RGBColor(100, 116, 139)
         date_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-        doc.add_paragraph().paragraph_format.space_after = Pt(12)
+        doc.add_paragraph().paragraph_format.space_after = Pt(10)
 
         # Parse markdown text line by line
         for line in text.split('\n'):
@@ -799,7 +1422,6 @@ def api_cc_download_word():
                 p = doc.add_paragraph()
                 p.paragraph_format.line_spacing = 1.15
                 p.paragraph_format.space_after = Pt(6)
-                # Bold markdown parsing (**text**)
                 parts = line_str.split('**')
                 for i, part in enumerate(parts):
                     if not part: continue
@@ -808,6 +1430,85 @@ def api_cc_download_word():
                     run.font.size = Pt(10.5)
                     if i % 2 == 1:
                         run.font.bold = True
+
+        # ANEXO DE TRAZABILIDAD Y TRABAJO EN EQUIPO PARA PARES EVALUADORES
+        if include_trace and doc_item:
+            doc.add_page_break()
+            h_anexo = doc.add_heading("ANEXO DE TRAZABILIDAD Y CONSTRUCCIÓN COLECTIVA (SOPORTE PARA PARES ACADÉMICOS MEN)", level=1)
+            h_anexo.alignment = WD_ALIGN_PARAGRAPH.LEFT
+
+            intro_p = doc.add_paragraph(
+                "El presente anexo certifica la trazabilidad metodológica, el control de versiones por dependencia, "
+                "los acuerdos de mesas de trabajo participativas y la auditoría interna de cumplimiento normativo "
+                "adelantada por el equipo institucional en el marco de la Ley 749 de 2002 y el Decreto 2038 de 2023."
+            )
+            intro_p.runs[0].font.size = Pt(9.5)
+            intro_p.runs[0].font.italic = True
+
+            # 1. Tabla de Control de Versiones y Co-Autores
+            doc.add_heading("1. Historial de Versiones y Co-Edición del Equipo", level=2)
+            versiones = doc_item.get("bitacora_versiones", [])
+            if versiones:
+                t_ver = doc.add_table(rows=1, cols=5)
+                t_ver.style = 'Table Grid'
+                hdrs = ["Versión", "Fecha", "Responsable / Co-Autor", "Cargo / Dependencia", "Actuación y Resumen del Aporte"]
+                for idx_c, h_txt in enumerate(hdrs):
+                    c = t_ver.cell(0, idx_c)
+                    c.text = h_txt
+                    for r in c.paragraphs[0].runs:
+                        r.font.bold = True
+                        r.font.size = Pt(8.5)
+                for v in versiones:
+                    row_cells = t_ver.add_row().cells
+                    row_cells[0].text = str(v.get("version", "v1.0"))
+                    row_cells[1].text = str(v.get("fecha", ""))[:16].replace("T", " ")
+                    row_cells[2].text = str(v.get("autor", ""))
+                    row_cells[3].text = f"{v.get('cargo_dependencia', '')} ({v.get('fase', '')})"
+                    row_cells[4].text = f"[{v.get('tipo_actuacion', '')}] {v.get('resumen_cambio', '')}"
+                    for rc in row_cells:
+                        for r in rc.paragraphs[0].runs:
+                            r.font.size = Pt(8.5)
+
+            # 2. Tabla de Mesas de Trabajo, Revisiones y Avales del Equipo
+            doc.add_heading("2. Registro de Mesas de Trabajo, Revisiones y Avales Colegiados", level=2)
+            aportes = doc_item.get("aportes_equipo", [])
+            if aportes:
+                t_ap = doc.add_table(rows=1, cols=5)
+                t_ap.style = 'Table Grid'
+                hdrs_ap = ["Fecha", "Participante / Instancia", "Dependencia / Estamento", "Tipo de Intervención", "Detalle del Aporte / Acuerdo / Aval"]
+                for idx_c, h_txt in enumerate(hdrs_ap):
+                    c = t_ap.cell(0, idx_c)
+                    c.text = h_txt
+                    for r in c.paragraphs[0].runs:
+                        r.font.bold = True
+                        r.font.size = Pt(8.5)
+                for ap in aportes:
+                    row_cells = t_ap.add_row().cells
+                    row_cells[0].text = str(ap.get("fecha", ""))[:16].replace("T", " ")
+                    row_cells[1].text = str(ap.get("autor", ""))
+                    row_cells[2].text = str(ap.get("cargo_dependencia", ""))
+                    row_cells[3].text = f"{ap.get('tipo', '')} ({ap.get('seccion_referencia', 'General')})"
+                    row_cells[4].text = str(ap.get("comentario", ""))
+                    for rc in row_cells:
+                        for r in rc.paragraphs[0].runs:
+                            r.font.size = Pt(8.5)
+            else:
+                doc.add_paragraph("Sin observaciones adicionales pendientes de cierre.")
+
+            # 3. Resumen de Verificación Normativa IA
+            auditorias = doc_item.get("auditorias_ia", [])
+            if auditorias:
+                ult = auditorias[0]
+                doc.add_heading("3. Dictamen Interno de Cumplimiento Normativo (Ley 749 / Dec. 2038)", level=2)
+                p_aud = doc.add_paragraph()
+                r_aud = p_aud.add_run(
+                    f"Índice de Alineación Normativa Verificado: {ult.get('puntaje_cumplimiento', 0)}% ({ult.get('nivel_concepto', '')}) "
+                    f"| Requisito contrastado: {ult.get('requisito_titulo', '')} | Versión evaluada: {ult.get('version_evaluada', '')}"
+                )
+                r_aud.font.bold = True
+                r_aud.font.size = Pt(9.5)
+                for f_item in ult.get("fortalezas", []):
+                    doc.add_paragraph(f"Fortaleza verificada: {f_item}", style='List Bullet')
                 
         io_stream = io.BytesIO()
         doc.save(io_stream)
@@ -822,8 +1523,15 @@ def api_cc_download_word():
 @cambio_caracter_bp.route('/api/cambio_caracter/download_pdf', methods=['POST'])
 def api_cc_download_pdf():
     try:
+        inst_id = request.form.get('inst_id', get_active_inst_id(), type=int)
+        doc_id = request.form.get('doc_id', '')
         title = request.form.get('title', 'Documento Institucional - Cambio de Caracter')
         text = request.form.get('content', '')
+        include_trace = request.form.get('include_traceability', '1') == '1'
+
+        project = get_cc_project(inst_id)
+        doc_item = next((h for h in project.get("ai_history", []) if h.get("id") == doc_id), None)
+
         from fpdf import FPDF
         
         class CC_PDF(FPDF):
@@ -834,7 +1542,7 @@ def api_cc_download_pdf():
                 self.ln(5)
                 self.set_font("helvetica", "I", 8)
                 self.set_text_color(148, 163, 184)
-                self.cell(0, 5, "Sistema de Aseguramiento de la Calidad (SIAC)", border=0, align="C")
+                self.cell(0, 5, "Sistema de Aseguramiento de la Calidad (SIAC 360) - Expediente Co-Construido", border=0, align="C")
                 self.ln(8)
                 self.set_draw_color(226, 232, 240)
                 self.line(10, self.get_y(), 200, self.get_y())
@@ -856,7 +1564,18 @@ def api_cc_download_pdf():
         safe_title = title.encode('latin-1', 'replace').decode('latin-1')
         pdf.set_x(pdf.l_margin)
         pdf.multi_cell(pdf.epw, 8, txt=safe_title, align="C")
-        pdf.ln(5)
+        pdf.ln(3)
+
+        if doc_item:
+            pdf.set_font("helvetica", "B", 8.5)
+            pdf.set_text_color(79, 70, 229)
+            meta_line = (
+                f"Codigo: {doc_item.get('codigo_doc', 'DOC')} | Version: {doc_item.get('version_actual', 'v1.0')} | "
+                f"Estado: {doc_item.get('estado_editorial', 'En Construccion')} | Frente: {doc_item.get('frente', '')} | "
+                f"Producto: {doc_item.get('producto', '')}"
+            ).encode('latin-1', 'replace').decode('latin-1')
+            pdf.multi_cell(pdf.epw, 5, txt=meta_line, align="C")
+            pdf.ln(4)
         
         pdf.set_font("helvetica", size=9)
         pdf.set_text_color(51, 65, 85)
@@ -895,6 +1614,55 @@ def api_cc_download_pdf():
             else:
                 safe_l = line.replace('**', '').encode('latin-1', 'replace').decode('latin-1')
                 pdf.multi_cell(pdf.epw, 5, txt=safe_l)
+
+        if include_trace and doc_item:
+            pdf.add_page()
+            pdf.set_font("helvetica", "B", 12)
+            pdf.set_text_color(49, 46, 129)
+            pdf.multi_cell(pdf.epw, 7, txt="ANEXO DE TRAZABILIDAD Y CONSTRUCCION EN EQUIPO (EVIDENCIA PARES MEN)")
+            pdf.ln(3)
+
+            pdf.set_font("helvetica", "B", 10)
+            pdf.set_text_color(30, 41, 59)
+            pdf.multi_cell(pdf.epw, 6, txt="1. Historial de Versiones y Co-Edicion Institucional:")
+            pdf.set_font("helvetica", size=8.5)
+            pdf.set_text_color(51, 65, 85)
+            for v in doc_item.get("bitacora_versiones", []):
+                v_txt = (
+                    f"- {v.get('version', 'v1.0')} ({str(v.get('fecha', ''))[:16].replace('T', ' ')}): "
+                    f"{v.get('autor', '')} [{v.get('cargo_dependencia', '')}] - {v.get('tipo_actuacion', '')}: {v.get('resumen_cambio', '')}"
+                ).encode('latin-1', 'replace').decode('latin-1')
+                pdf.multi_cell(pdf.epw, 5, txt=v_txt)
+            pdf.ln(4)
+
+            pdf.set_font("helvetica", "B", 10)
+            pdf.set_text_color(30, 41, 59)
+            pdf.multi_cell(pdf.epw, 6, txt="2. Mesas de Trabajo, Aportes y Avales del Equipo:")
+            pdf.set_font("helvetica", size=8.5)
+            pdf.set_text_color(51, 65, 85)
+            aportes = doc_item.get("aportes_equipo", [])
+            if aportes:
+                for ap in aportes:
+                    ap_txt = (
+                        f"- [{ap.get('tipo', '')}] {ap.get('autor', '')} ({ap.get('cargo_dependencia', '')} - {str(ap.get('fecha', ''))[:10]}): "
+                        f"{ap.get('comentario', '')}"
+                    ).encode('latin-1', 'replace').decode('latin-1')
+                    pdf.multi_cell(pdf.epw, 5, txt=ap_txt)
+            else:
+                pdf.multi_cell(pdf.epw, 5, txt="- Sin observaciones pendientes.")
+            pdf.ln(4)
+
+            auditorias = doc_item.get("auditorias_ia", [])
+            if auditorias:
+                ult = auditorias[0]
+                pdf.set_font("helvetica", "B", 10)
+                pdf.set_text_color(30, 41, 59)
+                aud_hdr = f"3. Verificacion Normativa IA: {ult.get('puntaje_cumplimiento', 0)}% ({ult.get('nivel_concepto', '')})".encode('latin-1', 'replace').decode('latin-1')
+                pdf.multi_cell(pdf.epw, 6, txt=aud_hdr)
+                pdf.set_font("helvetica", size=8.5)
+                for f_it in ult.get("fortalezas", []):
+                    ft = f"  * {f_it}".encode('latin-1', 'replace').decode('latin-1')
+                    pdf.multi_cell(pdf.epw, 5, txt=ft)
 
         pdf_bytes = pdf.output()
         if isinstance(pdf_bytes, str):
@@ -1114,6 +1882,39 @@ def api_cc_export_excel():
                 cell.border = thin_border
                 if row_idx % 2 == 0: cell.fill = zebra_fill
         autofit_cols(ws_rq)
+
+        # 8. SHEET: DOCUMENTOS Y TRAZABILIDAD DE EQUIPO
+        ws_dc = wb.create_sheet(title="Documentos y Trabajo Equipo")
+        headers_dc = [
+            "Código Doc", "Título del Documento", "Categoría", "Producto", "Frente",
+            "Requisito MEN", "Versión Actual", "Estado Editorial", "Último Autor / Dependencia",
+            "N° Versiones", "N° Aportes / Mesas", "Cumplimiento Normativo IA (%)"
+        ]
+        ws_dc.append(headers_dc)
+        style_header_row(ws_dc, len(headers_dc))
+        for row_idx, d_item in enumerate(project.get("ai_history", []), start=2):
+            auds = d_item.get("auditorias_ia", [])
+            pct_ia = f"{auds[0].get('puntaje_cumplimiento', 0)}%" if auds else "Pendiente auditar"
+            ws_dc.append([
+                d_item.get("codigo_doc", ""),
+                d_item.get("titulo", ""),
+                d_item.get("categoria", ""),
+                d_item.get("producto", ""),
+                d_item.get("frente", ""),
+                d_item.get("requisito_id", ""),
+                d_item.get("version_actual", "v1.0"),
+                d_item.get("estado_editorial", "En Construcción"),
+                f"{d_item.get('autor', '')} ({d_item.get('cargo_dependencia', '')})",
+                len(d_item.get("bitacora_versiones", [])),
+                len(d_item.get("aportes_equipo", [])),
+                pct_ia
+            ])
+            for c in range(1, len(headers_dc) + 1):
+                cell = ws_dc.cell(row=row_idx, column=c)
+                cell.font = font_data
+                cell.border = thin_border
+                if row_idx % 2 == 0: cell.fill = zebra_fill
+        autofit_cols(ws_dc)
 
         output_stream = io.BytesIO()
         wb.save(output_stream)

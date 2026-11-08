@@ -749,6 +749,9 @@
                         <p>Preparación institucional integral para la transformación a <strong>Institución Universitaria</strong> bajo el principio <em>"conocer antes de transformar"</em>. Ruta técnica, académica, normativa y financiera (Ley 749 de 2002, Ley 30 de 1992, Decretos 2216/2003, 1330/2019, 2038/2023 y 0529/2024).</p>
                     </div>
                     <div class="cc-hero-actions">
+                        <button class="btn-cc-hero btn-cc-primary" onclick="switchCcTab('ai_hub'); openImportCollabDocModal()">
+                            <i class="fa-solid fa-file-circle-plus"></i> Subir / Crear Documento en Equipo
+                        </button>
                         <button class="btn-cc-hero btn-cc-ai" onclick="openAiHubModal()">
                             <i class="fa-solid fa-wand-magic-sparkles"></i> Asistente IA Experto MEN
                         </button>
@@ -817,7 +820,7 @@
                     <i class="fa-solid fa-shield-halved"></i> 6. Riesgos y Controles <span class="cc-tab-badge">12</span>
                 </button>
                 <button class="cc-tab-btn" onclick="switchCcTab('ai_hub')">
-                    <i class="fa-solid fa-robot"></i> 7. Asistente IA & Histórico <span class="cc-tab-badge" id="badge-tab-ai">IA</span>
+                    <i class="fa-solid fa-people-group"></i> 7. Mesa Co-Construcción, IA & Trazabilidad <span class="cc-tab-badge" id="badge-tab-ai">Equipo</span>
                 </button>
             </div>
 
@@ -950,11 +953,16 @@
             <!-- TAB 5: PRODUCTOS ENTREGABLES P1-P10 -->
             <div id="pane-productos" class="cc-tab-pane">
                 <div class="cc-card-white">
-                    <div style="margin-bottom:20px;">
-                        <h3 style="margin:0; font-size:1.15rem; color:#1e293b; font-weight:700;"><i class="fa-solid fa-boxes-packing" style="color:var(--cc-primary);"></i> Catálogo de Productos Entregables Clave (P1 a P10 - Tabla 7)</h3>
-                        <p style="margin:4px 0 0 0; color:#64748b; font-size:0.85rem;">Componentes oficiales del Dossier Técnico Institucional para el cambio de carácter ante el MEN.</p>
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+                        <div>
+                            <h3 style="margin:0; font-size:1.15rem; color:#1e293b; font-weight:700;"><i class="fa-solid fa-boxes-packing" style="color:var(--cc-primary);"></i> Catálogo de Productos Entregables Clave (P1 a P10 - Tabla 7) y sus Sub-Documentos</h3>
+                            <p style="margin:4px 0 0 0; color:#64748b; font-size:0.85rem;">Cada producto puede agrupar múltiples políticas, modelos o reglamentos co-construidos por el equipo con trazabilidad para Pares Académicos.</p>
+                        </div>
+                        <button class="btn-cc-hero btn-cc-primary" onclick="openImportCollabDocModal()">
+                            <i class="fa-solid fa-file-circle-plus"></i> Subir / Crear Documento (Modelo, Política o Reglamento)
+                        </button>
                     </div>
-                    <div id="productos-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:20px;"></div>
+                    <div id="productos-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(380px, 1fr)); gap:20px;"></div>
                 </div>
             </div>
 
@@ -985,84 +993,420 @@
                 </div>
             </div>
 
-            <!-- TAB 7: ASISTENTE IA & HISTÓRICO DE VERSIONES -->
+            <!-- TAB 7: MESA DE CO-CONSTRUCCIÓN DOCUMENTAL, AUDITORÍA IA & TRAZABILIDAD DE EQUIPO -->
             <div id="pane-ai_hub" class="cc-tab-pane">
-                <div style="display:grid; grid-template-columns: 320px 1fr; gap:20px;">
-                    <!-- Left: History & Versions Sidebar -->
+                <div style="display:grid; grid-template-columns: 350px 1fr; gap:20px; align-items:start;">
+                    <!-- Left: Biblioteca de Documentos Co-Construidos -->
                     <div class="cc-card-white" style="padding:18px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #f1f5f9; padding-bottom:10px;">
-                            <h4 style="margin:0; font-size:0.95rem; font-weight:700; color:#1e293b;"><i class="fa-solid fa-clock-rotate-left" style="color:var(--cc-primary);"></i> Historial Guardado</h4>
-                            <span class="status-pill status-construccion" id="history-count-badge">0 vers.</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #f1f5f9; padding-bottom:10px;">
+                            <h4 style="margin:0; font-size:0.95rem; font-weight:800; color:#1e293b;"><i class="fa-solid fa-books" style="color:var(--cc-primary);"></i> Biblioteca del Equipo</h4>
+                            <span class="status-pill status-construccion" id="history-count-badge">0 docs</span>
                         </div>
-                        <p style="font-size:0.75rem; color:#64748b; margin-bottom:12px;">Carga cualquier versión guardada para editarla directamente sin consumir tokens de IA.</p>
-                        
-                        <button onclick="openAiHubModal()" class="btn-cc-hero btn-cc-ai" style="width:100%; justify-content:center; margin-bottom:15px; font-size:0.82rem;">
-                            <i class="fa-solid fa-robot"></i> Nuevo Análisis con IA
-                        </button>
+                        <p style="font-size:0.75rem; color:#64748b; margin:0 0 12px 0; line-height:1.4;">Repositorio de Políticas, Modelos (ej. Modelo Pedagógico), Reglamentos y Diagnósticos con trazabilidad para Pares MEN.</p>
 
-                        <div id="history-list-container" style="max-height: 520px; overflow-y: auto;"></div>
+                        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+                            <button onclick="openImportCollabDocModal()" class="btn-cc-hero btn-cc-primary" style="width:100%; justify-content:center; font-size:0.82rem; padding:9px 14px;">
+                                <i class="fa-solid fa-file-arrow-up"></i> Subir (.docx/.pdf) o Crear Documento
+                            </button>
+                            <button onclick="openAiHubModal()" class="btn-cc-hero btn-cc-ai" style="width:100%; justify-content:center; font-size:0.8rem; padding:8px 14px;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Generar Borrador con Asistente IA
+                            </button>
+                        </div>
+
+                        <!-- Filtros de la Biblioteca -->
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px;">
+                            <select id="filter-lib-cat" onchange="renderHistoryList()" style="padding:6px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.75rem; font-weight:600; background:#f8fafc; color:#334155;">
+                                <option value="all">Todas las categorías</option>
+                                <option value="Políticas y Modelos">Políticas y Modelos</option>
+                                <option value="Reglamentos y Estatutos">Reglamentos y Estatutos</option>
+                                <option value="Diagnósticos y Estudios">Diagnósticos y Estudios</option>
+                                <option value="Planes y Proyecciones">Planes y Proyecciones</option>
+                            </select>
+                            <select id="filter-lib-prod" onchange="renderHistoryList()" style="padding:6px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.75rem; font-weight:600; background:#f8fafc; color:#334155;">
+                                <option value="all">Todos (P1-P10)</option>
+                                <option value="P1">P1 Matriz</option>
+                                <option value="P2">P2 Diagnóstico</option>
+                                <option value="P3">P3 Evidencias</option>
+                                <option value="P4">P4 Mod. Institucional</option>
+                                <option value="P5">P5 Mod. Académico</option>
+                                <option value="P6">P6 Fortalecimiento</option>
+                                <option value="P7">P7 Paquete Jurídico</option>
+                                <option value="P8">P8 Financiero</option>
+                                <option value="P9">P9 Dossier</option>
+                                <option value="P10">P10 Hoja de Ruta</option>
+                            </select>
+                        </div>
+
+                        <div id="history-list-container" style="max-height: 600px; overflow-y: auto;"></div>
                     </div>
 
-                    <!-- Right: Editor & Live Document View -->
-                    <div class="cc-card-white">
-                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px; border-bottom:1px solid #e2e8f0; padding-bottom:14px;">
-                            <div style="flex:1; min-width:280px;">
-                                <input type="text" id="editor-title" placeholder="Título del Documento / Versión" style="width:100%; font-size:1.15rem; font-weight:700; color:#1e293b; border:1px solid transparent; padding:6px 10px; border-radius:6px; background:#f8fafc;" onfocus="this.style.borderColor='#cbd5e1'; this.style.background='#fff'" onblur="this.style.borderColor='transparent'; this.style.background='#f8fafc'">
-                                <div style="display:flex; gap:12px; font-size:0.75rem; color:#64748b; margin-top:6px;">
-                                    <span id="editor-meta-date"><i class="fa-solid fa-calendar"></i> Sin fecha</span>
-                                    <span id="editor-meta-author"><i class="fa-solid fa-user-pen"></i> Asesor Experto MEN</span>
-                                    <span id="editor-meta-tokens" style="color:#059669; font-weight:700;"><i class="fa-solid fa-bolt"></i> Tokens ahorrados</span>
+                    <!-- Right: Mesa de Co-Construcción, Trazabilidad de Equipo y Auditoría Normativa IA -->
+                    <div class="cc-card-white" style="padding:22px;">
+                        <!-- Encabezado y Metadatos del Documento Activo -->
+                        <div style="border-bottom:1px solid #e2e8f0; padding-bottom:14px; margin-bottom:16px;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:10px;">
+                                <div style="flex:1; min-width:300px;">
+                                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+                                        <span id="editor-badge-code" style="background:#312e81; color:white; font-size:0.72rem; font-weight:800; padding:3px 8px; border-radius:5px;">DOC-P5-01</span>
+                                        <span id="editor-badge-ver" style="background:#e0e7ff; color:#3730a3; font-size:0.72rem; font-weight:800; padding:3px 8px; border-radius:5px;">v1.0</span>
+                                        <select id="editor-sel-estado" onchange="onQuickDocMetaChange()" style="padding:3px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.74rem; font-weight:700; background:#fef3c7; color:#92400e; cursor:pointer;">
+                                            <option value="En Construcción">📝 En Construcción</option>
+                                            <option value="En Revisión del Equipo">👥 En Revisión del Equipo</option>
+                                            <option value="Validado Comité Técnico">✅ Validado Comité Técnico</option>
+                                            <option value="Aprobado Consejo">🏛️ Aprobado Consejo</option>
+                                        </select>
+                                        <span id="editor-badge-ia-score" style="display:none; background:#dcfce7; color:#166534; font-size:0.72rem; font-weight:800; padding:3px 9px; border-radius:999px; border:1px solid #bbf7d0;">
+                                            <i class="fa-solid fa-scale-balanced"></i> Cumplimiento MEN: 0%
+                                        </span>
+                                    </div>
+                                    <input type="text" id="editor-title" placeholder="Título del Documento Institucional (ej: Modelo Pedagógico Institucional)" style="width:100%; font-size:1.18rem; font-weight:800; color:#1e293b; border:1px solid #e2e8f0; padding:7px 12px; border-radius:8px; background:#f8fafc;">
+                                </div>
+
+                                <!-- Botones de Acción Principal del Documento -->
+                                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                                    <button onclick="openSaveTeamVersionModal(false)" class="btn-cc-hero btn-cc-excel" title="Registra quién hizo el ajuste, de qué dependencia y qué cambió">
+                                        <i class="fa-solid fa-user-check"></i> Guardar Aporte / Versión
+                                    </button>
+                                    <button onclick="switchDocWorkspaceSubtab('audit'); runAiNormativeAuditForCurrentDoc();" class="btn-cc-hero btn-cc-ai" title="Evalúa con IA si este documento cumple los requisitos del MEN">
+                                        <i class="fa-solid fa-scale-balanced"></i> Auditar Cumplimiento MEN (IA)
+                                    </button>
+                                    <form method="POST" action="/api/cambio_caracter/download_word" target="_blank" style="display:inline;">
+                                        <input type="hidden" name="doc_id" id="hiddenWordDocId">
+                                        <input type="hidden" name="title" id="hiddenWordTitle">
+                                        <input type="hidden" name="content" id="hiddenWordContent">
+                                        <input type="hidden" name="include_traceability" id="hiddenWordTrace" value="1">
+                                        <button type="submit" onclick="prepareWordDownload()" class="btn-cc-hero btn-cc-primary" title="Descarga Word incluyendo Anexo de Trazabilidad del Trabajo en Equipo para Pares">
+                                            <i class="fa-solid fa-file-word"></i> Word + Anexo Par
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="/api/cambio_caracter/download_pdf" target="_blank" style="display:inline;">
+                                        <input type="hidden" name="doc_id" id="hiddenPdfDocId">
+                                        <input type="hidden" name="title" id="hiddenPdfTitle">
+                                        <input type="hidden" name="content" id="hiddenPdfContent">
+                                        <input type="hidden" name="include_traceability" id="hiddenPdfTrace" value="1">
+                                        <button type="submit" onclick="preparePdfDownload()" class="btn-cc-hero" style="background:#ef4444; color:white;" title="Descarga PDF incluyendo Anexo de Trazabilidad del Trabajo en Equipo para Pares">
+                                            <i class="fa-solid fa-file-pdf"></i> PDF + Anexo Par
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
 
-                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                <button onclick="saveCurrentEditorText(false)" class="btn-cc-hero btn-cc-excel" title="Guarda los cambios directos sin gastar tokens">
-                                    <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
-                                </button>
-                                <button onclick="saveCurrentEditorText(true)" class="btn-cc-hero btn-cc-save" style="background:#4f46e5; border:none;" title="Crea una nueva versión en el histórico">
-                                    <i class="fa-solid fa-copy"></i> Nueva Versión
-                                </button>
-                                <form method="POST" action="/api/cambio_caracter/download_word" target="_blank" style="display:inline;">
-                                    <input type="hidden" name="title" id="hiddenWordTitle">
-                                    <input type="hidden" name="content" id="hiddenWordContent">
-                                    <button type="submit" onclick="prepareWordDownload()" class="btn-cc-hero btn-cc-primary">
-                                        <i class="fa-solid fa-file-word"></i> Word (.docx)
-                                    </button>
-                                </form>
-                                <form method="POST" action="/api/cambio_caracter/download_pdf" target="_blank" style="display:inline;">
-                                    <input type="hidden" name="title" id="hiddenPdfTitle">
-                                    <input type="hidden" name="content" id="hiddenPdfContent">
-                                    <button type="submit" onclick="preparePdfDownload()" class="btn-cc-hero" style="background:#ef4444; color:white;">
-                                        <i class="fa-solid fa-file-pdf"></i> PDF
-                                    </button>
-                                </form>
+                            <!-- Barra de Articulación: Categoría, Producto, Frente, Requisito Normativo -->
+                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:10px; background:#f8fafc; padding:10px 12px; border-radius:10px; border:1px solid #e2e8f0; margin-top:8px;">
+                                <div>
+                                    <label style="font-size:0.68rem; font-weight:800; color:#64748b; text-transform:uppercase; display:block;">Categoría Documental</label>
+                                    <select id="editor-meta-cat" onchange="onQuickDocMetaChange()" style="width:100%; border:none; background:transparent; font-size:0.8rem; font-weight:700; color:#1e293b; padding:2px 0; outline:none;">
+                                        <option value="Políticas y Modelos">Políticas y Modelos</option>
+                                        <option value="Reglamentos y Estatutos">Reglamentos y Estatutos</option>
+                                        <option value="Diagnósticos y Estudios">Diagnósticos y Estudios</option>
+                                        <option value="Planes y Proyecciones">Planes y Proyecciones</option>
+                                        <option value="Actas y Acuerdos">Actas y Acuerdos</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.68rem; font-weight:800; color:#64748b; text-transform:uppercase; display:block;">Producto Dossier (P1-P10)</label>
+                                    <select id="editor-meta-prod" onchange="onQuickDocMetaChange()" style="width:100%; border:none; background:transparent; font-size:0.8rem; font-weight:700; color:#4f46e5; padding:2px 0; outline:none;"></select>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.68rem; font-weight:800; color:#64748b; text-transform:uppercase; display:block;">Frente Responsable</label>
+                                    <select id="editor-meta-frente" onchange="onQuickDocMetaChange()" style="width:100%; border:none; background:transparent; font-size:0.8rem; font-weight:700; color:#1e293b; padding:2px 0; outline:none;"></select>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.68rem; font-weight:800; color:#64748b; text-transform:uppercase; display:block;">Requisito Normativo MEN</label>
+                                    <select id="editor-meta-req" onchange="onQuickDocMetaChange()" style="width:100%; border:none; background:transparent; font-size:0.8rem; font-weight:700; color:#0f766e; padding:2px 0; outline:none;"></select>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-size:0.75rem; color:#64748b; margin-top:8px;">
+                                <div style="display:flex; gap:14px; flex-wrap:wrap;">
+                                    <span id="editor-meta-date"><i class="fa-solid fa-calendar"></i> Sin fecha</span>
+                                    <span id="editor-meta-author"><i class="fa-solid fa-user-pen"></i> Equipo Institucional</span>
+                                    <span id="editor-meta-tokens" style="color:#059669; font-weight:700;"><i class="fa-solid fa-users"></i> Trabajo colaborativo activo</span>
+                                    <a id="editor-original-file-link" href="#" target="_blank" style="display:none; color:#2563eb; font-weight:700; text-decoration:none;"><i class="fa-solid fa-paperclip"></i> Ver archivo original importado</a>
+                                </div>
+                                <label style="display:inline-flex; align-items:center; gap:6px; font-size:0.74rem; font-weight:700; color:#312e81; cursor:pointer;">
+                                    <input type="checkbox" id="chk-include-trace" checked> Incluir Anexo de Trazabilidad de Equipo al exportar Word/PDF
+                                </label>
                             </div>
                         </div>
 
-                        <!-- Editor Tabs: Markdown Textarea vs Formatted Preview -->
-                        <div style="display:flex; gap:10px; margin-bottom:12px; align-items:center;">
-                            <button id="btn-edit-mode-raw" onclick="setEditorMode('raw')" style="padding:6px 14px; border-radius:6px; border:1px solid #cbd5e1; background:#4f46e5; color:white; font-size:0.8rem; font-weight:700; cursor:pointer;">
-                                <i class="fa-solid fa-pen-to-square"></i> Editor de Texto (Markdown)
+                        <!-- SUB-PESTAÑAS INTERNAS DEL EXPEDIENTE DOCUMENTAL -->
+                        <div style="display:flex; gap:8px; border-bottom:2px solid #e2e8f0; margin-bottom:16px; overflow-x:auto;">
+                            <button id="subtab-btn-doc-edit" onclick="switchDocWorkspaceSubtab('edit')" style="padding:10px 16px; border:none; background:#4f46e5; color:white; border-radius:8px 8px 0 0; font-size:0.84rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-book-open-reader"></i> 1. Lectura y Co-Edición del Documento
                             </button>
-                            <button id="btn-edit-mode-preview" onclick="setEditorMode('preview')" style="padding:6px 14px; border-radius:6px; border:1px solid #cbd5e1; background:#f8fafc; color:#475569; font-size:0.8rem; font-weight:700; cursor:pointer;">
-                                <i class="fa-solid fa-eye"></i> Vista Previa Maquetada
+                            <button id="subtab-btn-doc-trace" onclick="switchDocWorkspaceSubtab('trace')" style="padding:10px 16px; border:none; background:#f1f5f9; color:#475569; border-radius:8px 8px 0 0; font-size:0.84rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-users-rectangle"></i> 2. Trabajo en Equipo: Versiones, Mesas y Avales <span id="badge-subtab-trace" style="background:#e0e7ff; color:#3730a3; padding:2px 7px; border-radius:999px; font-size:0.7rem;">1</span>
                             </button>
-                            <span style="font-size:0.75rem; color:#64748b; margin-left:auto;"><i class="fa-solid fa-circle-info"></i> Puedes editar libremente el texto para minimizar el consumo de tokens.</span>
+                            <button id="subtab-btn-doc-audit" onclick="switchDocWorkspaceSubtab('audit')" style="padding:10px 16px; border:none; background:#f1f5f9; color:#475569; border-radius:8px 8px 0 0; font-size:0.84rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-scale-balanced"></i> 3. Verificación IA de Cumplimiento Normativo (Par MEN) <span id="badge-subtab-audit" style="background:#dcfce7; color:#166534; padding:2px 7px; border-radius:999px; font-size:0.7rem;">IA</span>
+                            </button>
                         </div>
 
-                        <div id="editor-raw-container">
-                            <textarea id="editor-textarea" style="width:100%; height:550px; padding:18px; border-radius:10px; border:1px solid #cbd5e1; font-family:'Consolas', 'Courier New', monospace; font-size:0.9rem; line-height:1.6; color:#1e293b; background:#ffffff; resize:vertical; outline:none;" placeholder="Selecciona una versión del histórico o genera una nueva propuesta con la IA..."></textarea>
+                        <!-- SUB-VISTA 1: LECTURA Y CO-EDICIÓN -->
+                        <div id="doc-subpane-edit">
+                            <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center; flex-wrap:wrap;">
+                                <button id="btn-edit-mode-raw" onclick="setEditorMode('raw')" style="padding:6px 14px; border-radius:6px; border:1px solid #cbd5e1; background:#4f46e5; color:white; font-size:0.8rem; font-weight:700; cursor:pointer;">
+                                    <i class="fa-solid fa-pen-to-square"></i> Modo Co-Edición (Texto / Markdown)
+                                </button>
+                                <button id="btn-edit-mode-preview" onclick="setEditorMode('preview')" style="padding:6px 14px; border-radius:6px; border:1px solid #cbd5e1; background:#f8fafc; color:#475569; font-size:0.8rem; font-weight:700; cursor:pointer;">
+                                    <i class="fa-solid fa-book-open"></i> Modo Lectura Maquetada (Vista Equipo y Pares)
+                                </button>
+
+                                <!-- Barra rápida de estructura normativa -->
+                                <div style="display:flex; gap:4px; margin-left:auto;">
+                                    <button onclick="insertEditorSnippet('\n## CAPÍTULO : TÍTULO DEL CAPÍTULO\n')" style="padding:4px 8px; border-radius:5px; border:1px solid #cbd5e1; background:#fff; font-size:0.73rem; font-weight:700; color:#334155; cursor:pointer;" title="Insertar Capítulo">+ Capítulo</button>
+                                    <button onclick="insertEditorSnippet('\n### Artículo X. Denominación.\nTexto normativo o pedagógico del artículo...\n\n**Parágrafo.** Disposición complementaria.\n')" style="padding:4px 8px; border-radius:5px; border:1px solid #cbd5e1; background:#fff; font-size:0.73rem; font-weight:700; color:#334155; cursor:pointer;" title="Insertar Artículo y Parágrafo">+ Artículo</button>
+                                    <button onclick="insertEditorSnippet('\n| Criterio / Nivel | Descripción Institucional | Indicador Verificable |\n| --- | --- | --- |\n| Nivel 1 | Detalle | Evidencia |\n')" style="padding:4px 8px; border-radius:5px; border:1px solid #cbd5e1; background:#fff; font-size:0.73rem; font-weight:700; color:#334155; cursor:pointer;" title="Insertar Tabla">+ Tabla</button>
+                                </div>
+                            </div>
+
+                            <div id="editor-raw-container">
+                                <textarea id="editor-textarea" style="width:100%; height:540px; padding:18px; border-radius:10px; border:1px solid #cbd5e1; font-family:'Consolas', 'Courier New', monospace; font-size:0.9rem; line-height:1.6; color:#1e293b; background:#ffffff; resize:vertical; outline:none;" placeholder="Selecciona un documento de la biblioteca, sube un archivo Word/PDF existente o redacta aquí en equipo..."></textarea>
+                            </div>
+
+                            <div id="editor-preview-container" style="display:none; height:540px; overflow-y:auto; padding:28px 32px; border-radius:10px; border:1px solid #e2e8f0; background:#ffffff; box-shadow:inset 0 2px 6px rgba(0,0,0,0.02); line-height:1.75; font-size:0.95rem; color:#1e293b;">
+                                <!-- Live Markdown parsed content here -->
+                            </div>
                         </div>
 
-                        <div id="editor-preview-container" style="display:none; height:550px; overflow-y:auto; padding:24px; border-radius:10px; border:1px solid #e2e8f0; background:#f8fafc; line-height:1.7; font-size:0.92rem; color:#1e293b;">
-                            <!-- Live Markdown parsed content here -->
+                        <!-- SUB-VISTA 2: TRAZABILIDAD DE TRABAJO EN EQUIPO, VERSIONES, MESAS Y AVALES -->
+                        <div id="doc-subpane-trace" style="display:none;">
+                            <div style="background:linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border:1px solid #c7d2fe; border-radius:12px; padding:16px 20px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                                <div>
+                                    <h4 style="margin:0 0 4px 0; font-size:1rem; color:#1e1b4b; font-weight:800;"><i class="fa-solid fa-people-group" style="color:#4f46e5;"></i> Evidencia de Construcción Colectiva ante el Par Evaluador MEN</h4>
+                                    <p style="margin:0; font-size:0.8rem; color:#3730a3;">Todo cambio de versión, acuerdo de mesa de trabajo con docentes/directivos y revisión técnica queda registrado con fecha, responsable y dependencia.</p>
+                                </div>
+                                <div id="trace-kpi-badges" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px;">
+                                <!-- Columna Izquierda: Registrar Aporte de Mesa / Revisión / Aval del Equipo -->
+                                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px;">
+                                    <h5 style="margin:0 0 12px 0; font-size:0.92rem; color:#1e293b; font-weight:800;"><i class="fa-solid fa-comments" style="color:#2563eb;"></i> Registrar Revisión del Equipo, Mesa de Trabajo o Aval</h5>
+                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                                        <div>
+                                            <label style="font-size:0.74rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Integrante / Participante:</label>
+                                            <input type="text" id="team-ap-autor" list="skel-users-datalist" placeholder="Nombre o selecciona usuario..." style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                                        </div>
+                                        <div>
+                                            <label style="font-size:0.74rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Dependencia / Estamento:</label>
+                                            <input type="text" id="team-ap-dep" placeholder="Ej: Comité Curricular / Docentes" value="Vicerrectoría Académica" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                                        </div>
+                                    </div>
+                                    <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:10px; margin-bottom:10px;">
+                                        <div>
+                                            <label style="font-size:0.74rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Tipo de Actuación Colectiva:</label>
+                                            <select id="team-ap-tipo" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem; background:#fff;">
+                                                <option value="Acuerdo de Mesa de Trabajo">🤝 Acuerdo de Mesa de Trabajo / Socialización</option>
+                                                <option value="Aporte / Observación de Revisión">💬 Aporte / Observación de Revisión</option>
+                                                <option value="Aval Técnico / Visto Bueno">✅ Aval Técnico / Visto Bueno de Dependencia</option>
+                                                <option value="Validación Consejo / Órgano Colegiado">🏛️ Validación de Órgano Colegiado</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style="font-size:0.74rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Capítulo / Artículo Referido:</label>
+                                            <input type="text" id="team-ap-sec" placeholder="Ej: Cap. 2 - Créditos y RA" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                                        </div>
+                                    </div>
+                                    <div style="margin-bottom:10px;">
+                                        <label style="font-size:0.74rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Descripción del Aporte, Acuerdo de Equipo o Concepto de Revisión:</label>
+                                        <textarea id="team-ap-comentario" rows="3" placeholder="Ej: En sesión con los directores de programa y representantes profesorales se revisó y aprobó el esquema de evaluación de resultados de aprendizaje..." style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem; resize:vertical;"></textarea>
+                                    </div>
+                                    <button onclick="submitTeamContribution()" style="width:100%; background:linear-gradient(135deg, #2563eb, #4f46e5); color:white; border:none; padding:9px 14px; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer;">
+                                        <i class="fa-solid fa-plus-circle"></i> Registrar en Bitácora de Trabajo en Equipo
+                                    </button>
+
+                                    <hr style="border:none; border-top:1px solid #e2e8f0; margin:16px 0;">
+                                    <h6 style="margin:0 0 10px 0; font-size:0.82rem; color:#334155; font-weight:800; text-transform:uppercase;">Mesas, Revisiones y Avales Registrados</h6>
+                                    <div id="doc-aportes-list" style="max-height:310px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
+                                </div>
+
+                                <!-- Columna Derecha: Línea de Tiempo de Versiones Co-Editadas -->
+                                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                        <h5 style="margin:0; font-size:0.92rem; color:#1e293b; font-weight:800;"><i class="fa-solid fa-code-branch" style="color:#059669;"></i> Historial de Versiones y Co-Autores</h5>
+                                        <button onclick="openSaveTeamVersionModal(false)" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:6px; font-size:0.74rem; font-weight:700; cursor:pointer;">
+                                            <i class="fa-solid fa-plus"></i> Guardar Nueva Versión
+                                        </button>
+                                    </div>
+                                    <div id="doc-versiones-timeline" style="max-height:510px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;"></div>
+                                </div>
+                            </div>
                         </div>
+
+                        <!-- SUB-VISTA 3: AUDITORÍA IA DE CUMPLIMIENTO NORMATIVO (PAR EVALUADOR MEN) -->
+                        <div id="doc-subpane-audit" style="display:none;">
+                            <div style="background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border:1px solid #bbf7d0; border-radius:12px; padding:16px 20px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+                                <div style="max-width:680px;">
+                                    <h4 style="margin:0 0 4px 0; font-size:1rem; color:#14532d; font-weight:800;"><i class="fa-solid fa-scale-balanced" style="color:#16a34a;"></i> Simulación de Par Evaluador MEN: Verificación de Cumplimiento Normativo</h4>
+                                    <p style="margin:0; font-size:0.8rem; color:#166534;">La IA contrasta el contenido actual de este documento contra la Ley 749 de 2002, el Decreto 1330 de 2019, el Decreto 2038 de 2023 y las 6 Preguntas Institucionales, identificando qué cumple y qué texto exacto agregar para el 100%.</p>
+                                </div>
+                                <button id="btn-run-doc-audit" onclick="runAiNormativeAuditForCurrentDoc()" style="background:linear-gradient(135deg, #16a34a, #059669); color:white; border:none; padding:11px 18px; border-radius:10px; font-size:0.86rem; font-weight:800; cursor:pointer; box-shadow:0 4px 12px rgba(22, 163, 74, 0.3); display:inline-flex; align-items:center; gap:8px;">
+                                    <i class="fa-solid fa-magnifying-glass-chart"></i> Analizar Cumplimiento del Documento Ahora
+                                </button>
+                            </div>
+
+                            <div id="doc-audit-results-container">
+                                <p style="text-align:center; color:#64748b; font-size:0.88rem; padding:40px 20px;">
+                                    Haz clic en <strong>"Analizar Cumplimiento del Documento Ahora"</strong> para que el Par Evaluador IA verifique tu documento frente a los requerimientos del MEN.
+                                </p>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
 
         </div>
     </main>
+</div>
+
+<datalist id="skel-users-datalist"></datalist>
+
+<!-- MODAL: SUBIR (.DOCX/.PDF) O CREAR NUEVO DOCUMENTO CO-CONSTRUIDO -->
+<div id="importCollabDocModal" class="cc-modal-backdrop">
+    <div class="cc-modal-box" style="width:740px;">
+        <div class="cc-modal-header" style="background:linear-gradient(135deg, #1e1b4b, #312e81); color:white;">
+            <div>
+                <h3 style="margin:0; font-size:1.15rem; color:white; font-weight:800;"><i class="fa-solid fa-file-circle-plus" style="color:#38bdf8;"></i> Incorporar Documento para Co-Edición y Trazabilidad del Equipo</h3>
+                <p style="margin:4px 0 0 0; font-size:0.8rem; color:#c7d2fe;">Sube un documento que ya hayas adelantado (ej. Modelo Pedagógico en Word/PDF) o crea uno nuevo para trabajarlo en equipo.</p>
+            </div>
+            <button onclick="closeImportCollabDocModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#cbd5e1;">&times;</button>
+        </div>
+        <div class="cc-modal-body">
+            <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:14px; margin-bottom:14px;">
+                <div>
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Título del Documento Institucional:</label>
+                    <input type="text" id="imp-doc-titulo" placeholder="Ej: Modelo Pedagógico Institucional / Reglamento Estudiantil" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.85rem;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Categoría (Políticas, Reglamentos, etc.):</label>
+                    <select id="imp-doc-categoria" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.85rem; background:#fff;">
+                        <option value="Políticas y Modelos">Políticas y Modelos (ej. Modelo Pedagógico)</option>
+                        <option value="Reglamentos y Estatutos">Reglamentos y Estatutos</option>
+                        <option value="Diagnósticos y Estudios">Diagnósticos y Estudios</option>
+                        <option value="Planes y Proyecciones">Planes y Proyecciones</option>
+                        <option value="Actas y Acuerdos">Actas y Acuerdos</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:14px;">
+                <div>
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Producto Dossier (P1-P10):</label>
+                    <select id="imp-doc-producto" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.82rem; background:#fff;"></select>
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Frente de Trabajo:</label>
+                    <select id="imp-doc-frente" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.82rem; background:#fff;"></select>
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Fase del Proceso:</label>
+                    <select id="imp-doc-fase" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.82rem; background:#fff;">
+                        <option value="Fase I: Alineación y levantamiento">Fase I: Alineación y levantamiento</option>
+                        <option value="Fase II: Diagnóstico integral">Fase II: Diagnóstico integral</option>
+                        <option value="Fase III: Escenario y diseño" selected>Fase III: Escenario y diseño</option>
+                        <option value="Fase IV: Desarrollo documental">Fase IV: Desarrollo documental</option>
+                        <option value="Fase V: Validación y cierre de brechas">Fase V: Validación y cierre de brechas</option>
+                        <option value="Fase VI: Consolidación y ruta institucional">Fase VI: Consolidación y ruta institucional</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Requisito Normativo Principal del MEN que sustenta este documento:</label>
+                <select id="imp-doc-req" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.82rem; background:#fff;"></select>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+                <div>
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Autor / Líder que incorpora el documento:</label>
+                    <input type="text" id="imp-doc-autor" list="skel-users-datalist" placeholder="Nombre del integrante del equipo" value="Vicerrectoría Académica" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.82rem;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Cargo / Dependencia Institucional:</label>
+                    <input type="text" id="imp-doc-dep" placeholder="Ej: Vicerrectoría Académica / Comité Curricular" value="Vicerrectoría Académica" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.82rem;">
+                </div>
+            </div>
+
+            <div style="background:#f8fafc; border:1px dashed #6366f1; border-radius:10px; padding:14px; margin-bottom:14px;">
+                <label style="display:block; font-size:0.82rem; font-weight:800; color:#312e81; margin-bottom:6px;"><i class="fa-solid fa-file-import"></i> Opción A: Subir archivo existente (.docx, .pdf, .md) para volverlo editable en equipo:</label>
+                <input type="file" id="imp-doc-file" accept=".docx,.doc,.pdf,.md,.txt" style="width:100%; font-size:0.82rem;">
+                <span style="font-size:0.73rem; color:#64748b; display:block; margin-top:4px;">El sistema extraerá el texto automáticamente para edición colaborativa y guardará el soporte original en la nube. Si lo dejas vacío, se creará con plantilla estructurada.</span>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Nota inicial de trazabilidad (Versión v1.0):</label>
+                <input type="text" id="imp-doc-resumen" value="Incorporación del documento base para lectura, co-edición interdisciplinaria y verificación normativa." style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.82rem;">
+            </div>
+
+            <button id="btn-submit-import-doc" onclick="submitImportCollabDoc()" style="width:100%; background:linear-gradient(135deg, #4f46e5, #06b6d4); color:white; border:none; padding:12px 18px; border-radius:10px; font-size:0.92rem; font-weight:800; cursor:pointer; box-shadow:0 4px 14px rgba(79, 70, 229, 0.3);">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Poner Documento a Disposición del Equipo
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: GUARDAR APORTE / NUEVA VERSIÓN CON TRAZABILIDAD DE EQUIPO -->
+<div id="saveTeamVersionModal" class="cc-modal-backdrop">
+    <div class="cc-modal-box" style="width:620px;">
+        <div class="cc-modal-header" style="background:#f8fafc;">
+            <div>
+                <h3 style="margin:0; font-size:1.1rem; color:#1e293b; font-weight:800;"><i class="fa-solid fa-user-check" style="color:#10b981;"></i> Registrar Aporte y Versión en la Bitácora del Equipo</h3>
+                <p style="margin:3px 0 0 0; font-size:0.78rem; color:#64748b;">Esta información quedará certificada en el Anexo de Trazabilidad para los Pares Evaluadores del MEN.</p>
+            </div>
+            <button onclick="closeSaveTeamVersionModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#94a3b8;">&times;</button>
+        </div>
+        <div class="cc-modal-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                <div>
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Co-Autor / Integrante del Equipo:</label>
+                    <input type="text" id="stv-autor" list="skel-users-datalist" placeholder="Nombre completo o usuario SKEL" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.84rem;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Cargo / Dependencia Institucional:</label>
+                    <input type="text" id="stv-dep" placeholder="Ej: Dirección de Calidad / Comité Curricular" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.84rem;">
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                <div>
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Tipo de Intervención:</label>
+                    <select id="stv-tipo" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.84rem; background:#fff;">
+                        <option value="Ajuste Técnico / Co-edición">✍️ Ajuste Técnico / Co-edición en Equipo</option>
+                        <option value="Aporte Mesa de Trabajo">🤝 Incorporación de Acuerdos de Mesa de Trabajo</option>
+                        <option value="Revisión Pedagógica / Curricular">🎓 Revisión Pedagógica y Curricular</option>
+                        <option value="Armonización Jurídica">⚖️ Armonización Jurídica y Estatutaria</option>
+                        <option value="Subsanación Auditoría IA">🤖 Subsanación de Brecha Detectada por IA</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Fase del Proceso:</label>
+                    <select id="stv-fase" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.84rem; background:#fff;">
+                        <option value="Fase I: Alineación y levantamiento">Fase I: Alineación y levantamiento</option>
+                        <option value="Fase II: Diagnóstico integral">Fase II: Diagnóstico integral</option>
+                        <option value="Fase III: Escenario y diseño" selected>Fase III: Escenario y diseño</option>
+                        <option value="Fase IV: Desarrollo documental">Fase IV: Desarrollo documental</option>
+                        <option value="Fase V: Validación y cierre de brechas">Fase V: Validación y cierre de brechas</option>
+                        <option value="Fase VI: Consolidación y ruta institucional">Fase VI: Consolidación y ruta institucional</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Resumen del Aporte / ¿Qué se modificó o construyó en esta sesión?:</label>
+                <textarea id="stv-resumen" rows="3" placeholder="Ej: Se ajustó el capítulo 3 del Modelo Pedagógico incorporando el sistema de créditos y resultados de aprendizaje acordado con los directores de programa..." style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.84rem; resize:vertical;"></textarea>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f1f5f9; padding:10px 14px; border-radius:8px; margin-bottom:16px;">
+                <label style="font-size:0.82rem; font-weight:700; color:#1e293b; cursor:pointer; display:flex; align-items:center; gap:8px;">
+                    <input type="checkbox" id="stv-inc-ver" checked> Incrementar versión automáticamente (ej. v1.0 → v1.1)
+                </label>
+                <input type="hidden" id="stv-create-new" value="0">
+            </div>
+            <button onclick="confirmSaveTeamVersion()" style="width:100%; background:#10b981; color:white; border:none; padding:11px 16px; border-radius:8px; font-weight:800; font-size:0.9rem; cursor:pointer;">
+                <i class="fa-solid fa-floppy-disk"></i> Confirmar y Registrar en Bitácora
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- MODAL: AI HUB GENERATOR (MODULAR CON OPTIMIZACIÓN DE TOKENS) -->
@@ -1392,6 +1736,7 @@
 
     function renderAll() {
         if (!currentData) return;
+        populateModalDropdowns();
         renderKPIs();
         renderFases();
         renderQuincenas();
@@ -1401,7 +1746,6 @@
         renderProductos();
         renderRiesgos();
         renderHistoryList();
-        populateModalDropdowns();
     }
 
     /* 1. KPIs */
@@ -2427,11 +2771,49 @@
         Swal.fire('Brecha Registrada', '', 'success');
     }
 
-    /* 7. PRODUCTOS ENTREGABLES P1-P10 */
+    /* 7. PRODUCTOS ENTREGABLES P1-P10 CON SUB-DOCUMENTOS CO-CONSTRUIDOS */
     function renderProductos() {
         const grid = document.getElementById('productos-grid');
         grid.innerHTML = '';
+        const allDocs = currentData.ai_history || [];
+
         (currentData.productos || []).forEach((p, idx) => {
+            const linkedDocs = allDocs.filter(d => (d.producto || '').toUpperCase().startsWith(p.codigo.toUpperCase()));
+            let docsHtml = '';
+            if (linkedDocs.length > 0) {
+                docsHtml = `<div style="margin:10px 0 14px 0; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px;">
+                    <div style="font-size:0.73rem; font-weight:800; color:#312e81; text-transform:uppercase; margin-bottom:6px; display:flex; justify-content:space-between;">
+                        <span><i class="fa-solid fa-folder-open"></i> Documentos del Equipo (${linkedDocs.length})</span>
+                        <span>Trazabilidad</span>
+                    </div>
+                    ${linkedDocs.map(ld => {
+                        const vCount = (ld.bitacora_versiones || []).length || 1;
+                        const apCount = (ld.aportes_equipo || []).length || 0;
+                        const iaScore = (ld.auditorias_ia && ld.auditorias_ia.length) ? `${ld.auditorias_ia[0].puntaje_cumplimiento}% IA` : '';
+                        return `
+                            <div onclick="openCollabDocFromProduct('${ld.id}')" style="padding:7px 9px; background:#fff; border:1px solid #e2e8f0; border-radius:7px; margin-bottom:5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:8px; transition:all 0.15s;" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#e2e8f0'">
+                                <div style="overflow:hidden;">
+                                    <div style="font-size:0.8rem; font-weight:700; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                        <span style="color:#4f46e5; font-weight:800;">${ld.version_actual || 'v1.0'}</span> · ${ld.titulo}
+                                    </div>
+                                    <div style="font-size:0.7rem; color:#64748b;">
+                                        ${ld.categoria || 'Documento'} · 👥 ${vCount} vers. / ${apCount} aportes
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+                                    ${iaScore ? `<span style="background:#dcfce7; color:#166534; font-size:0.68rem; font-weight:800; padding:2px 6px; border-radius:4px;">${iaScore}</span>` : ''}
+                                    <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem; color:#4f46e5;"></i>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>`;
+            } else {
+                docsHtml = `<div style="margin:10px 0 14px 0; padding:8px 10px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px; font-size:0.75rem; color:#64748b;">
+                    Sin sub-documentos cargados aún. Usa <strong>"+ Documento"</strong> para subir o redactar políticas, modelos o reglamentos de ${p.codigo}.
+                </div>`;
+            }
+
             const card = document.createElement('div');
             card.style.cssText = 'background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:20px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 2px 8px rgba(0,0,0,0.02);';
             card.innerHTML = `
@@ -2442,18 +2824,21 @@
                     </div>
                     <h4 style="margin:0 0 6px 0; font-size:1.05rem; color:#1e293b; font-weight:700;">${p.nombre}</h4>
                     <p style="font-size:0.78rem; color:#6366f1; font-weight:600; margin:0 0 8px 0;"><i class="fa-solid fa-calendar-check"></i> ${p.fase} · Límite: ${p.fecha_limite}</p>
-                    <p style="font-size:0.82rem; color:#64748b; line-height:1.45; margin:0 0 14px 0;">${p.contenido_minimo}</p>
-                    <p style="font-size:0.75rem; color:#475569; margin:0 0 14px 0;"><strong>Líder:</strong> ${p.responsable}</p>
+                    <p style="font-size:0.82rem; color:#64748b; line-height:1.45; margin:0 0 8px 0;">${p.contenido_minimo}</p>
+                    <p style="font-size:0.75rem; color:#475569; margin:0 0 8px 0;"><strong>Líder:</strong> ${p.responsable}</p>
+                    ${docsHtml}
                 </div>
 
-                <div style="border-top:1px solid #f1f5f9; padding-top:14px; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:0.75rem; color:#94a3b8; font-weight:600;">Versión ${p.version || '1.0'}</span>
+                <div style="border-top:1px solid #f1f5f9; padding-top:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                    <button onclick="openImportCollabDocModal('${p.codigo}')" style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.74rem; font-weight:700;">
+                        <i class="fa-solid fa-plus"></i> + Documento (Equipo)
+                    </button>
                     <div style="display:flex; gap:6px;">
-                        <button onclick="launchAiDraftProduct('${p.codigo}')" style="background:linear-gradient(135deg, #a855f7, #7e22ce); color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:700;">
+                        <button onclick="launchAiDraftProduct('${p.codigo}')" style="background:linear-gradient(135deg, #a855f7, #7e22ce); color:white; border:none; padding:6px 11px; border-radius:6px; cursor:pointer; font-size:0.74rem; font-weight:700;">
                             <i class="fa-solid fa-wand-magic-sparkles"></i> Redactar IA
                         </button>
-                        <button onclick="loadProductInEditor('${p.codigo}')" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:600; color:#334155;">
-                            <i class="fa-solid fa-eye"></i> Ver / Editar
+                        <button onclick="loadProductInEditor('${p.codigo}')" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:0.74rem; font-weight:600; color:#334155;">
+                            <i class="fa-solid fa-pen-to-square"></i> Abrir Mesa
                         </button>
                     </div>
                 </div>
@@ -2462,15 +2847,29 @@
         });
     }
 
+    function openCollabDocFromProduct(docId) {
+        switchCcTab('ai_hub');
+        loadHistoryInEditor(docId);
+    }
+
     function loadProductInEditor(codigo) {
         const prod = (currentData.productos || []).find(p => p.codigo === codigo);
         if (!prod) return;
+        const existingDoc = (currentData.ai_history || []).find(d => (d.producto || '').toUpperCase().startsWith(codigo.toUpperCase()));
         switchCcTab('ai_hub');
+        if (existingDoc) {
+            loadHistoryInEditor(existingDoc.id);
+            return;
+        }
+        selectedHistoryId = null;
+        document.getElementById('editor-badge-code').innerText = `DOC-${prod.codigo}-01`;
+        document.getElementById('editor-badge-ver').innerText = 'v1.0';
         document.getElementById('editor-title').value = `${prod.codigo}: ${prod.nombre}`;
-        document.getElementById('editor-meta-date').innerHTML = `<i class="fa-solid fa-calendar"></i> ${prod.fecha_limite}`;
+        document.getElementById('editor-meta-prod').value = prod.codigo;
+        document.getElementById('editor-meta-date').innerHTML = `<i class="fa-solid fa-calendar"></i> Límite: ${prod.fecha_limite}`;
         document.getElementById('editor-meta-author').innerHTML = `<i class="fa-solid fa-user-gear"></i> ${prod.responsable}`;
-        document.getElementById('editor-meta-tokens').innerHTML = `<i class="fa-solid fa-shield-check"></i> Documento Entregable`;
         document.getElementById('editor-textarea').value = prod.documento_contenido || `# ${prod.codigo}: ${prod.nombre}\n\n## 1. Justificación y Fundamento Normativo\n\n## 2. Contenido Técnico\n\n${prod.contenido_minimo}`;
+        switchDocWorkspaceSubtab('edit');
         setEditorMode('raw');
     }
 
@@ -2493,41 +2892,69 @@
         });
     }
 
-    /* 9. ASISTENTE IA & HISTORIAL */
+    /* 9. MESA DE CO-CONSTRUCCIÓN DOCUMENTAL, TRAZABILIDAD DE EQUIPO E IA */
     function renderHistoryList() {
         const listDiv = document.getElementById('history-list-container');
         listDiv.innerHTML = '';
         const history = currentData.ai_history || [];
-        document.getElementById('history-count-badge').innerText = `${history.length} vers.`;
+        const catFilter = (document.getElementById('filter-lib-cat') || {}).value || 'all';
+        const prodFilter = (document.getElementById('filter-lib-prod') || {}).value || 'all';
 
-        if (history.length === 0) {
-            listDiv.innerHTML = '<p style="font-size:0.8rem; color:#94a3b8; font-style:italic;">No hay borradores guardados aún. Genera uno con la IA o empieza a redactar.</p>';
+        const filtered = history.filter(item => {
+            if (catFilter !== 'all' && item.categoria !== catFilter) return false;
+            if (prodFilter !== 'all' && !(item.producto || '').toUpperCase().startsWith(prodFilter)) return false;
+            return true;
+        });
+
+        document.getElementById('history-count-badge').innerText = `${filtered.length} doc${filtered.length === 1 ? '' : 's'}`;
+        const badgeAiTab = document.getElementById('badge-tab-ai');
+        if (badgeAiTab) badgeAiTab.innerText = `${history.length} Docs`;
+
+        if (filtered.length === 0) {
+            listDiv.innerHTML = '<p style="font-size:0.8rem; color:#94a3b8; font-style:italic; text-align:center; padding:16px 8px;">No hay documentos en este filtro. Sube un archivo (.docx/.pdf) o crea uno nuevo.</p>';
             return;
         }
 
-        history.forEach(item => {
-            const d = new Date(item.fecha);
+        filtered.forEach(item => {
+            const d = new Date(item.fecha_modificacion || item.fecha);
             const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const vCount = (item.bitacora_versiones || []).length || 1;
+            const apCount = (item.aportes_equipo || []).length || 0;
+            const auds = item.auditorias_ia || [];
+            const scoreBadge = auds.length > 0
+                ? `<span style="background:#dcfce7; color:#166534; padding:2px 6px; border-radius:4px; font-weight:800; font-size:0.68rem;">⚖️ ${auds[0].puntaje_cumplimiento}% MEN</span>`
+                : `<span style="background:#f1f5f9; color:#64748b; padding:2px 6px; border-radius:4px; font-weight:600; font-size:0.68rem;">Sin auditar</span>`;
+
+            const estColor = item.estado_editorial === 'Aprobado Consejo' ? '#065f46' : (item.estado_editorial === 'Validado Comité Técnico' ? '#1e40af' : '#92400e');
+            const estBg = item.estado_editorial === 'Aprobado Consejo' ? '#d1fae5' : (item.estado_editorial === 'Validado Comité Técnico' ? '#dbeafe' : '#fef3c7');
+
             const div = document.createElement('div');
             div.className = `history-list-item ${selectedHistoryId === item.id ? 'selected' : ''}`;
             div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <span style="font-size:0.72rem; color:var(--cc-primary); font-weight:700;">#${item.frente || 'General'}</span>
-                    <button onclick="event.stopPropagation(); deleteHistoryItem('${item.id}')" style="background:none; border:none; color:#ef4444; font-size:0.75rem; cursor:pointer;" title="Eliminar">&times;</button>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:4px; flex-wrap:wrap;">
+                    <div style="display:flex; gap:4px; align-items:center;">
+                        <span style="font-size:0.68rem; background:#312e81; color:white; padding:2px 6px; border-radius:4px; font-weight:800;">${item.producto || 'P5'}</span>
+                        <span style="font-size:0.68rem; background:#e0e7ff; color:#3730a3; padding:2px 6px; border-radius:4px; font-weight:800;">${item.version_actual || 'v1.0'}</span>
+                        <span style="font-size:0.66rem; background:${estBg}; color:${estColor}; padding:2px 6px; border-radius:4px; font-weight:700;">${item.estado_editorial || 'En Construcción'}</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); deleteHistoryItem('${item.id}')" style="background:none; border:none; color:#ef4444; font-size:0.85rem; cursor:pointer;" title="Eliminar documento">&times;</button>
                 </div>
-                <h5 style="margin:0 0 4px 0; font-size:0.85rem; color:#1e293b; font-weight:700; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${item.titulo}</h5>
-                <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#94a3b8;">
-                    <span>${dateStr}</span>
-                    <span style="color:#059669; font-weight:600;"><i class="fa-solid fa-bolt"></i> ~${item.tokens_est || 0} tok</span>
+                <h5 style="margin:0 0 4px 0; font-size:0.86rem; color:#1e293b; font-weight:800; line-height:1.35;">${item.titulo}</h5>
+                <div style="font-size:0.72rem; color:#475569; margin-bottom:6px;">
+                    <i class="fa-solid fa-sitemap" style="color:#6366f1;"></i> ${item.frente || 'Institucional'} · <strong>${item.categoria || 'Políticas y Modelos'}</strong>
                 </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.7rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:6px;">
+                    <span><i class="fa-solid fa-users" style="color:#4f46e5;"></i> ${vCount} vers. · ${apCount} aportes</span>
+                    ${scoreBadge}
+                </div>
+                <div style="font-size:0.66rem; color:#94a3b8; margin-top:3px;">Últ. mod: ${dateStr} por ${item.autor || 'Equipo'}</div>
             `;
             div.onclick = () => loadHistoryInEditor(item.id);
             listDiv.appendChild(div);
         });
 
-        // Load the first one if none selected
-        if (!selectedHistoryId && history.length > 0) {
-            loadHistoryInEditor(history[0].id);
+        if (!selectedHistoryId && filtered.length > 0) {
+            loadHistoryInEditor(filtered[0].id);
         }
     }
 
@@ -2536,24 +2963,317 @@
         const item = (currentData.ai_history || []).find(h => h.id === id);
         if (!item) return;
 
+        document.getElementById('editor-badge-code').innerText = item.codigo_doc || 'DOC-CC-01';
+        document.getElementById('editor-badge-ver').innerText = item.version_actual || 'v1.0';
+        document.getElementById('editor-sel-estado').value = item.estado_editorial || 'En Construcción';
         document.getElementById('editor-title').value = item.titulo || 'Documento sin título';
-        const d = new Date(item.fecha);
-        document.getElementById('editor-meta-date').innerHTML = `<i class="fa-solid fa-calendar"></i> ${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
-        document.getElementById('editor-meta-author').innerHTML = `<i class="fa-solid fa-user-pen"></i> ${item.autor || 'Asesor Experto MEN'}`;
-        document.getElementById('editor-meta-tokens').innerHTML = `<i class="fa-solid fa-bolt"></i> ~${item.tokens_est || 0} tokens guardados`;
+
+        const catEl = document.getElementById('editor-meta-cat');
+        if (catEl) catEl.value = item.categoria || 'Políticas y Modelos';
+
+        const prodEl = document.getElementById('editor-meta-prod');
+        if (prodEl && item.producto) {
+            const pCode = item.producto.split(' ')[0];
+            prodEl.value = pCode;
+        }
+
+        const frenteEl = document.getElementById('editor-meta-frente');
+        if (frenteEl && item.frente) frenteEl.value = item.frente;
+
+        const reqEl = document.getElementById('editor-meta-req');
+        if (reqEl && item.requisito_id) reqEl.value = item.requisito_id;
+
+        const d = new Date(item.fecha_modificacion || item.fecha);
+        document.getElementById('editor-meta-date').innerHTML = `<i class="fa-solid fa-calendar"></i> Act: ${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+        document.getElementById('editor-meta-author').innerHTML = `<i class="fa-solid fa-user-pen"></i> Últ. autor: <strong>${item.autor || 'Equipo'}</strong> (${item.cargo_dependencia || item.frente || ''})`;
+
+        const vCount = (item.bitacora_versiones || []).length || 1;
+        const apCount = (item.aportes_equipo || []).length || 0;
+        document.getElementById('editor-meta-tokens').innerHTML = `<i class="fa-solid fa-users"></i> ${vCount} versión(es) · ${apCount} aporte(s)/mesa(s) de equipo`;
+        document.getElementById('badge-subtab-trace').innerText = `${vCount + apCount}`;
+
+        const origLink = document.getElementById('editor-original-file-link');
+        if (origLink) {
+            if (item.original_file_url) {
+                origLink.href = item.original_file_url;
+                origLink.style.display = 'inline-block';
+            } else {
+                origLink.style.display = 'none';
+            }
+        }
+
+        const audBadge = document.getElementById('editor-badge-ia-score');
+        const subAuditBadge = document.getElementById('badge-subtab-audit');
+        if (item.auditorias_ia && item.auditorias_ia.length > 0) {
+            const latestAud = item.auditorias_ia[0];
+            audBadge.style.display = 'inline-block';
+            audBadge.innerHTML = `<i class="fa-solid fa-scale-balanced"></i> Cumplimiento MEN: ${latestAud.puntaje_cumplimiento}% (${latestAud.nivel_concepto})`;
+            if (subAuditBadge) subAuditBadge.innerText = `${latestAud.puntaje_cumplimiento}%`;
+        } else {
+            audBadge.style.display = 'none';
+            if (subAuditBadge) subAuditBadge.innerText = 'IA';
+        }
+
         document.getElementById('editor-textarea').value = item.contenido || '';
+        const prevBox = document.getElementById('editor-preview-container');
+        if (prevBox && prevBox.style.display !== 'none') {
+            prevBox.innerHTML = marked.parse(item.contenido || '*Documento vacío*');
+        }
 
         renderHistoryList();
-        setEditorMode('raw');
+        renderDocTraceabilityPane(item);
+        renderDocAuditPane(item);
     }
 
-    async function saveCurrentEditorText(createNew) {
+    function switchDocWorkspaceSubtab(subtab) {
+        const panes = {
+            edit: document.getElementById('doc-subpane-edit'),
+            trace: document.getElementById('doc-subpane-trace'),
+            audit: document.getElementById('doc-subpane-audit')
+        };
+        const btns = {
+            edit: document.getElementById('subtab-btn-doc-edit'),
+            trace: document.getElementById('subtab-btn-doc-trace'),
+            audit: document.getElementById('subtab-btn-doc-audit')
+        };
+        Object.keys(panes).forEach(k => {
+            if (panes[k]) panes[k].style.display = (k === subtab) ? 'block' : 'none';
+            if (btns[k]) {
+                btns[k].style.background = (k === subtab) ? '#4f46e5' : '#f1f5f9';
+                btns[k].style.color = (k === subtab) ? '#ffffff' : '#475569';
+            }
+        });
+    }
+
+    function insertEditorSnippet(snippet) {
+        setEditorMode('raw');
+        const ta = document.getElementById('editor-textarea');
+        if (!ta) return;
+        const start = ta.selectionStart || ta.value.length;
+        const end = ta.selectionEnd || ta.value.length;
+        ta.value = ta.value.substring(0, start) + snippet + ta.value.substring(end);
+        ta.focus();
+    }
+
+    function onQuickDocMetaChange() {
+        if (!selectedHistoryId || !currentData) return;
+        const item = (currentData.ai_history || []).find(h => h.id === selectedHistoryId);
+        if (!item) return;
+        item.estado_editorial = document.getElementById('editor-sel-estado').value;
+        item.categoria = document.getElementById('editor-meta-cat').value;
+        item.producto = document.getElementById('editor-meta-prod').value;
+        item.frente = document.getElementById('editor-meta-frente').value;
+        item.requisito_id = document.getElementById('editor-meta-req').value;
+        saveToServer(false);
+        renderHistoryList();
+        renderProductos();
+    }
+
+    /* BITÁCORA DE VERSIONES Y APORTES DE EQUIPO */
+    function renderDocTraceabilityPane(item) {
+        const kpiBox = document.getElementById('trace-kpi-badges');
+        const apList = document.getElementById('doc-aportes-list');
+        const verTimeline = document.getElementById('doc-versiones-timeline');
+        if (!item || !kpiBox) return;
+
+        const versiones = item.bitacora_versiones || [];
+        const aportes = item.aportes_equipo || [];
+        const depsSet = new Set();
+        versiones.forEach(v => { if (v.cargo_dependencia) depsSet.add(v.cargo_dependencia); });
+        aportes.forEach(a => { if (a.cargo_dependencia) depsSet.add(a.cargo_dependencia); });
+
+        kpiBox.innerHTML = `
+            <div style="background:#fff; padding:8px 14px; border-radius:8px; border:1px solid #c7d2fe; text-align:center;">
+                <div style="font-size:1.1rem; font-weight:800; color:#4f46e5;">${versiones.length}</div>
+                <div style="font-size:0.68rem; font-weight:700; color:#475569;">Versiones Controladas</div>
+            </div>
+            <div style="background:#fff; padding:8px 14px; border-radius:8px; border:1px solid #c7d2fe; text-align:center;">
+                <div style="font-size:1.1rem; font-weight:800; color:#059669;">${aportes.length}</div>
+                <div style="font-size:0.68rem; font-weight:700; color:#475569;">Mesas / Revisiones / Avales</div>
+            </div>
+            <div style="background:#fff; padding:8px 14px; border-radius:8px; border:1px solid #c7d2fe; text-align:center;">
+                <div style="font-size:1.1rem; font-weight:800; color:#d97706;">${depsSet.size || 1}</div>
+                <div style="font-size:0.68rem; font-weight:700; color:#475569;">Dependencias Participantes</div>
+            </div>
+        `;
+
+        // Render Aportes / Mesas / Avales
+        if (aportes.length === 0) {
+            apList.innerHTML = `<div style="padding:14px; background:#fff; border-radius:8px; border:1px dashed #cbd5e1; font-size:0.78rem; color:#64748b; text-align:center;">
+                Aún no se han registrado actas de mesas de trabajo, observaciones de revisión ni avales sobre este documento.
+            </div>`;
+        } else {
+            apList.innerHTML = aportes.map(ap => {
+                const dStr = new Date(ap.fecha).toLocaleString();
+                const isAval = (ap.tipo || '').includes('Aval') || (ap.tipo || '').includes('Validación');
+                return `
+                    <div style="background:#fff; border:1px solid ${isAval ? '#86efac' : '#e2e8f0'}; border-left:4px solid ${isAval ? '#16a34a' : '#3b82f6'}; border-radius:8px; padding:10px 12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-size:0.72rem; font-weight:800; color:${isAval ? '#166534' : '#1d4ed8'};">${ap.tipo}</span>
+                            <span style="font-size:0.68rem; color:#94a3b8;">${dStr}</span>
+                        </div>
+                        <div style="font-size:0.78rem; font-weight:700; color:#1e293b; margin-bottom:3px;">
+                            <i class="fa-solid fa-user-check" style="color:#6366f1;"></i> ${ap.autor} · <span style="color:#4f46e5;">${ap.cargo_dependencia}</span>
+                            ${ap.seccion_referencia ? `<span style="background:#f1f5f9; color:#475569; padding:1px 6px; border-radius:4px; font-size:0.68rem; margin-left:4px;">${ap.seccion_referencia}</span>` : ''}
+                        </div>
+                        <p style="margin:0; font-size:0.78rem; color:#334155; line-height:1.4;">${ap.comentario}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render Historial de Versiones
+        verTimeline.innerHTML = versiones.map((v, vIdx) => {
+            const dStr = new Date(v.fecha).toLocaleString();
+            return `
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-left:4px solid #4f46e5; border-radius:8px; padding:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <div>
+                            <span style="background:#4f46e5; color:white; font-size:0.72rem; font-weight:800; padding:2px 7px; border-radius:4px;">${v.version || 'v1.0'}</span>
+                            <span style="font-size:0.74rem; font-weight:800; color:#1e293b; margin-left:6px;">${v.tipo_actuacion || 'Ajuste Técnico'}</span>
+                        </div>
+                        <span style="font-size:0.68rem; color:#64748b;">${dStr}</span>
+                    </div>
+                    <div style="font-size:0.76rem; color:#334155; margin-bottom:4px;">
+                        <strong>Co-Autor:</strong> ${v.autor || 'Equipo'} · <strong>Dependencia:</strong> <span style="color:#4338ca; font-weight:700;">${v.cargo_dependencia || 'Institucional'}</span> · <span style="color:#64748b;">${v.fase || ''}</span>
+                    </div>
+                    <p style="margin:0 0 8px 0; font-size:0.78rem; color:#475569; background:#fff; padding:7px 10px; border-radius:6px; border:1px solid #e2e8f0;">
+                        <i class="fa-solid fa-quote-left" style="color:#94a3b8;"></i> ${v.resumen_cambio || 'Actualización del documento.'}
+                    </p>
+                    <div style="display:flex; gap:6px; justify-content:flex-end;">
+                        <button onclick="previewDocVersionSnapshot(${vIdx})" style="background:#fff; border:1px solid #cbd5e1; padding:4px 9px; border-radius:5px; font-size:0.72rem; font-weight:700; color:#334155; cursor:pointer;">
+                            <i class="fa-solid fa-eye"></i> Ver texto de ${v.version}
+                        </button>
+                        <button onclick="restoreDocVersionSnapshot(${vIdx})" style="background:#eef2ff; border:1px solid #c7d2fe; padding:4px 9px; border-radius:5px; font-size:0.72rem; font-weight:700; color:#4338ca; cursor:pointer;">
+                            <i class="fa-solid fa-rotate-left"></i> Cargar en el Editor
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function previewDocVersionSnapshot(vIdx) {
+        const item = (currentData.ai_history || []).find(h => h.id === selectedHistoryId);
+        if (!item || !item.bitacora_versiones || !item.bitacora_versiones[vIdx]) return;
+        const v = item.bitacora_versiones[vIdx];
+        Swal.fire({
+            title: `${item.titulo} (${v.version})`,
+            html: `
+                <div style="text-align:left; font-size:0.82rem; margin-bottom:10px; background:#f1f5f9; padding:8px 12px; border-radius:8px;">
+                    <strong>Autor:</strong> ${v.autor} (${v.cargo_dependencia}) | <strong>Fecha:</strong> ${new Date(v.fecha).toLocaleString()}<br>
+                    <strong>Resumen del aporte:</strong> ${v.resumen_cambio}
+                </div>
+                <div style="text-align:left; max-height:420px; overflow-y:auto; padding:14px; border:1px solid #e2e8f0; border-radius:8px; font-size:0.85rem; line-height:1.6;">
+                    ${marked.parse(v.contenido_snapshot || '*Sin contenido*')}
+                </div>
+            `,
+            width: 820,
+            confirmButtonText: 'Cerrar'
+        });
+    }
+
+    function restoreDocVersionSnapshot(vIdx) {
+        const item = (currentData.ai_history || []).find(h => h.id === selectedHistoryId);
+        if (!item || !item.bitacora_versiones || !item.bitacora_versiones[vIdx]) return;
+        const v = item.bitacora_versiones[vIdx];
+        document.getElementById('editor-textarea').value = v.contenido_snapshot || '';
+        switchDocWorkspaceSubtab('edit');
+        setEditorMode('raw');
+        Swal.fire({
+            icon: 'info',
+            title: `Versión ${v.version} cargada en el editor`,
+            text: 'Puedes revisarla o editarla y guardar una nueva versión cuando estés listo.',
+            timer: 1800,
+            showConfirmButton: false
+        });
+    }
+
+    async function submitTeamContribution() {
+        if (!selectedHistoryId) return Swal.fire('Atención', 'Primero selecciona un documento de la biblioteca.', 'warning');
+        const autor = document.getElementById('team-ap-autor').value.trim() || 'Integrante del Equipo';
+        const dep = document.getElementById('team-ap-dep').value.trim() || 'Comité Institucional';
+        const tipo = document.getElementById('team-ap-tipo').value;
+        const sec = document.getElementById('team-ap-sec').value.trim() || 'General';
+        const comentario = document.getElementById('team-ap-comentario').value.trim();
+
+        if (!comentario) return Swal.fire('Atención', 'Escribe el detalle del acuerdo, revisión o aval del equipo.', 'warning');
+
+        let nuevoEstado = null;
+        if (tipo.includes('Validación Consejo')) nuevoEstado = 'Aprobado Consejo';
+        else if (tipo.includes('Aval Técnico')) nuevoEstado = 'Validado Comité Técnico';
+        else if (tipo.includes('Acuerdo de Mesa')) nuevoEstado = 'En Revisión del Equipo';
+
+        try {
+            const res = await fetch('/api/cambio_caracter/doc/add_team_contribution', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    doc_id: selectedHistoryId,
+                    autor: autor,
+                    cargo_dependencia: dep,
+                    tipo: tipo,
+                    seccion_referencia: sec,
+                    comentario: comentario,
+                    nuevo_estado_editorial: nuevoEstado
+                })
+            });
+            const d = await res.json();
+            if (d.status === 'success') {
+                document.getElementById('team-ap-comentario').value = '';
+                await loadData();
+                loadHistoryInEditor(selectedHistoryId);
+                switchDocWorkspaceSubtab('trace');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Aporte de Equipo Registrado',
+                    text: 'Quedó incorporado en la bitácora probatoria para Pares Académicos.',
+                    timer: 1600,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Error', d.message, 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo registrar el aporte.', 'error');
+        }
+    }
+
+    /* GUARDAR APORTE / NUEVA VERSIÓN CON MODAL DE TRAZABILIDAD */
+    function openSaveTeamVersionModal(createNew = false) {
+        const content = document.getElementById('editor-textarea').value;
+        if (!content.trim()) return Swal.fire('Atención', 'El documento está vacío.', 'warning');
+
+        const item = (currentData.ai_history || []).find(h => h.id === selectedHistoryId);
+        document.getElementById('stv-create-new').value = createNew ? '1' : '0';
+        document.getElementById('stv-autor').value = (item && item.autor && !item.autor.includes('IA')) ? item.autor : 'Vicerrectoría Académica';
+        document.getElementById('stv-dep').value = (item && item.cargo_dependencia) ? item.cargo_dependencia : (document.getElementById('editor-meta-frente').value || 'Vicerrectoría Académica');
+        document.getElementById('stv-resumen').value = '';
+        document.getElementById('saveTeamVersionModal').style.display = 'flex';
+    }
+
+    function closeSaveTeamVersionModal() {
+        document.getElementById('saveTeamVersionModal').style.display = 'none';
+    }
+
+    async function confirmSaveTeamVersion() {
         const title = document.getElementById('editor-title').value.trim() || 'Documento Institucional';
         const content = document.getElementById('editor-textarea').value;
+        const autor = document.getElementById('stv-autor').value.trim() || 'Integrante del Equipo';
+        const dep = document.getElementById('stv-dep').value.trim() || 'Equipo Institucional';
+        const tipo = document.getElementById('stv-tipo').value;
+        const fase = document.getElementById('stv-fase').value;
+        const resumen = document.getElementById('stv-resumen').value.trim() || 'Ajuste y co-edición colaborativa del documento.';
+        const incVer = document.getElementById('stv-inc-ver').checked;
+        const createNew = document.getElementById('stv-create-new').value === '1';
 
-        if (!content.trim()) return Swal.fire('Atención', 'El contenido no puede estar vacío.', 'warning');
+        const categoria = document.getElementById('editor-meta-cat').value;
+        const producto = document.getElementById('editor-meta-prod').value;
+        const frente = document.getElementById('editor-meta-frente').value;
+        const reqId = document.getElementById('editor-meta-req').value;
+        const estadoEd = document.getElementById('editor-sel-estado').value;
 
-        Swal.fire({title: 'Guardando...', didOpen: () => Swal.showLoading()});
+        Swal.fire({title: 'Guardando versión y trazabilidad...', didOpen: () => Swal.showLoading()});
         try {
             const res = await fetch('/api/cambio_caracter/ai_history/save', {
                 method: 'POST',
@@ -2562,18 +3282,31 @@
                     id: createNew ? null : selectedHistoryId,
                     titulo: title,
                     contenido: content,
+                    categoria: categoria,
+                    producto: producto,
+                    frente: frente,
+                    requisito_id: reqId,
+                    fase: fase,
+                    estado_editorial: estadoEd,
+                    autor: autor,
+                    cargo_dependencia: dep,
+                    tipo_actuacion: tipo,
+                    resumen_cambio: resumen,
+                    increment_version: incVer,
                     create_new: createNew
                 })
             });
             const d = await res.json();
             if (d.status === 'success') {
+                closeSaveTeamVersionModal();
                 selectedHistoryId = d.id;
                 await loadData();
+                loadHistoryInEditor(selectedHistoryId);
                 Swal.fire({
                     icon: 'success',
-                    title: createNew ? 'Nueva Versión Creada' : 'Cambios Guardados',
-                    text: 'Guardado directamente en el histórico sin costo de tokens.',
-                    timer: 1500,
+                    title: '¡Versión y Aporte Certificados!',
+                    text: 'El cambio quedó registrado en la bitácora del equipo con autor, dependencia y resumen.',
+                    timer: 1700,
                     showConfirmButton: false
                 });
             } else {
@@ -2584,8 +3317,252 @@
         }
     }
 
+    /* IMPORTAR (.DOCX/.PDF) O CREAR NUEVO DOCUMENTO EN EQUIPO */
+    function openImportCollabDocModal(preProd = '', preCat = '') {
+        populateModalDropdowns();
+        if (preProd) document.getElementById('imp-doc-producto').value = preProd;
+        if (preCat) document.getElementById('imp-doc-categoria').value = preCat;
+        document.getElementById('imp-doc-titulo').value = '';
+        document.getElementById('imp-doc-file').value = '';
+        document.getElementById('importCollabDocModal').style.display = 'flex';
+    }
+
+    function closeImportCollabDocModal() {
+        document.getElementById('importCollabDocModal').style.display = 'none';
+    }
+
+    async function submitImportCollabDoc() {
+        const titulo = document.getElementById('imp-doc-titulo').value.trim();
+        const categoria = document.getElementById('imp-doc-categoria').value;
+        const producto = document.getElementById('imp-doc-producto').value;
+        const frente = document.getElementById('imp-doc-frente').value;
+        const fase = document.getElementById('imp-doc-fase').value;
+        const reqId = document.getElementById('imp-doc-req').value;
+        const autor = document.getElementById('imp-doc-autor').value.trim() || 'Equipo Institucional';
+        const dep = document.getElementById('imp-doc-dep').value.trim() || frente;
+        const resumen = document.getElementById('imp-doc-resumen').value.trim();
+        const fileInput = document.getElementById('imp-doc-file');
+
+        if (!titulo && (!fileInput.files || fileInput.files.length === 0)) {
+            return Swal.fire('Atención', 'Ingresa un título para el documento o selecciona un archivo Word/PDF.', 'warning');
+        }
+
+        const formData = new FormData();
+        formData.append('titulo', titulo);
+        formData.append('categoria', categoria);
+        formData.append('producto', producto);
+        formData.append('frente', frente);
+        formData.append('fase', fase);
+        formData.append('requisito_id', reqId);
+        formData.append('autor', autor);
+        formData.append('cargo_dependencia', dep);
+        formData.append('resumen_cambio', resumen);
+        if (fileInput.files && fileInput.files.length > 0) {
+            formData.append('file', fileInput.files[0]);
+        }
+
+        const btn = document.getElementById('btn-submit-import-doc');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando documento...';
+
+        try {
+            const res = await fetch('/api/cambio_caracter/doc/import_file', {
+                method: 'POST',
+                body: formData
+            });
+            const d = await res.json();
+            if (d.status === 'success') {
+                closeImportCollabDocModal();
+                selectedHistoryId = d.id;
+                await loadData();
+                switchCcTab('ai_hub');
+                loadHistoryInEditor(d.id);
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Documento Disponible para el Equipo!',
+                    text: 'Ya puede ser leído, co-editado por las dependencias y auditado con IA frente al MEN.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Error', d.message || 'No se pudo incorporar el documento.', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Error de conexión al subir el documento.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Poner Documento a Disposición del Equipo';
+        }
+    }
+
+    /* AUDITORÍA IA DE CUMPLIMIENTO NORMATIVO (PAR EVALUADOR MEN) */
+    function renderDocAuditPane(item) {
+        const container = document.getElementById('doc-audit-results-container');
+        if (!container) return;
+        const auds = (item && item.auditorias_ia) ? item.auditorias_ia : [];
+        if (auds.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:36px 20px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px;">
+                    <i class="fa-solid fa-scale-balanced" style="font-size:2.2rem; color:#6366f1; margin-bottom:10px;"></i>
+                    <h4 style="margin:0 0 6px 0; color:#1e293b;">Este documento aún no tiene Dictamen de Cumplimiento Normativo IA</h4>
+                    <p style="margin:0 auto 14px auto; max-width:560px; font-size:0.84rem; color:#64748b;">
+                        Haz clic en el botón verde superior <strong>"Analizar Cumplimiento del Documento Ahora"</strong> para que la IA verifique si el texto cumple con el requisito del MEN y las 6 Preguntas Institucionales.
+                    </p>
+                </div>
+            `;
+            return;
+        }
+
+        const latest = auds[0];
+        const score = latest.puntaje_cumplimiento || 0;
+        const scoreColor = score >= 85 ? '#16a34a' : (score >= 65 ? '#d97706' : '#dc2626');
+        const p6 = latest.preguntas_6 || {};
+
+        window.lastSuggestedNormativeText = latest.texto_sugerido || '';
+
+        container.innerHTML = `
+            <div style="display:grid; grid-template-columns: 240px 1fr; gap:18px; margin-bottom:18px;">
+                <div style="background:#ffffff; border:2px solid ${scoreColor}; border-radius:14px; padding:18px; text-align:center; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                    <div style="font-size:0.72rem; font-weight:800; color:#64748b; text-transform:uppercase; margin-bottom:6px;">Nivel de Cumplimiento MEN</div>
+                    <div style="font-size:2.6rem; font-weight:900; color:${scoreColor}; line-height:1;">${score}%</div>
+                    <div style="font-size:0.82rem; font-weight:800; color:#1e293b; margin-top:6px;">${latest.nivel_concepto || 'Evaluado'}</div>
+                    <div style="font-size:0.7rem; color:#64748b; margin-top:6px;">Versión auditada: <strong>${latest.version_evaluada || 'v1.0'}</strong></div>
+                    <div style="font-size:0.68rem; color:#4f46e5; font-weight:700; margin-top:4px;">${latest.requisito_titulo || ''}</div>
+                </div>
+
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:16px;">
+                    <h5 style="margin:0 0 10px 0; font-size:0.88rem; color:#1e293b; font-weight:800;">Verificación Automática de las 6 Preguntas sobre el Producto:</h5>
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:14px;">
+                        <div style="padding:7px 10px; border-radius:7px; font-size:0.76rem; font-weight:700; background:${p6.existe ? '#dcfce7' : '#fee2e2'}; color:${p6.existe ? '#166534' : '#991b1b'};">1. ¿Existe?: ${p6.existe ? 'SÍ' : 'Por reforzar'}</div>
+                        <div style="padding:7px 10px; border-radius:7px; font-size:0.76rem; font-weight:700; background:${p6.vigente ? '#dcfce7' : '#fee2e2'}; color:${p6.vigente ? '#166534' : '#991b1b'};">2. ¿Vigente?: ${p6.vigente ? 'SÍ' : 'Por reforzar'}</div>
+                        <div style="padding:7px 10px; border-radius:7px; font-size:0.76rem; font-weight:700; background:${p6.aprobado ? '#dcfce7' : '#fef3c7'}; color:${p6.aprobado ? '#166534' : '#92400e'};">3. ¿Aprobado?: ${p6.aprobado ? 'SÍ' : 'En trámite'}</div>
+                        <div style="padding:7px 10px; border-radius:7px; font-size:0.76rem; font-weight:700; background:${p6.pertinente ? '#dcfce7' : '#fee2e2'}; color:${p6.pertinente ? '#166534' : '#991b1b'};">4. ¿Pertinente IU?: ${p6.pertinente ? 'SÍ' : 'Por reforzar'}</div>
+                        <div style="padding:7px 10px; border-radius:7px; font-size:0.76rem; font-weight:700; background:${p6.aplica ? '#dcfce7' : '#fef3c7'}; color:${p6.aplica ? '#166534' : '#92400e'};">5. ¿Se aplica?: ${p6.aplica ? 'SÍ' : 'En despliegue'}</div>
+                        <div style="padding:7px 10px; border-radius:7px; font-size:0.76rem; font-weight:700; background:${p6.evidencia ? '#dcfce7' : '#fef3c7'}; color:${p6.evidencia ? '#166534' : '#92400e'};">6. ¿Evidencia?: ${p6.evidencia ? 'SÍ' : 'Por anexar'}</div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div style="background:#fff; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px;">
+                            <div style="font-size:0.76rem; font-weight:800; color:#166534; margin-bottom:6px;"><i class="fa-solid fa-circle-check"></i> Lo que YA cumple ante el Par Evaluador:</div>
+                            <ul style="margin:0; padding-left:16px; font-size:0.76rem; color:#334155;">
+                                ${(latest.fortalezas || []).map(f => `<li style="margin-bottom:4px;">${f}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div style="background:#fff; border:1px solid #fde68a; border-radius:8px; padding:10px 12px;">
+                            <div style="font-size:0.76rem; font-weight:800; color:#92400e; margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation"></i> Aspectos por fortalecer en el documento:</div>
+                            <ul style="margin:0; padding-left:16px; font-size:0.76rem; color:#334155;">
+                                ${(latest.aspectos_por_mejorar || []).map(a => `<li style="margin-bottom:4px;">${a}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            ${latest.texto_sugerido ? `
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:16px; margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                        <h5 style="margin:0; font-size:0.9rem; color:#1e3a8a; font-weight:800;"><i class="fa-solid fa-wand-magic-sparkles"></i> Propuesta de Articulado / Texto Sugerido por la IA para Subsanar Vacíos</h5>
+                        <button onclick="insertAiSuggestedText()" style="background:#2563eb; color:white; border:none; padding:6px 14px; border-radius:7px; font-size:0.78rem; font-weight:800; cursor:pointer;">
+                            <i class="fa-solid fa-plus-circle"></i> Insertar esta mejora en el Documento
+                        </button>
+                    </div>
+                    <div style="background:#fff; border:1px solid #dbeafe; border-radius:8px; padding:12px 16px; font-size:0.84rem; color:#1e293b; max-height:240px; overflow-y:auto;">
+                        ${marked.parse(latest.texto_sugerido)}
+                    </div>
+                </div>
+            ` : ''}
+
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px;">
+                <h5 style="margin:0 0 8px 0; font-size:0.88rem; color:#1e293b; font-weight:800;"><i class="fa-solid fa-file-signature" style="color:#4f46e5;"></i> Concepto Detallado del Par Evaluador IA</h5>
+                <div style="font-size:0.84rem; color:#334155; line-height:1.6;">
+                    ${marked.parse(latest.dictamen_markdown || '')}
+                </div>
+            </div>
+        `;
+    }
+
+    function insertAiSuggestedText() {
+        if (!window.lastSuggestedNormativeText) return;
+        const ta = document.getElementById('editor-textarea');
+        ta.value = (ta.value || '') + '\n\n' + window.lastSuggestedNormativeText;
+        switchDocWorkspaceSubtab('edit');
+        setEditorMode('raw');
+        Swal.fire({
+            icon: 'success',
+            title: 'Texto Incorporado al Documento',
+            text: 'Recuerda hacer clic en "Guardar Aporte / Versión" para dejar trazabilidad en la bitácora del equipo.',
+            timer: 2200,
+            showConfirmButton: false
+        });
+    }
+
+    async function runAiNormativeAuditForCurrentDoc() {
+        const content = document.getElementById('editor-textarea').value.trim();
+        const title = document.getElementById('editor-title').value.trim() || 'Documento Institucional';
+        const reqId = document.getElementById('editor-meta-req').value || 'req_17';
+        const frente = document.getElementById('editor-meta-frente').value || 'Oferta y currículo';
+        const producto = document.getElementById('editor-meta-prod').value || 'P5';
+
+        if (!content) {
+            return Swal.fire('Atención', 'El documento está vacío. Escribe o sube contenido antes de auditar.', 'warning');
+        }
+
+        const btn = document.getElementById('btn-run-doc-audit');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Evaluando cumplimiento frente al MEN...';
+        }
+
+        Swal.fire({
+            title: 'Par Evaluador IA Analizando...',
+            text: 'Contrastando el documento con la Ley 749/2002, Decreto 2038/2023 y las 6 Preguntas Institucionales.',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const res = await fetch('/api/cambio_caracter/doc/ai_audit_compliance', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    doc_id: selectedHistoryId,
+                    titulo: title,
+                    contenido: content,
+                    requisito_id: reqId,
+                    frente: frente,
+                    producto: producto
+                })
+            });
+            const d = await res.json();
+            Swal.close();
+
+            if (d.status === 'success') {
+                await loadData();
+                if (selectedHistoryId) loadHistoryInEditor(selectedHistoryId);
+                switchDocWorkspaceSubtab('audit');
+                Swal.fire({
+                    icon: 'success',
+                    title: `Cumplimiento Normativo: ${d.audit.puntaje_cumplimiento}%`,
+                    text: d.audit.nivel_concepto,
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Error', d.message || 'No se pudo completar la auditoría.', 'error');
+            }
+        } catch (e) {
+            Swal.close();
+            Swal.fire('Error', 'Fallo de conexión con el servicio de auditoría IA.', 'error');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-magnifying-glass-chart"></i> Analizar Cumplimiento del Documento Ahora';
+            }
+        }
+    }
+
     async function deleteHistoryItem(id) {
-        if (!confirm('¿Eliminar esta versión del histórico?')) return;
+        if (!confirm('¿Eliminar este documento de la biblioteca institucional?')) return;
         await fetch('/api/cambio_caracter/ai_history/delete', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -2611,41 +3588,58 @@
             prevBox.style.display = 'block';
             btnPrev.style.background = '#4f46e5'; btnPrev.style.color = '#fff';
             btnRaw.style.background = '#f8fafc'; btnRaw.style.color = '#475569';
-            // Parse Markdown
             const md = document.getElementById('editor-textarea').value;
             prevBox.innerHTML = marked.parse(md || '*Documento vacío*');
         }
     }
 
     function prepareWordDownload() {
+        document.getElementById('hiddenWordDocId').value = selectedHistoryId || '';
         document.getElementById('hiddenWordTitle').value = document.getElementById('editor-title').value;
         document.getElementById('hiddenWordContent').value = document.getElementById('editor-textarea').value;
+        document.getElementById('hiddenWordTrace').value = document.getElementById('chk-include-trace').checked ? '1' : '0';
     }
 
     function preparePdfDownload() {
+        document.getElementById('hiddenPdfDocId').value = selectedHistoryId || '';
         document.getElementById('hiddenPdfTitle').value = document.getElementById('editor-title').value;
         document.getElementById('hiddenPdfContent').value = document.getElementById('editor-textarea').value;
+        document.getElementById('hiddenPdfTrace').value = document.getElementById('chk-include-trace').checked ? '1' : '0';
     }
 
-    /* 10. MODAL AI LAUNCHERS */
+    /* 10. MODAL AI LAUNCHERS & DROPDOWNS */
     function populateModalDropdowns() {
+        const frentesOpts = (currentData.frentes || []).map(f => `<option value="${f.nombre}">${f.nombre} (${f.lider})</option>`).join('');
         const frenteSel = document.getElementById('ai-frente-select');
-        frenteSel.innerHTML = '';
-        (currentData.frentes || []).forEach(f => {
-            frenteSel.innerHTML += `<option value="${f.nombre}">${f.nombre} (${f.lider})</option>`;
-        });
+        if (frenteSel) frenteSel.innerHTML = frentesOpts;
 
+        const edFrenteSel = document.getElementById('editor-meta-frente');
+        if (edFrenteSel) edFrenteSel.innerHTML = (currentData.frentes || []).map(f => `<option value="${f.nombre}">${f.nombre}</option>`).join('');
+
+        const impFrenteSel = document.getElementById('imp-doc-frente');
+        if (impFrenteSel) impFrenteSel.innerHTML = (currentData.frentes || []).map(f => `<option value="${f.nombre}">${f.nombre} (${f.lider})</option>`).join('');
+
+        const prodsOpts = (currentData.productos || []).map(p => `<option value="${p.codigo}">${p.codigo}: ${p.nombre}</option>`).join('');
         const prodSel = document.getElementById('ai-product-select');
-        prodSel.innerHTML = '';
-        (currentData.productos || []).forEach(p => {
-            prodSel.innerHTML += `<option value="${p.codigo}">${p.codigo}: ${p.nombre}</option>`;
-        });
+        if (prodSel) prodSel.innerHTML = prodsOpts;
+
+        const edProdSel = document.getElementById('editor-meta-prod');
+        if (edProdSel) edProdSel.innerHTML = prodsOpts;
+
+        const impProdSel = document.getElementById('imp-doc-producto');
+        if (impProdSel) impProdSel.innerHTML = prodsOpts;
+
+        const reqsOpts = (REQUISITOS || []).map(r => `<option value="${r.id}">${r.id.toUpperCase()} · ${r.factor}: ${r.title}</option>`).join('');
+        const edReqSel = document.getElementById('editor-meta-req');
+        if (edReqSel) edReqSel.innerHTML = reqsOpts;
+
+        const impReqSel = document.getElementById('imp-doc-req');
+        if (impReqSel) impReqSel.innerHTML = reqsOpts;
 
         const brechaSel = document.getElementById('ai-brecha-select');
-        brechaSel.innerHTML = '';
-        (currentData.brechas || []).forEach(b => {
-            brechaSel.innerHTML += `<option value="${b.id}">${b.id}: ${b.descripcion.substring(0, 50)}...</option>`;
-        });
+        if (brechaSel) {
+            brechaSel.innerHTML = (currentData.brechas || []).map(b => `<option value="${b.id}">${b.id}: ${b.descripcion.substring(0, 50)}...</option>`).join('');
+        }
     }
 
     function updateAiModalFields() {
@@ -2723,10 +3717,11 @@
                 selectedHistoryId = data.history_id;
                 await loadData();
                 switchCcTab('ai_hub');
+                loadHistoryInEditor(selectedHistoryId);
                 Swal.fire({
                     icon: 'success',
                     title: '¡Redacción y Análisis Completados!',
-                    text: `El documento ha sido generado por el Asesor Experto MEN y guardado automáticamente en el histórico (~${data.tokens_est || 0} tokens).`,
+                    text: `El documento ha sido generado por el Asesor Experto MEN y puesto a disposición del equipo (~${data.tokens_est || 0} tokens).`,
                     confirmButtonText: 'Ver Documento'
                 });
             } else {
@@ -2776,6 +3771,13 @@
             const d = await res.json();
             if (d.status === 'success') {
                 window.skelUsersList = d.users || [];
+                const dl = document.getElementById('skel-users-datalist');
+                if (dl) {
+                    dl.innerHTML = window.skelUsersList.map(u => {
+                        const label = u.name ? `${u.name} (${u.email})` : u.email;
+                        return `<option value="${label}">`;
+                    }).join('');
+                }
             }
         } catch(e) {
             console.error('fetchSkelUsers error:', e);
