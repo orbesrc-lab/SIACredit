@@ -803,6 +803,227 @@ Devuelve EXCLUSIVAMENTE un bloque de código JSON:
         print(f"[CC AI] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+def generate_doc_docx_bytes(title, text, doc_item=None, include_trace=True):
+    """Genera en memoria el documento Word (.docx) oficial con Ficha Técnica y Anexo de Trazabilidad para Pares MEN."""
+    doc = docx.Document()
+    for section in doc.sections:
+        section.top_margin = Inches(1)
+        section.bottom_margin = Inches(1)
+        section.left_margin = Inches(1)
+        section.right_margin = Inches(1)
+
+    title_para = doc.add_paragraph()
+    title_run = title_para.add_run("INTENALCO EDUCACIÓN SUPERIOR\nPROCESO DE CAMBIO DE CARÁCTER A INSTITUCIÓN UNIVERSITARIA")
+    title_run.font.name = 'Calibri'
+    title_run.font.size = Pt(11)
+    title_run.font.bold = True
+    title_run.font.color.rgb = RGBColor(49, 46, 129)
+    title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    doc_heading = doc.add_heading(title, level=0)
+    doc_heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    if doc_item:
+        meta_table = doc.add_table(rows=2, cols=4)
+        meta_table.style = 'Table Grid'
+        meta_cells_r0 = [
+            f"Código: {doc_item.get('codigo_doc', 'DOC-CC')}",
+            f"Versión: {doc_item.get('version_actual', 'v1.0')}",
+            f"Estado: {doc_item.get('estado_editorial', 'En Construcción')}",
+            f"Producto: {doc_item.get('producto', 'P5')}"
+        ]
+        meta_cells_r1 = [
+            f"Categoría: {doc_item.get('categoria', 'Políticas y Modelos')}",
+            f"Frente: {doc_item.get('frente', 'Institucional')}",
+            f"Requisito MEN: {(doc_item.get('requisito_id') or 'req_1').upper()}",
+            f"Fase: {doc_item.get('fase', 'Fase III')}"
+        ]
+        for c_i, val in enumerate(meta_cells_r0):
+            cell = meta_table.cell(0, c_i)
+            cell.text = val
+            for run in cell.paragraphs[0].runs:
+                run.font.size = Pt(8.5)
+                run.font.bold = True
+        for c_i, val in enumerate(meta_cells_r1):
+            cell = meta_table.cell(1, c_i)
+            cell.text = val
+            for run in cell.paragraphs[0].runs:
+                run.font.size = Pt(8.5)
+        doc.add_paragraph().paragraph_format.space_after = Pt(6)
+
+    date_para = doc.add_paragraph()
+    d_run = date_para.add_run(f"Generado el: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')} | Expediente Co-Construido en SKEL 360 / SIAC")
+    d_run.font.name = 'Calibri'
+    d_run.font.size = Pt(9)
+    d_run.font.italic = True
+    d_run.font.color.rgb = RGBColor(100, 116, 139)
+    date_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    doc.add_paragraph().paragraph_format.space_after = Pt(10)
+
+    for line in (text or '').split('\n'):
+        line_str = line.strip()
+        if not line_str:
+            doc.add_paragraph()
+            continue
+        if line_str.startswith('# '):
+            p = doc.add_heading(line_str[2:].replace('**', ''), level=1)
+            p.paragraph_format.space_before = Pt(14)
+            p.paragraph_format.space_after = Pt(6)
+        elif line_str.startswith('## '):
+            p = doc.add_heading(line_str[3:].replace('**', ''), level=2)
+            p.paragraph_format.space_before = Pt(10)
+            p.paragraph_format.space_after = Pt(4)
+        elif line_str.startswith('### '):
+            p = doc.add_heading(line_str[4:].replace('**', ''), level=3)
+            p.paragraph_format.space_before = Pt(8)
+            p.paragraph_format.space_after = Pt(2)
+        elif line_str.startswith('- ') or line_str.startswith('* '):
+            doc.add_paragraph(line_str[2:].replace('**', ''), style='List Bullet')
+        elif line_str.startswith('1. ') or line_str.startswith('2. ') or line_str.startswith('3. '):
+            doc.add_paragraph(line_str[3:].replace('**', ''), style='List Number')
+        else:
+            p = doc.add_paragraph()
+            p.paragraph_format.line_spacing = 1.15
+            p.paragraph_format.space_after = Pt(6)
+            parts = line_str.split('**')
+            for i, part in enumerate(parts):
+                if not part:
+                    continue
+                run = p.add_run(part)
+                run.font.name = 'Calibri'
+                run.font.size = Pt(10.5)
+                if i % 2 == 1:
+                    run.font.bold = True
+
+    if include_trace and doc_item:
+        doc.add_page_break()
+        doc.add_heading("ANEXO DE TRAZABILIDAD Y CONSTRUCCIÓN COLECTIVA (SOPORTE PARA PARES ACADÉMICOS MEN)", level=1)
+        intro_p = doc.add_paragraph(
+            "El presente anexo certifica la trazabilidad metodológica, el control de versiones por dependencia, "
+            "los acuerdos de mesas de trabajo participativas y la auditoría interna de cumplimiento normativo "
+            "adelantada por el equipo institucional en el marco de la Ley 749 de 2002 y el Decreto 2038 de 2023."
+        )
+        intro_p.runs[0].font.size = Pt(9.5)
+        intro_p.runs[0].font.italic = True
+
+        doc.add_heading("1. Historial de Versiones y Co-Edición del Equipo", level=2)
+        versiones = doc_item.get("bitacora_versiones", [])
+        if versiones:
+            t_ver = doc.add_table(rows=1, cols=5)
+            t_ver.style = 'Table Grid'
+            hdrs = ["Versión", "Fecha", "Responsable / Co-Autor", "Cargo / Dependencia", "Actuación y Resumen del Aporte"]
+            for idx_c, h_txt in enumerate(hdrs):
+                c = t_ver.cell(0, idx_c)
+                c.text = h_txt
+                for r in c.paragraphs[0].runs:
+                    r.font.bold = True
+                    r.font.size = Pt(8.5)
+            for v in versiones:
+                row_cells = t_ver.add_row().cells
+                row_cells[0].text = str(v.get("version", "v1.0"))
+                row_cells[1].text = str(v.get("fecha", ""))[:16].replace("T", " ")
+                row_cells[2].text = str(v.get("autor", ""))
+                row_cells[3].text = f"{v.get('cargo_dependencia', '')} ({v.get('fase', '')})"
+                row_cells[4].text = f"[{v.get('tipo_actuacion', '')}] {v.get('resumen_cambio', '')}"
+                for rc in row_cells:
+                    for r in rc.paragraphs[0].runs:
+                        r.font.size = Pt(8.5)
+
+        doc.add_heading("2. Registro de Mesas de Trabajo, Revisiones y Avales Colegiados", level=2)
+        aportes = doc_item.get("aportes_equipo", [])
+        if aportes:
+            t_ap = doc.add_table(rows=1, cols=5)
+            t_ap.style = 'Table Grid'
+            hdrs_ap = ["Fecha", "Participante / Instancia", "Dependencia / Estamento", "Tipo de Intervención", "Detalle del Aporte / Acuerdo / Aval"]
+            for idx_c, h_txt in enumerate(hdrs_ap):
+                c = t_ap.cell(0, idx_c)
+                c.text = h_txt
+                for r in c.paragraphs[0].runs:
+                    r.font.bold = True
+                    r.font.size = Pt(8.5)
+            for ap in aportes:
+                row_cells = t_ap.add_row().cells
+                row_cells[0].text = str(ap.get("fecha", ""))[:16].replace("T", " ")
+                row_cells[1].text = str(ap.get("autor", ""))
+                row_cells[2].text = str(ap.get("cargo_dependencia", ""))
+                row_cells[3].text = f"{ap.get('tipo', '')} ({ap.get('seccion_referencia', 'General')})"
+                row_cells[4].text = str(ap.get("comentario", ""))
+                for rc in row_cells:
+                    for r in rc.paragraphs[0].runs:
+                        r.font.size = Pt(8.5)
+        else:
+            doc.add_paragraph("Sin observaciones adicionales pendientes de cierre.")
+
+        auditorias = doc_item.get("auditorias_ia", [])
+        if auditorias:
+            ult = auditorias[0]
+            doc.add_heading("3. Dictamen Interno de Cumplimiento Normativo (Ley 749 / Dec. 2038)", level=2)
+            p_aud = doc.add_paragraph()
+            r_aud = p_aud.add_run(
+                f"Índice de Alineación Normativa Verificado: {ult.get('puntaje_cumplimiento', 0)}% ({ult.get('nivel_concepto', '')}) "
+                f"| Requisito contrastado: {ult.get('requisito_titulo', '')} | Versión evaluada: {ult.get('version_evaluada', '')}"
+            )
+            r_aud.font.bold = True
+            r_aud.font.size = Pt(9.5)
+            for f_item in ult.get("fortalezas", []):
+                doc.add_paragraph(f"Fortaleza verificada: {f_item}", style='List Bullet')
+
+    io_stream = io.BytesIO()
+    doc.save(io_stream)
+    return io_stream.getvalue()
+
+
+def persist_doc_version_to_supabase_storage(inst_id, doc_item, version_entry=None, project=None):
+    """Guarda físicamente cada versión del documento co-construido en el bucket 'evidencias' de Supabase Storage y lo indexa en el requisito."""
+    try:
+        title = doc_item.get("titulo", "Documento_Institucional")
+        content = doc_item.get("contenido", "")
+        ver_str = (version_entry.get("version") if version_entry else doc_item.get("version_actual", "v1.0")).replace(".", "_")
+        code_str = (doc_item.get("codigo_doc") or "DOC_CC").replace("-", "_")
+        docx_bytes = generate_doc_docx_bytes(title, content, doc_item, include_trace=True)
+
+        short_uid = str(uuid.uuid4())[:8]
+        storage_path = f"inst_{inst_id}/cambio_caracter/documentos_colectivos/{code_str}_{ver_str}_{short_uid}.docx"
+        supabase.storage.from_('evidencias').upload(
+            storage_path,
+            docx_bytes,
+            file_options={"content-type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
+        )
+        public_url = supabase.storage.from_('evidencias').get_public_url(storage_path)
+
+        doc_item["supabase_doc_url"] = public_url
+        doc_item["supabase_storage_path"] = storage_path
+        if version_entry is not None:
+            version_entry["storage_url"] = public_url
+            version_entry["storage_path"] = storage_path
+
+        # También registrar como evidencia trazable por fase en el requisito normativo vinculado
+        req_id = doc_item.get("requisito_id")
+        if project and req_id and req_id in project.get("requisitos", {}):
+            if "evidences" not in project["requisitos"][req_id] or not isinstance(project["requisitos"][req_id]["evidences"], list):
+                project["requisitos"][req_id]["evidences"] = []
+            size_kb = len(docx_bytes) / 1024
+            project["requisitos"][req_id]["evidences"].append({
+                "name": f"{doc_item.get('codigo_doc', 'DOC')} - {title} ({doc_item.get('version_actual', 'v1.0')}).docx",
+                "url": public_url,
+                "path": storage_path,
+                "size": f"{size_kb:.1f} KB",
+                "ext": ".docx",
+                "fase": doc_item.get("fase", "Fase III: Escenario y diseño"),
+                "tag": f"Co-Construcción Equipo ({doc_item.get('categoria', 'Política/Modelo')})",
+                "version": doc_item.get("version_actual", "v1.0"),
+                "notes": f"[{doc_item.get('autor', 'Equipo')} - {doc_item.get('cargo_dependencia', '')}] {version_entry.get('resumen_cambio', '') if version_entry else 'Versión consolidada en equipo.'}",
+                "uploaded_at": datetime.datetime.now().isoformat()
+            })
+            if project["requisitos"][req_id].get("status") == "Pendiente":
+                project["requisitos"][req_id]["status"] = "En Construcción"
+
+        return public_url
+    except Exception as st_e:
+        print(f"[CC Supabase Storage Persist] Warning: {st_e}")
+        return None
+
+
 @cambio_caracter_bp.route('/api/cambio_caracter/ai_history/save', methods=['POST'])
 def api_cc_ai_history_save():
     try:
@@ -845,6 +1066,9 @@ def api_cc_ai_history_save():
             except Exception:
                 return "v1.1"
 
+        target_doc_ref = None
+        target_ver_ref = None
+
         if not create_new and item_id:
             found = False
             for item in project["ai_history"]:
@@ -868,7 +1092,7 @@ def api_cc_ai_history_save():
 
                     if "bitacora_versiones" not in item or not isinstance(item["bitacora_versiones"], list):
                         item["bitacora_versiones"] = []
-                    item["bitacora_versiones"].insert(0, {
+                    new_ver_entry = {
                         "version": new_ver,
                         "fecha": now_iso,
                         "autor": autor,
@@ -878,7 +1102,10 @@ def api_cc_ai_history_save():
                         "tipo_actuacion": tipo_actuacion,
                         "resumen_cambio": resumen_cambio,
                         "contenido_snapshot": contenido
-                    })
+                    }
+                    item["bitacora_versiones"].insert(0, new_ver_entry)
+                    target_doc_ref = item
+                    target_ver_ref = new_ver_entry
                     found = True
                     break
 
@@ -891,6 +1118,17 @@ def api_cc_ai_history_save():
                 prod_prefix = (producto or "DOC").split()[0][:4].upper()
                 codigo_doc = f"DOC-{prod_prefix}-{len(project['ai_history']) + 1:02d}"
             ver_init = version_actual or "v1.0"
+            init_ver_entry = {
+                "version": ver_init,
+                "fecha": now_iso,
+                "autor": autor,
+                "cargo_dependencia": cargo_dependencia,
+                "rol_skel": rol_skel,
+                "fase": fase,
+                "tipo_actuacion": tipo_actuacion or "Redacción Inicial",
+                "resumen_cambio": resumen_cambio or f"Creación inicial del documento: {titulo}",
+                "contenido_snapshot": contenido
+            }
             new_doc = {
                 "id": item_id,
                 "codigo_doc": codigo_doc,
@@ -910,23 +1148,18 @@ def api_cc_ai_history_save():
                 "rol_skel": rol_skel,
                 "tokens_est": 0,
                 "contenido": contenido,
-                "bitacora_versiones": [
-                    {
-                        "version": ver_init,
-                        "fecha": now_iso,
-                        "autor": autor,
-                        "cargo_dependencia": cargo_dependencia,
-                        "rol_skel": rol_skel,
-                        "fase": fase,
-                        "tipo_actuacion": tipo_actuacion or "Redacción Inicial",
-                        "resumen_cambio": resumen_cambio or f"Creación inicial del documento: {titulo}",
-                        "contenido_snapshot": contenido
-                    }
-                ],
+                "bitacora_versiones": [init_ver_entry],
                 "aportes_equipo": [],
                 "auditorias_ia": []
             }
             project["ai_history"].insert(0, new_doc)
+            target_doc_ref = new_doc
+            target_ver_ref = init_ver_entry
+
+        # Persist physical .docx version into Supabase Storage ('evidencias' bucket) and link to requirement
+        storage_url = None
+        if target_doc_ref:
+            storage_url = persist_doc_version_to_supabase_storage(inst_id, target_doc_ref, target_ver_ref, project)
 
         # Also sync with product's main documento_contenido if linked to P1..P10
         for p in project.get("productos", []):
@@ -936,7 +1169,12 @@ def api_cc_ai_history_save():
                     p["estado"] = "En Construcción"
 
         save_cc_project(inst_id, project)
-        return jsonify({"status": "success", "id": item_id, "message": "Versión y trazabilidad de equipo guardadas exitosamente."})
+        return jsonify({
+            "status": "success",
+            "id": item_id,
+            "storage_url": storage_url,
+            "message": "Versión y trazabilidad de equipo guardadas en Supabase Database y Supabase Storage."
+        })
     except Exception as e:
         print(f"[CC Save History] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -1086,6 +1324,7 @@ def api_cc_doc_import_file():
         }
 
         project["ai_history"].insert(0, new_doc)
+        persist_doc_version_to_supabase_storage(inst_id, new_doc, new_doc["bitacora_versiones"][0], project)
         save_cc_project(inst_id, project)
 
         return jsonify({

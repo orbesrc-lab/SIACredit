@@ -2994,8 +2994,10 @@
 
         const origLink = document.getElementById('editor-original-file-link');
         if (origLink) {
-            if (item.original_file_url) {
-                origLink.href = item.original_file_url;
+            const supaUrl = item.supabase_doc_url || item.original_file_url;
+            if (supaUrl) {
+                origLink.href = supaUrl;
+                origLink.innerHTML = `<i class="fa-solid fa-cloud-arrow-down"></i> Reposando en Supabase Storage (.docx)`;
                 origLink.style.display = 'inline-block';
             } else {
                 origLink.style.display = 'none';
@@ -3140,7 +3142,8 @@
                     <p style="margin:0 0 8px 0; font-size:0.78rem; color:#475569; background:#fff; padding:7px 10px; border-radius:6px; border:1px solid #e2e8f0;">
                         <i class="fa-solid fa-quote-left" style="color:#94a3b8;"></i> ${v.resumen_cambio || 'Actualización del documento.'}
                     </p>
-                    <div style="display:flex; gap:6px; justify-content:flex-end;">
+                    <div style="display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap;">
+                        ${v.storage_url ? `<a href="${v.storage_url}" target="_blank" style="background:#dcfce7; border:1px solid #86efac; padding:4px 9px; border-radius:5px; font-size:0.72rem; font-weight:800; color:#166534; text-decoration:none;"><i class="fa-solid fa-cloud-arrow-down"></i> Supabase (.docx)</a>` : ''}
                         <button onclick="previewDocVersionSnapshot(${vIdx})" style="background:#fff; border:1px solid #cbd5e1; padding:4px 9px; border-radius:5px; font-size:0.72rem; font-weight:700; color:#334155; cursor:pointer;">
                             <i class="fa-solid fa-eye"></i> Ver texto de ${v.version}
                         </button>
