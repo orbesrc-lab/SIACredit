@@ -4019,13 +4019,13 @@
                         <div style="background:#fff; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px;">
                             <div style="font-size:0.76rem; font-weight:800; color:#166534; margin-bottom:6px;"><i class="fa-solid fa-circle-check"></i> Lo que YA cumple ante el Par Evaluador:</div>
                             <ul style="margin:0; padding-left:16px; font-size:0.76rem; color:#334155;">
-                                ${(latest.fortalezas || []).map(f => `<li style="margin-bottom:4px;">${f}</li>`).join('')}
+                                ${(latest.fortalezas || []).map(f => `<li style="margin-bottom:4px;">${marked.parseInline(String(f || ''))}</li>`).join('')}
                             </ul>
                         </div>
                         <div style="background:#fff; border:1px solid #fde68a; border-radius:8px; padding:10px 12px;">
                             <div style="font-size:0.76rem; font-weight:800; color:#92400e; margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation"></i> Aspectos por fortalecer en el documento:</div>
                             <ul style="margin:0; padding-left:16px; font-size:0.76rem; color:#334155;">
-                                ${(latest.aspectos_por_mejorar || []).map(a => `<li style="margin-bottom:4px;">${a}</li>`).join('')}
+                                ${(latest.aspectos_por_mejorar || []).map(a => `<li style="margin-bottom:4px;">${marked.parseInline(String(a || ''))}</li>`).join('')}
                             </ul>
                         </div>
                     </div>
@@ -4040,16 +4040,16 @@
                             <i class="fa-solid fa-plus-circle"></i> Insertar esta mejora en el Documento
                         </button>
                     </div>
-                    <div style="background:#fff; border:1px solid #dbeafe; border-radius:8px; padding:12px 16px; font-size:0.84rem; color:#1e293b; max-height:240px; overflow-y:auto;">
-                        ${marked.parse(latest.texto_sugerido)}
+                    <div class="cc-official-doc-preview" style="background:#fff; border:1px solid #dbeafe; border-radius:8px; padding:16px 20px; font-size:0.86rem; color:#1e293b; max-height:280px; overflow-y:auto;">
+                        ${marked.parse(latest.texto_sugerido, { breaks: true, gfm: true })}
                     </div>
                 </div>
             ` : ''}
 
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px;">
-                <h5 style="margin:0 0 8px 0; font-size:0.88rem; color:#1e293b; font-weight:800;"><i class="fa-solid fa-file-signature" style="color:#4f46e5;"></i> Concepto Detallado del Par Evaluador IA</h5>
-                <div style="font-size:0.84rem; color:#334155; line-height:1.6;">
-                    ${marked.parse(latest.dictamen_markdown || '')}
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:20px 24px;">
+                <h5 style="margin:0 0 12px 0; font-size:0.95rem; color:#1e293b; font-weight:800;"><i class="fa-solid fa-file-signature" style="color:#4f46e5;"></i> Concepto Detallado del Par Evaluador IA</h5>
+                <div class="cc-official-doc-preview" style="font-size:0.88rem; color:#334155; line-height:1.7;">
+                    ${marked.parse(latest.dictamen_markdown || '', { breaks: true, gfm: true })}
                 </div>
             </div>
         `;

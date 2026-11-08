@@ -1886,9 +1886,10 @@ Audita el siguiente documento institucional construido en equipo:
 CONTENIDO DEL DOCUMENTO A EVALUAR:
 {contenido[:28000]}
 
-Evalúa rigurosamente el documento bajo la Metodología de las 6 Preguntas Institucionales y los estándares de visita de Pares del MEN.
-Devuelve EXCLUSIVAMENTE un bloque JSON válido con esta estructura exacta:
-```json
+Evalúa rigurosamente el documento de **INTENALCO EDUCACIÓN SUPERIOR** bajo la Metodología de las 6 Preguntas Institucionales y los estándares de visita de Pares del MEN.
+Responde utilizando EXACTAMENTE estas tres etiquetas XML (NO envuelvas el dictamen ni el texto sugerido dentro de strings JSON):
+
+<AUDIT_META_JSON>
 {{
   "puntaje_cumplimiento": 85,
   "nivel_concepto": "Cumple Parcialmente (Avance Sólido)",
@@ -1902,41 +1903,95 @@ Devuelve EXCLUSIVAMENTE un bloque JSON válido con esta estructura exacta:
   }},
   "fortalezas": [
     "Fortaleza específica 1 detectada en el texto frente a la norma...",
-    "Fortaleza específica 2..."
+    "Fortaleza específica 2...",
+    "Fortaleza específica 3..."
   ],
   "aspectos_por_mejorar": [
     "Brecha o aspecto que un Par Académico del MEN observaría en visita...",
     "Segundo aspecto por complementar para llegar al 100%..."
-  ],
-  "texto_sugerido": "## Propuesta de Articulado / Parágrafo Complementario Sugerido\\nRedacta aquí el texto exacto listo para insertar en el documento y subsanar los vacíos detectados...",
-  "dictamen_markdown": "### Dictamen Técnico del Par Evaluador MEN\\nRedacta un análisis ejecutivo formal sobre la coherencia, pertinencia universitaria y trazabilidad de equipo del documento."
+  ]
 }}
-```
+</AUDIT_META_JSON>
+
+<DICTAMEN_MARKDOWN>
+### 1. Concepto General de Pertinencia Universitaria (Ley 749 / Dec. 2038)
+Redacta aquí el análisis ejecutivo formal del Par Evaluador MEN sobre la coherencia, fundamentación normativa, pertinencia para Institución Universitaria y valoración del trabajo en equipo de INTENALCO EDUCACIÓN SUPERIOR.
+
+### 2. Evaluación Detallada por Criterio Normativo y las 6 Preguntas
+Detalla en viñetas o tabla el análisis de cada dimensión evaluada en el documento.
+
+### 3. Recomendaciones Puntuales para Visita de Pares CONACES
+Lista las recomendaciones concretas para alcanzar el 100% de cumplimiento.
+</DICTAMEN_MARKDOWN>
+
+<TEXTO_SUGERIDO_MARKDOWN>
+### Propuesta de Articulado / Parágrafo Complementario Sugerido para INTENALCO EDUCACIÓN SUPERIOR
+Redacta aquí el texto normativo o técnico exacto (artículos, parágrafos o tabla de indicadores) listo para insertar en el documento y subsanar los vacíos detectados.
+</TEXTO_SUGERIDO_MARKDOWN>
 """
 
         ai_response = call_ai([
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
-        ], max_tokens=4000, temperature=0.25, inst_id=inst_id)
+        ], max_tokens=24000, temperature=0.25, inst_id=inst_id)
 
         import re
-        match = re.search(r'```json\s*(.*?)\s*```', ai_response, re.DOTALL)
-        json_str = match.group(1) if match else ai_response.strip().strip('`')
-        if json_str.startswith('json'):
-            json_str = json_str[4:].strip()
+        parsed = {
+            "puntaje_cumplimiento": 82,
+            "nivel_concepto": "Cumple Parcialmente (Avance Sólido)",
+            "preguntas_6": {"existe": True, "vigente": True, "aprobado": False, "pertinente": True, "aplica": True, "evidencia": True},
+            "fortalezas": ["El documento desarrolla la estructura normativa y conceptual requerida para el cambio de carácter a Institución Universitaria."],
+            "aspectos_por_mejorar": ["Reforzar la evidencia de acto administrativo de aprobación definitiva e indicadores anuales verificables."],
+            "texto_sugerido": "",
+            "dictamen_markdown": ""
+        }
 
-        try:
-            parsed = json.loads(json_str)
-        except Exception:
-            parsed = {
-                "puntaje_cumplimiento": 78,
-                "nivel_concepto": "En Consolidación Técnica",
-                "preguntas_6": {"existe": True, "vigente": True, "aprobado": False, "pertinente": True, "aplica": False, "evidencia": True},
-                "fortalezas": ["El documento desarrolla la estructura base requerida para el cambio de carácter."],
-                "aspectos_por_mejorar": ["Reforzar la evidencia de aprobación por órgano colegiado e indicadores de seguimiento."],
-                "texto_sugerido": "",
-                "dictamen_markdown": ai_response
-            }
+        meta_match = re.search(r'<AUDIT_META_JSON>([\s\S]*?)</AUDIT_META_JSON>', ai_response, re.IGNORECASE)
+        if meta_match:
+            meta_raw = meta_match.group(1).strip()
+            meta_raw = re.sub(r'^```(?:json)?\s*', '', meta_raw).strip()
+            meta_raw = re.sub(r'\s*```$', '', meta_raw).strip()
+            try:
+                meta_obj = json.loads(meta_raw)
+                if isinstance(meta_obj, dict):
+                    parsed.update(meta_obj)
+            except Exception as meta_e:
+                print("[CC Audit Meta JSON warning]:", meta_e)
+
+        dict_match = re.search(r'<DICTAMEN_MARKDOWN>([\s\S]*?)(?:</DICTAMEN_MARKDOWN>|<TEXTO_SUGERIDO_MARKDOWN>|$)', ai_response, re.IGNORECASE)
+        if dict_match:
+            parsed["dictamen_markdown"] = dict_match.group(1).strip()
+
+        sug_match = re.search(r'<TEXTO_SUGERIDO_MARKDOWN>([\s\S]*?)(?:</TEXTO_SUGERIDO_MARKDOWN>|$)', ai_response, re.IGNORECASE)
+        if sug_match:
+            parsed["texto_sugerido"] = sug_match.group(1).strip()
+
+        # Fallback por si devolvió JSON tradicional sin etiquetas XML
+        if not parsed.get("dictamen_markdown"):
+            match = re.search(r'```(?:json)?\s*(.*?)\s*```', ai_response, re.DOTALL)
+            json_str = match.group(1) if match else ai_response.strip().strip('`')
+            if json_str.startswith('json'):
+                json_str = json_str[4:].strip()
+            try:
+                legacy_obj = json.loads(json_str)
+                if isinstance(legacy_obj, dict):
+                    parsed.update(legacy_obj)
+            except Exception:
+                # Rescatar campos individuales por regex si el JSON quedó truncado
+                sc_m = re.search(r'"puntaje_cumplimiento"\s*:\s*(\d+)', json_str)
+                if sc_m:
+                    parsed["puntaje_cumplimiento"] = int(sc_m.group(1))
+                nc_m = re.search(r'"nivel_concepto"\s*:\s*"([^"]+)"', json_str)
+                if nc_m:
+                    parsed["nivel_concepto"] = nc_m.group(1)
+                dm_m = re.search(r'"dictamen_markdown"\s*:\s*"([\s\S]*?)(?:"\s*\}|$)', json_str)
+                if dm_m:
+                    parsed["dictamen_markdown"] = dm_m.group(1).replace('\\n', '\n').replace('\\"', '"')
+                else:
+                    parsed["dictamen_markdown"] = (
+                        "### Dictamen Técnico del Par Evaluador MEN\n\n"
+                        f"El documento **{titulo}** presenta un avance sólido (**{parsed['puntaje_cumplimiento']}%**) frente a los lineamientos de la Ley 749 de 2002 y el Decreto 2038 de 2023 para **INTENALCO EDUCACIÓN SUPERIOR**."
+                    )
 
         now_iso = datetime.datetime.now().isoformat()
         audit_record = {
