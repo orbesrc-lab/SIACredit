@@ -287,7 +287,26 @@ def api_cambio_caracter_data():
     inst_id = request.args.get('inst_id', get_active_inst_id(), type=int)
     
     if request.method == 'POST':
-        data = request.json
+        data = request.json or {}
+        try:
+            existing = get_cc_project(inst_id)
+            # Protección multi-usuario: preservar documentos en ai_history creados en paralelo o por IA
+            if isinstance(existing.get("ai_history"), list) and isinstance(data.get("ai_history"), list):
+                incoming_by_id = {d.get("id"): d for d in data["ai_history"] if isinstance(d, dict) and d.get("id")}
+                merged_history = list(data["ai_history"])
+                for ex_doc in existing["ai_history"]:
+                    ex_id = ex_doc.get("id")
+                    if ex_id and ex_id not in incoming_by_id:
+                        merged_history.insert(0, ex_doc)
+                data["ai_history"] = merged_history
+            # Preservar brechas registradas en paralelo
+            if isinstance(existing.get("brechas"), list) and isinstance(data.get("brechas"), list):
+                inc_brechas = {b.get("id") for b in data["brechas"] if isinstance(b, dict) and b.get("id")}
+                for ex_b in existing["brechas"]:
+                    if ex_b.get("id") and ex_b.get("id") not in inc_brechas:
+                        data["brechas"].append(ex_b)
+        except Exception as merge_e:
+            print(f"[CC] Merge warning: {merge_e}")
         if save_cc_project(inst_id, data):
             return jsonify({"status": "success"})
         return jsonify({"status": "error", "message": "Error saving data"}), 500
@@ -484,46 +503,58 @@ def api_cc_ai_gap_analysis():
             "especialista de máximo nivel en cambio de carácter académico institucional (Ley 749 de 2002, Ley 30 de 1992, "
             "Decreto 2216 de 2003, Decreto 1075 de 2015, Decreto 1330 de 2019, Decreto 2038 de 2023, Decreto 0529 de 2024 "
             "y Acuerdo CESU 01 de 2025). "
+            "REGLA INSTITUCIONAL OBLIGATORIA: La institución que adelanta este proceso de cambio de carácter a Institución Universitaria "
+            "es SIEMPRE 'INTENALCO EDUCACIÓN SUPERIOR' (ubicada en Santiago de Cali, Valle del Cauca). "
+            "Si el documento subido como insumo o referente menciona el nombre de otra institución (por ejemplo, una política de referencia "
+            "o modelo comparativo externo), NUNCA adoptes ese nombre externo: debes redactar absolutamente todo el informe, diagnóstico, "
+            "plan de acción y propuesta de articulado exclusivamente a nombre de INTENALCO EDUCACIÓN SUPERIOR. "
             "Tu estilo de redacción es formal, altamente técnico, académico, jurídico y propositivo. "
             "No te limitas a opinar: redactas articulados normativos, capítulos del PEI/PDI, justificaciones curriculares, "
-            "políticas institucionales y matrices con rigor impecable, adaptados a la realidad de una institución que pasa a "
-            "Institución Universitaria."
+            "políticas institucionales y matrices con rigor impecable, adaptados a la realidad de INTENALCO EDUCACIÓN SUPERIOR "
+            "en su tránsito a Institución Universitaria."
         )
 
         title_entry = "Análisis IA"
         task_frente = frente_name or "General"
-        task_product = producto_codigo or "Transversal"
+        task_product = producto_codigo or ("P1" if mode in ['frente_diagnosis', 'full_diagnosis', 'evaluate_evidence'] else "P2")
+        default_req_id = "req_1"
 
         # PROMPT BUILDING BY MODE TO MINIMIZE TOKENS
         if mode == 'frente_diagnosis':
             # Filter requirements for this front
             rubrica_frente = []
+            matched_req_ids = []
             for r in REQUISITOS:
                 if frente_name.lower() in (r.get('eje', '') + ' ' + r.get('factor', '') + ' ' + r.get('desc', '')).lower():
                     rubrica_frente.append(f"- ID: {r['id']} | FACTOR: {r['factor']}\n  ASPECTO: {r['desc']}\n  EVIDENCIA EXIGIDA: {r.get('evidencia_requerida','')}")
+                    matched_req_ids.append(r['id'])
             
             if not rubrica_frente:
                 rubrica_frente = [f"- ID: {r['id']} | {r['desc']}" for r in REQUISITOS[:8]]
+                matched_req_ids = [r['id'] for r in REQUISITOS[:8]]
+            if matched_req_ids:
+                default_req_id = matched_req_ids[0]
             rubrica_str = "\n".join(rubrica_frente[:10])
 
             title_entry = f"Diagnóstico Focalizado: Frente {frente_name}"
             user_prompt = f"""
-Has sido convocado para liderar el diagnóstico y redacción del frente: **{frente_name}**.
-Objetivo: Evaluar el estado actual, detectar brechas frente a los estándares de Institución Universitaria del MEN y redactar la propuesta de mejoramiento o articulado normativo correspondiente.
+Has sido convocado por **INTENALCO EDUCACIÓN SUPERIOR** para liderar el diagnóstico y redacción del frente: **{frente_name}**.
+Objetivo: Evaluar el estado actual de INTENALCO EDUCACIÓN SUPERIOR, detectar brechas frente a los estándares de Institución Universitaria del MEN y redactar la propuesta de mejoramiento o articulado normativo correspondiente para INTENALCO EDUCACIÓN SUPERIOR.
+(Nota: Si el texto base adjunto proviene de un documento referente externo, tómalo únicamente como insumo técnico y redacta toda la propuesta, encabezados y articulados exclusivamente para INTENALCO EDUCACIÓN SUPERIOR).
 
 REQUISITOS APLICABLES AL FRENTE ({frente_name}):
 {rubrica_str}
 
 INSTRUCCIONES ESPECÍFICAS DEL USUARIO:
-{custom_instructions or 'Identifica las brechas y redacta el articulado y plan de acción correspondiente.'}
+{custom_instructions or 'Identifica las brechas y redacta el articulado y plan de acción correspondiente para INTENALCO EDUCACIÓN SUPERIOR.'}
 
 TEXTO / EVIDENCIA BASE:
 {text_to_process}
 
-Debes responder con un bloque de código JSON con esta estructura exacta:
+Debes responder con un bloque de código JSON válido con esta estructura exacta (NO incluyas texto fuera del JSON):
 ```json
 {{
-  "markdown_report": "Aquí redacta el INFORME TÉCNICO Y LA PROPUESTA REDACTADA (articulados, políticas, planes de acción) en formato Markdown.",
+  "markdown_report": "Aquí redacta el INFORME TÉCNICO Y LA PROPUESTA REDACTADA (articulados, políticas, planes de acción) en formato Markdown para INTENALCO EDUCACIÓN SUPERIOR.",
   "evaluations": {{
     "req_X": {{
       "status": "En Construcción",
@@ -549,26 +580,26 @@ Debes responder con un bloque de código JSON con esta estructura exacta:
             title_entry = f"Redacción Experta: {producto_codigo} - {prod_name}"
             
             user_prompt = f"""
-Se te encomienda REDACTAR EL ENTREGABLE INSTITUCIONAL: **{producto_codigo}: {prod_name}**.
+Se te encomienda REDACTAR EL ENTREGABLE INSTITUCIONAL DE **INTENALCO EDUCACIÓN SUPERIOR**: **{producto_codigo}: {prod_name}**.
 Contenido mínimo exigido por la metodología institucional:
 {prod_min}
 
-Directrices del proceso de cambio de carácter (Ley 749 de 2002 / Decreto 2038 de 2023):
-- Incluye Considerandos jurídicos y de pertinencia académica.
+Directrices del proceso de cambio de carácter de INTENALCO EDUCACIÓN SUPERIOR (Ley 749 de 2002 / Decreto 2038 de 2023):
+- Incluye Considerandos jurídicos y de pertinencia académica para INTENALCO EDUCACIÓN SUPERIOR.
 - Estructura el documento con Títulos, Capítulos, Artículos y Parágrafos donde aplique.
 - Incorpora disposiciones transitorias para proteger las cohortes de estudiantes y docentes en transición.
 - Define indicadores y responsables.
 
 INSTRUCCIONES ESPECÍFICAS:
-{custom_instructions or 'Redacta el documento formal completo, listo para revisión del Comité Técnico y aprobación.'}
+{custom_instructions or 'Redacta el documento formal completo para INTENALCO EDUCACIÓN SUPERIOR, listo para revisión del Comité Técnico y aprobación.'}
 
 INSUMOS / BASE DOCUMENTAL (si aplica):
-{text_to_process or 'No se adjuntó texto previo; redacta la propuesta estándar de máxima calidad institucional.'}
+{text_to_process or 'No se adjuntó texto previo; redacta la propuesta estándar de máxima calidad institucional para INTENALCO EDUCACIÓN SUPERIOR.'}
 
 Devuelve un bloque JSON:
 ```json
 {{
-  "markdown_report": "Aquí redacta el DOCUMENTO COMPLETO en formato Markdown formal y riguroso.",
+  "markdown_report": "Aquí redacta el DOCUMENTO COMPLETO en formato Markdown formal y riguroso para INTENALCO EDUCACIÓN SUPERIOR.",
   "evaluations": {{}}
 }}
 ```
@@ -577,29 +608,57 @@ Devuelve un bloque JSON:
         elif mode == 'solve_brecha':
             brecha_info = next((b for b in project.get("brechas", []) if b["id"] == brecha_id), None)
             desc_b = brecha_info["descripcion"] if brecha_info else "Brecha institucional"
-            frente_b = brecha_info["frente"] if brecha_info else "General"
+            frente_b = brecha_info["frente"] if brecha_info else (frente_name or "General")
             accion_b = brecha_info.get("accion_propuesta", "Actualizar") if brecha_info else "Actualizar"
-            title_entry = f"Solución Técnica a Brecha: {brecha_id}"
+            task_frente = frente_b
+            task_product = producto_codigo or "P2"
+            title_entry = f"Solución Técnica a Brecha {brecha_id}: {desc_b[:55]}"
+
+            rubrica_brecha = []
+            for r in REQUISITOS:
+                if frente_b.lower() in (r.get('eje', '') + ' ' + r.get('factor', '') + ' ' + r.get('desc', '')).lower():
+                    rubrica_brecha.append(f"- ID: {r['id']} | FACTOR: {r['factor']} | {r['desc']}")
+            if rubrica_brecha:
+                default_req_id = rubrica_brecha[0].split('|')[0].replace('- ID:', '').strip()
+            rubrica_b_str = "\n".join(rubrica_brecha[:8])
 
             user_prompt = f"""
-Se requiere una SOLUCIÓN TÉCNICA Y REDACCIÓN NORMATIVA EXPERTA para cerrar la siguiente brecha identificada en el plan de cambio de carácter:
-- Código: {brecha_id}
-- Frente: {frente_b}
+Se requiere una SOLUCIÓN TÉCNICA Y REDACCIÓN NORMATIVA EXPERTA para **INTENALCO EDUCACIÓN SUPERIOR** con el fin de cerrar la siguiente brecha identificada en el plan de cambio de carácter a Institución Universitaria:
+- Institución: INTENALCO EDUCACIÓN SUPERIOR
+- Código de Brecha: {brecha_id}
+- Frente Responsable: {frente_b}
 - Tratamiento institucional propuesto: {accion_b} (según metodología: Conservar, Fortalecer, Actualizar, Transformar, Armonizar, Crear, Derogar)
 - Descripción de la Brecha: {desc_b}
 - Evidencia faltante: {brecha_info.get('evidencia_faltante', '') if brecha_info else ''}
 
-INSTRUCCIONES ESPECÍFICAS:
-{custom_instructions or 'Redacta la solución definitiva: propuesta de articulado o reforma, procedimiento operativo y evidencias a consolidar.'}
+REQUISITOS DEL MEN RELACIONADOS CON ESTE FRENTE:
+{rubrica_b_str}
 
-INSUMOS / CONTEXTO ADICIONAL:
-{text_to_process}
+INSTRUCCIONES ESPECÍFICAS:
+{custom_instructions or 'Redacta para INTENALCO EDUCACIÓN SUPERIOR la solución definitiva: análisis técnico de la brecha, propuesta de articulado o reforma lista para adopción, procedimiento operativo y protocolo de evidencias para Pares MEN.'}
+
+INSUMOS / DOCUMENTO DE REFERENCIA ADICIONAL:
+{text_to_process or 'Toma como base el contexto institucional de INTENALCO EDUCACIÓN SUPERIOR.'}
+(Importante: Si el documento adjunto menciona otra institución por ser un referente comparativo, adapta todo el texto, títulos y articulados exclusivamente a INTENALCO EDUCACIÓN SUPERIOR).
 
 Devuelve un bloque JSON:
 ```json
 {{
-  "markdown_report": "Redacta el informe de cierre de brecha, propuesta de texto legal/académico y protocolo de evidencias.",
-  "evaluations": {{}}
+  "markdown_report": "Redacta el informe de cierre de brecha, propuesta de texto legal/académico para INTENALCO EDUCACIÓN SUPERIOR y protocolo de evidencias.",
+  "evaluations": {{
+    "{default_req_id}": {{
+      "status": "En Construcción",
+      "notes": "Síntesis del estado actual y cómo esta propuesta cierra la brecha en INTENALCO.",
+      "preguntas_6": {{
+        "existe": true,
+        "vigente": false,
+        "aprobado": false,
+        "pertinente": true,
+        "aplica": false,
+        "evidencia": false
+      }}
+    }}
+  }}
 }}
 ```
 """
@@ -607,7 +666,7 @@ Devuelve un bloque JSON:
         elif mode == 'evaluate_evidence':
             title_entry = f"Auditoría de Evidencias (6 Preguntas) - {frente_name or 'General'}"
             user_prompt = f"""
-Realiza una AUDITORÍA METODOLÓGICA DE EVIDENCIAS aplicando rigurosamente la 'Metodología de las 6 Preguntas Institucionales' de INTENALCO / MEN:
+Realiza una AUDITORÍA METODOLÓGICA DE EVIDENCIAS para **INTENALCO EDUCACIÓN SUPERIOR** aplicando rigurosamente la 'Metodología de las 6 Preguntas Institucionales' de INTENALCO / MEN:
 1. ¿Existe? (Verificación de existencia del instrumento o proceso)
 2. ¿Está vigente? (Vigencia temporal, sin derogatorias tácitas)
 3. ¿Está formalmente aprobado? (Por el órgano competente: Consejo Superior / Directivo / Académico con acta o acuerdo)
@@ -619,12 +678,12 @@ DOCUMENTO / EVIDENCIAS REVISADAS:
 {text_to_process}
 
 INSTRUCCIONES ESPECÍFICAS:
-{custom_instructions or 'Emite dictamen de auditoría para cada requisito evidenciado y califica cada una de las 6 preguntas.'}
+{custom_instructions or 'Emite dictamen de auditoría para INTENALCO EDUCACIÓN SUPERIOR por cada requisito evidenciado y califica cada una de las 6 preguntas.'}
 
 Devuelve un bloque JSON:
 ```json
 {{
-  "markdown_report": "Dictamen de auditoría con hallazgos, recomendaciones y plan de subsanación.",
+  "markdown_report": "Dictamen de auditoría con hallazgos, recomendaciones y plan de subsanación para INTENALCO EDUCACIÓN SUPERIOR.",
   "evaluations": {{
     "req_X": {{
       "status": "Completado",
@@ -647,19 +706,19 @@ Devuelve un bloque JSON:
             rubrica_text = "\n".join([f"- ID: {r['id']} | EJE: {r['eje']} | FACTOR: {r['factor']}\n  ASPECTO: {r['desc']}" for r in REQUISITOS[:25]])
             title_entry = "Diagnóstico Integral de Brechas y Propuesta de Redacción"
             user_prompt = f"""
-La institución adelanta su proceso de cambio de carácter a 'Institución Universitaria' según la Ley 749 de 2002 y el Decreto 2038 de 2023.
-A continuación te presento el documento base institucional.
+**INTENALCO EDUCACIÓN SUPERIOR** adelanta su proceso de cambio de carácter a 'Institución Universitaria' según la Ley 749 de 2002 y el Decreto 2038 de 2023.
+A continuación te presento el documento base o insumo institucional.
 
 Tu tarea es:
-1. Identificar las brechas críticas de transformación frente a los estándares de Institución Universitaria.
+1. Identificar las brechas críticas de transformación de INTENALCO EDUCACIÓN SUPERIOR frente a los estándares de Institución Universitaria.
 2. Aplicar la matriz de tratamiento (Conservar, Fortalecer, Actualizar, Transformar, Armonizar, Crear, Derogar).
-3. REDACTAR las propuestas de articulado normativo, ajuste de políticas y capítulos requeridos para subsanar los vacíos.
+3. REDACTAR para INTENALCO EDUCACIÓN SUPERIOR las propuestas de articulado normativo, ajuste de políticas y capítulos requeridos para subsanar los vacíos.
 
 RUBRICA DE REFERENCIA (Factores Priorizados):
 {rubrica_text}
 
 INSTRUCCIONES ESPECÍFICAS:
-{custom_instructions or 'Genera un informe integral con propuestas de redacción listas para usar en el Dossier Técnico.'}
+{custom_instructions or 'Genera un informe integral para INTENALCO EDUCACIÓN SUPERIOR con propuestas de redacción listas para usar en el Dossier Técnico.'}
 
 DOCUMENTO BASE EXTRAÍDO:
 {text_to_process}
@@ -667,7 +726,7 @@ DOCUMENTO BASE EXTRAÍDO:
 Devuelve EXCLUSIVAMENTE un bloque de código JSON:
 ```json
 {{
-  "markdown_report": "Redacta el informe técnico de brechas y las propuestas de redacción formal de estatutos/políticas en formato Markdown.",
+  "markdown_report": "Redacta el informe técnico de brechas y las propuestas de redacción formal de estatutos/políticas en formato Markdown para INTENALCO EDUCACIÓN SUPERIOR.",
   "evaluations": {{
     "req_1": {{
       "status": "En Construcción",
@@ -694,26 +753,88 @@ Devuelve EXCLUSIVAMENTE un bloque de código JSON:
         ai_response = call_ai(messages, max_tokens=32000, inst_id=inst_id)
 
         import re
-        match = re.search(r'```json\n(.*?)\n```', ai_response, re.DOTALL)
+        match = re.search(r'```(?:json)?\s*\n(.*?)\n```', ai_response, re.DOTALL)
         if match:
-            json_str = match.group(1)
+            json_str = match.group(1).strip()
         else:
             json_str = ai_response.strip()
-            if json_str.startswith('```') and json_str.endswith('```'):
-                json_str = json_str.strip('`').replace('json\n', '', 1).strip()
+            if json_str.startswith('```'):
+                json_str = re.sub(r'^```(?:json)?\s*', '', json_str)
+            if json_str.endswith('```'):
+                json_str = re.sub(r'\s*```$', '', json_str)
 
+        analysis_html = ""
+        evaluations = {}
         try:
             parsed_data = json.loads(json_str)
             analysis_html = parsed_data.get("markdown_report", "")
-            evaluations = parsed_data.get("evaluations", {})
+            evaluations = parsed_data.get("evaluations", {}) or {}
         except Exception as json_e:
             print("[CC AI] JSON Parse fallback:", json_e)
-            rescate = re.search(r'"markdown_report"\s*:\s*"(.*?)(?:","evaluations"|$)', json_str, re.DOTALL | re.IGNORECASE)
-            if rescate:
-                analysis_html = rescate.group(1).replace('\\n', '\n').replace('\\"', '"')
+            # 1) Extraer el bloque "evaluations": { ... } permitiendo saltos de línea y espacios
+            eval_split = re.search(r'"\s*,\s*"evaluations"\s*:\s*(\{[\s\S]*\})\s*\}?\s*$', json_str)
+            if eval_split:
+                raw_report_part = json_str[:eval_split.start()]
+                raw_eval_part = eval_split.group(1).strip()
+                # Balancear llaves para extraer el objeto evaluations exacto
+                depth = 0
+                end_idx = len(raw_eval_part)
+                for idx_ch, ch in enumerate(raw_eval_part):
+                    if ch == '{':
+                        depth += 1
+                    elif ch == '}':
+                        depth -= 1
+                        if depth == 0:
+                            end_idx = idx_ch + 1
+                            break
+                try:
+                    evaluations = json.loads(raw_eval_part[:end_idx])
+                except Exception as ev_err:
+                    print("[CC AI] Evaluations block parse warning:", ev_err)
+                    evaluations = {}
+                analysis_html = re.sub(r'^\s*\{\s*"markdown_report"\s*:\s*"', '', raw_report_part, flags=re.DOTALL)
+                analysis_html = analysis_html.replace('\\n', '\n').replace('\\"', '"').replace('\\t', '\t')
             else:
-                analysis_html = ai_response
-            evaluations = {}
+                rescate = re.search(r'"markdown_report"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"evaluations"|"\s*\}|$)', json_str, re.IGNORECASE)
+                if rescate:
+                    analysis_html = rescate.group(1).replace('\\n', '\n').replace('\\"', '"')
+                else:
+                    analysis_html = ai_response
+
+        # Limpieza garantizada: jamás permitir que código JSON '"evaluations": {' quede pegado dentro del documento
+        analysis_html = re.sub(r'"?\s*,\s*"evaluations"\s*:\s*\{[\s\S]*$', '', analysis_html).strip()
+        analysis_html = re.sub(r'^\s*\{\s*"markdown_report"\s*:\s*"', '', analysis_html).strip()
+        if analysis_html.endswith('"}'):
+            analysis_html = analysis_html[:-2].strip()
+
+        if evaluations and isinstance(evaluations, dict):
+            first_eval_req = next((k for k in evaluations.keys() if k.startswith('req_')), None)
+            if first_eval_req:
+                default_req_id = first_eval_req
+
+        # Vincular automáticamente al líder y equipo del Frente responsable
+        frente_obj = next((f for f in project.get("frentes", []) if f.get("nombre", "").lower() == task_frente.lower()), None)
+        equipo_inicial = []
+        autor_label = "Asesor Experto MEN (IA)"
+        if frente_obj:
+            if frente_obj.get("lider"):
+                autor_label = f"{frente_obj['lider']} · Asesor IA"
+                equipo_inicial.append({
+                    "id": str(uuid.uuid4())[:8],
+                    "nombre": frente_obj["lider"],
+                    "dependencia": task_frente,
+                    "rol": "Líder de Frente",
+                    "fecha": datetime.datetime.now().isoformat()
+                })
+            for m in (frente_obj.get("equipo_frente") or []):
+                if m.get("nombre") and m.get("nombre") != frente_obj.get("lider"):
+                    equipo_inicial.append({
+                        "id": str(uuid.uuid4())[:8],
+                        "nombre": m.get("nombre"),
+                        "dependencia": m.get("dependencia", task_frente),
+                        "rol": m.get("rol", "Integrante del Frente"),
+                        "fecha": datetime.datetime.now().isoformat()
+                    })
 
         # Save to history entry
         tokens_est = (len(user_prompt) + len(analysis_html)) // 4
@@ -723,27 +844,28 @@ Devuelve EXCLUSIVAMENTE un bloque de código JSON:
             "id": history_id,
             "codigo_doc": f"DOC-{task_product[:4].upper()}-{len(project.get('ai_history', [])) + 1:02d}",
             "titulo": title_entry,
-            "categoria": "Políticas y Modelos" if mode == 'draft_product' else "Diagnósticos y Estudios",
+            "categoria": "Políticas y Modelos" if mode == 'draft_product' else ("Planes y Proyecciones" if mode == 'solve_brecha' else "Diagnósticos y Estudios"),
             "fecha": now_iso,
             "fecha_modificacion": now_iso,
             "tipo": mode,
             "frente": task_frente,
             "producto": task_product,
-            "requisito_id": "req_1",
+            "requisito_id": default_req_id,
             "fase": "Fase III: Escenario y diseño",
             "version_actual": "v1.0",
             "estado_editorial": "En Construcción",
-            "autor": "Asesor Experto MEN (IA)",
+            "autor": autor_label,
             "cargo_dependencia": task_frente,
             "rol_skel": "lider",
             "tokens_est": tokens_est,
             "contenido": analysis_html,
             "saved_doc_path": saved_doc_path,
+            "equipo_documento": equipo_inicial,
             "bitacora_versiones": [
                 {
                     "version": "v1.0",
                     "fecha": now_iso,
-                    "autor": "Asesor Experto MEN (IA)",
+                    "autor": autor_label,
                     "cargo_dependencia": task_frente,
                     "rol_skel": "lider",
                     "fase": "Fase III: Escenario y diseño",
@@ -756,20 +878,30 @@ Devuelve EXCLUSIVAMENTE un bloque de código JSON:
             "auditorias_ia": []
         }
 
+        # Persistir inmediatamente el .docx en Supabase Storage para trazabilidad ante Pares MEN
+        try:
+            persist_doc_version_to_supabase_storage(inst_id, new_hist_item, new_hist_item["bitacora_versiones"][0], project)
+        except Exception as st_e:
+            print(f"[CC AI] Storage docx persist warning: {st_e}")
+
         if "ai_history" not in project:
             project["ai_history"] = []
         project["ai_history"].insert(0, new_hist_item)
         project["ai_gap_analysis"] = analysis_html # Keep latest for backward compatibility
 
-        # Update evaluations in project if any
-        if evaluations:
+        # Update evaluations in project if any (soporta "No Cumple", "Parcial", "En Construcción", "Completado")
+        if evaluations and isinstance(evaluations, dict):
             for req_id, eval_data in evaluations.items():
-                if req_id in project["requisitos"]:
-                    if eval_data.get("status") in ["Pendiente", "En Construcción", "Completado"]:
-                        project["requisitos"][req_id]["status"] = eval_data["status"]
+                if req_id in project["requisitos"] and isinstance(eval_data, dict):
+                    raw_st = (eval_data.get("status") or "").strip()
+                    if raw_st in ["Completado", "Cumple", "Aprobado"]:
+                        project["requisitos"][req_id]["status"] = "Completado"
+                    elif raw_st:
+                        project["requisitos"][req_id]["status"] = "En Construcción"
                     if eval_data.get("notes"):
-                        project["requisitos"][req_id]["notes"] = eval_data["notes"]
-                    if eval_data.get("preguntas_6"):
+                        prefix = "[Requiere Subsanación / Brecha] " if raw_st.lower() in ["no cumple", "incumple", "brecha"] else ""
+                        project["requisitos"][req_id]["notes"] = prefix + str(eval_data["notes"])
+                    if isinstance(eval_data.get("preguntas_6"), dict):
                         project["requisitos"][req_id]["preguntas_6"] = eval_data["preguntas_6"]
 
         # If it was a brecha solution, update the brecha item directly
@@ -777,6 +909,7 @@ Devuelve EXCLUSIVAMENTE un bloque de código JSON:
             for b in project.get("brechas", []):
                 if b["id"] == brecha_id:
                     b["solucion_redactada"] = analysis_html
+                    b["doc_solucion_id"] = history_id
                     b["estado"] = "Cerrada" if "conforme" in analysis_html.lower() else "En gestión"
 
         # If it was a product draft, update the product document content

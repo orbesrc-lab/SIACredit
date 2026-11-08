@@ -1053,22 +1053,19 @@
                     <div class="cc-card-white" style="padding:22px;">
                         <!-- Encabezado y Metadatos del Documento Activo -->
                         <div style="border-bottom:1px solid #e2e8f0; padding-bottom:14px; margin-bottom:16px;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:10px;">
-                                <div style="flex:1; min-width:300px;">
-                                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
-                                        <span id="editor-badge-code" style="background:#312e81; color:white; font-size:0.72rem; font-weight:800; padding:3px 8px; border-radius:5px;">DOC-P5-01</span>
-                                        <span id="editor-badge-ver" style="background:#e0e7ff; color:#3730a3; font-size:0.72rem; font-weight:800; padding:3px 8px; border-radius:5px;">v1.0</span>
-                                        <select id="editor-sel-estado" onchange="onQuickDocMetaChange()" style="padding:3px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.74rem; font-weight:700; background:#fef3c7; color:#92400e; cursor:pointer;">
-                                            <option value="En Construcción">📝 En Construcción</option>
-                                            <option value="En Revisión del Equipo">👥 En Revisión del Equipo</option>
-                                            <option value="Validado Comité Técnico">✅ Validado Comité Técnico</option>
-                                            <option value="Aprobado Consejo">🏛️ Aprobado Consejo</option>
-                                        </select>
-                                        <span id="editor-badge-ia-score" style="display:none; background:#dcfce7; color:#166534; font-size:0.72rem; font-weight:800; padding:3px 9px; border-radius:999px; border:1px solid #bbf7d0;">
-                                            <i class="fa-solid fa-scale-balanced"></i> Cumplimiento MEN: 0%
-                                        </span>
-                                    </div>
-                                    <input type="text" id="editor-title" placeholder="Título del Documento Institucional (ej: Modelo Pedagógico Institucional)" style="width:100%; font-size:1.18rem; font-weight:800; color:#1e293b; border:1px solid #e2e8f0; padding:7px 12px; border-radius:8px; background:#f8fafc;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    <span id="editor-badge-code" style="background:#312e81; color:white; font-size:0.72rem; font-weight:800; padding:3px 8px; border-radius:5px;">DOC-P5-01</span>
+                                    <span id="editor-badge-ver" style="background:#e0e7ff; color:#3730a3; font-size:0.72rem; font-weight:800; padding:3px 8px; border-radius:5px;">v1.0</span>
+                                    <select id="editor-sel-estado" onchange="onQuickDocMetaChange()" style="padding:3px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.74rem; font-weight:700; background:#fef3c7; color:#92400e; cursor:pointer;">
+                                        <option value="En Construcción">📝 En Construcción</option>
+                                        <option value="En Revisión del Equipo">👥 En Revisión del Equipo</option>
+                                        <option value="Validado Comité Técnico">✅ Validado Comité Técnico</option>
+                                        <option value="Aprobado Consejo">🏛️ Aprobado Consejo</option>
+                                    </select>
+                                    <span id="editor-badge-ia-score" style="display:none; background:#dcfce7; color:#166534; font-size:0.72rem; font-weight:800; padding:3px 9px; border-radius:999px; border:1px solid #bbf7d0;">
+                                        <i class="fa-solid fa-scale-balanced"></i> Cumplimiento MEN: 0%
+                                    </span>
                                 </div>
 
                                 <!-- Botones de Acción Principal del Documento -->
@@ -1098,6 +1095,9 @@
                                         </button>
                                     </form>
                                 </div>
+                            </div>
+                            <div style="margin-bottom:8px;">
+                                <input type="text" id="editor-title" placeholder="Título del Documento Institucional (ej: Modelo Pedagógico Institucional)" style="width:100%; font-size:1.15rem; font-weight:800; color:#1e293b; border:1px solid #e2e8f0; padding:8px 14px; border-radius:8px; background:#f8fafc;">
                             </div>
 
                             <!-- Barra de Articulación: Categoría, Producto, Frente, Requisito Normativo -->
@@ -3217,10 +3217,12 @@
             if (subAuditBadge) subAuditBadge.innerText = 'IA';
         }
 
-        document.getElementById('editor-textarea').value = item.contenido || '';
+        const cleanContent = (item.contenido || '').replace(/"?\s*,\s*"evaluations"\s*:\s*\{[\s\S]*$/i, '').trim();
+        item.contenido = cleanContent;
+        document.getElementById('editor-textarea').value = cleanContent;
         const prevBox = document.getElementById('editor-preview-container');
         if (prevBox && prevBox.style.display !== 'none') {
-            prevBox.innerHTML = marked.parse(item.contenido || '*Documento vacío*');
+            prevBox.innerHTML = marked.parse(cleanContent || '*Documento vacío*');
         }
 
         renderHistoryList();
