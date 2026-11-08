@@ -213,8 +213,50 @@ def get_cc_project(inst_id):
             item["aportes_equipo"] = []
         if "auditorias_ia" not in item or not isinstance(item["auditorias_ia"], list):
             item["auditorias_ia"] = []
+        if "equipo_documento" not in item or not isinstance(item["equipo_documento"], list):
+            init_autor = item.get("autor", "")
+            init_dep = item.get("cargo_dependencia", item.get("frente", "Equipo Institucional"))
+            if init_autor and "IA" not in init_autor:
+                item["equipo_documento"] = [
+                    {
+                        "id": f"tm_{idx_h}_0",
+                        "nombre": init_autor,
+                        "dependencia": init_dep,
+                        "rol": "Líder / Co-Autor",
+                        "fecha": item.get("fecha", datetime.datetime.now().isoformat())
+                    }
+                ]
+            else:
+                item["equipo_documento"] = []
 
     return project
+
+
+def merge_team_members_into_doc(doc_item, members_list, default_rol="Co-Autor / Integrante"):
+    """Integra una lista de integrantes [{"nombre": ..., "dependencia": ..., "rol": ...}] en doc_item['equipo_documento'] sin duplicar."""
+    if not doc_item or not isinstance(members_list, list):
+        return
+    if "equipo_documento" not in doc_item or not isinstance(doc_item["equipo_documento"], list):
+        doc_item["equipo_documento"] = []
+    existing_names = {str(m.get("nombre", "")).strip().lower() for m in doc_item["equipo_documento"] if m.get("nombre")}
+    now_iso = datetime.datetime.now().isoformat()
+    for m in members_list:
+        if not isinstance(m, dict):
+            continue
+        nombre = str(m.get("nombre") or m.get("autor") or "").strip()
+        dep = str(m.get("dependencia") or m.get("cargo_dependencia") or "Equipo Institucional").strip()
+        rol = str(m.get("rol") or default_rol).strip()
+        if not nombre:
+            continue
+        if nombre.lower() not in existing_names:
+            doc_item["equipo_documento"].append({
+                "id": str(uuid.uuid4())[:8],
+                "nombre": nombre,
+                "dependencia": dep,
+                "rol": rol,
+                "fecha": now_iso
+            })
+            existing_names.add(nombre.lower())
 
 def save_cc_project(inst_id, data):
     table_id = f"CC_PROJ_{inst_id}"
@@ -855,19 +897,41 @@ def generate_doc_docx_bytes(title, text, doc_item=None, include_trace=True):
         doc.add_page_break()
         doc.add_heading("ANEXO DE TRAZABILIDAD Y CONSTRUCCIÓN COLECTIVA (SOPORTE PARA PARES ACADÉMICOS MEN)", level=1)
         intro_p = doc.add_paragraph(
-            "El presente anexo certifica la trazabilidad metodológica, el control de versiones por dependencia, "
-            "los acuerdos de mesas de trabajo participativas y la auditoría interna de cumplimiento normativo "
-            "adelantada por el equipo institucional en el marco de la Ley 749 de 2002 y el Decreto 2038 de 2023."
+            "El presente anexo certifica la trazabilidad metodológica, el equipo interdisciplinario co-autor, "
+            "el control de versiones por dependencia, los acuerdos de mesas de trabajo participativas y la auditoría "
+            "interna de cumplimiento normativo adelantada en el marco de la Ley 749 de 2002 y el Decreto 2038 de 2023."
         )
         intro_p.runs[0].font.size = Pt(9.5)
         intro_p.runs[0].font.italic = True
 
-        doc.add_heading("1. Historial de Versiones y Co-Edición del Equipo", level=2)
+        equipo_doc = doc_item.get("equipo_documento", [])
+        if equipo_doc:
+            doc.add_heading("1. Equipo Institucional Co-Autor del Documento", level=2)
+            t_eq = doc.add_table(rows=1, cols=4)
+            t_eq.style = 'Table Grid'
+            hdrs_eq = ["Integrante / Funcionario", "Dependencia / Estamento", "Rol en la Construcción", "Fecha Vinculación"]
+            for idx_c, h_txt in enumerate(hdrs_eq):
+                c = t_eq.cell(0, idx_c)
+                c.text = h_txt
+                for r in c.paragraphs[0].runs:
+                    r.font.bold = True
+                    r.font.size = Pt(8.5)
+            for m in equipo_doc:
+                rc = t_eq.add_row().cells
+                rc[0].text = str(m.get("nombre", ""))
+                rc[1].text = str(m.get("dependencia", ""))
+                rc[2].text = str(m.get("rol", "Co-Autor"))
+                rc[3].text = str(m.get("fecha", ""))[:10]
+                for cell in rc:
+                    for r in cell.paragraphs[0].runs:
+                        r.font.size = Pt(8.5)
+
+        doc.add_heading("2. Historial de Versiones y Co-Edición del Equipo", level=2)
         versiones = doc_item.get("bitacora_versiones", [])
         if versiones:
             t_ver = doc.add_table(rows=1, cols=5)
             t_ver.style = 'Table Grid'
-            hdrs = ["Versión", "Fecha", "Responsable / Co-Autor", "Cargo / Dependencia", "Actuación y Resumen del Aporte"]
+            hdrs = ["Versión", "Fecha", "Responsable(s) / Co-Autor(es)", "Cargo / Dependencia(s)", "Actuación y Resumen del Aporte"]
             for idx_c, h_txt in enumerate(hdrs):
                 c = t_ver.cell(0, idx_c)
                 c.text = h_txt
@@ -885,12 +949,12 @@ def generate_doc_docx_bytes(title, text, doc_item=None, include_trace=True):
                     for r in rc.paragraphs[0].runs:
                         r.font.size = Pt(8.5)
 
-        doc.add_heading("2. Registro de Mesas de Trabajo, Revisiones y Avales Colegiados", level=2)
+        doc.add_heading("3. Registro de Mesas de Trabajo, Revisiones y Avales Colegiados", level=2)
         aportes = doc_item.get("aportes_equipo", [])
         if aportes:
             t_ap = doc.add_table(rows=1, cols=5)
             t_ap.style = 'Table Grid'
-            hdrs_ap = ["Fecha", "Participante / Instancia", "Dependencia / Estamento", "Tipo de Intervención", "Detalle del Aporte / Acuerdo / Aval"]
+            hdrs_ap = ["Fecha", "Participantes / Instancia", "Dependencia(s) / Estamento(s)", "Tipo de Intervención", "Detalle del Aporte / Acuerdo / Aval"]
             for idx_c, h_txt in enumerate(hdrs_ap):
                 c = t_ap.cell(0, idx_c)
                 c.text = h_txt
@@ -913,7 +977,7 @@ def generate_doc_docx_bytes(title, text, doc_item=None, include_trace=True):
         auditorias = doc_item.get("auditorias_ia", [])
         if auditorias:
             ult = auditorias[0]
-            doc.add_heading("3. Dictamen Interno de Cumplimiento Normativo (Ley 749 / Dec. 2038)", level=2)
+            doc.add_heading("4. Dictamen Interno de Cumplimiento Normativo (Ley 749 / Dec. 2038)", level=2)
             p_aud = doc.add_paragraph()
             r_aud = p_aud.add_run(
                 f"Índice de Alineación Normativa Verificado: {ult.get('puntaje_cumplimiento', 0)}% ({ult.get('nivel_concepto', '')}) "
@@ -997,12 +1061,23 @@ def api_cc_ai_history_save():
         estado_editorial = req_json.get('estado_editorial', 'En Construcción')
         autor = req_json.get('autor', 'Integrante del Equipo Institucional')
         cargo_dependencia = req_json.get('cargo_dependencia', frente)
+        coautores = req_json.get('coautores') or []
         rol_skel = req_json.get('rol_skel', 'lider')
         tipo_actuacion = req_json.get('tipo_actuacion', 'Ajuste Técnico / Co-edición')
         resumen_cambio = req_json.get('resumen_cambio', 'Actualización colaborativa del documento.')
         version_actual = req_json.get('version_actual', 'v1.0')
         create_new = req_json.get('create_new', False)
         increment_version = req_json.get('increment_version', True)
+
+        if isinstance(coautores, list) and len(coautores) > 0:
+            autor = " · ".join([str(m.get("nombre", "")).strip() for m in coautores if m.get("nombre")]) or autor
+            deps_uniq = []
+            for m in coautores:
+                d_str = str(m.get("dependencia", "")).strip()
+                if d_str and d_str not in deps_uniq:
+                    deps_uniq.append(d_str)
+            if deps_uniq:
+                cargo_dependencia = " / ".join(deps_uniq)
 
         project = get_cc_project(inst_id)
         if "ai_history" not in project:
@@ -1053,6 +1128,7 @@ def api_cc_ai_history_save():
                         "fecha": now_iso,
                         "autor": autor,
                         "cargo_dependencia": cargo_dependencia,
+                        "coautores": coautores if isinstance(coautores, list) and len(coautores) > 0 else [{"nombre": autor, "dependencia": cargo_dependencia, "rol": "Co-Autor"}],
                         "rol_skel": rol_skel,
                         "fase": fase,
                         "tipo_actuacion": tipo_actuacion,
@@ -1060,6 +1136,11 @@ def api_cc_ai_history_save():
                         "contenido_snapshot": contenido
                     }
                     item["bitacora_versiones"].insert(0, new_ver_entry)
+                    merge_team_members_into_doc(
+                        item,
+                        coautores if isinstance(coautores, list) and len(coautores) > 0 else [{"nombre": autor, "dependencia": cargo_dependencia, "rol": "Co-Autor"}],
+                        default_rol="Co-Autor"
+                    )
                     target_doc_ref = item
                     target_ver_ref = new_ver_entry
                     found = True
@@ -1079,6 +1160,7 @@ def api_cc_ai_history_save():
                 "fecha": now_iso,
                 "autor": autor,
                 "cargo_dependencia": cargo_dependencia,
+                "coautores": coautores if isinstance(coautores, list) and len(coautores) > 0 else [{"nombre": autor, "dependencia": cargo_dependencia, "rol": "Líder / Co-Autor"}],
                 "rol_skel": rol_skel,
                 "fase": fase,
                 "tipo_actuacion": tipo_actuacion or "Redacción Inicial",
@@ -1104,10 +1186,16 @@ def api_cc_ai_history_save():
                 "rol_skel": rol_skel,
                 "tokens_est": 0,
                 "contenido": contenido,
+                "equipo_documento": [],
                 "bitacora_versiones": [init_ver_entry],
                 "aportes_equipo": [],
                 "auditorias_ia": []
             }
+            merge_team_members_into_doc(
+                new_doc,
+                coautores if isinstance(coautores, list) and len(coautores) > 0 else [{"nombre": autor, "dependencia": cargo_dependencia, "rol": "Líder / Co-Autor"}],
+                default_rol="Líder / Co-Autor"
+            )
             project["ai_history"].insert(0, new_doc)
             target_doc_ref = new_doc
             target_ver_ref = init_ver_entry
@@ -1152,6 +1240,22 @@ def api_cc_doc_import_file():
         rol_skel = request.form.get('rol_skel', 'lider')
         resumen_cambio = request.form.get('resumen_cambio', 'Cargue e importación inicial de documento construido por el equipo para co-edición y verificación normativa.')
         direct_content = (request.form.get('contenido') or '').strip()
+        equipo_json_str = (request.form.get('equipo_json') or '').strip()
+        equipo_members = []
+        if equipo_json_str:
+            try:
+                equipo_members = json.loads(equipo_json_str)
+            except Exception:
+                equipo_members = []
+        if isinstance(equipo_members, list) and len(equipo_members) > 0:
+            autor = " · ".join([str(m.get("nombre", "")).strip() for m in equipo_members if m.get("nombre")]) or autor
+            deps_uniq = []
+            for m in equipo_members:
+                d_str = str(m.get("dependencia", "")).strip()
+                if d_str and d_str not in deps_uniq:
+                    deps_uniq.append(d_str)
+            if deps_uniq:
+                cargo_dependencia = " / ".join(deps_uniq)
 
         file = request.files.get('file')
         extracted_md = ""
@@ -1262,12 +1366,14 @@ def api_cc_doc_import_file():
             "contenido": final_content,
             "saved_doc_path": saved_doc_path,
             "original_file_url": public_url,
+            "equipo_documento": [],
             "bitacora_versiones": [
                 {
                     "version": "v1.0",
                     "fecha": now_iso,
                     "autor": autor,
                     "cargo_dependencia": cargo_dependencia,
+                    "coautores": equipo_members if len(equipo_members) > 0 else [{"nombre": autor, "dependencia": cargo_dependencia, "rol": "Líder / Co-Autor"}],
                     "rol_skel": rol_skel,
                     "fase": fase,
                     "tipo_actuacion": "Importación de Documento Base" if (file and file.filename) else "Redacción Inicial",
@@ -1279,6 +1385,11 @@ def api_cc_doc_import_file():
             "auditorias_ia": []
         }
 
+        merge_team_members_into_doc(
+            new_doc,
+            equipo_members if len(equipo_members) > 0 else [{"nombre": autor, "dependencia": cargo_dependencia, "rol": "Líder / Co-Autor"}],
+            default_rol="Líder / Co-Autor"
+        )
         project["ai_history"].insert(0, new_doc)
         persist_doc_version_to_supabase_storage(inst_id, new_doc, new_doc["bitacora_versiones"][0], project)
         save_cc_project(inst_id, project)
@@ -1296,14 +1407,15 @@ def api_cc_doc_import_file():
 
 @cambio_caracter_bp.route('/api/cambio_caracter/doc/add_team_contribution', methods=['POST'])
 def api_cc_doc_add_team_contribution():
-    """Registra aportes de revisión del equipo, acuerdos de mesas de trabajo o avales colegiados en el documento."""
+    """Registra aportes de revisión del equipo, acuerdos de mesas de trabajo o avales colegiados con uno o varios integrantes."""
     try:
         data = request.json or {}
         inst_id = data.get('inst_id', get_active_inst_id())
         doc_id = data.get('doc_id')
         autor = (data.get('autor') or 'Integrante del Equipo').strip()
         cargo_dependencia = (data.get('cargo_dependencia') or 'Comité Técnico').strip()
-        tipo = data.get('tipo', 'Aporte / Observación') # Aporte / Observación, Acuerdo de Mesa de Trabajo, Aval Técnico / Visto Bueno
+        participantes = data.get('participantes') or []
+        tipo = data.get('tipo', 'Aporte / Observación')
         seccion_referencia = (data.get('seccion_referencia') or 'General').strip()
         comentario = (data.get('comentario') or '').strip()
         nuevo_estado_editorial = data.get('nuevo_estado_editorial')
@@ -1319,18 +1431,32 @@ def api_cc_doc_add_team_contribution():
         if "aportes_equipo" not in target_doc or not isinstance(target_doc["aportes_equipo"], list):
             target_doc["aportes_equipo"] = []
 
+        if isinstance(participantes, list) and len(participantes) > 0:
+            autor = " · ".join([str(p.get("nombre", "")).strip() for p in participantes if p.get("nombre")]) or autor
+            deps_uniq = []
+            for p in participantes:
+                d_str = str(p.get("dependencia", "")).strip()
+                if d_str and d_str not in deps_uniq:
+                    deps_uniq.append(d_str)
+            if deps_uniq:
+                cargo_dependencia = " / ".join(deps_uniq)
+        else:
+            participantes = [{"nombre": autor, "dependencia": cargo_dependencia, "rol": "Participante Mesa"}]
+
         now_iso = datetime.datetime.now().isoformat()
         aporte_item = {
             "id": str(uuid.uuid4()),
             "fecha": now_iso,
             "autor": autor,
             "cargo_dependencia": cargo_dependencia,
+            "participantes": participantes,
             "tipo": tipo,
             "seccion_referencia": seccion_referencia,
             "comentario": comentario,
             "estado": "Avalado" if "Aval" in tipo else "Registrado"
         }
         target_doc["aportes_equipo"].insert(0, aporte_item)
+        merge_team_members_into_doc(target_doc, participantes, default_rol="Participante Mesa / Revisor")
 
         if nuevo_estado_editorial:
             target_doc["estado_editorial"] = nuevo_estado_editorial
@@ -1341,11 +1467,56 @@ def api_cc_doc_add_team_contribution():
         return jsonify({
             "status": "success",
             "aporte": aporte_item,
+            "equipo_documento": target_doc.get("equipo_documento", []),
             "estado_editorial": target_doc.get("estado_editorial"),
             "message": "Aporte de trabajo en equipo registrado en la bitácora del documento."
         })
     except Exception as e:
         print(f"[CC Add Contribution] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/doc/update_team', methods=['POST'])
+def api_cc_doc_update_team():
+    """Agrega o elimina integrantes del equipo de trabajo permanente asignado a un documento co-construido."""
+    try:
+        data = request.json or {}
+        inst_id = data.get('inst_id', get_active_inst_id())
+        doc_id = data.get('doc_id')
+        action = data.get('action', 'add')  # 'add' o 'remove'
+        if not doc_id:
+            return jsonify({"status": "error", "message": "Falta seleccionar un documento."}), 400
+
+        project = get_cc_project(inst_id)
+        target_doc = next((d for d in project.get("ai_history", []) if d["id"] == doc_id), None)
+        if not target_doc:
+            return jsonify({"status": "error", "message": "Documento no encontrado."}), 404
+
+        if "equipo_documento" not in target_doc or not isinstance(target_doc["equipo_documento"], list):
+            target_doc["equipo_documento"] = []
+
+        if action == 'add':
+            nombre = (data.get('nombre') or '').strip()
+            dependencia = (data.get('dependencia') or 'Equipo Institucional').strip()
+            rol = (data.get('rol') or 'Co-Autor / Integrante').strip()
+            if not nombre:
+                return jsonify({"status": "error", "message": "Ingresa el nombre del integrante."}), 400
+            merge_team_members_into_doc(target_doc, [{"nombre": nombre, "dependencia": dependencia, "rol": rol}], default_rol=rol)
+        elif action == 'remove':
+            member_id = data.get('member_id')
+            target_doc["equipo_documento"] = [
+                m for m in target_doc["equipo_documento"]
+                if str(m.get("id")) != str(member_id) and str(m.get("nombre")) != str(member_id)
+            ]
+
+        target_doc["fecha_modificacion"] = datetime.datetime.now().isoformat()
+        save_cc_project(inst_id, project)
+        return jsonify({
+            "status": "success",
+            "equipo_documento": target_doc["equipo_documento"]
+        })
+    except Exception as e:
+        print(f"[CC Update Team] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 

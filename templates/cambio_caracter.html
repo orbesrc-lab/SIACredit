@@ -1181,28 +1181,71 @@
 
                         <!-- SUB-VISTA 2: TRAZABILIDAD DE TRABAJO EN EQUIPO, VERSIONES, MESAS Y AVALES -->
                         <div id="doc-subpane-trace" style="display:none;">
-                            <div style="background:linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border:1px solid #c7d2fe; border-radius:12px; padding:16px 20px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                            <div style="background:linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border:1px solid #c7d2fe; border-radius:12px; padding:16px 20px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                                 <div>
                                     <h4 style="margin:0 0 4px 0; font-size:1rem; color:#1e1b4b; font-weight:800;"><i class="fa-solid fa-people-group" style="color:#4f46e5;"></i> Evidencia de Construcción Colectiva ante el Par Evaluador MEN</h4>
-                                    <p style="margin:0; font-size:0.8rem; color:#3730a3;">Todo cambio de versión, acuerdo de mesa de trabajo con docentes/directivos y revisión técnica queda registrado con fecha, responsable y dependencia.</p>
+                                    <p style="margin:0; font-size:0.8rem; color:#3730a3;">Registra aquí a todos los integrantes del equipo co-autor, los asistentes a cada mesa de trabajo y el control de versiones por dependencia.</p>
                                 </div>
                                 <div id="trace-kpi-badges" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
+                            </div>
+
+                            <!-- BLOQUE EQUIPO DE TRABAJO CO-AUTOR DEL DOCUMENTO (MÚLTIPLES INTEGRANTES) -->
+                            <div style="background:#ffffff; border:1px solid #cbd5e1; border-left:5px solid #4f46e5; border-radius:12px; padding:14px 18px; margin-bottom:18px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+                                    <div>
+                                        <h5 style="margin:0; font-size:0.9rem; color:#1e1b4b; font-weight:800;"><i class="fa-solid fa-users-gear" style="color:#4f46e5;"></i> Equipo de Trabajo Asignado a este Documento (Múltiples Integrantes)</h5>
+                                        <span style="font-size:0.75rem; color:#64748b;">Agrega a todos los líderes, docentes, directivos y profesionales que participan en la construcción de este documento.</span>
+                                    </div>
+                                </div>
+                                <div style="display:grid; grid-template-columns: 1.3fr 1.1fr 0.9fr auto; gap:8px; align-items:end; margin-bottom:10px;">
+                                    <div>
+                                        <label style="font-size:0.72rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Integrante (Usuario SKEL o Nombre):</label>
+                                        <input type="text" id="doc-team-member-name" list="skel-users-datalist" placeholder="Selecciona o escribe un integrante..." style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.72rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Dependencia / Estamento:</label>
+                                        <input type="text" id="doc-team-member-dep" placeholder="Ej: Gestión Humana / Planeación / Docentes" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.72rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Rol en el Documento:</label>
+                                        <select id="doc-team-member-rol" style="width:100%; padding:7px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem; background:#fff;">
+                                            <option value="Co-Autor / Integrante">✍️ Co-Autor / Integrante</option>
+                                            <option value="Líder Técnico">👑 Líder Técnico</option>
+                                            <option value="Par Revisor Interno">🔍 Par Revisor Interno</option>
+                                            <option value="Participante Mesa de Trabajo">🤝 Participante Mesa</option>
+                                            <option value="Representante Docente / Estudiantil">🎓 Representante Estamental</option>
+                                        </select>
+                                    </div>
+                                    <button onclick="addPermanentDocTeamMember()" style="background:#4f46e5; color:white; border:none; padding:8px 14px; border-radius:7px; font-size:0.78rem; font-weight:800; cursor:pointer; white-space:nowrap;">
+                                        <i class="fa-solid fa-user-plus"></i> + Agregar al Equipo
+                                    </button>
+                                </div>
+                                <div id="doc-permanent-team-list" style="display:flex; flex-wrap:wrap; gap:8px; padding-top:4px;"></div>
                             </div>
 
                             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px;">
                                 <!-- Columna Izquierda: Registrar Aporte de Mesa / Revisión / Aval del Equipo -->
                                 <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px;">
-                                    <h5 style="margin:0 0 12px 0; font-size:0.92rem; color:#1e293b; font-weight:800;"><i class="fa-solid fa-comments" style="color:#2563eb;"></i> Registrar Revisión del Equipo, Mesa de Trabajo o Aval</h5>
-                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                                        <h5 style="margin:0; font-size:0.92rem; color:#1e293b; font-weight:800;"><i class="fa-solid fa-comments" style="color:#2563eb;"></i> Registrar Revisión del Equipo, Mesa de Trabajo o Aval</h5>
+                                        <button type="button" onclick="loadAllDocTeamIntoContribution()" style="background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe; padding:4px 9px; border-radius:6px; font-size:0.71rem; font-weight:800; cursor:pointer;" title="Incluir a todos los integrantes del equipo en esta mesa">
+                                            <i class="fa-solid fa-users"></i> + Incluir a todo el Equipo
+                                        </button>
+                                    </div>
+                                    <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end; margin-bottom:8px;">
                                         <div>
                                             <label style="font-size:0.74rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Integrante / Participante:</label>
                                             <input type="text" id="team-ap-autor" list="skel-users-datalist" placeholder="Nombre o selecciona usuario..." style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
                                         </div>
                                         <div>
                                             <label style="font-size:0.74rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Dependencia / Estamento:</label>
-                                            <input type="text" id="team-ap-dep" placeholder="Ej: Comité Curricular / Docentes" value="Vicerrectoría Académica" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                                            <input type="text" id="team-ap-dep" placeholder="Ej: Gestión Humana / Docentes" value="Vicerrectoría Académica" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
                                         </div>
+                                        <button type="button" onclick="addApParticipantChip()" style="background:#2563eb; color:white; border:none; padding:7px 11px; border-radius:6px; font-size:0.76rem; font-weight:800; cursor:pointer; white-space:nowrap;" title="Añadir este integrante a la lista de participantes de la sesión">
+                                            <i class="fa-solid fa-user-plus"></i> + Añadir
+                                        </button>
                                     </div>
+                                    <div id="team-ap-participants-chips" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;"></div>
                                     <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:10px; margin-bottom:10px;">
                                         <div>
                                             <label style="font-size:0.74rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Tipo de Actuación Colectiva:</label>
@@ -1328,15 +1371,22 @@
                 <select id="imp-doc-req" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.82rem; background:#fff;"></select>
             </div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
-                <div>
-                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Autor / Líder que incorpora el documento:</label>
-                    <input type="text" id="imp-doc-autor" list="skel-users-datalist" placeholder="Nombre del integrante del equipo" value="Vicerrectoría Académica" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.82rem;">
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:14px;">
+                <div style="font-size:0.78rem; font-weight:800; color:#1e1b4b; margin-bottom:6px;"><i class="fa-solid fa-users" style="color:#4f46e5;"></i> Integrantes del Equipo de Trabajo que construyen / incorporan este documento:</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end;">
+                    <div>
+                        <label style="display:block; font-size:0.74rem; font-weight:700; color:#334155; margin-bottom:3px;">Integrante / Co-Autor:</label>
+                        <input type="text" id="imp-doc-autor" list="skel-users-datalist" placeholder="Nombre o selecciona usuario..." value="Vicerrectoría Académica" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.82rem;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.74rem; font-weight:700; color:#334155; margin-bottom:3px;">Cargo / Dependencia Institucional:</label>
+                        <input type="text" id="imp-doc-dep" placeholder="Ej: Vicerrectoría Académica / Gestión Humana" value="Vicerrectoría Académica" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.82rem;">
+                    </div>
+                    <button type="button" onclick="addImportDocTeamChip()" style="background:#4f46e5; color:white; border:none; padding:8px 12px; border-radius:6px; font-size:0.76rem; font-weight:800; cursor:pointer; white-space:nowrap;">
+                        <i class="fa-solid fa-user-plus"></i> + Añadir otro integrante
+                    </button>
                 </div>
-                <div>
-                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Cargo / Dependencia Institucional:</label>
-                    <input type="text" id="imp-doc-dep" placeholder="Ej: Vicerrectoría Académica / Comité Curricular" value="Vicerrectoría Académica" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.82rem;">
-                </div>
+                <div id="imp-doc-team-chips" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
             </div>
 
             <div style="background:#f8fafc; border:1px dashed #6366f1; border-radius:10px; padding:14px; margin-bottom:14px;">
@@ -1359,24 +1409,30 @@
 
 <!-- MODAL: GUARDAR APORTE / NUEVA VERSIÓN CON TRAZABILIDAD DE EQUIPO -->
 <div id="saveTeamVersionModal" class="cc-modal-backdrop">
-    <div class="cc-modal-box" style="width:620px;">
+    <div class="cc-modal-box" style="width:650px;">
         <div class="cc-modal-header" style="background:#f8fafc;">
             <div>
                 <h3 style="margin:0; font-size:1.1rem; color:#1e293b; font-weight:800;"><i class="fa-solid fa-user-check" style="color:#10b981;"></i> Registrar Aporte y Versión en la Bitácora del Equipo</h3>
-                <p style="margin:3px 0 0 0; font-size:0.78rem; color:#64748b;">Esta información quedará certificada en el Anexo de Trazabilidad para los Pares Evaluadores del MEN.</p>
+                <p style="margin:3px 0 0 0; font-size:0.78rem; color:#64748b;">Puedes registrar uno o varios integrantes que participaron en esta versión.</p>
             </div>
             <button onclick="closeSaveTeamVersionModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#94a3b8;">&times;</button>
         </div>
         <div class="cc-modal-body">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
-                <div>
-                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Co-Autor / Integrante del Equipo:</label>
-                    <input type="text" id="stv-autor" list="skel-users-datalist" placeholder="Nombre completo o usuario SKEL" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.84rem;">
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; margin-bottom:12px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end;">
+                    <div>
+                        <label style="display:block; font-size:0.76rem; font-weight:700; color:#334155; margin-bottom:3px;">Co-Autor / Integrante del Equipo:</label>
+                        <input type="text" id="stv-autor" list="skel-users-datalist" placeholder="Nombre completo o usuario SKEL" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.82rem;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.76rem; font-weight:700; color:#334155; margin-bottom:3px;">Cargo / Dependencia Institucional:</label>
+                        <input type="text" id="stv-dep" placeholder="Ej: Dirección de Calidad / Comité Curricular" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.82rem;">
+                    </div>
+                    <button type="button" onclick="addStvCoauthorChip()" style="background:#059669; color:white; border:none; padding:7px 11px; border-radius:6px; font-size:0.75rem; font-weight:800; cursor:pointer; white-space:nowrap;">
+                        <i class="fa-solid fa-user-plus"></i> + Añadir otro
+                    </button>
                 </div>
-                <div>
-                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px;">Cargo / Dependencia Institucional:</label>
-                    <input type="text" id="stv-dep" placeholder="Ej: Dirección de Calidad / Comité Curricular" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.84rem;">
-                </div>
+                <div id="stv-coauthors-chips" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
                 <div>
@@ -1990,6 +2046,14 @@
                 roleBadge = '<span class="skel-role-badge role-lider"><i class="fa-solid fa-user-tie"></i> Líder de Proceso</span>';
             }
 
+            const eqFrente = f.equipo_frente || [];
+            const eqBadgesHtml = eqFrente.length > 0
+                ? `<div style="margin-top:8px; padding-top:6px; border-top:1px dashed #e2e8f0; display:flex; flex-wrap:wrap; gap:4px;">
+                    <span style="font-size:0.7rem; font-weight:800; color:#4f46e5; width:100%;"><i class="fa-solid fa-users"></i> Equipo del Frente (${eqFrente.length}):</span>
+                    ${eqFrente.map(m => `<span style="background:#eef2ff; color:#312e81; border:1px solid #c7d2fe; border-radius:999px; padding:2px 8px; font-size:0.68rem; font-weight:700;">👤 ${m}</span>`).join('')}
+                   </div>`
+                : '';
+
             const card = document.createElement('div');
             card.className = 'cc-frente-card';
             card.innerHTML = `
@@ -2004,6 +2068,7 @@
                                 ${roleBadge}
                                 <span style="font-size:0.8rem; font-weight:700; color:#334155;"><i class="fa-solid fa-user-shield" style="color:#6366f1;"></i> ${f.lider}</span>
                             </div>
+                            ${eqBadgesHtml}
                         </div>
                     </div>
 
@@ -2022,8 +2087,8 @@
                         <button onclick="launchAiForFrente('${f.nombre}')" style="background:#e0e7ff; color:#4338ca; border:none; padding:5px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:700;" title="Diagnosticar este frente con IA ahorrando tokens">
                             <i class="fa-solid fa-wand-magic-sparkles"></i> IA Frente
                         </button>
-                        <button onclick="editFrenteProgress(${idx})" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:600; color:#334155;" title="Editar rol y responsable">
-                            <i class="fa-solid fa-user-gear"></i> Asignar
+                        <button onclick="editFrenteProgress(${idx})" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:600; color:#334155;" title="Asignar Líder y Equipo de Trabajo">
+                            <i class="fa-solid fa-users-gear"></i> Líder y Equipo
                         </button>
                     </div>
                 </div>
@@ -2036,6 +2101,7 @@
         const f = currentData.frentes[idx];
         const currentRole = f.rol_skel || 'lider';
         const currentLeader = f.lider || '';
+        window.tempFrenteTeam = [...(f.equipo_frente || [])];
 
         const institutionalLeadersByRole = {
             'inst_admin': [
@@ -2062,31 +2128,60 @@
         };
 
         Swal.fire({
-            title: `Asignación SKEL: ${f.nombre}`,
+            title: `Líder y Equipo: ${f.nombre}`,
+            width: 620,
             html: `
                 <div style="text-align:left; font-size:0.85rem;">
-                    <div style="margin-bottom:14px; background:#eef2ff; border:1px solid #c7d2fe; padding:10px 12px; border-radius:8px; color:#312e81;">
-                        <i class="fa-solid fa-shield-halved"></i> <strong>Articulación SKEL:</strong> Se debe posibilitar exactamente un (1) rol y responsable institucional.
-                    </div>
-
-                    <label style="font-weight:700; display:block; margin-bottom:5px; color:#334155;">1. Rol Institucional SKEL (Solo uno permitido):</label>
-                    <select id="swal-f-rol" class="swal2-input" style="width:100%; margin:0 0 14px 0; font-size:0.85rem;" onchange="onRoleChangeInModal(this.value)">
+                    <label style="font-weight:700; display:block; margin-bottom:5px; color:#334155;">1. Rol del Líder Principal SKEL:</label>
+                    <select id="swal-f-rol" class="swal2-input" style="width:100%; margin:0 0 12px 0; font-size:0.85rem;" onchange="onRoleChangeInModal(this.value)">
                         <option value="lider" ${currentRole === 'lider' ? 'selected' : ''}>🎯 Líder de Proceso (lider)</option>
                         <option value="inst_admin" ${currentRole === 'inst_admin' ? 'selected' : ''}>👑 Administrador Institucional (inst_admin)</option>
                         <option value="operativo" ${currentRole === 'operativo' ? 'selected' : ''}>⚙️ Operativo (operativo)</option>
                     </select>
 
-                    <label style="font-weight:700; display:block; margin-bottom:5px; color:#334155;">2. Responsable / Cargo Institucional Único:</label>
+                    <label style="font-weight:700; display:block; margin-bottom:5px; color:#334155;">2. Líder Responsable Principal:</label>
                     <select id="swal-f-lider-select" class="swal2-input" style="width:100%; margin:0 0 8px 0; font-size:0.85rem;" onchange="if(this.value!=='custom') document.getElementById('swal-f-lider-custom').value=this.value;">
-                        <!-- Options dynamically loaded -->
                     </select>
-                    <input type="text" id="swal-f-lider-custom" class="swal2-input" value="${currentLeader}" placeholder="O escribe el cargo institucional específico..." style="width:100%; margin:0 0 14px 0; font-size:0.85rem;">
+                    <input type="text" id="swal-f-lider-custom" class="swal2-input" value="${currentLeader}" placeholder="O escribe el nombre / cargo del líder..." style="width:100%; margin:0 0 12px 0; font-size:0.85rem;">
 
-                    <label style="font-weight:700; display:block; margin-bottom:5px; color:#334155;">3. Porcentaje de Avance (0 - 100):</label>
+                    <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:10px 12px; margin-bottom:12px;">
+                        <label style="font-weight:800; display:block; margin-bottom:6px; color:#1e1b4b;"><i class="fa-solid fa-users" style="color:#4f46e5;"></i> 3. Integrantes Adicionales del Equipo de Trabajo de este Frente:</label>
+                        <div style="display:flex; gap:6px; margin-bottom:8px;">
+                            <input type="text" id="swal-f-member-inp" list="skel-users-datalist" placeholder="Selecciona o escribe un integrante..." style="flex:1; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.82rem;">
+                            <button type="button" onclick="window.addTempFrenteMember()" style="background:#4f46e5; color:#fff; border:none; padding:7px 12px; border-radius:6px; font-size:0.78rem; font-weight:800; cursor:pointer; white-space:nowrap;">+ Agregar</button>
+                        </div>
+                        <div id="swal-f-team-chips" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+                    </div>
+
+                    <label style="font-weight:700; display:block; margin-bottom:5px; color:#334155;">4. Porcentaje de Avance (0 - 100):</label>
                     <input type="number" id="swal-f-prog" class="swal2-input" value="${f.progreso || 0}" min="0" max="100" style="width:100%; margin:0; font-size:0.85rem;">
                 </div>
             `,
             didOpen: () => {
+                window.renderTempFrenteTeam = function() {
+                    const box = document.getElementById('swal-f-team-chips');
+                    if (!box) return;
+                    if (!window.tempFrenteTeam.length) {
+                        box.innerHTML = '<span style="font-size:0.74rem; color:#64748b;">Sin integrantes adicionales registrados aún.</span>';
+                        return;
+                    }
+                    box.innerHTML = window.tempFrenteTeam.map((m, i) => `
+                        <span style="background:#e0e7ff; color:#312e81; border:1px solid #c7d2fe; border-radius:999px; padding:3px 9px; font-size:0.75rem; font-weight:700; display:inline-flex; align-items:center; gap:5px;">
+                            👤 ${m}
+                            <button type="button" onclick="window.tempFrenteTeam.splice(${i},1); window.renderTempFrenteTeam();" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:800; padding:0;">&times;</button>
+                        </span>
+                    `).join('');
+                };
+                window.addTempFrenteMember = function() {
+                    const inp = document.getElementById('swal-f-member-inp');
+                    const val = (inp.value || '').trim();
+                    if (!val) return;
+                    if (!window.tempFrenteTeam.includes(val)) window.tempFrenteTeam.push(val);
+                    inp.value = '';
+                    window.renderTempFrenteTeam();
+                };
+                window.renderTempFrenteTeam();
+
                 window.populateModalLeaderOptions = function(role) {
                     const sel = document.getElementById('swal-f-lider-select');
                     if (!sel) return;
@@ -2097,17 +2192,13 @@
                         sel.innerHTML += `<option value="${d}" ${isSel}>${d}</option>`;
                     });
 
-                    // Add registered SKEL users for this role
                     if (window.skelUsersList && window.skelUsersList.length) {
-                        const roleUsers = window.skelUsersList.filter(u => u.role === role || (role === 'inst_admin' && u.role === 'admin'));
-                        if (roleUsers.length) {
-                            sel.innerHTML += '<option disabled>── Usuarios SKEL Registrados ──</option>';
-                            roleUsers.forEach(u => {
-                                const val = u.name ? `${u.name} (${u.email})` : u.email;
-                                const isSel = (val === currentLeader || u.email === currentLeader) ? 'selected' : '';
-                                sel.innerHTML += `<option value="${val}" ${isSel}>👤 ${val}</option>`;
-                            });
-                        }
+                        sel.innerHTML += '<option disabled>── Usuarios SKEL Registrados ──</option>';
+                        window.skelUsersList.forEach(u => {
+                            const val = u.name ? `${u.name} (${u.email})` : u.email;
+                            const isSel = (val === currentLeader || u.email === currentLeader) ? 'selected' : '';
+                            sel.innerHTML += `<option value="${val}" ${isSel}>👤 ${val}</option>`;
+                        });
                     }
                     sel.innerHTML += '<option value="custom">✏️ Otro cargo institucional...</option>';
                 };
@@ -2123,7 +2214,7 @@
                 window.populateModalLeaderOptions(currentRole);
             },
             showCancelButton: true,
-            confirmButtonText: '<i class="fa-solid fa-save"></i> Guardar Asignación',
+            confirmButtonText: '<i class="fa-solid fa-save"></i> Guardar Líder y Equipo',
             cancelButtonText: 'Cancelar',
             preConfirm: () => {
                 const role = document.getElementById('swal-f-rol').value;
@@ -2131,6 +2222,10 @@
                 const selVal = document.getElementById('swal-f-lider-select').value;
                 const finalLeader = customVal || (selVal !== 'custom' ? selVal : 'Responsable Asignado');
                 const prog = parseInt(document.getElementById('swal-f-prog').value) || 0;
+                const pendingMember = (document.getElementById('swal-f-member-inp').value || '').trim();
+                if (pendingMember && !window.tempFrenteTeam.includes(pendingMember)) {
+                    window.tempFrenteTeam.push(pendingMember);
+                }
 
                 if (!finalLeader) {
                     Swal.showValidationMessage('Debes asignar un responsable institucional.');
@@ -2140,6 +2235,7 @@
                 return {
                     rol: role,
                     lider: finalLeader,
+                    equipo_frente: window.tempFrenteTeam,
                     prog: Math.min(100, Math.max(0, prog))
                 };
             }
@@ -2153,6 +2249,7 @@
                 currentData.frentes[idx].rol_skel = result.value.rol;
                 currentData.frentes[idx].rol_skel_label = roleLabels[result.value.rol] || 'Líder de Proceso';
                 currentData.frentes[idx].lider = result.value.lider;
+                currentData.frentes[idx].equipo_frente = result.value.equipo_frente || [];
                 currentData.frentes[idx].progreso = result.value.prog;
                 saveToServer(false);
                 renderFrentes();
@@ -3175,20 +3272,31 @@
         renderProductos();
     }
 
-    /* BITÁCORA DE VERSIONES Y APORTES DE EQUIPO */
+    /* BITÁCORA DE VERSIONES, EQUIPO MULTI-INTEGRANTE Y APORTES */
+    window.currentApParticipants = [];
+    window.currentStvCoauthors = [];
+    window.currentImportDocTeam = [];
+
     function renderDocTraceabilityPane(item) {
         const kpiBox = document.getElementById('trace-kpi-badges');
         const apList = document.getElementById('doc-aportes-list');
         const verTimeline = document.getElementById('doc-versiones-timeline');
+        const permTeamBox = document.getElementById('doc-permanent-team-list');
         if (!item || !kpiBox) return;
 
         const versiones = item.bitacora_versiones || [];
         const aportes = item.aportes_equipo || [];
+        const equipoDoc = item.equipo_documento || [];
         const depsSet = new Set();
-        versiones.forEach(v => { if (v.cargo_dependencia) depsSet.add(v.cargo_dependencia); });
-        aportes.forEach(a => { if (a.cargo_dependencia) depsSet.add(a.cargo_dependencia); });
+        versiones.forEach(v => { if (v.cargo_dependencia) v.cargo_dependencia.split('/').forEach(x => depsSet.add(x.trim())); });
+        aportes.forEach(a => { if (a.cargo_dependencia) a.cargo_dependencia.split('/').forEach(x => depsSet.add(x.trim())); });
+        equipoDoc.forEach(m => { if (m.dependencia) depsSet.add(m.dependencia.trim()); });
 
         kpiBox.innerHTML = `
+            <div style="background:#fff; padding:8px 14px; border-radius:8px; border:1px solid #c7d2fe; text-align:center;">
+                <div style="font-size:1.1rem; font-weight:800; color:#2563eb;">${equipoDoc.length || 1}</div>
+                <div style="font-size:0.68rem; font-weight:700; color:#475569;">Integrantes del Equipo</div>
+            </div>
             <div style="background:#fff; padding:8px 14px; border-radius:8px; border:1px solid #c7d2fe; text-align:center;">
                 <div style="font-size:1.1rem; font-weight:800; color:#4f46e5;">${versiones.length}</div>
                 <div style="font-size:0.68rem; font-weight:700; color:#475569;">Versiones Controladas</div>
@@ -3203,6 +3311,25 @@
             </div>
         `;
 
+        // Renderizar Equipo Permanente del Documento
+        if (permTeamBox) {
+            if (equipoDoc.length === 0) {
+                permTeamBox.innerHTML = `<span style="font-size:0.76rem; color:#64748b; font-style:italic;">Agrega arriba a los integrantes del equipo de trabajo de este documento.</span>`;
+            } else {
+                permTeamBox.innerHTML = equipoDoc.map(m => `
+                    <div style="background:#eef2ff; border:1px solid #c7d2fe; border-radius:20px; padding:5px 12px; display:inline-flex; align-items:center; gap:7px; font-size:0.76rem;">
+                        <i class="fa-solid fa-user-shield" style="color:#4f46e5;"></i>
+                        <strong style="color:#1e1b4b;">${m.nombre}</strong>
+                        <span style="color:#4338ca; font-weight:600;">(${m.dependencia || 'Institucional'})</span>
+                        <span style="background:#fff; color:#475569; padding:1px 6px; border-radius:999px; font-size:0.66rem; font-weight:700; border:1px solid #cbd5e1;">${m.rol || 'Co-Autor'}</span>
+                        <button type="button" onclick="removePermanentDocTeamMember('${m.id || m.nombre}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:800; font-size:0.85rem; padding:0 2px;" title="Retirar integrante">&times;</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        renderApParticipantChips();
+
         // Render Aportes / Mesas / Avales
         if (aportes.length === 0) {
             apList.innerHTML = `<div style="padding:14px; background:#fff; border-radius:8px; border:1px dashed #cbd5e1; font-size:0.78rem; color:#64748b; text-align:center;">
@@ -3212,15 +3339,20 @@
             apList.innerHTML = aportes.map(ap => {
                 const dStr = new Date(ap.fecha).toLocaleString();
                 const isAval = (ap.tipo || '').includes('Aval') || (ap.tipo || '').includes('Validación');
+                const partsList = (ap.participantes && ap.participantes.length > 0)
+                    ? ap.participantes.map(p => `<span style="background:#eef2ff; color:#312e81; border:1px solid #c7d2fe; padding:2px 7px; border-radius:999px; font-size:0.7rem; font-weight:700;"><i class="fa-solid fa-user"></i> ${p.nombre} <small style="color:#4f46e5;">(${p.dependencia || ''})</small></span>`).join(' ')
+                    : `<span style="font-size:0.78rem; font-weight:700; color:#1e293b;"><i class="fa-solid fa-user-check" style="color:#6366f1;"></i> ${ap.autor} · <span style="color:#4f46e5;">${ap.cargo_dependencia}</span></span>`;
                 return `
                     <div style="background:#fff; border:1px solid ${isAval ? '#86efac' : '#e2e8f0'}; border-left:4px solid ${isAval ? '#16a34a' : '#3b82f6'}; border-radius:8px; padding:10px 12px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                            <span style="font-size:0.72rem; font-weight:800; color:${isAval ? '#166534' : '#1d4ed8'};">${ap.tipo}</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                            <div>
+                                <span style="font-size:0.72rem; font-weight:800; color:${isAval ? '#166534' : '#1d4ed8'};">${ap.tipo}</span>
+                                ${ap.seccion_referencia ? `<span style="background:#f1f5f9; color:#475569; padding:1px 6px; border-radius:4px; font-size:0.68rem; margin-left:4px; font-weight:700;">${ap.seccion_referencia}</span>` : ''}
+                            </div>
                             <span style="font-size:0.68rem; color:#94a3b8;">${dStr}</span>
                         </div>
-                        <div style="font-size:0.78rem; font-weight:700; color:#1e293b; margin-bottom:3px;">
-                            <i class="fa-solid fa-user-check" style="color:#6366f1;"></i> ${ap.autor} · <span style="color:#4f46e5;">${ap.cargo_dependencia}</span>
-                            ${ap.seccion_referencia ? `<span style="background:#f1f5f9; color:#475569; padding:1px 6px; border-radius:4px; font-size:0.68rem; margin-left:4px;">${ap.seccion_referencia}</span>` : ''}
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;">
+                            ${partsList}
                         </div>
                         <p style="margin:0; font-size:0.78rem; color:#334155; line-height:1.4;">${ap.comentario}</p>
                     </div>
@@ -3241,7 +3373,7 @@
                         <span style="font-size:0.68rem; color:#64748b;">${dStr}</span>
                     </div>
                     <div style="font-size:0.76rem; color:#334155; margin-bottom:4px;">
-                        <strong>Co-Autor:</strong> ${v.autor || 'Equipo'} · <strong>Dependencia:</strong> <span style="color:#4338ca; font-weight:700;">${v.cargo_dependencia || 'Institucional'}</span> · <span style="color:#64748b;">${v.fase || ''}</span>
+                        <strong>Co-Autor(es):</strong> ${v.autor || 'Equipo'} · <strong>Dependencia(s):</strong> <span style="color:#4338ca; font-weight:700;">${v.cargo_dependencia || 'Institucional'}</span> · <span style="color:#64748b;">${v.fase || ''}</span>
                     </div>
                     <p style="margin:0 0 8px 0; font-size:0.78rem; color:#475569; background:#fff; padding:7px 10px; border-radius:6px; border:1px solid #e2e8f0;">
                         <i class="fa-solid fa-quote-left" style="color:#94a3b8;"></i> ${v.resumen_cambio || 'Actualización del documento.'}
@@ -3260,6 +3392,117 @@
         }).join('');
     }
 
+    async function addPermanentDocTeamMember() {
+        if (!selectedHistoryId) return Swal.fire('Atención', 'Primero selecciona un documento de la biblioteca izquierda.', 'warning');
+        const nameEl = document.getElementById('doc-team-member-name');
+        const depEl = document.getElementById('doc-team-member-dep');
+        const rolEl = document.getElementById('doc-team-member-rol');
+        const nombre = (nameEl.value || '').trim();
+        const dependencia = (depEl.value || '').trim() || 'Equipo Institucional';
+        const rol = rolEl.value || 'Co-Autor / Integrante';
+
+        if (!nombre) return Swal.fire('Atención', 'Selecciona o escribe el nombre del integrante.', 'warning');
+
+        try {
+            const res = await fetch('/api/cambio_caracter/doc/update_team', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    doc_id: selectedHistoryId,
+                    action: 'add',
+                    nombre: nombre,
+                    dependencia: dependencia,
+                    rol: rol
+                })
+            });
+            const d = await res.json();
+            if (d.status === 'success') {
+                nameEl.value = '';
+                await loadData();
+                loadHistoryInEditor(selectedHistoryId);
+                switchDocWorkspaceSubtab('trace');
+            } else {
+                Swal.fire('Error', d.message || 'No se pudo agregar al integrante.', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Fallo de conexión al agregar integrante.', 'error');
+        }
+    }
+
+    async function removePermanentDocTeamMember(memberId) {
+        if (!selectedHistoryId) return;
+        try {
+            const res = await fetch('/api/cambio_caracter/doc/update_team', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    doc_id: selectedHistoryId,
+                    action: 'remove',
+                    member_id: memberId
+                })
+            });
+            const d = await res.json();
+            if (d.status === 'success') {
+                await loadData();
+                loadHistoryInEditor(selectedHistoryId);
+                switchDocWorkspaceSubtab('trace');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function addApParticipantChip() {
+        const autorInput = document.getElementById('team-ap-autor');
+        const depInput = document.getElementById('team-ap-dep');
+        const nombre = (autorInput.value || '').trim();
+        const dep = (depInput.value || '').trim() || 'Comité Institucional';
+        if (!nombre) {
+            return Swal.fire('Atención', 'Escribe o selecciona primero el nombre del integrante y pulsa "+ Añadir".', 'info');
+        }
+        if (!window.currentApParticipants.some(p => p.nombre.toLowerCase() === nombre.toLowerCase())) {
+            window.currentApParticipants.push({ nombre: nombre, dependencia: dep });
+        }
+        autorInput.value = '';
+        renderApParticipantChips();
+        autorInput.focus();
+    }
+
+    function removeApParticipantChip(idx) {
+        window.currentApParticipants.splice(idx, 1);
+        renderApParticipantChips();
+    }
+
+    function loadAllDocTeamIntoContribution() {
+        const item = (currentData.ai_history || []).find(h => h.id === selectedHistoryId);
+        if (!item) return;
+        const eq = item.equipo_documento || [];
+        if (eq.length === 0) {
+            return Swal.fire('Info', 'Primero agrega integrantes en el bloque "Equipo de Trabajo Asignado a este Documento" de arriba.', 'info');
+        }
+        eq.forEach(m => {
+            if (!window.currentApParticipants.some(p => p.nombre.toLowerCase() === m.nombre.toLowerCase())) {
+                window.currentApParticipants.push({ nombre: m.nombre, dependencia: m.dependencia || 'Institucional' });
+            }
+        });
+        renderApParticipantChips();
+    }
+
+    function renderApParticipantChips() {
+        const box = document.getElementById('team-ap-participants-chips');
+        if (!box) return;
+        if (!window.currentApParticipants || window.currentApParticipants.length === 0) {
+            box.innerHTML = `<span style="font-size:0.71rem; color:#64748b;">💡 Puedes añadir varios participantes con el botón <strong>"+ Añadir"</strong> antes de registrar el acuerdo.</span>`;
+            return;
+        }
+        box.innerHTML = window.currentApParticipants.map((p, idx) => `
+            <span style="background:#dbeafe; color:#1e3a8a; border:1px solid #93c5fd; border-radius:999px; padding:3px 10px; font-size:0.74rem; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-user-check"></i> ${p.nombre} <small>(${p.dependencia})</small>
+                <button type="button" onclick="removeApParticipantChip(${idx})" style="background:none; border:none; color:#dc2626; cursor:pointer; font-weight:800; padding:0;">&times;</button>
+            </span>
+        `).join('');
+    }
+
     function previewDocVersionSnapshot(vIdx) {
         const item = (currentData.ai_history || []).find(h => h.id === selectedHistoryId);
         if (!item || !item.bitacora_versiones || !item.bitacora_versiones[vIdx]) return;
@@ -3268,7 +3511,7 @@
             title: `${item.titulo} (${v.version})`,
             html: `
                 <div style="text-align:left; font-size:0.82rem; margin-bottom:10px; background:#f1f5f9; padding:8px 12px; border-radius:8px;">
-                    <strong>Autor:</strong> ${v.autor} (${v.cargo_dependencia}) | <strong>Fecha:</strong> ${new Date(v.fecha).toLocaleString()}<br>
+                    <strong>Autor(es):</strong> ${v.autor} (${v.cargo_dependencia}) | <strong>Fecha:</strong> ${new Date(v.fecha).toLocaleString()}<br>
                     <strong>Resumen del aporte:</strong> ${v.resumen_cambio}
                 </div>
                 <div style="text-align:left; max-height:420px; overflow-y:auto; padding:14px; border:1px solid #e2e8f0; border-radius:8px; font-size:0.85rem; line-height:1.6;">
@@ -3298,13 +3541,24 @@
 
     async function submitTeamContribution() {
         if (!selectedHistoryId) return Swal.fire('Atención', 'Primero selecciona un documento de la biblioteca.', 'warning');
-        const autor = document.getElementById('team-ap-autor').value.trim() || 'Integrante del Equipo';
-        const dep = document.getElementById('team-ap-dep').value.trim() || 'Comité Institucional';
+        const typedAutor = document.getElementById('team-ap-autor').value.trim();
+        const typedDep = document.getElementById('team-ap-dep').value.trim() || 'Comité Institucional';
         const tipo = document.getElementById('team-ap-tipo').value;
         const sec = document.getElementById('team-ap-sec').value.trim() || 'General';
         const comentario = document.getElementById('team-ap-comentario').value.trim();
 
         if (!comentario) return Swal.fire('Atención', 'Escribe el detalle del acuerdo, revisión o aval del equipo.', 'warning');
+
+        const participantsList = [...(window.currentApParticipants || [])];
+        if (typedAutor && !participantsList.some(p => p.nombre.toLowerCase() === typedAutor.toLowerCase())) {
+            participantsList.push({ nombre: typedAutor, dependencia: typedDep });
+        }
+        if (participantsList.length === 0) {
+            participantsList.push({ nombre: 'Integrante del Equipo', dependencia: typedDep });
+        }
+
+        const autorCombined = participantsList.map(p => p.nombre).join(' · ');
+        const depCombined = Array.from(new Set(participantsList.map(p => p.dependencia))).join(' / ');
 
         let nuevoEstado = null;
         if (tipo.includes('Validación Consejo')) nuevoEstado = 'Aprobado Consejo';
@@ -3317,8 +3571,9 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     doc_id: selectedHistoryId,
-                    autor: autor,
-                    cargo_dependencia: dep,
+                    autor: autorCombined,
+                    cargo_dependencia: depCombined,
+                    participantes: participantsList,
                     tipo: tipo,
                     seccion_referencia: sec,
                     comentario: comentario,
@@ -3327,15 +3582,18 @@
             });
             const d = await res.json();
             if (d.status === 'success') {
+                document.getElementById('team-ap-autor').value = '';
                 document.getElementById('team-ap-comentario').value = '';
+                window.currentApParticipants = [];
+                renderApParticipantChips();
                 await loadData();
                 loadHistoryInEditor(selectedHistoryId);
                 switchDocWorkspaceSubtab('trace');
                 Swal.fire({
                     icon: 'success',
                     title: 'Aporte de Equipo Registrado',
-                    text: 'Quedó incorporado en la bitácora probatoria para Pares Académicos.',
-                    timer: 1600,
+                    text: `Se registraron ${participantsList.length} participante(s) en la bitácora probatoria para Pares Académicos.`,
+                    timer: 1800,
                     showConfirmButton: false
                 });
             } else {
@@ -3346,16 +3604,54 @@
         }
     }
 
-    /* GUARDAR APORTE / NUEVA VERSIÓN CON MODAL DE TRAZABILIDAD */
+    /* GUARDAR APORTE / NUEVA VERSIÓN CON MODAL DE TRAZABILIDAD (SOPORTA MÚLTIPLES CO-AUTORES) */
+    function addStvCoauthorChip() {
+        const aEl = document.getElementById('stv-autor');
+        const dEl = document.getElementById('stv-dep');
+        const nombre = (aEl.value || '').trim();
+        const dep = (dEl.value || '').trim() || 'Equipo Institucional';
+        if (!nombre) return Swal.fire('Atención', 'Escribe o selecciona un co-autor primero.', 'info');
+        if (!window.currentStvCoauthors.some(c => c.nombre.toLowerCase() === nombre.toLowerCase())) {
+            window.currentStvCoauthors.push({ nombre, dependencia: dep, rol: 'Co-Autor' });
+        }
+        aEl.value = '';
+        renderStvCoauthorChips();
+        aEl.focus();
+    }
+
+    function removeStvCoauthorChip(idx) {
+        window.currentStvCoauthors.splice(idx, 1);
+        renderStvCoauthorChips();
+    }
+
+    function renderStvCoauthorChips() {
+        const box = document.getElementById('stv-coauthors-chips');
+        if (!box) return;
+        if (!window.currentStvCoauthors || window.currentStvCoauthors.length === 0) {
+            box.innerHTML = `<span style="font-size:0.71rem; color:#64748b;">Si participaron varios integrantes en esta edición, usa <strong>"+ Añadir otro"</strong> para incluirlos a todos.</span>`;
+            return;
+        }
+        box.innerHTML = window.currentStvCoauthors.map((c, idx) => `
+            <span style="background:#dcfce7; color:#166534; border:1px solid #86efac; border-radius:999px; padding:3px 10px; font-size:0.74rem; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-user-pen"></i> ${c.nombre} <small>(${c.dependencia})</small>
+                <button type="button" onclick="removeStvCoauthorChip(${idx})" style="background:none; border:none; color:#dc2626; cursor:pointer; font-weight:800; padding:0;">&times;</button>
+            </span>
+        `).join('');
+    }
+
     function openSaveTeamVersionModal(createNew = false) {
         const content = document.getElementById('editor-textarea').value;
         if (!content.trim()) return Swal.fire('Atención', 'El documento está vacío.', 'warning');
 
         const item = (currentData.ai_history || []).find(h => h.id === selectedHistoryId);
         document.getElementById('stv-create-new').value = createNew ? '1' : '0';
-        document.getElementById('stv-autor').value = (item && item.autor && !item.autor.includes('IA')) ? item.autor : 'Vicerrectoría Académica';
+        window.currentStvCoauthors = (item && item.equipo_documento && item.equipo_documento.length > 0)
+            ? item.equipo_documento.map(m => ({ nombre: m.nombre, dependencia: m.dependencia || 'Institucional', rol: m.rol || 'Co-Autor' }))
+            : [];
+        document.getElementById('stv-autor').value = '';
         document.getElementById('stv-dep').value = (item && item.cargo_dependencia) ? item.cargo_dependencia : (document.getElementById('editor-meta-frente').value || 'Vicerrectoría Académica');
         document.getElementById('stv-resumen').value = '';
+        renderStvCoauthorChips();
         document.getElementById('saveTeamVersionModal').style.display = 'flex';
     }
 
@@ -3366,13 +3662,24 @@
     async function confirmSaveTeamVersion() {
         const title = document.getElementById('editor-title').value.trim() || 'Documento Institucional';
         const content = document.getElementById('editor-textarea').value;
-        const autor = document.getElementById('stv-autor').value.trim() || 'Integrante del Equipo';
-        const dep = document.getElementById('stv-dep').value.trim() || 'Equipo Institucional';
+        const typedAutor = document.getElementById('stv-autor').value.trim();
+        const typedDep = document.getElementById('stv-dep').value.trim() || 'Equipo Institucional';
         const tipo = document.getElementById('stv-tipo').value;
         const fase = document.getElementById('stv-fase').value;
         const resumen = document.getElementById('stv-resumen').value.trim() || 'Ajuste y co-edición colaborativa del documento.';
         const incVer = document.getElementById('stv-inc-ver').checked;
         const createNew = document.getElementById('stv-create-new').value === '1';
+
+        const coauthorsList = [...(window.currentStvCoauthors || [])];
+        if (typedAutor && !coauthorsList.some(c => c.nombre.toLowerCase() === typedAutor.toLowerCase())) {
+            coauthorsList.push({ nombre: typedAutor, dependencia: typedDep, rol: 'Co-Autor' });
+        }
+        if (coauthorsList.length === 0) {
+            coauthorsList.push({ nombre: 'Integrante del Equipo', dependencia: typedDep, rol: 'Co-Autor' });
+        }
+
+        const autorCombined = coauthorsList.map(c => c.nombre).join(' · ');
+        const depCombined = Array.from(new Set(coauthorsList.map(c => c.dependencia))).join(' / ');
 
         const categoria = document.getElementById('editor-meta-cat').value;
         const producto = document.getElementById('editor-meta-prod').value;
@@ -3395,8 +3702,9 @@
                     requisito_id: reqId,
                     fase: fase,
                     estado_editorial: estadoEd,
-                    autor: autor,
-                    cargo_dependencia: dep,
+                    autor: autorCombined,
+                    cargo_dependencia: depCombined,
+                    coautores: coauthorsList,
                     tipo_actuacion: tipo,
                     resumen_cambio: resumen,
                     increment_version: incVer,
@@ -3411,9 +3719,9 @@
                 loadHistoryInEditor(selectedHistoryId);
                 Swal.fire({
                     icon: 'success',
-                    title: '¡Versión y Aporte Certificados!',
-                    text: 'El cambio quedó registrado en la bitácora del equipo con autor, dependencia y resumen.',
-                    timer: 1700,
+                    title: '¡Versión y Co-Autores Certificados!',
+                    text: `Se registró la versión con ${coauthorsList.length} integrante(s) del equipo en Supabase.`,
+                    timer: 1800,
                     showConfirmButton: false
                 });
             } else {
@@ -3424,13 +3732,49 @@
         }
     }
 
-    /* IMPORTAR (.DOCX/.PDF) O CREAR NUEVO DOCUMENTO EN EQUIPO */
+    /* IMPORTAR (.DOCX/.PDF) O CREAR NUEVO DOCUMENTO EN EQUIPO (SOPORTA MÚLTIPLES INTEGRANTES) */
+    function addImportDocTeamChip() {
+        const aEl = document.getElementById('imp-doc-autor');
+        const dEl = document.getElementById('imp-doc-dep');
+        const nombre = (aEl.value || '').trim();
+        const dep = (dEl.value || '').trim() || 'Vicerrectoría Académica';
+        if (!nombre) return Swal.fire('Atención', 'Escribe o selecciona el nombre del integrante y pulsa "+ Añadir otro integrante".', 'info');
+        if (!window.currentImportDocTeam.some(m => m.nombre.toLowerCase() === nombre.toLowerCase())) {
+            window.currentImportDocTeam.push({ nombre, dependencia: dep, rol: 'Co-Autor / Integrante' });
+        }
+        aEl.value = '';
+        renderImportDocTeamChips();
+        aEl.focus();
+    }
+
+    function removeImportDocTeamChip(idx) {
+        window.currentImportDocTeam.splice(idx, 1);
+        renderImportDocTeamChips();
+    }
+
+    function renderImportDocTeamChips() {
+        const box = document.getElementById('imp-doc-team-chips');
+        if (!box) return;
+        if (!window.currentImportDocTeam || window.currentImportDocTeam.length === 0) {
+            box.innerHTML = `<span style="font-size:0.72rem; color:#64748b;">💡 Puedes añadir varios integrantes del equipo pulsando <strong>"+ Añadir otro integrante"</strong>.</span>`;
+            return;
+        }
+        box.innerHTML = window.currentImportDocTeam.map((m, idx) => `
+            <span style="background:#e0e7ff; color:#312e81; border:1px solid #c7d2fe; border-radius:999px; padding:3px 10px; font-size:0.74rem; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-user-shield"></i> ${m.nombre} <small>(${m.dependencia})</small>
+                <button type="button" onclick="removeImportDocTeamChip(${idx})" style="background:none; border:none; color:#dc2626; cursor:pointer; font-weight:800; padding:0;">&times;</button>
+            </span>
+        `).join('');
+    }
+
     function openImportCollabDocModal(preProd = '', preCat = '') {
         populateModalDropdowns();
         if (preProd) document.getElementById('imp-doc-producto').value = preProd;
         if (preCat) document.getElementById('imp-doc-categoria').value = preCat;
         document.getElementById('imp-doc-titulo').value = '';
         document.getElementById('imp-doc-file').value = '';
+        window.currentImportDocTeam = [];
+        renderImportDocTeamChips();
         document.getElementById('importCollabDocModal').style.display = 'flex';
     }
 
@@ -3445,14 +3789,25 @@
         const frente = document.getElementById('imp-doc-frente').value;
         const fase = document.getElementById('imp-doc-fase').value;
         const reqId = document.getElementById('imp-doc-req').value;
-        const autor = document.getElementById('imp-doc-autor').value.trim() || 'Equipo Institucional';
-        const dep = document.getElementById('imp-doc-dep').value.trim() || frente;
+        const typedAutor = document.getElementById('imp-doc-autor').value.trim();
+        const typedDep = document.getElementById('imp-doc-dep').value.trim() || frente;
         const resumen = document.getElementById('imp-doc-resumen').value.trim();
         const fileInput = document.getElementById('imp-doc-file');
 
         if (!titulo && (!fileInput.files || fileInput.files.length === 0)) {
             return Swal.fire('Atención', 'Ingresa un título para el documento o selecciona un archivo Word/PDF.', 'warning');
         }
+
+        const teamList = [...(window.currentImportDocTeam || [])];
+        if (typedAutor && !teamList.some(m => m.nombre.toLowerCase() === typedAutor.toLowerCase())) {
+            teamList.push({ nombre: typedAutor, dependencia: typedDep, rol: 'Líder / Co-Autor' });
+        }
+        if (teamList.length === 0) {
+            teamList.push({ nombre: 'Equipo Institucional', dependencia: typedDep, rol: 'Líder / Co-Autor' });
+        }
+
+        const autorCombined = teamList.map(m => m.nombre).join(' · ');
+        const depCombined = Array.from(new Set(teamList.map(m => m.dependencia))).join(' / ');
 
         const formData = new FormData();
         formData.append('titulo', titulo);
@@ -3461,8 +3816,9 @@
         formData.append('frente', frente);
         formData.append('fase', fase);
         formData.append('requisito_id', reqId);
-        formData.append('autor', autor);
-        formData.append('cargo_dependencia', dep);
+        formData.append('autor', autorCombined);
+        formData.append('cargo_dependencia', depCombined);
+        formData.append('equipo_json', JSON.stringify(teamList));
         formData.append('resumen_cambio', resumen);
         if (fileInput.files && fileInput.files.length > 0) {
             formData.append('file', fileInput.files[0]);
