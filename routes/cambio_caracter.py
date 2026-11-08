@@ -257,12 +257,10 @@ def sanitize_doc_markdown_text(raw_text):
         txt = re.sub(r'^\{\s*"markdown_report"\s*:\s*"', '', txt, count=1).strip()
         if '\\n' in txt:
             txt = txt.replace('\\n', '\n').replace('\\"', '"').replace('\\t', '\t')
-    # 4. Cortar cualquier cola JSON '", "evaluations": {' o '", "notes":' o '", Brecha...' al final
-    txt = re.sub(r'"?\s*,\s*(?:"?evaluations"?|"?req_\d+"?|"?Brecha[^"\n]*"?\s*,\s*"?notes"?|"?status"?\s*:|"?notes"?\s*:)[\s\S]*$', '', txt, flags=re.IGNORECASE).strip()
+    # 4. Cortar cualquier cola JSON '", "evaluations": {' o '", Brecha...", "notes":' al final
+    txt = re.sub(r'",\s*(?:"evaluations"\s*:|"req_\d+"\s*:\s*\{|"?Brecha[^"\n]*"?\s*,\s*"notes"\s*:)[\s\S]*$', '', txt, flags=re.IGNORECASE).strip()
     if txt.endswith('"}'):
         txt = txt[:-2].strip()
-    if txt.endswith('"') and not txt.endswith('**"'):
-        txt = txt[:-1].strip()
     return txt
 
 

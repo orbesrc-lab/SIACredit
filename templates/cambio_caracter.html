@@ -3225,9 +3225,8 @@
             cleanContent = cleanContent.replace(/^\{\s*"markdown_report"\s*:\s*"/, '');
             cleanContent = cleanContent.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\t/g, '\t');
         }
-        cleanContent = cleanContent.replace(/"?\s*,\s*(?:"?evaluations"?|"?req_\d+"?|"?Brecha[^"\n]*"?\s*,\s*"?notes"?|"?status"?\s*:|"?notes"?\s*:)[\s\S]*$/i, '').trim();
+        cleanContent = cleanContent.replace(/",\s*(?:"evaluations"\s*:|"req_\d+"\s*:\s*\{|"?Brecha[^"\n]*"?\s*,\s*"notes"\s*:)[\s\S]*$/i, '').trim();
         if (cleanContent.endsWith('"}')) cleanContent = cleanContent.slice(0, -2).trim();
-        if (cleanContent.endsWith('"') && !cleanContent.endsWith('**"')) cleanContent = cleanContent.slice(0, -1).trim();
         item.contenido = cleanContent;
         document.getElementById('editor-textarea').value = cleanContent;
         const prevBox = document.getElementById('editor-preview-container');
