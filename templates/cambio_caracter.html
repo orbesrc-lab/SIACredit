@@ -859,13 +859,13 @@
                         <button class="btn-cc-hero btn-cc-ai" onclick="openAiHubModal()">
                             <i class="fa-solid fa-wand-magic-sparkles"></i> Asistente IA Experto MEN
                         </button>
-                        <a href="/api/cambio_caracter/export_excel" class="btn-cc-hero btn-cc-excel">
+                        <a id="btn-cc-export-excel" href="/api/cambio_caracter/export_excel" class="btn-cc-hero btn-cc-excel">
                             <i class="fa-solid fa-file-excel"></i> Exportar Master (Excel)
                         </a>
                         <button class="btn-cc-hero btn-cc-save" onclick="saveToServer(true)">
                             <i class="fa-solid fa-cloud-arrow-up"></i> Guardar Todo
                         </button>
-                        <button class="btn-cc-hero" style="background:rgba(239, 68, 68, 0.18); color:#fecaca; border:1px solid rgba(248, 113, 113, 0.45);" onclick="confirmResetCcProject()" title="Reiniciar el módulo en 0% eliminando registros previos">
+                        <button id="btn-cc-reset-zero" class="btn-cc-hero" style="background:rgba(239, 68, 68, 0.18); color:#fecaca; border:1px solid rgba(248, 113, 113, 0.45);" onclick="confirmResetCcProject()" title="Reiniciar el módulo en 0% eliminando registros previos">
                             <i class="fa-solid fa-rotate-left"></i> Reiniciar (0%)
                         </button>
                     </div>
@@ -906,27 +906,44 @@
                 </div>
             </div>
 
+            <!-- Banner de Articulación de Rol (Visible para Líderes de Proceso / Operativos) -->
+            <div id="cc-role-scoping-banner" style="display:none; background:linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border:1px solid #a5b4fc; border-left:5px solid #4f46e5; border-radius:12px; padding:14px 20px; margin-bottom:18px; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:40px; height:40px; border-radius:10px; background:#4f46e5; color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <div>
+                        <div id="cc-scoping-title" style="font-size:0.92rem; font-weight:800; color:#1e1b4b;">🎯 Vista Articulada de Líder de Proceso</div>
+                        <div id="cc-scoping-subtitle" style="font-size:0.78rem; color:#4338ca; margin-top:2px;">Visualizando únicamente los Frentes, Requisitos Normativos, Brechas, Entregables y Documentos donde te encuentras articulado. Los controles de Gobierno y Administración Global están reservados para Administradores Institucionales y Superadministrador.</div>
+                    </div>
+                </div>
+                <div id="cc-scoping-selector-box" style="display:flex; align-items:center; gap:8px;">
+                    <label style="font-size:0.78rem; font-weight:800; color:#312e81; white-space:nowrap;"><i class="fa-solid fa-bullseye"></i> Mi Frente Articulado:</label>
+                    <select id="cc-scoping-frente-select" onchange="onChangeLeaderFocusedFrente(this.value)" style="padding:7px 12px; border-radius:8px; border:1px solid #818cf8; background:#fff; color:#1e1b4b; font-size:0.82rem; font-weight:700; cursor:pointer;"></select>
+                </div>
+            </div>
+
             <!-- Navigation Tabs -->
             <div class="cc-nav-tabs">
-                <button class="cc-tab-btn active" onclick="switchCcTab('fases')">
+                <button id="tab-btn-cc-fases" class="cc-tab-btn active" onclick="switchCcTab('fases')">
                     <i class="fa-solid fa-calendar-days"></i> 1. Fases y Cronograma <span class="cc-tab-badge" id="badge-tab-fases">12 Q</span>
                 </button>
-                <button class="cc-tab-btn" onclick="switchCcTab('frentes')">
+                <button id="tab-btn-cc-frentes" class="cc-tab-btn" onclick="switchCcTab('frentes')">
                     <i class="fa-solid fa-users"></i> 2. Frentes y Líderes <span class="cc-tab-badge" id="badge-tab-frentes">13</span>
                 </button>
-                <button class="cc-tab-btn" onclick="switchCcTab('requisitos')">
+                <button id="tab-btn-cc-requisitos" class="cc-tab-btn" onclick="switchCcTab('requisitos')">
                     <i class="fa-solid fa-scale-balanced"></i> 3. Requisitos (6 Preguntas) <span class="cc-tab-badge" id="badge-tab-requisitos">56</span>
                 </button>
-                <button class="cc-tab-btn" onclick="switchCcTab('brechas')">
+                <button id="tab-btn-cc-brechas" class="cc-tab-btn" onclick="switchCcTab('brechas')">
                     <i class="fa-solid fa-triangle-exclamation"></i> 4. Matriz de Brechas <span class="cc-tab-badge" id="badge-tab-brechas">6</span>
                 </button>
-                <button class="cc-tab-btn" onclick="switchCcTab('productos')">
-                    <i class="fa-solid fa-boxes-packing"></i> 5. Productos Entregables (P1-P10) <span class="cc-tab-badge">10</span>
+                <button id="tab-btn-cc-productos" class="cc-tab-btn" onclick="switchCcTab('productos')">
+                    <i class="fa-solid fa-boxes-packing"></i> 5. Productos Entregables (P1-P10) <span class="cc-tab-badge" id="badge-tab-productos">10</span>
                 </button>
-                <button class="cc-tab-btn" onclick="switchCcTab('riesgos')">
-                    <i class="fa-solid fa-shield-halved"></i> 6. Riesgos y Controles <span class="cc-tab-badge">12</span>
+                <button id="tab-btn-cc-riesgos" class="cc-tab-btn" onclick="switchCcTab('riesgos')">
+                    <i class="fa-solid fa-shield-halved"></i> 6. Riesgos y Controles <span class="cc-tab-badge" id="badge-tab-riesgos">12</span>
                 </button>
-                <button class="cc-tab-btn" onclick="switchCcTab('ai_hub')">
+                <button id="tab-btn-cc-ai_hub" class="cc-tab-btn" onclick="switchCcTab('ai_hub')">
                     <i class="fa-solid fa-people-group"></i> 7. Mesa Co-Construcción, IA & Trazabilidad <span class="cc-tab-badge" id="badge-tab-ai">Equipo</span>
                 </button>
             </div>
@@ -1982,12 +1999,299 @@
     let currentData = null;
     let selectedHistoryId = null;
 
+    /* ============================================================================
+       CONTROL DE ARTICULACIÓN Y ALCANCE POR ROL (LÍDER DE PROCESO vs ADMIN)
+       ============================================================================ */
+    const FRENTE_ARTICULATION_MAP = {
+        "Gobierno y normativa": {
+            rol_default: "inst_admin",
+            productos: ["P1", "P4", "P7", "P9", "P10"],
+            req_ids: ["req_1","req_2","req_3","req_4","req_5","req_6","req_7","req_8","req_9","req_10","req_11","req_12","req_13"]
+        },
+        "Planeación y PEI": {
+            rol_default: "lider",
+            productos: ["P1", "P2", "P4", "P8"],
+            req_ids: ["req_14","req_15","req_16","req_17","req_18","req_34","req_35","req_36"]
+        },
+        "Aseguramiento de la calidad": {
+            rol_default: "lider",
+            productos: ["P2", "P3"],
+            req_ids: ["req_31","req_32","req_33","req_47","req_48","req_53"]
+        },
+        "Oferta y currículo": {
+            rol_default: "lider",
+            productos: ["P1", "P2", "P5"],
+            req_ids: ["req_3","req_4","req_19","req_20","req_21","req_22","req_51","req_52","req_53","req_54"]
+        },
+        "Docentes": {
+            rol_default: "lider",
+            productos: ["P2", "P5", "P6", "P7"],
+            req_ids: ["req_39","req_44","req_56"]
+        },
+        "Investigación": {
+            rol_default: "lider",
+            productos: ["P2", "P5", "P6"],
+            req_ids: ["req_18","req_19","req_20","req_55"]
+        },
+        "Extensión y entorno": {
+            rol_default: "lider",
+            productos: ["P2", "P5", "P6"],
+            req_ids: ["req_40","req_41","req_48"]
+        },
+        "Bienestar y trayectoria": {
+            rol_default: "lider",
+            productos: ["P2", "P5", "P6"],
+            req_ids: ["req_17","req_42","req_43","req_49"]
+        },
+        "Recursos académicos": {
+            rol_default: "operativo",
+            productos: ["P3", "P6"],
+            req_ids: ["req_23","req_24","req_25","req_26"]
+        },
+        "Finanzas y sostenibilidad": {
+            rol_default: "inst_admin",
+            productos: ["P8", "P9"],
+            req_ids: ["req_27","req_28","req_50"]
+        },
+        "Estructura administrativa": {
+            rol_default: "operativo",
+            productos: ["P4", "P6", "P7"],
+            req_ids: ["req_29","req_30","req_45","req_46"]
+        },
+        "Régimen transitorio": {
+            rol_default: "lider",
+            productos: ["P1", "P7"],
+            req_ids: ["req_37","req_38","req_42"]
+        },
+        "Expediente y ruta": {
+            rol_default: "inst_admin",
+            productos: ["P9", "P10"],
+            req_ids: ["req_9","req_10","req_11","req_12","req_13","req_32"]
+        }
+    };
+
+    function getCcCurrentUser() {
+        try {
+            return JSON.parse(localStorage.getItem('siac_user') || '{}');
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function getCcUserRole() {
+        const u = getCcCurrentUser();
+        return (u.role || 'admin').toLowerCase();
+    }
+
+    function isCcAdmin() {
+        const r = getCcUserRole();
+        return ['admin', 'superadmin', 'super_admin', 'super-admin', 'inst_admin'].includes(r);
+    }
+
+    function isUserExplicitlyInFrente(f, user) {
+        if (!f || !user) return false;
+        const email = (user.email || '').trim().toLowerCase();
+        const name = (user.name || '').trim().toLowerCase();
+        const liderStr = (f.lider || '').toLowerCase();
+        const eqArr = (f.equipo_frente || []).map(x => String(x || '').toLowerCase());
+
+        if (email && email.length > 3) {
+            if (liderStr.includes(email) || eqArr.some(m => m.includes(email))) return true;
+        }
+        if (name && name.length > 3 && !['lider', 'usuario', 'admin'].includes(name)) {
+            if (liderStr.includes(name) || eqArr.some(m => m.includes(name))) return true;
+        }
+        return false;
+    }
+
+    function getBaseArticulatedFrentes() {
+        if (!currentData || !currentData.frentes) return [];
+        if (isCcAdmin()) return currentData.frentes;
+
+        const user = getCcCurrentUser();
+        const role = getCcUserRole();
+
+        // 1. Verificar si el usuario está asignado nominalmente (por nombre o correo) a uno o varios frentes
+        const explicitFrentes = currentData.frentes.filter(f => isUserExplicitlyInFrente(f, user));
+        if (explicitFrentes.length > 0) {
+            return explicitFrentes;
+        }
+
+        // 2. Si es Líder de Proceso (o rol específico), retornar únicamente los frentes articulados a ese rol (nunca los de inst_admin)
+        const targetRole = (role === 'operativo') ? 'operativo' : 'lider';
+        return currentData.frentes.filter(f => (f.rol_skel || 'lider') === targetRole);
+    }
+
+    function getActiveArticulatedFrentes() {
+        const base = getBaseArticulatedFrentes();
+        if (isCcAdmin()) return base;
+        const selEl = document.getElementById('cc-scoping-frente-select');
+        const focusedVal = selEl ? selEl.value : (localStorage.getItem('cc_focused_frente_' + (getCcCurrentUser().email || 'default')) || 'all_articulated');
+        if (focusedVal && focusedVal !== 'all_articulated') {
+            const matched = base.filter(f => f.nombre === focusedVal);
+            if (matched.length > 0) return matched;
+        }
+        return base;
+    }
+
+    function getArticulatedFrenteNamesSet() {
+        return new Set(getActiveArticulatedFrentes().map(f => f.nombre));
+    }
+
+    function getArticulatedReqIdsSet() {
+        if (isCcAdmin()) {
+            return new Set((REQUISITOS || []).map(r => r.id));
+        }
+        const frentes = getActiveArticulatedFrentes();
+        const reqSet = new Set();
+        frentes.forEach(f => {
+            const mapEntry = FRENTE_ARTICULATION_MAP[f.nombre];
+            if (mapEntry && Array.isArray(mapEntry.req_ids)) {
+                mapEntry.req_ids.forEach(id => reqSet.add(id));
+            }
+        });
+        // Incluir también cualquier requisito vinculado a documentos donde el usuario participe
+        const user = getCcCurrentUser();
+        const uEmail = (user.email || '').toLowerCase();
+        const uName = (user.name || '').toLowerCase();
+        ((currentData && currentData.ai_history) || []).forEach(doc => {
+            if (doc.requisito_id && frentes.some(f => f.nombre === doc.frente)) {
+                reqSet.add(doc.requisito_id);
+            } else if (doc.requisito_id && uEmail && JSON.stringify(doc.equipo_documento || []).toLowerCase().includes(uEmail)) {
+                reqSet.add(doc.requisito_id);
+            } else if (doc.requisito_id && uName && uName.length > 3 && JSON.stringify(doc.equipo_documento || []).toLowerCase().includes(uName)) {
+                reqSet.add(doc.requisito_id);
+            }
+        });
+        return reqSet;
+    }
+
+    function getArticulatedProductoCodesSet() {
+        if (isCcAdmin()) {
+            return new Set(((currentData && currentData.productos) || []).map(p => p.codigo));
+        }
+        const frentes = getActiveArticulatedFrentes();
+        const prodSet = new Set();
+        frentes.forEach(f => {
+            const mapEntry = FRENTE_ARTICULATION_MAP[f.nombre];
+            if (mapEntry && Array.isArray(mapEntry.productos)) {
+                mapEntry.productos.forEach(code => prodSet.add(code));
+            }
+        });
+        return prodSet;
+    }
+
+    function isDocArticulatedForUser(docItem) {
+        if (isCcAdmin()) return true;
+        if (!docItem) return false;
+        const frenteNames = getArticulatedFrenteNamesSet();
+        const prodCodes = getArticulatedProductoCodesSet();
+        const reqIds = getArticulatedReqIdsSet();
+        const user = getCcCurrentUser();
+        const uEmail = (user.email || '').trim().toLowerCase();
+        const uName = (user.name || '').trim().toLowerCase();
+
+        // Si el usuario es parte directa del equipo del documento o autor
+        const docTeamStr = JSON.stringify(docItem.equipo_documento || []).toLowerCase() + ' ' + String(docItem.autor || '').toLowerCase();
+        if (uEmail && uEmail.length > 3 && docTeamStr.includes(uEmail)) return true;
+        if (uName && uName.length > 3 && docTeamStr.includes(uName)) return true;
+
+        // Si el documento pertenece a uno de sus frentes articulados
+        if (docItem.frente && frenteNames.has(docItem.frente)) return true;
+
+        // Si no tiene frente asignado aún pero su requisito o producto pertenece a su frente
+        if (!docItem.frente && docItem.requisito_id && reqIds.has(docItem.requisito_id)) return true;
+        if (!docItem.frente && docItem.producto) {
+            const pCode = docItem.producto.split(' ')[0].toUpperCase();
+            if (prodCodes.has(pCode)) return true;
+        }
+        return false;
+    }
+
+    function onChangeLeaderFocusedFrente(val) {
+        const u = getCcCurrentUser();
+        localStorage.setItem('cc_focused_frente_' + (u.email || 'default'), val);
+        selectedHistoryId = null;
+        renderAll();
+    }
+
+    function applyCcRoleScopingUI() {
+        const adminMode = isCcAdmin();
+        const user = getCcCurrentUser();
+        const role = getCcUserRole();
+
+        // 1. Botones administrativos del Hero (Reiniciar 0% y Exportar Master Excel)
+        const btnReset = document.getElementById('btn-cc-reset-zero');
+        if (btnReset) btnReset.style.display = adminMode ? 'inline-flex' : 'none';
+
+        const btnExcel = document.getElementById('btn-cc-export-excel');
+        if (btnExcel) btnExcel.style.display = adminMode ? 'inline-flex' : 'none';
+
+        // 2. Pestañas exclusivas de Gobierno y Alta Dirección (Fases Globales y Matriz de Riesgos)
+        const tabFases = document.getElementById('tab-btn-cc-fases');
+        const tabRiesgos = document.getElementById('tab-btn-cc-riesgos');
+        if (tabFases) tabFases.style.display = adminMode ? 'inline-flex' : 'none';
+        if (tabRiesgos) tabRiesgos.style.display = adminMode ? 'inline-flex' : 'none';
+
+        // 3. Ocultar filtro global de otros roles en Pestaña 2 para Líderes
+        const filterFrentesBox = document.getElementById('filter-frentes-lider');
+        if (filterFrentesBox && filterFrentesBox.parentElement) {
+            filterFrentesBox.parentElement.style.display = adminMode ? 'flex' : 'none';
+        }
+
+        // 4. Restringir opción "Aprobado Consejo" en selector de estado editorial para no-administradores
+        const edSelEstado = document.getElementById('editor-sel-estado');
+        if (edSelEstado) {
+            Array.from(edSelEstado.options).forEach(opt => {
+                if (opt.value === 'Aprobado Consejo') {
+                    opt.disabled = !adminMode;
+                }
+            });
+        }
+
+        // 5. Configurar Banner de Articulación para Líder de Proceso / Operativo
+        const banner = document.getElementById('cc-role-scoping-banner');
+        if (banner) {
+            if (adminMode) {
+                banner.style.display = 'none';
+            } else {
+                banner.style.display = 'flex';
+                const baseFrentes = getBaseArticulatedFrentes();
+                const selEl = document.getElementById('cc-scoping-frente-select');
+                const savedFocus = localStorage.getItem('cc_focused_frente_' + (user.email || 'default')) || 'all_articulated';
+
+                const roleTitle = (role === 'operativo') ? '⚙️ Vista Articulada: Nivel Operativo' : '🎯 Vista Articulada: Líder de Proceso';
+                document.getElementById('cc-scoping-title').innerText = `${roleTitle}${user.name ? ' · ' + user.name : ''}`;
+
+                if (selEl) {
+                    let optsHtml = '';
+                    if (baseFrentes.length > 1) {
+                        optsHtml += `<option value="all_articulated">Todos mis frentes articulados (${baseFrentes.length})</option>`;
+                    }
+                    baseFrentes.forEach(f => {
+                        const selAttr = (f.nombre === savedFocus || baseFrentes.length === 1) ? 'selected' : '';
+                        optsHtml += `<option value="${f.nombre}" ${selAttr}>${f.nombre} (${f.lider})</option>`;
+                    });
+                    selEl.innerHTML = optsHtml;
+                }
+
+                // Si la pestaña activa actual es 'fases' o 'riesgos' (restringidas), cambiar automáticamente a 'frentes'
+                const paneFases = document.getElementById('pane-fases');
+                const paneRiesgos = document.getElementById('pane-riesgos');
+                if ((paneFases && paneFases.classList.contains('active')) || (paneRiesgos && paneRiesgos.classList.contains('active'))) {
+                    switchCcTab('frentes');
+                }
+            }
+        }
+    }
+
     async function loadData() {
         try {
             const res = await fetch('/api/cambio_caracter/data');
             const d = await res.json();
             if (d.status === 'success') {
                 currentData = d.data;
+                applyCcRoleScopingUI();
                 renderAll();
             }
         } catch (e) {
@@ -2009,28 +2313,63 @@
         renderHistoryList();
     }
 
-    /* 1. KPIs */
+    /* 1. KPIs (Adaptados al alcance del rol) */
     function renderKPIs() {
-        // Avance global = promedio ponderado de fases e hitos
-        let totalFases = (currentData.fases || []).length || 1;
-        let sumProgreso = (currentData.fases || []).reduce((acc, f) => acc + (f.progreso || 0), 0);
-        let pct = Math.round(sumProgreso / totalFases);
+        const adminMode = isCcAdmin();
+        const activeFrentes = getActiveArticulatedFrentes();
+        const frenteNames = getArticulatedFrenteNamesSet();
+        const reqIds = getArticulatedReqIdsSet();
+        const prodCodes = getArticulatedProductoCodesSet();
 
-        document.getElementById('kpi-avance').innerText = `${pct}%`;
-        document.getElementById('kpi-avance-bar').style.width = `${pct}%`;
+        if (adminMode) {
+            let totalFases = (currentData.fases || []).length || 1;
+            let sumProgreso = (currentData.fases || []).reduce((acc, f) => acc + (f.progreso || 0), 0);
+            let pct = Math.round(sumProgreso / totalFases);
+            document.getElementById('kpi-avance').innerText = `${pct}%`;
+            document.getElementById('kpi-avance-bar').style.width = `${pct}%`;
+            document.getElementById('kpi-avance-sub').innerText = 'Horizonte: Oct 2026 – Mar 2027';
 
-        let complQ = (currentData.quincenas || []).filter(q => q.estado === 'Completado').length;
-        let execQ = (currentData.quincenas || []).filter(q => q.estado === 'En Ejecución').length;
-        document.getElementById('kpi-quincenas').innerText = `${complQ} / ${(currentData.quincenas || []).length}`;
-        document.getElementById('kpi-quincenas-sub').innerText = `${execQ} en ejecución · ${complQ} completados`;
+            let complQ = (currentData.quincenas || []).filter(q => q.estado === 'Completado').length;
+            let execQ = (currentData.quincenas || []).filter(q => q.estado === 'En Ejecución').length;
+            document.getElementById('kpi-quincenas').innerText = `${complQ} / ${(currentData.quincenas || []).length}`;
+            document.getElementById('kpi-quincenas-sub').innerText = `${execQ} en ejecución · ${complQ} completados`;
+        } else {
+            // Para Líder de Proceso: Avance promedio de sus frentes articulados y estado de sus requisitos asignados
+            let totalF = activeFrentes.length || 1;
+            let sumF = activeFrentes.reduce((acc, f) => acc + (f.progreso || 0), 0);
+            let pctF = Math.round(sumF / totalF);
+            document.getElementById('kpi-avance').innerText = `${pctF}%`;
+            document.getElementById('kpi-avance-bar').style.width = `${pctF}%`;
+            document.getElementById('kpi-avance-sub').innerText = 'Avance en mis frentes articulados';
 
-        let totalBrechas = (currentData.brechas || []).length;
-        let altas = (currentData.brechas || []).filter(b => b.prioridad === 'Alta').length;
+            let complReqs = 0;
+            let constReqs = 0;
+            reqIds.forEach(rid => {
+                const st = (currentData.requisitos && currentData.requisitos[rid] && currentData.requisitos[rid].status) || 'Pendiente';
+                if (st === 'Completado') complReqs++;
+                else if (st === 'En Construcción') constReqs++;
+            });
+            document.getElementById('kpi-quincenas').innerText = `${complReqs} / ${reqIds.size}`;
+            document.getElementById('kpi-quincenas-sub').innerText = `${constReqs} requisitos en construcción`;
+        }
+
+        const scopedBrechas = adminMode
+            ? (currentData.brechas || [])
+            : (currentData.brechas || []).filter(b => frenteNames.has(b.frente) || reqIds.has(b.requisito_id));
+
+        let totalBrechas = scopedBrechas.length;
+        let altas = scopedBrechas.filter(b => b.prioridad === 'Alta').length;
         document.getElementById('kpi-brechas').innerText = totalBrechas;
         document.getElementById('kpi-brechas-sub').innerText = `${altas} de prioridad alta`;
 
+        document.getElementById('kpi-frentes').innerText = activeFrentes.length;
+        document.getElementById('kpi-productos').innerText = prodCodes.size;
+
         document.getElementById('badge-tab-brechas').innerText = totalBrechas;
-        document.getElementById('badge-tab-frentes').innerText = (currentData.frentes || []).length;
+        document.getElementById('badge-tab-frentes').innerText = activeFrentes.length;
+        document.getElementById('badge-tab-requisitos').innerText = reqIds.size;
+        const badgeProd = document.getElementById('badge-tab-productos');
+        if (badgeProd) badgeProd.innerText = prodCodes.size;
     }
 
     /* 2. FASES */
@@ -2124,12 +2463,19 @@
         const container = document.getElementById('frentes-container');
         container.innerHTML = '';
         const filterVal = document.getElementById('filter-frentes-lider').value;
+        const adminMode = isCcAdmin();
+        const allowedFrentesSet = getArticulatedFrenteNamesSet();
 
         (currentData.frentes || []).forEach((f, idx) => {
+            // Si no es admin/inst_admin, mostrar únicamente los frentes donde se encuentra articulado
+            if (!adminMode && !allowedFrentesSet.has(f.nombre)) {
+                return;
+            }
+
             const role = f.rol_skel || 'lider';
 
-            // Filter logic
-            if (filterVal !== 'all') {
+            // Filter logic (solo para administradores que ven todos los frentes)
+            if (adminMode && filterVal !== 'all') {
                 if (filterVal.startsWith('rol:')) {
                     const targetRole = filterVal.split(':')[1];
                     if (role !== targetRole) return;
@@ -2228,22 +2574,30 @@
             ]
         };
 
+        const adminMode = isCcAdmin();
         Swal.fire({
-            title: `Líder y Equipo: ${f.nombre}`,
+            title: adminMode ? `Líder y Equipo: ${f.nombre}` : `Equipo y Avance de Mi Frente: ${f.nombre}`,
             width: 620,
             html: `
                 <div style="text-align:left; font-size:0.85rem;">
-                    <label style="font-weight:700; display:block; margin-bottom:5px; color:#334155;">1. Rol del Líder Principal SKEL:</label>
-                    <select id="swal-f-rol" class="swal2-input" style="width:100%; margin:0 0 12px 0; font-size:0.85rem;" onchange="onRoleChangeInModal(this.value)">
-                        <option value="lider" ${currentRole === 'lider' ? 'selected' : ''}>🎯 Líder de Proceso (lider)</option>
-                        <option value="inst_admin" ${currentRole === 'inst_admin' ? 'selected' : ''}>👑 Administrador Institucional (inst_admin)</option>
-                        <option value="operativo" ${currentRole === 'operativo' ? 'selected' : ''}>⚙️ Operativo (operativo)</option>
-                    </select>
+                    <div style="display:${adminMode ? 'block' : 'none'};">
+                        <label style="font-weight:700; display:block; margin-bottom:5px; color:#334155;">1. Rol del Líder Principal SKEL:</label>
+                        <select id="swal-f-rol" class="swal2-input" style="width:100%; margin:0 0 12px 0; font-size:0.85rem;" onchange="onRoleChangeInModal(this.value)" ${adminMode ? '' : 'disabled'}>
+                            <option value="lider" ${currentRole === 'lider' ? 'selected' : ''}>🎯 Líder de Proceso (lider)</option>
+                            <option value="inst_admin" ${currentRole === 'inst_admin' ? 'selected' : ''}>👑 Administrador Institucional (inst_admin)</option>
+                            <option value="operativo" ${currentRole === 'operativo' ? 'selected' : ''}>⚙️ Operativo (operativo)</option>
+                        </select>
 
-                    <label style="font-weight:700; display:block; margin-bottom:5px; color:#334155;">2. Líder Responsable Principal:</label>
-                    <select id="swal-f-lider-select" class="swal2-input" style="width:100%; margin:0 0 8px 0; font-size:0.85rem;" onchange="if(this.value!=='custom') document.getElementById('swal-f-lider-custom').value=this.value;">
-                    </select>
-                    <input type="text" id="swal-f-lider-custom" class="swal2-input" value="${currentLeader}" placeholder="O escribe el nombre / cargo del líder..." style="width:100%; margin:0 0 12px 0; font-size:0.85rem;">
+                        <label style="font-weight:700; display:block; margin-bottom:5px; color:#334155;">2. Líder Responsable Principal:</label>
+                        <select id="swal-f-lider-select" class="swal2-input" style="width:100%; margin:0 0 8px 0; font-size:0.85rem;" onchange="if(this.value!=='custom') document.getElementById('swal-f-lider-custom').value=this.value;" ${adminMode ? '' : 'disabled'}>
+                        </select>
+                        <input type="text" id="swal-f-lider-custom" class="swal2-input" value="${currentLeader}" placeholder="O escribe el nombre / cargo del líder..." style="width:100%; margin:0 0 12px 0; font-size:0.85rem;" ${adminMode ? '' : 'readonly'}>
+                    </div>
+                    ${!adminMode ? `
+                        <div style="background:#eef2ff; border:1px solid #c7d2fe; border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:0.8rem; color:#1e1b4b;">
+                            <strong><i class="fa-solid fa-user-shield" style="color:#4f46e5;"></i> Responsable Titular del Frente:</strong> ${currentLeader} <span style="color:#64748b;">(La reasignación de titularidad está reservada a Administradores Institucionales)</span>
+                        </div>
+                    ` : ''}
 
                     <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:10px 12px; margin-bottom:12px;">
                         <label style="font-weight:800; display:block; margin-bottom:6px; color:#1e1b4b;"><i class="fa-solid fa-users" style="color:#4f46e5;"></i> 3. Integrantes Adicionales del Equipo de Trabajo de este Frente:</label>
@@ -2373,10 +2727,13 @@
         container.innerHTML = '';
         const searchVal = document.getElementById('filter-req-search').value.toLowerCase();
         const statusVal = document.getElementById('filter-req-status').value;
+        const adminMode = isCcAdmin();
+        const allowedReqIds = getArticulatedReqIdsSet();
 
-        // Group by Eje
+        // Group by Eje (filtrando por requisitos articulados al rol/frente si no es admin)
         const grouped = {};
         REQUISITOS.forEach(req => {
+            if (!adminMode && !allowedReqIds.has(req.id)) return;
             const eje = req.eje || 'Otros Requisitos';
             if (!grouped[eje]) grouped[eje] = [];
             grouped[eje].push(req);
@@ -3009,7 +3366,14 @@
     function renderBrechas() {
         const tbody = document.getElementById('brechas-table-body');
         tbody.innerHTML = '';
+        const adminMode = isCcAdmin();
+        const allowedFrentes = getArticulatedFrenteNamesSet();
+        const allowedReqs = getArticulatedReqIdsSet();
+
         (currentData.brechas || []).forEach((b, idx) => {
+            if (!adminMode && !allowedFrentes.has(b.frente) && !allowedReqs.has(b.requisito_id)) {
+                return;
+            }
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong style="color:#d97706; font-size:0.8rem;">${b.id}</strong></td>
@@ -3032,12 +3396,13 @@
     function openNewBrechaModal() {
         const sel = document.getElementById('nb-frente');
         sel.innerHTML = '';
-        (currentData.frentes || []).forEach(f => {
+        const frentesToList = getActiveArticulatedFrentes();
+        frentesToList.forEach(f => {
             sel.innerHTML += `<option value="${f.nombre}">${f.nombre}</option>`;
         });
         document.getElementById('nb-codigo').value = `BRE-00${(currentData.brechas || []).length + 1}-2026`;
         document.getElementById('nb-desc').value = '';
-        document.getElementById('nb-responsable').value = 'Vicerrectoría Académica';
+        document.getElementById('nb-responsable').value = (frentesToList[0] && frentesToList[0].lider) || 'Vicerrectoría Académica';
         document.getElementById('newBrechaModal').style.display = 'flex';
     }
 
@@ -3077,9 +3442,14 @@
     function renderProductos() {
         const grid = document.getElementById('productos-grid');
         grid.innerHTML = '';
-        const allDocs = currentData.ai_history || [];
+        const adminMode = isCcAdmin();
+        const allowedProdCodes = getArticulatedProductoCodesSet();
+        const allDocs = (currentData.ai_history || []).filter(d => isDocArticulatedForUser(d));
 
         (currentData.productos || []).forEach((p, idx) => {
+            if (!adminMode && !allowedProdCodes.has(p.codigo)) {
+                return;
+            }
             const linkedDocs = allDocs.filter(d => (d.producto || '').toUpperCase().startsWith(p.codigo.toUpperCase()));
             let docsHtml = '';
             if (linkedDocs.length > 0) {
@@ -3198,7 +3568,8 @@
     function renderHistoryList() {
         const listDiv = document.getElementById('history-list-container');
         listDiv.innerHTML = '';
-        const history = currentData.ai_history || [];
+        const adminMode = isCcAdmin();
+        const history = (currentData.ai_history || []).filter(d => isDocArticulatedForUser(d));
         const catFilter = (document.getElementById('filter-lib-cat') || {}).value || 'all';
         const prodFilter = (document.getElementById('filter-lib-prod') || {}).value || 'all';
 
@@ -3213,7 +3584,7 @@
         if (badgeAiTab) badgeAiTab.innerText = `${history.length} Docs`;
 
         if (filtered.length === 0) {
-            listDiv.innerHTML = '<p style="font-size:0.8rem; color:#94a3b8; font-style:italic; text-align:center; padding:16px 8px;">No hay documentos en este filtro. Sube un archivo (.docx/.pdf) o crea uno nuevo.</p>';
+            listDiv.innerHTML = '<p style="font-size:0.8rem; color:#94a3b8; font-style:italic; text-align:center; padding:16px 8px;">No hay documentos en tus frentes articulados para este filtro. Sube un archivo (.docx/.pdf) o crea uno nuevo.</p>';
             return;
         }
 
@@ -3239,7 +3610,7 @@
                         <span style="font-size:0.68rem; background:#e0e7ff; color:#3730a3; padding:2px 6px; border-radius:4px; font-weight:800;">${item.version_actual || 'v1.0'}</span>
                         <span style="font-size:0.66rem; background:${estBg}; color:${estColor}; padding:2px 6px; border-radius:4px; font-weight:700;">${item.estado_editorial || 'En Construcción'}</span>
                     </div>
-                    <button onclick="event.stopPropagation(); deleteHistoryItem('${item.id}')" style="background:none; border:none; color:#ef4444; font-size:0.85rem; cursor:pointer;" title="Eliminar documento">&times;</button>
+                    ${adminMode ? `<button onclick="event.stopPropagation(); deleteHistoryItem('${item.id}')" style="background:none; border:none; color:#ef4444; font-size:0.85rem; cursor:pointer;" title="Eliminar documento">&times;</button>` : ''}
                 </div>
                 <h5 style="margin:0 0 4px 0; font-size:0.86rem; color:#1e293b; font-weight:800; line-height:1.35;">${item.titulo}</h5>
                 <div style="font-size:0.72rem; color:#475569; margin-bottom:6px;">
@@ -4321,19 +4692,26 @@
         document.getElementById('hiddenPdfTrace').value = document.getElementById('chk-include-trace').checked ? '1' : '0';
     }
 
-    /* 10. MODAL AI LAUNCHERS & DROPDOWNS */
+    /* 10. MODAL AI LAUNCHERS & DROPDOWNS (Acotados a la articulación del rol) */
     function populateModalDropdowns() {
-        const frentesOpts = (currentData.frentes || []).map(f => `<option value="${f.nombre}">${f.nombre} (${f.lider})</option>`).join('');
+        const scopedFrentes = getActiveArticulatedFrentes();
+        const allowedProdCodes = getArticulatedProductoCodesSet();
+        const allowedReqIds = getArticulatedReqIdsSet();
+        const allowedFrenteNames = getArticulatedFrenteNamesSet();
+        const adminMode = isCcAdmin();
+
+        const frentesOpts = scopedFrentes.map(f => `<option value="${f.nombre}">${f.nombre} (${f.lider})</option>`).join('');
         const frenteSel = document.getElementById('ai-frente-select');
         if (frenteSel) frenteSel.innerHTML = frentesOpts;
 
         const edFrenteSel = document.getElementById('editor-meta-frente');
-        if (edFrenteSel) edFrenteSel.innerHTML = (currentData.frentes || []).map(f => `<option value="${f.nombre}">${f.nombre}</option>`).join('');
+        if (edFrenteSel) edFrenteSel.innerHTML = scopedFrentes.map(f => `<option value="${f.nombre}">${f.nombre}</option>`).join('');
 
         const impFrenteSel = document.getElementById('imp-doc-frente');
-        if (impFrenteSel) impFrenteSel.innerHTML = (currentData.frentes || []).map(f => `<option value="${f.nombre}">${f.nombre} (${f.lider})</option>`).join('');
+        if (impFrenteSel) impFrenteSel.innerHTML = scopedFrentes.map(f => `<option value="${f.nombre}">${f.nombre} (${f.lider})</option>`).join('');
 
-        const prodsOpts = (currentData.productos || []).map(p => `<option value="${p.codigo}">${p.codigo}: ${p.nombre}</option>`).join('');
+        const scopedProductos = (currentData.productos || []).filter(p => adminMode || allowedProdCodes.has(p.codigo));
+        const prodsOpts = scopedProductos.map(p => `<option value="${p.codigo}">${p.codigo}: ${p.nombre}</option>`).join('');
         const prodSel = document.getElementById('ai-product-select');
         if (prodSel) prodSel.innerHTML = prodsOpts;
 
@@ -4343,7 +4721,8 @@
         const impProdSel = document.getElementById('imp-doc-producto');
         if (impProdSel) impProdSel.innerHTML = prodsOpts;
 
-        const reqsOpts = (REQUISITOS || []).map(r => `<option value="${r.id}">${r.id.toUpperCase()} · ${r.factor}: ${r.title}</option>`).join('');
+        const scopedReqs = (REQUISITOS || []).filter(r => adminMode || allowedReqIds.has(r.id));
+        const reqsOpts = scopedReqs.map(r => `<option value="${r.id}">${r.id.toUpperCase()} · ${r.factor}: ${r.title}</option>`).join('');
         const edReqSel = document.getElementById('editor-meta-req');
         if (edReqSel) edReqSel.innerHTML = reqsOpts;
 
@@ -4352,7 +4731,8 @@
 
         const brechaSel = document.getElementById('ai-brecha-select');
         if (brechaSel) {
-            brechaSel.innerHTML = (currentData.brechas || []).map(b => `<option value="${b.id}">${b.id}: ${b.descripcion.substring(0, 50)}...</option>`).join('');
+            const scopedBrechas = (currentData.brechas || []).filter(b => adminMode || allowedFrenteNames.has(b.frente) || allowedReqIds.has(b.requisito_id));
+            brechaSel.innerHTML = scopedBrechas.map(b => `<option value="${b.id}">${b.id}: ${b.descripcion.substring(0, 50)}...</option>`).join('');
         }
     }
 
@@ -4515,6 +4895,9 @@
     }
 
     async function confirmResetCcProject() {
+        if (!isCcAdmin()) {
+            return Swal.fire('Acceso Restringido', 'Solo el Superadministrador y los Administradores Institucionales pueden reiniciar el módulo.', 'warning');
+        }
         const resConfirm = await Swal.fire({
             title: '¿Reiniciar Módulo en Limpio (0%)?',
             html: `
