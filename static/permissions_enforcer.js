@@ -23,13 +23,7 @@
         // SuperAdmin tiene acceso total a todos los módulos
         if (isSuperAdmin) return;
 
-        // 1. Módulo exclusivo de Registro Calificado (Solo Super Administrador)
-        if (fullPath.includes('registro_calificado')) {
-            window.location.href = '/dashboard.html';
-            return;
-        }
-
-        // 2. Rol Estudiante: Su único entorno es Capacitación / Aula Virtual
+        // 1. Rol Estudiante: Su único entorno es Capacitación / Aula Virtual
         if (role === 'estudiante') {
             const isEstudiantePermitted = (fullPath.includes('formacion') || fullPath.includes('curso_')) &&
                                           !fullPath.includes('skel') &&
@@ -43,7 +37,7 @@
             return;
         }
 
-        // 3. Módulo de Configuración: Exclusivo para SuperAdmin e Inst_Admin
+        // 2. Módulo de Configuración: Exclusivo para SuperAdmin e Inst_Admin
         if (fullPath.includes('configuracion')) {
             if (role !== 'admin' && role !== 'inst_admin') {
                 const redirectTarget = (role === 'profesor') ? '/formacion.html' : '/dashboard.html';
@@ -52,7 +46,7 @@
             }
         }
 
-        // 4. Validación por matriz FORM_PERMISSIONS
+        // 3. Validación por matriz FORM_PERMISSIONS
         let permissions = {};
         try {
             const cached = localStorage.getItem('siac_role_permissions');
@@ -61,7 +55,11 @@
 
         // Mapear rutas de páginas a las claves oficiales de módulos (evaluando la ruta completa)
         let requiredModule = null;
-        if (fullPath.includes('skel360') || fullPath.includes('skel_') || fullPath.includes('reporte_individual') || fullPath.includes('plan-formacion')) {
+        if (fullPath.includes('registro_calificado')) {
+            requiredModule = 'registro_calificado';
+        } else if (fullPath.includes('cambio_caracter')) {
+            requiredModule = 'cambio_caracter';
+        } else if (fullPath.includes('skel360') || fullPath.includes('skel_') || fullPath.includes('reporte_individual') || fullPath.includes('plan-formacion')) {
             requiredModule = 'skel_hc360';
         } else if (fullPath.includes('empresa_iso') || fullPath.includes('iso9001')) {
             requiredModule = 'iso9001';

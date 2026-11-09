@@ -53,8 +53,6 @@ function authFetch(url, options = {}) {
         if (isSuperAdmin) return; // SuperAdmin tiene acceso total sin restricciones
 
         let css = '';
-        // Registro Calificado siempre oculto para no superadmin
-        css += '.superadmin-rc-link, #menuRegistroCalificado { display: none !important; }\n';
 
         // Configuración solo para superadmin e inst_admin
         if (role !== 'inst_admin') {
@@ -67,6 +65,10 @@ function authFetch(url, options = {}) {
                 .sidebar-group,
                 #menuConsultoriaB2B,
                 #menuConfiguracion,
+                #menuRegistroCalificado,
+                #menuCambioCaracter,
+                a[href*="registro_calificado"],
+                a[href*="cambio_caracter"],
                 a[href*="configuracion"],
                 .sidebar-item:not([href*="formacion"]):not([onclick*="logout"]):not(.logout-item) {
                     display: none !important;
@@ -86,6 +88,8 @@ function authFetch(url, options = {}) {
                 if (!isAllowed('capacitacion')) css += '#menuCapacitacion, a[href*="formacion.html"] { display: none !important; }\n';
                 if (!isAllowed('herramientas')) css += '.sidebar-group-herramientas, #menuCrm, #menuBackup, a[href*="biblioteca"] { display: none !important; }\n';
                 if (!isAllowed('skel_hc360')) css += '.sidebar-group-skel360 { display: none !important; }\n';
+                if (Array.isArray(perms['registro_calificado']) && !isAllowed('registro_calificado')) css += 'a[href*="registro_calificado"], #menuRegistroCalificado { display: none !important; }\n';
+                if (Array.isArray(perms['cambio_caracter']) && !isAllowed('cambio_caracter')) css += 'a[href*="cambio_caracter"], #menuCambioCaracter { display: none !important; }\n';
             }
         }
 
@@ -108,22 +112,20 @@ async function initFastSidebar() {
     const role = (user.role || '').toLowerCase();
     const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'super-admin'].includes(role);
 
-    // 1. Registro Calificado (Exclusivo SuperAdmin)
-    document.querySelectorAll('.superadmin-rc-link, #menuRegistroCalificado').forEach(el => {
-        el.style.display = isSuperAdmin ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
-        if (window.location.pathname.includes('registro_calificado')) el.classList.add('active');
-    });
+    // Remover estilo anti-flicker temporal para que las reglas dinámicas del DOM tomen control limpio
+    const afStyle = document.getElementById('siac-anti-flicker');
+    if (afStyle) afStyle.remove();
 
-    // 2. Configuración del Sistema (Exclusivo SuperAdmin e Inst_Admin)
+    // 1. Configuración del Sistema (Exclusivo SuperAdmin e Inst_Admin)
     const configLinks = document.querySelectorAll('a[href*="configuracion"], #menuConfiguracion');
     const canAccessConfig = isSuperAdmin || (role === 'inst_admin');
     configLinks.forEach(el => {
         el.style.display = canAccessConfig ? (el.tagName === 'A' ? 'flex' : 'block') : 'none';
     });
 
-    // 3. Caso especial Estudiante: entorno exclusivo y limpio
+    // 2. Caso especial Estudiante: entorno exclusivo y limpio
     if (role === 'estudiante') {
-        document.querySelectorAll('.sidebar-group, #menuConsultoriaB2B, #menuConfiguracion, a[href*="configuracion"]').forEach(el => {
+        document.querySelectorAll('.sidebar-group, #menuConsultoriaB2B, #menuConfiguracion, a[href*="configuracion"], a[href*="registro_calificado"], a[href*="cambio_caracter"]').forEach(el => {
             el.style.display = 'none';
         });
         document.querySelectorAll('.sidebar-item').forEach(item => {
@@ -138,7 +140,7 @@ async function initFastSidebar() {
         return; // Terminar ejecución temprana para estudiante
     }
 
-    // 4. Obtener matriz de permisos activa
+    // 3. Obtener matriz de permisos activa
     let permissions = {};
     try {
         const cached = localStorage.getItem('siac_role_permissions');
@@ -153,10 +155,16 @@ async function initFastSidebar() {
             if (moduleKey === 'hub_estrategico' || moduleKey === 'consultoria') return ['inst_admin', 'consultor'].includes(role);
             if (moduleKey === 'configuracion') return ['inst_admin'].includes(role);
             if (moduleKey === 'capacitacion') return ['inst_admin', 'lider', 'profesor', 'estudiante'].includes(role);
+            if (moduleKey === 'registro_calificado' || moduleKey === 'cambio_caracter') return ['inst_admin', 'lider', 'consultor', 'auditor'].includes(role);
             return true;
         }
         const allowed = permissions[moduleKey];
-        if (!allowed || !Array.isArray(allowed)) return false;
+        if (!allowed || !Array.isArray(allowed)) {
+            if (moduleKey === 'registro_calificado' || moduleKey === 'cambio_caracter') {
+                return ['inst_admin', 'lider', 'consultor', 'auditor'].includes(role);
+            }
+            return false;
+        }
         return allowed.includes(role);
     };
 
@@ -169,6 +177,20 @@ async function initFastSidebar() {
             }
         });
     };
+
+    // Registro Calificado (Según matriz de permisos)
+    const rcElements = document.querySelectorAll('a[href*="registro_calificado"], #menuRegistroCalificado');
+    applyVisibility(Array.from(rcElements), canAccess('registro_calificado'));
+    rcElements.forEach(el => {
+        if (window.location.pathname.includes('registro_calificado')) el.classList.add('active');
+    });
+
+    // Cambio de Carácter Académico (Según matriz de permisos)
+    const ccElements = document.querySelectorAll('a[href*="cambio_caracter"], #menuCambioCaracter');
+    applyVisibility(Array.from(ccElements), canAccess('cambio_caracter'));
+    ccElements.forEach(el => {
+        if (window.location.pathname.includes('cambio_caracter')) el.classList.add('active');
+    });
 
     // Aplicar a cada módulo del Sidebar
     const autoevalGroups = Array.from(document.querySelectorAll('.sidebar-group')).filter(g => {

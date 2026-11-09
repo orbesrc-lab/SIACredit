@@ -78,6 +78,8 @@ DEFAULT_PERMISSIONS = {
     "capacitacion": ["admin", "inst_admin", "lider", "profesor", "estudiante"],
     "herramientas": ["admin", "inst_admin"],
     "skel_hc360": ["admin", "inst_admin", "lider", "consultor"],
+    "registro_calificado": ["admin", "inst_admin", "lider", "consultor", "auditor"],
+    "cambio_caracter": ["admin", "inst_admin", "lider", "consultor", "auditor"],
     "configuracion": ["admin", "inst_admin"]
 }
 
@@ -112,6 +114,9 @@ def get_permissions_for_inst(inst_id):
         if res.data:
             raw = res.data[0]['data_json']
             perms = json.loads(raw) if isinstance(raw, str) else raw
+            for mod, default_roles in DEFAULT_PERMISSIONS.items():
+                if mod not in perms:
+                    perms[mod] = list(default_roles)
         else:
             perms = dict(DEFAULT_PERMISSIONS)
     except Exception as e:
