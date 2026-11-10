@@ -108,10 +108,12 @@ def build_clean_cc_project(inst_id):
 def get_cc_project(inst_id):
     table_id = f"CC_PROJ_{inst_id}"
     project = None
+    raw_db_json = ""
     try:
         res = supabase.table('statistics').select('data_json').eq('table_id', table_id).execute()
         if res.data:
-            project = json.loads(res.data[0]['data_json'])
+            raw_db_json = res.data[0].get('data_json') or ""
+            project = json.loads(raw_db_json)
     except Exception as e:
         print(f"[CC] Error fetch: {e}")
 
@@ -228,18 +230,61 @@ def get_cc_project(inst_id):
                 ]
             else:
                 item["equipo_documento"] = []
-        # Garantizar que contenido y snapshots estén siempre limpios de envoltorios JSON
+        # Garantizar que contenido, snapshots y auditorías estén limpios y alineados al Estatuto de INTENALCO (Consejo Directivo)
         if item.get("contenido"):
             item["contenido"] = sanitize_doc_markdown_text(item["contenido"])
         for v_item in (item.get("bitacora_versiones") or []):
             if isinstance(v_item, dict) and v_item.get("contenido_snapshot"):
                 v_item["contenido_snapshot"] = sanitize_doc_markdown_text(v_item["contenido_snapshot"])
+        for aud_item in (item.get("auditorias_ia") or []):
+            if isinstance(aud_item, dict):
+                if isinstance(aud_item.get("fortalezas"), list):
+                    aud_item["fortalezas"] = [normalize_intenalco_statute_terms(str(f)) for f in aud_item["fortalezas"]]
+                if isinstance(aud_item.get("aspectos_por_mejorar"), list):
+                    aud_item["aspectos_por_mejorar"] = [normalize_intenalco_statute_terms(str(a)) for a in aud_item["aspectos_por_mejorar"]]
+                if aud_item.get("dictamen_markdown"):
+                    aud_item["dictamen_markdown"] = normalize_intenalco_statute_terms(aud_item["dictamen_markdown"])
+                if aud_item.get("texto_sugerido"):
+                    aud_item["texto_sugerido"] = normalize_intenalco_statute_terms(aud_item["texto_sugerido"])
+
+    for b_item in (project.get("brechas") or []):
+        if isinstance(b_item, dict):
+            for k_b in ("descripcion", "evidencia_faltante", "solucion_redactada"):
+                if b_item.get(k_b):
+                    b_item[k_b] = normalize_intenalco_statute_terms(b_item[k_b])
+
+    for p_item in (project.get("productos") or []):
+        if isinstance(p_item, dict) and p_item.get("documento_contenido"):
+            p_item["documento_contenido"] = normalize_intenalco_statute_terms(p_item["documento_contenido"])
+
+    if project.get("ai_gap_analysis"):
+        project["ai_gap_analysis"] = normalize_intenalco_statute_terms(project["ai_gap_analysis"])
+
+    if raw_db_json and "consejo superior" in raw_db_json.lower():
+        try:
+            save_cc_project(inst_id, project)
+        except Exception as norm_e:
+            print(f"[CC] Auto-save statute normalization warning: {norm_e}")
 
     return project
 
 
+def normalize_intenalco_statute_terms(raw_text):
+    """Adecúa la terminología de gobierno al Estatuto General de INTENALCO EDUCACIÓN SUPERIOR:
+    el máximo órgano colegiado de dirección es el Consejo Directivo (no Consejo Superior)."""
+    if not raw_text or not isinstance(raw_text, str):
+        return ""
+    import re
+    txt = raw_text
+    txt = re.sub(r'\bCONSEJO\s+SUPERIOR(?:\s+UNIVERSITARIO)?\b', 'CONSEJO DIRECTIVO', txt)
+    txt = re.sub(r'\bConsejo\s+Superior(?:\s+Universitario)?\b', 'Consejo Directivo', txt)
+    txt = re.sub(r'\bconsejo\s+superior(?:\s+universitario)?\b', 'consejo directivo', txt)
+    txt = re.sub(r'\bConsejo\s+Académico\s*/\s*Superior\b', 'Consejo Directivo / Consejo Académico', txt, flags=re.IGNORECASE)
+    return txt
+
+
 def sanitize_doc_markdown_text(raw_text):
-    """Limpia cualquier rastro de envoltorio JSON ('markdown_report', 'evaluations', bloques ```json, \\n literales) de un documento."""
+    """Limpia cualquier rastro de envoltorio JSON ('markdown_report', 'evaluations', bloques ```json, \\n literales) de un documento y normaliza términos estatutarios de INTENALCO."""
     if not raw_text or not isinstance(raw_text, str):
         return ""
     import re
@@ -261,7 +306,7 @@ def sanitize_doc_markdown_text(raw_text):
     txt = re.sub(r'",\s*(?:"evaluations"\s*:|"req_\d+"\s*:\s*\{|"?Brecha[^"\n]*"?\s*,\s*"notes"\s*:)[\s\S]*$', '', txt, flags=re.IGNORECASE).strip()
     if txt.endswith('"}'):
         txt = txt[:-2].strip()
-    return txt
+    return normalize_intenalco_statute_terms(txt)
 
 
 def merge_team_members_into_doc(doc_item, members_list, default_rol="Co-Autor / Integrante"):
@@ -427,8 +472,11 @@ def api_cc_margy_consult():
         if not req_item:
             return jsonify({"status": "error", "message": "Requisito no encontrado"}), 404
             
-        system_prompt = f"""Eres Margy IA, la Consejera Técnica Senior y Consultora Experta en Aseguramiento de Calidad del MEN y CONACES para la institución educativa.
-Estás asesorando a la institución en su proceso estratégico de Cambio de Carácter Académico a Institución Universitaria bajo la Ley 749 de 2002 y el Decreto 2038 de 2023.
+        system_prompt = f"""Eres Margy IA, la Consejera Técnica Senior y Consultora Experta en Aseguramiento de Calidad del MEN y CONACES para **INTENALCO EDUCACIÓN SUPERIOR** (Santiago de Cali).
+Estás asesorando a INTENALCO EDUCACIÓN SUPERIOR en su proceso estratégico de Cambio de Carácter Académico a Institución Universitaria bajo la Ley 749 de 2002 y el Decreto 2038 de 2023.
+
+REGLA ESTATUTARIA OBLIGATORIA DE INTENALCO EDUCACIÓN SUPERIOR:
+De conformidad con el Estatuto General vigente de INTENALCO EDUCACIÓN SUPERIOR (establecimiento público de educación superior), el máximo órgano colegiado de dirección y gobierno institucional es el **CONSEJO DIRECTIVO** (y en asuntos académicos el **CONSEJO ACADÉMICO**). En INTENALCO NO existe la figura de 'Consejo Superior'. Por lo tanto, siempre que menciones la aprobación del máximo órgano de dirección, refiérete exclusivamente al **Consejo Directivo** (jamás menciones 'Consejo Superior').
 
 Estás orientando sobre el REQUISITO NORMATIVO ESPECÍFICO:
 - Código: {req_item.get('id')}
@@ -443,11 +491,11 @@ DIRECTRICES DE RESPUESTA:
 1. Responde de manera profesional, cercana, empática y con profundo rigor técnico y normativo del MEN.
 2. Si el usuario solicita orientación general o inicial, estructura tu respuesta en los siguientes 4 bloques en Markdown con formato claro y viñetas:
    - 🎯 **¿Qué busca realmente el MEN con este requisito?**: Explica el sentido profundo y por qué los Pares Evaluadores lo exigen (más allá del texto frío de la norma).
-   - 📑 **Evidencias Clave y Coherencia Documental**: Detalla qué documentos específicos (actas, resoluciones, matrices, diagnósticos, firmas) deben existir para que el MEN lo considere plenamente cumplido.
+   - 📑 **Evidencias Clave y Coherencia Documental**: Detalla qué documentos específicos (actas, acuerdos del Consejo Directivo / Académico, resoluciones, matrices, diagnósticos, firmas) deben existir para que el MEN lo considere plenamente cumplido.
    - 📈 **Evolución Recomendada por Fase**: Cómo debe madurar este requisito a lo largo del proceso institucional:
      * *Fase I (Alineación / Levantamiento):* Diagnóstico inicial y mapeo de brechas.
      * *Fase II (Diagnóstico Integral y Elaboración):* Documento técnico y propuesta fundamentada.
-     * *Fase III (Aprobación Colegiada):* Acta y Acuerdo formal de Consejo Directivo o Superior.
+     * *Fase III (Aprobación Colegiada):* Acta y Acuerdo formal del Consejo Directivo y/o Consejo Académico de INTENALCO.
      * *Fase IV (Radicación SACES / Consolidación):* Inclusión en el Documento Maestro final.
    - ⚠️ **Riesgos y Errores Comunes**: Qué inconsistencias suelen detectar los Pares Académicos del MEN que originan requerimientos o conceptos negativos.
 3. Si el usuario hace una pregunta puntual (ej. sobre actas, cronogramas, formatos), respóndele de forma concisa y práctica orientada a la solución.
@@ -462,7 +510,7 @@ DIRECTRICES DE RESPUESTA:
         else:
             messages.append({"role": "user", "content": f"Margy, por favor explícame en detalle qué es lo que realmente busca el MEN con este requisito '{req_item.get('title')}' y cómo debemos construir y madurar las evidencias por fase."})
 
-        answer = call_ai(messages, max_tokens=2000, temperature=0.35)
+        answer = normalize_intenalco_statute_terms(call_ai(messages, max_tokens=2000, temperature=0.35))
         return jsonify({"status": "success", "answer": answer, "req_item": req_item})
     except Exception as e:
         print(f"[CC Margy] Error: {e}")
@@ -470,14 +518,23 @@ DIRECTRICES DE RESPUESTA:
 
 @cambio_caracter_bp.route('/api/cambio_caracter/skel_users', methods=['GET'])
 def api_cc_skel_users():
-    inst_id = get_active_inst_id()
+    req_inst_id = request.args.get('inst_id', type=int)
+    inst_id = get_active_inst_id(req_inst_id)
     try:
         res = supabase.table('users').select('id, email, name, role, inst_id').execute()
+        all_rows = res.data or []
         valid_users = [
-            u for u in (res.data or [])
-            if u.get('role') in ['inst_admin', 'lider', 'operativo', 'profesor', 'consultor', 'auditor', 'admin']
-            and (u.get('inst_id') in [inst_id, 7, None] or u.get('role') == 'admin')
+            u for u in all_rows
+            if (u.get('role') or '').lower() not in ['estudiante']
+            and (u.get('inst_id') in [inst_id, req_inst_id, 7, None] or (u.get('role') or '').lower() == 'admin')
         ]
+        # Si por filtro de inst_id quedaron muy pocos, devolver todos los usuarios administrativos/académicos activos
+        if len(valid_users) <= 5 and len(all_rows) > len(valid_users):
+            valid_users = [
+                u for u in all_rows
+                if (u.get('role') or '').lower() not in ['estudiante']
+            ]
+        valid_users.sort(key=lambda x: (x.get('name') or x.get('email') or '').lower())
         return jsonify({"status": "success", "users": valid_users})
     except Exception as e:
         print(f"[CC] Error fetch users: {e}")
@@ -540,9 +597,14 @@ def api_cc_ai_gap_analysis():
             "Si el documento subido como insumo o referente menciona el nombre de otra institución (por ejemplo, una política de referencia "
             "o modelo comparativo externo), NUNCA adoptes ese nombre externo: debes redactar absolutamente todo el informe, diagnóstico, "
             "plan de acción y propuesta de articulado exclusivamente a nombre de INTENALCO EDUCACIÓN SUPERIOR. "
+            "REGLA ESTATUTARIA Y DE GOBIERNO OBLIGATORIA: Conforme al Estatuto General de INTENALCO EDUCACIÓN SUPERIOR "
+            "(establecimiento público de educación superior), su máximo órgano colegiado de dirección y gobierno institucional es el "
+            "**CONSEJO DIRECTIVO** (y en materia académica el **CONSEJO ACADÉMICO**). En INTENALCO EDUCACIÓN SUPERIOR NO existe la figura "
+            "de 'Consejo Superior'. Por consiguiente, todo Acuerdo, Reforma Estatutaria, PEI, PDI, Política Institucional o Reglamento "
+            "de nivel directivo se expide y aprueba por el **CONSEJO DIRECTIVO DE INTENALCO EDUCACIÓN SUPERIOR** (NUNCA utilices 'Consejo Superior'). "
             "Tu estilo de redacción es formal, altamente técnico, académico, jurídico y propositivo. "
             "No te limitas a opinar: redactas articulados normativos, capítulos del PEI/PDI, justificaciones curriculares, "
-            "políticas institucionales y matrices con rigor impecable, adaptados a la realidad de INTENALCO EDUCACIÓN SUPERIOR "
+            "políticas institucionales y matrices con rigor impecable, adaptados a la realidad estatutaria de INTENALCO EDUCACIÓN SUPERIOR "
             "en su tránsito a Institución Universitaria."
         )
 
@@ -705,7 +767,7 @@ Redacta aquí el informe de cierre de brecha, propuesta de texto legal/académic
 Realiza una AUDITORÍA METODOLÓGICA DE EVIDENCIAS para **INTENALCO EDUCACIÓN SUPERIOR** aplicando rigurosamente la 'Metodología de las 6 Preguntas Institucionales' de INTENALCO / MEN:
 1. ¿Existe? (Verificación de existencia del instrumento o proceso)
 2. ¿Está vigente? (Vigencia temporal, sin derogatorias tácitas)
-3. ¿Está formalmente aprobado? (Por el órgano competente: Consejo Superior / Directivo / Académico con acta o acuerdo)
+3. ¿Está formalmente aprobado? (Por el órgano competente en INTENALCO: Consejo Directivo / Consejo Académico / Rectoría con acta, acuerdo o resolución)
 4. ¿Es pertinente frente al nuevo carácter? (Alineado a Institución Universitaria según Ley 749 y Decreto 2038)
 5. ¿Se aplica efectivamente? (Operatividad real en la vida institucional)
 6. ¿Existe evidencia de aplicación y resultados? (Registros, actas, mediciones, trazabilidad)
@@ -1867,8 +1929,16 @@ def api_cc_doc_ai_audit_compliance():
             "experto en trámites de Cambio de Carácter Académico de Institución Técnica Profesional / Tecnológica a "
             "Institución Universitaria (Ley 30 de 1992, Ley 749 de 2002 Art. 13-15, Decreto 1075 de 2015, Decreto 1330 de 2019, "
             "Decreto 2038 de 2023 y Acuerdo CESU 01 de 2025). "
-            "Tu misión es auditar con rigor técnico el documento institucional presentado por el equipo y verificar si "
-            "realmente cumple con el requerimiento normativo exigido para una Institución Universitaria."
+            "Tu misión es auditar con rigor técnico el documento institucional presentado por el equipo de INTENALCO EDUCACIÓN SUPERIOR "
+            "y verificar si realmente cumple con el requerimiento normativo exigido para una Institución Universitaria. "
+            "REGLA ESTATUTARIA OBLIGATORIA DE INTENALCO EDUCACIÓN SUPERIOR: Conforme al Estatuto General de INTENALCO EDUCACIÓN SUPERIOR "
+            "(establecimiento público de educación superior), su máximo órgano colegiado de dirección y gobierno institucional es el "
+            "**CONSEJO DIRECTIVO** (y en asuntos académicos el **CONSEJO ACADÉMICO**). En INTENALCO NO existe la figura de 'Consejo Superior'. "
+            "Por lo tanto, el **Consejo Directivo** tiene plena competencia estatutaria y legal como máximo órgano de dirección para "
+            "aprobar reformas estatutarias, el PEI, políticas, reglamentos y el inicio formal del cambio de carácter. "
+            "NUNCA exijas ni señales como vacío la aprobación de un 'Consejo Superior'; refiere y verifica siempre al **Consejo Directivo** "
+            "(o al Consejo Académico / Rectoría según corresponda). Asimismo, en el texto sugerido de articulado o acuerdos, utiliza "
+            "exclusivamente **CONSEJO DIRECTIVO DE INTENALCO EDUCACIÓN SUPERIOR**."
         )
 
         user_prompt = f"""
@@ -2003,10 +2073,10 @@ Redacta aquí el texto normativo o técnico exacto (artículos, parágrafos o ta
             "puntaje_cumplimiento": int(parsed.get("puntaje_cumplimiento", 80)),
             "nivel_concepto": parsed.get("nivel_concepto", "Evaluado"),
             "preguntas_6": parsed.get("preguntas_6", {}),
-            "fortalezas": parsed.get("fortalezas", []),
-            "aspectos_por_mejorar": parsed.get("aspectos_por_mejorar", []),
-            "texto_sugerido": parsed.get("texto_sugerido", ""),
-            "dictamen_markdown": parsed.get("dictamen_markdown", "")
+            "fortalezas": [normalize_intenalco_statute_terms(str(f)) for f in (parsed.get("fortalezas") or [])],
+            "aspectos_por_mejorar": [normalize_intenalco_statute_terms(str(a)) for a in (parsed.get("aspectos_por_mejorar") or [])],
+            "texto_sugerido": normalize_intenalco_statute_terms(parsed.get("texto_sugerido", "")),
+            "dictamen_markdown": normalize_intenalco_statute_terms(parsed.get("dictamen_markdown", ""))
         }
 
         if target_doc:

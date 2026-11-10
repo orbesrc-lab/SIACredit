@@ -5,7 +5,7 @@
     "factor": "F01 · Nuevo carácter (IU)",
     "title": "Caracterización jurídica del carácter solicitado",
     "desc": "La institución identifica con precisión la definición, el alcance y las funciones del carácter de Institución Universitaria: fundamentación de los programas en la generación y apropiación del conocimiento, con énfasis en la docencia, y posibilidad de ofrecer programas de posgrado (especialización y maestría).",
-    "evidencia_requerida": "Documento de caracterización jurídico-institucional del nuevo carácter, aprobado por el Consejo Superior.",
+    "evidencia_requerida": "Documento de caracterización jurídico-institucional del nuevo carácter, aprobado por el Consejo Directivo.",
     "ley": "Ley 30/1992 art. 16; Ley 749/2002 art. 2; Acuerdo CESU 0749/2021 (clasificación general)"
   },
   {
@@ -41,7 +41,7 @@
     "factor": "F01 · Nuevo carácter (IU)",
     "title": "Decisión institucional formal de iniciar el proceso",
     "desc": "El órgano competente delibera y decide iniciar el trámite de cambio de carácter y designa formalmente el equipo responsable del proceso de autoevaluación y gestión del cambio.",
-    "evidencia_requerida": "Acta de sesión del Consejo Superior (u órgano competente) con la decisión, el equipo designado y las asignaciones de responsabilidad.",
+    "evidencia_requerida": "Acta de sesión del Consejo Directivo con la decisión, el equipo designado y las asignaciones de responsabilidad.",
     "ley": "Ley 749/2002 art. 13; D.1075/2015 art. 2.5.1.3.1"
   },
   {
@@ -59,7 +59,7 @@
     "factor": "F02 · Reforma estatutaria",
     "title": "Adecuación estatutaria al nuevo carácter",
     "desc": "La reforma estatutaria es adoptada por el órgano competente según la naturaleza jurídica y los procedimientos internos vigentes.",
-    "evidencia_requerida": "Acta(s) de aprobación de la reforma expedidas por el Consejo Superior o la Asamblea, según corresponda.",
+    "evidencia_requerida": "Acta(s) de aprobación de la reforma estatutaria expedidas por el Consejo Directivo.",
     "ley": "Ley 30/1992 arts. 96 a 102; estatuto institucional vigente"
   },
   {
@@ -67,7 +67,7 @@
     "eje": "EJE A. FUNDAMENTOS Y DECISIÓN INSTITUCIONAL",
     "factor": "F02 · Reforma estatutaria",
     "title": "Coherencia del gobierno y la organización estatutaria",
-    "desc": "Los órganos de gobierno (Consejo Superior, Consejo Académico y demás instancias) quedan con composición y funciones compatibles con el nuevo carácter académico.",
+    "desc": "Los órganos de gobierno (Consejo Directivo, Consejo Académico y demás instancias) quedan con composición y funciones compatibles con el nuevo carácter académico.",
     "evidencia_requerida": "Reglamentos y acuerdos de composición y funcionamiento de los órganos actualizados.",
     "ley": "Ley 30/1992 art. 28; estatuto reformado"
   },
@@ -140,7 +140,7 @@
     "factor": "F05 · PEI (15 lit. b)",
     "title": "PEI como referencia fundamental de la toma de decisiones",
     "desc": "El PEI vigente orienta las decisiones institucionales en docencia, extensión, investigación y cooperación internacional, y está ajustado al nuevo carácter.",
-    "evidencia_requerida": "PEI actualizado, aprobado por el Consejo Superior y publicado en los medios institucionales.",
+    "evidencia_requerida": "PEI actualizado, aprobado por el Consejo Directivo y publicado en los medios institucionales.",
     "ley": "Ley 749/2002 art. 15 lit. b"
   },
   {
@@ -167,7 +167,7 @@
     "factor": "F06 · Políticas académicas (15 c)",
     "title": "Existencia de políticas académicas integradoras",
     "desc": "Existen políticas académicas aprobadas por las instancias competentes que integran en el proceso formativo la docencia, la investigación y la extensión.",
-    "evidencia_requerida": "Acuerdo o documento de política académica aprobado por el Consejo Académico/Superior.",
+    "evidencia_requerida": "Acuerdo o documento de política académica aprobado por el Consejo Directivo / Consejo Académico.",
     "ley": "Ley 749/2002 art. 15 lit. c"
   },
   {
@@ -283,7 +283,7 @@
     "eje": "EJE B. REQUISITOS MÍNIMOS PARA EL NUEVO CARÁCTER — LEY 749 DE 2002, ARTÍCULO 15",
     "factor": "F12 · Autoevaluación (15 lit. i)",
     "title": "Informe de autoevaluación con fines de cambio de carácter",
-    "desc": "El proceso de autoevaluación con fines de cambio de carácter consolida sus resultados en un informe institucional aprobado por el Consejo Superior, soportado en este modelo.",
+    "desc": "El proceso de autoevaluación con fines de cambio de carácter consolida sus resultados en un informe institucional aprobado por el Consejo Directivo, soportado en este modelo.",
     "evidencia_requerida": "Informe de autoevaluación con fines de cambio de carácter, con acta de aprobación y anexos de evidencias.",
     "ley": "Ley 749/2002 art. 13; Res. MEN 21795/2020; Acuerdo CESU 0749/2021"
   },

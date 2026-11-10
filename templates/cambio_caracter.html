@@ -1176,7 +1176,7 @@
                                         <option value="En Construcción">📝 En Construcción</option>
                                         <option value="En Revisión del Equipo">👥 En Revisión del Equipo</option>
                                         <option value="Validado Comité Técnico">✅ Validado Comité Técnico</option>
-                                        <option value="Aprobado Consejo">🏛️ Aprobado Consejo</option>
+                                        <option value="Aprobado Consejo">🏛️ Aprobado Consejo Directivo</option>
                                     </select>
                                     <span id="editor-badge-ia-score" style="display:none; background:#dcfce7; color:#166534; font-size:0.72rem; font-weight:800; padding:3px 9px; border-radius:999px; border:1px solid #bbf7d0;">
                                         <i class="fa-solid fa-scale-balanced"></i> Cumplimiento MEN: 0%
@@ -1279,6 +1279,9 @@
                                 <button type="button" onclick="autoFormatInstitutionalMarkdown()" style="padding:6px 12px; border-radius:6px; border:1px solid #c7d2fe; background:#eef2ff; color:#3730a3; font-size:0.78rem; font-weight:800; cursor:pointer;" title="Estructura automáticamente Capítulos, Artículos, Considerandos, Parágrafos y Listas">
                                     <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Maquetar Formato
                                 </button>
+                                <button type="button" onclick="applyIntenalcoStatuteTerminology()" style="padding:6px 12px; border-radius:6px; border:1px solid #bbf7d0; background:#f0fdf4; color:#166534; font-size:0.78rem; font-weight:800; cursor:pointer;" title="Adecúa automáticamente el órgano máximo de dirección a Consejo Directivo según el Estatuto General de INTENALCO">
+                                    <i class="fa-solid fa-landmark"></i> Adecuar a Estatuto INTENALCO (Consejo Directivo)
+                                </button>
 
                                 <!-- Barra rápida de estructura normativa -->
                                 <div style="display:flex; gap:4px; margin-left:auto;">
@@ -1371,7 +1374,7 @@
                                                 <option value="Acuerdo de Mesa de Trabajo">🤝 Acuerdo de Mesa de Trabajo / Socialización</option>
                                                 <option value="Aporte / Observación de Revisión">💬 Aporte / Observación de Revisión</option>
                                                 <option value="Aval Técnico / Visto Bueno">✅ Aval Técnico / Visto Bueno de Dependencia</option>
-                                                <option value="Validación Consejo / Órgano Colegiado">🏛️ Validación de Órgano Colegiado</option>
+                                                <option value="Validación Consejo / Órgano Colegiado">🏛️ Validación de Consejo Directivo / Académico</option>
                                             </select>
                                         </div>
                                         <div>
@@ -1653,7 +1656,7 @@
 
             <div style="margin-bottom:20px;">
                 <label style="display:block; font-size:0.85rem; font-weight:700; color:#334155; margin-bottom:6px;">Instrucciones específicas para el Asesor Experto:</label>
-                <input type="text" id="aiModalInstructions" placeholder="Ej: Redacta el articulado del Estatuto General sobre el Consejo Superior..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.85rem;">
+                <input type="text" id="aiModalInstructions" placeholder="Ej: Redactar en formato de Acuerdo del Consejo Directivo de INTENALCO..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.85rem;">
             </div>
 
             <button id="btnRunAiModular" onclick="executeModularAiAnalysis()" style="background:linear-gradient(135deg, #6366f1, #4f46e5); color:white; border:none; padding:14px 20px; border-radius:10px; cursor:pointer; font-weight:700; width:100%; font-size:0.95rem; box-shadow:0 4px 14px rgba(79, 70, 229, 0.35);">
@@ -1811,7 +1814,7 @@
                             <select id="req-sel-tag" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.82rem; background:#fff; cursor:pointer;">
                                 <option value="Diagnóstico / Estudio Técnico">Diagnóstico / Estudio Técnico</option>
                                 <option value="Borrador de Trabajo">Borrador de Trabajo</option>
-                                <option value="Acta de Consejo Superior / Directivo">Acta de Consejo Superior / Directivo</option>
+                                <option value="Acta de Consejo Directivo / Académico">Acta de Consejo Directivo / Académico</option>
                                 <option value="Resolución / Acuerdo Institucional">Resolución / Acuerdo Institucional</option>
                                 <option value="Matriz / Instrumento de Medición">Matriz / Instrumento de Medición</option>
                                 <option value="Radicado / Informe MEN">Radicado / Informe MEN</option>
@@ -4518,8 +4521,57 @@
         await loadData();
     }
 
+    function normalizeIntenalcoStatuteText(raw) {
+        if (!raw) return '';
+        return String(raw)
+            .replace(/\bCONSEJO\s+SUPERIOR(?:\s+UNIVERSITARIO)?\b/g, 'CONSEJO DIRECTIVO')
+            .replace(/\bConsejo\s+Superior(?:\s+Universitario)?\b/g, 'Consejo Directivo')
+            .replace(/\bconsejo\s+superior(?:\s+universitario)?\b/g, 'consejo directivo')
+            .replace(/\bConsejo\s+Académico\s*\/\s*Superior\b/gi, 'Consejo Directivo / Consejo Académico');
+    }
+
+    async function applyIntenalcoStatuteTerminology() {
+        const ta = document.getElementById('editor-textarea');
+        if (!ta || !ta.value.trim()) {
+            return Swal.fire('Atención', 'Selecciona primero un documento con contenido en el editor.', 'info');
+        }
+        const before = ta.value;
+        let updated = normalizeIntenalcoStatuteText(before);
+        ta.value = updated;
+
+        if (selectedHistoryId && currentData) {
+            const item = (currentData.ai_history || []).find(h => h.id === selectedHistoryId);
+            if (item) {
+                item.contenido = updated;
+                (item.bitacora_versiones || []).forEach(v => {
+                    if (v.contenido_snapshot) v.contenido_snapshot = normalizeIntenalcoStatuteText(v.contenido_snapshot);
+                });
+                (item.auditorias_ia || []).forEach(aud => {
+                    if (Array.isArray(aud.fortalezas)) aud.fortalezas = aud.fortalezas.map(f => normalizeIntenalcoStatuteText(f));
+                    if (Array.isArray(aud.aspectos_por_mejorar)) aud.aspectos_por_mejorar = aud.aspectos_por_mejorar.map(a => normalizeIntenalcoStatuteText(a));
+                    if (aud.dictamen_markdown) aud.dictamen_markdown = normalizeIntenalcoStatuteText(aud.dictamen_markdown);
+                    if (aud.texto_sugerido) aud.texto_sugerido = normalizeIntenalcoStatuteText(aud.texto_sugerido);
+                });
+                await saveToServer(false);
+                renderDocAuditPane(item);
+            }
+        }
+        const prevBox = document.getElementById('editor-preview-container');
+        if (prevBox && prevBox.style.display !== 'none') {
+            prevBox.innerHTML = renderOfficialPreviewHtml(ta.value);
+        }
+        Swal.fire({
+            icon: 'success',
+            title: 'Adecuado al Estatuto de INTENALCO',
+            text: 'Se actualizó el máximo órgano de dirección a Consejo Directivo en el documento y su trazabilidad.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+
     function structureInstitutionalMarkdownText(raw) {
         if (!raw) return '';
+        raw = normalizeIntenalcoStatuteText(raw);
         const lines = raw.split(/\r?\n/);
         const out = [];
         for (let i = 0; i < lines.length; i++) {
