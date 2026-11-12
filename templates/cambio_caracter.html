@@ -1049,23 +1049,28 @@
                             <h3 style="margin:0; font-size:1.15rem; color:#1e293b; font-weight:700;"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i> Matriz de Brechas y Tratamientos Institucionales (Tabla 18)</h3>
                             <p style="margin:4px 0 0 0; color:#64748b; font-size:0.85rem;">Tratamientos propuestos según situación: Conservar, Fortalecer, Actualizar, Transformar, Armonizar, Crear, Derogar.</p>
                         </div>
-                        <button class="btn-cc-hero btn-cc-primary" onclick="openNewBrechaModal()">
-                            <i class="fa-solid fa-plus"></i> Nueva Brecha
-                        </button>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                            <button class="btn-cc-hero btn-cc-save" onclick="saveToServer(true)" title="Guardar cambios de la Matriz de Brechas">
+                                <i class="fa-solid fa-floppy-disk"></i> Guardar Matriz
+                            </button>
+                            <button class="btn-cc-hero btn-cc-primary" onclick="openNewBrechaModal()">
+                                <i class="fa-solid fa-plus"></i> Nueva Brecha
+                            </button>
+                        </div>
                     </div>
 
                     <div style="overflow-x:auto;">
                         <table class="cc-table">
                             <thead>
                                 <tr>
-                                    <th style="width:10%;">Código</th>
-                                    <th style="width:14%;">Frente / Área</th>
-                                    <th style="width:26%;">Descripción de la Brecha</th>
-                                    <th style="width:12%;">Tratamiento</th>
-                                    <th style="width:14%;">Responsable</th>
-                                    <th style="width:8%;">Prioridad</th>
+                                    <th style="width:9%;">Código</th>
+                                    <th style="width:13%;">Frente / Área</th>
+                                    <th style="width:23%;">Descripción de la Brecha</th>
+                                    <th style="width:10%;">Tratamiento</th>
+                                    <th style="width:13%;">Responsable</th>
+                                    <th style="width:7%;">Prioridad</th>
                                     <th style="width:8%;">Estado</th>
-                                    <th style="width:8%;">Acciones</th>
+                                    <th style="width:17%; text-align:center;">Acciones (IA · Editar · Eliminar)</th>
                                 </tr>
                             </thead>
                             <tbody id="brechas-table-body"></tbody>
@@ -1187,6 +1192,9 @@
                                 <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                                     <button onclick="openSaveTeamVersionModal(false)" class="btn-cc-hero btn-cc-excel" title="Registra quién hizo el ajuste, de qué dependencia y qué cambió">
                                         <i class="fa-solid fa-user-check"></i> Guardar Aporte / Versión
+                                    </button>
+                                    <button onclick="if(selectedHistoryId) deleteHistoryItem(selectedHistoryId); else Swal.fire('Atención','Selecciona primero un documento o análisis de la biblioteca izquierda.','info');" class="btn-cc-hero" style="background:#fee2e2; color:#b91c1c; border:1px solid #fecaca;" title="Eliminar este análisis de brecha o documento si presenta conflicto o debe rehacerse">
+                                        <i class="fa-solid fa-trash-can"></i> Eliminar
                                     </button>
                                     <button onclick="switchDocWorkspaceSubtab('audit'); runAiNormativeAuditForCurrentDoc();" class="btn-cc-hero btn-cc-ai" title="Evalúa con IA si este documento cumple los requisitos del MEN">
                                         <i class="fa-solid fa-scale-balanced"></i> Auditar Cumplimiento MEN (IA)
@@ -1666,27 +1674,30 @@
     </div>
 </div>
 
-<!-- MODAL: REGISTRAR NUEVA BRECHA -->
+<!-- MODAL: REGISTRAR O EDITAR BRECHA -->
 <div id="newBrechaModal" class="cc-modal-backdrop">
     <div class="cc-modal-box" style="width:650px;">
         <div class="cc-modal-header">
-            <h3 style="margin:0; font-size:1.1rem; color:#1e293b; font-weight:700;">➕ Registrar Nueva Brecha Institucional</h3>
+            <h3 id="nb-modal-title" style="margin:0; font-size:1.1rem; color:#1e293b; font-weight:700;">➕ Registrar Nueva Brecha Institucional</h3>
             <button onclick="closeNewBrechaModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#94a3b8;">&times;</button>
         </div>
         <div class="cc-modal-body">
-            <div style="margin-bottom:14px;">
-                <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px;">Código de Brecha:</label>
-                <input type="text" id="nb-codigo" placeholder="Ej: BRE-007-2026" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.85rem;">
-            </div>
-            <div style="margin-bottom:14px;">
-                <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px;">Frente de Trabajo:</label>
-                <select id="nb-frente" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.85rem;"></select>
+            <input type="hidden" id="nb-edit-index" value="-1">
+            <div style="display:grid; grid-template-columns:1fr 1.4fr; gap:12px; margin-bottom:14px;">
+                <div>
+                    <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px;">Código de Brecha:</label>
+                    <input type="text" id="nb-codigo" placeholder="Ej: BRE-007-2026" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.85rem;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px;">Frente de Trabajo:</label>
+                    <select id="nb-frente" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.85rem;"></select>
+                </div>
             </div>
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px;">Descripción de la Brecha:</label>
                 <textarea id="nb-desc" rows="3" placeholder="Caracterización clara y específica del vacío frente al nuevo carácter..." style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.85rem;"></textarea>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:14px;">
                 <div>
                     <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px;">Tratamiento Metodológico:</label>
                     <select id="nb-tratamiento" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.85rem;">
@@ -1707,14 +1718,27 @@
                         <option value="Baja">Baja</option>
                     </select>
                 </div>
+                <div>
+                    <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px;">Estado:</label>
+                    <select id="nb-estado" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.85rem;">
+                        <option value="En gestión">En gestión</option>
+                        <option value="En Construcción">En Construcción</option>
+                        <option value="Cerrada">Cerrada</option>
+                    </select>
+                </div>
             </div>
             <div style="margin-bottom:18px;">
                 <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:4px;">Responsable Líder:</label>
-                <input type="text" id="nb-responsable" placeholder="Ej: Vicerrectoría Académica" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.85rem;">
+                <input type="text" id="nb-responsable" list="skel-users-datalist" placeholder="Ej: Vicerrectoría Académica" style="width:100%; padding:8px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.85rem;">
             </div>
-            <button onclick="saveNewBrecha()" style="background:#10b981; color:white; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:700; width:100%; font-size:0.9rem;">
-                <i class="fa-solid fa-save"></i> Guardar Brecha
-            </button>
+            <div style="display:flex; gap:10px;">
+                <button id="nb-save-btn" onclick="saveNewBrecha()" style="flex:1; background:#10b981; color:white; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.9rem;">
+                    <i class="fa-solid fa-save"></i> Guardar Brecha
+                </button>
+                <button type="button" onclick="closeNewBrechaModal()" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.9rem;">
+                    Cancelar
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -3377,35 +3401,102 @@
             if (!adminMode && !allowedFrentes.has(b.frente) && !allowedReqs.has(b.requisito_id)) {
                 return;
             }
+            const linkedDoc = (currentData.ai_history || []).find(
+                h => (b.doc_solucion_id && h.id === b.doc_solucion_id) ||
+                     (h.tipo === 'solve_brecha' && b.id && (h.titulo || '').includes(b.id))
+            );
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong style="color:#d97706; font-size:0.8rem;">${b.id}</strong></td>
                 <td><strong>${b.frente}</strong></td>
-                <td>${b.descripcion}</td>
+                <td>
+                    <div>${b.descripcion}</div>
+                    ${linkedDoc ? `
+                        <div style="margin-top:4px;">
+                            <button type="button" onclick="openCollabDocFromProduct('${linkedDoc.id}')" style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:700; cursor:pointer;" title="Abrir el análisis/solución de esta brecha en el editor para editar o eliminar">
+                                <i class="fa-solid fa-file-lines"></i> Ver/Editar Análisis IA (${linkedDoc.version_actual || 'v1.0'})
+                            </button>
+                        </div>
+                    ` : ''}
+                </td>
                 <td><span style="font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:4px; background:#e0e7ff; color:#3730a3;">${b.accion_propuesta || 'Actualizar'}</span></td>
                 <td><span style="font-size:0.8rem; color:#334155;"><i class="fa-solid fa-user"></i> ${b.responsable}</span></td>
                 <td><span class="status-pill priority-${(b.prioridad || 'Media').toLowerCase()}">${b.prioridad || 'Media'}</span></td>
                 <td><span class="status-pill ${b.estado === 'Cerrada' ? 'status-completado' : 'status-construccion'}">${b.estado || 'En gestión'}</span></td>
-                <td>
-                    <button onclick="launchAiSolveBrecha('${b.id}')" title="Subsanar y redactar con IA" style="background:#8b5cf6; color:white; border:none; padding:5px 8px; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:700;">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> IA
-                    </button>
+                <td style="text-align:center;">
+                    <div style="display:inline-flex; gap:5px; align-items:center; flex-wrap:wrap; justify-content:center;">
+                        <button onclick="launchAiSolveBrecha('${b.id}')" title="Generar o rehacer análisis de brecha con IA" style="background:#8b5cf6; color:white; border:none; padding:5px 8px; border-radius:6px; cursor:pointer; font-size:0.74rem; font-weight:700;">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> IA
+                        </button>
+                        <button onclick="openEditBrechaModal(${idx})" title="Editar y guardar esta brecha" style="background:#3b82f6; color:white; border:none; padding:5px 8px; border-radius:6px; cursor:pointer; font-size:0.74rem; font-weight:700;">
+                            <i class="fa-solid fa-pen-to-square"></i> Editar
+                        </button>
+                        <button onclick="deleteBrechaItem(${idx})" title="Eliminar esta brecha y su análisis si presenta conflicto" style="background:#ef4444; color:white; border:none; padding:5px 8px; border-radius:6px; cursor:pointer; font-size:0.74rem; font-weight:700;">
+                            <i class="fa-solid fa-trash-can"></i> Eliminar
+                        </button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    function openNewBrechaModal() {
+    function _populateBrechaFrentesSelect(selectedFrente = '') {
         const sel = document.getElementById('nb-frente');
+        if (!sel) return;
         sel.innerHTML = '';
         const frentesToList = getActiveArticulatedFrentes();
+        const namesInList = new Set(frentesToList.map(f => f.nombre));
+        if (selectedFrente && !namesInList.has(selectedFrente)) {
+            sel.innerHTML += `<option value="${selectedFrente}" selected>${selectedFrente}</option>`;
+        }
         frentesToList.forEach(f => {
-            sel.innerHTML += `<option value="${f.nombre}">${f.nombre}</option>`;
+            const isSel = (f.nombre === selectedFrente) ? 'selected' : '';
+            sel.innerHTML += `<option value="${f.nombre}" ${isSel}>${f.nombre}</option>`;
         });
-        document.getElementById('nb-codigo').value = `BRE-00${(currentData.brechas || []).length + 1}-2026`;
+    }
+
+    function openNewBrechaModal() {
+        document.getElementById('nb-edit-index').value = '-1';
+        const titleEl = document.getElementById('nb-modal-title');
+        if (titleEl) titleEl.innerHTML = '➕ Registrar Nueva Brecha Institucional';
+        const frentesToList = getActiveArticulatedFrentes();
+        _populateBrechaFrentesSelect(frentesToList[0] ? frentesToList[0].nombre : '');
+
+        // Calcular consecutivo único sin duplicar códigos existentes
+        let maxNum = 0;
+        (currentData.brechas || []).forEach(b => {
+            const m = String(b.id || '').match(/BRE-0*(\d+)/i);
+            if (m) {
+                const n = parseInt(m[1], 10);
+                if (n > maxNum) maxNum = n;
+            }
+        });
+        const nextNum = String(maxNum + 1).padStart(3, '0');
+        document.getElementById('nb-codigo').value = `BRE-${nextNum}-2026`;
         document.getElementById('nb-desc').value = '';
+        document.getElementById('nb-tratamiento').value = 'Actualizar';
+        document.getElementById('nb-prioridad').value = 'Alta';
+        const estEl = document.getElementById('nb-estado');
+        if (estEl) estEl.value = 'En gestión';
         document.getElementById('nb-responsable').value = (frentesToList[0] && frentesToList[0].lider) || 'Vicerrectoría Académica';
+        document.getElementById('newBrechaModal').style.display = 'flex';
+    }
+
+    function openEditBrechaModal(idx) {
+        const b = (currentData.brechas || [])[idx];
+        if (!b) return;
+        document.getElementById('nb-edit-index').value = String(idx);
+        const titleEl = document.getElementById('nb-modal-title');
+        if (titleEl) titleEl.innerHTML = `✏️ Editar Brecha Institucional (${b.id})`;
+        _populateBrechaFrentesSelect(b.frente || '');
+        document.getElementById('nb-codigo').value = b.id || '';
+        document.getElementById('nb-desc').value = b.descripcion || '';
+        document.getElementById('nb-tratamiento').value = b.accion_propuesta || 'Actualizar';
+        document.getElementById('nb-prioridad').value = b.prioridad || 'Alta';
+        const estEl = document.getElementById('nb-estado');
+        if (estEl) estEl.value = b.estado || 'En gestión';
+        document.getElementById('nb-responsable').value = b.responsable || '';
         document.getElementById('newBrechaModal').style.display = 'flex';
     }
 
@@ -3414,31 +3505,107 @@
     }
 
     async function saveNewBrecha() {
+        const editIdx = parseInt(document.getElementById('nb-edit-index').value, 10);
         const codigo = document.getElementById('nb-codigo').value.trim();
         const frente = document.getElementById('nb-frente').value;
         const desc = document.getElementById('nb-desc').value.trim();
         const trat = document.getElementById('nb-tratamiento').value;
         const prio = document.getElementById('nb-prioridad').value;
+        const estEl = document.getElementById('nb-estado');
+        const estado = estEl ? estEl.value : 'En gestión';
         const resp = document.getElementById('nb-responsable').value.trim();
 
         if (!codigo || !desc) return Swal.fire('Error', 'Código y descripción son obligatorios.', 'error');
 
-        currentData.brechas.push({
+        const existingObj = (editIdx >= 0 && currentData.brechas && currentData.brechas[editIdx]) ? currentData.brechas[editIdx] : {};
+        const payloadBrecha = {
+            ...existingObj,
             id: codigo,
             frente: frente,
             descripcion: desc,
             accion_propuesta: trat,
             prioridad: prio,
             responsable: resp,
-            estado: 'En gestión',
-            plazo: '2027-01-31'
-        });
+            estado: estado,
+            plazo: existingObj.plazo || '2027-01-31'
+        };
 
-        await saveToServer(false);
-        closeNewBrechaModal();
-        renderBrechas();
-        renderKPIs();
-        Swal.fire('Brecha Registrada', '', 'success');
+        try {
+            const res = await fetch('/api/cambio_caracter/brecha/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    index: editIdx >= 0 ? editIdx : null,
+                    brecha: payloadBrecha
+                })
+            });
+            const d = await res.json();
+            if (d.status === 'success') {
+                currentData.brechas = d.brechas || currentData.brechas;
+                closeNewBrechaModal();
+                renderBrechas();
+                renderKPIs();
+                populateModalDropdowns();
+                Swal.fire({
+                    icon: 'success',
+                    title: editIdx >= 0 ? 'Brecha Actualizada y Guardada' : 'Brecha Registrada',
+                    timer: 1400,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Error', d.message || 'No se pudo guardar la brecha.', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Fallo de conexión al guardar la brecha.', 'error');
+        }
+    }
+
+    async function deleteBrechaItem(idx) {
+        const b = (currentData.brechas || [])[idx];
+        if (!b) return;
+        const confirmRes = await Swal.fire({
+            title: `¿Eliminar la brecha ${b.id}?`,
+            html: `
+                <div style="text-align:left; font-size:0.86rem; color:#334155;">
+                    <p style="margin:0 0 8px 0;"><strong>Frente:</strong> ${b.frente}<br><strong>Descripción:</strong> ${b.descripcion}</p>
+                    <p style="margin:0; color:#b91c1c; font-size:0.8rem;"><i class="fa-solid fa-circle-info"></i> Se eliminará esta brecha de la matriz y también se limpiará cualquier análisis preliminar vinculado para evitar conflictos al subir un nuevo archivo.</p>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: '<i class="fa-solid fa-trash-can"></i> Sí, eliminar brecha',
+            cancelButtonText: 'Cancelar'
+        });
+        if (!confirmRes.isConfirmed) return;
+
+        try {
+            const res = await fetch('/api/cambio_caracter/brecha/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    index: idx,
+                    id: b.id,
+                    delete_linked_doc: true
+                })
+            });
+            const d = await res.json();
+            if (d.status === 'success') {
+                await loadData();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Brecha Eliminada',
+                    text: 'La brecha y sus artefactos en conflicto fueron eliminados correctamente.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Error', d.message || 'No se pudo eliminar la brecha.', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Fallo de conexión al eliminar la brecha.', 'error');
+        }
     }
 
     /* 7. PRODUCTOS ENTREGABLES P1-P10 CON SUB-DOCUMENTOS CO-CONSTRUIDOS */
@@ -3477,6 +3644,9 @@
                                 </div>
                                 <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
                                     ${iaScore ? `<span style="background:#dcfce7; color:#166534; font-size:0.68rem; font-weight:800; padding:2px 6px; border-radius:4px;">${iaScore}</span>` : ''}
+                                    <button type="button" onclick="event.stopPropagation(); deleteHistoryItem('${ld.id}')" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; padding:2px 6px; font-size:0.7rem; cursor:pointer;" title="Eliminar este documento o análisis">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
                                     <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem; color:#4f46e5;"></i>
                                 </div>
                             </div>
@@ -3613,7 +3783,9 @@
                         <span style="font-size:0.68rem; background:#e0e7ff; color:#3730a3; padding:2px 6px; border-radius:4px; font-weight:800;">${item.version_actual || 'v1.0'}</span>
                         <span style="font-size:0.66rem; background:${estBg}; color:${estColor}; padding:2px 6px; border-radius:4px; font-weight:700;">${item.estado_editorial || 'En Construcción'}</span>
                     </div>
-                    ${adminMode ? `<button onclick="event.stopPropagation(); deleteHistoryItem('${item.id}')" style="background:none; border:none; color:#ef4444; font-size:0.85rem; cursor:pointer;" title="Eliminar documento">&times;</button>` : ''}
+                    <button onclick="event.stopPropagation(); deleteHistoryItem('${item.id}')" style="background:#fee2e2; border:1px solid #fecaca; color:#dc2626; font-size:0.74rem; padding:2px 6px; border-radius:5px; cursor:pointer; font-weight:700;" title="Eliminar este análisis o documento">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
                 </div>
                 <h5 style="margin:0 0 4px 0; font-size:0.86rem; color:#1e293b; font-weight:800; line-height:1.35;">${item.titulo}</h5>
                 <div style="font-size:0.72rem; color:#475569; margin-bottom:6px;">
@@ -4511,14 +4683,38 @@
     }
 
     async function deleteHistoryItem(id) {
-        if (!confirm('¿Eliminar este documento de la biblioteca institucional?')) return;
+        const docObj = (currentData.ai_history || []).find(h => h.id === id);
+        const docName = docObj ? docObj.titulo : 'este documento / análisis';
+        const confirmRes = await Swal.fire({
+            title: '¿Eliminar Análisis / Documento?',
+            html: `Se eliminará <strong>${docName}</strong> de la biblioteca institucional y se limpiarán sus archivos vinculados en Supabase para que puedas subir o generar una nueva versión sin conflictos.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: '<i class="fa-solid fa-trash-can"></i> Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+        if (!confirmRes.isConfirmed) return;
+
         await fetch('/api/cambio_caracter/ai_history/delete', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({id: id})
         });
-        if (selectedHistoryId === id) selectedHistoryId = null;
+        if (selectedHistoryId === id) {
+            selectedHistoryId = null;
+            document.getElementById('editor-title').value = '';
+            document.getElementById('editor-textarea').value = '';
+        }
         await loadData();
+        Swal.fire({
+            icon: 'success',
+            title: 'Eliminado Correctamente',
+            text: 'El documento o análisis de brecha ha sido eliminado sin dejar conflictos.',
+            timer: 1500,
+            showConfirmButton: false
+        });
     }
 
     function normalizeIntenalcoStatuteText(raw) {

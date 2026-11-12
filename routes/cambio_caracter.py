@@ -376,12 +376,6 @@ def api_cambio_caracter_data():
                     if ex_id and ex_id not in incoming_by_id:
                         merged_history.insert(0, ex_doc)
                 data["ai_history"] = merged_history
-            # Preservar brechas registradas en paralelo
-            if isinstance(existing.get("brechas"), list) and isinstance(data.get("brechas"), list):
-                inc_brechas = {b.get("id") for b in data["brechas"] if isinstance(b, dict) and b.get("id")}
-                for ex_b in existing["brechas"]:
-                    if ex_b.get("id") and ex_b.get("id") not in inc_brechas:
-                        data["brechas"].append(ex_b)
         except Exception as merge_e:
             print(f"[CC] Merge warning: {merge_e}")
         if save_cc_project(inst_id, data):
@@ -999,10 +993,13 @@ Redacta aquí el informe técnico de brechas y las propuestas de redacción form
                     if isinstance(eval_data.get("preguntas_6"), dict):
                         project["requisitos"][req_id]["preguntas_6"] = eval_data["preguntas_6"]
 
-        # If it was a brecha solution, update the brecha item directly
+        # If it was a brecha solution, update the brecha item directly (and clean up any previous conflicting analysis)
         if mode == 'solve_brecha' and brecha_id:
             for b in project.get("brechas", []):
                 if b["id"] == brecha_id:
+                    old_sol_id = b.get("doc_solucion_id")
+                    if old_sol_id and old_sol_id != history_id:
+                        _remove_doc_and_storage_artifacts(project, old_sol_id)
                     b["solucion_redactada"] = analysis_html
                     b["doc_solucion_id"] = history_id
                     b["estado"] = "Cerrada" if "conforme" in analysis_html.lower() else "En gestión"
@@ -2105,17 +2102,156 @@ Redacta aquí el texto normativo o técnico exacto (artículos, parágrafos o ta
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+def _remove_doc_and_storage_artifacts(project, doc_id):
+    """Elimina un documento/análisis de ai_history, sus archivos en Supabase Storage, evidencias auto-vinculadas y referencias en brechas."""
+    if not project or not doc_id:
+        return False
+    target = next((h for h in (project.get("ai_history") or []) if h.get("id") == doc_id), None)
+    if not target:
+        return False
+
+    paths_to_remove = set()
+    for k_p in ("supabase_storage_path", "storage_path", "saved_doc_path"):
+        if target.get(k_p):
+            paths_to_remove.add(target[k_p])
+    for v in (target.get("bitacora_versiones") or []):
+        if isinstance(v, dict) and v.get("storage_path"):
+            paths_to_remove.add(v["storage_path"])
+
+    if paths_to_remove:
+        try:
+            supabase.storage.from_('evidencias').remove(list(paths_to_remove))
+        except Exception as st_e:
+            print(f"[CC Delete Doc Storage] Warning: {st_e}")
+
+    code_prefix = f"{target.get('codigo_doc', '')} - " if target.get("codigo_doc") else None
+    for r_val in (project.get("requisitos") or {}).values():
+        if isinstance(r_val, dict) and isinstance(r_val.get("evidences"), list):
+            r_val["evidences"] = [
+                ev for ev in r_val["evidences"]
+                if ev.get("path") not in paths_to_remove
+                and not (code_prefix and str(ev.get("name", "")).startswith(code_prefix))
+            ]
+
+    for b in (project.get("brechas") or []):
+        if isinstance(b, dict) and b.get("doc_solucion_id") == doc_id:
+            b["doc_solucion_id"] = ""
+            b["solucion_redactada"] = ""
+
+    project["ai_history"] = [h for h in (project.get("ai_history") or []) if h.get("id") != doc_id]
+    return True
+
+
 @cambio_caracter_bp.route('/api/cambio_caracter/ai_history/delete', methods=['POST'])
 def api_cc_ai_history_delete():
     try:
-        inst_id = request.json.get('inst_id', get_active_inst_id())
-        item_id = request.json.get('id')
+        req_data = request.json or {}
+        inst_id = req_data.get('inst_id', get_active_inst_id())
+        item_id = req_data.get('id')
         project = get_cc_project(inst_id)
-        if "ai_history" in project:
-            project["ai_history"] = [h for h in project["ai_history"] if h["id"] != item_id]
+        if "ai_history" in project and item_id:
+            _remove_doc_and_storage_artifacts(project, item_id)
             save_cc_project(inst_id, project)
         return jsonify({"status": "success"})
     except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/brecha/save', methods=['POST'])
+def api_cc_brecha_save():
+    """Crea una nueva brecha o actualiza una existente (por índice o código) en la Matriz de Brechas."""
+    try:
+        data = request.json or {}
+        inst_id = data.get('inst_id', get_active_inst_id())
+        idx = data.get('index')
+        brecha_payload = data.get('brecha') or {}
+
+        codigo = str(brecha_payload.get('id') or '').strip()
+        descripcion = str(brecha_payload.get('descripcion') or '').strip()
+        if not codigo or not descripcion:
+            return jsonify({"status": "error", "message": "El código y la descripción de la brecha son obligatorios."}), 400
+
+        project = get_cc_project(inst_id)
+        if "brechas" not in project or not isinstance(project["brechas"], list):
+            project["brechas"] = []
+
+        clean_brecha = {
+            "id": codigo,
+            "frente": str(brecha_payload.get("frente") or "Gobierno y normativa").strip(),
+            "requisito_id": str(brecha_payload.get("requisito_id") or "").strip(),
+            "fuente_normativa": str(brecha_payload.get("fuente_normativa") or "Ley 749/2002; Dec. 2038/2023").strip(),
+            "descripcion": normalize_intenalco_statute_terms(descripcion),
+            "evidencia_disponible": str(brecha_payload.get("evidencia_disponible") or "").strip(),
+            "evidencia_faltante": normalize_intenalco_statute_terms(str(brecha_payload.get("evidencia_faltante") or "").strip()),
+            "accion_propuesta": str(brecha_payload.get("accion_propuesta") or "Actualizar").strip(),
+            "prioridad": str(brecha_payload.get("prioridad") or "Alta").strip(),
+            "responsable": str(brecha_payload.get("responsable") or "Vicerrectoría Académica").strip(),
+            "estado": str(brecha_payload.get("estado") or "En gestión").strip(),
+            "plazo": str(brecha_payload.get("plazo") or "2027-01-31").strip(),
+            "solucion_redactada": normalize_intenalco_statute_terms(str(brecha_payload.get("solucion_redactada") or "").strip()),
+            "doc_solucion_id": str(brecha_payload.get("doc_solucion_id") or "").strip()
+        }
+
+        if isinstance(idx, int) and 0 <= idx < len(project["brechas"]):
+            existing_b = project["brechas"][idx]
+            if not clean_brecha["doc_solucion_id"] and existing_b.get("doc_solucion_id"):
+                clean_brecha["doc_solucion_id"] = existing_b["doc_solucion_id"]
+            if not clean_brecha["solucion_redactada"] and existing_b.get("solucion_redactada") and "solucion_redactada" not in brecha_payload:
+                clean_brecha["solucion_redactada"] = existing_b["solucion_redactada"]
+            project["brechas"][idx] = clean_brecha
+        else:
+            project["brechas"].append(clean_brecha)
+
+        save_cc_project(inst_id, project)
+        return jsonify({"status": "success", "brechas": project["brechas"]})
+    except Exception as e:
+        print(f"[CC Brecha Save] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/brecha/delete', methods=['POST'])
+def api_cc_brecha_delete():
+    """Elimina una brecha de la matriz (y opcionalmente su documento/análisis IA vinculado para evitar conflictos)."""
+    try:
+        data = request.json or {}
+        inst_id = data.get('inst_id', get_active_inst_id())
+        idx = data.get('index')
+        brecha_id = data.get('id')
+        delete_linked_doc = data.get('delete_linked_doc', True)
+
+        project = get_cc_project(inst_id)
+        brechas = project.get("brechas") or []
+
+        target_b = None
+        if isinstance(idx, int) and 0 <= idx < len(brechas):
+            target_b = brechas.pop(idx)
+        elif brecha_id:
+            for i, b in enumerate(brechas):
+                if b.get("id") == brecha_id:
+                    target_b = brechas.pop(i)
+                    break
+
+        if not target_b:
+            return jsonify({"status": "error", "message": "Brecha no encontrada."}), 404
+
+        if delete_linked_doc:
+            linked_doc_id = target_b.get("doc_solucion_id")
+            if linked_doc_id:
+                _remove_doc_and_storage_artifacts(project, linked_doc_id)
+            b_code = target_b.get("id")
+            if b_code:
+                matching_docs = [
+                    h.get("id") for h in (project.get("ai_history") or [])
+                    if h.get("tipo") == "solve_brecha" and b_code in (h.get("titulo") or "")
+                ]
+                for m_id in matching_docs:
+                    _remove_doc_and_storage_artifacts(project, m_id)
+
+        project["brechas"] = brechas
+        save_cc_project(inst_id, project)
+        return jsonify({"status": "success", "brechas": project["brechas"]})
+    except Exception as e:
+        print(f"[CC Brecha Delete] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @cambio_caracter_bp.route('/api/cambio_caracter/download_word', methods=['POST'])
