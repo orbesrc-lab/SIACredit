@@ -101,7 +101,9 @@ def build_clean_cc_project(inst_id):
             } for req in REQUISITOS
         },
         "ai_history": [],
-        "ai_gap_analysis": ""
+        "ai_gap_analysis": "",
+        "hidden_deleted_archive": [],
+        "deletion_audit_log": []
     }
 
 
@@ -175,6 +177,10 @@ def get_cc_project(inst_id):
 
         if "ai_history" not in project or project["ai_history"] is None:
             project["ai_history"] = []
+        if "hidden_deleted_archive" not in project or not isinstance(project.get("hidden_deleted_archive"), list):
+            project["hidden_deleted_archive"] = []
+        if "deletion_audit_log" not in project or not isinstance(project.get("deletion_audit_log"), list):
+            project["deletion_audit_log"] = []
 
     # Ensure every item in ai_history has collaborative & traceability fields
     for idx_h, item in enumerate(project.get("ai_history", [])):
@@ -390,15 +396,28 @@ def api_cambio_caracter_data():
         data = request.json or {}
         try:
             existing = get_cc_project(inst_id)
-            # Protección multi-usuario: preservar documentos en ai_history creados en paralelo o por IA
+            archived_doc_ids = {
+                a.get("item_id") for a in (existing.get("hidden_deleted_archive") or [])
+                if isinstance(a, dict) and a.get("item_id")
+            }
+            for a in (existing.get("hidden_deleted_archive") or []):
+                if isinstance(a, dict):
+                    for l_doc in (a.get("linked_docs_snapshots") or []):
+                        if isinstance(l_doc, dict) and l_doc.get("id"):
+                            archived_doc_ids.add(l_doc.get("id"))
+            # Protección multi-usuario: preservar documentos en ai_history creados en paralelo o por IA (excepto los archivados en copia oculta)
             if isinstance(existing.get("ai_history"), list) and isinstance(data.get("ai_history"), list):
                 incoming_by_id = {d.get("id"): d for d in data["ai_history"] if isinstance(d, dict) and d.get("id")}
-                merged_history = list(data["ai_history"])
+                merged_history = [d for d in data["ai_history"] if isinstance(d, dict) and d.get("id") not in archived_doc_ids]
                 for ex_doc in existing["ai_history"]:
                     ex_id = ex_doc.get("id")
-                    if ex_id and ex_id not in incoming_by_id:
+                    if ex_id and ex_id not in incoming_by_id and ex_id not in archived_doc_ids:
                         merged_history.insert(0, ex_doc)
                 data["ai_history"] = merged_history
+            # Preservar siempre las copias ocultas y la bitácora de auditoría de eliminaciones desde servidor
+            data["hidden_deleted_archive"] = existing.get("hidden_deleted_archive", [])
+            data["deletion_audit_log"] = existing.get("deletion_audit_log", [])
+            data.pop("hidden_deleted_count", None)
         except Exception as merge_e:
             print(f"[CC] Merge warning: {merge_e}")
         if save_cc_project(inst_id, data):
@@ -406,7 +425,48 @@ def api_cambio_caracter_data():
         return jsonify({"status": "error", "message": "Error saving data"}), 500
         
     project = get_cc_project(inst_id)
-    return jsonify({"status": "success", "data": project})
+    # Las copias ocultas y la bitácora de eliminaciones solo se entregan al Administrador vía endpoint dedicado
+    public_project = {k: v for k, v in project.items() if k not in ("hidden_deleted_archive", "deletion_audit_log")}
+    public_project["hidden_deleted_count"] = len(project.get("hidden_deleted_archive") or [])
+    return jsonify({"status": "success", "data": public_project})
+
+
+def _resolve_cc_admin_user(user_email, user_id):
+    """Consulta el rol real del usuario en la tabla users y valida que sea inst_admin o admin."""
+    try:
+        user_rec = None
+        if user_email:
+            res = supabase.table('users').select("id, email, name, role").ilike("email", str(user_email).strip()).execute()
+            if res.data:
+                user_rec = res.data[0]
+        if not user_rec and user_id:
+            res = supabase.table('users').select("id, email, name, role").eq("id", int(user_id)).execute()
+            if res.data:
+                user_rec = res.data[0]
+        if user_rec and str(user_rec.get("role") or "").lower() in ("admin", "inst_admin"):
+            return user_rec
+    except Exception as e:
+        print(f"[CC Resolve Admin] Error: {e}")
+    return None
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/admin/deleted_archive', methods=['POST'])
+def api_cc_admin_deleted_archive():
+    """Devuelve las copias ocultas y la bitácora de eliminaciones (solo Administrador Institucional / Superadministrador)."""
+    try:
+        data = request.json or {}
+        inst_id = data.get('inst_id', get_active_inst_id())
+        admin_rec = _resolve_cc_admin_user(data.get('user_email'), data.get('user_id'))
+        if not admin_rec:
+            return jsonify({"status": "error", "message": "Acceso restringido al Administrador Institucional y al Superadministrador."}), 403
+        project = get_cc_project(inst_id)
+        return jsonify({
+            "status": "success",
+            "hidden_deleted_archive": project.get("hidden_deleted_archive") or [],
+            "deletion_audit_log": project.get("deletion_audit_log") or []
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @cambio_caracter_bp.route('/api/cambio_caracter/upload', methods=['POST'])
 def api_cambio_caracter_upload():
@@ -2144,36 +2204,93 @@ Redacta aquí el texto normativo o técnico exacto (artículos, parágrafos o ta
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-def _remove_doc_and_storage_artifacts(project, doc_id):
-    """Elimina un documento/análisis de ai_history, sus archivos en Supabase Storage, evidencias auto-vinculadas y referencias en brechas."""
-    if not project or not doc_id:
-        return False
-    target = next((h for h in (project.get("ai_history") or []) if h.get("id") == doc_id), None)
-    if not target:
-        return False
+def verify_cc_user_password(user_email, user_id, password):
+    """Verifica la contraseña de acceso del usuario contra la tabla users de Supabase."""
+    from werkzeug.security import check_password_hash
+    pwd = str(password or '').strip()
+    if not pwd:
+        return False, None, "Debes ingresar tu contraseña de acceso para autorizar esta acción."
 
+    email_clean = str(user_email or '').strip()
+    user_record = None
+    try:
+        if email_clean:
+            res = supabase.table('users').select("*").ilike("email", email_clean).execute()
+            if res.data:
+                user_record = res.data[0]
+        if not user_record and user_id:
+            try:
+                res_id = supabase.table('users').select("*").eq("id", int(user_id)).execute()
+                if res_id.data:
+                    user_record = res_id.data[0]
+            except Exception:
+                pass
+    except Exception as e:
+        print(f"[CC Verify Password] Error querying users: {e}")
+        return False, None, "Error al consultar las credenciales del usuario."
+
+    if not user_record:
+        return False, None, "No se encontró el usuario activo para verificar la contraseña."
+
+    pwd_hash = user_record.get('password_hash') or ''
+    if pwd_hash and check_password_hash(pwd_hash, pwd):
+        return True, user_record, None
+
+    return False, None, "Contraseña de acceso incorrecta. Operación cancelada por seguridad."
+
+
+def _purge_doc_storage_files(doc_obj):
+    """Elimina físicamente de Supabase Storage los archivos asociados a un documento archivado."""
+    if not isinstance(doc_obj, dict):
+        return
     paths_to_remove = set()
     for k_p in ("supabase_storage_path", "storage_path", "saved_doc_path"):
-        if target.get(k_p):
-            paths_to_remove.add(target[k_p])
-    for v in (target.get("bitacora_versiones") or []):
+        if doc_obj.get(k_p):
+            paths_to_remove.add(doc_obj[k_p])
+    for v in (doc_obj.get("bitacora_versiones") or []):
         if isinstance(v, dict) and v.get("storage_path"):
             paths_to_remove.add(v["storage_path"])
-
     if paths_to_remove:
         try:
             supabase.storage.from_('evidencias').remove(list(paths_to_remove))
         except Exception as st_e:
-            print(f"[CC Delete Doc Storage] Warning: {st_e}")
+            print(f"[CC Purge Doc Storage] Warning: {st_e}")
 
+
+def _remove_doc_and_storage_artifacts(project, doc_id, purge_storage=True):
+    """Desvincula un documento/análisis de ai_history, evidencias auto-vinculadas y referencias en brechas.
+    Si purge_storage=False, conserva los archivos en Supabase Storage para la copia oculta del Administrador."""
+    if not project or not doc_id:
+        return None, {}
+    target = next((h for h in (project.get("ai_history") or []) if h.get("id") == doc_id), None)
+    if not target:
+        return None, {}
+
+    paths_to_match = set()
+    for k_p in ("supabase_storage_path", "storage_path", "saved_doc_path"):
+        if target.get(k_p):
+            paths_to_match.add(target[k_p])
+    for v in (target.get("bitacora_versiones") or []):
+        if isinstance(v, dict) and v.get("storage_path"):
+            paths_to_match.add(v["storage_path"])
+
+    if purge_storage:
+        _purge_doc_storage_files(target)
+
+    detached_evidences = {}
     code_prefix = f"{target.get('codigo_doc', '')} - " if target.get("codigo_doc") else None
-    for r_val in (project.get("requisitos") or {}).values():
+    for r_id, r_val in (project.get("requisitos") or {}).items():
         if isinstance(r_val, dict) and isinstance(r_val.get("evidences"), list):
-            r_val["evidences"] = [
-                ev for ev in r_val["evidences"]
-                if ev.get("path") not in paths_to_remove
-                and not (code_prefix and str(ev.get("name", "")).startswith(code_prefix))
-            ]
+            kept_ev = []
+            removed_ev = []
+            for ev in r_val["evidences"]:
+                if ev.get("path") in paths_to_match or (code_prefix and str(ev.get("name", "")).startswith(code_prefix)):
+                    removed_ev.append(ev)
+                else:
+                    kept_ev.append(ev)
+            if removed_ev:
+                detached_evidences[r_id] = removed_ev
+            r_val["evidences"] = kept_ev
 
     for b in (project.get("brechas") or []):
         if isinstance(b, dict) and b.get("doc_solucion_id") == doc_id:
@@ -2181,21 +2298,109 @@ def _remove_doc_and_storage_artifacts(project, doc_id):
             b["solucion_redactada"] = ""
 
     project["ai_history"] = [h for h in (project.get("ai_history") or []) if h.get("id") != doc_id]
-    return True
+    return target, detached_evidences
+
+
+def _append_cc_deletion_audit_log(project, accion, item_type, codigo, titulo, frente, user_record, fallback_name="", fallback_role="", motivo=""):
+    """Registra en el historial de auditoría del proyecto quién ejecutó una eliminación, copia oculta o restauración."""
+    if "deletion_audit_log" not in project or not isinstance(project.get("deletion_audit_log"), list):
+        project["deletion_audit_log"] = []
+    now_iso = datetime.datetime.now().isoformat()
+    u_name = (user_record.get("name") if isinstance(user_record, dict) else "") or fallback_name or (user_record.get("email") if isinstance(user_record, dict) else "Usuario")
+    u_email = (user_record.get("email") if isinstance(user_record, dict) else "") or ""
+    u_role = (user_record.get("role") if isinstance(user_record, dict) else "") or fallback_role or "lider"
+    entry = {
+        "log_id": f"audit_del_{int(datetime.datetime.now().timestamp() * 1000)}_{uuid.uuid4().hex[:4]}",
+        "fecha": now_iso,
+        "accion": accion,
+        "item_type": item_type,
+        "codigo": str(codigo or ""),
+        "titulo": str(titulo or ""),
+        "frente": str(frente or "General"),
+        "usuario_id": user_record.get("id") if isinstance(user_record, dict) else None,
+        "usuario_nombre": str(u_name),
+        "usuario_email": str(u_email),
+        "usuario_rol": str(u_role),
+        "motivo": str(motivo or "Sin observación adicional")
+    }
+    project["deletion_audit_log"].insert(0, entry)
+    return entry
 
 
 @cambio_caracter_bp.route('/api/cambio_caracter/ai_history/delete', methods=['POST'])
 def api_cc_ai_history_delete():
+    """Solicita contraseña de acceso, registra el usuario que elimina y genera una copia oculta
+    que solo puede ver y eliminar definitivamente el Administrador Institucional."""
     try:
         req_data = request.json or {}
         inst_id = req_data.get('inst_id', get_active_inst_id())
         item_id = req_data.get('id')
+        password = req_data.get('password', '')
+        user_email = req_data.get('user_email', '')
+        user_id = req_data.get('user_id')
+        user_name = req_data.get('user_name', '')
+        user_role = req_data.get('user_role', '')
+        motivo = req_data.get('motivo', '').strip() or 'Documento o análisis con conflicto / ajuste requerido'
+
+        ok_pwd, user_rec, err_msg = verify_cc_user_password(user_email, user_id, password)
+        if not ok_pwd:
+            return jsonify({"status": "error", "message": err_msg}), 403
+
         project = get_cc_project(inst_id)
-        if "ai_history" in project and item_id:
-            _remove_doc_and_storage_artifacts(project, item_id)
-            save_cc_project(inst_id, project)
-        return jsonify({"status": "success"})
+        if "ai_history" not in project or not item_id:
+            return jsonify({"status": "error", "message": "Documento no encontrado."}), 404
+
+        target_doc, detached_evidences = _remove_doc_and_storage_artifacts(project, item_id, purge_storage=False)
+        if not target_doc:
+            return jsonify({"status": "error", "message": "El documento especificado ya no se encuentra en la lista activa."}), 404
+
+        now_iso = datetime.datetime.now().isoformat()
+        actor_name = user_rec.get("name") or user_name or user_rec.get("email") or "Usuario"
+        actor_email = user_rec.get("email") or user_email
+        actor_role = user_rec.get("role") or user_role or "lider"
+
+        archive_entry = {
+            "archive_id": f"arch_doc_{int(datetime.datetime.now().timestamp() * 1000)}_{uuid.uuid4().hex[:4]}",
+            "item_type": "documento",
+            "item_id": target_doc.get("id"),
+            "codigo": target_doc.get("codigo_doc") or "DOC-IA",
+            "titulo": target_doc.get("titulo") or "Documento / Análisis IA",
+            "frente": target_doc.get("frente") or "General",
+            "producto": target_doc.get("producto") or "",
+            "requisito_id": target_doc.get("requisito_id") or "",
+            "deleted_at": now_iso,
+            "deleted_by_id": user_rec.get("id"),
+            "deleted_by_name": actor_name,
+            "deleted_by_email": actor_email,
+            "deleted_by_role": actor_role,
+            "motivo": motivo,
+            "doc_snapshot": target_doc,
+            "detached_evidences": detached_evidences
+        }
+        project.setdefault("hidden_deleted_archive", []).insert(0, archive_entry)
+
+        _append_cc_deletion_audit_log(
+            project,
+            accion="Eliminado del expediente activo (Copia Oculta generada para Admin)",
+            item_type="Documento / Análisis IA",
+            codigo=archive_entry["codigo"],
+            titulo=archive_entry["titulo"],
+            frente=archive_entry["frente"],
+            user_record=user_rec,
+            fallback_name=user_name,
+            fallback_role=user_role,
+            motivo=motivo
+        )
+
+        save_cc_project(inst_id, project)
+        return jsonify({
+            "status": "success",
+            "message": "El análisis fue retirado del expediente activo y resguardado en copia oculta para el Administrador Institucional.",
+            "hidden_deleted_archive": project["hidden_deleted_archive"],
+            "deletion_audit_log": project["deletion_audit_log"]
+        })
     except Exception as e:
+        print(f"[CC AI History Delete] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
@@ -2253,13 +2458,24 @@ def api_cc_brecha_save():
 
 @cambio_caracter_bp.route('/api/cambio_caracter/brecha/delete', methods=['POST'])
 def api_cc_brecha_delete():
-    """Elimina una brecha de la matriz (y opcionalmente su documento/análisis IA vinculado para evitar conflictos)."""
+    """Solicita contraseña de acceso, registra el usuario que elimina la brecha y genera una copia oculta
+    (incluyendo su documento/análisis IA vinculado) que solo puede ver y eliminar definitivamente el Administrador Institucional."""
     try:
         data = request.json or {}
         inst_id = data.get('inst_id', get_active_inst_id())
         idx = data.get('index')
         brecha_id = data.get('id')
         delete_linked_doc = data.get('delete_linked_doc', True)
+        password = data.get('password', '')
+        user_email = data.get('user_email', '')
+        user_id = data.get('user_id')
+        user_name = data.get('user_name', '')
+        user_role = data.get('user_role', '')
+        motivo = data.get('motivo', '').strip() or 'Brecha o análisis con conflicto / ajuste requerido'
+
+        ok_pwd, user_rec, err_msg = verify_cc_user_password(user_email, user_id, password)
+        if not ok_pwd:
+            return jsonify({"status": "error", "message": err_msg}), 403
 
         project = get_cc_project(inst_id)
         brechas = project.get("brechas") or []
@@ -2276,10 +2492,17 @@ def api_cc_brecha_delete():
         if not target_b:
             return jsonify({"status": "error", "message": "Brecha no encontrada."}), 404
 
+        linked_docs_snapshots = []
+        combined_detached_evidences = {}
+
         if delete_linked_doc:
             linked_doc_id = target_b.get("doc_solucion_id")
             if linked_doc_id:
-                _remove_doc_and_storage_artifacts(project, linked_doc_id)
+                doc_snap, det_ev = _remove_doc_and_storage_artifacts(project, linked_doc_id, purge_storage=False)
+                if doc_snap:
+                    linked_docs_snapshots.append(doc_snap)
+                    for r_k, ev_list in det_ev.items():
+                        combined_detached_evidences.setdefault(r_k, []).extend(ev_list)
             b_code = target_b.get("id")
             if b_code:
                 matching_docs = [
@@ -2287,13 +2510,205 @@ def api_cc_brecha_delete():
                     if h.get("tipo") == "solve_brecha" and b_code in (h.get("titulo") or "")
                 ]
                 for m_id in matching_docs:
-                    _remove_doc_and_storage_artifacts(project, m_id)
+                    doc_snap, det_ev = _remove_doc_and_storage_artifacts(project, m_id, purge_storage=False)
+                    if doc_snap:
+                        linked_docs_snapshots.append(doc_snap)
+                        for r_k, ev_list in det_ev.items():
+                            combined_detached_evidences.setdefault(r_k, []).extend(ev_list)
+
+        now_iso = datetime.datetime.now().isoformat()
+        actor_name = user_rec.get("name") or user_name or user_rec.get("email") or "Usuario"
+        actor_email = user_rec.get("email") or user_email
+        actor_role = user_rec.get("role") or user_role or "lider"
+
+        archive_entry = {
+            "archive_id": f"arch_bre_{int(datetime.datetime.now().timestamp() * 1000)}_{uuid.uuid4().hex[:4]}",
+            "item_type": "brecha",
+            "item_id": target_b.get("id"),
+            "codigo": target_b.get("id") or "BRE-CC",
+            "titulo": target_b.get("descripcion") or "Brecha Institucional",
+            "frente": target_b.get("frente") or "General",
+            "requisito_id": target_b.get("requisito_id") or "",
+            "deleted_at": now_iso,
+            "deleted_by_id": user_rec.get("id"),
+            "deleted_by_name": actor_name,
+            "deleted_by_email": actor_email,
+            "deleted_by_role": actor_role,
+            "motivo": motivo,
+            "brecha_snapshot": target_b,
+            "linked_docs_snapshots": linked_docs_snapshots,
+            "detached_evidences": combined_detached_evidences
+        }
+        project.setdefault("hidden_deleted_archive", []).insert(0, archive_entry)
+
+        _append_cc_deletion_audit_log(
+            project,
+            accion="Eliminado del expediente activo (Copia Oculta generada para Admin)",
+            item_type="Brecha + Análisis IA" if linked_docs_snapshots else "Brecha Institucional",
+            codigo=archive_entry["codigo"],
+            titulo=archive_entry["titulo"],
+            frente=archive_entry["frente"],
+            user_record=user_rec,
+            fallback_name=user_name,
+            fallback_role=user_role,
+            motivo=motivo
+        )
 
         project["brechas"] = brechas
         save_cc_project(inst_id, project)
-        return jsonify({"status": "success", "brechas": project["brechas"]})
+        return jsonify({
+            "status": "success",
+            "brechas": project["brechas"],
+            "hidden_deleted_archive": project["hidden_deleted_archive"],
+            "deletion_audit_log": project["deletion_audit_log"]
+        })
     except Exception as e:
         print(f"[CC Brecha Delete] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/admin/permanent_delete', methods=['POST'])
+def api_cc_admin_permanent_delete():
+    """Exclusivo para Administrador Institucional (inst_admin) y Superadministrador (admin):
+    Verifica contraseña de administrador, destruye definitivamente la copia oculta y sus archivos en Storage,
+    y deja constancia en el registro de auditoría."""
+    try:
+        data = request.json or {}
+        inst_id = data.get('inst_id', get_active_inst_id())
+        archive_id = data.get('archive_id')
+        password = data.get('password', '')
+        user_email = data.get('user_email', '')
+        user_id = data.get('user_id')
+        user_name = data.get('user_name', '')
+        user_role = data.get('user_role', '')
+        motivo = data.get('motivo', '').strip() or 'Depuración definitiva autorizada por Administrador Institucional'
+
+        ok_pwd, user_rec, err_msg = verify_cc_user_password(user_email, user_id, password)
+        if not ok_pwd:
+            return jsonify({"status": "error", "message": err_msg}), 403
+
+        db_role = (user_rec.get("role") or user_role or "").lower()
+        if db_role not in ("admin", "inst_admin"):
+            return jsonify({
+                "status": "error",
+                "message": "Acceso denegado: Solo el Administrador Institucional o el Superadministrador pueden eliminar definitivamente una copia oculta."
+            }), 403
+
+        project = get_cc_project(inst_id)
+        archive_list = project.get("hidden_deleted_archive") or []
+        target_arch = next((a for a in archive_list if a.get("archive_id") == archive_id), None)
+        if not target_arch:
+            return jsonify({"status": "error", "message": "La copia oculta especificada no fue encontrada."}), 404
+
+        if target_arch.get("doc_snapshot"):
+            _purge_doc_storage_files(target_arch["doc_snapshot"])
+        for d_snap in (target_arch.get("linked_docs_snapshots") or []):
+            _purge_doc_storage_files(d_snap)
+
+        project["hidden_deleted_archive"] = [a for a in archive_list if a.get("archive_id") != archive_id]
+
+        _append_cc_deletion_audit_log(
+            project,
+            accion="Eliminación Definitiva Autorizada por Administrador",
+            item_type="Documento / Análisis IA" if target_arch.get("item_type") == "documento" else "Brecha Institucional",
+            codigo=target_arch.get("codigo", ""),
+            titulo=target_arch.get("titulo", ""),
+            frente=target_arch.get("frente", "General"),
+            user_record=user_rec,
+            fallback_name=user_name,
+            fallback_role=db_role,
+            motivo=motivo
+        )
+
+        save_cc_project(inst_id, project)
+        return jsonify({
+            "status": "success",
+            "hidden_deleted_archive": project["hidden_deleted_archive"],
+            "deletion_audit_log": project["deletion_audit_log"]
+        })
+    except Exception as e:
+        print(f"[CC Admin Permanent Delete] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/admin/restore_deleted', methods=['POST'])
+def api_cc_admin_restore_deleted():
+    """Exclusivo para Administrador Institucional (inst_admin) y Superadministrador (admin):
+    Restaura una copia oculta de vuelta al expediente activo (ai_history / brechas / requisitos)."""
+    try:
+        data = request.json or {}
+        inst_id = data.get('inst_id', get_active_inst_id())
+        archive_id = data.get('archive_id')
+        password = data.get('password', '')
+        user_email = data.get('user_email', '')
+        user_id = data.get('user_id')
+        user_name = data.get('user_name', '')
+        user_role = data.get('user_role', '')
+
+        ok_pwd, user_rec, err_msg = verify_cc_user_password(user_email, user_id, password)
+        if not ok_pwd:
+            return jsonify({"status": "error", "message": err_msg}), 403
+
+        db_role = (user_rec.get("role") or user_role or "").lower()
+        if db_role not in ("admin", "inst_admin"):
+            return jsonify({
+                "status": "error",
+                "message": "Acceso denegado: Solo el Administrador Institucional o el Superadministrador pueden restaurar copias ocultas."
+            }), 403
+
+        project = get_cc_project(inst_id)
+        archive_list = project.get("hidden_deleted_archive") or []
+        target_arch = next((a for a in archive_list if a.get("archive_id") == archive_id), None)
+        if not target_arch:
+            return jsonify({"status": "error", "message": "La copia oculta especificada no fue encontrada."}), 404
+
+        if target_arch.get("item_type") == "documento" and target_arch.get("doc_snapshot"):
+            doc_snap = target_arch["doc_snapshot"]
+            existing_ids = {h.get("id") for h in (project.get("ai_history") or [])}
+            if doc_snap.get("id") not in existing_ids:
+                project.setdefault("ai_history", []).insert(0, doc_snap)
+        elif target_arch.get("item_type") == "brecha" and target_arch.get("brecha_snapshot"):
+            b_snap = target_arch["brecha_snapshot"]
+            project.setdefault("brechas", []).append(b_snap)
+            existing_ids = {h.get("id") for h in (project.get("ai_history") or [])}
+            for d_snap in (target_arch.get("linked_docs_snapshots") or []):
+                if isinstance(d_snap, dict) and d_snap.get("id") not in existing_ids:
+                    project.setdefault("ai_history", []).insert(0, d_snap)
+
+        det_ev = target_arch.get("detached_evidences") or {}
+        if isinstance(det_ev, dict):
+            for r_id, ev_list in det_ev.items():
+                if r_id in (project.get("requisitos") or {}) and isinstance(ev_list, list):
+                    curr_evs = project["requisitos"][r_id].setdefault("evidences", [])
+                    curr_paths = {e.get("path") for e in curr_evs if isinstance(e, dict)}
+                    for ev_item in ev_list:
+                        if isinstance(ev_item, dict) and ev_item.get("path") not in curr_paths:
+                            curr_evs.append(ev_item)
+
+        project["hidden_deleted_archive"] = [a for a in archive_list if a.get("archive_id") != archive_id]
+
+        _append_cc_deletion_audit_log(
+            project,
+            accion="Restaurado al Expediente Activo por Administrador",
+            item_type="Documento / Análisis IA" if target_arch.get("item_type") == "documento" else "Brecha Institucional",
+            codigo=target_arch.get("codigo", ""),
+            titulo=target_arch.get("titulo", ""),
+            frente=target_arch.get("frente", "General"),
+            user_record=user_rec,
+            fallback_name=user_name,
+            fallback_role=db_role,
+            motivo="Restauración de copia oculta autorizada por Administrador Institucional"
+        )
+
+        save_cc_project(inst_id, project)
+        return jsonify({
+            "status": "success",
+            "project": project,
+            "hidden_deleted_archive": project["hidden_deleted_archive"],
+            "deletion_audit_log": project["deletion_audit_log"]
+        })
+    except Exception as e:
+        print(f"[CC Admin Restore Deleted] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @cambio_caracter_bp.route('/api/cambio_caracter/download_word', methods=['POST'])

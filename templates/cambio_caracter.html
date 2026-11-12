@@ -868,6 +868,9 @@
                         <button id="btn-cc-reset-zero" class="btn-cc-hero" style="background:rgba(239, 68, 68, 0.18); color:#fecaca; border:1px solid rgba(248, 113, 113, 0.45);" onclick="confirmResetCcProject()" title="Reiniciar el módulo en 0% eliminando registros previos">
                             <i class="fa-solid fa-rotate-left"></i> Reiniciar (0%)
                         </button>
+                        <button id="btn-cc-admin-archive" class="btn-cc-hero" style="display:none; background:rgba(250, 204, 21, 0.16); color:#fef08a; border:1px solid rgba(250, 204, 21, 0.45);" onclick="openAdminDeletedArchiveModal()" title="Copias ocultas de elementos eliminados y bitácora de auditoría (solo Administrador)">
+                            <i class="fa-solid fa-shield-halved"></i> Copias Ocultas y Auditoría (<span id="badge-admin-archive">0</span>)
+                        </button>
                     </div>
                 </div>
 
@@ -1674,6 +1677,40 @@
     </div>
 </div>
 
+<!-- MODAL: COPIAS OCULTAS Y AUDITORÍA DE ELIMINACIONES (SOLO ADMINISTRADOR INSTITUCIONAL / SUPERADMIN) -->
+<div id="adminDeletedArchiveModal" class="cc-modal-backdrop">
+    <style>#admin-audit-log-body td { padding:6px 8px; border-top:1px solid #f1f5f9; vertical-align:top; }</style>
+    <div class="cc-modal-box" style="width:1000px; max-width:96vw;">
+        <div class="cc-modal-header">
+            <h3 style="margin:0; font-size:1.1rem; color:#1e293b; font-weight:800;">🛡️ Copias Ocultas y Registro de Eliminaciones <small style="font-size:0.72rem; color:#b91c1c; font-weight:700;">(Solo Administrador)</small></h3>
+            <button onclick="closeAdminDeletedArchiveModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#94a3b8;">&times;</button>
+        </div>
+        <div class="cc-modal-body" style="max-height:75vh; overflow-y:auto;">
+            <p style="margin:0 0 12px 0; font-size:0.8rem; color:#475569;">
+                Cuando un usuario elimina una brecha o un documento/análisis IA (previa verificación de su contraseña), el elemento sale del expediente activo y queda aquí como copia oculta.
+                Solo el Administrador Institucional puede <strong>restaurarlo</strong> o <strong>eliminarlo definitivamente</strong>.
+            </p>
+            <h4 style="margin:0 0 8px 0; font-size:0.92rem; color:#7f1d1d; font-weight:800;"><i class="fa-solid fa-box-archive"></i> Pendientes de eliminación definitiva (<span id="admin-archive-count">0</span>)</h4>
+            <div id="admin-archive-list" style="margin-bottom:18px;"></div>
+            <h4 style="margin:0 0 8px 0; font-size:0.92rem; color:#1e293b; font-weight:800;"><i class="fa-solid fa-clipboard-list"></i> Bitácora de auditoría</h4>
+            <div style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:10px;">
+                <table style="width:100%; border-collapse:collapse; font-size:0.76rem;">
+                    <thead style="background:#f1f5f9; text-align:left;">
+                        <tr>
+                            <th style="padding:7px 8px;">Fecha</th>
+                            <th style="padding:7px 8px;">Acción</th>
+                            <th style="padding:7px 8px;">Elemento</th>
+                            <th style="padding:7px 8px;">Usuario</th>
+                            <th style="padding:7px 8px;">Motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-audit-log-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL: REGISTRAR O EDITAR BRECHA -->
 <div id="newBrechaModal" class="cc-modal-backdrop">
     <div class="cc-modal-box" style="width:650px;">
@@ -2253,6 +2290,10 @@
 
         const btnExcel = document.getElementById('btn-cc-export-excel');
         if (btnExcel) btnExcel.style.display = adminMode ? 'inline-flex' : 'none';
+
+        const btnArchive = document.getElementById('btn-cc-admin-archive');
+        if (btnArchive) btnArchive.style.display = adminMode ? 'inline-flex' : 'none';
+        if (adminMode) updateAdminArchiveBadge((currentData && currentData.hidden_deleted_count) || 0);
 
         // 2. Pestañas exclusivas de Gobierno y Alta Dirección (Fases Globales y Matriz de Riesgos)
         const tabFases = document.getElementById('tab-btn-cc-fases');
@@ -3563,22 +3604,12 @@
     async function deleteBrechaItem(idx) {
         const b = (currentData.brechas || [])[idx];
         if (!b) return;
-        const confirmRes = await Swal.fire({
-            title: `¿Eliminar la brecha ${b.id}?`,
-            html: `
-                <div style="text-align:left; font-size:0.86rem; color:#334155;">
-                    <p style="margin:0 0 8px 0;"><strong>Frente:</strong> ${b.frente}<br><strong>Descripción:</strong> ${b.descripcion}</p>
-                    <p style="margin:0; color:#b91c1c; font-size:0.8rem;"><i class="fa-solid fa-circle-info"></i> Se eliminará esta brecha de la matriz y también se limpiará cualquier análisis preliminar vinculado para evitar conflictos al subir un nuevo archivo.</p>
-                </div>
-            `,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#64748b',
-            confirmButtonText: '<i class="fa-solid fa-trash-can"></i> Sí, eliminar brecha',
-            cancelButtonText: 'Cancelar'
-        });
-        if (!confirmRes.isConfirmed) return;
+        const auth = await promptPasswordForDeletion(
+            `¿Eliminar la brecha ${b.id}?`,
+            `<p style="margin:0 0 8px 0;"><strong>Frente:</strong> ${b.frente}<br><strong>Descripción:</strong> ${b.descripcion}</p>
+             <p style="margin:0; color:#b91c1c; font-size:0.8rem;"><i class="fa-solid fa-circle-info"></i> La brecha y su análisis vinculado se retirarán de la matriz activa para evitar conflictos.</p>`
+        );
+        if (!auth) return;
 
         try {
             const res = await fetch('/api/cambio_caracter/brecha/delete', {
@@ -3587,7 +3618,8 @@
                 body: JSON.stringify({
                     index: idx,
                     id: b.id,
-                    delete_linked_doc: true
+                    delete_linked_doc: true,
+                    ...auth
                 })
             });
             const d = await res.json();
@@ -3595,16 +3627,287 @@
                 await loadData();
                 Swal.fire({
                     icon: 'success',
-                    title: 'Brecha Eliminada',
-                    text: 'La brecha y sus artefactos en conflicto fueron eliminados correctamente.',
-                    timer: 1500,
-                    showConfirmButton: false
+                    title: 'Brecha Retirada',
+                    html: 'La brecha fue retirada de la matriz activa. Se generó una <strong>copia oculta</strong> y quedó registrado quién realizó la acción. Solo el Administrador Institucional puede eliminarla definitivamente.',
+                    confirmButtonColor: '#4f46e5'
                 });
             } else {
-                Swal.fire('Error', d.message || 'No se pudo eliminar la brecha.', 'error');
+                Swal.fire('No se eliminó', d.message || 'No se pudo eliminar la brecha.', 'error');
             }
         } catch (e) {
             Swal.fire('Error', 'Fallo de conexión al eliminar la brecha.', 'error');
+        }
+    }
+
+    /* ==============================================================
+       ELIMINACIÓN SEGURA: CONTRASEÑA + AUDITORÍA + COPIA OCULTA ADMIN
+       ============================================================== */
+    function getCcAuthIdentity() {
+        const u = getCcCurrentUser();
+        return {
+            user_id: u.id || localStorage.getItem('siac_user_id') || null,
+            user_email: u.email || localStorage.getItem('siac_user_email') || '',
+            user_name: u.name || localStorage.getItem('siac_user_name') || '',
+            user_role: (u.role || localStorage.getItem('siac_user_role') || '').toLowerCase()
+        };
+    }
+
+    function escapeCcHtml(str) {
+        return String(str == null ? '' : str)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    async function promptPasswordForDeletion(title, detailHtml, opts = {}) {
+        const ident = getCcAuthIdentity();
+        const askMotivo = opts.askMotivo !== false;
+        const confirmText = opts.confirmText || '<i class="fa-solid fa-lock"></i> Verificar y eliminar';
+        const result = await Swal.fire({
+            title: title,
+            icon: 'warning',
+            html: `
+                <div style="text-align:left; font-size:0.86rem; color:#334155;">
+                    ${detailHtml || ''}
+                    <div style="margin:12px 0 6px 0; padding:9px 11px; background:#fef3c7; border:1px solid #fde68a; border-radius:8px; font-size:0.78rem; color:#92400e;">
+                        <i class="fa-solid fa-shield-halved"></i> Por seguridad, confirma con tu <strong>contraseña de acceso</strong>. Quedará registrado:
+                        <strong>${escapeCcHtml(ident.user_name || ident.user_email || 'Usuario')}</strong> (${escapeCcHtml(ident.user_role || 'sin rol')}).
+                    </div>
+                    <label style="font-size:0.78rem; font-weight:700;">Contraseña de acceso</label>
+                    <input type="password" id="swal-del-pass" class="swal2-input" autocomplete="current-password" placeholder="Tu contraseña" style="margin:4px 0 10px 0; width:100%; box-sizing:border-box;">
+                    ${askMotivo ? `
+                        <label style="font-size:0.78rem; font-weight:700;">Motivo de la eliminación</label>
+                        <input type="text" id="swal-del-motivo" class="swal2-input" maxlength="300" placeholder="Ej.: análisis mal elaborado / archivo equivocado" style="margin:4px 0 0 0; width:100%; box-sizing:border-box;">
+                    ` : ''}
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: confirmText,
+            cancelButtonText: 'Cancelar',
+            focusConfirm: false,
+            didOpen: () => { const p = document.getElementById('swal-del-pass'); if (p) p.focus(); },
+            preConfirm: () => {
+                const pass = (document.getElementById('swal-del-pass') || {}).value || '';
+                const motivoEl = document.getElementById('swal-del-motivo');
+                const motivo = motivoEl ? motivoEl.value.trim() : '';
+                if (!pass) {
+                    Swal.showValidationMessage('Debes ingresar tu contraseña de acceso.');
+                    return false;
+                }
+                if (askMotivo && motivo.length < 5) {
+                    Swal.showValidationMessage('Describe brevemente el motivo (mínimo 5 caracteres).');
+                    return false;
+                }
+                return { password: pass, motivo: motivo };
+            }
+        });
+        if (!result.isConfirmed || !result.value) return null;
+        return { ...ident, password: result.value.password, motivo: result.value.motivo };
+    }
+
+    window.ccDeletedArchive = [];
+    window.ccDeletionAuditLog = [];
+
+    async function openAdminDeletedArchiveModal() {
+        if (!isCcAdmin()) {
+            return Swal.fire('Acceso Restringido', 'Solo el Administrador Institucional y el Superadministrador pueden ver las copias ocultas.', 'warning');
+        }
+        document.getElementById('adminDeletedArchiveModal').style.display = 'flex';
+        await refreshAdminDeletedArchive();
+    }
+
+    function closeAdminDeletedArchiveModal() {
+        document.getElementById('adminDeletedArchiveModal').style.display = 'none';
+    }
+
+    async function refreshAdminDeletedArchive() {
+        const box = document.getElementById('admin-archive-list');
+        const logBox = document.getElementById('admin-audit-log-body');
+        if (box) box.innerHTML = '<p style="text-align:center; color:#64748b; padding:16px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando copias ocultas...</p>';
+        try {
+            const ident = getCcAuthIdentity();
+            const res = await fetch('/api/cambio_caracter/admin/deleted_archive', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_email: ident.user_email, user_id: ident.user_id })
+            });
+            const d = await res.json();
+            if (d.status !== 'success') {
+                if (box) box.innerHTML = `<p style="color:#b91c1c; padding:12px;">${escapeCcHtml(d.message || 'No autorizado.')}</p>`;
+                if (logBox) logBox.innerHTML = '';
+                return;
+            }
+            window.ccDeletedArchive = d.hidden_deleted_archive || [];
+            window.ccDeletionAuditLog = d.deletion_audit_log || [];
+            renderAdminDeletedArchive();
+            updateAdminArchiveBadge(window.ccDeletedArchive.length);
+        } catch (e) {
+            if (box) box.innerHTML = '<p style="color:#b91c1c; padding:12px;">Fallo de conexión al cargar las copias ocultas.</p>';
+        }
+    }
+
+    function updateAdminArchiveBadge(count) {
+        const badge = document.getElementById('badge-admin-archive');
+        if (badge) badge.innerText = count;
+    }
+
+    function fmtCcDate(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    }
+
+    function renderAdminDeletedArchive() {
+        const box = document.getElementById('admin-archive-list');
+        const logBox = document.getElementById('admin-audit-log-body');
+        const items = window.ccDeletedArchive || [];
+        document.getElementById('admin-archive-count').innerText = items.length;
+
+        if (items.length === 0) {
+            box.innerHTML = `<div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:22px; text-align:center; color:#64748b; font-size:0.84rem;">
+                <i class="fa-solid fa-box-open" style="font-size:1.6rem; color:#cbd5e1; display:block; margin-bottom:6px;"></i>
+                No hay copias ocultas pendientes de eliminación definitiva.</div>`;
+        } else {
+            box.innerHTML = items.map(a => {
+                const isDoc = a.item_type === 'documento';
+                const linkedCount = (a.linked_docs_snapshots || []).length;
+                const typeLabel = isDoc ? '📄 Documento / Análisis IA' : `⚠️ Brecha${linkedCount ? ` + ${linkedCount} análisis vinculado(s)` : ''}`;
+                return `
+                    <div style="border:1px solid #fecaca; background:#fff; border-radius:10px; padding:12px 14px; margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:flex-start;">
+                            <div style="min-width:0; flex:1;">
+                                <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:4px;">
+                                    <span style="background:#7f1d1d; color:#fff; font-size:0.68rem; font-weight:800; padding:2px 7px; border-radius:4px;">${escapeCcHtml(a.codigo)}</span>
+                                    <span style="background:#fee2e2; color:#991b1b; font-size:0.68rem; font-weight:700; padding:2px 7px; border-radius:4px;">${typeLabel}</span>
+                                    <span style="font-size:0.7rem; color:#64748b;"><i class="fa-solid fa-sitemap"></i> ${escapeCcHtml(a.frente)}</span>
+                                </div>
+                                <div style="font-size:0.85rem; font-weight:800; color:#1e293b; margin-bottom:4px;">${escapeCcHtml(a.titulo)}</div>
+                                <div style="font-size:0.75rem; color:#475569; line-height:1.45;">
+                                    <i class="fa-solid fa-user-xmark" style="color:#dc2626;"></i> Eliminado por <strong>${escapeCcHtml(a.deleted_by_name)}</strong>
+                                    (${escapeCcHtml(a.deleted_by_email)} · rol: ${escapeCcHtml(a.deleted_by_role)}) — ${fmtCcDate(a.deleted_at)}<br>
+                                    <i class="fa-solid fa-comment-dots" style="color:#94a3b8;"></i> Motivo: <em>${escapeCcHtml(a.motivo)}</em>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:6px; flex-wrap:wrap; flex-shrink:0;">
+                                <button onclick="viewArchivedCopy('${a.archive_id}')" style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe; padding:6px 10px; border-radius:6px; font-size:0.74rem; font-weight:700; cursor:pointer;"><i class="fa-solid fa-eye"></i> Ver copia</button>
+                                <button onclick="restoreArchivedCopy('${a.archive_id}')" style="background:#dcfce7; color:#166534; border:1px solid #bbf7d0; padding:6px 10px; border-radius:6px; font-size:0.74rem; font-weight:700; cursor:pointer;"><i class="fa-solid fa-rotate-left"></i> Restaurar</button>
+                                <button onclick="permanentDeleteArchivedCopy('${a.archive_id}')" style="background:#dc2626; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:0.74rem; font-weight:700; cursor:pointer;"><i class="fa-solid fa-trash-can"></i> Eliminar definitivamente</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        const logs = window.ccDeletionAuditLog || [];
+        logBox.innerHTML = logs.length === 0
+            ? '<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:14px;">Sin registros de eliminación.</td></tr>'
+            : logs.map(l => `
+                <tr>
+                    <td style="white-space:nowrap;">${fmtCcDate(l.fecha)}</td>
+                    <td><strong>${escapeCcHtml(l.accion)}</strong></td>
+                    <td>${escapeCcHtml(l.item_type)}<br><small style="color:#64748b;">${escapeCcHtml(l.codigo)} · ${escapeCcHtml((l.titulo || '').substring(0, 70))}</small></td>
+                    <td>${escapeCcHtml(l.usuario_nombre)}<br><small style="color:#64748b;">${escapeCcHtml(l.usuario_email)} · ${escapeCcHtml(l.usuario_rol)}</small></td>
+                    <td><small>${escapeCcHtml(l.motivo)}</small></td>
+                </tr>
+            `).join('');
+    }
+
+    function viewArchivedCopy(archiveId) {
+        const a = (window.ccDeletedArchive || []).find(x => x.archive_id === archiveId);
+        if (!a) return;
+        let bodyHtml = '';
+        if (a.item_type === 'documento' && a.doc_snapshot) {
+            const doc = a.doc_snapshot;
+            const fileUrl = doc.supabase_doc_url || doc.original_file_url;
+            bodyHtml = `
+                ${fileUrl ? `<p style="margin:0 0 10px 0;"><a href="${fileUrl}" target="_blank" style="color:#4f46e5; font-weight:700;"><i class="fa-solid fa-cloud-arrow-down"></i> Descargar archivo original conservado</a></p>` : ''}
+                <div class="cc-official-doc-preview" style="max-height:420px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; padding:14px; background:#fff;">
+                    ${marked.parse(doc.contenido || '_Sin contenido_', { breaks: true, gfm: true })}
+                </div>`;
+        } else if (a.brecha_snapshot) {
+            const b = a.brecha_snapshot;
+            bodyHtml = `
+                <table style="width:100%; font-size:0.8rem; border-collapse:collapse;">
+                    ${['id','frente','requisito_id','descripcion','accion_propuesta','prioridad','responsable','estado','plazo','evidencia_faltante'].map(k => `
+                        <tr><td style="padding:4px 6px; font-weight:700; border-bottom:1px solid #f1f5f9; width:30%;">${k}</td>
+                        <td style="padding:4px 6px; border-bottom:1px solid #f1f5f9;">${escapeCcHtml(b[k] || '')}</td></tr>`).join('')}
+                </table>
+                ${(a.linked_docs_snapshots || []).map(ld => `
+                    <div style="margin-top:12px; font-weight:800; font-size:0.82rem; color:#312e81;">📄 Análisis vinculado: ${escapeCcHtml(ld.titulo)}</div>
+                    <div class="cc-official-doc-preview" style="max-height:260px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; padding:12px; background:#fff;">
+                        ${marked.parse(ld.contenido || '_Sin contenido_', { breaks: true, gfm: true })}
+                    </div>`).join('')}`;
+        }
+        Swal.fire({
+            title: `Copia oculta · ${escapeCcHtml(a.codigo)}`,
+            html: `<div style="text-align:left;">${bodyHtml}</div>`,
+            width: 860,
+            confirmButtonColor: '#4f46e5',
+            confirmButtonText: 'Cerrar'
+        });
+    }
+
+    async function restoreArchivedCopy(archiveId) {
+        const a = (window.ccDeletedArchive || []).find(x => x.archive_id === archiveId);
+        if (!a) return;
+        const auth = await promptPasswordForDeletion(
+            `¿Restaurar ${escapeCcHtml(a.codigo)}?`,
+            `<p style="margin:0;">Se devolverá <strong>${escapeCcHtml(a.titulo)}</strong> al expediente activo del módulo.</p>`,
+            { askMotivo: false, confirmText: '<i class="fa-solid fa-rotate-left"></i> Verificar y restaurar' }
+        );
+        if (!auth) return;
+        try {
+            const res = await fetch('/api/cambio_caracter/admin/restore_deleted', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ archive_id: archiveId, ...auth })
+            });
+            const d = await res.json();
+            if (d.status === 'success') {
+                window.ccDeletedArchive = d.hidden_deleted_archive || [];
+                window.ccDeletionAuditLog = d.deletion_audit_log || [];
+                renderAdminDeletedArchive();
+                updateAdminArchiveBadge(window.ccDeletedArchive.length);
+                await loadData();
+                Swal.fire({ icon: 'success', title: 'Restaurado', text: 'El registro volvió al expediente activo.', timer: 1600, showConfirmButton: false });
+            } else {
+                Swal.fire('No se restauró', d.message || 'Error al restaurar.', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Fallo de conexión al restaurar.', 'error');
+        }
+    }
+
+    async function permanentDeleteArchivedCopy(archiveId) {
+        const a = (window.ccDeletedArchive || []).find(x => x.archive_id === archiveId);
+        if (!a) return;
+        const auth = await promptPasswordForDeletion(
+            `¿Eliminar DEFINITIVAMENTE ${escapeCcHtml(a.codigo)}?`,
+            `<p style="margin:0 0 6px 0;"><strong>${escapeCcHtml(a.titulo)}</strong></p>
+             <p style="margin:0; color:#b91c1c; font-size:0.8rem;"><i class="fa-solid fa-triangle-exclamation"></i> Esta acción es <strong>irreversible</strong>: se destruirá la copia oculta y sus archivos en Supabase Storage. La bitácora de auditoría se conserva.</p>`,
+            { confirmText: '<i class="fa-solid fa-trash-can"></i> Eliminar definitivamente' }
+        );
+        if (!auth) return;
+        try {
+            const res = await fetch('/api/cambio_caracter/admin/permanent_delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ archive_id: archiveId, ...auth })
+            });
+            const d = await res.json();
+            if (d.status === 'success') {
+                window.ccDeletedArchive = d.hidden_deleted_archive || [];
+                window.ccDeletionAuditLog = d.deletion_audit_log || [];
+                renderAdminDeletedArchive();
+                updateAdminArchiveBadge(window.ccDeletedArchive.length);
+                Swal.fire({ icon: 'success', title: 'Eliminado definitivamente', text: 'La acción quedó registrada en la bitácora de auditoría.', timer: 1800, showConfirmButton: false });
+            } else {
+                Swal.fire('No se eliminó', d.message || 'Error en la eliminación definitiva.', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Fallo de conexión.', 'error');
         }
     }
 
@@ -4685,23 +4988,26 @@
     async function deleteHistoryItem(id) {
         const docObj = (currentData.ai_history || []).find(h => h.id === id);
         const docName = docObj ? docObj.titulo : 'este documento / análisis';
-        const confirmRes = await Swal.fire({
-            title: '¿Eliminar Análisis / Documento?',
-            html: `Se eliminará <strong>${docName}</strong> de la biblioteca institucional y se limpiarán sus archivos vinculados en Supabase para que puedas subir o generar una nueva versión sin conflictos.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#64748b',
-            confirmButtonText: '<i class="fa-solid fa-trash-can"></i> Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        });
-        if (!confirmRes.isConfirmed) return;
+        const auth = await promptPasswordForDeletion(
+            '¿Eliminar Análisis / Documento?',
+            `<p style="margin:0;">Se retirará <strong>${escapeCcHtml(docName)}</strong> de la biblioteca activa para que puedas subir o generar una nueva versión sin conflictos.</p>`
+        );
+        if (!auth) return;
 
-        await fetch('/api/cambio_caracter/ai_history/delete', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({id: id})
-        });
+        try {
+            const res = await fetch('/api/cambio_caracter/ai_history/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ id: id, ...auth })
+            });
+            const d = await res.json();
+            if (d.status !== 'success') {
+                return Swal.fire('No se eliminó', d.message || 'No se pudo eliminar el documento.', 'error');
+            }
+        } catch (e) {
+            return Swal.fire('Error', 'Fallo de conexión al eliminar el documento.', 'error');
+        }
+
         if (selectedHistoryId === id) {
             selectedHistoryId = null;
             document.getElementById('editor-title').value = '';
@@ -4710,10 +5016,9 @@
         await loadData();
         Swal.fire({
             icon: 'success',
-            title: 'Eliminado Correctamente',
-            text: 'El documento o análisis de brecha ha sido eliminado sin dejar conflictos.',
-            timer: 1500,
-            showConfirmButton: false
+            title: 'Documento Retirado',
+            html: 'Se generó una <strong>copia oculta</strong> y quedó registrado quién realizó la acción. Solo el Administrador Institucional puede eliminarla definitivamente o restaurarla.',
+            confirmButtonColor: '#4f46e5'
         });
     }
 
