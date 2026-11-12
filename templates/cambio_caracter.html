@@ -501,6 +501,46 @@
         .role-operativo { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 
         /* Req Evidence Modal & Margy IA Styles */
+        @media print {
+            body * {
+                visibility: hidden !important;
+            }
+            #modalActaMesaTrabajo, #modalActaMesaTrabajo * {
+                visibility: visible !important;
+            }
+            #modalActaMesaTrabajo {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                background: #ffffff !important;
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            #modalActaMesaTrabajo .cc-modal-box {
+                box-shadow: none !important;
+                border: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+            #modalActaMesaTrabajo .cc-modal-header,
+            #modalActaMesaTrabajo > div > div:nth-child(2),
+            #modalActaMesaTrabajo > div > div:last-child,
+            #acta-view-edit {
+                display: none !important;
+            }
+            #acta-view-preview, #acta-printable-document {
+                display: block !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+        }
         .req-subtab-btn {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -1706,6 +1746,314 @@
                     </thead>
                     <tbody id="admin-audit-log-body"></tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: ACTA DE REUNIÓN DE MESA DE TRABAJO (EVIDENCIA FORMAL ANTE PARES MEN) -->
+<div id="modalActaMesaTrabajo" class="cc-modal-backdrop">
+    <div class="cc-modal-box" style="width:1100px; max-width:96vw; max-height:92vh; display:flex; flex-direction:column; background:#ffffff; border-radius:16px; overflow:hidden;">
+        <!-- Encabezado del Modal -->
+        <div class="cc-modal-header" style="background:linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color:#ffffff; padding:16px 24px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:42px; height:42px; border-radius:10px; background:rgba(255,255,255,0.12); display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:#a5b4fc;">
+                    <i class="fa-solid fa-file-signature"></i>
+                </div>
+                <div>
+                    <h3 style="margin:0; font-size:1.1rem; font-weight:800; color:#ffffff;">Acta Institucional de Mesa de Trabajo</h3>
+                    <div style="font-size:0.75rem; color:#c7d2fe;">Soporte probatorio de co-construcción participativa y cierre de brechas ante Pares del MEN</div>
+                </div>
+            </div>
+            <button onclick="closeActaMesaModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#cbd5e1; line-height:1;">&times;</button>
+        </div>
+
+        <!-- Barra de pestañas y botones de acción rápida -->
+        <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:10px 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <!-- Pestañas -->
+            <div style="display:flex; gap:6px;">
+                <button type="button" id="tab-btn-acta-edit" onclick="switchActaModalTab('edit')" class="acta-tab-btn active" style="padding:7px 14px; border-radius:8px; border:1px solid #c7d2fe; font-size:0.78rem; font-weight:800; cursor:pointer; background:#4f46e5; color:#ffffff;">
+                    <i class="fa-solid fa-pen-to-square"></i> Edición del Acta
+                </button>
+                <button type="button" id="tab-btn-acta-preview" onclick="switchActaModalTab('preview')" class="acta-tab-btn" style="padding:7px 14px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.78rem; font-weight:800; cursor:pointer; background:#ffffff; color:#475569;">
+                    <i class="fa-solid fa-eye"></i> Vista Previa Institucional
+                </button>
+            </div>
+
+            <!-- Acciones -->
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                <button type="button" onclick="runAiDraftForActa()" id="btn-acta-ai-draft" style="background:linear-gradient(135deg, #9333ea, #7c3aed); color:#fff; border:none; padding:7px 12px; border-radius:7px; font-size:0.76rem; font-weight:800; cursor:pointer;" title="Redactar o pulir el objetivo, desarrollo, conclusiones y compromisos con el Asistente IA">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Redactar con IA
+                </button>
+                <button type="button" onclick="saveCurrentActa()" style="background:#10b981; color:#fff; border:none; padding:7px 12px; border-radius:7px; font-size:0.76rem; font-weight:800; cursor:pointer;" title="Guardar los cambios del acta en la bitácora">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar Acta
+                </button>
+                <button type="button" onclick="downloadCurrentActaWord()" style="background:linear-gradient(135deg, #1e40af, #2563eb); color:#fff; border:none; padding:7px 13px; border-radius:7px; font-size:0.76rem; font-weight:800; cursor:pointer;" title="Descargar documento Word oficial (.docx) con logo, tablas y espacios para firmas">
+                    <i class="fa-solid fa-file-word"></i> Descargar Word (.docx)
+                </button>
+                <button type="button" onclick="printCurrentActa()" style="background:#475569; color:#fff; border:none; padding:7px 12px; border-radius:7px; font-size:0.76rem; font-weight:800; cursor:pointer;" title="Imprimir directamente o guardar en PDF">
+                    <i class="fa-solid fa-print"></i> Imprimir
+                </button>
+            </div>
+        </div>
+
+        <!-- Cuerpo del Modal -->
+        <div class="cc-modal-body" style="padding:20px 24px; overflow-y:auto; flex:1; background:#f1f5f9;">
+            <!-- PESTAÑA 1: FORMULARIO DE EDICIÓN -->
+            <div id="acta-view-edit">
+                <!-- Tarjeta 0: Identificación Institucional y Formato -->
+                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px; border-bottom:1px solid #f1f5f9; padding-bottom:12px;">
+                        <!-- Logo institucional con cargador -->
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="width:110px; height:50px; border:1px dashed #cbd5e1; border-radius:8px; display:flex; align-items:center; justify-content:center; background:#f8fafc; overflow:hidden;">
+                                <img id="acta-header-logo-preview" src="/static/logo_skel.png" alt="Logo Institucional" style="max-height:44px; max-width:100px; object-fit:contain;">
+                            </div>
+                            <div>
+                                <input type="file" id="acta-logo-file-input" accept="image/*" style="display:none;" onchange="handleActaLogoFileSelect(this)">
+                                <button type="button" onclick="document.getElementById('acta-logo-file-input').click()" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; padding:4px 9px; border-radius:6px; font-size:0.72rem; font-weight:700; cursor:pointer;">
+                                    <i class="fa-solid fa-image"></i> Cambiar Logo (.png/.jpg)
+                                </button>
+                                <div style="font-size:0.68rem; color:#64748b; margin-top:2px;">Se incluirá en el encabezado oficial del Word.</div>
+                            </div>
+                        </div>
+
+                        <!-- Metadatos de Calidad Institucional -->
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                            <div>
+                                <label style="font-size:0.7rem; font-weight:800; color:#475569; display:block;">Acta N.º:</label>
+                                <input type="text" id="acta-inp-numero" placeholder="Ej: ACT-CC-2026-001" style="padding:6px 9px; font-size:0.8rem; font-weight:800; color:#1e1b4b; background:#e0e7ff; border:1px solid #c7d2fe; border-radius:6px; width:160px;">
+                            </div>
+                            <div>
+                                <label style="font-size:0.7rem; font-weight:700; color:#475569; display:block;">Código Formato:</label>
+                                <input type="text" id="acta-inp-codigo-formato" value="CC-FO-ACT-01" style="padding:6px 8px; font-size:0.78rem; border:1px solid #cbd5e1; border-radius:6px; width:125px;">
+                            </div>
+                            <div>
+                                <label style="font-size:0.7rem; font-weight:700; color:#475569; display:block;">Versión Formato:</label>
+                                <input type="text" id="acta-inp-ver-formato" value="01" style="padding:6px 8px; font-size:0.78rem; border:1px solid #cbd5e1; border-radius:6px; width:65px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div>
+                            <label style="font-size:0.72rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Institución:</label>
+                            <input type="text" id="acta-inp-inst-nombre" value="INTENALCO EDUCACIÓN SUPERIOR" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.82rem; font-weight:700; color:#1e293b;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Proceso Institucional:</label>
+                            <input type="text" id="acta-inp-proceso" value="Plan Estratégico de Redefinición a Institución Universitaria (Ley 749/2002 · Decreto 2038/2023)" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.82rem; color:#334155;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 1: Datos Generales de la Reunión -->
+                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px; margin-bottom:16px;">
+                    <h5 style="margin:0 0 12px 0; font-size:0.88rem; color:#1e293b; font-weight:800; display:flex; align-items:center; gap:8px;">
+                        <span style="background:#4f46e5; color:white; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.72rem;">1</span>
+                        Datos Generales de la Reunión
+                    </h5>
+                    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:10px;">
+                        <div>
+                            <label style="font-size:0.72rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Fecha:</label>
+                            <input type="date" id="acta-inp-fecha" style="width:100%; padding:7px 9px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Hora Inicio:</label>
+                            <input type="text" id="acta-inp-hora-ini" placeholder="08:00 AM" style="width:100%; padding:7px 9px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Hora Fin:</label>
+                            <input type="text" id="acta-inp-hora-fin" placeholder="10:30 AM" style="width:100%; padding:7px 9px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Modalidad:</label>
+                            <select id="acta-sel-modalidad" style="width:100%; padding:7px 9px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem; background:#fff;">
+                                <option value="Híbrida (Presencial y Virtual)">Híbrida (Presencial y Virtual)</option>
+                                <option value="Presencial">Presencial</option>
+                                <option value="Virtual (Microsoft Teams / Meet)">Virtual (Teams / Meet)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div>
+                            <label style="font-size:0.72rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Lugar / Enlace de Sesión:</label>
+                            <input type="text" id="acta-inp-lugar" placeholder="Sala de Juntas de Vicerrectoría / Sala Virtual" style="width:100%; padding:7px 9px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Convoca / Preside:</label>
+                            <input type="text" id="acta-inp-convoca" placeholder="Nombre o cargo..." style="width:100%; padding:7px 9px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; font-weight:700; color:#475569; display:block; margin-bottom:3px;">Secretario(a) de la Mesa:</label>
+                            <input type="text" id="acta-inp-secretario" placeholder="Nombre o cargo..." style="width:100%; padding:7px 9px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                        </div>
+                    </div>
+
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:9px 12px; font-size:0.78rem; color:#334155; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-file-lines" style="color:#6366f1;"></i>
+                        <span><strong>Documento Vinculado:</strong> <span id="acta-lbl-doc-info">DOC · Título</span></span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 2: Brecha Institucional Abordada -->
+                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px; margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                        <h5 style="margin:0; font-size:0.88rem; color:#1e293b; font-weight:800; display:flex; align-items:center; gap:8px;">
+                            <span style="background:#f59e0b; color:white; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.72rem;">2</span>
+                            Brecha Institucional Abordada en la Mesa
+                        </h5>
+                        <span style="font-size:0.72rem; color:#64748b;">Selecciona la brecha de la matriz que motivó esta sesión</span>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <select id="acta-sel-brecha" onchange="onActaBrechaChange()" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.82rem; background:#fff; font-weight:600; color:#1e293b;">
+                            <option value="">-- Sin brecha asociada / Sesión general de co-construcción --</option>
+                        </select>
+                    </div>
+                    <div id="acta-brecha-details-card" style="display:none; background:#fefce8; border:1px solid #fef08a; border-radius:8px; padding:12px 14px; font-size:0.78rem; color:#713f12;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+                            <span id="acta-brecha-det-code" style="background:#ca8a04; color:#fff; font-weight:800; padding:2px 7px; border-radius:4px; font-size:0.72rem;">BRE-001</span>
+                            <span id="acta-brecha-det-frente" style="font-weight:700; color:#854d0e;">Frente: Gobierno y normativa</span>
+                            <span id="acta-brecha-det-trat" style="background:#fff; color:#a16207; border:1px solid #fde047; font-weight:700; padding:2px 6px; border-radius:4px; font-size:0.7rem;">Tratamiento: Actualizar</span>
+                        </div>
+                        <div style="margin-bottom:4px;"><strong>Descripción:</strong> <span id="acta-brecha-det-desc">...</span></div>
+                        <div style="margin-bottom:2px;"><strong>Evidencia Faltante:</strong> <span id="acta-brecha-det-evid">...</span></div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 3: Integrantes de la Mesa (Asistentes y Firmantes) -->
+                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px; margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                        <h5 style="margin:0; font-size:0.88rem; color:#1e293b; font-weight:800; display:flex; align-items:center; gap:8px;">
+                            <span style="background:#059669; color:white; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.72rem;">3</span>
+                            Integrantes de la Mesa (<span id="acta-asistentes-count">0</span>)
+                        </h5>
+                        <div style="display:flex; gap:6px;">
+                            <button type="button" onclick="loadAllDocTeamIntoActaAttendees()" style="background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe; padding:4px 9px; border-radius:6px; font-size:0.72rem; font-weight:700; cursor:pointer;">
+                                <i class="fa-solid fa-users"></i> Cargar Equipo del Documento
+                            </button>
+                            <button type="button" onclick="addActaAttendeeRow()" style="background:#059669; color:#fff; border:none; padding:4px 9px; border-radius:6px; font-size:0.72rem; font-weight:700; cursor:pointer;">
+                                <i class="fa-solid fa-plus"></i> + Agregar Integrante
+                            </button>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse; font-size:0.78rem;">
+                            <thead style="background:#f8fafc; text-align:left; color:#475569; border-bottom:1px solid #e2e8f0;">
+                                <tr>
+                                    <th style="padding:6px 8px; width:40px; text-align:center;">#</th>
+                                    <th style="padding:6px 8px; width:30%;">Nombre Completo</th>
+                                    <th style="padding:6px 8px; width:30%;">Cargo / Rol en la Mesa</th>
+                                    <th style="padding:6px 8px; width:25%;">Dependencia / Estamento</th>
+                                    <th style="padding:6px 8px; text-align:center; width:65px;">Asistió</th>
+                                    <th style="padding:6px 8px; text-align:center; width:40px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="acta-asistentes-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 4: Objetivo y Orden del Día -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px;">
+                    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px;">
+                        <h5 style="margin:0 0 8px 0; font-size:0.86rem; color:#1e293b; font-weight:800; display:flex; align-items:center; gap:6px;">
+                            <span style="background:#3b82f6; color:white; width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.68rem;">4</span>
+                            Objetivo de la Reunión
+                        </h5>
+                        <textarea id="acta-txt-objetivo" rows="4" placeholder="Propósito técnico y normativo de la sesión..." style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem; resize:vertical;"></textarea>
+                    </div>
+                    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px;">
+                        <h5 style="margin:0 0 8px 0; font-size:0.86rem; color:#1e293b; font-weight:800; display:flex; align-items:center; gap:6px;">
+                            <span style="background:#3b82f6; color:white; width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.68rem;">5</span>
+                            Orden del Día
+                        </h5>
+                        <textarea id="acta-txt-orden-dia" rows="4" placeholder="Puntos a tratar (numerados)..." style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem; resize:vertical;"></textarea>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 5: Desarrollo de la Sesión y Debate -->
+                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px; margin-bottom:16px;">
+                    <h5 style="margin:0 0 8px 0; font-size:0.86rem; color:#1e293b; font-weight:800; display:flex; align-items:center; gap:6px;">
+                        <span style="background:#6366f1; color:white; width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.68rem;">6</span>
+                        Desarrollo de la Sesión / Debate Técnico y Aportes
+                    </h5>
+                    <textarea id="acta-txt-desarrollo" rows="5" placeholder="Descripción detallada de la discusión, revisión del articulado, aportes de los integrantes y consensos alcanzados..." style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem; resize:vertical;"></textarea>
+                </div>
+
+                <!-- Tarjeta 6: Conclusiones respecto a la Brecha -->
+                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px; margin-bottom:16px;">
+                    <h5 style="margin:0 0 8px 0; font-size:0.86rem; color:#1e293b; font-weight:800; display:flex; align-items:center; gap:6px;">
+                        <span style="background:#6366f1; color:white; width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.68rem;">7</span>
+                        Conclusiones y Acuerdos respecto a la Brecha
+                    </h5>
+                    <textarea id="acta-txt-conclusiones" rows="4" placeholder="Conclusiones precisas sobre el tratamiento de la brecha, decisiones adoptadas y aval colegiado..." style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem; resize:vertical;"></textarea>
+                </div>
+
+                <!-- Tarjeta 7: Compromisos y Tareas Asignadas -->
+                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px; margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h5 style="margin:0; font-size:0.86rem; color:#1e293b; font-weight:800; display:flex; align-items:center; gap:6px;">
+                            <span style="background:#0d9488; color:white; width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.68rem;">8</span>
+                            Compromisos y Tareas Asignadas (<span id="acta-compromisos-count">0</span>)
+                        </h5>
+                        <button type="button" onclick="addActaCommitmentRow()" style="background:#0d9488; color:#fff; border:none; padding:4px 9px; border-radius:6px; font-size:0.72rem; font-weight:700; cursor:pointer;">
+                            <i class="fa-solid fa-plus"></i> + Agregar Compromiso
+                        </button>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse; font-size:0.78rem;">
+                            <thead style="background:#f8fafc; text-align:left; color:#475569; border-bottom:1px solid #e2e8f0;">
+                                <tr>
+                                    <th style="padding:6px 8px; width:40px; text-align:center;">#</th>
+                                    <th style="padding:6px 8px; width:55%;">Compromiso / Acción Concreta</th>
+                                    <th style="padding:6px 8px; width:25%;">Responsable</th>
+                                    <th style="padding:6px 8px; width:15%;">Fecha Límite</th>
+                                    <th style="padding:6px 8px; text-align:center; width:40px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="acta-compromisos-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 8: Próxima Reunión y Observaciones -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px;">
+                        <label style="font-size:0.76rem; font-weight:800; color:#334155; display:block; margin-bottom:4px;">Próxima Reunión / Convocatoria:</label>
+                        <input type="text" id="acta-inp-proxima-reunion" placeholder="Ej: Según cronograma quincenal / 2026-11-25 09:00 AM" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                    </div>
+                    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px;">
+                        <label style="font-size:0.76rem; font-weight:800; color:#334155; display:block; margin-bottom:4px;">Observaciones Adicionales:</label>
+                        <input type="text" id="acta-inp-observaciones" placeholder="Ej: Se adjunta matriz técnica de contraste normativo como anexo 1" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.8rem;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- PESTAÑA 2: VISTA PREVIA INSTITUCIONAL / IMPRESIÓN FORMAL -->
+            <div id="acta-view-preview" style="display:none;">
+                <div style="max-width:850px; margin:0 auto; background:#ffffff; box-shadow:0 4px 16px rgba(0,0,0,0.06); border-radius:8px; padding:32px 36px; border:1px solid #e2e8f0;" id="acta-printable-document">
+                    <!-- Contenido renderizado dinámicamente por renderActaOfficialPreview -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer del Modal con atajos -->
+        <div style="background:#ffffff; border-top:1px solid #e2e8f0; padding:12px 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div style="font-size:0.74rem; color:#64748b;">
+                <i class="fa-solid fa-circle-check" style="color:#10b981;"></i> Los cambios guardados se reflejan automáticamente en el expediente co-construido de SIAC 360.
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button type="button" onclick="closeActaMesaModal()" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:7px 14px; border-radius:7px; font-size:0.78rem; font-weight:700; cursor:pointer;">
+                    Cerrar
+                </button>
+                <button type="button" onclick="saveCurrentActa(false)" style="background:#10b981; color:#fff; border:none; padding:7px 16px; border-radius:7px; font-size:0.78rem; font-weight:800; cursor:pointer;">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar Acta
+                </button>
+                <button type="button" onclick="downloadCurrentActaWord()" style="background:linear-gradient(135deg, #1e40af, #2563eb); color:#fff; border:none; padding:7px 16px; border-radius:7px; font-size:0.78rem; font-weight:800; cursor:pointer;">
+                    <i class="fa-solid fa-file-word"></i> Descargar Word (.docx)
+                </button>
             </div>
         </div>
     </div>
@@ -4315,7 +4663,28 @@
                         <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;">
                             ${partsList}
                         </div>
-                        <p style="margin:0; font-size:0.78rem; color:#334155; line-height:1.4;">${ap.comentario}</p>
+                        <p style="margin:0 0 8px 0; font-size:0.78rem; color:#334155; line-height:1.4;">${escapeCcHtml(ap.comentario)}</p>
+                        <div style="padding-top:7px; border-top:1px dashed #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                            <div>
+                                ${ap.acta ? `
+                                    <span style="display:inline-flex; align-items:center; gap:5px; font-size:0.71rem; font-weight:800; color:#1e1b4b; background:#e0e7ff; border:1px solid #c7d2fe; padding:2px 8px; border-radius:999px;">
+                                        <i class="fa-solid fa-file-signature" style="color:#4338ca;"></i> ${escapeCcHtml(ap.acta.numero || 'Acta Formal')}
+                                    </span>
+                                ` : `
+                                    <span style="font-size:0.7rem; color:#64748b;">
+                                        <i class="fa-regular fa-file-lines" style="color:#94a3b8;"></i> Acta de reunión disponible
+                                    </span>
+                                `}
+                            </div>
+                            <div style="display:flex; gap:6px; align-items:center;">
+                                <button type="button" onclick="openActaMesaModal('${item.id}', '${ap.id}')" style="background:#eef2ff; color:#3730a3; border:1px solid #c7d2fe; padding:4px 9px; border-radius:6px; font-size:0.72rem; font-weight:700; cursor:pointer;" title="Abrir formato institucional de acta, editar datos, asistentes y firmas">
+                                    <i class="fa-solid fa-file-pen"></i> ${ap.acta ? 'Editar Acta' : 'Generar Acta'}
+                                </button>
+                                <button type="button" onclick="downloadActaWordDirect('${item.id}', '${ap.id}')" style="background:linear-gradient(135deg, #1e40af, #2563eb); color:#fff; border:none; padding:4px 9px; border-radius:6px; font-size:0.72rem; font-weight:700; cursor:pointer;" title="Descargar Acta en Word (.docx) con logo institucional y espacios para firmas">
+                                    <i class="fa-solid fa-file-word"></i> Word (.docx)
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -4563,6 +4932,865 @@
         } catch (e) {
             Swal.fire('Error', 'No se pudo registrar el aporte.', 'error');
         }
+    }
+
+    /* ==============================================================
+       ACTAS INSTITUCIONALES DE MESA DE TRABAJO (EVIDENCIA ANTE PARES)
+       ============================================================== */
+    window.currentActaDocId = null;
+    window.currentActaAporteId = null;
+    window.currentActaData = null;
+    window.currentActaBrechas = [];
+    window.currentActaDocInfo = null;
+    window.currentActaLogoUrl = '';
+
+    async function openActaMesaModal(docId, aporteId) {
+        window.currentActaDocId = docId;
+        window.currentActaAporteId = aporteId;
+
+        Swal.fire({
+            title: 'Cargando Acta Institucional...',
+            text: 'Preparando formato de mesa y datos de co-construcción.',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const res = await fetch('/api/cambio_caracter/doc/acta/get', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ doc_id: docId, aporte_id: aporteId })
+            });
+            const d = await res.json();
+            Swal.close();
+
+            if (d.status !== 'success') {
+                return Swal.fire('Error', d.message || 'No se pudo cargar el acta.', 'error');
+            }
+
+            window.currentActaData = d.acta || {};
+            window.currentActaBrechas = d.brechas || [];
+            window.currentActaDocInfo = d.doc || {};
+            window.currentActaLogoUrl = d.logo || '/static/logo_skel.png';
+
+            // Actualizar vista del modal
+            populateActaModalFields(window.currentActaData);
+            document.getElementById('modalActaMesaTrabajo').style.display = 'flex';
+            switchActaModalTab('edit');
+        } catch (e) {
+            Swal.close();
+            console.error('openActaMesaModal error:', e);
+            Swal.fire('Error', 'Fallo de conexión al abrir el acta institucional.', 'error');
+        }
+    }
+
+    function closeActaMesaModal() {
+        document.getElementById('modalActaMesaTrabajo').style.display = 'none';
+    }
+
+    function switchActaModalTab(tabKey) {
+        const btnEdit = document.getElementById('tab-btn-acta-edit');
+        const btnPrev = document.getElementById('tab-btn-acta-preview');
+        const viewEdit = document.getElementById('acta-view-edit');
+        const viewPrev = document.getElementById('acta-view-preview');
+
+        if (tabKey === 'preview') {
+            const formData = collectActaFormData();
+            window.currentActaData = formData;
+            renderActaOfficialPreview(formData);
+
+            btnEdit.classList.remove('active');
+            btnEdit.style.background = '#ffffff';
+            btnEdit.style.color = '#475569';
+            btnPrev.classList.add('active');
+            btnPrev.style.background = '#4f46e5';
+            btnPrev.style.color = '#ffffff';
+
+            viewEdit.style.display = 'none';
+            viewPrev.style.display = 'block';
+        } else {
+            btnPrev.classList.remove('active');
+            btnPrev.style.background = '#ffffff';
+            btnPrev.style.color = '#475569';
+            btnEdit.classList.add('active');
+            btnEdit.style.background = '#4f46e5';
+            btnEdit.style.color = '#ffffff';
+
+            viewPrev.style.display = 'none';
+            viewEdit.style.display = 'block';
+        }
+    }
+
+    function populateActaModalFields(acta) {
+        // Logo
+        const logoImg = document.getElementById('acta-header-logo-preview');
+        if (logoImg) logoImg.src = window.currentActaLogoUrl || '/static/logo_skel.png';
+
+        // Metadatos
+        document.getElementById('acta-inp-numero').value = acta.numero || '';
+        document.getElementById('acta-inp-codigo-formato').value = acta.codigo_formato || 'CC-FO-ACT-01';
+        document.getElementById('acta-inp-ver-formato').value = acta.version_formato || '01';
+        document.getElementById('acta-inp-inst-nombre').value = acta.institucion_nombre || 'INTENALCO EDUCACIÓN SUPERIOR';
+        document.getElementById('acta-inp-proceso').value = acta.proceso || 'Plan Estratégico de Redefinición a Institución Universitaria (Ley 749/2002 · Decreto 2038/2023)';
+
+        // 1. Datos Generales
+        document.getElementById('acta-inp-fecha').value = acta.fecha || new Date().toISOString().substring(0, 10);
+        document.getElementById('acta-inp-hora-ini').value = acta.hora_inicio || '08:00 AM';
+        document.getElementById('acta-inp-hora-fin').value = acta.hora_fin || '10:30 AM';
+        document.getElementById('acta-sel-modalidad').value = acta.modalidad || 'Híbrida (Presencial y Virtual)';
+        document.getElementById('acta-inp-lugar').value = acta.lugar || 'Sala de Juntas de Vicerrectoría / Sala Virtual';
+        document.getElementById('acta-inp-convoca').value = acta.convoca || '';
+        document.getElementById('acta-inp-secretario').value = acta.secretario || '';
+
+        const docInfo = window.currentActaDocInfo || {};
+        document.getElementById('acta-lbl-doc-info').innerText = `${docInfo.codigo_doc || 'DOC'} · ${docInfo.titulo || 'Documento'} (${docInfo.frente || 'Frente Institucional'})`;
+
+        // 2. Brecha
+        populateActaBrechasDropdown(window.currentActaBrechas, acta.brecha_id);
+
+        // 3. Asistentes
+        renderActaAttendeesTable(acta.asistentes || []);
+
+        // 4. Objetivos y orden del día
+        document.getElementById('acta-txt-objetivo').value = acta.objetivo || '';
+        document.getElementById('acta-txt-orden-dia').value = acta.orden_dia || '';
+
+        // 5-7. Desarrollo y Conclusiones
+        document.getElementById('acta-txt-desarrollo').value = acta.desarrollo || '';
+        document.getElementById('acta-txt-conclusiones').value = acta.conclusiones || '';
+
+        // 8. Compromisos
+        renderActaCommitmentsTable(acta.compromisos || []);
+
+        // 9. Próxima reunión y observaciones
+        document.getElementById('acta-inp-proxima-reunion').value = acta.proxima_reunion || '';
+        document.getElementById('acta-inp-observaciones').value = acta.observaciones || '';
+    }
+
+    function populateActaBrechasDropdown(brechasList, selectedBrechaId) {
+        const sel = document.getElementById('acta-sel-brecha');
+        if (!sel) return;
+        let html = '<option value="">-- Sin brecha asociada / Sesión general de co-construcción --</option>';
+        (brechasList || []).forEach(b => {
+            const isSel = (b.id === selectedBrechaId) ? 'selected' : '';
+            const descCut = (b.descripcion || '').length > 65 ? b.descripcion.substring(0, 65) + '...' : b.descripcion;
+            html += `<option value="${b.id}" ${isSel}>${b.id}: ${descCut} (${b.frente})</option>`;
+        });
+        sel.innerHTML = html;
+        onActaBrechaChange();
+    }
+
+    function onActaBrechaChange() {
+        const selVal = document.getElementById('acta-sel-brecha').value;
+        const card = document.getElementById('acta-brecha-details-card');
+        if (!selVal) {
+            if (card) card.style.display = 'none';
+            return;
+        }
+        const b = (window.currentActaBrechas || []).find(x => x.id === selVal);
+        if (b && card) {
+            document.getElementById('acta-brecha-det-code').innerText = b.id;
+            document.getElementById('acta-brecha-det-frente').innerText = `Frente: ${b.frente || 'General'}`;
+            document.getElementById('acta-brecha-det-trat').innerText = `Tratamiento: ${b.accion_propuesta || 'Actualizar'}`;
+            document.getElementById('acta-brecha-det-desc').innerText = b.descripcion || 'Sin descripción';
+            document.getElementById('acta-brecha-det-evid').innerText = b.evidencia_faltante || 'Sin definir';
+            card.style.display = 'block';
+        } else if (card) {
+            card.style.display = 'none';
+        }
+    }
+
+    function renderActaAttendeesTable(asistentes) {
+        const tbody = document.getElementById('acta-asistentes-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        (asistentes || []).forEach(a => addActaAttendeeRow(a));
+        updateActaAttendeesCount();
+    }
+
+    function addActaAttendeeRow(data = {}) {
+        const tbody = document.getElementById('acta-asistentes-tbody');
+        if (!tbody) return;
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #f1f5f9';
+        const num = tbody.children.length + 1;
+        const asistio = (data.asistio !== false);
+        row.innerHTML = `
+            <td style="padding:6px 8px; text-align:center; color:#64748b; font-weight:700;">${num}</td>
+            <td style="padding:4px 6px;">
+                <input type="text" class="acta-asist-nombre" value="${escapeCcHtml(data.nombre || '')}" list="skel-users-datalist" placeholder="Nombre completo..." style="width:100%; padding:5px 8px; border-radius:5px; border:1px solid #cbd5e1; font-size:0.78rem;">
+            </td>
+            <td style="padding:4px 6px;">
+                <input type="text" class="acta-asist-cargo" value="${escapeCcHtml(data.cargo || 'Participante Mesa / Revisor')}" placeholder="Cargo / Rol..." style="width:100%; padding:5px 8px; border-radius:5px; border:1px solid #cbd5e1; font-size:0.78rem;">
+            </td>
+            <td style="padding:4px 6px;">
+                <input type="text" class="acta-asist-dep" value="${escapeCcHtml(data.dependencia || 'Vicerrectoría Académica')}" placeholder="Dependencia..." style="width:100%; padding:5px 8px; border-radius:5px; border:1px solid #cbd5e1; font-size:0.78rem;">
+            </td>
+            <td style="padding:4px 6px; text-align:center;">
+                <input type="checkbox" class="acta-asist-check" ${asistio ? 'checked' : ''} style="cursor:pointer; width:16px; height:16px; accent-color:#059669;">
+            </td>
+            <td style="padding:4px 6px; text-align:center;">
+                <button type="button" onclick="removeActaAttendeeRow(this)" style="background:none; border:none; color:#ef4444; font-size:0.85rem; cursor:pointer; font-weight:800;" title="Retirar de la lista">&times;</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+        updateActaAttendeesCount();
+    }
+
+    function removeActaAttendeeRow(btn) {
+        const row = btn.closest('tr');
+        if (row) {
+            row.remove();
+            updateActaAttendeesCount();
+        }
+    }
+
+    function updateActaAttendeesCount() {
+        const tbody = document.getElementById('acta-asistentes-tbody');
+        const count = tbody ? tbody.children.length : 0;
+        document.getElementById('acta-asistentes-count').innerText = count;
+        if (tbody) {
+            Array.from(tbody.children).forEach((r, idx) => {
+                const firstCol = r.querySelector('td');
+                if (firstCol) firstCol.innerText = idx + 1;
+            });
+        }
+    }
+
+    function loadAllDocTeamIntoActaAttendees() {
+        const docTeam = (window.currentActaDocInfo && window.currentActaDocInfo.equipo_documento) || [];
+        if (docTeam.length === 0) {
+            return Swal.fire('Información', 'El documento actual no tiene integrantes registrados en su equipo permanente.', 'info');
+        }
+        const tbody = document.getElementById('acta-asistentes-tbody');
+        const existingNames = new Set();
+        if (tbody) {
+            tbody.querySelectorAll('.acta-asist-nombre').forEach(inp => {
+                if (inp.value.trim()) existingNames.add(inp.value.trim().toLowerCase());
+            });
+        }
+        let added = 0;
+        docTeam.forEach(m => {
+            if (m.nombre && !existingNames.has(m.nombre.trim().toLowerCase())) {
+                addActaAttendeeRow({
+                    nombre: m.nombre,
+                    cargo: m.rol || 'Integrante del Equipo',
+                    dependencia: m.dependencia || (window.currentActaDocInfo && window.currentActaDocInfo.frente) || 'Vicerrectoría Académica',
+                    asistio: true
+                });
+                added++;
+            }
+        });
+        Swal.fire({
+            icon: 'success',
+            title: `Integrantes Cargados (+${added})`,
+            text: 'Se añadieron los integrantes del equipo permanente a la lista de asistentes.',
+            timer: 1400,
+            showConfirmButton: false
+        });
+    }
+
+    function renderActaCommitmentsTable(compromisos) {
+        const tbody = document.getElementById('acta-compromisos-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        (compromisos || []).forEach(c => addActaCommitmentRow(c));
+        updateActaCommitmentsCount();
+    }
+
+    function addActaCommitmentRow(data = {}) {
+        const tbody = document.getElementById('acta-compromisos-tbody');
+        if (!tbody) return;
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #f1f5f9';
+        const num = tbody.children.length + 1;
+        row.innerHTML = `
+            <td style="padding:6px 8px; text-align:center; color:#64748b; font-weight:700;">${num}</td>
+            <td style="padding:4px 6px;">
+                <input type="text" class="acta-comp-accion" value="${escapeCcHtml(data.accion || '')}" placeholder="Acción / Tarea acordada..." style="width:100%; padding:5px 8px; border-radius:5px; border:1px solid #cbd5e1; font-size:0.78rem;">
+            </td>
+            <td style="padding:4px 6px;">
+                <input type="text" class="acta-comp-resp" value="${escapeCcHtml(data.responsable || '')}" placeholder="Responsable..." style="width:100%; padding:5px 8px; border-radius:5px; border:1px solid #cbd5e1; font-size:0.78rem;">
+            </td>
+            <td style="padding:4px 6px;">
+                <input type="date" class="acta-comp-fecha" value="${escapeCcHtml(data.fecha || '')}" style="width:100%; padding:5px 6px; border-radius:5px; border:1px solid #cbd5e1; font-size:0.78rem;">
+            </td>
+            <td style="padding:4px 6px; text-align:center;">
+                <button type="button" onclick="removeActaCommitmentRow(this)" style="background:none; border:none; color:#ef4444; font-size:0.85rem; cursor:pointer; font-weight:800;" title="Retirar compromiso">&times;</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+        updateActaCommitmentsCount();
+    }
+
+    function removeActaCommitmentRow(btn) {
+        const row = btn.closest('tr');
+        if (row) {
+            row.remove();
+            updateActaCommitmentsCount();
+        }
+    }
+
+    function updateActaCommitmentsCount() {
+        const tbody = document.getElementById('acta-compromisos-tbody');
+        const count = tbody ? tbody.children.length : 0;
+        document.getElementById('acta-compromisos-count').innerText = count;
+        if (tbody) {
+            Array.from(tbody.children).forEach((r, idx) => {
+                const firstCol = r.querySelector('td');
+                if (firstCol) firstCol.innerText = idx + 1;
+            });
+        }
+    }
+
+    function collectActaFormData() {
+        // Asistentes
+        const asistentes = [];
+        const tbodyA = document.getElementById('acta-asistentes-tbody');
+        if (tbodyA) {
+            tbodyA.querySelectorAll('tr').forEach(tr => {
+                const nom = (tr.querySelector('.acta-asist-nombre') || {}).value || '';
+                const cargo = (tr.querySelector('.acta-asist-cargo') || {}).value || '';
+                const dep = (tr.querySelector('.acta-asist-dep') || {}).value || '';
+                const asistio = !!(tr.querySelector('.acta-asist-check') || {}).checked;
+                if (nom.trim()) {
+                    asistentes.push({ nombre: nom.trim(), cargo: cargo.trim(), dependencia: dep.trim(), asistio });
+                }
+            });
+        }
+
+        // Compromisos
+        const compromisos = [];
+        const tbodyC = document.getElementById('acta-compromisos-tbody');
+        if (tbodyC) {
+            tbodyC.querySelectorAll('tr').forEach(tr => {
+                const acc = (tr.querySelector('.acta-comp-accion') || {}).value || '';
+                const resp = (tr.querySelector('.acta-comp-resp') || {}).value || '';
+                const fec = (tr.querySelector('.acta-comp-fecha') || {}).value || '';
+                if (acc.trim()) {
+                    compromisos.push({ accion: acc.trim(), responsable: resp.trim(), fecha: fec.trim() });
+                }
+            });
+        }
+
+        return {
+            numero: (document.getElementById('acta-inp-numero') || {}).value || '',
+            codigo_formato: (document.getElementById('acta-inp-codigo-formato') || {}).value || 'CC-FO-ACT-01',
+            version_formato: (document.getElementById('acta-inp-ver-formato') || {}).value || '01',
+            institucion_nombre: (document.getElementById('acta-inp-inst-nombre') || {}).value || 'INTENALCO EDUCACIÓN SUPERIOR',
+            proceso: (document.getElementById('acta-inp-proceso') || {}).value || 'Plan Estratégico de Redefinición a Institución Universitaria',
+            fecha: (document.getElementById('acta-inp-fecha') || {}).value || '',
+            hora_inicio: (document.getElementById('acta-inp-hora-ini') || {}).value || '',
+            hora_fin: (document.getElementById('acta-inp-hora-fin') || {}).value || '',
+            modalidad: (document.getElementById('acta-sel-modalidad') || {}).value || 'Híbrida',
+            lugar: (document.getElementById('acta-inp-lugar') || {}).value || '',
+            convoca: (document.getElementById('acta-inp-convoca') || {}).value || '',
+            secretario: (document.getElementById('acta-inp-secretario') || {}).value || '',
+            brecha_id: (document.getElementById('acta-sel-brecha') || {}).value || '',
+            objetivo: (document.getElementById('acta-txt-objetivo') || {}).value || '',
+            orden_dia: (document.getElementById('acta-txt-orden-dia') || {}).value || '',
+            desarrollo: (document.getElementById('acta-txt-desarrollo') || {}).value || '',
+            conclusiones: (document.getElementById('acta-txt-conclusiones') || {}).value || '',
+            compromisos: compromisos,
+            asistentes: asistentes,
+            proxima_reunion: (document.getElementById('acta-inp-proxima-reunion') || {}).value || '',
+            observaciones: (document.getElementById('acta-inp-observaciones') || {}).value || ''
+        };
+    }
+
+    async function saveCurrentActa(silent = false) {
+        if (!window.currentActaDocId || !window.currentActaAporteId) return;
+        const actaData = collectActaFormData();
+        const ident = getCcAuthIdentity();
+
+        try {
+            const res = await fetch('/api/cambio_caracter/doc/acta/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    doc_id: window.currentActaDocId,
+                    aporte_id: window.currentActaAporteId,
+                    acta: actaData,
+                    user_name: ident.user_name || ident.user_email
+                })
+            });
+            const d = await res.json();
+            if (d.status === 'success') {
+                window.currentActaData = d.acta;
+                if (d.acta && d.acta.numero) {
+                    document.getElementById('acta-inp-numero').value = d.acta.numero;
+                }
+                if (selectedHistoryId) {
+                    const item = (currentData && currentData.ai_history || []).find(h => h.id === selectedHistoryId);
+                    if (item) {
+                        const targetAp = (item.aportes_equipo || []).find(a => a.id === window.currentActaAporteId);
+                        if (targetAp) targetAp.acta = d.acta;
+                        renderDocTraceabilityPane(item);
+                    }
+                }
+                if (!silent) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Acta Guardada Exitosamente',
+                        text: `Se registró con consecutivo ${d.acta.numero || ''} en la bitácora institucional.`,
+                        timer: 1600,
+                        showConfirmButton: false
+                    });
+                }
+                return d.acta;
+            } else {
+                Swal.fire('Error', d.message || 'No se pudo guardar el acta.', 'error');
+            }
+        } catch (e) {
+            console.error('saveCurrentActa error:', e);
+            Swal.fire('Error', 'Fallo de conexión al guardar el acta.', 'error');
+        }
+        return null;
+    }
+
+    async function downloadCurrentActaWord() {
+        const actaData = collectActaFormData();
+        const ident = getCcAuthIdentity();
+
+        Swal.fire({
+            title: 'Generando Documento Word (.docx)...',
+            text: 'Incorporando logotipo institucional, tablas oficiales de calidad y espacios para firmas.',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const res = await fetch('/api/cambio_caracter/doc/acta/word', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    doc_id: window.currentActaDocId,
+                    aporte_id: window.currentActaAporteId,
+                    acta: actaData,
+                    user_name: ident.user_name || ident.user_email
+                })
+            });
+
+            if (!res.ok) {
+                Swal.close();
+                return Swal.fire('Error', 'No se pudo generar el documento Word.', 'error');
+            }
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const fnum = (actaData.numero || 'Mesa').replace(/[\s\/\\]+/g, '_');
+            a.download = `Acta_${fnum}_${new Date().toISOString().substring(0, 10)}.docx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+            Swal.close();
+            await saveCurrentActa(true);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Acta Descargada en Word',
+                text: 'El archivo .docx institucional quedó listo para revisión, edición o firma de los integrantes de la mesa.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } catch (e) {
+            Swal.close();
+            console.error('downloadCurrentActaWord error:', e);
+            Swal.fire('Error', 'Fallo al descargar el archivo Word.', 'error');
+        }
+    }
+
+    async function downloadActaWordDirect(docId, aporteId) {
+        const ident = getCcAuthIdentity();
+        Swal.fire({
+            title: 'Preparando Acta Oficial...',
+            text: 'Construyendo el acta en Word con los datos de la mesa y la brecha institucional.',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const res = await fetch('/api/cambio_caracter/doc/acta/word', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    doc_id: docId,
+                    aporte_id: aporteId,
+                    user_name: ident.user_name || ident.user_email
+                })
+            });
+
+            if (!res.ok) {
+                Swal.close();
+                return Swal.fire('Error', 'No se pudo generar el documento de acta.', 'error');
+            }
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Acta_Mesa_CC_${new Date().toISOString().substring(0, 10)}.docx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+            await loadData();
+            if (selectedHistoryId) loadHistoryInEditor(selectedHistoryId);
+
+            Swal.close();
+            Swal.fire({
+                icon: 'success',
+                title: 'Acta Institucional Descargada',
+                text: 'Se generó el archivo en Word con formato institucional y espacios para firmas.',
+                timer: 1800,
+                showConfirmButton: false
+            });
+        } catch (e) {
+            Swal.close();
+            console.error('downloadActaWordDirect error:', e);
+            Swal.fire('Error', 'Fallo de conexión al descargar el acta.', 'error');
+        }
+    }
+
+    async function runAiDraftForActa() {
+        if (!window.currentActaDocId || !window.currentActaAporteId) return;
+        const brechaId = (document.getElementById('acta-sel-brecha') || {}).value || '';
+        const btn = document.getElementById('btn-acta-ai-draft');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redactando...';
+        }
+
+        Swal.fire({
+            title: 'Asistente IA Redactando Acta...',
+            text: 'Estructurando objetivo, orden del día, desarrollo, conclusiones y compromisos conformes al Estatuto de INTENALCO (Consejo Directivo).',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const res = await fetch('/api/cambio_caracter/doc/acta/ai_draft', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    doc_id: window.currentActaDocId,
+                    aporte_id: window.currentActaAporteId,
+                    brecha_id: brechaId,
+                    notas: (document.getElementById('acta-txt-desarrollo') || {}).value || ''
+                })
+            });
+            const d = await res.json();
+            Swal.close();
+
+            if (d.status === 'success' && d.draft) {
+                const dr = d.draft;
+                if (dr.objetivo) document.getElementById('acta-txt-objetivo').value = dr.objetivo;
+                if (dr.orden_dia) document.getElementById('acta-txt-orden-dia').value = dr.orden_dia;
+                if (dr.desarrollo) document.getElementById('acta-txt-desarrollo').value = dr.desarrollo;
+                if (dr.conclusiones) document.getElementById('acta-txt-conclusiones').value = dr.conclusiones;
+                if (dr.compromisos && Array.isArray(dr.compromisos) && dr.compromisos.length > 0) {
+                    renderActaCommitmentsTable(dr.compromisos);
+                }
+                switchActaModalTab('edit');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Borrador Oficial Generado con IA',
+                    text: 'Puedes revisar, ajustar cualquier punto y hacer clic en Guardar Acta o Descargar Word.',
+                    timer: 2200,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Atención', d.message || 'No se pudo generar el borrador automático.', 'warning');
+            }
+        } catch (e) {
+            Swal.close();
+            console.error('runAiDraftForActa error:', e);
+            Swal.fire('Error', 'Fallo de conexión con el servicio de IA.', 'error');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Redactar con IA';
+            }
+        }
+    }
+
+    function printCurrentActa() {
+        switchActaModalTab('preview');
+        setTimeout(() => {
+            window.print();
+        }, 250);
+    }
+
+    function handleActaLogoFileSelect(input) {
+        if (!input.files || input.files.length === 0) return;
+        const file = input.files[0];
+        if (!file.type.startsWith('image/')) {
+            return Swal.fire('Formato Inválido', 'Selecciona un archivo de imagen (PNG, JPG o WEBP).', 'warning');
+        }
+        if (file.size > 2 * 1024 * 1024) {
+            return Swal.fire('Tamaño Excesivo', 'El logo no debe superar los 2 MB.', 'warning');
+        }
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const dataUrl = e.target.result;
+            const previewImg = document.getElementById('acta-header-logo-preview');
+            if (previewImg) previewImg.src = dataUrl;
+            window.currentActaLogoUrl = dataUrl;
+
+            try {
+                const res = await fetch('/api/cambio_caracter/acta_logo', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ logo_data: dataUrl })
+                });
+                const d = await res.json();
+                if (d.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Logotipo Institucional Guardado',
+                        text: 'El nuevo logo aparecerá en el encabezado oficial de todas las actas en Word.',
+                        timer: 1600,
+                        showConfirmButton: false
+                    });
+                }
+            } catch (err) {
+                console.error('Logo upload error:', err);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function renderActaOfficialPreview(acta) {
+        const box = document.getElementById('acta-printable-document');
+        if (!box) return;
+
+        const docInfo = window.currentActaDocInfo || {};
+        const logoSrc = window.currentActaLogoUrl || '/static/logo_skel.png';
+        const brechaObj = (window.currentActaBrechas || []).find(b => b.id === acta.brecha_id);
+        const asistentes = acta.asistentes || [];
+        const compromisos = acta.compromisos || [];
+        const firmantes = asistentes.filter(a => a.asistio !== false);
+
+        box.innerHTML = `
+            <!-- ENCABEZADO INSTITUCIONAL DE CALIDAD -->
+            <div style="border:1.5px solid #1e1b4b; border-radius:6px; overflow:hidden; margin-bottom:18px;">
+                <div style="display:grid; grid-template-columns:130px 1fr 140px; align-items:center; text-align:center; background:#ffffff;">
+                    <div style="padding:10px; border-right:1px solid #1e1b4b; display:flex; align-items:center; justify-content:center; height:100%;">
+                        <img src="${logoSrc}" alt="Logo" style="max-height:55px; max-width:115px; object-fit:contain;">
+                    </div>
+                    <div style="padding:10px 14px; border-right:1px solid #1e1b4b;">
+                        <div style="font-size:0.95rem; font-weight:900; color:#1e1b4b; text-transform:uppercase; letter-spacing:0.04em;">${escapeCcHtml(acta.institucion_nombre || 'INTENALCO EDUCACIÓN SUPERIOR')}</div>
+                        <div style="font-size:0.9rem; font-weight:800; color:#1e293b; margin:3px 0;">ACTA DE REUNIÓN – MESA DE TRABAJO</div>
+                        <div style="font-size:0.7rem; color:#475569; font-style:italic;">${escapeCcHtml(acta.proceso || 'Plan Estratégico de Redefinición a Institución Universitaria')}</div>
+                    </div>
+                    <div style="font-size:0.72rem; text-align:left; padding:8px 10px; background:#f8fafc; color:#1e293b; height:100%; display:flex; flex-direction:column; justify-content:center;">
+                        <div style="margin-bottom:3px;"><strong>Código:</strong> ${escapeCcHtml(acta.codigo_formato || 'CC-FO-ACT-01')}</div>
+                        <div style="margin-bottom:3px;"><strong>Versión:</strong> ${escapeCcHtml(acta.version_formato || '01')}</div>
+                        <div><strong>Acta N.º:</strong> <span style="color:#1e1b4b; font-weight:800;">${escapeCcHtml(acta.numero || 'Por asignar')}</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 1: DATOS GENERALES -->
+            <div style="margin-bottom:16px;">
+                <div style="background:#1e1b4b; color:#ffffff; font-size:0.78rem; font-weight:800; padding:5px 10px; border-radius:4px 4px 0 0; text-transform:uppercase;">
+                    1. Datos Generales de la Reunión
+                </div>
+                <table style="width:100%; border-collapse:collapse; font-size:0.78rem; border:1px solid #cbd5e1; border-top:none;">
+                    <tr>
+                        <td style="padding:6px 10px; background:#eef2ff; font-weight:700; width:18%; color:#1e1b4b; border:1px solid #cbd5e1;">Fecha:</td>
+                        <td style="padding:6px 10px; width:32%; border:1px solid #cbd5e1;">${escapeCcHtml(acta.fecha || 'N/A')}</td>
+                        <td style="padding:6px 10px; background:#eef2ff; font-weight:700; width:18%; color:#1e1b4b; border:1px solid #cbd5e1;">Horario:</td>
+                        <td style="padding:6px 10px; width:32%; border:1px solid #cbd5e1;">${escapeCcHtml(acta.hora_inicio || '')} – ${escapeCcHtml(acta.hora_fin || '')}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 10px; background:#eef2ff; font-weight:700; color:#1e1b4b; border:1px solid #cbd5e1;">Lugar:</td>
+                        <td style="padding:6px 10px; border:1px solid #cbd5e1;">${escapeCcHtml(acta.lugar || 'N/A')}</td>
+                        <td style="padding:6px 10px; background:#eef2ff; font-weight:700; color:#1e1b4b; border:1px solid #cbd5e1;">Modalidad:</td>
+                        <td style="padding:6px 10px; border:1px solid #cbd5e1;">${escapeCcHtml(acta.modalidad || 'Presencial')}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 10px; background:#eef2ff; font-weight:700; color:#1e1b4b; border:1px solid #cbd5e1;">Convoca / Preside:</td>
+                        <td style="padding:6px 10px; border:1px solid #cbd5e1;">${escapeCcHtml(acta.convoca || 'N/A')}</td>
+                        <td style="padding:6px 10px; background:#eef2ff; font-weight:700; color:#1e1b4b; border:1px solid #cbd5e1;">Secretario(a):</td>
+                        <td style="padding:6px 10px; border:1px solid #cbd5e1;">${escapeCcHtml(acta.secretario || 'N/A')}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 10px; background:#eef2ff; font-weight:700; color:#1e1b4b; border:1px solid #cbd5e1;">Documento trabajado:</td>
+                        <td style="padding:6px 10px; border:1px solid #cbd5e1;" colspan="3"><strong>${escapeCcHtml(docInfo.codigo_doc || 'DOC')}</strong> · ${escapeCcHtml(docInfo.titulo || '')} (Frente: ${escapeCcHtml(docInfo.frente || '')})</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- SECCIÓN 2: OBJETIVO -->
+            <div style="margin-bottom:16px;">
+                <div style="background:#1e1b4b; color:#ffffff; font-size:0.78rem; font-weight:800; padding:5px 10px; border-radius:4px 4px 0 0; text-transform:uppercase;">
+                    2. Objetivo de la Reunión
+                </div>
+                <div style="border:1px solid #cbd5e1; border-top:none; padding:10px 12px; font-size:0.8rem; color:#334155; line-height:1.5; text-align:justify;">
+                    ${escapeCcHtml(acta.objetivo || 'Sin objetivo especificado.')}
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: BRECHA INSTITUCIONAL ABORDADA -->
+            <div style="margin-bottom:16px;">
+                <div style="background:#1e1b4b; color:#ffffff; font-size:0.78rem; font-weight:800; padding:5px 10px; border-radius:4px 4px 0 0; text-transform:uppercase;">
+                    3. Brecha Institucional Abordada
+                </div>
+                <div style="border:1px solid #cbd5e1; border-top:none; padding:10px 12px; font-size:0.78rem;">
+                    ${brechaObj ? `
+                        <table style="width:100%; border-collapse:collapse; font-size:0.78rem;">
+                            <tr>
+                                <td style="padding:5px 8px; width:22%; font-weight:700; color:#1e1b4b; background:#f8fafc; border:1px solid #e2e8f0;">Código / Frente:</td>
+                                <td style="padding:5px 8px; border:1px solid #e2e8f0;"><strong>${escapeCcHtml(brechaObj.id)}</strong> (${escapeCcHtml(brechaObj.frente || '')})</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:5px 8px; font-weight:700; color:#1e1b4b; background:#f8fafc; border:1px solid #e2e8f0;">Descripción de Brecha:</td>
+                                <td style="padding:5px 8px; border:1px solid #e2e8f0;">${escapeCcHtml(brechaObj.descripcion || '')}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:5px 8px; font-weight:700; color:#1e1b4b; background:#f8fafc; border:1px solid #e2e8f0;">Tratamiento Propuesto:</td>
+                                <td style="padding:5px 8px; border:1px solid #e2e8f0;"><strong style="color:#059669;">${escapeCcHtml(brechaObj.accion_propuesta || 'Actualizar')}</strong></td>
+                            </tr>
+                            <tr>
+                                <td style="padding:5px 8px; font-weight:700; color:#1e1b4b; background:#f8fafc; border:1px solid #e2e8f0;">Evidencia Faltante:</td>
+                                <td style="padding:5px 8px; border:1px solid #e2e8f0;">${escapeCcHtml(brechaObj.evidencia_faltante || 'Sin definir')}</td>
+                            </tr>
+                        </table>
+                    ` : `
+                        <p style="margin:0; font-style:italic; color:#64748b;">La sesión corresponde a co-construcción técnica y concertación general del documento.</p>
+                    `}
+                </div>
+            </div>
+
+            <!-- SECCIÓN 4: ASISTENTES -->
+            <div style="margin-bottom:16px;">
+                <div style="background:#1e1b4b; color:#ffffff; font-size:0.78rem; font-weight:800; padding:5px 10px; border-radius:4px 4px 0 0; text-transform:uppercase;">
+                    4. Integrantes de la Mesa (${asistentes.length})
+                </div>
+                <table style="width:100%; border-collapse:collapse; font-size:0.76rem; border:1px solid #cbd5e1; border-top:none;">
+                    <thead style="background:#f1f5f9; color:#1e1b4b; text-align:left;">
+                        <tr>
+                            <th style="padding:6px 8px; border:1px solid #cbd5e1; width:35px; text-align:center;">N.º</th>
+                            <th style="padding:6px 8px; border:1px solid #cbd5e1;">Nombre Completo</th>
+                            <th style="padding:6px 8px; border:1px solid #cbd5e1;">Cargo / Rol en la Mesa</th>
+                            <th style="padding:6px 8px; border:1px solid #cbd5e1;">Dependencia / Estamento</th>
+                            <th style="padding:6px 8px; border:1px solid #cbd5e1; width:65px; text-align:center;">Asistió</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${asistentes.map((a, idx) => `
+                            <tr>
+                                <td style="padding:5px 8px; border:1px solid #cbd5e1; text-align:center; color:#64748b;">${idx + 1}</td>
+                                <td style="padding:5px 8px; border:1px solid #cbd5e1; font-weight:700; color:#1e293b;">${escapeCcHtml(a.nombre)}</td>
+                                <td style="padding:5px 8px; border:1px solid #cbd5e1;">${escapeCcHtml(a.cargo)}</td>
+                                <td style="padding:5px 8px; border:1px solid #cbd5e1;">${escapeCcHtml(a.dependencia)}</td>
+                                <td style="padding:5px 8px; border:1px solid #cbd5e1; text-align:center; font-weight:700; color:${a.asistio !== false ? '#166534' : '#991b1b'};">
+                                    ${a.asistio !== false ? 'Sí' : 'No'}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SECCIÓN 5: ORDEN DEL DÍA -->
+            <div style="margin-bottom:16px;">
+                <div style="background:#1e1b4b; color:#ffffff; font-size:0.78rem; font-weight:800; padding:5px 10px; border-radius:4px 4px 0 0; text-transform:uppercase;">
+                    5. Orden del Día
+                </div>
+                <div style="border:1px solid #cbd5e1; border-top:none; padding:10px 12px; font-size:0.8rem; color:#334155; line-height:1.5; white-space:pre-line;">${escapeCcHtml(acta.orden_dia || '1. Verificación del quórum.')}</div>
+            </div>
+
+            <!-- SECCIÓN 6: DESARROLLO DE LA SESIÓN -->
+            <div style="margin-bottom:16px;">
+                <div style="background:#1e1b4b; color:#ffffff; font-size:0.78rem; font-weight:800; padding:5px 10px; border-radius:4px 4px 0 0; text-transform:uppercase;">
+                    6. Desarrollo de la Sesión / Debate Técnico
+                </div>
+                <div style="border:1px solid #cbd5e1; border-top:none; padding:12px 14px; font-size:0.8rem; color:#334155; line-height:1.6; text-align:justify; white-space:pre-line;">${escapeCcHtml(acta.desarrollo || 'Sin detalle de desarrollo.')}</div>
+            </div>
+
+            <!-- SECCIÓN 7: CONCLUSIONES -->
+            <div style="margin-bottom:16px;">
+                <div style="background:#1e1b4b; color:#ffffff; font-size:0.78rem; font-weight:800; padding:5px 10px; border-radius:4px 4px 0 0; text-transform:uppercase;">
+                    7. Conclusiones y Acuerdos respecto a la Brecha
+                </div>
+                <div style="border:1px solid #cbd5e1; border-top:none; padding:12px 14px; font-size:0.8rem; color:#1e1b4b; line-height:1.6; text-align:justify; background:#f8fafc; white-space:pre-line;">${escapeCcHtml(acta.conclusiones || 'Sin conclusiones registradas.')}</div>
+            </div>
+
+            <!-- SECCIÓN 8: COMPROMISOS -->
+            <div style="margin-bottom:16px;">
+                <div style="background:#1e1b4b; color:#ffffff; font-size:0.78rem; font-weight:800; padding:5px 10px; border-radius:4px 4px 0 0; text-transform:uppercase;">
+                    8. Compromisos y Tareas Asignadas (${compromisos.length})
+                </div>
+                <table style="width:100%; border-collapse:collapse; font-size:0.76rem; border:1px solid #cbd5e1; border-top:none;">
+                    <thead style="background:#f1f5f9; color:#1e1b4b; text-align:left;">
+                        <tr>
+                            <th style="padding:6px 8px; border:1px solid #cbd5e1; width:35px; text-align:center;">N.º</th>
+                            <th style="padding:6px 8px; border:1px solid #cbd5e1;">Compromiso / Acción Concreta</th>
+                            <th style="padding:6px 8px; border:1px solid #cbd5e1; width:28%;">Responsable</th>
+                            <th style="padding:6px 8px; border:1px solid #cbd5e1; width:18%; text-align:center;">Fecha Límite</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${compromisos.length > 0 ? compromisos.map((c, idx) => `
+                            <tr>
+                                <td style="padding:5px 8px; border:1px solid #cbd5e1; text-align:center; color:#64748b;">${idx + 1}</td>
+                                <td style="padding:5px 8px; border:1px solid #cbd5e1; color:#1e293b;">${escapeCcHtml(c.accion)}</td>
+                                <td style="padding:5px 8px; border:1px solid #cbd5e1;">${escapeCcHtml(c.responsable)}</td>
+                                <td style="padding:5px 8px; border:1px solid #cbd5e1; text-align:center;">${escapeCcHtml(c.fecha || 'N/A')}</td>
+                            </tr>
+                        `).join('') : `
+                            <tr><td colspan="4" style="padding:8px; text-align:center; color:#94a3b8; font-style:italic;">Sin compromisos pendientes registrados.</td></tr>
+                        `}
+                    </tbody>
+                </table>
+            </div>
+
+            ${(acta.proxima_reunion || acta.observaciones) ? `
+                <div style="margin-bottom:16px;">
+                    <div style="background:#1e1b4b; color:#ffffff; font-size:0.78rem; font-weight:800; padding:5px 10px; border-radius:4px 4px 0 0; text-transform:uppercase;">
+                        9. Próxima Reunión y Observaciones
+                    </div>
+                    <div style="border:1px solid #cbd5e1; border-top:none; padding:10px 12px; font-size:0.78rem; color:#334155; line-height:1.5;">
+                        ${acta.proxima_reunion ? `<div><strong>Próxima Reunión:</strong> ${escapeCcHtml(acta.proxima_reunion)}</div>` : ''}
+                        ${acta.observaciones ? `<div style="margin-top:4px;"><strong>Observaciones:</strong> ${escapeCcHtml(acta.observaciones)}</div>` : ''}
+                    </div>
+                </div>
+            ` : ''}
+
+            <!-- FIRMAS DE LOS INTEGRANTES DE LA MESA -->
+            <div style="margin-top:24px; page-break-inside:avoid;">
+                <div style="background:#1e1b4b; color:#ffffff; font-size:0.78rem; font-weight:800; padding:5px 10px; border-radius:4px 4px 0 0; text-transform:uppercase;">
+                    Firmas de los Integrantes de la Mesa de Trabajo
+                </div>
+                <div style="border:1px solid #cbd5e1; border-top:none; padding:20px 16px;">
+                    <p style="margin:0 0 20px 0; font-size:0.76rem; color:#475569; font-style:italic; text-align:center;">
+                        En constancia de lo actuado, concertado y acordado, firman quienes intervinieron en la mesa de trabajo:
+                    </p>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:28px 36px; padding:0 14px;">
+                        ${firmantes.map(f => `
+                            <div style="text-align:center; padding-top:28px;">
+                                <div style="border-bottom:1px solid #475569; width:80%; margin:0 auto 6px auto;"></div>
+                                <div style="font-size:0.82rem; font-weight:800; color:#1e1b4b;">${escapeCcHtml(f.nombre)}</div>
+                                <div style="font-size:0.72rem; color:#64748b;">${escapeCcHtml(f.cargo || 'Participante')} · ${escapeCcHtml(f.dependencia || '')}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+
+            <!-- PIE DE PÁGINA DEL ACTA -->
+            <div style="margin-top:20px; text-align:center; font-size:0.68rem; color:#94a3b8; border-top:1px dashed #cbd5e1; padding-top:8px;">
+                ${escapeCcHtml(acta.institucion_nombre || 'INTENALCO EDUCACIÓN SUPERIOR')} · Acta N.º ${escapeCcHtml(acta.numero || '')} · Expediente Digital Co-Construido en SIAC 360
+            </div>
+        `;
     }
 
     /* GUARDAR APORTE / NUEVA VERSIÓN CON MODAL DE TRAZABILIDAD (SOPORTA MÚLTIPLES CO-AUTORES) */

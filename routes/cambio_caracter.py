@@ -1943,6 +1943,711 @@ def api_cc_doc_add_team_contribution():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+# ==========================================================================================
+# ACTAS INSTITUCIONALES DE MESAS DE TRABAJO (Evidencia formal ante Pares Académicos del MEN)
+# ==========================================================================================
+
+ACTA_TEXT_FIELDS = (
+    "numero", "fecha", "hora_inicio", "hora_fin", "lugar", "modalidad", "convoca", "secretario",
+    "objetivo", "orden_dia", "desarrollo", "conclusiones", "proxima_reunion", "observaciones",
+    "brecha_id", "institucion_nombre", "proceso", "codigo_formato", "version_formato"
+)
+
+
+def _build_default_acta_from_aporte(project, target_doc, target_ap):
+    """Genera una estructura base completa de acta institucional cuando el aporte aún no la ha personalizado."""
+    target_doc = target_doc or {}
+    target_ap = target_ap or {}
+    fecha_raw = str(target_ap.get("fecha") or datetime.datetime.now().isoformat())
+    fecha_fmt = fecha_raw[:10]
+
+    # Asistentes tomados del aporte y/o del equipo del documento
+    raw_parts = target_ap.get("participantes") or []
+    asistentes = []
+    seen = set()
+    for p in raw_parts:
+        if isinstance(p, dict):
+            nom = str(p.get("nombre") or "").strip()
+            if nom and nom.lower() not in seen:
+                seen.add(nom.lower())
+                asistentes.append({
+                    "nombre": nom,
+                    "cargo": str(p.get("rol") or "Participante Mesa / Revisor").strip(),
+                    "dependencia": str(p.get("dependencia") or target_doc.get("frente") or "Vicerrectoría Académica").strip(),
+                    "asistio": True
+                })
+    if not asistentes:
+        for m in (target_doc.get("equipo_documento") or []):
+            if isinstance(m, dict):
+                nom = str(m.get("nombre") or "").strip()
+                if nom and nom.lower() not in seen:
+                    seen.add(nom.lower())
+                    asistentes.append({
+                        "nombre": nom,
+                        "cargo": str(m.get("rol") or "Integrante del Equipo").strip(),
+                        "dependencia": str(m.get("dependencia") or target_doc.get("frente") or "Vicerrectoría Académica").strip(),
+                        "asistio": True
+                    })
+    if not asistentes:
+        nom_aut = str(target_ap.get("autor") or target_doc.get("autor") or "Equipo Institucional").strip()
+        asistentes.append({
+            "nombre": nom_aut,
+            "cargo": "Líder Técnico / Redactor",
+            "dependencia": str(target_ap.get("cargo_dependencia") or target_doc.get("frente") or "Vicerrectoría Académica").strip(),
+            "asistio": True
+        })
+
+    # Vincular automáticamente con la brecha más relevante del frente o requisito
+    matched_brecha_id = ""
+    frente_doc = target_doc.get("frente") or ""
+    req_doc = target_doc.get("requisito_id") or ""
+    for b in (project.get("brechas") or []):
+        if isinstance(b, dict):
+            if req_doc and b.get("requisito_id") == req_doc:
+                matched_brecha_id = b.get("id", "")
+                break
+            if frente_doc and b.get("frente") == frente_doc and not matched_brecha_id:
+                matched_brecha_id = b.get("id", "")
+
+    secretario_default = asistentes[1]["nombre"] if len(asistentes) > 1 else (asistentes[0]["nombre"] if asistentes else "Secretaría Técnica")
+    convoca_default = asistentes[0]["nombre"] if asistentes else (target_doc.get("cargo_dependencia") or "Vicerrectoría Académica")
+
+    obj_text = (
+        f"Revisar, concertar técnicamente y validar el documento institucional '{target_doc.get('codigo_doc', 'DOC')} - {target_doc.get('titulo', 'Documento Institucional')}' "
+        f"en el Frente de {frente_doc or 'Calidad'}, asegurando la subsanación de brechas normativas conforme a la Ley 749 de 2002 y el Decreto 2038 de 2023."
+    )
+    desarrollo_text = (
+        target_ap.get("comentario") or
+        f"En sesión de mesa de trabajo participativa con los integrantes convocados se examinó el articulado y soportes del documento {target_doc.get('codigo_doc', '')}. "
+        f"Se contrastaron los requisitos del MEN y se definieron los ajustes de fondo y forma requeridos."
+    )
+    conclusiones_text = (
+        f"1. Se aprueba la concertación técnica de los aportes presentados en la sesión sobre el documento {target_doc.get('codigo_doc', '')}.\n"
+        f"2. Se valida el cumplimiento de las condiciones normativas aplicables y el tratamiento de la brecha institucional correspondiente.\n"
+        f"3. La mesa emite concepto favorable para la consolidación de la versión de entrega ante el par evaluador."
+    )
+
+    compromisos = [
+        {
+            "accion": f"Incorporar los acuerdos de la mesa en el texto oficial del documento {target_doc.get('codigo_doc', '')}",
+            "responsable": convoca_default,
+            "fecha": fecha_fmt
+        },
+        {
+            "accion": "Verificar soportes probatorios y anexos de evidencia para el expediente de cambio de carácter",
+            "responsable": secretario_default,
+            "fecha": fecha_fmt
+        }
+    ]
+
+    return {
+        "numero": "",
+        "fecha": fecha_fmt,
+        "hora_inicio": "08:00 AM",
+        "hora_fin": "10:30 AM",
+        "lugar": "Sala de Juntas de Vicerrectoría / Sala Virtual Teams",
+        "modalidad": "Híbrida (Presencial y Virtual)",
+        "convoca": convoca_default,
+        "secretario": secretario_default,
+        "objetivo": normalize_intenalco_statute_terms(obj_text),
+        "orden_dia": (
+            "1. Verificación del quórum de integrantes de la mesa de trabajo.\n"
+            "2. Presentación del documento objeto de revisión y marco normativo MEN.\n"
+            "3. Análisis del estado de la brecha institucional y evidencias probatorias.\n"
+            "4. Debate, aportes técnicos de los integrantes y concertación de ajustes.\n"
+            "5. Definición de conclusiones, compromisos de cierre y firmas del acta."
+        ),
+        "desarrollo": normalize_intenalco_statute_terms(desarrollo_text),
+        "conclusiones": normalize_intenalco_statute_terms(conclusiones_text),
+        "proxima_reunion": "Según cronograma quincenal del plan de trabajo",
+        "observaciones": "El acta reposa en el expediente digital co-construido en SIAC 360 como evidencia fehaciente de co-construcción participativa.",
+        "brecha_id": matched_brecha_id,
+        "institucion_nombre": "INTENALCO EDUCACIÓN SUPERIOR",
+        "proceso": "Plan Estratégico de Redefinición a Institución Universitaria (Ley 749/2002 · Decreto 2038/2023)",
+        "codigo_formato": "CC-FO-ACT-01",
+        "version_formato": "01",
+        "asistentes": asistentes,
+        "compromisos": compromisos
+    }
+
+
+def _clean_acta_payload(acta_in, fallback_defaults=None):
+    """Normaliza y limita el contenido editable del acta, apoyándose en defaults si vienen vacíos."""
+    acta_in = acta_in if isinstance(acta_in, dict) else {}
+    fallback = fallback_defaults or {}
+    clean = {}
+    for k in ACTA_TEXT_FIELDS:
+        val = acta_in.get(k)
+        if val is None or str(val).strip() == "":
+            val = fallback.get(k, "")
+        clean[k] = normalize_intenalco_statute_terms(str(val).strip())[:12000] if val is not None else ""
+
+    raw_asist = acta_in.get("asistentes")
+    if raw_asist is None or (isinstance(raw_asist, list) and len(raw_asist) == 0):
+        raw_asist = fallback.get("asistentes") or []
+
+    asistentes = []
+    for a in (raw_asist or [])[:80]:
+        if isinstance(a, dict) and str(a.get("nombre") or "").strip():
+            asistentes.append({
+                "nombre": str(a.get("nombre") or "").strip()[:200],
+                "cargo": str(a.get("cargo") or "").strip()[:200],
+                "dependencia": str(a.get("dependencia") or "").strip()[:200],
+                "asistio": bool(a.get("asistio", True))
+            })
+    clean["asistentes"] = asistentes
+
+    raw_comp = acta_in.get("compromisos")
+    if raw_comp is None or (isinstance(raw_comp, list) and len(raw_comp) == 0):
+        raw_comp = fallback.get("compromisos") or []
+
+    compromisos = []
+    for c in (raw_comp or [])[:60]:
+        if isinstance(c, dict) and str(c.get("accion") or "").strip():
+            compromisos.append({
+                "accion": normalize_intenalco_statute_terms(str(c.get("accion") or "").strip()[:1000]),
+                "responsable": str(c.get("responsable") or "").strip()[:200],
+                "fecha": str(c.get("fecha") or "").strip()[:40]
+            })
+    clean["compromisos"] = compromisos
+    return clean
+
+
+def _find_doc_and_aporte(project, doc_id, aporte_id):
+    target_doc = next((d for d in (project.get("ai_history") or []) if d.get("id") == doc_id), None)
+    if not target_doc:
+        return None, None
+    target_ap = next((a for a in (target_doc.get("aportes_equipo") or []) if a.get("id") == aporte_id), None)
+    return target_doc, target_ap
+
+
+def _persist_acta(project, target_doc, target_ap, acta_clean, user_name=""):
+    """Guarda el acta en el aporte de la bitácora asignando un consecutivo institucional si no lo tiene."""
+    prev = target_ap.get("acta") if isinstance(target_ap.get("acta"), dict) else {}
+    if not acta_clean.get("numero"):
+        if prev.get("numero"):
+            acta_clean["numero"] = prev["numero"]
+        else:
+            consecutivo = int(project.get("acta_consecutivo") or 0) + 1
+            project["acta_consecutivo"] = consecutivo
+            acta_clean["numero"] = f"ACT-CC-{datetime.datetime.now().year}-{consecutivo:03d}"
+    now_iso = datetime.datetime.now().isoformat()
+    acta_clean["creada_en"] = prev.get("creada_en") or now_iso
+    acta_clean["actualizada_en"] = now_iso
+    acta_clean["actualizada_por"] = user_name or prev.get("actualizada_por") or "Equipo Institucional"
+    target_ap["acta"] = acta_clean
+    target_doc["fecha_modificacion"] = now_iso
+    return acta_clean
+
+
+def _get_acta_logo_source(inst_id, project):
+    """Retorna el logo para el acta: personalizado del módulo o el registrado en la institución."""
+    custom = project.get("acta_logo_data") if isinstance(project, dict) else None
+    if custom:
+        return custom
+    try:
+        inst_res = supabase.table('institution').select("logo_url, name").eq("id", int(inst_id)).execute()
+        if inst_res.data and inst_res.data[0].get("logo_url"):
+            return inst_res.data[0]["logo_url"]
+    except Exception as e:
+        print(f"[CC Acta Logo] Warning: {e}")
+    return ""
+
+
+def _logo_source_to_bytes(src):
+    """Convierte un logo (data URL base64 o URL http) en bytes de imagen para python-docx."""
+    if not src:
+        return None
+    try:
+        if src.startswith("data:"):
+            import base64
+            b64 = src.split(",", 1)[1]
+            return base64.b64decode(b64)
+        if src.startswith("http"):
+            import requests
+            r = requests.get(src, timeout=8)
+            if r.ok and r.content:
+                return r.content
+        local_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), src.lstrip("/"))
+        if os.path.exists(local_path):
+            with open(local_path, "rb") as f:
+                return f.read()
+    except Exception as e:
+        print(f"[CC Acta Logo Bytes] Warning: {e}")
+    return None
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/acta_logo', methods=['GET', 'POST'])
+def api_cc_acta_logo():
+    """GET: logo vigente para actas. POST: establece un logo personalizado (data URL, máx. ~1.5 MB)."""
+    try:
+        if request.method == 'POST':
+            data = request.json or {}
+            inst_id = data.get('inst_id', get_active_inst_id())
+            logo_data = str(data.get('logo_data') or '')
+            if logo_data and (not logo_data.startswith('data:image/') or len(logo_data) > 2_000_000):
+                return jsonify({"status": "error", "message": "El logo debe ser una imagen (PNG/JPG) de máximo 1.5 MB."}), 400
+            project = get_cc_project(inst_id)
+            project["acta_logo_data"] = logo_data
+            save_cc_project(inst_id, project)
+            return jsonify({"status": "success", "logo": _get_acta_logo_source(inst_id, project)})
+        inst_id = request.args.get('inst_id', get_active_inst_id(), type=int)
+        project = get_cc_project(inst_id)
+        inst_name = "INTENALCO EDUCACIÓN SUPERIOR"
+        try:
+            inst_res = supabase.table('institution').select("name").eq("id", int(inst_id)).execute()
+            if inst_res.data and inst_res.data[0].get("name"):
+                inst_name = inst_res.data[0]["name"]
+        except Exception:
+            pass
+        return jsonify({
+            "status": "success",
+            "logo": _get_acta_logo_source(inst_id, project),
+            "institucion_nombre": inst_name,
+            "acta_consecutivo": int(project.get("acta_consecutivo") or 0)
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/doc/acta/get', methods=['POST'])
+def api_cc_doc_acta_get():
+    """Obtiene el acta guardada o genera una propuesta institucional con los datos de la mesa y el documento."""
+    try:
+        data = request.json or {}
+        inst_id = data.get('inst_id', get_active_inst_id())
+        project = get_cc_project(inst_id)
+        target_doc, target_ap = _find_doc_and_aporte(project, data.get('doc_id'), data.get('aporte_id'))
+        if not target_ap:
+            return jsonify({"status": "error", "message": "No se encontró el registro de la mesa en la bitácora."}), 404
+
+        defaults = _build_default_acta_from_aporte(project, target_doc, target_ap)
+        existing_acta = target_ap.get("acta")
+        if existing_acta and isinstance(existing_acta, dict):
+            acta_to_return = _clean_acta_payload(existing_acta, fallback_defaults=defaults)
+            acta_to_return["numero"] = existing_acta.get("numero") or defaults["numero"]
+        else:
+            acta_to_return = defaults
+
+        logo_src = _get_acta_logo_source(inst_id, project)
+        brechas_list = [
+            {
+                "id": b.get("id"),
+                "frente": b.get("frente"),
+                "descripcion": b.get("descripcion", ""),
+                "requisito_id": b.get("requisito_id", ""),
+                "accion_propuesta": b.get("accion_propuesta", ""),
+                "evidencia_faltante": b.get("evidencia_faltante", "")
+            }
+            for b in (project.get("brechas") or []) if isinstance(b, dict) and b.get("id")
+        ]
+
+        return jsonify({
+            "status": "success",
+            "acta": acta_to_return,
+            "has_saved_acta": bool(existing_acta),
+            "logo": logo_src,
+            "brechas": brechas_list,
+            "doc": {
+                "id": target_doc.get("id"),
+                "codigo_doc": target_doc.get("codigo_doc"),
+                "titulo": target_doc.get("titulo"),
+                "frente": target_doc.get("frente"),
+                "equipo_documento": target_doc.get("equipo_documento") or []
+            }
+        })
+    except Exception as e:
+        print(f"[CC Acta Get] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/doc/acta/save', methods=['POST'])
+def api_cc_doc_acta_save():
+    """Guarda (crea o actualiza) el acta institucional de una mesa de trabajo registrada en la bitácora."""
+    try:
+        data = request.json or {}
+        inst_id = data.get('inst_id', get_active_inst_id())
+        project = get_cc_project(inst_id)
+        target_doc, target_ap = _find_doc_and_aporte(project, data.get('doc_id'), data.get('aporte_id'))
+        if not target_ap:
+            return jsonify({"status": "error", "message": "No se encontró el registro de la mesa en la bitácora."}), 404
+
+        defaults = _build_default_acta_from_aporte(project, target_doc, target_ap)
+        acta_clean = _clean_acta_payload(data.get('acta'), fallback_defaults=defaults)
+        acta_saved = _persist_acta(project, target_doc, target_ap, acta_clean, data.get('user_name', ''))
+        save_cc_project(inst_id, project)
+        return jsonify({"status": "success", "acta": acta_saved})
+    except Exception as e:
+        print(f"[CC Acta Save] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/doc/acta/ai_draft', methods=['POST'])
+def api_cc_doc_acta_ai_draft():
+    """Propone con IA el desarrollo, las conclusiones y los compromisos del acta a partir del aporte y la brecha."""
+    try:
+        data = request.json or {}
+        inst_id = data.get('inst_id', get_active_inst_id())
+        project = get_cc_project(inst_id)
+        target_doc, target_ap = _find_doc_and_aporte(project, data.get('doc_id'), data.get('aporte_id'))
+        if not target_ap:
+            return jsonify({"status": "error", "message": "No se encontró el registro de la mesa."}), 404
+
+        brecha = next((b for b in (project.get("brechas") or []) if b.get("id") == data.get("brecha_id")), None) or {}
+        participantes = ", ".join([
+            f"{p.get('nombre', '')} ({p.get('dependencia', '')})" for p in (target_ap.get("participantes") or []) if isinstance(p, dict)
+        ])
+        prompt = f"""Eres secretario técnico de INTENALCO EDUCACIÓN SUPERIOR (máximo órgano: Consejo Directivo) en el proceso de cambio de carácter a Institución Universitaria (Ley 749/2002, Decreto 2038/2023).
+Redacta en español formal el contenido de un ACTA DE MESA DE TRABAJO que sirva como evidencia ante pares académicos del MEN.
+
+DOCUMENTO TRABAJADO: {target_doc.get('codigo_doc', '')} - {target_doc.get('titulo', '')} (Frente: {target_doc.get('frente', '')})
+TIPO DE ACTUACIÓN: {target_ap.get('tipo', '')} | Sección referida: {target_ap.get('seccion_referencia', '')}
+PARTICIPANTES: {participantes}
+REGISTRO DE LA MESA: {target_ap.get('comentario', '')}
+BRECHA ASOCIADA: {brecha.get('id', 'N/A')} - {brecha.get('descripcion', '')} | Tratamiento: {brecha.get('accion_propuesta', '')} | Evidencia faltante: {brecha.get('evidencia_faltante', '')}
+NOTAS ADICIONALES DEL USUARIO: {str(data.get('notas') or '')[:3000]}
+
+Responde ÚNICAMENTE con un JSON válido con esta estructura exacta:
+{{"objetivo": "...", "orden_dia": "1. ...\\n2. ...", "desarrollo": "párrafos del desarrollo de la sesión", "conclusiones": "conclusiones numeradas respecto a la brecha", "compromisos": [{{"accion": "...", "responsable": "...", "fecha": "AAAA-MM-DD"}}]}}
+No inventes cifras ni actos administrativos inexistentes; usa redacción institucional sobria."""
+        raw = call_ai([{"role": "user", "content": prompt}], max_tokens=2500, temperature=0.3, inst_id=inst_id) or ""
+        import re
+        m = re.search(r'\{[\s\S]*\}', raw)
+        if not m:
+            return jsonify({"status": "error", "message": "La IA no devolvió un borrador válido. Intenta de nuevo."}), 502
+        draft = json.loads(m.group(0))
+        draft_clean = {
+            "objetivo": normalize_intenalco_statute_terms(str(draft.get("objetivo") or "")),
+            "orden_dia": normalize_intenalco_statute_terms(str(draft.get("orden_dia") or "")),
+            "desarrollo": normalize_intenalco_statute_terms(str(draft.get("desarrollo") or "")),
+            "conclusiones": normalize_intenalco_statute_terms(str(draft.get("conclusiones") or "")),
+            "compromisos": [
+                {"accion": normalize_intenalco_statute_terms(str(c.get("accion") or "")), "responsable": str(c.get("responsable") or ""), "fecha": str(c.get("fecha") or "")}
+                for c in (draft.get("compromisos") or []) if isinstance(c, dict)
+            ]
+        }
+        return jsonify({"status": "success", "draft": draft_clean})
+    except Exception as e:
+        print(f"[CC Acta AI Draft] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+def _docx_shade_cell(cell, hex_fill):
+    tc_pr = cell._tc.get_or_add_tcPr()
+    shd = OxmlElement('w:shd')
+    shd.set(qn('w:val'), 'clear')
+    shd.set(qn('w:color'), 'auto')
+    shd.set(qn('w:fill'), hex_fill)
+    tc_pr.append(shd)
+
+
+def _docx_cell_text(cell, text, bold=False, size=9.5, color=None, align=None, italic=False):
+    cell.text = ""
+    para = cell.paragraphs[0]
+    lines = str(text or "").split("\n")
+    for i, line in enumerate(lines):
+        run = para.add_run(line)
+        run.font.name = 'Calibri'
+        run.font.size = Pt(size)
+        run.font.bold = bold
+        run.font.italic = italic
+        if color:
+            run.font.color.rgb = color
+        if i < len(lines) - 1:
+            run.add_break()
+    if align is not None:
+        para.alignment = align
+    para.paragraph_format.space_after = Pt(1)
+    return para
+
+
+def _docx_section_title(doc, text):
+    tbl = doc.add_table(rows=1, cols=1)
+    tbl.style = 'Table Grid'
+    cell = tbl.cell(0, 0)
+    _docx_shade_cell(cell, "1E1B4B")
+    _docx_cell_text(cell, text.upper(), bold=True, size=10, color=RGBColor(255, 255, 255))
+    return tbl
+
+
+def _docx_text_block(doc, text):
+    tbl = doc.add_table(rows=1, cols=1)
+    tbl.style = 'Table Grid'
+    cell = tbl.cell(0, 0)
+    cell.text = ""
+    paras = [p for p in str(text or "").split("\n")] or [""]
+    first = True
+    for ptxt in paras:
+        para = cell.paragraphs[0] if first else cell.add_paragraph()
+        first = False
+        parts = ptxt.split("**")
+        for i, part in enumerate(parts):
+            if not part:
+                continue
+            run = para.add_run(part)
+            run.font.name = 'Calibri'
+            run.font.size = Pt(10)
+            run.font.bold = (i % 2 == 1)
+        para.paragraph_format.space_after = Pt(2)
+        para.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    doc.add_paragraph().paragraph_format.space_after = Pt(2)
+    return tbl
+
+
+def build_acta_docx(project, target_doc, target_ap, acta, logo_bytes=None):
+    """Construye el Acta de Reunión de Mesa de Trabajo en formato Word institucional, editable y con espacios para firmas."""
+    doc = docx.Document()
+    for section in doc.sections:
+        section.top_margin = Inches(0.7)
+        section.bottom_margin = Inches(0.7)
+        section.left_margin = Inches(0.85)
+        section.right_margin = Inches(0.85)
+
+    style = doc.styles['Normal']
+    style.font.name = 'Calibri'
+    style.font.size = Pt(10)
+
+    inst_name = acta.get("institucion_nombre") or "INTENALCO EDUCACIÓN SUPERIOR"
+    navy = RGBColor(30, 27, 75)
+    slate = RGBColor(71, 85, 105)
+
+    # ---------- ENCABEZADO INSTITUCIONAL (se repite en cada página) ----------
+    header = doc.sections[0].header
+    header.is_linked_to_previous = False
+    h_tbl = header.add_table(rows=3, cols=3, width=Inches(6.8))
+    h_tbl.style = 'Table Grid'
+    h_tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+    logo_cell = h_tbl.cell(0, 0).merge(h_tbl.cell(2, 0))
+    title_cell = h_tbl.cell(0, 1).merge(h_tbl.cell(2, 1))
+    logo_cell.text = ""
+    lp = logo_cell.paragraphs[0]
+    lp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    if logo_bytes:
+        try:
+            lp.add_run().add_picture(io.BytesIO(logo_bytes), width=Inches(1.15))
+        except Exception as img_e:
+            print(f"[CC Acta] Logo no insertable: {img_e}")
+            r = lp.add_run(inst_name.split()[0])
+            r.font.bold = True
+            r.font.size = Pt(12)
+            r.font.color.rgb = navy
+    else:
+        r = lp.add_run(inst_name.split()[0])
+        r.font.bold = True
+        r.font.size = Pt(12)
+        r.font.color.rgb = navy
+
+    title_cell.text = ""
+    tp = title_cell.paragraphs[0]
+    tp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    r1 = tp.add_run(inst_name.upper())
+    r1.font.bold = True
+    r1.font.size = Pt(11)
+    r1.font.color.rgb = navy
+    tp2 = title_cell.add_paragraph()
+    tp2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    r2 = tp2.add_run("ACTA DE REUNIÓN – MESA DE TRABAJO")
+    r2.font.bold = True
+    r2.font.size = Pt(12)
+    tp3 = title_cell.add_paragraph()
+    tp3.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    r3 = tp3.add_run(acta.get("proceso") or "Proceso de Cambio de Carácter a Institución Universitaria")
+    r3.font.size = Pt(8.5)
+    r3.font.italic = True
+    r3.font.color.rgb = slate
+
+    _docx_cell_text(h_tbl.cell(0, 2), f"Código: {acta.get('codigo_formato') or 'CC-FO-ACT-01'}", size=8)
+    _docx_cell_text(h_tbl.cell(1, 2), f"Versión: {acta.get('version_formato') or '01'}", size=8)
+    _docx_cell_text(h_tbl.cell(2, 2), f"Acta N.º: {acta.get('numero') or ''}", bold=True, size=8)
+    for row in h_tbl.rows:
+        row.cells[0].width = Inches(1.5)
+        row.cells[1].width = Inches(3.7)
+        row.cells[2].width = Inches(1.6)
+
+    footer = doc.sections[0].footer
+    fp = footer.paragraphs[0]
+    fp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    fr = fp.add_run(f"{inst_name} · Acta {acta.get('numero') or ''} · Documento generado en SIAC 360 como evidencia del proceso de cambio de carácter")
+    fr.font.size = Pt(7.5)
+    fr.font.italic = True
+    fr.font.color.rgb = RGBColor(148, 163, 184)
+
+    # ---------- 1. DATOS GENERALES ----------
+    _docx_section_title(doc, "1. Datos generales de la reunión")
+    g_tbl = doc.add_table(rows=4, cols=4)
+    g_tbl.style = 'Table Grid'
+    rows_data = [
+        ("Fecha", acta.get("fecha"), "Hora", f"{acta.get('hora_inicio') or ''} – {acta.get('hora_fin') or ''}"),
+        ("Lugar", acta.get("lugar"), "Modalidad", acta.get("modalidad")),
+        ("Convoca / Preside", acta.get("convoca"), "Secretario(a)", acta.get("secretario")),
+        ("Documento trabajado", f"{target_doc.get('codigo_doc', '')} · {target_doc.get('titulo', '')}", "Frente", target_doc.get("frente", "")),
+    ]
+    for r_i, (l1, v1, l2, v2) in enumerate(rows_data):
+        cells = g_tbl.rows[r_i].cells
+        _docx_shade_cell(cells[0], "EEF2FF")
+        _docx_shade_cell(cells[2], "EEF2FF")
+        _docx_cell_text(cells[0], l1, bold=True, size=9, color=navy)
+        _docx_cell_text(cells[1], v1 or "", size=9.5)
+        _docx_cell_text(cells[2], l2, bold=True, size=9, color=navy)
+        _docx_cell_text(cells[3], v2 or "", size=9.5)
+    doc.add_paragraph().paragraph_format.space_after = Pt(2)
+
+    # ---------- 2. OBJETIVO ----------
+    _docx_section_title(doc, "2. Objetivo de la reunión")
+    _docx_text_block(doc, acta.get("objetivo"))
+
+    # ---------- 3. BRECHA ----------
+    brecha = next((b for b in (project.get("brechas") or []) if b.get("id") == acta.get("brecha_id")), None)
+    _docx_section_title(doc, "3. Brecha institucional abordada")
+    if brecha:
+        b_tbl = doc.add_table(rows=0, cols=2)
+        b_tbl.style = 'Table Grid'
+        req_title = ""
+        req_obj = next((r for r in REQUISITOS if r.get("id") == brecha.get("requisito_id")), None)
+        if req_obj:
+            req_title = f"{req_obj['id'].upper()} · {req_obj.get('title', '')}"
+        for lbl, val in [
+            ("Código", brecha.get("id")),
+            ("Frente / Área", brecha.get("frente")),
+            ("Requisito MEN", req_title or brecha.get("requisito_id")),
+            ("Fuente normativa", brecha.get("fuente_normativa")),
+            ("Descripción de la brecha", brecha.get("descripcion")),
+            ("Evidencia faltante", brecha.get("evidencia_faltante")),
+            ("Tratamiento propuesto", brecha.get("accion_propuesta")),
+            ("Prioridad / Estado", f"{brecha.get('prioridad', '')} / {brecha.get('estado', '')}"),
+            ("Responsable", brecha.get("responsable")),
+        ]:
+            if not val:
+                continue
+            rc = b_tbl.add_row().cells
+            _docx_shade_cell(rc[0], "F1F5F9")
+            _docx_cell_text(rc[0], lbl, bold=True, size=9, color=navy)
+            _docx_cell_text(rc[1], val, size=9.5)
+            rc[0].width = Inches(1.9)
+            rc[1].width = Inches(4.9)
+        doc.add_paragraph().paragraph_format.space_after = Pt(2)
+    else:
+        _docx_text_block(doc, "La sesión no se asoció a una brecha específica de la matriz institucional.")
+
+    # ---------- 4. ASISTENTES ----------
+    asistentes = acta.get("asistentes") or []
+    _docx_section_title(doc, f"4. Integrantes de la mesa ({len(asistentes)})")
+    a_tbl = doc.add_table(rows=1, cols=5)
+    a_tbl.style = 'Table Grid'
+    for i, h in enumerate(["N.º", "Nombre", "Cargo / Rol", "Dependencia / Estamento", "Asistió"]):
+        _docx_shade_cell(a_tbl.cell(0, i), "E0E7FF")
+        _docx_cell_text(a_tbl.cell(0, i), h, bold=True, size=9, color=navy, align=WD_ALIGN_PARAGRAPH.CENTER)
+    for idx_a, a in enumerate(asistentes, start=1):
+        rc = a_tbl.add_row().cells
+        _docx_cell_text(rc[0], str(idx_a), size=9, align=WD_ALIGN_PARAGRAPH.CENTER)
+        _docx_cell_text(rc[1], a.get("nombre"), size=9.5)
+        _docx_cell_text(rc[2], a.get("cargo"), size=9)
+        _docx_cell_text(rc[3], a.get("dependencia"), size=9)
+        _docx_cell_text(rc[4], "Sí" if a.get("asistio", True) else "No", size=9, align=WD_ALIGN_PARAGRAPH.CENTER)
+    doc.add_paragraph().paragraph_format.space_after = Pt(2)
+
+    # ---------- 5-7. ORDEN DEL DÍA, DESARROLLO, CONCLUSIONES ----------
+    _docx_section_title(doc, "5. Orden del día")
+    _docx_text_block(doc, acta.get("orden_dia"))
+    _docx_section_title(doc, "6. Desarrollo de la sesión")
+    _docx_text_block(doc, acta.get("desarrollo"))
+    _docx_section_title(doc, "7. Conclusiones respecto a la brecha")
+    _docx_text_block(doc, acta.get("conclusiones"))
+
+    # ---------- 8. COMPROMISOS ----------
+    compromisos = acta.get("compromisos") or []
+    _docx_section_title(doc, "8. Compromisos y tareas")
+    c_tbl = doc.add_table(rows=1, cols=4)
+    c_tbl.style = 'Table Grid'
+    for i, h in enumerate(["N.º", "Compromiso / Acción", "Responsable", "Fecha límite"]):
+        _docx_shade_cell(c_tbl.cell(0, i), "E0E7FF")
+        _docx_cell_text(c_tbl.cell(0, i), h, bold=True, size=9, color=navy, align=WD_ALIGN_PARAGRAPH.CENTER)
+    if compromisos:
+        for idx_c, c in enumerate(compromisos, start=1):
+            rc = c_tbl.add_row().cells
+            _docx_cell_text(rc[0], str(idx_c), size=9, align=WD_ALIGN_PARAGRAPH.CENTER)
+            _docx_cell_text(rc[1], c.get("accion"), size=9.5)
+            _docx_cell_text(rc[2], c.get("responsable"), size=9)
+            _docx_cell_text(rc[3], c.get("fecha"), size=9, align=WD_ALIGN_PARAGRAPH.CENTER)
+    else:
+        rc = c_tbl.add_row().cells
+        _docx_cell_text(rc[1], "Sin compromisos registrados.", size=9, italic=True)
+    doc.add_paragraph().paragraph_format.space_after = Pt(2)
+
+    if acta.get("proxima_reunion") or acta.get("observaciones"):
+        _docx_section_title(doc, "9. Próxima reunión y observaciones")
+        _docx_text_block(doc, "\n".join(filter(None, [
+            f"**Próxima reunión:** {acta.get('proxima_reunion')}" if acta.get("proxima_reunion") else "",
+            acta.get("observaciones") or ""
+        ])))
+
+    # ---------- FIRMAS ----------
+    doc.add_paragraph().paragraph_format.space_after = Pt(4)
+    _docx_section_title(doc, "Firmas de los integrantes de la mesa")
+    p_note = doc.add_paragraph()
+    rn = p_note.add_run("En constancia de lo tratado y acordado, firman quienes participaron en la sesión:")
+    rn.font.size = Pt(9)
+    rn.font.italic = True
+    rn.font.color.rgb = slate
+
+    firmantes = [a for a in asistentes if a.get("asistio", True)] or [{"nombre": "", "cargo": "", "dependencia": ""}]
+    s_rows = (len(firmantes) + 1) // 2
+    s_tbl = doc.add_table(rows=s_rows, cols=2)
+    s_tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+    for i, f in enumerate(firmantes):
+        cell = s_tbl.cell(i // 2, i % 2)
+        cell.text = ""
+        sp = cell.paragraphs[0]
+        sp.paragraph_format.space_before = Pt(30)
+        sp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        sp.add_run("_____________________________________").font.color.rgb = slate
+        np_ = cell.add_paragraph()
+        np_.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        rn1 = np_.add_run(f.get("nombre") or "Nombre:")
+        rn1.font.bold = True
+        rn1.font.size = Pt(9.5)
+        cp_ = cell.add_paragraph()
+        cp_.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        rc1 = cp_.add_run(" · ".join(filter(None, [f.get("cargo"), f.get("dependencia")])) or "Cargo / Dependencia")
+        rc1.font.size = Pt(8.5)
+        rc1.font.color.rgb = slate
+        cp_.paragraph_format.space_after = Pt(10)
+
+    out = io.BytesIO()
+    doc.save(out)
+    out.seek(0)
+    return out
+
+
+@cambio_caracter_bp.route('/api/cambio_caracter/doc/acta/word', methods=['POST'])
+def api_cc_doc_acta_word():
+    """Guarda el acta y descarga el Word institucional (editable) con logo y espacios para firmas."""
+    try:
+        payload = request.get_json(silent=True)
+        if payload is None:
+            payload = json.loads(request.form.get('payload') or '{}')
+        inst_id = payload.get('inst_id', get_active_inst_id())
+        project = get_cc_project(inst_id)
+        target_doc, target_ap = _find_doc_and_aporte(project, payload.get('doc_id'), payload.get('aporte_id'))
+        if not target_ap:
+            return jsonify({"status": "error", "message": "No se encontró el registro de la mesa."}), 404
+
+        defaults = _build_default_acta_from_aporte(project, target_doc, target_ap)
+        raw_acta = payload.get('acta') or target_ap.get('acta') or defaults
+        acta_clean = _clean_acta_payload(raw_acta, fallback_defaults=defaults)
+        acta_saved = _persist_acta(project, target_doc, target_ap, acta_clean, payload.get('user_name', ''))
+        save_cc_project(inst_id, project)
+
+        logo_bytes = _logo_source_to_bytes(_get_acta_logo_source(inst_id, project))
+        stream = build_acta_docx(project, target_doc, target_ap, acta_saved, logo_bytes)
+        fname = f"Acta_{acta_saved.get('numero', 'Mesa')}_{datetime.datetime.now().strftime('%Y%m%d')}.docx".replace(" ", "_")
+        return send_file(stream, as_attachment=True, download_name=fname,
+                         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    except Exception as e:
+        print(f"[CC Acta Word] Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 @cambio_caracter_bp.route('/api/cambio_caracter/doc/update_team', methods=['POST'])
 def api_cc_doc_update_team():
     """Agrega o elimina integrantes del equipo de trabajo permanente asignado a un documento co-construido."""
