@@ -1095,7 +1095,46 @@ def init_admin():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
-# --- Gestión de Usuarios por Institución ---
+# --- Gestión de Usuarios y Perfiles Institucionales ---
+
+def get_user_extended_profile(user_id):
+    """Obtiene datos de perfil extendido (cargo, teléfono, bio, procesos, avatar) de statistics."""
+    try:
+        res = supabase.table('statistics').select('data_json').eq('table_id', f'USER_PROFILE_{user_id}').order('id', desc=True).limit(1).execute()
+        if res.data and res.data[0].get('data_json'):
+            raw = res.data[0]['data_json']
+            if isinstance(raw, str):
+                return json.loads(raw)
+            elif isinstance(raw, dict):
+                return raw
+    except Exception as e:
+        print(f"Aviso get_user_extended_profile({user_id}): {e}")
+    return {}
+
+def save_user_extended_profile(user_id, profile_dict, inst_id=7, program_id=None):
+    """Guarda o actualiza datos de perfil extendido en statistics."""
+    table_id = f"USER_PROFILE_{user_id}"
+    valid_prog_id = program_id if (program_id and int(program_id) > 0) else None
+    try:
+        check = supabase.table('statistics').select('id').eq('table_id', table_id).limit(1).execute()
+        data_json = json.dumps(profile_dict, ensure_ascii=False)
+        if check.data:
+            supabase.table('statistics').update({
+                'data_json': data_json,
+                'inst_id': inst_id,
+                'program_id': valid_prog_id
+            }).eq('id', check.data[0]['id']).execute()
+        else:
+            supabase.table('statistics').insert({
+                'table_id': table_id,
+                'data_json': data_json,
+                'inst_id': inst_id,
+                'program_id': valid_prog_id
+            }).execute()
+        return True
+    except Exception as e:
+        print(f"Error save_user_extended_profile({user_id}): {e}")
+        return False
 
 @core_bp.route('/api/users', methods=['GET', 'POST'])
 @require_permission(['configuracion', 'autoevaluacion', 'informes'])
@@ -1239,11 +1278,38 @@ def handle_users():
                 if res_str.data:
                     res = res_str
         
-        # Excluir password_hash de la respuesta pública
+        # Obtener perfiles extendidos desde statistics
+        prof_map = {}
+        try:
+            prof_res = supabase.table('statistics').select('table_id, data_json').like('table_id', 'USER_PROFILE_%').execute()
+            for row in (prof_res.data or []):
+                t_id = row.get('table_id', '')
+                u_id = t_id.replace('USER_PROFILE_', '')
+                raw_data = row.get('data_json')
+                if isinstance(raw_data, str):
+                    try:
+                        prof_map[u_id] = json.loads(raw_data)
+                    except Exception:
+                        prof_map[u_id] = {}
+                elif isinstance(raw_data, dict):
+                    prof_map[u_id] = raw_data
+        except Exception as e_prof:
+            print(f"Aviso perfiles extendidos: {e_prof}")
+
+        # Excluir password_hash de la respuesta pública y fusionar datos de perfil extendido
         safe_users = []
         for u in (res.data or []):
             if isinstance(u, dict):
-                safe_users.append({k: v for k, v in u.items() if k != 'password_hash'})
+                u_clean = {k: v for k, v in u.items() if k != 'password_hash'}
+                prof = prof_map.get(str(u.get('id')), {})
+                u_clean['cargo'] = prof.get('cargo', '')
+                u_clean['phone'] = prof.get('phone', '')
+                u_clean['bio'] = prof.get('bio', '')
+                u_clean['processes'] = prof.get('processes', ['autoevaluacion', 'cambio_caracter'])
+                u_clean['assigned_factors'] = prof.get('assigned_factors', [])
+                u_clean['avatar_config'] = prof.get('avatar_config', {})
+                u_clean['avatar_url'] = prof.get('avatar_url', '')
+                safe_users.append(u_clean)
         return jsonify(safe_users)
     except Exception as e:
         print(f"Error fetching users: {e}")
@@ -1401,6 +1467,235 @@ def delete_user(user_id):
     except Exception as e:
         print(f"Error al eliminar usuario {user_id}: {e}")
         return jsonify({"status": "error", "message": str(e)})
+
+
+@core_bp.route('/api/users/<user_id>/update', methods=['POST'])
+def update_user_full(user_id):
+    """Actualización integral de usuario para administradores: nombre, email, rol, cargo, teléfono, contraseña, procesos y factores asignados."""
+    try:
+        requester_id = (
+            request.headers.get('X-User-Id', '').strip()
+            or request.headers.get('X-User-Email', '').strip()
+            or str(session.get('user_id') or '').strip()
+            or str(session.get('email') or '').strip()
+        )
+        current_u = _get_user(requester_id) if requester_id else None
+        requester_role = current_u.get('role', '') if current_u else ''
+        if requester_role not in ['admin', 'inst_admin']:
+            return jsonify({
+                "status": "error",
+                "message": "Acceso denegado: La edición de usuarios está reservada para Administradores."
+            }), 403
+
+        data = request.json or {}
+        name = (data.get('name') or '').strip()
+        email = (data.get('email') or '').strip().lower()
+        role = data.get('role')
+        cargo = (data.get('cargo') or '').strip()
+        phone = (data.get('phone') or '').strip()
+        password = data.get('password')
+        processes = data.get('processes')
+        assigned_factors = data.get('assigned_factors')
+
+        # Validar usuario existente
+        user_res = supabase.table('users').select("*").eq("id", user_id).execute()
+        if not user_res.data:
+            return jsonify({"status": "error", "message": "Usuario no encontrado"}), 404
+        user_record = user_res.data[0]
+        user_inst_id = user_record.get('inst_id') or 7
+
+        # 1. Actualizar tabla users
+        user_upd = {}
+        if name:
+            import re
+            user_upd['name'] = re.sub(r'\[(?:PENDING|ASPIRANTE)[^\]]*\]\s*', '', name).strip()
+        if email:
+            user_upd['email'] = email
+        if role:
+            user_upd['role'] = role
+        if password and str(password).strip():
+            user_upd['password_hash'] = generate_password_hash(str(password).strip())
+
+        if user_upd:
+            supabase.table('users').update(user_upd).eq("id", user_id).execute()
+
+        # 2. Actualizar perfil extendido en statistics
+        ext_prof = get_user_extended_profile(user_id)
+        if cargo:
+            ext_prof['cargo'] = cargo
+        if phone:
+            ext_prof['phone'] = phone
+        if processes is not None:
+            ext_prof['processes'] = processes
+        if assigned_factors is not None:
+            clean_factors = []
+            for af in assigned_factors:
+                try:
+                    clean_factors.append(int(af))
+                except Exception:
+                    clean_factors.append(str(af))
+            ext_prof['assigned_factors'] = clean_factors
+
+        save_user_extended_profile(user_id, ext_prof, inst_id=user_inst_id, program_id=user_record.get('program_id') or 0)
+
+        # 3. Sincronizar factores de autoevaluación si fueron proporcionados
+        if assigned_factors is not None:
+            try:
+                # Liberar factores previos de este usuario en la institución
+                supabase.table('factors').update({"leader_id": None}).eq("inst_id", user_inst_id).eq("leader_id", user_id).execute()
+                # Asignar a los factores seleccionados en todos los programas de la institución
+                for factor_val in assigned_factors:
+                    val_str = str(factor_val)
+                    supabase.table('factors').update({"leader_id": user_id}).eq("inst_id", user_inst_id).eq("number", val_str).execute()
+                    supabase.table('factors').update({"leader_id": user_id}).eq("inst_id", user_inst_id).eq("id", val_str).execute()
+            except Exception as f_err:
+                print(f"Aviso actualizando líder de factores: {f_err}")
+
+        return jsonify({
+            "status": "success",
+            "message": "Usuario y perfil institucional actualizados exitosamente",
+            "user": {
+                "id": user_id,
+                "name": user_upd.get('name', user_record.get('name')),
+                "email": user_upd.get('email', user_record.get('email')),
+                "role": user_upd.get('role', user_record.get('role')),
+                "cargo": ext_prof.get('cargo', ''),
+                "phone": ext_prof.get('phone', ''),
+                "processes": ext_prof.get('processes', []),
+                "assigned_factors": ext_prof.get('assigned_factors', [])
+            }
+        })
+    except Exception as e:
+        print(f"Error actualizando usuario {user_id}: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@core_bp.route('/api/user/profile', methods=['GET', 'POST'])
+def manage_user_profile():
+    """Consulta y actualización del perfil ejecutivo institucional del usuario activo."""
+    user_id = (
+        request.headers.get('X-User-Id', '').strip()
+        or request.headers.get('X-User-Email', '').strip()
+        or str(session.get('user_id') or '').strip()
+        or str(session.get('email') or '').strip()
+    )
+    if not user_id:
+        return jsonify({"status": "error", "message": "Sesión no identificada"}), 401
+
+    current_u = _get_user(user_id)
+    if not current_u:
+        return jsonify({"status": "error", "message": "Usuario no encontrado"}), 404
+
+    inst_id = current_u.get('inst_id') or 7
+    inst_name = "INTENALCO"
+    inst_logo = "https://www.intenalco.edu.co/INTENALCOLOGO.png"
+    try:
+        inst_res = supabase.table('institution').select('id, name, logo_url, description').eq('id', inst_id).execute()
+        if inst_res.data:
+            inst_name = inst_res.data[0].get('name') or inst_name
+            inst_logo = inst_res.data[0].get('logo_url') or inst_logo
+    except Exception as e:
+        print(f"Aviso institution query: {e}")
+
+    if request.method == 'POST':
+        data = request.json or {}
+        new_name = (data.get('name') or '').strip()
+        cargo = (data.get('cargo') or '').strip()
+        phone = (data.get('phone') or '').strip()
+        bio = (data.get('bio') or '').strip()
+        avatar_config = data.get('avatar_config')
+        avatar_url = data.get('avatar_url')
+        processes = data.get('processes')
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
+
+        # 1. Cambio de contraseña si se solicita
+        if new_password and str(new_password).strip():
+            if not old_password:
+                return jsonify({"status": "error", "message": "Debes ingresar tu contraseña actual para establecer una nueva."}), 400
+            
+            full_user = supabase.table('users').select("password_hash").eq("id", current_u['id']).execute()
+            if not full_user.data or not check_password_hash(full_user.data[0].get('password_hash', ''), old_password):
+                return jsonify({"status": "error", "message": "La contraseña actual no es correcta."}), 400
+            
+            new_hash = generate_password_hash(str(new_password).strip())
+            supabase.table('users').update({"password_hash": new_hash}).eq("id", current_u['id']).execute()
+
+        # 2. Actualizar nombre si cambió
+        if new_name and new_name != current_u.get('name'):
+            import re
+            clean_name = re.sub(r'\[(?:PENDING|ASPIRANTE)[^\]]*\]\s*', '', new_name).strip()
+            supabase.table('users').update({"name": clean_name}).eq("id", current_u['id']).execute()
+            current_u['name'] = clean_name
+
+        # 3. Guardar perfil extendido en statistics
+        ext_prof = get_user_extended_profile(current_u['id'])
+        if cargo: ext_prof['cargo'] = cargo
+        if phone: ext_prof['phone'] = phone
+        if bio: ext_prof['bio'] = bio
+        if avatar_config is not None: ext_prof['avatar_config'] = avatar_config
+        if avatar_url is not None: ext_prof['avatar_url'] = avatar_url
+        if processes is not None: ext_prof['processes'] = processes
+
+        save_user_extended_profile(current_u['id'], ext_prof, inst_id=inst_id, program_id=current_u.get('program_id') or 0)
+
+        return jsonify({
+            "status": "success",
+            "message": "Perfil ejecutivo actualizado con éxito",
+            "user": {
+                "id": current_u['id'],
+                "name": current_u.get('name'),
+                "email": current_u.get('email'),
+                "role": current_u.get('role'),
+                "inst_id": inst_id,
+                "cargo": ext_prof.get('cargo', ''),
+                "phone": ext_prof.get('phone', ''),
+                "bio": ext_prof.get('bio', ''),
+                "avatar_config": ext_prof.get('avatar_config', {}),
+                "avatar_url": ext_prof.get('avatar_url', ''),
+                "processes": ext_prof.get('processes', ['autoevaluacion', 'cambio_caracter']),
+                "assigned_factors": ext_prof.get('assigned_factors', [])
+            }
+        })
+
+    # GET profile
+    ext_prof = get_user_extended_profile(current_u['id'])
+    assigned_factors = []
+    try:
+        f_res = supabase.table('factors').select('id, number, name, program_id').eq('inst_id', inst_id).eq('leader_id', current_u['id']).execute()
+        assigned_factors = f_res.data or []
+    except Exception as e_f:
+        print(f"Aviso factores asignados: {e_f}")
+
+    # Lista de números de factores asignados
+    f_nums = [f['number'] for f in assigned_factors if f.get('number')]
+    if not ext_prof.get('assigned_factors') and f_nums:
+        ext_prof['assigned_factors'] = f_nums
+
+    return jsonify({
+        "status": "success",
+        "user": {
+            "id": current_u['id'],
+            "name": current_u.get('name', ''),
+            "email": current_u.get('email', ''),
+            "role": current_u.get('role', ''),
+            "inst_id": inst_id,
+            "program_id": current_u.get('program_id', 0),
+            "cargo": ext_prof.get('cargo', ''),
+            "phone": ext_prof.get('phone', ''),
+            "bio": ext_prof.get('bio', ''),
+            "avatar_config": ext_prof.get('avatar_config', {}),
+            "avatar_url": ext_prof.get('avatar_url', ''),
+            "processes": ext_prof.get('processes', ['autoevaluacion', 'cambio_caracter']),
+            "assigned_factors": ext_prof.get('assigned_factors', f_nums)
+        },
+        "institution": {
+            "id": inst_id,
+            "name": inst_name,
+            "logo_url": inst_logo
+        },
+        "factors": assigned_factors
+    })
 
 
 

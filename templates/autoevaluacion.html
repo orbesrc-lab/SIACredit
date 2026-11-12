@@ -311,7 +311,29 @@
 
         </header>
 
-
+        <!-- Banner de Perspectiva y Articulación Institucional de Procesos -->
+        <div id="articulacionBanner" style="display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%); color:white; padding:12px 20px; border-radius:12px; margin-bottom:16px; box-shadow:0 4px 14px rgba(30,58,138,0.18);">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="font-size:1.6rem; background:rgba(255,255,255,0.15); width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center;">🎯</div>
+                <div>
+                    <div style="font-weight:800; font-size:0.95rem; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                        <span>Perspectiva Articulada: Líder Institucional</span>
+                        <span id="headerProcessBadge" style="background:#10b981; color:white; font-size:0.68rem; font-weight:800; padding:2px 8px; border-radius:12px;">ACTIVO</span>
+                    </div>
+                    <div style="font-size:0.78rem; color:#bfdbfe; margin-top:2px;" id="headerProcessDesc">
+                        Articulando: <strong>Autoevaluación Institucional</strong> & <strong>Cambio de Carácter a Institución Universitaria</strong>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <a href="cambio_caracter.html" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:white; padding:7px 14px; border-radius:8px; font-size:0.8rem; font-weight:700; text-decoration:none; display:flex; align-items:center; gap:6px; transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">
+                    🏛️ Ir a Cambio de Carácter
+                </a>
+                <button type="button" onclick="openExecutiveProfileModal()" style="background:#ffffff; color:#1e3a8a; border:none; padding:7px 14px; border-radius:8px; font-size:0.8rem; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                    ⚙️ Configurar Mis Procesos
+                </button>
+            </div>
+        </div>
 
         <div class="layout-split">
 
@@ -342,119 +364,174 @@
 
         function getInstId() {
             try {
-                const u = JSON.parse(localStorage.getItem('siac_user'));
-                return u ? (u.inst_id || 7) : 7;
+                const u = JSON.parse(localStorage.getItem('siac_user') || '{}');
+                return u.inst_id || 7;
             } catch(e) { return 7; }
         }
 
         function getProgramId() {
             try {
-                const u = JSON.parse(localStorage.getItem('siac_user'));
-                return u ? (u.program_id || 68) : 68;
-            } catch(e) { return 68; }
+                const storedP = localStorage.getItem('siac_active_program_id');
+                if (storedP && storedP !== '0') return parseInt(storedP, 10);
+                const u = JSON.parse(localStorage.getItem('siac_user') || '{}');
+                if (u.program_id && u.program_id !== 68) return u.program_id;
+                return 66; // Fallback por defecto a programa 66 (CAMBIO DE CARACTER) con factores activos
+            } catch(e) { return 66; }
         }
 
-
-
-        const user = JSON.parse(localStorage.getItem('siac_user')) ;
-
+        const user = JSON.parse(localStorage.getItem('siac_user') || '{}');
         if (!user || user.role === 'guest') window.top.location.href = 'index.html';
-
-        
 
         const roleLabel = user.role ? user.role.toUpperCase() : 'INVITADO';
 
-        document.getElementById('userInfo').innerHTML = `<span>${user.email}</span> <span class="status ${user.role === 'admin' || user.role === 'inst_admin' ? 'aprobado' : 'revision'}" style="margin-left:10px; padding:2px 8px; border-radius:12px; font-size:0.7rem;">${roleLabel}</span>`;
-
-
+        function renderUserTopbarHeader() {
+            if (typeof initUserProfileTopbar === 'function') {
+                initUserProfileTopbar();
+            } else {
+                const uiEl = document.getElementById('userInfo');
+                if (uiEl) {
+                    uiEl.innerHTML = `<span>${user.name || user.email}</span> <span class="status ${user.role === 'admin' || user.role === 'inst_admin' ? 'aprobado' : 'revision'}" style="margin-left:10px; padding:2px 8px; border-radius:12px; font-size:0.7rem;">${roleLabel}</span>`;
+                }
+            }
+        }
+        renderUserTopbarHeader();
 
         function logout() { localStorage.removeItem('siac_user'); window.top.location.href = 'index.html'; }
 
+        // ── Articulación de Factores para Líderes Institucionales ──
+        window._factorFilterMode = (user.role === 'admin' || user.role === 'inst_admin') ? 'all' : 'my';
+        window._cachedModelFactors = [];
+        window._cachedModelEvals = [];
 
+        function isUserAssignedToFactor(f, u) {
+            if (!u) return false;
+            if (u.role === 'admin' || u.role === 'inst_admin') return true;
+            // 1. Coincidencia por leader_id en base de datos
+            if (f.leader_id && String(f.leader_id) === String(u.id)) return true;
+            // 2. Coincidencia por lista de factores asignados en perfil
+            const assigned = u.assigned_factors || [];
+            if (assigned.includes(f.number) || assigned.includes(parseInt(f.number, 10)) || assigned.includes(f.id) || assigned.includes(String(f.number))) return true;
+            // 3. Coincidencia contextual inteligente por dependencia/cargo
+            const userEmail = (u.email || '').toLowerCase();
+            const userName = (u.name || '').toLowerCase();
+            const userCargo = (u.cargo || '').toLowerCase();
+            const fName = (f.name || '').toLowerCase();
+            const fNum = String(f.number);
+
+            if ((userEmail.includes('inter') || userName.includes('inter') || userCargo.includes('inter')) && (fName.includes('internacional') || fNum === '8')) return true;
+            if ((userEmail.includes('bienestar') || userCargo.includes('bienestar')) && (fName.includes('bienestar') || fNum === '9')) return true;
+            if ((userEmail.includes('investiga') || userCargo.includes('investiga')) && (fName.includes('investiga') || fNum === '6')) return true;
+            if ((userEmail.includes('egresad') || userCargo.includes('egresad')) && (fName.includes('egresad') || fNum === '12')) return true;
+            if ((userEmail.includes('docente') || userCargo.includes('docente') || userCargo.includes('profesor')) && (fName.includes('profesor') || fNum === '10')) return true;
+            if ((userEmail.includes('estudiant') || userCargo.includes('estudiant')) && (fName.includes('estudiante') || fNum === '11')) return true;
+            if ((userEmail.includes('extension') || userCargo.includes('extension')) && (fName.includes('extensi') || fNum === '7')) return true;
+            return false;
+        }
+
+        function setFactorFilterMode(mode) {
+            window._factorFilterMode = mode;
+            renderSidebarFactorsDOM();
+        }
+
+        function renderSidebarFactorsDOM() {
+            const factors = window._cachedModelFactors || [];
+            const evals = window._cachedModelEvals || [];
+            const container = document.getElementById('sidebarFactors');
+            if (!container) return;
+
+            if (!factors || factors.length === 0) {
+                container.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">No se encontraron factores para este programa.</div>';
+                return;
+            }
+
+            const myFactors = factors.filter(f => isUserAssignedToFactor(f, user));
+            const filterMode = window._factorFilterMode;
+            const isLeader = (user.role !== 'admin' && user.role !== 'inst_admin');
+
+            // Selector superior de filtro (Mis Factores vs Todos los Factores)
+            let filterNav = `
+            <div style="padding:10px 14px; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; gap:6px;">
+                <button type="button" onclick="setFactorFilterMode('my')" style="flex:1; font-size:0.75rem; padding:6px 4px; border-radius:6px; border:1px solid ${filterMode === 'my' ? '#2563eb' : '#cbd5e1'}; background:${filterMode === 'my' ? '#eff6ff' : '#ffffff'}; color:${filterMode === 'my' ? '#1e40af' : '#64748b'}; font-weight:${filterMode === 'my' ? '700' : '500'}; cursor:pointer;">
+                    📌 Mis Factores (${myFactors.length})
+                </button>
+                <button type="button" onclick="setFactorFilterMode('all')" style="flex:1; font-size:0.75rem; padding:6px 4px; border-radius:6px; border:1px solid ${filterMode === 'all' ? '#2563eb' : '#cbd5e1'}; background:${filterMode === 'all' ? '#eff6ff' : '#ffffff'}; color:${filterMode === 'all' ? '#1e40af' : '#64748b'}; font-weight:${filterMode === 'all' ? '700' : '500'}; cursor:pointer;">
+                    🌐 Ver Todos (${factors.length})
+                </button>
+            </div>`;
+
+            let displayFactors = factors;
+            let noteHtml = '';
+
+            if (filterMode === 'my') {
+                if (myFactors.length > 0) {
+                    displayFactors = myFactors;
+                } else {
+                    // Fallback transparente para no bloquear al usuario
+                    displayFactors = factors;
+                    noteHtml = `
+                    <div style="padding:12px 14px; margin:10px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:0.78rem; color:#1e40af; line-height:1.4;">
+                        <strong>👋 Vista Institucional Ampliada:</strong><br>
+                        Mostrando todos los 12 factores institucionales para tu consulta y trabajo transversal.
+                    </div>`;
+                }
+            }
+
+            let html = filterNav + noteHtml;
+            displayFactors.forEach(f => {
+                const fEval = evals.find(e => e.name && e.name.includes(f.name)) || { avg: 0 };
+                const isMine = isUserAssignedToFactor(f, user);
+                const mineBadge = isMine ? `<span style="background:#10b981; color:white; font-size:0.65rem; font-weight:800; padding:1px 6px; border-radius:10px; margin-left:6px; vertical-align:middle;">⭐ Mi Factor</span>` : '';
+
+                html += `<div class="factor-header" style="${isMine ? 'border-left:4px solid #10b981; background:#f0fdf4;' : ''}">
+                    ${f.number}. ${f.name} ${mineBadge}<br>
+                    <small style="color:var(--primary-color)">Promedio Ponderado: ${fEval.avg}</small>
+                </div>`;
+
+                if (f.characteristics) {
+                    f.characteristics.forEach(c => {
+                        html += `<div class="char-item" onclick="showEval('${f.id}', '${c.id}')" id="char_${c.id}">
+                            <div style="font-weight:600; font-size:0.9rem;">${c.number}. ${c.name}</div>
+                            <div style="font-size:0.8rem; color:#64748b;">Peso: ${c.weight}%</div>
+                        </div>`;
+                    });
+                }
+            });
+
+            container.innerHTML = html;
+        }
 
         async function loadSidebar() {
-
             try {
-
                 const iId = getInstId();
+                let pId = getProgramId();
+                let resp = await authFetch(`/api/model?inst_id=${iId}&program_id=${pId}`);
+                let factors = await resp.json();
 
-                const pId = getProgramId();
-
-                const resp = await authFetch(`/api/model?inst_id=${iId}&program_id=${pId}`);
-
-                const factors = await resp.json();
-
-                
-
-                const evalsResp = await authFetch(`/api/reports/summary?inst_id=${iId}&program_id=${pId}`);
-
-                const summaryData = await evalsResp.json();
-
-                const evals = summaryData.factors || [];
-
-                
-
-                let html = '';
-
-                if (!factors || factors.length === 0) {
-
-                    html = '<div style="padding:20px; text-align:center; color:#64748b;">No se encontraron factores.</div>';
-
-                } else {
-
-                    // FILTRADO POR ROL: Líder solo ve sus factores asignados
-
-                    const filteredFactors = factors.filter(f => {
-
-                        if (user.role === 'admin' || user.role === 'inst_admin') return true;
-
-                        return f.leader_id == user.id;
-
-                    });
-
-
-
-                    if (filteredFactors.length === 0) {
-
-                        html = '<div style="padding:20px; text-align:center; color:#64748b;">No tienes factores asignados.</div>';
-
-                    } else {
-
-                        filteredFactors.forEach(f => {
-
-                            const fEval = evals.find(e => e.name.includes(f.name)) || { avg: 0 };
-
-                            html += `<div class="factor-header">${f.number}. ${f.name} <br><small style="color:var(--primary-color)">Promedio Ponderado: ${fEval.avg}</small></div>`;
-
-                            if (f.characteristics) {
-
-                                f.characteristics.forEach(c => {
-
-                                    html += `<div class="char-item" onclick="showEval('${f.id}', '${c.id}')" id="char_${c.id}">
-
-                                        <div style="font-weight:600; font-size:0.9rem;">${c.number}. ${c.name}</div>
-
-                                        <div style="font-size:0.8rem; color:#64748b;">Peso: ${c.weight}%</div>
-
-                                    </div>`;
-
-                                });
-
-                            }
-
-                        });
-
-                    }
-
+                // Si este programa específico no tiene factores, intentar con los programas institucionales activos (66 o 67)
+                if ((!factors || factors.length === 0) && pId !== 66) {
+                    resp = await authFetch(`/api/model?inst_id=${iId}&program_id=66`);
+                    factors = await resp.json();
+                    if (factors && factors.length > 0) pId = 66;
+                }
+                if ((!factors || factors.length === 0) && pId !== 67) {
+                    resp = await authFetch(`/api/model?inst_id=${iId}&program_id=67`);
+                    factors = await resp.json();
+                    if (factors && factors.length > 0) pId = 67;
                 }
 
-                document.getElementById('sidebarFactors').innerHTML = html;
+                const evalsResp = await authFetch(`/api/reports/summary?inst_id=${iId}&program_id=${pId}`);
+                const summaryData = await evalsResp.json();
+                const evals = summaryData.factors || [];
 
+                window._cachedModelFactors = factors || [];
+                window._cachedModelEvals = evals || [];
+
+                renderSidebarFactorsDOM();
             } catch (err) {
-
                 console.error("Error sidebar:", err);
-
-                document.getElementById('sidebarFactors').innerHTML = '<div style="padding:20px; color:#ef4444;">Error de carga.</div>';
+                document.getElementById('sidebarFactors').innerHTML = '<div style="padding:20px; color:#ef4444;">Error al cargar factores.</div>';
+            }
+        }
 
             }
 

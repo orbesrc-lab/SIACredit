@@ -334,6 +334,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 30);
     }
 
+// Cargar dinámicamente el módulo de Perfil Ejecutivo Institucional y Avatar Oficial
+(function loadExecutiveProfileScript() {
+    if (!document.querySelector('script[src*="user_profile.js"]')) {
+        const s = document.createElement('script');
+        s.src = 'static/user_profile.js?v=20261112';
+        s.onload = function() {
+            if (typeof initUserProfileTopbar === 'function') {
+                initUserProfileTopbar();
+            }
+        };
+        (document.head || document.documentElement).appendChild(s);
+    }
+})();
+
     // Asegurar que siempre exista un botón de cerrar sesión en la barra superior para todos los perfiles
     const topbar = document.querySelector('.topbar');
     const userInfo = document.getElementById('userInfo');
@@ -343,9 +357,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const userContainer = document.createElement('div');
             userContainer.style.display = 'flex';
             userContainer.style.alignItems = 'center';
-            userContainer.style.gap = '15px';
+            userContainer.style.gap = '12px';
             topbar.insertBefore(userContainer, userInfo);
             userContainer.appendChild(userInfo);
+
+            // Botón de Perfil Ejecutivo
+            if (!document.getElementById('globalProfileBtn')) {
+                const profBtn = document.createElement('button');
+                profBtn.id = 'globalProfileBtn';
+                profBtn.className = 'btn-ghost';
+                profBtn.style.cssText = 'color: #1e40af; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 5px; cursor: pointer; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 8px; background: rgba(37, 99, 235, 0.08);';
+                profBtn.innerHTML = '👤 Mi Perfil';
+                profBtn.onclick = function() {
+                    if (typeof openExecutiveProfileModal === 'function') {
+                        openExecutiveProfileModal();
+                    }
+                };
+                userContainer.appendChild(profBtn);
+            }
             
             const logoutBtn = document.createElement('button');
             logoutBtn.id = 'globalLogoutBtn';

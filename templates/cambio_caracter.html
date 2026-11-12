@@ -960,9 +960,15 @@
                         <div id="cc-scoping-subtitle" style="font-size:0.78rem; color:#4338ca; margin-top:2px;">Visualizando únicamente los Frentes, Requisitos Normativos, Brechas, Entregables y Documentos donde te encuentras articulado. Los controles de Gobierno y Administración Global están reservados para Administradores Institucionales y Superadministrador.</div>
                     </div>
                 </div>
-                <div id="cc-scoping-selector-box" style="display:flex; align-items:center; gap:8px;">
+                <div id="cc-scoping-selector-box" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                     <label style="font-size:0.78rem; font-weight:800; color:#312e81; white-space:nowrap;"><i class="fa-solid fa-bullseye"></i> Mi Frente Articulado:</label>
                     <select id="cc-scoping-frente-select" onchange="onChangeLeaderFocusedFrente(this.value)" style="padding:7px 12px; border-radius:8px; border:1px solid #818cf8; background:#fff; color:#1e1b4b; font-size:0.82rem; font-weight:700; cursor:pointer;"></select>
+                    <a href="autoevaluacion.html" style="background:#4f46e5; color:white; padding:7px 12px; border-radius:8px; font-size:0.78rem; font-weight:700; text-decoration:none; display:flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(79,70,229,0.25);">
+                        <i class="fa-solid fa-list-check"></i> Mis Factores en Autoevaluación
+                    </a>
+                    <button type="button" onclick="if(typeof openExecutiveProfileModal==='function') openExecutiveProfileModal();" style="background:#fff; color:#4f46e5; border:1px solid #818cf8; padding:7px 12px; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-id-badge"></i> Mi Perfil Ejecutivo
+                    </button>
                 </div>
             </div>
 
