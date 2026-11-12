@@ -230,6 +230,20 @@ def get_cc_project(inst_id):
                 ]
             else:
                 item["equipo_documento"] = []
+        else:
+            norm_eq = []
+            for idx_m, m_val in enumerate(item["equipo_documento"]):
+                if isinstance(m_val, dict):
+                    norm_eq.append(m_val)
+                elif isinstance(m_val, str) and m_val.strip():
+                    norm_eq.append({
+                        "id": f"tm_{idx_h}_{idx_m}",
+                        "nombre": m_val.strip(),
+                        "dependencia": item.get("cargo_dependencia") or item.get("frente") or "Equipo Institucional",
+                        "rol": "Co-Autor / Integrante",
+                        "fecha": item.get("fecha", datetime.datetime.now().isoformat())
+                    })
+            item["equipo_documento"] = norm_eq
         # Garantizar que contenido, snapshots y auditorías estén limpios y alineados al Estatuto de INTENALCO (Consejo Directivo)
         if item.get("contenido"):
             item["contenido"] = sanitize_doc_markdown_text(item["contenido"])
@@ -310,19 +324,28 @@ def sanitize_doc_markdown_text(raw_text):
 
 
 def merge_team_members_into_doc(doc_item, members_list, default_rol="Co-Autor / Integrante"):
-    """Integra una lista de integrantes [{"nombre": ..., "dependencia": ..., "rol": ...}] en doc_item['equipo_documento'] sin duplicar."""
+    """Integra una lista de integrantes [{"nombre": ..., "dependencia": ..., "rol": ...}] (o strings) en doc_item['equipo_documento'] sin duplicar."""
     if not doc_item or not isinstance(members_list, list):
         return
     if "equipo_documento" not in doc_item or not isinstance(doc_item["equipo_documento"], list):
         doc_item["equipo_documento"] = []
-    existing_names = {str(m.get("nombre", "")).strip().lower() for m in doc_item["equipo_documento"] if m.get("nombre")}
+    existing_names = {
+        str(m.get("nombre", "") if isinstance(m, dict) else m).strip().lower()
+        for m in doc_item["equipo_documento"]
+        if (m.get("nombre") if isinstance(m, dict) else m)
+    }
     now_iso = datetime.datetime.now().isoformat()
     for m in members_list:
-        if not isinstance(m, dict):
+        if isinstance(m, str):
+            nombre = m.strip()
+            dep = doc_item.get("frente") or "Equipo Institucional"
+            rol = default_rol
+        elif isinstance(m, dict):
+            nombre = str(m.get("nombre") or m.get("autor") or "").strip()
+            dep = str(m.get("dependencia") or m.get("cargo_dependencia") or "Equipo Institucional").strip()
+            rol = str(m.get("rol") or default_rol).strip()
+        else:
             continue
-        nombre = str(m.get("nombre") or m.get("autor") or "").strip()
-        dep = str(m.get("dependencia") or m.get("cargo_dependencia") or "Equipo Institucional").strip()
-        rol = str(m.get("rol") or default_rol).strip()
         if not nombre:
             continue
         if nombre.lower() not in existing_names:
@@ -871,9 +894,13 @@ Redacta aquí el informe técnico de brechas y las propuestas de redacción form
             json_str = match.group(1).strip() if match else ai_response.strip()
             try:
                 parsed_data = json.loads(json_str)
-                analysis_html = parsed_data.get("markdown_report", "")
-                if not evaluations:
-                    evaluations = parsed_data.get("evaluations", {}) or {}
+                if isinstance(parsed_data, dict):
+                    analysis_html = parsed_data.get("markdown_report", "")
+                    if not evaluations:
+                        ev_cand = parsed_data.get("evaluations", {})
+                        evaluations = ev_cand if isinstance(ev_cand, dict) else {}
+                else:
+                    analysis_html = sanitize_doc_markdown_text(str(parsed_data))
             except Exception:
                 eval_split = re.search(r'"\s*,\s*"evaluations"\s*:\s*(\{[\s\S]*\})\s*\}?\s*$', json_str)
                 if eval_split and not evaluations:
@@ -889,7 +916,8 @@ Redacta aquí el informe técnico de brechas y las propuestas de redacción form
                                 end_idx = idx_ch + 1
                                 break
                     try:
-                        evaluations = json.loads(raw_eval_part[:end_idx])
+                        ev_loaded = json.loads(raw_eval_part[:end_idx])
+                        evaluations = ev_loaded if isinstance(ev_loaded, dict) else {}
                     except Exception:
                         evaluations = {}
                 analysis_html = sanitize_doc_markdown_text(json_str)
@@ -897,12 +925,12 @@ Redacta aquí el informe técnico de brechas y las propuestas de redacción form
         analysis_html = sanitize_doc_markdown_text(analysis_html)
 
         if evaluations and isinstance(evaluations, dict):
-            first_eval_req = next((k for k in evaluations.keys() if k.startswith('req_')), None)
+            first_eval_req = next((k for k in evaluations.keys() if str(k).startswith('req_')), None)
             if first_eval_req:
                 default_req_id = first_eval_req
 
-        # Vincular automáticamente al líder y equipo del Frente responsable
-        frente_obj = next((f for f in project.get("frentes", []) if f.get("nombre", "").lower() == task_frente.lower()), None)
+        # Vincular automáticamente al líder y equipo del Frente responsable (soporta strings o dicts en equipo_frente)
+        frente_obj = next((f for f in project.get("frentes", []) if isinstance(f, dict) and f.get("nombre", "").lower() == task_frente.lower()), None)
         equipo_inicial = []
         autor_label = "Asesor Experto MEN (IA)"
         if frente_obj:
@@ -910,18 +938,26 @@ Redacta aquí el informe técnico de brechas y las propuestas de redacción form
                 autor_label = f"{frente_obj['lider']} · Asesor IA"
                 equipo_inicial.append({
                     "id": str(uuid.uuid4())[:8],
-                    "nombre": frente_obj["lider"],
+                    "nombre": str(frente_obj["lider"]),
                     "dependencia": task_frente,
                     "rol": "Líder de Frente",
                     "fecha": datetime.datetime.now().isoformat()
                 })
             for m in (frente_obj.get("equipo_frente") or []):
-                if m.get("nombre") and m.get("nombre") != frente_obj.get("lider"):
+                if isinstance(m, dict):
+                    m_nombre = str(m.get("nombre") or "").strip()
+                    m_dep = str(m.get("dependencia") or task_frente).strip()
+                    m_rol = str(m.get("rol") or "Integrante del Frente").strip()
+                else:
+                    m_nombre = str(m or "").strip()
+                    m_dep = task_frente
+                    m_rol = "Integrante del Frente"
+                if m_nombre and m_nombre != frente_obj.get("lider"):
                     equipo_inicial.append({
                         "id": str(uuid.uuid4())[:8],
-                        "nombre": m.get("nombre"),
-                        "dependencia": m.get("dependencia", task_frente),
-                        "rol": m.get("rol", "Integrante del Frente"),
+                        "nombre": m_nombre,
+                        "dependencia": m_dep,
+                        "rol": m_rol,
                         "fecha": datetime.datetime.now().isoformat()
                     })
 
@@ -1143,10 +1179,16 @@ def generate_doc_docx_bytes(title, text, doc_item=None, include_trace=True):
                     r.font.size = Pt(8.5)
             for m in equipo_doc:
                 rc = t_eq.add_row().cells
-                rc[0].text = str(m.get("nombre", ""))
-                rc[1].text = str(m.get("dependencia", ""))
-                rc[2].text = str(m.get("rol", "Co-Autor"))
-                rc[3].text = str(m.get("fecha", ""))[:10]
+                if isinstance(m, dict):
+                    rc[0].text = str(m.get("nombre", ""))
+                    rc[1].text = str(m.get("dependencia", ""))
+                    rc[2].text = str(m.get("rol", "Co-Autor"))
+                    rc[3].text = str(m.get("fecha", ""))[:10]
+                else:
+                    rc[0].text = str(m)
+                    rc[1].text = str(doc_item.get("frente", ""))
+                    rc[2].text = "Co-Autor"
+                    rc[3].text = ""
                 for cell in rc:
                     for r in cell.paragraphs[0].runs:
                         r.font.size = Pt(8.5)
@@ -1295,10 +1337,10 @@ def api_cc_ai_history_save():
         increment_version = req_json.get('increment_version', True)
 
         if isinstance(coautores, list) and len(coautores) > 0:
-            autor = " · ".join([str(m.get("nombre", "")).strip() for m in coautores if m.get("nombre")]) or autor
+            autor = " · ".join([str(m.get("nombre", "") if isinstance(m, dict) else m).strip() for m in coautores if (m.get("nombre") if isinstance(m, dict) else m)]) or autor
             deps_uniq = []
             for m in coautores:
-                d_str = str(m.get("dependencia", "")).strip()
+                d_str = str(m.get("dependencia", "") if isinstance(m, dict) else "").strip()
                 if d_str and d_str not in deps_uniq:
                     deps_uniq.append(d_str)
             if deps_uniq:
@@ -1639,10 +1681,10 @@ def api_cc_doc_import_file():
             except Exception:
                 equipo_members = []
         if isinstance(equipo_members, list) and len(equipo_members) > 0:
-            autor = " · ".join([str(m.get("nombre", "")).strip() for m in equipo_members if m.get("nombre")]) or autor
+            autor = " · ".join([str(m.get("nombre", "") if isinstance(m, dict) else m).strip() for m in equipo_members if (m.get("nombre") if isinstance(m, dict) else m)]) or autor
             deps_uniq = []
             for m in equipo_members:
-                d_str = str(m.get("dependencia", "")).strip()
+                d_str = str(m.get("dependencia", "") if isinstance(m, dict) else "").strip()
                 if d_str and d_str not in deps_uniq:
                     deps_uniq.append(d_str)
             if deps_uniq:
@@ -1797,10 +1839,10 @@ def api_cc_doc_add_team_contribution():
             target_doc["aportes_equipo"] = []
 
         if isinstance(participantes, list) and len(participantes) > 0:
-            autor = " · ".join([str(p.get("nombre", "")).strip() for p in participantes if p.get("nombre")]) or autor
+            autor = " · ".join([str(p.get("nombre", "") if isinstance(p, dict) else p).strip() for p in participantes if (p.get("nombre") if isinstance(p, dict) else p)]) or autor
             deps_uniq = []
             for p in participantes:
-                d_str = str(p.get("dependencia", "")).strip()
+                d_str = str(p.get("dependencia", "") if isinstance(p, dict) else "").strip()
                 if d_str and d_str not in deps_uniq:
                     deps_uniq.append(d_str)
             if deps_uniq:
