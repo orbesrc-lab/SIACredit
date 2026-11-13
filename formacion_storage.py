@@ -368,43 +368,68 @@ def _get_fallback_courses():
 def load_courses(inst_id, program_id=0):
     courses = []
     
-    # 1. Intentar cargar desde Supabase
+    # 1. Intentar cargar desde Supabase:
+    # - Cursos propios de la institución activa
+    # - Cursos del catálogo base/global (inst_id = 1 o inst_id = 0)
     try:
         sb_res = _sb_load('lms_courses', {'inst_id': inst_id})
         if sb_res:
-            courses = sb_res
-        else:
-            # Fallback general en Supabase si para esa institución no hay cursos específicos
+            courses.extend(sb_res)
+        
+        if inst_id and inst_id != 1:
+            sb_base = _sb_load('lms_courses', {'inst_id': 1})
+            if sb_base:
+                courses.extend(sb_base)
+                
+        # Si aún está vacío, cargar todo lo disponible en Supabase
+        if not courses:
             sb_all = _sb_load('lms_courses', {})
             if sb_all:
-                courses = sb_all
+                courses.extend(sb_all)
     except Exception as e:
         print(f"[LMS] Error loading from Supabase: {e}")
 
-    # 2. Si no hay cursos en Supabase, consultar base de datos local SQLite
-    if not courses:
-        try:
-            all_c = _local_query("SELECT data FROM lms_courses WHERE inst_id=?", (inst_id,))
-            if all_c:
-                courses = all_c
-            else:
-                all_any = _local_query("SELECT data FROM lms_courses", ())
-                if all_any:
-                    courses = all_any
-        except Exception as e:
-            print(f"[LMS] Error loading from local DB: {e}")
+    # 2. Consultar base de datos local SQLite si está disponible
+    try:
+        all_c = _local_query("SELECT data FROM lms_courses WHERE inst_id=?", (inst_id,))
+        if all_c:
+            courses.extend(all_c)
+        if inst_id and inst_id != 1:
+            all_base = _local_query("SELECT data FROM lms_courses WHERE inst_id=1", ())
+            if all_base:
+                courses.extend(all_base)
+    except Exception as e:
+        print(f"[LMS] Error loading from local DB: {e}")
 
-    # 3. Si aún no hay cursos, recurrir al archivo local_courses.json
-    if not courses:
-        courses = _get_fallback_courses()
+    # 3. SIEMPRE unir con el catálogo base de cursos por defecto (local_courses.json / default_courses.json)
+    # para garantizar que nunca se oculten los cursos estándar del sistema (Indicadores, Marketing, Analítica)
+    try:
+        fallbacks = _get_fallback_courses()
+        if fallbacks:
+            courses.extend(fallbacks)
+    except Exception as e:
+        print(f"[LMS] Error merging fallback courses: {e}")
 
-    # Deduplicar por ID y título
+    # Deduplicar por ID y por Título (los cursos de Supabase específicos tienen prioridad)
     unique_map = {}
     for c in courses:
         if isinstance(c, dict) and c.get('title'):
-            cid = c.get('id') or c.get('title')
-            if cid not in unique_map:
-                unique_map[cid] = c
+            cid = str(c.get('id') or '').strip()
+            title_clean = str(c.get('title') or '').strip().lower()
+            
+            # Verificar si ya existe por ID o por título normalizado
+            already_exists = False
+            for existing in unique_map.values():
+                if cid and str(existing.get('id') or '').strip() == cid:
+                    already_exists = True
+                    break
+                if title_clean and str(existing.get('title') or '').strip().lower() == title_clean:
+                    already_exists = True
+                    break
+            
+            if not already_exists:
+                key = cid or title_clean
+                unique_map[key] = c
 
     deduped = list(unique_map.values())
 

@@ -88,19 +88,22 @@ function generateCamibusoAvatarSVG(cfg) {
         `;
     } else if (hair === 'curly') {
         frontHairSVG = `
-            <!-- Cabello Rizado / Ondulado con Copete Abundante y Corona Alta -->
-            <path d="M 54 78 C 46 44 48 20 74 10 C 92 2 120 4 140 14 C 154 24 152 50 146 78 Z" fill="${hairColor}" />
-            <!-- Rizos de coronilla con relieve natural -->
-            <circle cx="62" cy="24" r="14" fill="${hairColor}" />
-            <circle cx="80" cy="12" r="16" fill="${hairColor}" />
-            <circle cx="104" cy="9" r="17" fill="${hairColor}" />
-            <circle cx="128" cy="14" r="16" fill="${hairColor}" />
-            <circle cx="146" cy="30" r="14" fill="${hairColor}" />
-            <circle cx="52" cy="42" r="13" fill="${hairColor}" />
-            <!-- Rizos frontales naturales -->
-            <circle cx="76" cy="46" r="9" fill="${hairColor}" />
-            <circle cx="100" cy="44" r="9.5" fill="${hairColor}" />
-            <circle cx="124" cy="46" r="9" fill="${hairColor}" />
+            <!-- Cabello Rizado / Ondulado con Copete Abundante y Corona Alta (Frente y Ojos 100% Despejados) -->
+            <path d="M 56 76 C 48 44 50 20 74 10 C 92 2 120 4 138 14 C 152 24 152 50 144 76 C 138 64 128 48 114 48 C 102 48 96 46 86 48 C 72 52 62 64 56 76 Z" fill="${hairColor}" />
+            <!-- Rizos de coronilla con relieve natural (arriba en la cabeza) -->
+            <circle cx="62" cy="22" r="13" fill="${hairColor}" />
+            <circle cx="80" cy="11" r="14" fill="${hairColor}" />
+            <circle cx="104" cy="9" r="15" fill="${hairColor}" />
+            <circle cx="128" cy="12" r="14" fill="${hairColor}" />
+            <circle cx="145" cy="26" r="13" fill="${hairColor}" />
+            <circle cx="53" cy="38" r="12" fill="${hairColor}" />
+            <!-- Rizos pequeños y sutiles en la raíz del cabello (bien arriba de las cejas) -->
+            <circle cx="78" cy="44" r="6" fill="${hairColor}" />
+            <circle cx="98" cy="42" r="6.5" fill="${hairColor}" />
+            <circle cx="118" cy="44" r="6" fill="${hairColor}" />
+            <!-- Reflejos suaves en los rizos -->
+            <path d="M 76 12 Q 88 8 100 10" stroke="rgba(255,255,255,0.22)" stroke-width="2" stroke-linecap="round" fill="none" />
+            <path d="M 112 12 Q 124 10 134 16" stroke="rgba(255,255,255,0.22)" stroke-width="2" stroke-linecap="round" fill="none" />
         `;
     } else if (hair === 'bun') {
         frontHairSVG = `
@@ -112,7 +115,7 @@ function generateCamibusoAvatarSVG(cfg) {
     } else if (hair === 'bob') {
         frontHairSVG = `
             <!-- Melena Lisa Bob con Volumen de Coronilla Elevada y Caída Elegante -->
-            <path d="M 54 82 C 48 44 52 20 76 12 C 94 4 118 4 136 14 C 152 24 154 48 148 82 C 152 116 144 142 136 148 L 126 144 C 132 118 132 74 100 74 C 68 74 68 118 74 144 L 64 148 C 56 142 48 116 54 82 Z" fill="${hairColor}" />
+            <path d="M 54 80 C 48 44 52 20 76 12 C 94 4 118 4 136 14 C 152 24 154 48 148 80 C 152 116 144 142 136 148 L 126 144 C 132 116 132 50 100 50 C 68 50 68 116 74 144 L 64 148 C 56 142 48 116 54 80 Z" fill="${hairColor}" />
             <path d="M 74 22 Q 100 14 126 22" stroke="rgba(255,255,255,0.24)" stroke-width="2.5" stroke-linecap="round" fill="none" />
         `;
     } else if (hair === 'bald') {
