@@ -441,7 +441,7 @@ def load_courses(inst_id, program_id=0):
     return deduped
 
 def load_course(course_id):
-    # 1. Supabase
+    # 1. Supabase por ID directo
     try:
         result = _sb_load('lms_courses', {'id': course_id})
         if result:
@@ -454,7 +454,16 @@ def load_course(course_id):
     if local_c:
         return local_c
         
-    # 3. Fallback JSON
+    # 3. Buscar en la lista unificada de cursos
+    try:
+        all_courses = load_courses(1, 0)
+        for c in all_courses:
+            if c.get('id') == course_id:
+                return c
+    except Exception:
+        pass
+
+    # 4. Fallback JSON
     for c in _get_fallback_courses():
         if c.get('id') == course_id:
             return c

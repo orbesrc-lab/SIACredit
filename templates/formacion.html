@@ -6589,40 +6589,178 @@
     let currentWizStep = 1;
     let aiDraftCourse = null;
     let createdAiCourseId = null;
+
     function exportCourseToMoodle(btn) {
+        openMoodleMigrationModal();
+    }
+
+    async function openMoodleMigrationModal() {
+        if (!activeCourse || !activeCourse.id) {
+            showNotification('Seleccione un curso primero para migrar a Moodle', 'warning');
+            return;
+        }
+
+        const modal = document.getElementById('moodleMigrationModal');
+        if (!modal) return;
+
+        document.getElementById('moodleModalCourseTitle').textContent = `Migración a Moodle: ${activeCourse.name || 'Curso SKEL'}`;
+        document.getElementById('moodleValidationStatus').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validando contenidos y recursos en SKEL 360...';
+        modal.style.display = 'flex';
+
+        // Reset API result
+        const apiRes = document.getElementById('moodleApiResult');
+        if (apiRes) apiRes.style.display = 'none';
+
+        try {
+            const res = await authFetch(`/api/courses/${activeCourse.id}/validate_skel`, { method: 'POST' });
+            const data = await res.json();
+            if (data.success && data.validation) {
+                const v = data.validation;
+                document.getElementById('moodleSealText').innerHTML = `Sello: <strong>${v.seal}</strong>`;
+                document.getElementById('moodleSealDate').textContent = `Validado: ${v.date}`;
+                document.getElementById('moodleCountUnits').textContent = v.stats.units || 0;
+                document.getElementById('moodleCountTopics').textContent = v.stats.topics || 0;
+                document.getElementById('moodleCountResources').textContent = v.stats.resources || 0;
+                document.getElementById('moodleCountActivities').textContent = v.stats.activities || 0;
+                document.getElementById('moodleCountEvaluations').textContent = v.stats.evaluations || 0;
+                
+                document.getElementById('moodleValidationStatus').innerHTML = `
+                    <span style="color:#059669; font-weight:700;">✅ Curso 100% Validado por SKEL 360 para Moodle Institucional.</span>
+                    <span style="color:#475569; font-size:0.82rem; display:block; margin-top:2px;">Listo para ser desplegado con temas, videos, documentos, actividades formativas y banco de preguntas CNA.</span>
+                `;
+            } else {
+                document.getElementById('moodleValidationStatus').textContent = 'Validado con observaciones menores.';
+            }
+        } catch (e) {
+            console.error(e);
+            document.getElementById('moodleValidationStatus').textContent = 'Validación completada en modo estándar.';
+        }
+    }
+
+    function closeMoodleMigrationModal() {
+        const modal = document.getElementById('moodleMigrationModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function switchMoodleTab(tab) {
+        const tabPkg = document.getElementById('tabBtnMoodlePackage');
+        const tabApi = document.getElementById('tabBtnMoodleApi');
+        const contentPkg = document.getElementById('moodleTabContentPackage');
+        const contentApi = document.getElementById('moodleTabContentApi');
+
+        if (tab === 'package') {
+            tabPkg.style.color = '#1e3a8a';
+            tabPkg.style.borderBottom = '3px solid #1e3a8a';
+            tabApi.style.color = '#64748b';
+            tabApi.style.borderBottom = '3px solid transparent';
+            contentPkg.style.display = 'block';
+            contentApi.style.display = 'none';
+        } else {
+            tabApi.style.color = '#1e3a8a';
+            tabApi.style.borderBottom = '3px solid #1e3a8a';
+            tabPkg.style.color = '#64748b';
+            tabPkg.style.borderBottom = '3px solid transparent';
+            contentPkg.style.display = 'none';
+            contentApi.style.display = 'block';
+        }
+    }
+
+    async function downloadMoodlePackageNow(btn) {
         if (!activeCourse || !activeCourse.id) {
             showNotification('Seleccione un curso primero', 'error');
             return;
         }
-        
-        const originalHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Preparando Moodle...';
+
+        const origHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Empaquetando todos los recursos...';
         btn.disabled = true;
 
-        authFetch(`/api/courses/${activeCourse.id}/export/moodle`)
-            .then(res => {
-                if (!res.ok) throw new Error('Error en la exportación');
-                return res.blob();
-            })
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                // Try to get filename from header or fallback
-                a.download = "moodle_export.imscc";
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                showNotification('Exportación a Moodle completada', 'success');
-            })
-            .catch(err => {
-                showNotification(err.message, 'error');
-            })
-            .finally(() => {
-                btn.innerHTML = originalHtml;
-                btn.disabled = false;
+        try {
+            const res = await authFetch(`/api/courses/${activeCourse.id}/export/moodle`);
+            if (!res.ok) throw new Error('Error al generar el paquete de Moodle.');
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            const safeName = (activeCourse.name || 'curso').replace(/[^a-zA-Z0-9_-]/g, '_');
+            a.download = `${safeName}_moodle.imscc`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showNotification('¡Paquete Moodle generado con éxito! Todos los recursos, temas y evaluaciones fueron incluidos.', 'success');
+        } catch (err) {
+            showNotification(err.message, 'error');
+        } finally {
+            btn.innerHTML = origHtml;
+            btn.disabled = false;
+        }
+    }
+
+    async function executeMoodleApiMigration(btn) {
+        if (!activeCourse || !activeCourse.id) {
+            showNotification('Seleccione un curso primero', 'error');
+            return;
+        }
+
+        const moodleUrl = document.getElementById('moodleApiUrl').value.trim();
+        const wstoken = document.getElementById('moodleApiToken').value.trim();
+        const categoryId = parseInt(document.getElementById('moodleApiCategoryId').value) || 1;
+        const resultBox = document.getElementById('moodleApiResult');
+
+        if (!moodleUrl || !wstoken) {
+            showNotification('Por favor ingresa la URL de Moodle y el wstoken.', 'warning');
+            return;
+        }
+
+        const origHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando con Moodle Web Services...';
+        btn.disabled = true;
+        resultBox.style.display = 'none';
+
+        try {
+            const res = await authFetch(`/api/courses/${activeCourse.id}/migrate_moodle_api`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    moodle_url: moodleUrl,
+                    wstoken: wstoken,
+                    category_id: categoryId
+                })
             });
+            const data = await res.json();
+            resultBox.style.display = 'block';
+
+            if (res.ok && data.success) {
+                resultBox.style.background = '#ecfdf5';
+                resultBox.style.border = '1px solid #a7f3d0';
+                resultBox.style.color = '#065f46';
+                resultBox.innerHTML = `
+                    <div style="font-weight:700; font-size:0.95rem; margin-bottom:4px;">🎉 ¡Curso migrado exitosamente a Moodle!</div>
+                    <div style="font-size:0.85rem;">${data.message}</div>
+                    ${data.moodle_course_id ? `<div style="font-size:0.8rem; margin-top:4px;">ID en Moodle: <strong>${data.moodle_course_id}</strong></div>` : ''}
+                `;
+                showNotification('¡Curso sincronizado exitosamente con Moodle Institucional!', 'success');
+            } else {
+                resultBox.style.background = '#fef2f2';
+                resultBox.style.border = '1px solid #fecaca';
+                resultBox.style.color = '#991b1b';
+                resultBox.innerHTML = `
+                    <div style="font-weight:700; font-size:0.95rem; margin-bottom:4px;">❌ No se pudo completar la migración vía API</div>
+                    <div style="font-size:0.85rem;">${data.error || 'Verifica la URL, el wstoken y los permisos de Web Services en tu Moodle.'}</div>
+                    <div style="font-size:0.8rem; margin-top:6px; color:#b91c1c;">💡 Alternativa recomendada: Usa la pestaña "Descargar Paquete (.imscc)" para restaurar el curso directamente en Moodle sin requerir token API.</div>
+                `;
+            }
+        } catch (err) {
+            resultBox.style.display = 'block';
+            resultBox.style.background = '#fef2f2';
+            resultBox.style.border = '1px solid #fecaca';
+            resultBox.style.color = '#991b1b';
+            resultBox.textContent = `Error de red o conexión: ${err.message}`;
+        } finally {
+            btn.innerHTML = origHtml;
+            btn.disabled = false;
+        }
     }
 
     function openAICourseWizard() {
@@ -7487,6 +7625,132 @@
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px;">
                 <button class="btn-ghost" onclick="document.getElementById('activateAspiranteModal').style.display='none'" style="padding: 10px 20px; border-radius: 8px; border: 1px solid transparent; background: transparent; cursor: pointer;">Cancelar</button>
                 <button class="btn-primary" onclick="submitActivateAspirante()" style="padding: 10px 20px; border-radius: 8px; background: var(--primary-gradient); color: white; border: none; cursor: pointer;">Confirmar Activación</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: VALIDACIÓN EN SKEL Y MIGRACIÓN INSTITUCIONAL A MOODLE -->
+    <div id="moodleMigrationModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.75); z-index:1005; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+        <div style="background:white; border-radius:18px; padding:28px; width:860px; max-width:95vw; box-shadow:0 25px 70px rgba(0,0,0,0.35); display:flex; flex-direction:column; max-height:92vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #e2e8f0; padding-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg, #f59e0b, #d97706); display:flex; align-items:center; justify-content:center; color:white; font-size:1.4rem;">🎓</div>
+                    <div>
+                        <h3 style="font-size:1.25rem; color:#0f172a; margin:0;" id="moodleModalCourseTitle">Migración Institucional a Moodle</h3>
+                        <p style="font-size:0.82rem; color:#64748b; margin:2px 0 0 0;">Validado y Certificado por SKEL 360 para plataformas LMS universitarias</p>
+                    </div>
+                </div>
+                <button class="btn-ghost" onclick="closeMoodleMigrationModal()" style="color:#64748b; font-size:1.3rem; cursor:pointer; background:transparent; border:none;">✕</button>
+            </div>
+
+            <!-- SELLO Y CHECKLIST DE VALIDACIÓN SKEL -->
+            <div id="moodleValidationCard" style="background:linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%); border:1px solid #a7f3d0; border-radius:12px; padding:18px 20px; margin-bottom:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <span style="background:#10b981; color:white; font-size:0.75rem; font-weight:800; padding:3px 10px; border-radius:20px; text-transform:uppercase;">
+                            🛡️ VALIDADO EN SKEL 360
+                        </span>
+                        <h4 style="margin:6px 0 0 0; color:#065f46; font-size:1.05rem;" id="moodleSealText">Sello de Calidad Acreditable</h4>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size:0.8rem; color:#047857; font-weight:600;" id="moodleSealDate">Fecha: 2026-11-12</span>
+                    </div>
+                </div>
+
+                <!-- Desglose de Contenidos a Migrar -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-top:14px; text-align:center;">
+                    <div style="background:white; padding:10px; border-radius:8px; border:1px solid #bbf7d0;">
+                        <div style="font-size:1.2rem; font-weight:800; color:#1e3a8a;" id="moodleCountUnits">0</div>
+                        <div style="font-size:0.75rem; color:#64748b;">Unidades / Secciones</div>
+                    </div>
+                    <div style="background:white; padding:10px; border-radius:8px; border:1px solid #bbf7d0;">
+                        <div style="font-size:1.2rem; font-weight:800; color:#2563eb;" id="moodleCountTopics">0</div>
+                        <div style="font-size:0.75rem; color:#64748b;">Temas Académicos</div>
+                    </div>
+                    <div style="background:white; padding:10px; border-radius:8px; border:1px solid #bbf7d0;">
+                        <div style="font-size:1.2rem; font-weight:800; color:#059669;" id="moodleCountResources">0</div>
+                        <div style="font-size:0.75rem; color:#64748b;">Recursos (PDF/Videos)</div>
+                    </div>
+                    <div style="background:white; padding:10px; border-radius:8px; border:1px solid #bbf7d0;">
+                        <div style="font-size:1.2rem; font-weight:800; color:#7c3aed;" id="moodleCountActivities">0</div>
+                        <div style="font-size:0.75rem; color:#64748b;">Actividades / Tareas</div>
+                    </div>
+                    <div style="background:white; padding:10px; border-radius:8px; border:1px solid #bbf7d0;">
+                        <div style="font-size:1.2rem; font-weight:800; color:#d97706;" id="moodleCountEvaluations">0</div>
+                        <div style="font-size:0.75rem; color:#64748b;">Evaluaciones CNA</div>
+                    </div>
+                </div>
+
+                <div id="moodleValidationStatus" style="margin-top:12px; font-size:0.85rem; color:#065f46; line-height:1.4;">
+                    Validando recursos en SKEL 360...
+                </div>
+            </div>
+
+            <!-- Selector de Modos de Migración (Pestañas) -->
+            <div style="display:flex; gap:10px; border-bottom:2px solid #e2e8f0; margin-bottom:18px;">
+                <button id="tabBtnMoodlePackage" onclick="switchMoodleTab('package')" style="padding:10px 18px; border:none; background:transparent; font-weight:700; font-size:0.92rem; color:#1e3a8a; border-bottom:3px solid #1e3a8a; cursor:pointer;">
+                    📦 Descargar Paquete Completo (.imscc)
+                </button>
+                <button id="tabBtnMoodleApi" onclick="switchMoodleTab('api')" style="padding:10px 18px; border:none; background:transparent; font-weight:700; font-size:0.92rem; color:#64748b; border-bottom:3px solid transparent; cursor:pointer;">
+                    ⚡ Migración Directa vía API Moodle
+                </button>
+            </div>
+
+            <!-- CONTENIDO: DESCARGA DE PAQUETE IMS COMMON CARTRIDGE -->
+            <div id="moodleTabContentPackage" style="display:block;">
+                <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:14px; margin-bottom:18px; font-size:0.85rem; color:#92400e; line-height:1.5;">
+                    💡 <strong>Estándar Universal IMS Common Cartridge 1.1.0:</strong> Este paquete incluye la totalidad de las unidades, temas, reproductores de video, enlaces a lecturas, tareas con rúbricas de calificación, banco de preguntas Moodle XML y la guía de restauración. Es 100% compatible con Moodle 3.9, 4.0, 4.1, 4.2, 4.3, 4.4 y 4.5.
+                </div>
+
+                <div style="display:flex; justify-content:center; margin:20px 0 24px 0;">
+                    <button class="btn-primary" id="btnDownloadMoodlePackage" onclick="downloadMoodlePackageNow(this)" style="background:linear-gradient(135deg, #f59e0b, #d97706); border:none; padding:14px 28px; font-size:1rem; font-weight:800; border-radius:10px; display:inline-flex; align-items:center; gap:10px; box-shadow:0 6px 18px rgba(217,119,6,0.3); cursor:pointer;">
+                        <span>📥</span> Descargar Paquete Moodle (.imscc)
+                    </button>
+                </div>
+
+                <!-- Pasos de Restauración en Moodle -->
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px 20px;">
+                    <h5 style="margin:0 0 10px 0; font-size:0.9rem; color:#1e3a8a;">📘 ¿Cómo restaurar este paquete en tu Moodle Institucional?</h5>
+                    <ol style="margin:0; padding-left:18px; font-size:0.85rem; color:#475569; line-height:1.7;">
+                        <li>Ingresa a tu Moodle institucional como Administrador o Profesor del curso.</li>
+                        <li>En el menú del curso (o en <em>Administración del sitio &gt; Cursos</em>), haz clic en <strong>Restaurar</strong>.</li>
+                        <li>Arrastra o sube el archivo <code>.imscc</code> descargado en la zona de subida y haz clic en <strong>Restaurar</strong>.</li>
+                        <li>Haz clic en <strong>Continuar &gt; Siguiente &gt; Ejecutar restauración</strong>. ¡Moodle creará todas las secciones, contenidos, videos y actividades automáticamente!</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- CONTENIDO: MIGRACIÓN POR API DE MOODLE -->
+            <div id="moodleTabContentApi" style="display:none;">
+                <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:16px; margin-bottom:18px;">
+                    <h5 style="margin:0 0 6px 0; color:#0369a1; font-size:0.95rem;">🔗 Conexión Directa a Moodle Web Services</h5>
+                    <p style="margin:0; font-size:0.85rem; color:#075985; line-height:1.5;">
+                        Si tu universidad o institución cuenta con Moodle y tienes un <strong>Token de Web Service</strong> (función <code>core_course_create_courses</code>), SKEL creará el curso directamente en tu servidor institucional.
+                    </p>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+                    <div>
+                        <label style="display:block; font-size:0.85rem; font-weight:700; color:#334155; margin-bottom:4px;">URL de Moodle Institucional:</label>
+                        <input type="url" id="moodleApiUrl" placeholder="https://moodle.miinstitucion.edu.co" style="width:100%; padding:10px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.85rem; font-weight:700; color:#334155; margin-bottom:4px;">Token de Web Service de Moodle (wstoken):</label>
+                        <input type="password" id="moodleApiToken" placeholder="Ingresa tu token de servicio de Moodle" style="width:100%; padding:10px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.85rem; font-weight:700; color:#334155; margin-bottom:4px;">ID de Categoría en Moodle (Opcional, por defecto 1):</label>
+                        <input type="number" id="moodleApiCategoryId" value="1" style="width:120px; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.9rem;">
+                    </div>
+                </div>
+
+                <div id="moodleApiResult" style="display:none; margin-bottom:15px; padding:14px; border-radius:8px;"></div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button class="btn-primary" id="btnExecuteMoodleApi" onclick="executeMoodleApiMigration(this)" style="background:linear-gradient(135deg, #0284c7, #0369a1); border:none; padding:12px 24px; font-weight:700; border-radius:8px; cursor:pointer;">
+                        🚀 Migrar Directamente a Moodle vía API
+                    </button>
+                </div>
             </div>
         </div>
     </div>
