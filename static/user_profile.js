@@ -48,53 +48,85 @@ function generateCamibusoAvatarSVG(cfg) {
     // Cabello detrás (para moño o melenas largas)
     var backHairSVG = '';
     if (hair === 'bun') {
-        backHairSVG = `<circle cx="100" cy="38" r="22" fill="${hairColor}" />
-                       <ellipse cx="100" cy="40" rx="18" ry="6" fill="rgba(255,255,255,0.15)" />`;
+        backHairSVG = `
+            <!-- Moño alto trasero institucional con sujeción dorada -->
+            <circle cx="100" cy="12" r="22" fill="${hairColor}" />
+            <ellipse cx="100" cy="14" rx="18" ry="7" fill="rgba(255,255,255,0.18)" />
+            <rect x="87" y="16" width="26" height="5" rx="2.5" fill="#f59e0b" stroke="#d97706" stroke-width="0.8" />
+        `;
     } else if (hair === 'wavy' || hair === 'bob') {
-        backHairSVG = `<path d="M 50 80 Q 42 140 68 160 L 75 140 Q 60 110 65 80 Z" fill="${hairColor}" />
-                       <path d="M 150 80 Q 158 140 132 160 L 125 140 Q 140 110 135 80 Z" fill="${hairColor}" />`;
+        backHairSVG = `
+            <path d="M 44 80 Q 32 140 66 162 L 74 142 Q 54 110 62 80 Z" fill="${hairColor}" />
+            <path d="M 156 80 Q 168 140 134 162 L 126 142 Q 146 110 138 80 Z" fill="${hairColor}" />
+        `;
     }
 
-    // Cabello frontal según estilo
+    // Cabello frontal según estilo con coronilla elevada, volumen natural y forma de cabeza anatómica (elimina efecto balaca)
     var frontHairSVG = '';
     if (hair === 'sidepart') {
         frontHairSVG = `
-            <path d="M 58 78 C 56 46 72 34 100 34 C 132 34 144 48 142 80 C 136 68 126 56 100 56 C 80 56 68 64 58 78 Z" fill="${hairColor}" />
-            <path d="M 72 44 Q 96 40 120 48" stroke="rgba(255,255,255,0.2)" stroke-width="2" fill="none" />
+            <!-- Peinado Ejecutivo Clásico con Volumen Alto, Raya al Costado y Caída Natural -->
+            <path d="M 56 78 C 50 52 50 28 72 14 C 90 2 122 4 142 18 C 152 26 150 52 144 78 C 138 66 132 54 118 48 C 98 40 88 54 74 58 C 64 62 60 72 56 78 Z" fill="${hairColor}" />
+            <!-- Raya ejecutiva definida -->
+            <path d="M 74 58 C 78 38 82 22 88 14" stroke="rgba(0,0,0,0.35)" stroke-width="2" stroke-linecap="round" fill="none" />
+            <!-- Brillo y textura de peinado institucional -->
+            <path d="M 94 12 Q 118 14 136 24" stroke="rgba(255,255,255,0.3)" stroke-width="3" stroke-linecap="round" fill="none" />
+            <path d="M 98 22 Q 118 24 132 34" stroke="rgba(255,255,255,0.16)" stroke-width="2" stroke-linecap="round" fill="none" />
+            <!-- Patilla izquierda sutil -->
+            <path d="M 56 78 L 57 84 L 60 80 Z" fill="${hairColor}" />
+            <!-- Patilla derecha sutil -->
+            <path d="M 144 78 L 143 84 L 140 80 Z" fill="${hairColor}" />
         `;
     } else if (hair === 'short') {
         frontHairSVG = `
-            <path d="M 60 76 C 58 48 76 38 100 38 C 124 38 142 48 140 76 C 134 68 124 58 100 58 C 76 58 66 68 60 76 Z" fill="${hairColor}" />
+            <!-- Corto Moderno con Tupé Elevado y Volumen Superior -->
+            <path d="M 56 76 C 50 48 52 24 74 12 C 92 2 118 2 136 14 C 150 24 150 50 144 76 C 138 64 128 50 112 48 C 98 46 92 42 84 46 C 74 50 66 64 56 76 Z" fill="${hairColor}" />
+            <!-- Textura de tupé elevado y volumen -->
+            <path d="M 88 12 Q 92 26 88 42" stroke="rgba(255,255,255,0.28)" stroke-width="2.5" stroke-linecap="round" fill="none" />
+            <path d="M 104 10 Q 106 24 102 40" stroke="rgba(255,255,255,0.28)" stroke-width="2.5" stroke-linecap="round" fill="none" />
+            <path d="M 120 14 Q 120 26 116 40" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round" fill="none" />
         `;
     } else if (hair === 'curly') {
         frontHairSVG = `
-            <path d="M 58 78 C 52 46 70 32 100 32 C 130 32 148 46 142 78 Z" fill="${hairColor}" />
-            <circle cx="68" cy="48" r="10" fill="${hairColor}" />
-            <circle cx="86" cy="38" r="11" fill="${hairColor}" />
-            <circle cx="106" cy="36" r="12" fill="${hairColor}" />
-            <circle cx="126" cy="42" r="11" fill="${hairColor}" />
-            <circle cx="138" cy="56" r="9" fill="${hairColor}" />
-            <circle cx="60" cy="62" r="9" fill="${hairColor}" />
+            <!-- Cabello Rizado / Ondulado con Copete Abundante y Corona Alta -->
+            <path d="M 54 78 C 46 44 48 20 74 10 C 92 2 120 4 140 14 C 154 24 152 50 146 78 Z" fill="${hairColor}" />
+            <!-- Rizos de coronilla con relieve natural -->
+            <circle cx="62" cy="24" r="14" fill="${hairColor}" />
+            <circle cx="80" cy="12" r="16" fill="${hairColor}" />
+            <circle cx="104" cy="9" r="17" fill="${hairColor}" />
+            <circle cx="128" cy="14" r="16" fill="${hairColor}" />
+            <circle cx="146" cy="30" r="14" fill="${hairColor}" />
+            <circle cx="52" cy="42" r="13" fill="${hairColor}" />
+            <!-- Rizos frontales naturales -->
+            <circle cx="76" cy="46" r="9" fill="${hairColor}" />
+            <circle cx="100" cy="44" r="9.5" fill="${hairColor}" />
+            <circle cx="124" cy="46" r="9" fill="${hairColor}" />
         `;
     } else if (hair === 'bun') {
         frontHairSVG = `
-            <path d="M 60 80 C 58 50 78 44 100 44 C 122 44 142 50 140 80 C 130 64 118 58 100 58 C 82 58 70 64 60 80 Z" fill="${hairColor}" />
-            <path d="M 78 54 Q 100 50 122 54" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none" />
+            <!-- Moño / Recogido Formal con Copete Elevado y Frente Despejada -->
+            <path d="M 56 78 C 50 48 52 24 76 16 C 92 8 114 8 130 16 C 148 24 150 48 144 78 C 138 62 126 48 100 48 C 74 48 62 62 56 78 Z" fill="${hairColor}" />
+            <path d="M 76 24 Q 100 16 124 24" stroke="rgba(255,255,255,0.28)" stroke-width="2.5" stroke-linecap="round" fill="none" />
+            <path d="M 80 36 Q 100 28 120 36" stroke="rgba(255,255,255,0.16)" stroke-width="2" stroke-linecap="round" fill="none" />
         `;
     } else if (hair === 'bob') {
         frontHairSVG = `
-            <path d="M 58 82 C 54 46 72 36 100 36 C 128 36 146 46 142 82 C 146 110 138 126 134 135 L 126 135 C 132 115 132 80 100 80 C 68 80 68 115 74 135 L 66 135 C 62 126 54 110 58 82 Z" fill="${hairColor}" />
+            <!-- Melena Lisa Bob con Volumen de Coronilla Elevada y Caída Elegante -->
+            <path d="M 54 82 C 48 44 52 20 76 12 C 94 4 118 4 136 14 C 152 24 154 48 148 82 C 152 116 144 142 136 148 L 126 144 C 132 118 132 74 100 74 C 68 74 68 118 74 144 L 64 148 C 56 142 48 116 54 82 Z" fill="${hairColor}" />
+            <path d="M 74 22 Q 100 14 126 22" stroke="rgba(255,255,255,0.24)" stroke-width="2.5" stroke-linecap="round" fill="none" />
         `;
     } else if (hair === 'bald') {
         frontHairSVG = `
-            <!-- Corte rapado ejecutivo -->
-            <path d="M 62 76 C 60 52 76 42 100 42 C 124 42 140 52 138 76 C 136 74 126 66 100 66 C 74 66 64 74 62 76 Z" fill="${hairColor}" opacity="0.35" />
+            <!-- Corte Rapado Ejecutivo Sutil y Gradual -->
+            <path d="M 58 76 C 54 44 70 24 100 24 C 130 24 146 44 142 76 C 138 66 126 54 100 54 C 74 54 62 66 58 76 Z" fill="${hairColor}" opacity="0.32" />
         `;
     } else if (hair === 'wavy') {
         frontHairSVG = `
-            <path d="M 58 78 C 54 44 74 34 100 34 C 126 34 146 44 142 78 C 136 66 124 54 100 54 C 76 54 64 66 58 78 Z" fill="${hairColor}" />
-            <path d="M 58 85 Q 52 120 62 148 L 70 144 Q 64 120 68 85 Z" fill="${hairColor}" />
-            <path d="M 142 85 Q 148 120 138 148 L 130 144 Q 136 120 132 85 Z" fill="${hairColor}" />
+            <!-- Ondas Largas con Copete Elevado y Caída Fluyente -->
+            <path d="M 54 80 C 48 44 52 18 76 10 C 94 2 120 2 138 12 C 152 22 154 46 148 80 C 138 62 126 46 100 46 C 74 46 62 62 54 80 Z" fill="${hairColor}" />
+            <path d="M 54 85 Q 44 125 60 156 L 70 152 Q 60 125 66 85 Z" fill="${hairColor}" />
+            <path d="M 146 85 Q 156 125 140 156 L 130 152 Q 140 125 134 85 Z" fill="${hairColor}" />
+            <path d="M 76 20 Q 100 12 124 20" stroke="rgba(255,255,255,0.26)" stroke-width="2.5" stroke-linecap="round" fill="none" />
         `;
     }
 

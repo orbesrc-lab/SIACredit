@@ -338,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
 (function loadExecutiveProfileScript() {
     if (!document.querySelector('script[src*="user_profile.js"]')) {
         const s = document.createElement('script');
-        s.src = 'static/user_profile.js?v=20261112';
+        s.src = 'static/user_profile.js?v=' + Date.now();
         s.onload = function() {
             if (typeof initUserProfileTopbar === 'function') {
                 initUserProfileTopbar();
