@@ -326,7 +326,7 @@
                 </div>
             </div>
             <div style="display:flex; align-items:center; gap:10px;">
-                <a href="cambio_caracter.html" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:white; padding:7px 14px; border-radius:8px; font-size:0.8rem; font-weight:700; text-decoration:none; display:flex; align-items:center; gap:6px; transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">
+                <a href="cambio_caracter" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:white; padding:7px 14px; border-radius:8px; font-size:0.8rem; font-weight:700; text-decoration:none; display:flex; align-items:center; gap:6px; transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">
                     🏛️ Ir a Cambio de Carácter
                 </a>
                 <button type="button" onclick="openExecutiveProfileModal()" style="background:#ffffff; color:#1e3a8a; border:none; padding:7px 14px; border-radius:8px; font-size:0.8rem; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
@@ -399,32 +399,49 @@
         function logout() { localStorage.removeItem('siac_user'); window.top.location.href = 'index.html'; }
 
         // ── Articulación de Factores para Líderes Institucionales ──
-        window._factorFilterMode = (user.role === 'admin' || user.role === 'inst_admin') ? 'all' : 'my';
+        window._factorFilterMode = (user.role === 'admin') ? 'all' : 'my';
         window._cachedModelFactors = [];
         window._cachedModelEvals = [];
 
         function isUserAssignedToFactor(f, u) {
             if (!u) return false;
-            if (u.role === 'admin' || u.role === 'inst_admin') return true;
+            if (u.role === 'admin') return true; // SuperAdmin ve todos en cualquier modo
             // 1. Coincidencia por leader_id en base de datos
             if (f.leader_id && String(f.leader_id) === String(u.id)) return true;
             // 2. Coincidencia por lista de factores asignados en perfil
             const assigned = u.assigned_factors || [];
             if (assigned.includes(f.number) || assigned.includes(parseInt(f.number, 10)) || assigned.includes(f.id) || assigned.includes(String(f.number))) return true;
-            // 3. Coincidencia contextual inteligente por dependencia/cargo
+            // 3. Coincidencia contextual inteligente por dependencia/cargo/email
             const userEmail = (u.email || '').toLowerCase();
             const userName = (u.name || '').toLowerCase();
             const userCargo = (u.cargo || '').toLowerCase();
             const fName = (f.name || '').toLowerCase();
             const fNum = String(f.number);
 
+            // Vicerrectoría Académica -> Factores 1 (Identidad), 2 (Gobierno), 5 (Procesos Académicos), 10 (Profesores)
+            if (userEmail.includes('vice_rectoria') || userCargo.includes('académic') || userCargo.includes('academic')) {
+                if (['1', '2', '5', '10'].includes(fNum)) return true;
+            }
+            // Vicerrectoría Administrativa / Financiera -> Factores 2, 3
+            if (userEmail.includes('vicerrectoriaadmin') || userCargo.includes('administrativ')) {
+                if (['2', '3'].includes(fNum)) return true;
+            }
+            // Internacionalización -> Factor 8
             if ((userEmail.includes('inter') || userName.includes('inter') || userCargo.includes('inter')) && (fName.includes('internacional') || fNum === '8')) return true;
+            // Bienestar -> Factor 9
             if ((userEmail.includes('bienestar') || userCargo.includes('bienestar')) && (fName.includes('bienestar') || fNum === '9')) return true;
+            // Investigación -> Factor 6
             if ((userEmail.includes('investiga') || userCargo.includes('investiga')) && (fName.includes('investiga') || fNum === '6')) return true;
+            // Egresados -> Factor 12
             if ((userEmail.includes('egresad') || userCargo.includes('egresad')) && (fName.includes('egresad') || fNum === '12')) return true;
+            // Profesores -> Factor 10
             if ((userEmail.includes('docente') || userCargo.includes('docente') || userCargo.includes('profesor')) && (fName.includes('profesor') || fNum === '10')) return true;
+            // Estudiantes -> Factor 11
             if ((userEmail.includes('estudiant') || userCargo.includes('estudiant')) && (fName.includes('estudiante') || fNum === '11')) return true;
+            // Extensión -> Factor 7
             if ((userEmail.includes('extension') || userCargo.includes('extension')) && (fName.includes('extensi') || fNum === '7')) return true;
+            // Planeación / Calidad -> Factor 4
+            if ((userEmail.includes('planeacion') || userCargo.includes('calidad')) && (fName.includes('calidad') || fNum === '4')) return true;
             return false;
         }
 
@@ -532,12 +549,6 @@
                 document.getElementById('sidebarFactors').innerHTML = '<div style="padding:20px; color:#ef4444;">Error al cargar factores.</div>';
             }
         }
-
-            }
-
-        }
-
-
 
         async function showEval(fId, cId) {
 

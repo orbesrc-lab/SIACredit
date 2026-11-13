@@ -186,6 +186,12 @@ def skel_empresa_plan_formacion(empresa_id=None):
 def registro_calificado():
     return render_template('registro_calificado.html')
 
+@frontend_bp.route('/cambio_caracter.html')
+@frontend_bp.route('/cambio_caracter')
+def frontend_cambio_caracter():
+    from routes.cambio_caracter import render_cambio_caracter
+    return render_cambio_caracter()
+
 
 
 

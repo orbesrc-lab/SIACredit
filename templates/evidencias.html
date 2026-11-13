@@ -1211,6 +1211,46 @@ function updateFactor10Charts() {
             window.top.location.href = 'login.html';
         }
 
+        // ── Articulación de Factores y Filtro de Liderazgo ──
+        window._evidenciasFilterMode = (user.role === 'admin') ? 'all' : 'my';
+
+        function isUserAssignedToFactor(f, u) {
+            if (!u) return false;
+            if (u.role === 'admin') return true; // Superadmin ve todos
+            if (f.leader_id && String(f.leader_id) === String(u.id)) return true;
+            const assigned = u.assigned_factors || [];
+            if (assigned.includes(f.number) || assigned.includes(parseInt(f.number, 10)) || assigned.includes(f.id) || assigned.includes(String(f.number))) return true;
+
+            const userEmail = (u.email || '').toLowerCase();
+            const userName = (u.name || '').toLowerCase();
+            const userCargo = (u.cargo || '').toLowerCase();
+            const fName = (f.name || '').toLowerCase();
+            const fNum = String(f.number);
+
+            // Vicerrectoría Académica -> Factores 1, 2, 5, 10
+            if (userEmail.includes('vice_rectoria') || userCargo.includes('académic') || userCargo.includes('academic')) {
+                if (['1', '2', '5', '10'].includes(fNum)) return true;
+            }
+            // Vicerrectoría Administrativa -> Factores 2, 3
+            if (userEmail.includes('vicerrectoriaadmin') || userCargo.includes('administrativ')) {
+                if (['2', '3'].includes(fNum)) return true;
+            }
+            if ((userEmail.includes('inter') || userName.includes('inter') || userCargo.includes('inter')) && (fName.includes('internacional') || fNum === '8')) return true;
+            if ((userEmail.includes('bienestar') || userCargo.includes('bienestar')) && (fName.includes('bienestar') || fNum === '9')) return true;
+            if ((userEmail.includes('investiga') || userCargo.includes('investiga')) && (fName.includes('investiga') || fNum === '6')) return true;
+            if ((userEmail.includes('egresad') || userCargo.includes('egresad')) && (fName.includes('egresad') || fNum === '12')) return true;
+            if ((userEmail.includes('docente') || userCargo.includes('docente') || userCargo.includes('profesor')) && (fName.includes('profesor') || fNum === '10')) return true;
+            if ((userEmail.includes('estudiant') || userCargo.includes('estudiant')) && (fName.includes('estudiante') || fNum === '11')) return true;
+            if ((userEmail.includes('extension') || userCargo.includes('extension')) && (fName.includes('extensi') || fNum === '7')) return true;
+            if ((userEmail.includes('planeacion') || userCargo.includes('calidad')) && (fName.includes('calidad') || fNum === '4')) return true;
+            return false;
+        }
+
+        function setEvidenciasFilterMode(mode) {
+            window._evidenciasFilterMode = mode;
+            renderSidebar();
+        }
+
         async function renderSidebar() {
             const container = document.getElementById('sidebarFactors');
             const model = getDataModel();
@@ -1219,19 +1259,42 @@ function updateFactor10Charts() {
                 container.innerHTML = '<div style="padding: 20px; text-align: center;">No hay factores configurados.</div>';
                 return;
             }
-            // FILTRADO POR ROL: Líder solo ve sus factores asignados
-            const filteredModel = model.filter(f => {
-                if (user.role === 'admin' || user.role === 'inst_admin') return true;
-                return f.leader_id == user.id;
-            });
 
-            if (filteredModel.length === 0) {
-                container.innerHTML = '<div style="padding: 20px; text-align: center;">No tienes factores asignados.</div>';
-                return;
+            const myFactors = model.filter(f => isUserAssignedToFactor(f, user));
+            const filterMode = window._evidenciasFilterMode;
+
+            // Selector superior de filtro (Mis Factores vs Todos los Factores)
+            let filterNav = `
+            <div style="padding:10px 14px; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; gap:6px;">
+                <button type="button" onclick="setEvidenciasFilterMode('my')" style="flex:1; font-size:0.75rem; padding:6px 4px; border-radius:6px; border:1px solid ${filterMode === 'my' ? '#2563eb' : '#cbd5e1'}; background:${filterMode === 'my' ? '#eff6ff' : '#ffffff'}; color:${filterMode === 'my' ? '#1e40af' : '#64748b'}; font-weight:${filterMode === 'my' ? '700' : '500'}; cursor:pointer;">
+                    📌 Mis Factores (${myFactors.length})
+                </button>
+                <button type="button" onclick="setEvidenciasFilterMode('all')" style="flex:1; font-size:0.75rem; padding:6px 4px; border-radius:6px; border:1px solid ${filterMode === 'all' ? '#2563eb' : '#cbd5e1'}; background:${filterMode === 'all' ? '#eff6ff' : '#ffffff'}; color:${filterMode === 'all' ? '#1e40af' : '#64748b'}; font-weight:${filterMode === 'all' ? '700' : '500'}; cursor:pointer;">
+                    🌐 Ver Todos (${model.length})
+                </button>
+            </div>`;
+
+            let displayFactors = model;
+            let noteHtml = '';
+
+            if (filterMode === 'my') {
+                if (myFactors.length > 0) {
+                    displayFactors = myFactors;
+                } else {
+                    displayFactors = model;
+                    noteHtml = `
+                    <div style="padding:12px 14px; margin:10px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:0.78rem; color:#1e40af; line-height:1.4;">
+                        <strong>👋 Vista Institucional:</strong><br>
+                        Mostrando todos los factores institucionales.
+                    </div>`;
+                }
             }
 
-            filteredModel.forEach(factor => {
-                html += `<div class="factor-header">Factor ${factor.number}: ${factor.name}</div>`;
+            html = filterNav + noteHtml;
+            displayFactors.forEach(factor => {
+                const isMine = isUserAssignedToFactor(factor, user);
+                const mineBadge = isMine ? `<span style="background:#10b981; color:white; font-size:0.65rem; font-weight:800; padding:1px 6px; border-radius:10px; margin-left:6px; vertical-align:middle;">⭐ Mi Factor</span>` : '';
+                html += `<div class="factor-header" style="${isMine ? 'border-left:4px solid #10b981; background:#f0fdf4;' : ''}">Factor ${factor.number}: ${factor.name} ${mineBadge}</div>`;
                 factor.characteristics.forEach(char => {
                     html += `<div class="char-item" onclick="loadAspects('${char.id}')" id="char_tab_${char.id}">
                         <div class="char-title">${char.number} ${char.name}</div>

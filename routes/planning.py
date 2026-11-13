@@ -15,6 +15,7 @@ from routes.ai import call_ai
 # --- MÓDULO PLANIFICACIÓN Y CONTROL ---
 
 @planning_bp.route('/planificacion.html')
+@planning_bp.route('/planificacion')
 def planificacion_page():
     return render_template('planificacion.html')
 
