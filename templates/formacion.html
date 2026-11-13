@@ -1044,6 +1044,44 @@
                             </div>
                         </div>
 
+                        <!-- BANNER DOCTOR IA: DIAGNÓSTICO Y RECUPERACIÓN DE UNIDADES INCONCLUSAS -->
+                        <div id="courseAiDoctorBanner" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid #334155; border-radius: 14px; padding: 20px 24px; margin-bottom: 22px; color: white; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:15px;">
+                                <div style="max-width: 620px;">
+                                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap;">
+                                        <span style="font-size:1.4rem;">🩺</span>
+                                        <h4 style="margin:0; font-size:1.15rem; font-weight:800; color:#f8fafc; letter-spacing:-0.01em;">
+                                            Asistente IA de Diagnóstico & Recuperación de Contenidos
+                                        </h4>
+                                        <span id="aiDoctorScoreBadge" style="font-size:0.75rem; background:#3b82f6; color:white; padding:3px 10px; border-radius:20px; font-weight:700;">Analizando...</span>
+                                    </div>
+                                    <p style="font-size:0.86rem; color:#94a3b8; margin:0 0 12px 0; line-height:1.5;">
+                                        Audita el estado de tus unidades temáticas, identifica qué temas quedaron inconclusos o vacíos y desarróllalos con rigor catedrático, o genera los prompts contextualizados para <strong>Google NotebookLM (Video Podcasts)</strong>.
+                                    </p>
+                                    <div id="aiDoctorProgressBarContainer" style="background:rgba(255,255,255,0.1); border-radius:10px; height:8px; width:100%; max-width:420px; overflow:hidden;">
+                                        <div id="aiDoctorProgressBar" style="background:linear-gradient(90deg, #3b82f6, #10b981); height:100%; width:0%; transition:width 0.4s ease;"></div>
+                                    </div>
+                                    <div id="aiDoctorStatsSummary" style="font-size:0.8rem; color:#cbd5e1; margin-top:8px;">
+                                        Cargando métricas de contenido...
+                                    </div>
+                                </div>
+
+                                <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+                                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                        <button class="btn-primary" onclick="runCourseAudit()" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color:white; padding:8px 14px; font-size:0.85rem; font-weight:700; border-radius:8px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                                            🔍 Auditar Contenidos
+                                        </button>
+                                        <button class="btn-primary" onclick="developAllIncompleteTopics()" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); border:none; color:white; padding:8px 16px; font-size:0.85rem; font-weight:700; border-radius:8px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(99,102,241,0.35); cursor:pointer;">
+                                            ⚡ Completar Temas Inconclusos con IA
+                                        </button>
+                                        <button class="btn-primary" onclick="openCoursePromptsModal()" style="background: linear-gradient(135deg, #0284c7, #0ea5e9); border:none; color:white; padding:8px 14px; font-size:0.85rem; font-weight:700; border-radius:8px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                                            📋 Prompts NotebookLM & LLMs
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div id="unitsContainer">
                             <!-- Dynamic Unidades -->
                         </div>
@@ -1682,6 +1720,8 @@
                 <button class="btn-editor-tool" onclick="promptInsertLink()" title="Insertar Enlace">🔗 Enlace</button>
                 <div style="width:1px; height:20px; background:#cbd5e1; margin:0 4px;"></div>
                 <div class="ai-editor-tools" style="display:inline-flex; gap:4px; align-items:center;">
+                    <button class="btn-editor-tool" onclick="generateTopicWithAiFromEditor()" title="Redactar clase magistral completa como profesor experto" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color:white; font-weight:700; border:none; padding:4px 10px; border-radius:6px; cursor:pointer;">✨ Redactar con IA</button>
+                    <button class="btn-editor-tool" onclick="openPromptsModalForCurrentTopic()" title="Ver y copiar Prompts para NotebookLM y ChatGPT" style="background: linear-gradient(135deg, #0284c7, #0369a1); color:white; font-weight:700; border:none; padding:4px 10px; border-radius:6px; cursor:pointer;">📋 Prompts NotebookLM</button>
                     <button class="btn-editor-tool" onclick="improveWithAi('improve')" title="Mejorar redacción con IA" style="color:#8b5cf6;"><i class="fas fa-magic"></i> Mejorar</button>
                     <button class="btn-editor-tool" onclick="improveWithAi('expand')" title="Expandir contenido con IA" style="color:#8b5cf6;"><i class="fas fa-expand-alt"></i> Expandir</button>
                     <button class="btn-editor-tool" onclick="improveWithAi('simplify')" title="Simplificar contenido con IA" style="color:#8b5cf6;"><i class="fas fa-compress-alt"></i> Simplificar</button>
@@ -1700,6 +1740,63 @@
                 <div style="display:flex; gap:10px;">
                     <button class="btn-ghost" onclick="closeTopicEditorModal()">Cancelar</button>
                     <button class="btn-primary" onclick="saveTopicContent()">Guardar Contenido</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CENTRO DE PROMPTS MAESTROS (NOTEBOOKLM & LLMs) -->
+    <div id="aiPromptsModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.7); z-index:1005; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+        <div style="background:white; border-radius:18px; padding:28px; width:880px; max-width:95vw; box-shadow:0 25px 70px rgba(0,0,0,0.35); display:flex; flex-direction:column; max-height:92vh;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #e2e8f0; padding-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, #1e3a8a, #3b82f6); display:flex; align-items:center; justify-content:center; color:white; font-size:1.3rem;">📋</div>
+                    <div>
+                        <h3 style="font-size:1.2rem; color:#0f172a; margin:0;" id="aiPromptsModalTitle">Prompts Maestros: Unidad / Tema</h3>
+                        <p style="font-size:0.8rem; color:#64748b; margin:2px 0 0 0;" id="aiPromptsModalSubtitle">Listos para copiar y pegar en ChatGPT, Claude o Google NotebookLM</p>
+                    </div>
+                </div>
+                <button class="btn-ghost" onclick="closeAiPromptsModal()" style="color:#64748b; font-size:1.3rem; cursor:pointer; background:transparent; border:none;">✕</button>
+            </div>
+
+            <!-- Selector de Pestañas -->
+            <div style="display:flex; gap:10px; border-bottom:2px solid #e2e8f0; margin-bottom:15px;">
+                <button id="tabBtnPromptNotebookLM" class="tab-btn-prompt active" onclick="switchPromptTab('notebooklm')" style="padding:10px 18px; border:none; background:transparent; font-weight:700; font-size:0.92rem; color:#1e3a8a; border-bottom:3px solid #1e3a8a; cursor:pointer; display:flex; align-items:center; gap:8px;">
+                    <span>🎙️</span> Prompt Google NotebookLM (Video / Audio Overview)
+                </button>
+                <button id="tabBtnPromptRedaccion" class="tab-btn-prompt" onclick="switchPromptTab('redaccion')" style="padding:10px 18px; border:none; background:transparent; font-weight:600; font-size:0.92rem; color:#64748b; cursor:pointer; display:flex; align-items:center; gap:8px;">
+                    <span>✍️</span> Prompt Redacción Docente Experta (ChatGPT / Claude / Gemini)
+                </button>
+            </div>
+
+            <!-- Contenido Pestaña 1: NotebookLM -->
+            <div id="promptTabContentNotebookLM" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px 16px; margin-bottom:12px; font-size:0.85rem; color:#1e40af; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div style="max-width:680px;">
+                        <strong>Instrucciones para NotebookLM:</strong> Abre NotebookLM, crea tu libreta para esta unidad, sube el contenido como Fuente (Source) y pega este prompt en la personalización del <em>Audio Overview</em> para generar un video podcast totalmente contextualizado con dos anfitriones académicos expertos.
+                    </div>
+                    <a href="https://notebooklm.google.com" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#1e3a8a; color:white; padding:7px 14px; border-radius:8px; text-decoration:none; font-size:0.8rem; font-weight:700;">
+                        Abrir NotebookLM ↗
+                    </a>
+                </div>
+                <textarea id="promptTextNotebookLM" readonly style="flex:1; min-height:220px; border:1px solid #cbd5e1; border-radius:10px; padding:14px; font-family:monospace; font-size:0.88rem; line-height:1.5; background:#f8fafc; color:#0f172a; resize:none;"></textarea>
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px;">
+                    <button class="btn-primary" onclick="copyPromptToClipboard('promptTextNotebookLM', this)" style="background:linear-gradient(135deg, #1e3a8a, #2563eb); border:none; padding:10px 22px; font-weight:700; border-radius:8px; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                        📋 Copiar Prompt para NotebookLM
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contenido Pestaña 2: Redacción Docente -->
+            <div id="promptTabContentRedaccion" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:12px 16px; margin-bottom:12px; font-size:0.85rem; color:#166534;">
+                    <strong>Instrucciones de Redacción:</strong> Copia este prompt maestro y pégalo en ChatGPT (GPT-4o), Claude 3.5 Sonnet o Gemini. El modelo responderá con una clase magistral profunda en código HTML. Luego solo pega el resultado en el botón <em>📝 HTML</em> del editor de temas para reemplazarlo.
+                </div>
+                <textarea id="promptTextRedaccion" readonly style="flex:1; min-height:220px; border:1px solid #cbd5e1; border-radius:10px; padding:14px; font-family:monospace; font-size:0.88rem; line-height:1.5; background:#f8fafc; color:#0f172a; resize:none;"></textarea>
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px;">
+                    <button class="btn-primary" onclick="copyPromptToClipboard('promptTextRedaccion', this)" style="background:linear-gradient(135deg, #059669, #10b981); border:none; padding:10px 22px; font-weight:700; border-radius:8px; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                        📋 Copiar Prompt de Redacción
+                    </button>
                 </div>
             </div>
         </div>
@@ -2788,12 +2885,23 @@
                     topics.forEach((rawT, tIdx) => {
                         const t = typeof rawT === 'string' ? { id: 't_' + tIdx, title: rawT, content: "", type: "text" } : rawT;
                         const icon = t.type === 'video' ? '🎥' : (t.type === 'podcast' ? '🎙️' : (t.type === 'link' ? '🔗' : (t.type === 'file' ? '📄' : '📖')));
+                        const contentStr = (t.content || "").trim();
+                        const isComplete = contentStr.length > 250;
+                        const statusBadge = isComplete 
+                            ? `<span style="font-size:0.7rem; background:#ecfdf5; color:#059669; padding:2px 8px; border-radius:12px; font-weight:600; border:1px solid #a7f3d0;">✅ Desarrollado (~${Math.round(contentStr.length / 5)} pal.)</span>`
+                            : `<span style="font-size:0.7rem; background:#fff1f2; color:#e11d48; padding:2px 8px; border-radius:12px; font-weight:600; border:1px solid #fecdd3;">⚠️ Inconcluso / Vacío</span>`;
+
                         topicsHtml += `
-                            <div class="topic-item">
-                                <span style="font-weight:600; color:var(--text-main);">${icon} ${escapeHtml(t.title)}</span>
-                                <div style="display:flex; gap:6px; align-items:center;">
-                                    <button class="btn-primary" style="padding:6px 12px; font-size:0.75rem; background: var(--primary-gradient); border:none; color:white; border-radius:8px; font-weight:600;" onclick="openTopicEditor(${uIdx}, ${tIdx})">📝 Contenido</button>
-                                    <button class="btn-ghost" style="color:#ef4444; padding:2px 6px; font-size:0.75rem;" onclick="removeTopic(${uIdx}, ${tIdx})">Eliminar</button>
+                            <div class="topic-item" style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border-bottom:1px solid #f1f5f9; gap:8px; flex-wrap:wrap;">
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    <span style="font-weight:600; color:var(--text-main); font-size:0.88rem;">${icon} ${escapeHtml(t.title)}</span>
+                                    ${statusBadge}
+                                </div>
+                                <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                                    <button class="btn-primary" style="padding:5px 10px; font-size:0.75rem; background: var(--primary-gradient); border:none; color:white; border-radius:6px; font-weight:600;" onclick="openTopicEditor(${uIdx}, ${tIdx})">📝 Contenido</button>
+                                    <button class="btn-secondary" style="padding:5px 10px; font-size:0.75rem; background:linear-gradient(135deg, #4f46e5, #7c3aed); color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer;" onclick="developTopicWithAi(${uIdx}, ${tIdx}, this)">⚡ Desarrollar con IA</button>
+                                    <button class="btn-secondary" style="padding:5px 9px; font-size:0.75rem; background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; border-radius:6px; font-weight:600; cursor:pointer;" onclick="openPromptsModalForTopic(${uIdx}, ${tIdx})">📋 Prompts</button>
+                                    <button class="btn-ghost" style="color:#ef4444; padding:2px 6px; font-size:0.75rem;" onclick="removeTopic(${uIdx}, ${tIdx})">🗑️</button>
                                 </div>
                             </div>
                         `;
@@ -2895,9 +3003,13 @@
                 }
                 
                 unitDiv.innerHTML = `
-                    <div class="unit-header">
-                        <span>Unidad ${uIdx + 1}: ${escapeHtml(unit.name)}</span>
-                        <button class="btn-ghost" style="color:white; font-size:0.8rem; border:1px solid rgba(255,255,255,0.4); padding:4px 10px; border-radius:10px;" onclick="removeUnit(${uIdx})">Eliminar Unidad</button>
+                    <div class="unit-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <span style="font-weight:700;">Unidad ${uIdx + 1}: ${escapeHtml(unit.name)}</span>
+                        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                            <button class="btn-ghost" style="color:#dbeafe; background:rgba(255,255,255,0.18); font-size:0.75rem; border:1px solid rgba(255,255,255,0.35); padding:4px 10px; border-radius:8px; font-weight:700; cursor:pointer;" onclick="openPromptsModalForUnit(${uIdx})">🎙️ Prompt NotebookLM</button>
+                            <button class="btn-ghost" style="color:#f3e8ff; background:rgba(255,255,255,0.18); font-size:0.75rem; border:1px solid rgba(255,255,255,0.35); padding:4px 10px; border-radius:8px; font-weight:700; cursor:pointer;" onclick="developAllIncompleteInUnit(${uIdx})">✨ Completar con IA</button>
+                            <button class="btn-ghost" style="color:#fca5a5; font-size:0.75rem; border:1px solid rgba(255,255,255,0.35); padding:4px 10px; border-radius:8px; cursor:pointer;" onclick="removeUnit(${uIdx})">Eliminar Unidad</button>
+                        </div>
                     </div>
                     
                     <div style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; background: var(--card-bg);">
@@ -2941,6 +3053,7 @@
                 
                 container.appendChild(unitDiv);
             });
+            setTimeout(runCourseAudit, 120);
         }
 
         function addUnitPrompt() {
@@ -6922,6 +7035,393 @@
         } finally {
             editorBox.style.background = originalBg;
             editorBox.style.opacity = '1';
+        }
+    }
+
+    // =========================================================================
+    // MÓDULO DOCTOR IA DE CURSOS, RECUPERACIÓN & NOTEBOOKLM PROMPTS
+    // =========================================================================
+
+    async function runCourseAudit() {
+        if (!activeCourse) return;
+        const badge = document.getElementById('aiDoctorScoreBadge');
+        const bar = document.getElementById('aiDoctorProgressBar');
+        const summary = document.getElementById('aiDoctorStatsSummary');
+        
+        if (badge) badge.textContent = 'Analizando...';
+        
+        try {
+            const resp = await authFetch('/api/ai/course/audit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    course_id: activeCourse.id,
+                    course: activeCourse,
+                    inst_id: getInstId()
+                })
+            });
+            const res = await resp.json();
+            if (res.status === 'success') {
+                const d = res.data;
+                if (badge) {
+                    badge.textContent = `${d.completeness_percentage}% Completo`;
+                    badge.style.background = d.completeness_percentage >= 80 ? '#10b981' : (d.completeness_percentage >= 40 ? '#f59e0b' : '#ef4444');
+                }
+                if (bar) bar.style.width = `${d.completeness_percentage}%`;
+                if (summary) {
+                    summary.innerHTML = `📊 <strong>${d.completed_topics}</strong> temas desarrollados de <strong>${d.total_topics}</strong> totales • <span style="color:${d.missing_topics > 0 ? '#f87171' : '#4ade80'}; font-weight:700;">${d.missing_topics} temas inconclusos</span>.`;
+                }
+            }
+        } catch (e) {
+            console.error("Error en auditoría:", e);
+        }
+    }
+
+    async function developTopicWithAi(uIdx, tIdx, btnElement) {
+        if (!activeCourse) return;
+        const unit = activeCourse.units[uIdx];
+        if (!unit) return;
+        const topics = unit.topics || [];
+        const rawT = topics[tIdx];
+        const topicTitle = typeof rawT === 'string' ? rawT : (rawT.title || `Tema ${tIdx+1}`);
+        
+        let originalText = '';
+        if (btnElement) {
+            originalText = btnElement.innerHTML;
+            btnElement.innerHTML = '⏳ Redactando...';
+            btnElement.disabled = true;
+        }
+        
+        try {
+            const resp = await authFetch('/api/ai/course/develop_topic', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    course_id: activeCourse.id,
+                    unit_idx: uIdx,
+                    topic_idx: tIdx,
+                    course_name: activeCourse.title,
+                    unit_name: unit.name,
+                    topic_title: topicTitle,
+                    inst_id: getInstId(),
+                    program_id: activeCourse.program_id || 0
+                })
+            });
+            const res = await resp.json();
+            if (res.status === 'success') {
+                const htmlContent = res.data.html_content;
+                let topicObj = typeof rawT === 'string' ? { id: 't_' + tIdx, title: topicTitle, type: 'text' } : rawT;
+                topicObj.content = htmlContent;
+                activeCourse.units[uIdx].topics[tIdx] = topicObj;
+                
+                renderSyllabusList();
+                runCourseAudit();
+                alert(`✅ ¡Clase magistral generada con éxito para "${topicTitle}"!\nSe redactaron ${res.data.word_count} palabras de contenido académico con fundamentación, casos reales y referencias.`);
+            } else {
+                alert('❌ Error al generar contenido: ' + (res.message || 'Error desconocido'));
+            }
+        } catch (e) {
+            console.error(e);
+            alert('❌ Error de comunicación con el motor de IA.');
+        } finally {
+            if (btnElement) {
+                btnElement.innerHTML = originalText;
+                btnElement.disabled = false;
+            }
+        }
+    }
+
+    async function developAllIncompleteTopics() {
+        if (!activeCourse) return;
+        const units = activeCourse.units || [];
+        const missing = [];
+        
+        units.forEach((u, uIdx) => {
+            (u.topics || []).forEach((t, tIdx) => {
+                const content = typeof t === 'string' ? '' : (t.content || '');
+                if (!content || content.trim().length < 250) {
+                    const title = typeof t === 'string' ? t : (t.title || `Tema ${tIdx+1}`);
+                    missing.push({ uIdx, tIdx, unitName: u.name, title });
+                }
+            });
+        });
+        
+        if (missing.length === 0) {
+            alert("🎉 ¡Todos los temas de este curso ya están completamente desarrollados!");
+            return;
+        }
+        
+        if (!confirm(`Se encontraron ${missing.length} temas vacíos o inconclusos en este curso.\n\n¿Deseas que la IA actúe como Profesor Experto y desarrolle el temario faltante de manera explicativa, argumentativa y con casos de estudio?`)) {
+            return;
+        }
+        
+        const bannerStats = document.getElementById('aiDoctorStatsSummary');
+        if (bannerStats) bannerStats.innerHTML = `<span style="color:#60a5fa;">⏳ Redactando temas con IA (0 de ${missing.length})... Por favor espera.</span>`;
+        
+        let completedCount = 0;
+        for (const item of missing) {
+            try {
+                if (bannerStats) bannerStats.innerHTML = `<span style="color:#60a5fa;">⏳ Redactando (${completedCount + 1}/${missing.length}): "${item.title}"...</span>`;
+                const resp = await authFetch('/api/ai/course/develop_topic', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        course_id: activeCourse.id,
+                        unit_idx: item.uIdx,
+                        topic_idx: item.tIdx,
+                        course_name: activeCourse.title,
+                        unit_name: item.unitName,
+                        topic_title: item.title,
+                        inst_id: getInstId(),
+                        program_id: activeCourse.program_id || 0
+                    })
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    const rawT = activeCourse.units[item.uIdx].topics[item.tIdx];
+                    let topicObj = typeof rawT === 'string' ? { id: 't_' + item.tIdx, title: item.title, type: 'text' } : rawT;
+                    topicObj.content = res.data.html_content;
+                    activeCourse.units[item.uIdx].topics[item.tIdx] = topicObj;
+                    completedCount++;
+                }
+            } catch (e) {
+                console.error(`Error desarrollando tema ${item.title}:`, e);
+            }
+        }
+        
+        renderSyllabusList();
+        runCourseAudit();
+        await updateCourseOnServer();
+        alert(`🎉 ¡Proceso finalizado! Se desarrollaron ${completedCount} de ${missing.length} temas con éxito.`);
+    }
+
+    async function developAllIncompleteInUnit(uIdx) {
+        if (!activeCourse) return;
+        const unit = activeCourse.units[uIdx];
+        if (!unit) return;
+        const missing = [];
+        
+        (unit.topics || []).forEach((t, tIdx) => {
+            const content = typeof t === 'string' ? '' : (t.content || '');
+            if (!content || content.trim().length < 250) {
+                const title = typeof t === 'string' ? t : (t.title || `Tema ${tIdx+1}`);
+                missing.push({ uIdx, tIdx, unitName: unit.name, title });
+            }
+        });
+        
+        if (missing.length === 0) {
+            alert("🎉 ¡Todos los temas de esta unidad ya están completamente desarrollados!");
+            return;
+        }
+        
+        if (!confirm(`Se encontraron ${missing.length} temas inconclusos en la unidad "${unit.name}".\n¿Deseas que la IA redacte las clases magistrales correspondientes?`)) {
+            return;
+        }
+        
+        let count = 0;
+        for (const item of missing) {
+            try {
+                const resp = await authFetch('/api/ai/course/develop_topic', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        course_id: activeCourse.id,
+                        unit_idx: item.uIdx,
+                        topic_idx: item.tIdx,
+                        course_name: activeCourse.title,
+                        unit_name: item.unitName,
+                        topic_title: item.title,
+                        inst_id: getInstId(),
+                        program_id: activeCourse.program_id || 0
+                    })
+                });
+                const res = await resp.json();
+                if (res.status === 'success') {
+                    const rawT = activeCourse.units[item.uIdx].topics[item.tIdx];
+                    let topicObj = typeof rawT === 'string' ? { id: 't_' + item.tIdx, title: item.title, type: 'text' } : rawT;
+                    topicObj.content = res.data.html_content;
+                    activeCourse.units[item.uIdx].topics[item.tIdx] = topicObj;
+                    count++;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        
+        renderSyllabusList();
+        runCourseAudit();
+        await updateCourseOnServer();
+        alert(`🎉 ¡Listo! Se completaron ${count} temas en "${unit.name}".`);
+    }
+
+    async function openPromptsModalForTopic(uIdx, tIdx) {
+        if (!activeCourse) return;
+        const unit = activeCourse.units[uIdx];
+        const rawT = unit.topics[tIdx];
+        const topicTitle = typeof rawT === 'string' ? rawT : (rawT.title || `Tema ${tIdx+1}`);
+        const allTopics = (unit.topics || []).map(t => typeof t === 'string' ? t : (t.title || ''));
+        
+        await fetchAndShowPrompts(activeCourse.title, unit.name, topicTitle, allTopics);
+    }
+
+    async function openPromptsModalForUnit(uIdx) {
+        if (!activeCourse) return;
+        const unit = activeCourse.units[uIdx];
+        const allTopics = (unit.topics || []).map(t => typeof t === 'string' ? t : (t.title || ''));
+        const firstTopic = allTopics[0] || unit.name;
+        
+        await fetchAndShowPrompts(activeCourse.title, unit.name, firstTopic, allTopics);
+    }
+
+    async function openCoursePromptsModal() {
+        if (!activeCourse) return;
+        const firstUnit = (activeCourse.units || [])[0] || { name: 'Unidad 1', topics: [] };
+        const allTopics = (firstUnit.topics || []).map(t => typeof t === 'string' ? t : (t.title || ''));
+        await fetchAndShowPrompts(activeCourse.title, firstUnit.name || 'Unidad 1', allTopics[0] || 'Temario General', allTopics);
+    }
+
+    async function openPromptsModalForCurrentTopic() {
+        const uIdx = parseInt(document.getElementById('editorUnitIdx').value);
+        const tIdx = parseInt(document.getElementById('editorTopicIdx').value);
+        if (!isNaN(uIdx) && !isNaN(tIdx)) {
+            await openPromptsModalForTopic(uIdx, tIdx);
+        }
+    }
+
+    async function fetchAndShowPrompts(courseName, unitName, topicTitle, topicsList) {
+        try {
+            const resp = await authFetch('/api/ai/course/prompts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    course_name: courseName,
+                    unit_name: unitName,
+                    topic_title: topicTitle,
+                    topics_list: topicsList
+                })
+            });
+            const res = await resp.json();
+            if (res.status === 'success') {
+                const d = res.data;
+                document.getElementById('aiPromptsModalTitle').textContent = `Prompts: ${unitName} - ${topicTitle}`;
+                document.getElementById('aiPromptsModalSubtitle').textContent = `Curso: ${courseName} • Listos para copiar y usar en NotebookLM o LLMs`;
+                document.getElementById('promptTextNotebookLM').value = d.prompt_notebooklm;
+                document.getElementById('promptTextRedaccion').value = d.prompt_redaccion;
+                
+                switchPromptTab('notebooklm');
+                document.getElementById('aiPromptsModal').style.display = 'flex';
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error al generar prompts.");
+        }
+    }
+
+    function closeAiPromptsModal() {
+        document.getElementById('aiPromptsModal').style.display = 'none';
+    }
+
+    function switchPromptTab(tab) {
+        const tabNLM = document.getElementById('tabBtnPromptNotebookLM');
+        const tabRed = document.getElementById('tabBtnPromptRedaccion');
+        const contentNLM = document.getElementById('promptTabContentNotebookLM');
+        const contentRed = document.getElementById('promptTabContentRedaccion');
+        
+        if (tab === 'notebooklm') {
+            tabNLM.style.color = '#1e3a8a';
+            tabNLM.style.borderBottom = '3px solid #1e3a8a';
+            tabRed.style.color = '#64748b';
+            tabRed.style.borderBottom = 'none';
+            contentNLM.style.display = 'flex';
+            contentRed.style.display = 'none';
+        } else {
+            tabRed.style.color = '#15803d';
+            tabRed.style.borderBottom = '3px solid #15803d';
+            tabNLM.style.color = '#64748b';
+            tabNLM.style.borderBottom = 'none';
+            contentRed.style.display = 'flex';
+            contentNLM.style.display = 'none';
+        }
+    }
+
+    function copyPromptToClipboard(textareaId, btn) {
+        const textarea = document.getElementById(textareaId);
+        if (!textarea) return;
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textarea.value).then(() => {
+                showCopyFeedback(btn);
+            }).catch(() => {
+                document.execCommand('copy');
+                showCopyFeedback(btn);
+            });
+        } else {
+            document.execCommand('copy');
+            showCopyFeedback(btn);
+        }
+    }
+
+    function showCopyFeedback(btn) {
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✅ ¡Copiado al Portapapeles!';
+        btn.style.filter = 'brightness(1.15)';
+        setTimeout(() => {
+            btn.innerHTML = origText;
+            btn.style.filter = 'none';
+        }, 2200);
+    }
+
+    async function generateTopicWithAiFromEditor() {
+        const uIdx = parseInt(document.getElementById('editorUnitIdx').value);
+        const tIdx = parseInt(document.getElementById('editorTopicIdx').value);
+        if (isNaN(uIdx) || isNaN(tIdx) || !activeCourse) return;
+        
+        const unit = activeCourse.units[uIdx];
+        const rawT = unit.topics[tIdx];
+        const topicTitle = typeof rawT === 'string' ? rawT : (rawT.title || `Tema ${tIdx+1}`);
+        
+        const editorBox = document.getElementById('richTextEditorBox');
+        const currentContent = editorBox.innerHTML.trim();
+        if (currentContent && currentContent.length > 50) {
+            if (!confirm(`El tema ya tiene contenido (${currentContent.length} caracteres).\n¿Deseas reemplazarlo con una clase magistral completa de profesor experto generada por IA?`)) {
+                return;
+            }
+        }
+        
+        editorBox.innerHTML = '<div style="text-align:center; padding:40px; color:#4f46e5;"><i class="fas fa-spinner fa-spin" style="font-size:2rem; margin-bottom:12px;"></i><br><strong>Redactando clase magistral con IA como Profesor Experto...</strong><br><span style="font-size:0.85rem; color:#64748b;">Estructurando contextualización, fundamentación teórica, casos de estudio, matriz de indicadores y referencias APA.</span></div>';
+        
+        try {
+            const resp = await authFetch('/api/ai/course/develop_topic', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    course_id: activeCourse.id,
+                    unit_idx: uIdx,
+                    topic_idx: tIdx,
+                    course_name: activeCourse.title,
+                    unit_name: unit.name,
+                    topic_title: topicTitle,
+                    inst_id: getInstId(),
+                    program_id: activeCourse.program_id || 0
+                })
+            });
+            const res = await resp.json();
+            if (res.status === 'success') {
+                editorBox.innerHTML = res.data.html_content;
+                if (isHtmlView) {
+                    document.getElementById('rawHtmlTextarea').value = res.data.html_content;
+                }
+                let topicObj = typeof rawT === 'string' ? { id: 't_' + tIdx, title: topicTitle, type: 'text' } : rawT;
+                topicObj.content = res.data.html_content;
+                activeCourse.units[uIdx].topics[tIdx] = topicObj;
+            } else {
+                alert('Error de IA: ' + res.message);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error al conectar con la IA.');
         }
     }
     </script>
