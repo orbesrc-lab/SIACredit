@@ -4653,7 +4653,7 @@
                     ${linkedDocs.map(ld => {
                         const vCount = (ld.bitacora_versiones || []).length || 1;
                         const apCount = (ld.aportes_equipo || []).length || 0;
-                        const iaScore = (ld.auditorias_ia && ld.auditorias_ia.length) ? `${ld.auditorias_ia[0].puntaje_cumplimiento}% IA` : '';
+                        const iaScore = (ld.auditorias_ia && ld.auditorias_ia.length) ? `${ld.auditorias_ia[0].puntaje_cumplimiento}% MEN` : '';
                         return `
                             <div onclick="openCollabDocFromProduct('${ld.id}')" style="padding:7px 9px; background:#fff; border:1px solid #e2e8f0; border-radius:7px; margin-bottom:5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:8px; transition:all 0.15s;" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#e2e8f0'">
                                 <div style="overflow:hidden;">

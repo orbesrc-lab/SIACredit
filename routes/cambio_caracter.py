@@ -9,8 +9,8 @@ import docx
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.oxml import OxmlElement
-from docx.oxml.ns import qn
+from docx.oxml import OxmlElement, parse_xml
+from docx.oxml.ns import qn, nsdecls
 from flask import Blueprint, jsonify, request, render_template, send_file
 from routes.ai import call_ai
 from utils.db import supabase, get_active_inst_id
@@ -251,21 +251,41 @@ def get_cc_project(inst_id):
                     })
             item["equipo_documento"] = norm_eq
         # Garantizar que contenido, snapshots y auditorías estén limpios y alineados al Estatuto de INTENALCO (Consejo Directivo)
+        f_name = item.get("frente") or "General"
+        l_name = item.get("autor") or ""
+        item["autor"] = sanitize_institutional_human_authorship(item.get("autor", ""), f_name, l_name)
+        if not item["autor"]:
+            item["autor"] = f"{f_name} · Equipo Técnico Institucional"
+
+        for v_item in (item.get("bitacora_versiones") or []):
+            if isinstance(v_item, dict):
+                v_item["autor"] = sanitize_institutional_human_authorship(v_item.get("autor", ""), f_name, l_name)
+                if not v_item.get("autor"):
+                    v_item["autor"] = item["autor"]
+                v_item["tipo_actuacion"] = sanitize_institutional_human_authorship(v_item.get("tipo_actuacion", ""), f_name, l_name)
+                if "IA" in v_item.get("tipo_actuacion", "") or not v_item.get("tipo_actuacion"):
+                    v_item["tipo_actuacion"] = "Documento Técnico Base para Co-Creación"
+                v_item["resumen_cambio"] = sanitize_institutional_human_authorship(v_item.get("resumen_cambio", ""), f_name, l_name)
+                if v_item.get("contenido_snapshot"):
+                    v_item["contenido_snapshot"] = sanitize_doc_markdown_text(v_item["contenido_snapshot"])
+
+        for ap_item in (item.get("aportes_equipo") or []):
+            if isinstance(ap_item, dict):
+                ap_item["autor"] = sanitize_institutional_human_authorship(ap_item.get("autor", ""), f_name, l_name)
+                ap_item["comentario"] = sanitize_institutional_human_authorship(ap_item.get("comentario", ""), f_name, l_name)
+
         if item.get("contenido"):
             item["contenido"] = sanitize_doc_markdown_text(item["contenido"])
-        for v_item in (item.get("bitacora_versiones") or []):
-            if isinstance(v_item, dict) and v_item.get("contenido_snapshot"):
-                v_item["contenido_snapshot"] = sanitize_doc_markdown_text(v_item["contenido_snapshot"])
         for aud_item in (item.get("auditorias_ia") or []):
             if isinstance(aud_item, dict):
                 if isinstance(aud_item.get("fortalezas"), list):
-                    aud_item["fortalezas"] = [normalize_intenalco_statute_terms(str(f)) for f in aud_item["fortalezas"]]
+                    aud_item["fortalezas"] = [sanitize_institutional_human_authorship(normalize_intenalco_statute_terms(str(f)), f_name, l_name) for f in aud_item["fortalezas"]]
                 if isinstance(aud_item.get("aspectos_por_mejorar"), list):
-                    aud_item["aspectos_por_mejorar"] = [normalize_intenalco_statute_terms(str(a)) for a in aud_item["aspectos_por_mejorar"]]
+                    aud_item["aspectos_por_mejorar"] = [sanitize_institutional_human_authorship(normalize_intenalco_statute_terms(str(a)), f_name, l_name) for a in aud_item["aspectos_por_mejorar"]]
                 if aud_item.get("dictamen_markdown"):
-                    aud_item["dictamen_markdown"] = normalize_intenalco_statute_terms(aud_item["dictamen_markdown"])
+                    aud_item["dictamen_markdown"] = sanitize_institutional_human_authorship(normalize_intenalco_statute_terms(aud_item["dictamen_markdown"]), f_name, l_name)
                 if aud_item.get("texto_sugerido"):
-                    aud_item["texto_sugerido"] = normalize_intenalco_statute_terms(aud_item["texto_sugerido"])
+                    aud_item["texto_sugerido"] = sanitize_institutional_human_authorship(normalize_intenalco_statute_terms(aud_item["texto_sugerido"]), f_name, l_name)
 
     for b_item in (project.get("brechas") or []):
         if isinstance(b_item, dict):
@@ -326,7 +346,109 @@ def sanitize_doc_markdown_text(raw_text):
     txt = re.sub(r'",\s*(?:"evaluations"\s*:|"req_\d+"\s*:\s*\{|"?Brecha[^"\n]*"?\s*,\s*"notes"\s*:)[\s\S]*$', '', txt, flags=re.IGNORECASE).strip()
     if txt.endswith('"}'):
         txt = txt[:-2].strip()
-    return normalize_intenalco_statute_terms(txt)
+    return sanitize_institutional_human_authorship(normalize_intenalco_statute_terms(txt))
+
+
+def sanitize_institutional_human_authorship(text, frente_name="", leader_name=""):
+    """Elimina cualquier mención de 'IA', 'Asesor IA', etc., y reescribe la autoría institucional para Pares Académicos del MEN."""
+    if not text:
+        return ""
+    clean_leader = leader_name or (f"{frente_name} · Equipo Técnico Institucional" if frente_name else "Líder de Frente y Equipo Técnico")
+    import re
+    t = str(text)
+    t = re.sub(r'\b(?:Generado|Elaborado|Creado|Asistido)\s+por\s+IA\b', f'Formulado por {clean_leader}', t, flags=re.IGNORECASE)
+    t = re.sub(r'\bAsesor\s+IA(?:\s*\(Docentes\))?\b', clean_leader, t, flags=re.IGNORECASE)
+    t = re.sub(r'\bAsesor\s+Experto\s+MEN\s*\(IA\)\b', f'{clean_leader} - Asesoría Técnica', t, flags=re.IGNORECASE)
+    t = re.sub(r'\bAsistente\s+IA\b', 'Equipo Técnico Institucional', t, flags=re.IGNORECASE)
+    t = re.sub(r'\bInteligencia\s+Artificial\b', 'Metodología Técnica de Co-Creación', t, flags=re.IGNORECASE)
+    t = re.sub(r'\bVerificaci[oó]n\s+Normativa\s+IA\b', 'Evaluación Técnica de Estándares MEN', t, flags=re.IGNORECASE)
+    t = re.sub(r'\bAuditor[ií]a\s+IA(?:\s+MEN)?\b', 'Comité Técnico de Autoevaluación y Calidad', t, flags=re.IGNORECASE)
+    t = re.sub(r'\bAn[aá]lisis\s+IA\b', 'Diagnóstico Técnico Institucional', t, flags=re.IGNORECASE)
+    t = re.sub(r'\bGeneraci[oó]n\s+Asistida\s+por\s+IA\b', 'Documento Técnico Base para Co-Creación', t, flags=re.IGNORECASE)
+    t = re.sub(r'·\s*Asesor\s+IA', '', t, flags=re.IGNORECASE)
+    t = re.sub(r'\(\s*Asesor\s+IA\s*\)', '', t, flags=re.IGNORECASE)
+    return normalize_intenalco_statute_terms(t)
+
+
+def clean_latin_pdf(text):
+    """Limpia caracteres especiales y comillas curvas para FPDF con fuente core latin-1."""
+    if not text:
+        return ""
+    t = str(text)
+    replacements = {
+        '“': '"', '”': '"', '‘': "'", '’': "'",
+        '–': '-', '—': '-', '…': '...', '•': '*',
+        'á': 'á', 'é': 'é', 'í': 'í', 'ó': 'ó', 'ú': 'ú',
+        'Á': 'Á', 'É': 'É', 'Í': 'Í', 'Ó': 'Ó', 'Ú': 'Ú',
+        'ñ': 'ñ', 'Ñ': 'Ñ', 'ü': 'ü', 'Ü': 'Ü'
+    }
+    for k, v in replacements.items():
+        t = t.replace(k, v)
+    try:
+        return t.encode('latin-1', 'replace').decode('latin-1')
+    except Exception:
+        return t.encode('ascii', 'replace').decode('ascii')
+
+
+def parse_markdown_blocks(md_text):
+    """Parsea texto Markdown en bloques estructurados: encabezados, tablas, listas con viñetas, listas numeradas, citas y párrafos."""
+    if not md_text:
+        return []
+    import re
+    lines = md_text.split('\n')
+    blocks = []
+    i = 0
+    while i < len(lines):
+        line = lines[i].rstrip()
+        line_str = line.strip()
+        if not line_str:
+            i += 1
+            continue
+        
+        # Bloque de Tabla Markdown (| Col1 | Col2 | ...)
+        if line_str.startswith('|') and '|' in line_str[1:]:
+            tbl_lines = []
+            while i < len(lines) and lines[i].strip().startswith('|'):
+                tbl_lines.append(lines[i].strip())
+                i += 1
+            rows = []
+            for tl in tbl_lines:
+                cleaned = re.sub(r'[\s\-:|]', '', tl)
+                if not cleaned:
+                    continue  # Separador (| --- | --- |)
+                cells = [c.strip() for c in tl.strip().strip('|').split('|')]
+                rows.append(cells)
+            if rows:
+                blocks.append({'type': 'table', 'headers': rows[0], 'rows': rows[1:]})
+            continue
+
+        # Encabezados
+        if line_str.startswith('# '):
+            blocks.append({'type': 'h1', 'text': line_str[2:].strip()})
+        elif line_str.startswith('## '):
+            blocks.append({'type': 'h2', 'text': line_str[3:].strip()})
+        elif line_str.startswith('### '):
+            blocks.append({'type': 'h3', 'text': line_str[4:].strip()})
+        elif line_str.startswith('#### '):
+            blocks.append({'type': 'h4', 'text': line_str[5:].strip()})
+        # Viñetas
+        elif line_str.startswith('- ') or line_str.startswith('* '):
+            blocks.append({'type': 'bullet', 'text': line_str[2:].strip()})
+        # Numerados
+        elif re.match(r'^\d+\.\s+', line_str):
+            m = re.match(r'^(\d+)\.\s+(.*)$', line_str)
+            blocks.append({'type': 'numbered', 'num': m.group(1), 'text': m.group(2).strip()})
+        # Cita / Considerando
+        elif line_str.startswith('>'):
+            blocks.append({'type': 'quote', 'text': line_str[1:].strip()})
+        # Separador horizontal
+        elif line_str in ['---', '***', '___']:
+            blocks.append({'type': 'hr'})
+        # Párrafo normal
+        else:
+            blocks.append({'type': 'p', 'text': line_str})
+        i += 1
+    return blocks
 
 
 def merge_team_members_into_doc(doc_item, members_list, default_rol="Co-Autor / Integrante"):
@@ -683,10 +805,13 @@ def api_cc_ai_gap_analysis():
             "Tu estilo de redacción es formal, altamente técnico, académico, jurídico y propositivo. "
             "No te limitas a opinar: redactas articulados normativos, capítulos del PEI/PDI, justificaciones curriculares, "
             "políticas institucionales y matrices con rigor impecable, adaptados a la realidad estatutaria de INTENALCO EDUCACIÓN SUPERIOR "
-            "en su tránsito a Institución Universitaria."
+            "en su tránsito a Institución Universitaria. "
+            "REGLA INSTITUCIONAL DE AUTORÍA (PARES ACADÉMICOS MEN): NUNCA menciones que este documento fue redactado, generado o asistido por Inteligencia Artificial, IA, chatbot, modelo de lenguaje ni asistente virtual. "
+            "Los Pares Académicos del MEN evalúan la autoría e idoneidad institucional. Redacta siempre en voz del Líder de Frente y el Equipo Técnico Institucional de INTENALCO EDUCACIÓN SUPERIOR "
+            "como documento técnico base formulado para la co-creación, discusión en mesas de trabajo y sustentación colegiada ante el Consejo Directivo."
         )
 
-        title_entry = "Análisis IA"
+        title_entry = f"Documento Técnico: {frente_name or 'General'}"
         task_frente = frente_name or "General"
         task_product = producto_codigo or ("P1" if mode in ['frente_diagnosis', 'full_diagnosis', 'evaluate_evidence'] else "P2")
         default_req_id = "req_1"
@@ -993,10 +1118,10 @@ Redacta aquí el informe técnico de brechas y las propuestas de redacción form
         # Vincular automáticamente al líder y equipo del Frente responsable (soporta strings o dicts en equipo_frente)
         frente_obj = next((f for f in project.get("frentes", []) if isinstance(f, dict) and f.get("nombre", "").lower() == task_frente.lower()), None)
         equipo_inicial = []
-        autor_label = "Asesor Experto MEN (IA)"
+        autor_label = f"{task_frente} · Equipo Técnico Institucional"
         if frente_obj:
             if frente_obj.get("lider"):
-                autor_label = f"{frente_obj['lider']} · Asesor IA"
+                autor_label = f"{frente_obj['lider']} (Líder de Frente)"
                 equipo_inicial.append({
                     "id": str(uuid.uuid4())[:8],
                     "nombre": str(frente_obj["lider"]),
@@ -1055,8 +1180,8 @@ Redacta aquí el informe técnico de brechas y las propuestas de redacción form
                     "cargo_dependencia": task_frente,
                     "rol_skel": "lider",
                     "fase": "Fase III: Escenario y diseño",
-                    "tipo_actuacion": "Generación Asistida por IA",
-                    "resumen_cambio": f"Generación inicial del documento base ({title_entry})",
+                    "tipo_actuacion": "Documento Técnico Base para Co-Creación",
+                    "resumen_cambio": f"Formulación del documento técnico base por el líder del frente ({title_entry})",
                     "contenido_snapshot": analysis_html
                 }
             ],
@@ -3417,6 +3542,15 @@ def api_cc_admin_restore_deleted():
         print(f"[CC Admin Restore Deleted] Error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+def set_docx_cell_bg(cell, hex_color):
+    """Aplica sombreado de fondo XML a una celda de tabla en python-docx."""
+    try:
+        shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{hex_color}"/>')
+        cell._tc.get_or_add_tcPr().append(shd)
+    except Exception:
+        pass
+
+
 @cambio_caracter_bp.route('/api/cambio_caracter/download_word', methods=['POST'])
 def api_cc_download_word():
     try:
@@ -3429,192 +3563,416 @@ def api_cc_download_word():
         project = get_cc_project(inst_id)
         doc_item = next((h for h in project.get("ai_history", []) if h.get("id") == doc_id), None)
 
+        frente_name = doc_item.get("frente", "General") if doc_item else "General"
+        leader_name = doc_item.get("autor", "") if doc_item else ""
+        clean_title = sanitize_institutional_human_authorship(title, frente_name, leader_name)
+        clean_text = sanitize_institutional_human_authorship(text, frente_name, leader_name)
+
         doc = docx.Document()
         
-        # Page Margins (Normal 1 inch)
+        # Márgenes estándar oficiales (2.5 cm / 1 pulgada)
         for section in doc.sections:
             section.top_margin = Inches(1)
             section.bottom_margin = Inches(1)
             section.left_margin = Inches(1)
             section.right_margin = Inches(1)
 
-        # Cover / Header Style
-        title_para = doc.add_paragraph()
-        title_run = title_para.add_run("INTENALCO EDUCACIÓN SUPERIOR\nPROCESO DE CAMBIO DE CARÁCTER A INSTITUCIÓN UNIVERSITARIA")
-        title_run.font.name = 'Calibri'
-        title_run.font.size = Pt(11)
-        title_run.font.bold = True
-        title_run.font.color.rgb = RGBColor(49, 46, 129)
-        title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        
-        doc_heading = doc.add_heading(title, level=0)
-        doc_heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        # Encabezado Institucional
+        hdr_p = doc.add_paragraph()
+        hdr_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        hdr_r1 = hdr_p.add_run("INTENALCO EDUCACIÓN SUPERIOR\n")
+        hdr_r1.font.name = 'Calibri'
+        hdr_r1.font.size = Pt(12)
+        hdr_r1.font.bold = True
+        hdr_r1.font.color.rgb = RGBColor(30, 58, 138)  # Navy #1E3A8A
 
-        # Ficha de Control Documental en el Encabezado si existe doc_item
+        hdr_r2 = hdr_p.add_run("PROCESO DE REDEFINICIÓN Y CAMBIO DE CARÁCTER A INSTITUCIÓN UNIVERSITARIA\n")
+        hdr_r2.font.name = 'Calibri'
+        hdr_r2.font.size = Pt(9.5)
+        hdr_r2.font.bold = True
+        hdr_r2.font.color.rgb = RGBColor(71, 85, 105)
+
+        hdr_r3 = hdr_p.add_run("Sistema de Aseguramiento de la Calidad (SIAC 360) · Expediente Técnico Colegiado")
+        hdr_r3.font.name = 'Calibri'
+        hdr_r3.font.size = Pt(8.5)
+        hdr_r3.font.italic = True
+        hdr_r3.font.color.rgb = RGBColor(100, 116, 139)
+        hdr_p.paragraph_format.space_after = Pt(12)
+
+        # Título principal del documento
+        title_p = doc.add_paragraph()
+        title_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        t_run = title_p.add_run(clean_title)
+        t_run.font.name = 'Calibri'
+        t_run.font.size = Pt(15)
+        t_run.font.bold = True
+        t_run.font.color.rgb = RGBColor(30, 58, 138)
+        title_p.paragraph_format.space_after = Pt(3)
+
+        sub_p = doc.add_paragraph()
+        sub_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        sub_r = sub_p.add_run("Documento Técnico Base para la Co-Creación y Trámite ante el Consejo Directivo")
+        sub_r.font.name = 'Calibri'
+        sub_r.font.size = Pt(9)
+        sub_r.font.italic = True
+        sub_r.font.color.rgb = RGBColor(100, 116, 139)
+        sub_p.paragraph_format.space_after = Pt(10)
+
+        # Ficha de Control Documental en tabla estilizada
         if doc_item:
             meta_table = doc.add_table(rows=2, cols=4)
             meta_table.style = 'Table Grid'
+            meta_table.alignment = WD_TABLE_ALIGNMENT.CENTER
             meta_cells_r0 = [
-                f"Código: {doc_item.get('codigo_doc', 'DOC-CC')}",
-                f"Versión: {doc_item.get('version_actual', 'v1.0')}",
-                f"Estado: {doc_item.get('estado_editorial', 'En Construcción')}",
-                f"Producto: {doc_item.get('producto', 'P5')}"
+                ("Código:", str(doc_item.get('codigo_doc', 'DOC-CC'))),
+                ("Versión:", str(doc_item.get('version_actual', 'v1.0'))),
+                ("Estado:", str(doc_item.get('estado_editorial', 'En Construcción'))),
+                ("Producto Clave:", str(doc_item.get('producto', 'P5')))
             ]
             meta_cells_r1 = [
-                f"Categoría: {doc_item.get('categoria', 'Políticas y Modelos')}",
-                f"Frente: {doc_item.get('frente', 'Institucional')}",
-                f"Requisito MEN: {(doc_item.get('requisito_id') or 'req_1').upper()}",
-                f"Fase: {doc_item.get('fase', 'Fase III')}"
+                ("Categoría:", str(doc_item.get('categoria', 'Políticas y Modelos'))),
+                ("Frente Responsable:", str(doc_item.get('frente', 'Institucional'))),
+                ("Requisito MEN:", str(doc_item.get('requisito_id', 'REQ-01')).upper()),
+                ("Fase de Avance:", str(doc_item.get('fase', 'Fase III')))
             ]
-            for c_i, val in enumerate(meta_cells_r0):
-                cell = meta_table.cell(0, c_i)
-                cell.text = val
-                for run in cell.paragraphs[0].runs:
-                    run.font.size = Pt(8.5)
-                    run.font.bold = True
-            for c_i, val in enumerate(meta_cells_r1):
-                cell = meta_table.cell(1, c_i)
-                cell.text = val
-                for run in cell.paragraphs[0].runs:
-                    run.font.size = Pt(8.5)
-            doc.add_paragraph().paragraph_format.space_after = Pt(6)
-        
-        date_para = doc.add_paragraph()
-        d_run = date_para.add_run(f"Generado el: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')} | Expediente Co-Construido en SIAC 360")
-        d_run.font.name = 'Calibri'
-        d_run.font.size = Pt(9)
-        d_run.font.italic = True
-        d_run.font.color.rgb = RGBColor(100, 116, 139)
-        date_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            for c_i, (lbl, val) in enumerate(meta_cells_r0):
+                c = meta_table.cell(0, c_i)
+                set_docx_cell_bg(c, 'F1F5F9')
+                p = c.paragraphs[0]
+                p.paragraph_format.space_after = Pt(2)
+                p.paragraph_format.space_before = Pt(2)
+                r_lbl = p.add_run(lbl + " ")
+                r_lbl.font.size = Pt(8)
+                r_lbl.font.bold = True
+                r_lbl.font.color.rgb = RGBColor(71, 85, 105)
+                r_val = p.add_run(val)
+                r_val.font.size = Pt(8)
+                r_val.font.bold = True
+                r_val.font.color.rgb = RGBColor(30, 41, 59)
 
-        doc.add_paragraph().paragraph_format.space_after = Pt(10)
+            for c_i, (lbl, val) in enumerate(meta_cells_r1):
+                c = meta_table.cell(1, c_i)
+                set_docx_cell_bg(c, 'F8FAFC')
+                p = c.paragraphs[0]
+                p.paragraph_format.space_after = Pt(2)
+                p.paragraph_format.space_before = Pt(2)
+                r_lbl = p.add_run(lbl + " ")
+                r_lbl.font.size = Pt(8)
+                r_lbl.font.bold = True
+                r_lbl.font.color.rgb = RGBColor(71, 85, 105)
+                r_val = p.add_run(val)
+                r_val.font.size = Pt(8)
+                r_val.font.color.rgb = RGBColor(30, 41, 59)
 
-        # Parse markdown text line by line
-        for line in text.split('\n'):
-            line_str = line.strip()
-            if not line_str:
-                doc.add_paragraph()
-                continue
-            
-            if line_str.startswith('# '):
-                p = doc.add_heading(line_str[2:].replace('**', ''), level=1)
+            sp = doc.add_paragraph()
+            sp.paragraph_format.space_after = Pt(8)
+
+        # Parsear contenido mediante bloques estructurados
+        blocks = parse_markdown_blocks(clean_text)
+        for blk in blocks:
+            b_type = blk.get('type')
+            if b_type == 'h1':
+                p = doc.add_paragraph()
                 p.paragraph_format.space_before = Pt(14)
-                p.paragraph_format.space_after = Pt(6)
-            elif line_str.startswith('## '):
-                p = doc.add_heading(line_str[3:].replace('**', ''), level=2)
+                p.paragraph_format.space_after = Pt(5)
+                r = p.add_run(blk.get('text', '').replace('**', ''))
+                r.font.name = 'Calibri'
+                r.font.size = Pt(13)
+                r.font.bold = True
+                r.font.color.rgb = RGBColor(30, 58, 138)
+            elif b_type == 'h2':
+                p = doc.add_paragraph()
                 p.paragraph_format.space_before = Pt(10)
                 p.paragraph_format.space_after = Pt(4)
-            elif line_str.startswith('### '):
-                p = doc.add_heading(line_str[4:].replace('**', ''), level=3)
+                r = p.add_run(blk.get('text', '').replace('**', ''))
+                r.font.name = 'Calibri'
+                r.font.size = Pt(11.5)
+                r.font.bold = True
+                r.font.color.rgb = RGBColor(49, 46, 129)
+            elif b_type == 'h3':
+                p = doc.add_paragraph()
                 p.paragraph_format.space_before = Pt(8)
+                p.paragraph_format.space_after = Pt(3)
+                r = p.add_run(blk.get('text', '').replace('**', ''))
+                r.font.name = 'Calibri'
+                r.font.size = Pt(10.5)
+                r.font.bold = True
+                r.font.color.rgb = RGBColor(30, 41, 59)
+            elif b_type == 'h4':
+                p = doc.add_paragraph()
+                p.paragraph_format.space_before = Pt(6)
                 p.paragraph_format.space_after = Pt(2)
-            elif line_str.startswith('- ') or line_str.startswith('* '):
-                bullet_text = line_str[2:].replace('**', '')
-                doc.add_paragraph(bullet_text, style='List Bullet')
-            elif line_str.startswith('1. ') or line_str.startswith('2. ') or line_str.startswith('3. '):
-                num_text = line_str[3:].replace('**', '')
-                doc.add_paragraph(num_text, style='List Number')
+                r = p.add_run(blk.get('text', '').replace('**', ''))
+                r.font.name = 'Calibri'
+                r.font.size = Pt(10)
+                r.font.bold = True
+                r.font.color.rgb = RGBColor(71, 85, 105)
+            elif b_type == 'bullet':
+                p = doc.add_paragraph(style='List Bullet')
+                p.paragraph_format.space_after = Pt(3)
+                b_text = blk.get('text', '')
+                parts = b_text.split('**')
+                for idx_p, part in enumerate(parts):
+                    if not part: continue
+                    r = p.add_run(part)
+                    r.font.name = 'Calibri'
+                    r.font.size = Pt(10)
+                    if idx_p % 2 == 1:
+                        r.font.bold = True
+            elif b_type == 'numbered':
+                p = doc.add_paragraph(style='List Number')
+                p.paragraph_format.space_after = Pt(3)
+                b_text = f"{blk.get('num', '')}. {blk.get('text', '')}"
+                parts = b_text.split('**')
+                for idx_p, part in enumerate(parts):
+                    if not part: continue
+                    r = p.add_run(part)
+                    r.font.name = 'Calibri'
+                    r.font.size = Pt(10)
+                    if idx_p % 2 == 1:
+                        r.font.bold = True
+            elif b_type == 'quote':
+                p = doc.add_paragraph()
+                p.paragraph_format.left_indent = Inches(0.4)
+                p.paragraph_format.space_before = Pt(4)
+                p.paragraph_format.space_after = Pt(4)
+                r = p.add_run(blk.get('text', '').replace('**', ''))
+                r.font.name = 'Calibri'
+                r.font.size = Pt(9.5)
+                r.font.italic = True
+                r.font.color.rgb = RGBColor(71, 85, 105)
+            elif b_type == 'hr':
+                p = doc.add_paragraph()
+                p.paragraph_format.space_before = Pt(4)
+                p.paragraph_format.space_after = Pt(4)
+                r = p.add_run("_______________________________________________________________________________")
+                r.font.size = Pt(7)
+                r.font.color.rgb = RGBColor(203, 213, 225)
+            elif b_type == 'table':
+                headers = blk.get('headers', [])
+                rows = blk.get('rows', [])
+                if headers:
+                    t_doc = doc.add_table(rows=len(rows) + 1, cols=len(headers))
+                    t_doc.style = 'Table Grid'
+                    t_doc.alignment = WD_TABLE_ALIGNMENT.CENTER
+                    # Encabezados de tabla
+                    for c_idx, h_txt in enumerate(headers):
+                        c = t_doc.cell(0, c_idx)
+                        set_docx_cell_bg(c, '1E3A8A')
+                        p = c.paragraphs[0]
+                        p.paragraph_format.space_before = Pt(3)
+                        p.paragraph_format.space_after = Pt(3)
+                        r = p.add_run(h_txt.replace('**', ''))
+                        r.font.name = 'Calibri'
+                        r.font.size = Pt(8.5)
+                        r.font.bold = True
+                        r.font.color.rgb = RGBColor(255, 255, 255)
+                    # Filas de datos
+                    for r_idx, row_data in enumerate(rows):
+                        bg_hex = 'F8FAFC' if r_idx % 2 == 1 else 'FFFFFF'
+                        for c_idx, cell_txt in enumerate(row_data):
+                            if c_idx < len(headers):
+                                c = t_doc.cell(r_idx + 1, c_idx)
+                                set_docx_cell_bg(c, bg_hex)
+                                p = c.paragraphs[0]
+                                p.paragraph_format.space_before = Pt(2)
+                                p.paragraph_format.space_after = Pt(2)
+                                r = p.add_run(cell_txt.replace('**', ''))
+                                r.font.name = 'Calibri'
+                                r.font.size = Pt(8.5)
+                                r.font.color.rgb = RGBColor(30, 41, 59)
+                    sp_tbl = doc.add_paragraph()
+                    sp_tbl.paragraph_format.space_after = Pt(6)
             else:
                 p = doc.add_paragraph()
                 p.paragraph_format.line_spacing = 1.15
-                p.paragraph_format.space_after = Pt(6)
-                parts = line_str.split('**')
+                p.paragraph_format.space_after = Pt(5)
+                parts = blk.get('text', '').split('**')
                 for i, part in enumerate(parts):
                     if not part: continue
-                    run = p.add_run(part)
-                    run.font.name = 'Calibri'
-                    run.font.size = Pt(10.5)
+                    r = p.add_run(part)
+                    r.font.name = 'Calibri'
+                    r.font.size = Pt(10)
                     if i % 2 == 1:
-                        run.font.bold = True
+                        r.font.bold = True
 
-        # ANEXO DE TRAZABILIDAD Y TRABAJO EN EQUIPO PARA PARES EVALUADORES
+        # ANEXO DE TRAZABILIDAD Y CO-CONSTRUCCIÓN INSTITUCIONAL
         if include_trace and doc_item:
             doc.add_page_break()
-            h_anexo = doc.add_heading("ANEXO DE TRAZABILIDAD Y CONSTRUCCIÓN COLECTIVA (SOPORTE PARA PARES ACADÉMICOS MEN)", level=1)
-            h_anexo.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            
+            anexo_p = doc.add_paragraph()
+            anexo_p.paragraph_format.space_before = Pt(10)
+            anexo_p.paragraph_format.space_after = Pt(3)
+            r_anx = anexo_p.add_run("ANEXO DE TRAZABILIDAD Y CO-CONSTRUCCIÓN INSTITUCIONAL")
+            r_anx.font.name = 'Calibri'
+            r_anx.font.size = Pt(14)
+            r_anx.font.bold = True
+            r_anx.font.color.rgb = RGBColor(30, 58, 138)
 
-            intro_p = doc.add_paragraph(
-                "El presente anexo certifica la trazabilidad metodológica, el control de versiones por dependencia, "
-                "los acuerdos de mesas de trabajo participativas y la auditoría interna de cumplimiento normativo "
-                "adelantada por el equipo institucional en el marco de la Ley 749 de 2002 y el Decreto 2038 de 2023."
+            sub_anx = doc.add_paragraph()
+            sub_anx.paragraph_format.space_after = Pt(8)
+            r_sub_anx = sub_anx.add_run("Evidencia Documental de Autoría y Trabajo Colegiado para Pares Académicos del MEN")
+            r_sub_anx.font.name = 'Calibri'
+            r_sub_anx.font.size = Pt(9.5)
+            r_sub_anx.font.italic = True
+            r_sub_anx.font.color.rgb = RGBColor(71, 85, 105)
+
+            intro_p = doc.add_paragraph()
+            intro_p.paragraph_format.space_after = Pt(10)
+            r_intro = intro_p.add_run(
+                "El presente anexo certifica la formulación colegiada, el liderazgo técnico institucional, el control "
+                "de versiones por dependencia y las sesiones de co-creación adelantadas por el equipo de INTENALCO "
+                "EDUCACIÓN SUPERIOR en el marco de la redefinición a Institución Universitaria (Ley 749 de 2002 y Decreto 2038 de 2023)."
             )
-            intro_p.runs[0].font.size = Pt(9.5)
-            intro_p.runs[0].font.italic = True
+            r_intro.font.name = 'Calibri'
+            r_intro.font.size = Pt(9)
+            r_intro.font.color.rgb = RGBColor(71, 85, 105)
 
-            # 1. Tabla de Control de Versiones y Co-Autores
-            doc.add_heading("1. Historial de Versiones y Co-Edición del Equipo", level=2)
+            # 1. Tabla de Historial de Versiones
+            h1_sec = doc.add_paragraph()
+            h1_sec.paragraph_format.space_before = Pt(8)
+            h1_sec.paragraph_format.space_after = Pt(4)
+            r_h1 = h1_sec.add_run("1. Historial de Versiones y Co-Edición del Equipo Técnico")
+            r_h1.font.bold = True
+            r_h1.font.size = Pt(11)
+            r_h1.font.color.rgb = RGBColor(30, 58, 138)
+
             versiones = doc_item.get("bitacora_versiones", [])
             if versiones:
                 t_ver = doc.add_table(rows=1, cols=5)
                 t_ver.style = 'Table Grid'
+                t_ver.alignment = WD_TABLE_ALIGNMENT.CENTER
                 hdrs = ["Versión", "Fecha", "Responsable / Co-Autor", "Cargo / Dependencia", "Actuación y Resumen del Aporte"]
                 for idx_c, h_txt in enumerate(hdrs):
                     c = t_ver.cell(0, idx_c)
-                    c.text = h_txt
-                    for r in c.paragraphs[0].runs:
-                        r.font.bold = True
-                        r.font.size = Pt(8.5)
-                for v in versiones:
+                    set_docx_cell_bg(c, '1E3A8A')
+                    p = c.paragraphs[0]
+                    p.paragraph_format.space_before = Pt(3)
+                    p.paragraph_format.space_after = Pt(3)
+                    r = p.add_run(h_txt)
+                    r.font.bold = True
+                    r.font.size = Pt(8)
+                    r.font.color.rgb = RGBColor(255, 255, 255)
+                for v_idx, v in enumerate(versiones):
                     row_cells = t_ver.add_row().cells
-                    row_cells[0].text = str(v.get("version", "v1.0"))
-                    row_cells[1].text = str(v.get("fecha", ""))[:16].replace("T", " ")
-                    row_cells[2].text = str(v.get("autor", ""))
-                    row_cells[3].text = f"{v.get('cargo_dependencia', '')} ({v.get('fase', '')})"
-                    row_cells[4].text = f"[{v.get('tipo_actuacion', '')}] {v.get('resumen_cambio', '')}"
-                    for rc in row_cells:
-                        for r in rc.paragraphs[0].runs:
-                            r.font.size = Pt(8.5)
+                    bg_hex = 'F8FAFC' if v_idx % 2 == 1 else 'FFFFFF'
+                    autor_clean = sanitize_institutional_human_authorship(v.get("autor", leader_name), frente_name, leader_name)
+                    act_clean = sanitize_institutional_human_authorship(v.get("tipo_actuacion", "Documento Base"), frente_name, leader_name)
+                    res_clean = sanitize_institutional_human_authorship(v.get("resumen_cambio", ""), frente_name, leader_name)
+                    
+                    row_data = [
+                        str(v.get("version", "v1.0")),
+                        str(v.get("fecha", ""))[:16].replace("T", " "),
+                        autor_clean,
+                        f"{v.get('cargo_dependencia', frente_name)}",
+                        f"[{act_clean}] {res_clean}"
+                    ]
+                    for c_idx, val in enumerate(row_data):
+                        c = row_cells[c_idx]
+                        set_docx_cell_bg(c, bg_hex)
+                        p = c.paragraphs[0]
+                        p.paragraph_format.space_before = Pt(2)
+                        p.paragraph_format.space_after = Pt(2)
+                        r = p.add_run(val)
+                        r.font.size = Pt(8)
+                        r.font.color.rgb = RGBColor(30, 41, 59)
+                sp_v = doc.add_paragraph()
+                sp_v.paragraph_format.space_after = Pt(6)
 
-            # 2. Tabla de Mesas de Trabajo, Revisiones y Avales del Equipo
-            doc.add_heading("2. Registro de Mesas de Trabajo, Revisiones y Avales Colegiados", level=2)
+            # 2. Mesas de Trabajo, Revisiones y Avales Colegiados
+            h2_sec = doc.add_paragraph()
+            h2_sec.paragraph_format.space_before = Pt(8)
+            h2_sec.paragraph_format.space_after = Pt(4)
+            r_h2 = h2_sec.add_run("2. Registro de Mesas de Trabajo, Revisiones y Avales Colegiados")
+            r_h2.font.bold = True
+            r_h2.font.size = Pt(11)
+            r_h2.font.color.rgb = RGBColor(30, 58, 138)
+
             aportes = doc_item.get("aportes_equipo", [])
             if aportes:
                 t_ap = doc.add_table(rows=1, cols=5)
                 t_ap.style = 'Table Grid'
-                hdrs_ap = ["Fecha", "Participante / Instancia", "Dependencia / Estamento", "Tipo de Intervención", "Detalle del Aporte / Acuerdo / Aval"]
+                t_ap.alignment = WD_TABLE_ALIGNMENT.CENTER
+                hdrs_ap = ["Fecha", "Participante / Instancia", "Dependencia / Estamento", "Tipo de Sesión", "Acuerdos y Decisiones"]
                 for idx_c, h_txt in enumerate(hdrs_ap):
                     c = t_ap.cell(0, idx_c)
-                    c.text = h_txt
-                    for r in c.paragraphs[0].runs:
-                        r.font.bold = True
-                        r.font.size = Pt(8.5)
-                for ap in aportes:
+                    set_docx_cell_bg(c, '1E3A8A')
+                    p = c.paragraphs[0]
+                    p.paragraph_format.space_before = Pt(3)
+                    p.paragraph_format.space_after = Pt(3)
+                    r = p.add_run(h_txt)
+                    r.font.bold = True
+                    r.font.size = Pt(8)
+                    r.font.color.rgb = RGBColor(255, 255, 255)
+                for a_idx, ap in enumerate(aportes):
                     row_cells = t_ap.add_row().cells
-                    row_cells[0].text = str(ap.get("fecha", ""))[:16].replace("T", " ")
-                    row_cells[1].text = str(ap.get("autor", ""))
-                    row_cells[2].text = str(ap.get("cargo_dependencia", ""))
-                    row_cells[3].text = f"{ap.get('tipo', '')} ({ap.get('seccion_referencia', 'General')})"
-                    row_cells[4].text = str(ap.get("comentario", ""))
-                    for rc in row_cells:
-                        for r in rc.paragraphs[0].runs:
-                            r.font.size = Pt(8.5)
+                    bg_hex = 'F8FAFC' if a_idx % 2 == 1 else 'FFFFFF'
+                    ap_autor = sanitize_institutional_human_authorship(ap.get("autor", ""), frente_name, leader_name)
+                    ap_com = sanitize_institutional_human_authorship(ap.get("comentario", ""), frente_name, leader_name)
+                    row_data = [
+                        str(ap.get("fecha", ""))[:16].replace("T", " "),
+                        ap_autor,
+                        str(ap.get("cargo_dependencia", "")),
+                        f"{ap.get('tipo', 'Mesa')} ({ap.get('seccion_referencia', 'General')})",
+                        ap_com
+                    ]
+                    for c_idx, val in enumerate(row_data):
+                        c = row_cells[c_idx]
+                        set_docx_cell_bg(c, bg_hex)
+                        p = c.paragraphs[0]
+                        p.paragraph_format.space_before = Pt(2)
+                        p.paragraph_format.space_after = Pt(2)
+                        r = p.add_run(val)
+                        r.font.size = Pt(8)
+                        r.font.color.rgb = RGBColor(30, 41, 59)
+                sp_a = doc.add_paragraph()
+                sp_a.paragraph_format.space_after = Pt(6)
             else:
-                doc.add_paragraph("Sin observaciones adicionales pendientes de cierre.")
+                p_no_ap = doc.add_paragraph("Documento técnico base formulado sin observaciones pendientes. Listo para sesión de validación y aval.")
+                p_no_ap.runs[0].font.size = Pt(8.5)
+                p_no_ap.runs[0].font.italic = True
+                p_no_ap.runs[0].font.color.rgb = RGBColor(100, 116, 139)
 
-            # 3. Resumen de Verificación Normativa IA
+            # 3. Evaluación Técnica de Cumplimiento de Criterios MEN
             auditorias = doc_item.get("auditorias_ia", [])
             if auditorias:
                 ult = auditorias[0]
-                doc.add_heading("3. Dictamen Interno de Cumplimiento Normativo (Ley 749 / Dec. 2038)", level=2)
+                h3_sec = doc.add_paragraph()
+                h3_sec.paragraph_format.space_before = Pt(8)
+                h3_sec.paragraph_format.space_after = Pt(4)
+                r_h3 = h3_sec.add_run("3. Evaluación Técnica de Cumplimiento de Criterios MEN (Ley 749 / Dec. 2038)")
+                r_h3.font.bold = True
+                r_h3.font.size = Pt(11)
+                r_h3.font.color.rgb = RGBColor(30, 58, 138)
+
                 p_aud = doc.add_paragraph()
+                p_aud.paragraph_format.space_after = Pt(4)
                 r_aud = p_aud.add_run(
-                    f"Índice de Alineación Normativa Verificado: {ult.get('puntaje_cumplimiento', 0)}% ({ult.get('nivel_concepto', '')}) "
-                    f"| Requisito contrastado: {ult.get('requisito_titulo', '')} | Versión evaluada: {ult.get('version_evaluada', '')}"
+                    f"Índice de Alineación Normativa: {ult.get('puntaje_cumplimiento', 0)}% ({ult.get('nivel_concepto', 'Favorable')}) "
+                    f"| Requisito evaluado: {ult.get('requisito_titulo', '')} | Versión: {ult.get('version_evaluada', '')}"
                 )
                 r_aud.font.bold = True
-                r_aud.font.size = Pt(9.5)
+                r_aud.font.size = Pt(9)
+                r_aud.font.color.rgb = RGBColor(30, 41, 59)
+
                 for f_item in ult.get("fortalezas", []):
-                    doc.add_paragraph(f"Fortaleza verificada: {f_item}", style='List Bullet')
-                
+                    clean_f = sanitize_institutional_human_authorship(f_item, frente_name, leader_name)
+                    p_f = doc.add_paragraph(style='List Bullet')
+                    p_f.paragraph_format.space_after = Pt(2)
+                    rf = p_f.add_run(f"Criterio verificado: {clean_f}")
+                    rf.font.size = Pt(8.5)
+                    rf.font.color.rgb = RGBColor(71, 85, 105)
+
         io_stream = io.BytesIO()
         doc.save(io_stream)
         io_stream.seek(0)
-        safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '_', '-')).rstrip()
+        safe_title = "".join(c for c in clean_title if c.isalnum() or c in (' ', '_', '-')).rstrip()
         filename = f"{safe_title[:40].replace(' ', '_')}_{datetime.datetime.now().strftime('%Y%m%d')}.docx"
         return send_file(io_stream, as_attachment=True, download_name=filename, mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
     except Exception as e:
         print(f"[CC] Word Download Error: {e}")
         return str(e), 500
+
 
 @cambio_caracter_bp.route('/api/cambio_caracter/download_pdf', methods=['POST'])
 def api_cc_download_pdf():
@@ -3628,144 +3986,272 @@ def api_cc_download_pdf():
         project = get_cc_project(inst_id)
         doc_item = next((h for h in project.get("ai_history", []) if h.get("id") == doc_id), None)
 
+        frente_name = doc_item.get("frente", "General") if doc_item else "General"
+        leader_name = doc_item.get("autor", "") if doc_item else ""
+        clean_title = sanitize_institutional_human_authorship(title, frente_name, leader_name)
+        clean_text = sanitize_institutional_human_authorship(text, frente_name, leader_name)
+
         from fpdf import FPDF
-        
+        from fpdf.fonts import FontFace
+
         class CC_PDF(FPDF):
             def header(self):
-                self.set_font("helvetica", "B", 10)
-                self.set_text_color(99, 102, 241)
-                self.cell(0, 8, "INTENALCO - CAMBIO DE CARACTER A INSTITUCION UNIVERSITARIA", border=0, align="C")
+                self.set_y(8)
+                self.set_font("helvetica", "B", 9.5)
+                self.set_text_color(30, 58, 138)  # Navy #1E3A8A
+                self.cell(0, 5, "INTENALCO EDUCACION SUPERIOR - CAMBIO DE CARACTER A INSTITUCION UNIVERSITARIA", border=0, align="C")
                 self.ln(5)
-                self.set_font("helvetica", "I", 8)
-                self.set_text_color(148, 163, 184)
-                self.cell(0, 5, "Sistema de Aseguramiento de la Calidad (SIAC 360) - Expediente Co-Construido", border=0, align="C")
-                self.ln(8)
-                self.set_draw_color(226, 232, 240)
-                self.line(10, self.get_y(), 200, self.get_y())
-                self.ln(6)
-                
+                self.set_font("helvetica", "I", 7.5)
+                self.set_text_color(100, 116, 139)
+                self.cell(0, 4, "Sistema de Aseguramiento de la Calidad (SIAC 360) - Expediente Tecnico Colegiado", border=0, align="C")
+                self.ln(5)
+                self.set_draw_color(203, 213, 225)
+                self.line(15, self.get_y(), 195, self.get_y())
+                self.ln(5)
+
             def footer(self):
-                self.set_y(-15)
-                self.set_font("helvetica", "I", 8)
+                self.set_y(-12)
+                self.set_draw_color(226, 232, 240)
+                self.line(15, self.get_y(), 195, self.get_y())
+                self.set_font("helvetica", "I", 7.5)
                 self.set_text_color(148, 163, 184)
-                self.cell(0, 10, f"Pagina {self.page_no()}", border=0, align="C")
+                self.cell(0, 8, f"Pagina {self.page_no()} - Documento Tecnico Institucional INTENALCO", border=0, align="C")
 
         pdf = CC_PDF()
+        pdf.set_margins(15, 20, 15)
         pdf.set_auto_page_break(auto=True, margin=15)
         pdf.add_page()
-        
-        # Document Title
-        pdf.set_font("helvetica", "B", 14)
-        pdf.set_text_color(30, 41, 59)
-        safe_title = title.encode('latin-1', 'replace').decode('latin-1')
-        pdf.set_x(pdf.l_margin)
-        pdf.multi_cell(pdf.epw, 8, txt=safe_title, align="C")
-        pdf.ln(3)
 
+        # Título del Documento
+        pdf.set_font("helvetica", "B", 13.5)
+        pdf.set_text_color(30, 58, 138)
+        pdf.set_x(15)
+        pdf.multi_cell(180, 6.5, txt=clean_latin_pdf(clean_title), align="C")
+        pdf.ln(1.5)
+
+        # Subtítulo
+        pdf.set_font("helvetica", "I", 8)
+        pdf.set_text_color(100, 116, 139)
+        pdf.set_x(15)
+        pdf.cell(180, 4.5, txt=clean_latin_pdf("Documento Tecnico Base para Co-Creacion y Tramite ante Consejo Directivo"), align="C")
+        pdf.ln(6)
+
+        # Ficha de Metadatos Documentales en Tabla Estilizada
         if doc_item:
-            pdf.set_font("helvetica", "B", 8.5)
-            pdf.set_text_color(79, 70, 229)
-            meta_line = (
-                f"Codigo: {doc_item.get('codigo_doc', 'DOC')} | Version: {doc_item.get('version_actual', 'v1.0')} | "
-                f"Estado: {doc_item.get('estado_editorial', 'En Construccion')} | Frente: {doc_item.get('frente', '')} | "
-                f"Producto: {doc_item.get('producto', '')}"
-            ).encode('latin-1', 'replace').decode('latin-1')
-            pdf.multi_cell(pdf.epw, 5, txt=meta_line, align="C")
-            pdf.ln(4)
-        
-        pdf.set_font("helvetica", size=9)
-        pdf.set_text_color(51, 65, 85)
-        
-        for raw_line in text.split('\n'):
-            line = raw_line.strip()
-            if not line:
-                pdf.ln(4)
-                continue
-                
-            pdf.set_x(pdf.l_margin)
-            if line.startswith('# '):
-                pdf.set_font("helvetica", "B", 12)
-                pdf.set_text_color(67, 56, 202)
-                safe_l = line[2:].replace('**', '').encode('latin-1', 'replace').decode('latin-1')
-                pdf.ln(4)
-                pdf.multi_cell(pdf.epw, 7, txt=safe_l)
-                pdf.set_font("helvetica", size=9)
-                pdf.set_text_color(51, 65, 85)
-            elif line.startswith('## '):
-                pdf.set_font("helvetica", "B", 10.5)
-                pdf.set_text_color(79, 70, 229)
-                safe_l = line[3:].replace('**', '').encode('latin-1', 'replace').decode('latin-1')
+            with pdf.table(col_widths=(45, 45, 45, 45), borders_layout="ALL", line_height=5) as t_meta:
+                r0 = t_meta.row()
+                r0.cell(clean_latin_pdf(f"Codigo: {doc_item.get('codigo_doc', 'DOC-CC')}"), style=FontFace(family='helvetica', emphasis='BOLD', color=(30, 41, 59), fill_color=(241, 245, 249)))
+                r0.cell(clean_latin_pdf(f"Version: {doc_item.get('version_actual', 'v1.0')}"), style=FontFace(family='helvetica', emphasis='BOLD', color=(30, 41, 59), fill_color=(241, 245, 249)))
+                r0.cell(clean_latin_pdf(f"Estado: {doc_item.get('estado_editorial', 'En Construccion')}"), style=FontFace(family='helvetica', emphasis='BOLD', color=(30, 41, 59), fill_color=(241, 245, 249)))
+                r0.cell(clean_latin_pdf(f"Producto: {doc_item.get('producto', 'P5')}"), style=FontFace(family='helvetica', emphasis='BOLD', color=(30, 41, 59), fill_color=(241, 245, 249)))
+
+                r1 = t_meta.row()
+                r1.cell(clean_latin_pdf(f"Categoria: {doc_item.get('categoria', 'Politicas y Modelos')}"), style=FontFace(family='helvetica', color=(51, 65, 85), fill_color=(248, 250, 252)))
+                r1.cell(clean_latin_pdf(f"Frente: {doc_item.get('frente', 'General')}"), style=FontFace(family='helvetica', color=(51, 65, 85), fill_color=(248, 250, 252)))
+                r1.cell(clean_latin_pdf(f"Requisito: {(doc_item.get('requisito_id') or 'REQ-01').upper()}"), style=FontFace(family='helvetica', color=(51, 65, 85), fill_color=(248, 250, 252)))
+                r1.cell(clean_latin_pdf(f"Fase: {doc_item.get('fase', 'Fase III')}"), style=FontFace(family='helvetica', color=(51, 65, 85), fill_color=(248, 250, 252)))
+            pdf.ln(5)
+
+        # Parsear bloques Markdown y renderizar
+        blocks = parse_markdown_blocks(clean_text)
+        for blk in blocks:
+            b_type = blk.get('type')
+            if b_type == 'h1':
                 pdf.ln(3)
-                pdf.multi_cell(pdf.epw, 6, txt=safe_l)
-                pdf.set_font("helvetica", size=9)
-                pdf.set_text_color(51, 65, 85)
-            elif line.startswith('### '):
+                pdf.set_font("helvetica", "B", 12)
+                pdf.set_text_color(30, 58, 138)
+                pdf.set_x(15)
+                pdf.multi_cell(180, 6, txt=clean_latin_pdf(blk.get('text', '').replace('**', '')))
+                pdf.ln(1)
+            elif b_type == 'h2':
+                pdf.ln(2.5)
+                pdf.set_font("helvetica", "B", 10.5)
+                pdf.set_text_color(49, 46, 129)
+                pdf.set_x(15)
+                pdf.multi_cell(180, 5.5, txt=clean_latin_pdf(blk.get('text', '').replace('**', '')))
+                pdf.ln(1)
+            elif b_type == 'h3':
+                pdf.ln(2)
                 pdf.set_font("helvetica", "B", 9.5)
                 pdf.set_text_color(30, 41, 59)
-                safe_l = line[4:].replace('**', '').encode('latin-1', 'replace').decode('latin-1')
-                pdf.ln(2)
-                pdf.multi_cell(pdf.epw, 5, txt=safe_l)
-                pdf.set_font("helvetica", size=9)
+                pdf.set_x(15)
+                pdf.multi_cell(180, 5, txt=clean_latin_pdf(blk.get('text', '').replace('**', '')))
+                pdf.ln(1)
+            elif b_type == 'h4':
+                pdf.ln(1.5)
+                pdf.set_font("helvetica", "B", 8.5)
+                pdf.set_text_color(71, 85, 105)
+                pdf.set_x(15)
+                pdf.multi_cell(180, 4.5, txt=clean_latin_pdf(blk.get('text', '').replace('**', '')))
+            elif b_type == 'bullet':
+                pdf.set_font("helvetica", size=8.5)
                 pdf.set_text_color(51, 65, 85)
+                pdf.set_x(18)
+                pdf.multi_cell(174, 4.2, txt=clean_latin_pdf("* " + blk.get('text', '').replace('**', '')))
+                pdf.ln(0.8)
+            elif b_type == 'numbered':
+                pdf.set_font("helvetica", size=8.5)
+                pdf.set_text_color(51, 65, 85)
+                pdf.set_x(18)
+                pdf.multi_cell(174, 4.2, txt=clean_latin_pdf(f"{blk.get('num', '')}. {blk.get('text', '').replace('**', '')}"))
+                pdf.ln(0.8)
+            elif b_type == 'quote':
+                pdf.set_font("helvetica", "I", 8)
+                pdf.set_text_color(71, 85, 105)
+                pdf.set_x(22)
+                pdf.multi_cell(166, 4.2, txt=clean_latin_pdf(blk.get('text', '').replace('**', '')))
+                pdf.ln(1)
+            elif b_type == 'hr':
+                pdf.ln(1.5)
+                pdf.set_draw_color(226, 232, 240)
+                pdf.line(15, pdf.get_y(), 195, pdf.get_y())
+                pdf.ln(1.5)
+            elif b_type == 'table':
+                headers = blk.get('headers', [])
+                rows = blk.get('rows', [])
+                if headers:
+                    n_cols = len(headers)
+                    w_each = 180.0 / n_cols
+                    col_widths = [w_each] * n_cols
+                    f_size = 7.5 if n_cols > 5 else 8
+                    pdf.ln(2)
+                    pdf.set_font("helvetica", size=f_size)
+                    with pdf.table(col_widths=col_widths, borders_layout="ALL", line_height=4.8) as t_data:
+                        r_hdr = t_data.row()
+                        for h in headers:
+                            r_hdr.cell(clean_latin_pdf(h.replace('**', '')), style=FontFace(family='helvetica', emphasis='BOLD', color=(255, 255, 255), fill_color=(30, 58, 138)))
+                        for r_idx, r_data in enumerate(rows):
+                            row_item = t_data.row()
+                            fill_c = (248, 250, 252) if r_idx % 2 == 1 else (255, 255, 255)
+                            for c_idx in range(n_cols):
+                                cell_val = r_data[c_idx] if c_idx < len(r_data) else ""
+                                row_item.cell(clean_latin_pdf(cell_val.replace('**', '')), style=FontFace(family='helvetica', color=(30, 41, 59), fill_color=fill_c))
+                    pdf.ln(2.5)
             else:
-                safe_l = line.replace('**', '').encode('latin-1', 'replace').decode('latin-1')
-                pdf.multi_cell(pdf.epw, 5, txt=safe_l)
+                pdf.set_font("helvetica", size=8.5)
+                pdf.set_text_color(51, 65, 85)
+                pdf.set_x(15)
+                pdf.multi_cell(180, 4.5, txt=clean_latin_pdf(blk.get('text', '').replace('**', '')))
+                pdf.ln(1.2)
 
+        # ANEXO DE TRAZABILIDAD Y CO-CONSTRUCCIÓN INSTITUCIONAL
         if include_trace and doc_item:
             pdf.add_page()
-            pdf.set_font("helvetica", "B", 12)
-            pdf.set_text_color(49, 46, 129)
-            pdf.multi_cell(pdf.epw, 7, txt="ANEXO DE TRAZABILIDAD Y CONSTRUCCION EN EQUIPO (EVIDENCIA PARES MEN)")
-            pdf.ln(3)
+            pdf.set_x(15)
 
-            pdf.set_font("helvetica", "B", 10)
-            pdf.set_text_color(30, 41, 59)
-            pdf.multi_cell(pdf.epw, 6, txt="1. Historial de Versiones y Co-Edicion Institucional:")
-            pdf.set_font("helvetica", size=8.5)
-            pdf.set_text_color(51, 65, 85)
-            for v in doc_item.get("bitacora_versiones", []):
-                v_txt = (
-                    f"- {v.get('version', 'v1.0')} ({str(v.get('fecha', ''))[:16].replace('T', ' ')}): "
-                    f"{v.get('autor', '')} [{v.get('cargo_dependencia', '')}] - {v.get('tipo_actuacion', '')}: {v.get('resumen_cambio', '')}"
-                ).encode('latin-1', 'replace').decode('latin-1')
-                pdf.multi_cell(pdf.epw, 5, txt=v_txt)
+            pdf.set_font("helvetica", "B", 12.5)
+            pdf.set_text_color(30, 58, 138)
+            pdf.multi_cell(180, 6, txt="ANEXO DE TRAZABILIDAD Y CO-CONSTRUCCION INSTITUCIONAL")
+            pdf.ln(1)
+
+            pdf.set_font("helvetica", "I", 8.5)
+            pdf.set_text_color(71, 85, 105)
+            pdf.set_x(15)
+            pdf.multi_cell(180, 4.5, txt="Evidencia Documental de Autoria y Trabajo Colegiado para Pares Academicos del MEN")
+            pdf.ln(2)
+
+            pdf.set_font("helvetica", size=8)
+            pdf.set_text_color(71, 85, 105)
+            pdf.set_x(15)
+            intro_pdf = (
+                "El presente anexo certifica la formulacion colegiada, el liderazgo tecnico institucional, el control "
+                "de versiones por dependencia y las sesiones de co-creacion adelantadas por el equipo de INTENALCO "
+                "EDUCACION SUPERIOR en el marco de la redefinicion a Institucion Universitaria (Ley 749 de 2002 y Decreto 2038 de 2023)."
+            )
+            pdf.multi_cell(180, 4.2, txt=clean_latin_pdf(intro_pdf))
             pdf.ln(4)
 
+            # 1. Historial de Versiones
             pdf.set_font("helvetica", "B", 10)
-            pdf.set_text_color(30, 41, 59)
-            pdf.multi_cell(pdf.epw, 6, txt="2. Mesas de Trabajo, Aportes y Avales del Equipo:")
-            pdf.set_font("helvetica", size=8.5)
-            pdf.set_text_color(51, 65, 85)
+            pdf.set_text_color(30, 58, 138)
+            pdf.set_x(15)
+            pdf.multi_cell(180, 5, txt="1. Historial de Versiones y Co-Edicion del Equipo Tecnico")
+            pdf.ln(1.5)
+
+            versiones = doc_item.get("bitacora_versiones", [])
+            if versiones:
+                pdf.set_font("helvetica", size=7.5)
+                with pdf.table(col_widths=(18, 24, 40, 38, 60), borders_layout="ALL", line_height=4.5) as t_ver:
+                    r_hdr = t_ver.row()
+                    for h_t in ["Version", "Fecha", "Responsable", "Dependencia", "Actuacion y Resumen"]:
+                        r_hdr.cell(clean_latin_pdf(h_t), style=FontFace(family='helvetica', emphasis='BOLD', color=(255, 255, 255), fill_color=(30, 58, 138)))
+                    for v_idx, v in enumerate(versiones):
+                        r_item = t_ver.row()
+                        fill_c = (248, 250, 252) if v_idx % 2 == 1 else (255, 255, 255)
+                        autor_c = sanitize_institutional_human_authorship(v.get("autor", leader_name), frente_name, leader_name)
+                        act_c = sanitize_institutional_human_authorship(v.get("tipo_actuacion", "Documento Base"), frente_name, leader_name)
+                        res_c = sanitize_institutional_human_authorship(v.get("resumen_cambio", ""), frente_name, leader_name)
+                        r_item.cell(clean_latin_pdf(str(v.get("version", "v1.0"))), style=FontFace(family='helvetica', color=(30, 41, 59), fill_color=fill_c))
+                        r_item.cell(clean_latin_pdf(str(v.get("fecha", ""))[:16].replace("T", " ")), style=FontFace(family='helvetica', color=(30, 41, 59), fill_color=fill_c))
+                        r_item.cell(clean_latin_pdf(autor_c), style=FontFace(family='helvetica', color=(30, 41, 59), fill_color=fill_c))
+                        r_item.cell(clean_latin_pdf(f"{v.get('cargo_dependencia', frente_name)}"), style=FontFace(family='helvetica', color=(30, 41, 59), fill_color=fill_c))
+                        r_item.cell(clean_latin_pdf(f"[{act_c}] {res_c}"), style=FontFace(family='helvetica', color=(30, 41, 59), fill_color=fill_c))
+                pdf.ln(4)
+
+            # 2. Mesas de Trabajo, Revisiones y Avales Colegiados
+            pdf.set_font("helvetica", "B", 10)
+            pdf.set_text_color(30, 58, 138)
+            pdf.set_x(15)
+            pdf.multi_cell(180, 5, txt="2. Registro de Mesas de Trabajo, Revisiones y Avales Colegiados")
+            pdf.ln(1.5)
+
             aportes = doc_item.get("aportes_equipo", [])
             if aportes:
-                for ap in aportes:
-                    ap_txt = (
-                        f"- [{ap.get('tipo', '')}] {ap.get('autor', '')} ({ap.get('cargo_dependencia', '')} - {str(ap.get('fecha', ''))[:10]}): "
-                        f"{ap.get('comentario', '')}"
-                    ).encode('latin-1', 'replace').decode('latin-1')
-                    pdf.multi_cell(pdf.epw, 5, txt=ap_txt)
+                pdf.set_font("helvetica", size=7.5)
+                with pdf.table(col_widths=(22, 40, 38, 30, 50), borders_layout="ALL", line_height=4.5) as t_ap:
+                    r_hdr = t_ap.row()
+                    for h_t in ["Fecha", "Participante", "Dependencia", "Tipo Sesion", "Acuerdos y Decisiones"]:
+                        r_hdr.cell(clean_latin_pdf(h_t), style=FontFace(family='helvetica', emphasis='BOLD', color=(255, 255, 255), fill_color=(30, 58, 138)))
+                    for a_idx, ap in enumerate(aportes):
+                        r_item = t_ap.row()
+                        fill_c = (248, 250, 252) if a_idx % 2 == 1 else (255, 255, 255)
+                        ap_autor = sanitize_institutional_human_authorship(ap.get("autor", ""), frente_name, leader_name)
+                        ap_com = sanitize_institutional_human_authorship(ap.get("comentario", ""), frente_name, leader_name)
+                        r_item.cell(clean_latin_pdf(str(ap.get("fecha", ""))[:16].replace("T", " ")), style=FontFace(family='helvetica', color=(30, 41, 59), fill_color=fill_c))
+                        r_item.cell(clean_latin_pdf(ap_autor), style=FontFace(family='helvetica', color=(30, 41, 59), fill_color=fill_c))
+                        r_item.cell(clean_latin_pdf(str(ap.get("cargo_dependencia", ""))), style=FontFace(family='helvetica', color=(30, 41, 59), fill_color=fill_c))
+                        r_item.cell(clean_latin_pdf(f"{ap.get('tipo', 'Mesa')} ({ap.get('seccion_referencia', 'General')})"), style=FontFace(family='helvetica', color=(30, 41, 59), fill_color=fill_c))
+                        r_item.cell(clean_latin_pdf(ap_com), style=FontFace(family='helvetica', color=(30, 41, 59), fill_color=fill_c))
+                pdf.ln(4)
             else:
-                pdf.multi_cell(pdf.epw, 5, txt="- Sin observaciones pendientes.")
-            pdf.ln(4)
+                pdf.set_font("helvetica", "I", 8)
+                pdf.set_text_color(100, 116, 139)
+                pdf.set_x(15)
+                pdf.multi_cell(180, 4.5, txt=clean_latin_pdf("Documento tecnico base formulado sin observaciones pendientes. Listo para sesion de validacion y aval."))
+                pdf.ln(3)
 
+            # 3. Evaluación Técnica de Cumplimiento de Criterios MEN
             auditorias = doc_item.get("auditorias_ia", [])
             if auditorias:
                 ult = auditorias[0]
                 pdf.set_font("helvetica", "B", 10)
+                pdf.set_text_color(30, 58, 138)
+                pdf.set_x(15)
+                pdf.multi_cell(180, 5, txt="3. Evaluacion Tecnica de Cumplimiento de Criterios MEN (Ley 749 / Dec. 2038)")
+                pdf.ln(1)
+
+                pdf.set_font("helvetica", "B", 8.5)
                 pdf.set_text_color(30, 41, 59)
-                aud_hdr = f"3. Verificacion Normativa IA: {ult.get('puntaje_cumplimiento', 0)}% ({ult.get('nivel_concepto', '')})".encode('latin-1', 'replace').decode('latin-1')
-                pdf.multi_cell(pdf.epw, 6, txt=aud_hdr)
-                pdf.set_font("helvetica", size=8.5)
+                pdf.set_x(15)
+                aud_hdr = f"Indice de Alineacion Normativa: {ult.get('puntaje_cumplimiento', 0)}% ({ult.get('nivel_concepto', 'Favorable')}) | Evaluacion: {ult.get('requisito_titulo', '')}"
+                pdf.multi_cell(180, 4.5, txt=clean_latin_pdf(aud_hdr))
+                pdf.ln(1)
+
+                pdf.set_font("helvetica", size=8)
+                pdf.set_text_color(71, 85, 105)
                 for f_it in ult.get("fortalezas", []):
-                    ft = f"  * {f_it}".encode('latin-1', 'replace').decode('latin-1')
-                    pdf.multi_cell(pdf.epw, 5, txt=ft)
+                    clean_f = sanitize_institutional_human_authorship(f_it, frente_name, leader_name)
+                    pdf.set_x(18)
+                    pdf.multi_cell(174, 4, txt=clean_latin_pdf(f"* Criterio verificado: {clean_f}"))
+                    pdf.ln(0.5)
 
         pdf_bytes = pdf.output()
         if isinstance(pdf_bytes, str):
             pdf_bytes = pdf_bytes.encode('latin-1')
-            
+
         io_stream = io.BytesIO(pdf_bytes)
-        filename = f"Documento_CC_{datetime.datetime.now().strftime('%Y%m%d')}.pdf"
+        safe_name = "".join(c for c in clean_title if c.isalnum() or c in (' ', '_', '-')).rstrip()
+        filename = f"{safe_name[:40].replace(' ', '_')}_{datetime.datetime.now().strftime('%Y%m%d')}.pdf"
         return send_file(io_stream, as_attachment=True, download_name=filename, mimetype="application/pdf")
     except Exception as e:
         print(f"[CC] PDF Download Error: {e}")
