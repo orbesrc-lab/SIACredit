@@ -890,8 +890,8 @@
                         <p>Preparación institucional integral para la transformación a <strong>Institución Universitaria</strong> bajo el principio <em>"conocer antes de transformar"</em>. Ruta técnica, académica, normativa y financiera (Ley 749 de 2002, Ley 30 de 1992, Decretos 2216/2003, 1330/2019, 2038/2023 y 0529/2024).</p>
                     </div>
                     <div class="cc-hero-actions">
-                        <button class="btn-cc-hero" style="background:linear-gradient(135deg, #0ea5e9, #0284c7); color:#fff; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);" onclick="openStepByStepGuideModal()">
-                            <i class="fa-solid fa-book-open-reader"></i> Guía Paso a Paso (Manual)
+                        <button class="btn-cc-hero" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; font-weight:800; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.45); border:1px solid #fde68a;" onclick="openStepByStepGuideModal('hilo')">
+                            <i class="fa-solid fa-graduation-cap"></i> 💡 Tutorial Explicativo del Equipo (Fases 3 a 7)
                         </button>
                         <button class="btn-cc-hero btn-cc-primary" onclick="switchCcTab('ai_hub'); openImportCollabDocModal()">
                             <i class="fa-solid fa-file-circle-plus"></i> Subir / Crear Documento en Equipo
@@ -1075,8 +1075,11 @@
                             <h3 style="margin:0; font-size:1.15rem; color:#1e293b; font-weight:700;"><i class="fa-solid fa-list-check" style="color:var(--cc-primary);"></i> Requisitos Normativos y Metodología de las 6 Preguntas</h3>
                             <p style="margin:4px 0 0 0; color:#64748b; font-size:0.85rem;">Evaluación de los 56 aspectos exigidos por la Ley 749 de 2002 y el Decreto 2038 de 2023 con verificación de evidencia real.</p>
                         </div>
-                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                            <input type="text" id="filter-req-search" placeholder="Buscar requisito..." oninput="renderRequisitos()" style="padding:8px 14px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.85rem; width:220px;">
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                            <button onclick="openStepByStepGuideModal('p3')" style="background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe; padding:8px 14px; border-radius:8px; font-size:0.82rem; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-circle-question"></i> ¿Cómo evaluar las 6 Preguntas? (Ver Tutorial)
+                            </button>
+                            <input type="text" id="filter-req-search" placeholder="Buscar requisito..." oninput="renderRequisitos()" style="padding:8px 14px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.85rem; width:200px;">
                             <select id="filter-req-status" onchange="renderRequisitos()" style="padding:8px 12px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.85rem;">
                                 <option value="all">Todos los estados</option>
                                 <option value="Pendiente">Pendiente</option>
@@ -1099,6 +1102,9 @@
                             <p style="margin:4px 0 0 0; color:#64748b; font-size:0.85rem;">Tratamientos propuestos según situación: Conservar, Fortalecer, Actualizar, Transformar, Armonizar, Crear, Derogar.</p>
                         </div>
                         <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                            <button onclick="openStepByStepGuideModal('p4')" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:8px 14px; border-radius:8px; font-size:0.82rem; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-circle-question"></i> ¿Cuál Tratamiento Elegir? (Ver Ejemplos)
+                            </button>
                             <button class="btn-cc-hero btn-cc-save" onclick="saveToServer(true)" title="Guardar cambios de la Matriz de Brechas">
                                 <i class="fa-solid fa-floppy-disk"></i> Guardar Matriz
                             </button>
@@ -1136,9 +1142,14 @@
                             <h3 style="margin:0; font-size:1.15rem; color:#1e293b; font-weight:700;"><i class="fa-solid fa-boxes-packing" style="color:var(--cc-primary);"></i> Catálogo de Productos Entregables Clave (P1 a P10 - Tabla 7) y sus Sub-Documentos</h3>
                             <p style="margin:4px 0 0 0; color:#64748b; font-size:0.85rem;">Cada producto puede agrupar múltiples políticas, modelos o reglamentos co-construidos por el equipo con trazabilidad para Pares Académicos.</p>
                         </div>
-                        <button class="btn-cc-hero btn-cc-primary" onclick="openImportCollabDocModal()">
-                            <i class="fa-solid fa-file-circle-plus"></i> Subir / Crear Documento (Modelo, Política o Reglamento)
-                        </button>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                            <button onclick="openStepByStepGuideModal('p5')" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; padding:8px 14px; border-radius:8px; font-size:0.82rem; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-circle-question"></i> ¿Cómo repartir en P1–P10? (Ver Tutorial)
+                            </button>
+                            <button class="btn-cc-hero btn-cc-primary" onclick="openImportCollabDocModal()">
+                                <i class="fa-solid fa-file-circle-plus"></i> Subir / Crear Documento (Modelo, Política o Reglamento)
+                            </button>
+                        </div>
                     </div>
                     <div id="productos-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(380px, 1fr)); gap:20px;"></div>
                 </div>
@@ -1183,6 +1194,9 @@
                         <p style="font-size:0.75rem; color:#64748b; margin:0 0 12px 0; line-height:1.4;">Repositorio de Políticas, Modelos (ej. Modelo Pedagógico), Reglamentos y Diagnósticos con trazabilidad para Pares MEN.</p>
 
                         <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+                            <button onclick="openStepByStepGuideModal('p7')" style="width:100%; justify-content:center; font-size:0.8rem; padding:8px 12px; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; border-radius:8px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-graduation-cap"></i> 💡 Tutorial: Co-Construcción y Trazabilidad
+                            </button>
                             <button onclick="openImportCollabDocModal()" class="btn-cc-hero btn-cc-primary" style="width:100%; justify-content:center; font-size:0.82rem; padding:9px 14px;">
                                 <i class="fa-solid fa-file-arrow-up"></i> Subir (.docx/.pdf) o Crear Documento
                             </button>
@@ -2316,98 +2330,449 @@
     </div>
 </div>
 
-<!-- MODAL GUÍA OPERATIVA Y MANUAL PASO A PASO -->
+<!-- MODAL GUÍA OPERATIVA Y TUTORIAL EXPLICATIVO INTERACTIVO -->
 <div class="cc-modal-backdrop" id="modal-guide-cc">
-    <div class="cc-modal-box" style="max-width: 1020px; width: 96%; max-height: 92vh; display:flex; flex-direction:column; overflow:hidden;">
-        <div class="cc-modal-header" style="background:linear-gradient(135deg, #0f172a, #1e1b4b); color:#fff;">
+    <div class="cc-modal-box" style="max-width: 1120px; width: 96%; max-height: 94vh; display:flex; flex-direction:column; overflow:hidden; border-radius:18px; box-shadow:0 25px 80px rgba(0,0,0,0.45);">
+        
+        <!-- HEADER DEL MODAL -->
+        <div class="cc-modal-header" style="background:linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color:#fff; padding:18px 26px; border-bottom:1px solid rgba(255,255,255,0.1);">
             <div>
-                <div style="font-size:0.74rem; color:#38bdf8; font-weight:800; text-transform:uppercase; letter-spacing:0.06em;">Guía Oficial de Operación y Trazabilidad · SKEL360</div>
-                <h3 style="margin:2px 0 0 0; font-size:1.18rem; color:#ffffff; font-weight:800;"><i class="fa-solid fa-book-open-reader" style="color:#38bdf8;"></i> Manual Paso a Paso: Cómo Trabajar el Cambio de Carácter con Trazabilidad para Pares MEN</h3>
+                <div style="font-size:0.75rem; color:#f59e0b; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; display:flex; align-items:center; gap:6px;">
+                    <span>🎓</span> TUTORIAL INSTITUCIONAL DE APRENDIZAJE RÁPIDO · INTENALCO EDUCACIÓN SUPERIOR
+                </div>
+                <h3 style="margin:4px 0 0 0; font-size:1.25rem; color:#ffffff; font-weight:800;">
+                    Cómo Trabajar el Cambio de Carácter con Trazabilidad (Fases 3 a 7)
+                </h3>
+                <p style="margin:2px 0 0 0; font-size:0.82rem; color:#94a3b8;">
+                    Guía práctica con ejemplos cotidianos para líderes, directivos y docentes: sin tecnicismos oscuros y directo a la acción.
+                </p>
             </div>
             <div style="display:flex; align-items:center; gap:10px;">
-                <a href="/api/cambio_caracter/download_manual" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; text-decoration:none; padding:9px 16px; border-radius:8px; font-size:0.82rem; font-weight:800; display:inline-flex; align-items:center; gap:7px; box-shadow:0 4px 12px rgba(16,185,129,0.35);">
-                    <i class="fa-solid fa-file-word"></i> Descargar Manual en Word (.docx)
+                <a href="/api/cambio_caracter/download_manual" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; text-decoration:none; padding:8px 15px; border-radius:8px; font-size:0.8rem; font-weight:800; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(16,185,129,0.35);">
+                    <i class="fa-solid fa-file-word"></i> Descargar en Word (.docx)
                 </a>
-                <button onclick="closeStepByStepGuideModal()" style="background:rgba(255,255,255,0.12); border:none; color:white; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:1rem;">&times;</button>
+                <button onclick="closeStepByStepGuideModal()" style="background:rgba(255,255,255,0.12); border:none; color:white; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center;">&times;</button>
             </div>
         </div>
-        <div class="cc-modal-body" style="overflow-y:auto; padding:24px 28px; background:#f8fafc;">
-            <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:16px 20px; margin-bottom:20px;">
-                <div style="font-weight:800; color:#1e3a8a; font-size:0.94rem; margin-bottom:6px;"><i class="fa-solid fa-database"></i> ¿Dónde reposa la información y cómo se garantiza la trazabilidad ante Pares?</div>
-                <div style="font-size:0.84rem; color:#1e40af; line-height:1.55;">
-                    Todo lo que usted y su equipo carguen o editen en <strong>skel360.online/cambio_caracter</strong> queda guardado automáticamente en <strong>Supabase</strong> en dos niveles:
-                    <ul style="margin:6px 0 0 18px; padding:0;">
-                        <li><strong>Base de Datos Institucional (<code>CC_PROJ_7</code>):</strong> Registra el progreso de las 6 Fases, 12 Quincenas, 13 Frentes, las 6 preguntas de los 56 Requisitos, bitácora de versiones, acuerdos de mesas de trabajo y dictámenes de auditoría IA.</li>
-                        <li><strong>Repositorio Cloud de Evidencias (Bucket <code>evidencias</code> en Supabase Storage):</strong> Guarda cada soporte documental y genera un archivo <code>.docx</code> físico por cada versión que el equipo co-edite, vinculándolo automáticamente al Requisito MEN.</li>
-                    </ul>
-                </div>
-            </div>
 
-            <h4 style="margin:0 0 12px 0; color:#0f172a; font-size:1rem; font-weight:800;"><i class="fa-solid fa-list-ol" style="color:#4f46e5;"></i> Ruta Cronológica de Trabajo en 7 Pasos</h4>
-
-            <div style="display:grid; grid-template-columns:1fr; gap:12px; margin-bottom:20px;">
-                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #4f46e5; border-radius:10px; padding:14px 18px;">
-                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 1 · Asignar Líderes y Activar Cronograma (Pestañas 2 y 1)</div>
-                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
-                        1. Vaya a la <strong>Pestaña 2 (Frentes y Líderes)</strong>, pulse el botón <span style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-pen"></i> Editar</span> en cada uno de los 13 frentes y asigne el nombre/correo del líder responsable.<br>
-                        2. Vaya a la <strong>Pestaña 1 (Fases y Cronograma)</strong>, pulse <span style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-pen-to-square"></i></span> en la <strong>Fase I</strong> para ponerla <em>"En Ejecución"</em> y active la <strong>Quincena Q1</strong>.
-                    </div>
-                </div>
-
-                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #2563eb; border-radius:10px; padding:14px 18px;">
-                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 2 · Diagnosticar los 56 Requisitos con las 6 Preguntas y Subir Soportes Base (Pestaña 3)</div>
-                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
-                        1. En la <strong>Pestaña 3 (Requisitos - 6 Preguntas)</strong>, revise cada requisito y haga clic sobre los 6 botones diagnósticos: <strong>¿Existe? · ¿Vigente? · ¿Aprobado? · ¿Pertinente? · ¿Se aplica? · ¿Evidencia?</strong>.<br>
-                        2. Pulse el botón <span style="background:#eff6ff; color:#1d4ed8; padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-folder-tree"></i> Gestionar Evidencias / Margy IA</span> para subir actos administrativos, acuerdos o actas por Fase a Supabase Storage, o consultar a <strong>Margy IA</strong> cómo demostrar ese requisito ante los Pares.
-                    </div>
-                </div>
-
-                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #059669; border-radius:10px; padding:14px 18px;">
-                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 3 · Subir sus Documentos Institucionales (Modelo Pedagógico, Reglamentos, Políticas) para Trabajo en Equipo (Pestañas 5 y 7)</div>
-                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
-                        1. Pulse el botón superior <span style="background:#eef2ff; color:#4f46e5; padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-file-circle-plus"></i> Subir / Crear Documento en Equipo</span> (o desde la tarjeta de cada Producto P1–P10 en la Pestaña 5).<br>
-                        2. Indique el <strong>Título</strong> (ej. <em>Modelo Pedagógico Institucional</em>, <em>Reglamento Docente</em>), el <strong>Producto (P1–P10)</strong>, el <strong>Frente</strong> y el <strong>Requisito MEN</strong> al que tributa (ej. <code>req_17</code>).<br>
-                        3. Adjunte su archivo <code>.docx</code> o <code>.pdf</code> y pulse <strong>"Crear y Publicar para el Equipo"</strong>. El documento quedará disponible para lectura y edición en la Pestaña 7 y guardado como evidencia <code>v1.0</code> en Supabase.
-                    </div>
-                </div>
-
-                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #7c3aed; border-radius:10px; padding:14px 18px;">
-                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 4 · Co-Edición del Equipo, Bitácora de Versiones y Actas de Mesas de Trabajo (Pestaña 7)</div>
-                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
-                        1. En la <strong>Pestaña 7 (Mesa Co-Construcción, IA & Trazabilidad)</strong>, seleccione el documento a la izquierda.<br>
-                        2. Cuando un miembro del equipo edite el documento en el panel central, debe registrar abajo su <strong>Nombre/Dependencia</strong>, <strong>Tipo de Actuación</strong> (<em>Aporte Mesa de Trabajo, Revisión Par Interno, Aval Consejo Académico</em>) y el <strong>Resumen del cambio</strong>, y pulsar <span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-code-commit"></i> Guardar Nueva Versión</span>.<br>
-                        3. En el panel derecho, sub-pestaña <strong>"Aportes y Avales del Equipo"</strong>, pulse <span style="background:#eef2ff; color:#4338ca; padding:2px 8px; border-radius:4px; font-weight:700;">+ Registrar Aporte / Acta / Aval</span> para documentar las sesiones de trabajo con docentes, directores de programa, estudiantes o consejos.
-                    </div>
-                </div>
-
-                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #0284c7; border-radius:10px; padding:14px 18px;">
-                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 5 · Auditar con IA el Cumplimiento Normativo del Documento (Pestaña 7 · Panel Derecho)</div>
-                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
-                        1. En el panel derecho de la Pestaña 7 (sub-pestaña <strong>"Auditoría IA MEN"</strong>), pulse <span style="background:#0284c7; color:#fff; padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-wand-magic-sparkles"></i> Ejecutar Auditoría IA</span>.<br>
-                        2. La IA verificará si su documento cumple el requisito normativo (Ley 749 / Dec. 1330 / Dec. 2038) y las 6 preguntas institucionales, calculando el <strong>% de Cumplimiento</strong>, fortalezas, vacíos y redactando el <strong>Texto Sugerido</strong>.<br>
-                        3. Si desea incorporar las mejoras sugeridas por la IA, pulse <strong>"+ Insertar Texto Sugerido en el Editor"</strong> y guarde una nueva versión.
-                    </div>
-                </div>
-
-                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #d97706; border-radius:10px; padding:14px 18px;">
-                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 6 · Controlar Brechas y Riesgos (Pestañas 4 y 6)</div>
-                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
-                        En la <strong>Pestaña 4 (Matriz de Brechas)</strong> registre o genere con IA las brechas detectadas en el diagnóstico y actualice su estado a <em>"Cerrada"</em> conforme los documentos sean aprobados. En la <strong>Pestaña 6 (Riesgos)</strong> monitoree los 12 riesgos preventivos.
-                    </div>
-                </div>
-
-                <div style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #0f172a; border-radius:10px; padding:14px 18px;">
-                    <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem;">PASO 7 · Descargar Documentos con Anexo Probatorio para Pares Evaluadores (Pestañas 7 y 5)</div>
-                    <div style="font-size:0.83rem; color:#475569; margin-top:4px; line-height:1.5;">
-                        Al pulsar <span style="background:#eff6ff; color:#1d4ed8; padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-file-word"></i> Word + Anexo Trazabilidad</span> o <span style="background:#fef2f2; color:#dc2626; padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fa-solid fa-file-pdf"></i> PDF Oficial</span> en la Pestaña 7, el documento se descarga con el <strong>Anexo de Trazabilidad y Construcción Colectiva</strong> (tabla de versiones y co-autores, tabla de mesas de trabajo/avales y dictamen de cumplimiento IA), listo para sustentar el trabajo en equipo ante los Pares Académicos del MEN.
-                    </div>
-                </div>
-            </div>
+        <!-- BARRA DE PESTAÑAS DEL TUTORIAL -->
+        <div style="background:#f1f5f9; padding:8px 20px 0 20px; border-bottom:1px solid #cbd5e1; display:flex; gap:6px; overflow-x:auto;">
+            <button id="btn-guide-tab-hilo" onclick="switchGuideTab('hilo')" style="padding:9px 15px; border-radius:8px 8px 0 0; border:1px solid #cbd5e1; border-bottom:none; background:#e0e7ff; color:#1e3a8a; font-weight:800; font-size:0.83rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                <span>🌟</span> 1. El Hilo Conductor (Flujo Rápido)
+            </button>
+            <button id="btn-guide-tab-p3" onclick="switchGuideTab('p3')" style="padding:9px 15px; border-radius:8px 8px 0 0; border:1px solid #cbd5e1; border-bottom:none; background:#f8fafc; color:#64748b; font-weight:600; font-size:0.83rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                <span>❓</span> 2. Pestaña 3: Las 6 Preguntas
+            </button>
+            <button id="btn-guide-tab-p4" onclick="switchGuideTab('p4')" style="padding:9px 15px; border-radius:8px 8px 0 0; border:1px solid #cbd5e1; border-bottom:none; background:#f8fafc; color:#64748b; font-weight:600; font-size:0.83rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                <span>⚠️</span> 3. Pestaña 4: Los 7 Tratamientos (Ejemplos)
+            </button>
+            <button id="btn-guide-tab-ia" onclick="switchGuideTab('ia')" style="padding:9px 15px; border-radius:8px 8px 0 0; border:1px solid #cbd5e1; border-bottom:none; background:#f8fafc; color:#64748b; font-weight:600; font-size:0.83rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                <span>🤖</span> 4. Guía del Asistente IA
+            </button>
+            <button id="btn-guide-tab-p5" onclick="switchGuideTab('p5')" style="padding:9px 15px; border-radius:8px 8px 0 0; border:1px solid #cbd5e1; border-bottom:none; background:#f8fafc; color:#64748b; font-weight:600; font-size:0.83rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                <span>🗂️</span> 5. Pestaña 5: Dossier P1 a P10 (Reordenar)
+            </button>
+            <button id="btn-guide-tab-p7" onclick="switchGuideTab('p7')" style="padding:9px 15px; border-radius:8px 8px 0 0; border:1px solid #cbd5e1; border-bottom:none; background:#f8fafc; color:#64748b; font-weight:600; font-size:0.83rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                <span>🏛️</span> 6. Pestaña 7: Mesa & 'Adecuar a Estatuto'
+            </button>
         </div>
+
+        <!-- CUERPO DEL TUTORIAL -->
+        <div class="cc-modal-body" style="overflow-y:auto; padding:24px 28px; background:#f8fafc; flex:1;">
+            
+            <!-- PANEL 1: EL HILO CONDUCTOR -->
+            <div id="guide-pane-hilo" style="display:block;">
+                <div style="background:linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border:1px solid #bfdbfe; border-radius:12px; padding:18px 22px; margin-bottom:20px;">
+                    <div style="font-weight:800; color:#1e3a8a; font-size:1.05rem; margin-bottom:6px;">
+                        🧩 La analogía del proceso: ¿Cómo se conecta todo en 3 minutos?
+                    </div>
+                    <p style="margin:0; font-size:0.87rem; color:#1e40af; line-height:1.6;">
+                        Imagina que el proceso de Cambio de Carácter es como <strong>hacer un chequeo médico completo a una institución que va a competir en las grandes ligas</strong>. 
+                        No se redactan documentos a lo loco: primero se revisa qué falta, se anota en una lista de pendientes, se redacta la medicina adecuada en equipo y se archiva en la carpeta oficial que revisará el Ministerio.
+                    </p>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px; margin-bottom:22px;">
+                    <div style="background:#fff; border:1px solid #e2e8f0; border-top:4px solid #4f46e5; border-radius:10px; padding:16px;">
+                        <span style="background:#e0e7ff; color:#3730a3; font-size:0.75rem; font-weight:800; padding:3px 8px; border-radius:20px;">PASO 1 · PESTAÑA 3</span>
+                        <h4 style="margin:8px 0 4px 0; color:#1e1b4b; font-size:0.95rem;">Auditar Requisitos (6 Preguntas)</h4>
+                        <p style="margin:0; font-size:0.82rem; color:#64748b; line-height:1.5;">
+                            Revisas los 56 puntos obligatorios de la ley. ¿Existe el documento? ¿Aplica para Institución Universitaria? Si la respuesta es <strong>NO</strong>, descubriste un pendiente.
+                        </p>
+                    </div>
+
+                    <div style="background:#fff; border:1px solid #e2e8f0; border-top:4px solid #f59e0b; border-radius:10px; padding:16px;">
+                        <span style="background:#fef3c7; color:#92400e; font-size:0.75rem; font-weight:800; padding:3px 8px; border-radius:20px;">PASO 2 · PESTAÑA 4</span>
+                        <h4 style="margin:8px 0 4px 0; color:#1e1b4b; font-size:0.95rem;">Registrar la Brecha (¿Qué hacer?)</h4>
+                        <p style="margin:0; font-size:0.82rem; color:#64748b; line-height:1.5;">
+                            Anotas ese pendiente en la <strong>Matriz de Brechas</strong> y decides su tratamiento: ¿lo actualizamos, lo creamos desde cero o lo transformamos?
+                        </p>
+                    </div>
+
+                    <div style="background:#fff; border:1px solid #e2e8f0; border-top:4px solid #8b5cf6; border-radius:10px; padding:16px;">
+                        <span style="background:#ede9fe; color:#5b21b6; font-size:0.75rem; font-weight:800; padding:3px 8px; border-radius:20px;">PASO 3 · PESTAÑA 7</span>
+                        <h4 style="margin:8px 0 4px 0; color:#1e1b4b; font-size:0.95rem;">Redactar la Solución (Mesa & IA)</h4>
+                        <p style="margin:0; font-size:0.82rem; color:#64748b; line-height:1.5;">
+                            La IA o el equipo redacta el documento o reglamento. Se registran las reuniones con los docentes y se pasa de versión <strong>v1.0 (borrador) a v2.0 (aprobado)</strong>.
+                        </p>
+                    </div>
+
+                    <div style="background:#fff; border:1px solid #e2e8f0; border-top:4px solid #10b981; border-radius:10px; padding:16px;">
+                        <span style="background:#d1fae5; color:#065f46; font-size:0.75rem; font-weight:800; padding:3px 8px; border-radius:20px;">PASO 4 · PESTAÑA 5</span>
+                        <h4 style="margin:8px 0 4px 0; color:#1e1b4b; font-size:0.95rem;">Guardar en el Dossier (P1–P10)</h4>
+                        <p style="margin:0; font-size:0.82rem; color:#64748b; line-height:1.5;">
+                            Le asignas el cajón correcto (ej. si es Reglamento Docente va a P5; si es PEI va a P4). Así el Dossier queda listo para radicar ante el MEN.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="background:#fff; border:1px solid #cbd5e1; border-radius:10px; padding:16px 20px;">
+                    <h5 style="margin:0 0 8px 0; font-size:0.92rem; color:#0f172a;">🎯 La regla que nunca debes olvidar:</h5>
+                    <div style="font-size:0.85rem; color:#334155; line-height:1.6;">
+                        <strong>Requisito con falla en P3 ➔ Brecha registrada en P4 ➔ Solución redactada en P7 ➔ Clasificada en su Entregable P1-P10 en P5 ➔ Descargada en Word/PDF para el Consejo Directivo.</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL 2: LAS 6 PREGUNTAS -->
+            <div id="guide-pane-p3" style="display:none;">
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:16px 20px; margin-bottom:18px;">
+                    <h4 style="margin:0 0 6px 0; color:#1e3a8a; font-size:0.98rem;">❓ ¿Qué evalúan los botones de las 6 Preguntas en la Pestaña 3?</h4>
+                    <p style="margin:0; font-size:0.85rem; color:#1e40af; line-height:1.5;">
+                        Cada requisito del MEN no se califica con un simple "sí" o "no". Los Pares Académicos del Ministerio le hacen 6 pruebas de fuego a cada tema:
+                    </p>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:12px; margin-bottom:18px;">
+                    <div style="background:white; border:1px solid #e2e8f0; border-left:4px solid #10b981; border-radius:8px; padding:12px 16px;">
+                        <div style="font-weight:800; color:#065f46; font-size:0.9rem;">1. ¿Existe?</div>
+                        <div style="font-size:0.82rem; color:#475569; margin-top:4px;">
+                            <strong>En palabras sencillas:</strong> ¿Está escrito formalmente en algún papel o solo se hace "de palabra" o memoria? Si no hay documento escrito, es NO.
+                        </div>
+                    </div>
+                    <div style="background:white; border:1px solid #e2e8f0; border-left:4px solid #0284c7; border-radius:8px; padding:12px 16px;">
+                        <div style="font-weight:800; color:#0369a1; font-size:0.9rem;">2. ¿Está Vigente?</div>
+                        <div style="font-size:0.82rem; color:#475569; margin-top:4px;">
+                            <strong>En palabras sencillas:</strong> ¿Sigue rigiendo hoy en día o es una resolución viejísima del año 2005 que nadie usa o que ya fue cambiada por otra ley?
+                        </div>
+                    </div>
+                    <div style="background:white; border:1px solid #e2e8f0; border-left:4px solid #8b5cf6; border-radius:8px; padding:12px 16px;">
+                        <div style="font-weight:800; color:#5b21b6; font-size:0.9rem;">3. ¿Está Formalmente Aprobado?</div>
+                        <div style="font-size:0.82rem; color:#475569; margin-top:4px;">
+                            <strong>En palabras sencillas:</strong> ¿Tiene firma y número de Acuerdo del <strong>Consejo Directivo</strong> (para estatutos/políticas) o Resolución de Rectoría? Un borrador sin firmar es NO aprobado.
+                        </div>
+                    </div>
+                    <div style="background:white; border:1px solid #e2e8f0; border-left:4px solid #f59e0b; border-radius:8px; padding:12px 16px;">
+                        <div style="font-weight:800; color:#b45309; font-size:0.9rem;">4. ¿Es Pertinente para Institución Universitaria? (¡La más importante!)</div>
+                        <div style="font-size:0.82rem; color:#475569; margin-top:4px;">
+                            <strong>Ejemplo clave:</strong> Si el Reglamento Docente actual solo exige a los profesores ser "Técnicos o Tecnólogos", <strong>NO es pertinente</strong>, porque una Institución Universitaria exige docentes con Maestría e investigación.
+                        </div>
+                    </div>
+                    <div style="background:white; border:1px solid #e2e8f0; border-left:4px solid #06b6d4; border-radius:8px; padding:12px 16px;">
+                        <div style="font-weight:800; color:#0e7490; font-size:0.9rem;">5. ¿Se Aplica en la Realidad?</div>
+                        <div style="font-size:0.82rem; color:#475569; margin-top:4px;">
+                            <strong>En palabras sencillas:</strong> ¿En la vida real los profesores, estudiantes y directivos lo utilizan, o está guardado en una gaveta como adorno?
+                        </div>
+                    </div>
+                    <div style="background:white; border:1px solid #e2e8f0; border-left:4px solid #ec4899; border-radius:8px; padding:12px 16px;">
+                        <div style="font-weight:800; color:#be185d; font-size:0.9rem;">6. ¿Hay Evidencia Real y Verificable?</div>
+                        <div style="font-size:0.82rem; color:#475569; margin-top:4px;">
+                            <strong>En palabras sencillas:</strong> Si el Par del MEN llega mañana y te dice *"muéstreme las actas de semilleros o las evaluaciones docentes"*, ¿tienes los PDF y certificados listos para mostrárselos en pantalla?
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:12px 16px; font-size:0.84rem; color:#92400e;">
+                    💡 <strong>Conclusión práctica:</strong> Si al revisar un requisito respondes "NO" en cualquiera de las 6 preguntas (especialmente si no es pertinente o no hay evidencia), ve de inmediato a la <strong>Pestaña 4</strong> y crea una Brecha para subsanarlo.
+                </div>
+            </div>
+
+            <!-- PANEL 3: LOS 7 TRATAMIENTOS -->
+            <div id="guide-pane-p4" style="display:none;">
+                <div style="background:#fff7ed; border:1px solid #ffedd5; border-radius:12px; padding:16px 20px; margin-bottom:18px;">
+                    <h4 style="margin:0 0 6px 0; color:#9a3412; font-size:0.98rem;">⚠️ Pestaña 4: Al crear una Brecha, ¿cuál tratamiento escoger?</h4>
+                    <p style="margin:0; font-size:0.85rem; color:#c2410c; line-height:1.5;">
+                        Cuando creas una brecha, el sistema te pide un <strong>Tratamiento Metodológico</strong> (Tabla 18 del Plan). Aquí tienes la guía definitiva con ejemplos reales:
+                    </p>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="background:white; border:1px solid #e2e8f0; border-left:5px solid #10b981; border-radius:8px; padding:14px 18px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong style="color:#065f46; font-size:0.92rem;">1. CONSERVAR (No tocar el texto, solo buscar evidencias)</strong>
+                            <span style="background:#d1fae5; color:#065f46; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:12px;">Está perfecto</span>
+                        </div>
+                        <div style="font-size:0.83rem; color:#475569; margin-top:4px;">
+                            <strong>Cuándo usarlo:</strong> El documento ya existe, está aprobado por Consejo Directivo y su nivel ya es universitario. No requiere rediseño legal, solo recopilar fotos, actas y certificados.
+                        </div>
+                    </div>
+
+                    <div style="background:white; border:1px solid #e2e8f0; border-left:5px solid #0284c7; border-radius:8px; padding:14px 18px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong style="color:#0369a1; font-size:0.92rem;">2. FORTALECER (Existe, pero le falta músculo o recursos)</strong>
+                            <span style="background:#e0f2fe; color:#0369a1; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:12px;">Darle más fuerza</span>
+                        </div>
+                        <div style="font-size:0.83rem; color:#475569; margin-top:4px;">
+                            <strong>Ejemplo:</strong> Los semilleros de investigación existen, pero tienen muy poco presupuesto o pocas horas docentes. Se mantiene el modelo pero se le asigna más plan operativo y horas de dedicación.
+                        </div>
+                    </div>
+
+                    <div style="background:white; border:1px solid #e2e8f0; border-left:5px solid #f59e0b; border-radius:8px; padding:14px 18px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong style="color:#b45309; font-size:0.92rem;">3. ACTUALIZAR (Tiene base buena, pero le faltan normas recientes)</strong>
+                            <span style="background:#fef3c7; color:#b45309; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:12px;">Ajuste puntual</span>
+                        </div>
+                        <div style="font-size:0.83rem; color:#475569; margin-top:4px;">
+                            <strong>Ejemplo:</strong> El Reglamento Estudiantil existe, pero no contempla el Decreto 2038 de 2023 ni el régimen de homologaciones entre niveles técnicos y carreras universitarias. Se le añaden los artículos faltantes.
+                        </div>
+                    </div>
+
+                    <div style="background:white; border:1px solid #e2e8f0; border-left:5px solid #ea580c; border-radius:8px; padding:14px 18px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong style="color:#c2410c; font-size:0.92rem;">4. TRANSFORMAR (Cambio radical de raíz: de nivel técnico a universitario)</strong>
+                            <span style="background:#ffedd5; color:#c2410c; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:12px;">Reforma total</span>
+                        </div>
+                        <div style="font-size:0.83rem; color:#475569; margin-top:4px;">
+                            <strong>Ejemplo clave:</strong> El <strong>Estatuto General</strong> y el <strong>PEI</strong> de INTENALCO. Fueron redactados como Institución Técnica Profesional. Ahora deben reescribirse a fondo para incluir autonomía universitaria, investigación científica y posgrados.
+                        </div>
+                    </div>
+
+                    <div style="background:white; border:1px solid #e2e8f0; border-left:5px solid #8b5cf6; border-radius:8px; padding:14px 18px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong style="color:#6d28d9; font-size:0.92rem;">5. ARMONIZAR (Unificar normas sueltas que chocan entre sí)</strong>
+                            <span style="background:#ede9fe; color:#6d28d9; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:12px;">Unir piezas</span>
+                        </div>
+                        <div style="font-size:0.83rem; color:#475569; margin-top:4px;">
+                            <strong>Ejemplo:</strong> Tenemos 3 resoluciones separadas: una de egresados, otra de prácticas empresariales y otra de educación continua. Hay que unificarlas en una sola <em>Política Integral de Extensión y Proyección Social</em>.
+                        </div>
+                    </div>
+
+                    <div style="background:white; border:1px solid #e2e8f0; border-left:5px solid #dc2626; border-radius:8px; padding:14px 18px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong style="color:#b91c1c; font-size:0.92rem;">6. CREAR (No existe NADA en la institución y el MEN lo exige)</strong>
+                            <span style="background:#fee2e2; color:#b91c1c; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:12px;">Desde cero</span>
+                        </div>
+                        <div style="font-size:0.83rem; color:#475569; margin-top:4px;">
+                            <strong>Ejemplo:</strong> Una Institución Universitaria puede ofrecer Especializaciones y Maestrías. INTENALCO no tiene hoy en día un <em>Reglamento de Posgrados</em> ni un <em>Comité Institucional de Ética</em>. Hay que crearlos desde cero.
+                        </div>
+                    </div>
+
+                    <div style="background:white; border:1px solid #e2e8f0; border-left:5px solid #64748b; border-radius:8px; padding:14px 18px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong style="color:#334155; font-size:0.92rem;">7. DEROGAR (Eliminar formalmente normas que estorban)</strong>
+                            <span style="background:#f1f5f9; color:#475569; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:12px;">Borrar del mapa</span>
+                        </div>
+                        <div style="font-size:0.83rem; color:#475569; margin-top:4px;">
+                            <strong>Ejemplo:</strong> Acuerdos del año 2000 que prohibían hacer convenios de posgrados porque la institución era solo técnica. Se redacta un artículo expreso en el nuevo acuerdo que deroga esas disposiciones viejas.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL 4: ASISTENTE IA -->
+            <div id="guide-pane-ia" style="display:none;">
+                <div style="background:#faf5ff; border:1px solid #f3e8ff; border-radius:12px; padding:16px 20px; margin-bottom:18px;">
+                    <h4 style="margin:0 0 6px 0; color:#6b21a8; font-size:0.98rem;">🤖 Guía del Asistente IA Experto: ¿Qué opción escoger y para qué sirve?</h4>
+                    <p style="margin:0; font-size:0.85rem; color:#7e22ce; line-height:1.5;">
+                        El Asistente IA no es un chat cualquiera: está entrenado como un <strong>Par Evaluador del Ministerio de Educación Nacional</strong>. Dependiendo de lo que necesites hacer, elige el modo correspondiente:
+                    </p>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:12px;">
+                    <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:1.3rem;">🎯</span>
+                            <div>
+                                <strong style="color:#1e1b4b; font-size:0.9rem;">Subsanar Brecha Específica</strong>
+                                <span style="display:block; font-size:0.74rem; color:#059669; font-weight:700;">⭐ La opción recomendada el 80% del tiempo</span>
+                            </div>
+                        </div>
+                        <p style="margin:0; font-size:0.82rem; color:#475569; line-height:1.5;">
+                            <strong>¿Cuándo usarla?</strong> Cuando vas a la Pestaña 4, ves una brecha en la tabla (ej. <em>Reglamento Docente</em>) y pulsas el botón morado <strong>`🪄 IA`</strong>. 
+                            La IA toma esa brecha específica y te redacta los Capítulos, Artículos y Parágrafos listos para que los revise el Consejo Directivo.
+                        </p>
+                    </div>
+
+                    <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:1.3rem;">📑</span>
+                            <div>
+                                <strong style="color:#1e1b4b; font-size:0.9rem;">Redactar Entregable P1–P10</strong>
+                                <span style="display:block; font-size:0.74rem; color:#2563eb; font-weight:700;">Para documentos maestros completos</span>
+                            </div>
+                        </div>
+                        <p style="margin:0; font-size:0.82rem; color:#475569; line-height:1.5;">
+                            <strong>¿Cuándo usarla?</strong> Cuando quieres que la IA escriba todo el esqueleto macro de uno de los 10 productos clave (por ejemplo: el documento completo del <em>Modelo Institucional P4</em> o del <em>Modelo Pedagógico P5</em>).
+                        </p>
+                    </div>
+
+                    <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:1.3rem;">🔬</span>
+                            <div>
+                                <strong style="color:#1e1b4b; font-size:0.9rem;">Diagnosticar Frente Específico</strong>
+                                <span style="display:block; font-size:0.74rem; color:#7c3aed; font-weight:700;">Para el líder de un área</span>
+                            </div>
+                        </div>
+                        <p style="margin:0; font-size:0.82rem; color:#475569; line-height:1.5;">
+                            <strong>¿Cuándo usarla?</strong> El líder de Investigación o Bienestar sube el archivo actual de su oficina. La IA lo lee, le compara contra la Ley 749 y le dice exactamente qué le hace falta a su área.
+                        </p>
+                    </div>
+
+                    <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="font-size:1.3rem;">🔍</span>
+                            <div>
+                                <strong style="color:#1e1b4b; font-size:0.9rem;">Auditar Evidencias (6 Preguntas)</strong>
+                                <span style="display:block; font-size:0.74rem; color:#d97706; font-weight:700;">Calificación automática</span>
+                            </div>
+                        </div>
+                        <p style="margin:0; font-size:0.82rem; color:#475569; line-height:1.5;">
+                            <strong>¿Cuándo usarla?</strong> Para que la IA evalúe automáticamente los botones de la Pestaña 3 a partir de los documentos institucionales cargados.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL 5: EL DOSSIER P1 A P10 -->
+            <div id="guide-pane-p5" style="display:none;">
+                <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; padding:16px 20px; margin-bottom:18px;">
+                    <h4 style="margin:0 0 6px 0; color:#065f46; font-size:0.98rem;">🗂️ Pestaña 5: ¿Por qué tus 12 documentos estaban en P1 y cómo moverlos?</h4>
+                    <p style="margin:0; font-size:0.85rem; color:#047857; line-height:1.5;">
+                        Cada vez que generas un borrador con la IA o subes un documento sin seleccionar a qué producto pertenece, el sistema le asigna por defecto **P1: Matriz normativa**. ¡Por eso se amontonaron ahí!
+                    </p>
+                </div>
+
+                <div style="background:#fff; border:1px solid #cbd5e1; border-radius:10px; padding:16px 20px; margin-bottom:18px;">
+                    <h5 style="margin:0 0 10px 0; font-size:0.95rem; color:#1e1b4b;">🛠️ Cómo repartir tus documentos en 3 clics:</h5>
+                    <ol style="margin:0; padding-left:20px; font-size:0.85rem; color:#334155; line-height:1.7;">
+                        <li>Ve a la <strong>Pestaña 7 (Mesa Co-Construcción, IA & Trazabilidad)</strong>.</li>
+                        <li>En la lista izquierda (**Biblioteca del Equipo**), haz clic sobre el documento que quieras mover (ej. <em>Reglamento Docente INTENALCO</em>).</li>
+                        <li>En el panel central superior, busca el menú desplegable que dice <strong>`PRODUCTO DOSSIER (P1-P10)`</strong>. Actualmente dice <em>"P1: Matriz normativa"</em>.</li>
+                        <li>Cámbialo al que le corresponde:
+                            <ul style="margin:4px 0 6px 16px;">
+                                <li>Si es Reglamento Docente, Modelo Pedagógico o Créditos Curriculares ➔ <strong>P5: Modelo Académico</strong>.</li>
+                                <li>Si es Estatuto General, PEI o Plan de Desarrollo (PDI) ➔ <strong>P4: Modelo Institucional</strong>.</li>
+                                <li>Si es Presupuesto o Factibilidad ➔ <strong>P8: Proyección Financiera</strong>.</li>
+                                <li>Si es Diagnóstico o Estudio de entorno ➔ <strong>P2: Diagnóstico Institucional</strong>.</li>
+                            </ul>
+                        </li>
+                        <li>Haz clic en el botón verde superior <strong>`💾 Guardar Aporte / Versión`</strong>. ¡Listo! Al volver a la Pestaña 5, el documento se habrá mudado a su caja correspondiente.</li>
+                    </ol>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px;">
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px;">
+                        <strong style="color:#1e3a8a; font-size:0.85rem;">P1 · Matriz Normativa</strong>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Requisitos de Ley 749 y Decreto 2038.</div>
+                    </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px;">
+                        <strong style="color:#1e3a8a; font-size:0.85rem;">P2 · Diagnóstico</strong>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Línea base institucional y brechas.</div>
+                    </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px;">
+                        <strong style="color:#1e3a8a; font-size:0.85rem;">P3 · Evidencias</strong>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Inventario probatorio y actas.</div>
+                    </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px;">
+                        <strong style="color:#1e3a8a; font-size:0.85rem;">P4 · Mod. Institucional</strong>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Estatutos, PEI y PDI Universitario.</div>
+                    </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px;">
+                        <strong style="color:#1e3a8a; font-size:0.85rem;">P5 · Mod. Académico</strong>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Reglamento Docente, Estudiantil y Créditos.</div>
+                    </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px;">
+                        <strong style="color:#1e3a8a; font-size:0.85rem;">P6 · Capacidades</strong>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Cualificación docente e investigación.</div>
+                    </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px;">
+                        <strong style="color:#1e3a8a; font-size:0.85rem;">P7 · Paquete Jurídico</strong>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Acuerdos del Consejo Directivo y resoluciones.</div>
+                    </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px;">
+                        <strong style="color:#1e3a8a; font-size:0.85rem;">P8 · Financiero</strong>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Flujo de caja y proyecciones a 5-10 años.</div>
+                    </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px;">
+                        <strong style="color:#1e3a8a; font-size:0.85rem;">P9 · Dossier Final</strong>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Documento maestro que se radica al MEN.</div>
+                    </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px;">
+                        <strong style="color:#1e3a8a; font-size:0.85rem;">P10 · Hoja de Ruta</strong>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">Plan de transición post-resolución.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL 6: PESTAÑA 7 Y BOTÓN ADECUAR -->
+            <div id="guide-pane-p7" style="display:none;">
+                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:16px 20px; margin-bottom:18px;">
+                    <h4 style="margin:0 0 6px 0; color:#166534; font-size:0.98rem;">🏛️ Pestaña 7: Mesa de Trabajo, Trazabilidad y el botón "Adecuar a Estatuto"</h4>
+                    <p style="margin:0; font-size:0.85rem; color:#15803d; line-height:1.5;">
+                        Esta pestaña es el taller donde el equipo co-construye los documentos. Para que el MEN apruebe el cambio de carácter, exige demostrar que los documentos fueron discutidos con los profesores y directivos.
+                    </p>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+                    <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px;">
+                        <div style="font-weight:800; color:#1e1b4b; font-size:0.92rem; margin-bottom:6px;">
+                            👥 Cómo registrar reuniones y aportes (Sub-pestaña 2):
+                        </div>
+                        <p style="font-size:0.82rem; color:#475569; line-height:1.5; margin:0 0 8px 0;">
+                            Arriba del texto tienes la pestaña <strong>`👥 2. Trabajo en Equipo: Versiones, Mesas y Avales`</strong>. Al hacer clic allí:
+                        </p>
+                        <ul style="margin:0; padding-left:18px; font-size:0.82rem; color:#334155; line-height:1.6;">
+                            <li>Registras la fecha de la reunión del comité o mesa técnica.</li>
+                            <li>Anotas los nombres de los docentes o directores participantes.</li>
+                            <li>Escribes en qué acordaron y qué se modificó.</li>
+                            <li>Cambias la versión: <strong>v1.0 (borrador) ➔ v1.1 (revisado por docentes) ➔ v2.0 (aprobado Consejo Directivo)</strong>.</li>
+                        </ul>
+                    </div>
+
+                    <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px;">
+                        <div style="font-weight:800; color:#166534; font-size:0.92rem; margin-bottom:6px;">
+                            🏛️ ¿Para qué sirve el botón "Adecuar a Estatuto INTENALCO"?
+                        </div>
+                        <p style="font-size:0.82rem; color:#475569; line-height:1.5; margin:0 0 8px 0;">
+                            INTENALCO es un <strong>Establecimiento Público</strong>. Su máxima autoridad es el <strong>CONSEJO DIRECTIVO</strong>. En INTENALCO <strong>NO existe "Consejo Superior"</strong>.
+                        </p>
+                        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:6px; padding:8px 10px; font-size:0.78rem; color:#991b1b; line-height:1.4;">
+                            ⚠️ La IA o los modelos externos a menudo escriben <em>"Consejo Superior Universitario"</em>. Si un Par del MEN lee eso, hace una objeción jurídica grave.
+                        </div>
+                        <p style="font-size:0.82rem; color:#166534; margin:8px 0 0 0; font-weight:700;">
+                            Al pulsar el botón verde, el sistema cambia en 1 segundo todas esas palabras por <strong>Consejo Directivo</strong>, blindando tu documento legalmente.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="background:#fff; border:1px solid #cbd5e1; border-radius:10px; padding:16px 20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <strong style="color:#0f172a; font-size:0.92rem;">📄 Botones `Word + Anexo Par` y `PDF + Anexo Par`:</strong>
+                            <p style="margin:2px 0 0 0; font-size:0.82rem; color:#475569;">
+                                Al descargar tu documento, no sale un texto suelto: sale con su portada oficial de INTENALCO y una tabla final auditada con todos los co-autores, versiones y actas que demuestran el trabajo colegiado ante el MEN.
+                            </p>
+                        </div>
+                        <span style="background:#ecfdf5; color:#065f46; font-size:0.8rem; font-weight:800; padding:6px 12px; border-radius:8px; border:1px solid #a7f3d0;">
+                            ✅ Listo para radicación
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- MODAL FOOTER -->
         <div style="padding:14px 24px; background:#fff; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
-            <a href="/api/cambio_caracter/download_manual" style="color:#2563eb; font-size:0.84rem; font-weight:700; text-decoration:none;"><i class="fa-solid fa-download"></i> Descargar este Manual completo en Word (.docx)</a>
-            <button onclick="closeStepByStepGuideModal()" style="background:#1e293b; color:white; border:none; padding:9px 20px; border-radius:8px; cursor:pointer; font-size:0.84rem; font-weight:700;">Entendido, ir al módulo</button>
+            <a href="/api/cambio_caracter/download_manual" style="color:#2563eb; font-size:0.84rem; font-weight:800; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-file-arrow-down"></i> Descargar este Manual completo en Word (.docx)
+            </a>
+            <button onclick="closeStepByStepGuideModal()" style="background:linear-gradient(135deg, #1e293b, #0f172a); color:white; border:none; padding:10px 22px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:800; box-shadow:0 4px 12px rgba(15,23,42,0.25);">
+                ¡Entendido, volver a trabajar!
+            </button>
         </div>
+
     </div>
 </div>
 
@@ -6665,11 +7030,12 @@
         }
     }
 
-    function openStepByStepGuideModal() {
+    function openStepByStepGuideModal(tabKey = 'hilo') {
         const m = document.getElementById('modal-guide-cc');
         if (m) {
             m.style.display = 'flex';
             m.classList.add('open');
+            switchGuideTab(tabKey);
         }
     }
 
@@ -6679,6 +7045,29 @@
             m.style.display = 'none';
             m.classList.remove('open');
         }
+    }
+
+    function switchGuideTab(tabKey) {
+        const tabs = ['hilo', 'p3', 'p4', 'ia', 'p5', 'p7'];
+        tabs.forEach(t => {
+            const btn = document.getElementById(`btn-guide-tab-${t}`);
+            const pane = document.getElementById(`guide-pane-${t}`);
+            if (btn && pane) {
+                if (t === tabKey) {
+                    btn.style.color = '#1e3a8a';
+                    btn.style.background = '#e0e7ff';
+                    btn.style.fontWeight = '800';
+                    btn.style.borderBottom = 'none';
+                    pane.style.display = 'block';
+                } else {
+                    btn.style.color = '#64748b';
+                    btn.style.background = '#f8fafc';
+                    btn.style.fontWeight = '600';
+                    btn.style.borderBottom = '1px solid #cbd5e1';
+                    pane.style.display = 'none';
+                }
+            }
+        });
     }
 
     async function confirmResetCcProject() {
