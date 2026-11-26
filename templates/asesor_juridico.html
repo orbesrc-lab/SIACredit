@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKEL 360 - Asesor Jurídico Especializado en Educación Superior</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Marked.js para renderizar Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .font-serif-legal { font-family: 'Merriweather', serif; }
+        .sidebar-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; color: #94a3b8; font-size: 0.9rem; font-weight: 500; border-radius: 8px; margin: 4px 12px; transition: all 0.2s; text-decoration: none; }
+        .sidebar-item:hover, .sidebar-item.active { background: rgba(255, 255, 255, 0.1); color: #fff; }
+        .sidebar-item.active { background: #4f46e5; color: #fff; font-weight: 700; }
+        .tab-btn { padding: 10px 18px; font-size: 0.88rem; font-weight: 700; border-radius: 8px; transition: all 0.2s; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .tab-btn.active { background: #1e3a8a; color: #fff; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25); }
+        .tab-btn:not(.active) { background: #e2e8f0; color: #475569; }
+        .tab-btn:not(.active):hover { background: #cbd5e1; color: #1e293b; }
+        .dictamen-body h1 { font-size: 1.35rem; font-weight: 800; color: #1e3a8a; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; }
+        .dictamen-body h2 { font-size: 1.15rem; font-weight: 700; color: #312e81; margin-top: 1.25rem; margin-bottom: 0.4rem; }
+        .dictamen-body h3 { font-size: 1.02rem; font-weight: 700; color: #1e293b; margin-top: 1rem; margin-bottom: 0.3rem; }
+        .dictamen-body p { margin-bottom: 0.75rem; line-height: 1.68; font-size: 0.95rem; color: #334155; }
+        .dictamen-body ul, .dictamen-body ol { margin-left: 1.4rem; margin-bottom: 0.75rem; }
+        .dictamen-body li { margin-bottom: 0.35rem; line-height: 1.6; }
+        .dictamen-body blockquote { border-left: 4px solid #3b82f6; padding-left: 14px; color: #475569; font-style: italic; background: #eff6ff; padding-top: 6px; padding-bottom: 6px; border-radius: 0 8px 8px 0; margin-bottom: 0.85rem; }
+        .dictamen-body table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.85rem; }
+        .dictamen-body th { background: #1e3a8a; color: #fff; padding: 8px 12px; text-align: left; font-weight: 700; border: 1px solid #cbd5e1; }
+        .dictamen-body td { padding: 8px 12px; border: 1px solid #e2e8f0; }
+        .dictamen-body tr:nth-child(even) { background: #f8fafc; }
+        .file-pill { display: inline-flex; align-items: center; gap: 8px; background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; margin: 3px; }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden">
+
+    <!-- Sidebar Principal -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 z-20">
+        <div class="p-5 flex items-center gap-3 border-b border-slate-800">
+            <i class="fa-solid fa-scale-balanced text-2xl text-amber-400"></i>
+            <div>
+                <h1 class="text-base font-bold text-white tracking-wide">SIAC 360</h1>
+                <span class="text-xs text-slate-400 font-medium">Asesoría Jurídica Superior</span>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-3">
+            <a href="/dashboard" class="sidebar-item"><i class="fa-solid fa-chart-pie w-5"></i> Dashboard</a>
+            <a href="/autoevaluacion" class="sidebar-item"><i class="fa-solid fa-clipboard-check w-5"></i> Autoevaluación</a>
+            <a href="/encuestas" class="sidebar-item"><i class="fa-solid fa-square-poll-vertical w-5"></i> Encuestas</a>
+            <a href="/planificacion" class="sidebar-item"><i class="fa-solid fa-calendar-check w-5"></i> Plan de Mejoramiento</a>
+            <a href="/evidencias" class="sidebar-item"><i class="fa-solid fa-folder-open w-5"></i> Evidencias</a>
+            <a href="/normatividad" class="sidebar-item"><i class="fa-solid fa-book w-5"></i> Normatividad</a>
+            <a href="/registro_calificado.html" class="sidebar-item"><i class="fa-solid fa-scroll w-5"></i> Registro Calificado</a>
+            <a href="/cambio_caracter" class="sidebar-item"><i class="fa-solid fa-building-columns w-5"></i> Cambio de Carácter</a>
+            <a href="/asesor_juridico" class="sidebar-item active"><i class="fa-solid fa-gavel w-5 text-amber-400"></i> Asesor Jurídico SKEL</a>
+            <a href="/configuracion.html" class="sidebar-item"><i class="fa-solid fa-gear w-5"></i> Configuración</a>
+        </nav>
+
+        <div class="p-4 border-t border-slate-800">
+            <a href="javascript:void(0)" onclick="logout()" class="sidebar-item text-rose-400 hover:text-rose-300">
+                <i class="fa-solid fa-right-from-bracket w-5"></i> Cerrar Sesión
+            </a>
+        </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+        
+        <!-- Header Superior -->
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-700">
+                    <i class="fa-solid fa-scale-balanced text-xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-xl font-extrabold text-slate-800">Asesor Jurídico SKEL</h2>
+                        <span class="bg-amber-100 text-amber-900 text-xs px-2.5 py-0.5 rounded-full font-bold border border-amber-300">
+                            Posdoctorado en Derecho Educativo
+                        </span>
+                        <span class="bg-indigo-100 text-indigo-800 text-xs px-2.5 py-0.5 rounded-full font-bold border border-indigo-200">
+                            Criterio CONACES · MEN · CNA
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Consultoría legal vinculante, barrido normativo, desvirtuación de normas derogadas y blindaje de estatutos bajo autonomía institucional.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Badges de Normas Clave -->
+            <div class="hidden xl:flex items-center gap-1.5 flex-wrap max-w-xl justify-end">
+                <span class="text-[11px] bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded border border-slate-200">Ley 30/1992</span>
+                <span class="text-[11px] bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded border border-slate-200">Ley 749/2002</span>
+                <span class="text-[11px] bg-blue-50 text-blue-800 font-semibold px-2 py-0.5 rounded border border-blue-200">Dec. 2038/2024</span>
+                <span class="text-[11px] bg-indigo-50 text-indigo-800 font-semibold px-2 py-0.5 rounded border border-indigo-200">Dec. 0529/2024</span>
+                <span class="text-[11px] bg-purple-50 text-purple-800 font-semibold px-2 py-0.5 rounded border border-purple-200">Acuerdo 01 CESU 2025</span>
+                <span class="text-[11px] bg-emerald-50 text-emerald-800 font-semibold px-2 py-0.5 rounded border border-emerald-200">Función Pública</span>
+            </div>
+        </header>
+
+        <!-- Barra de Pestañas -->
+        <div class="bg-slate-100 border-b border-slate-200 px-8 py-2.5 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-2">
+                <button type="button" class="tab-btn active" id="tab-btn-consultorio" onclick="switchJuridicoTab('consultorio')">
+                    <i class="fa-solid fa-gavel"></i> 1. Consultorio Jurídico y Análisis de Casos
+                </button>
+                <button type="button" class="tab-btn" id="tab-btn-expedientes" onclick="switchJuridicoTab('expedientes')">
+                    <i class="fa-solid fa-folder-tree"></i> 2. Expedientes y Casos Radicados (<span id="count-casos">0</span>)
+                </button>
+                <button type="button" class="tab-btn" id="tab-btn-normagrama" onclick="switchJuridicoTab('normagrama')">
+                    <i class="fa-solid fa-book-bookmark"></i> 3. Normagrama Dinámico y Vigencias
+                </button>
+                <button type="button" class="tab-btn" id="tab-btn-minutas" onclick="switchJuridicoTab('minutas')">
+                    <i class="fa-solid fa-file-contract"></i> 4. Generador de Minutas y Acuerdos
+                </button>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-500 font-medium">Institución:</span>
+                <span class="text-xs font-bold bg-white text-slate-800 px-3 py-1 rounded-md border border-slate-300 shadow-sm" id="inst-tag-name">
+                    INTENALCO EDUCACIÓN SUPERIOR
+                </span>
+            </div>
+        </div>
+
+        <!-- Área de Contenido con Scroll -->
+        <div class="flex-1 overflow-y-auto p-8">
+
+            <!-- =============================================================== -->
+            <!-- PESTAÑA 1: CONSULTORIO JURÍDICO -->
+            <!-- =============================================================== -->
+            <section id="pane-consultorio" class="space-y-6">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- Formulario de Radicación de Consulta (5 cols) -->
+                    <div class="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+                                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-pen-nib text-indigo-600"></i> Radicar Caso o Consulta Jurídica
+                                </h3>
+                                <button type="button" onclick="resetFormCaso()" class="text-xs text-slate-500 hover:text-indigo-600 font-semibold">
+                                    <i class="fa-solid fa-rotate-left"></i> Limpiar
+                                </button>
+                            </div>
+
+                            <form id="form-caso-juridico" class="space-y-4">
+                                <input type="hidden" id="caso-id-hidden" value="">
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                        Título o Asunto del Caso *
+                                    </label>
+                                    <input type="text" id="caso-titulo" class="w-full text-sm rounded-lg border-slate-300 border p-2.5 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 font-medium" placeholder="Ej: Adecuación de Estatuto Docente para Cambio de Carácter a Institución Universitaria" required>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                        Tipo de Trámite / Proceso Institucional *
+                                    </label>
+                                    <select id="caso-asunto-tipo" class="w-full text-sm rounded-lg border-slate-300 border p-2.5 bg-white font-medium focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600">
+                                        <option value="Cambio de Carácter y Redefinición (Ley 749 / Dec. 2038)">Cambio de Carácter y Redefinición (Ley 749 de 2002 / Dec. 2038)</option>
+                                        <option value="Creación / Reforma de Estatutos Generales y Reglamentos">Creación / Reforma de Estatutos Generales y Reglamentos Internos</option>
+                                        <option value="Registro Calificado y Condiciones de Calidad (Dec. 1330 / Dec. 0529)">Registro Calificado (Dec. 1330 de 2019 / Dec. 0529 de 2024)</option>
+                                        <option value="Acreditación en Alta Calidad (Acuerdo 01 CESU 2025)">Acreditación en Alta Calidad (Acuerdo 01 de 2025 del CESU)</option>
+                                        <option value="Respuesta a Requerimiento / Auto / Recurso de Reposición MEN-CONACES">Respuesta a Requerimiento / Auto / Recurso de Reposición MEN-CONACES</option>
+                                        <option value="Régimen de Función Pública en IES Oficiales / Adscritas">Régimen de Función Pública y Contratación en IES Oficiales / Adscritas</option>
+                                        <option value="Barrido de Normatividad y Vigencias Derogadas">Barrido de Normatividad, Vigencias y Derogatorias</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                                        <span>Autonomía y Contexto Institucional Propio</span>
+                                        <span class="text-[11px] text-indigo-600 font-semibold cursor-pointer" onclick="insertarContextoIntenalco()">Cargar INTENALCO</span>
+                                    </label>
+                                    <textarea id="caso-estatuto-contexto" rows="2" class="w-full text-xs rounded-lg border-slate-300 border p-2.5 font-sans focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" placeholder="Estatuto general vigente, reglamentos internos, naturaleza oficial/pública y competencias del Consejo Directivo..."></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                        Problema Jurídico, Petición o Consulta de Fondo *
+                                    </label>
+                                    <textarea id="caso-pregunta" rows="4" class="w-full text-sm rounded-lg border-slate-300 border p-2.5 font-sans focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600" placeholder="Plantee los hechos, el conflicto normativo o la necesidad jurídica exacta. Ej: ¿Cómo estructurar el artículo de dedicación y escalafón docente en el nuevo estatuto sin violar la Ley 30 ni la función pública territorial?" required></textarea>
+                                </div>
+
+                                <!-- Carga de Múltiples Evidencias -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                                        <span>Adjuntar Evidencias y Documentos de Soporte</span>
+                                        <span class="text-[11px] text-slate-400 font-normal">PDF, DOCX, TXT (Múltiples)</span>
+                                    </label>
+                                    <div class="border-2 border-dashed border-slate-300 rounded-lg p-3 text-center bg-slate-50 hover:bg-indigo-50/50 hover:border-indigo-400 transition cursor-pointer" onclick="document.getElementById('input-evidencias').click()">
+                                        <i class="fa-solid fa-cloud-arrow-up text-xl text-indigo-600 mb-1"></i>
+                                        <p class="text-xs text-slate-600 font-medium">Haga clic o arrastre aquí los archivos del caso</p>
+                                        <p class="text-[10px] text-slate-400">El Asesor Jurídico leerá y contrastará todo su contenido textual.</p>
+                                        <input type="file" id="input-evidencias" multiple accept=".pdf,.docx,.doc,.txt" class="hidden" onchange="handleFilesSelected(event)">
+                                    </div>
+                                    <div id="file-list-preview" class="mt-2 flex flex-wrap gap-1"></div>
+                                </div>
+
+                                <!-- Normas Prioritarias -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                        Normas Clave a Contrastar
+                                    </label>
+                                    <div class="grid grid-cols-2 gap-1.5 text-xs text-slate-600 font-medium">
+                                        <label class="flex items-center gap-1.5"><input type="checkbox" name="normas" value="Ley 30 de 1992 (Autonomía Art 28-29)" checked class="rounded text-indigo-600"> Ley 30 de 1992</label>
+                                        <label class="flex items-center gap-1.5"><input type="checkbox" name="normas" value="Ley 749 de 2002 (Ciclos y Cambio Carácter)" checked class="rounded text-indigo-600"> Ley 749 de 2002</label>
+                                        <label class="flex items-center gap-1.5"><input type="checkbox" name="normas" value="Decreto 2038 de 2024 / 2023 (Redefinición)" checked class="rounded text-indigo-600"> Decreto 2038</label>
+                                        <label class="flex items-center gap-1.5"><input type="checkbox" name="normas" value="Decreto 1330 y Decreto 0529 de 2024 (Registro Calificado)" checked class="rounded text-indigo-600"> Dec. 1330 / 0529 (2024)</label>
+                                        <label class="flex items-center gap-1.5"><input type="checkbox" name="normas" value="Acuerdo 01 de 2025 del CESU (Acreditación)" checked class="rounded text-indigo-600"> Acuerdo 01 CESU 2025</label>
+                                        <label class="flex items-center gap-1.5"><input type="checkbox" name="normas" value="Leyes de Función Pública (Ley 489/98 y Ley 909/04)" checked class="rounded text-indigo-600"> Función Pública (IES Oficial)</label>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="pt-5 border-t border-slate-100">
+                            <button type="button" id="btn-emitir-dictamen" onclick="emitirDictamenJuridico()" class="w-full bg-gradient-to-r from-blue-900 to-indigo-800 hover:from-blue-950 hover:to-indigo-900 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-950/20 flex items-center justify-center gap-2.5 text-sm transition">
+                                <i class="fa-solid fa-gavel text-amber-400"></i>
+                                <span>Emitir Dictamen Jurídico Vinculante (Posdoctor SKEL)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Panel de Visualización del Dictamen Jurídico (7 cols) -->
+                    <div class="lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                        
+                        <!-- Header del Dictamen -->
+                        <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-file-shield text-amber-400 text-xl"></i>
+                                <div>
+                                    <h4 class="text-sm font-bold tracking-wide uppercase">Dictamen Jurídico Oficial</h4>
+                                    <span class="text-xs text-slate-300" id="dictamen-meta-header">Radicado: PENDIENTE · SKEL 360</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Acciones de Exportación -->
+                            <div class="flex items-center gap-2" id="dictamen-actions" style="display: none;">
+                                <button type="button" onclick="exportarDictamen('word')" class="bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition">
+                                    <i class="fa-solid fa-file-word text-blue-400"></i> Word (.docx)
+                                </button>
+                                <button type="button" onclick="exportarDictamen('pdf')" class="bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition">
+                                    <i class="fa-solid fa-file-pdf text-rose-400"></i> PDF
+                                </button>
+                                <button type="button" onclick="copiarDictamen()" class="bg-white/10 hover:bg-white/20 text-white text-xs px-2.5 py-1.5 rounded-lg font-semibold transition" title="Copiar texto">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Ficha de Datos del Radicado -->
+                        <div id="dictamen-meta-box" class="bg-slate-50 border-b border-slate-200 px-6 py-3 text-xs text-slate-600 grid grid-cols-2 sm:grid-cols-4 gap-2" style="display: none;">
+                            <div><span class="font-bold text-slate-700">Radicado:</span> <span id="meta-radicado">-</span></div>
+                            <div><span class="font-bold text-slate-700">Fecha:</span> <span id="meta-fecha">-</span></div>
+                            <div><span class="font-bold text-slate-700">Asunto:</span> <span id="meta-asunto">-</span></div>
+                            <div><span class="font-bold text-slate-700">Evidencias:</span> <span id="meta-evidencias">0 adjuntos</span></div>
+                        </div>
+
+                        <!-- Cuerpo del Concepto Jurídico -->
+                        <div class="p-8 flex-1 overflow-y-auto font-serif-legal" id="dictamen-content-area">
+                            
+                            <!-- Estado Vacío -->
+                            <div id="dictamen-placeholder" class="text-center py-16 px-4">
+                                <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-4 border border-slate-200">
+                                    <i class="fa-solid fa-scale-balanced text-3xl"></i>
+                                </div>
+                                <h4 class="text-base font-bold text-slate-700 font-sans">Despacho Jurídico Preparado</h4>
+                                <p class="text-xs text-slate-500 font-sans max-w-md mx-auto mt-2">
+                                    Radica un caso o consulta normativa en el panel lateral, adjunta tus documentos de soporte (PDF/Word) y el Posdoctor en Derecho Educativo emitirá el concepto jurídico con barrido de normas vigentes, desvirtuación de derogatorias y propuesta articulada formal.
+                                </p>
+                            </div>
+
+                            <!-- Contenido Renderizado -->
+                            <div id="dictamen-rendered" class="dictamen-body" style="display: none;"></div>
+
+                        </div>
+
+                        <!-- Footer del Dictamen -->
+                        <div class="bg-slate-50 border-t border-slate-200 px-6 py-3 flex items-center justify-between text-xs text-slate-500">
+                            <span><i class="fa-solid fa-stamp text-indigo-600"></i> Eficacia probatoria y rigor formal ante MEN, CONACES, CNA y Consejo Directivo.</span>
+                            <span class="font-semibold text-slate-700">SKEL 360 · Dirección Jurídica</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- =============================================================== -->
+            <!-- PESTAÑA 2: EXPEDIENTES Y CASOS RADICADOS (HISTORIAL) -->
+            <!-- =============================================================== -->
+            <section id="pane-expedientes" class="space-y-6" style="display: none;">
+                
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 mb-5">
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-folder-tree text-indigo-600"></i> Expedientes y Dictámenes Jurídicos Emitidos
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Repositorio histórico de conceptos para trazabilidad ante requerimientos y auditorías ministeriales.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="text" id="filtro-casos" onkeyup="filtrarCasosTabla()" placeholder="Buscar por radicado o tema..." class="text-xs rounded-lg border-slate-300 border px-3 py-2 w-64">
+                            <button type="button" onclick="switchJuridicoTab('consultorio'); resetFormCaso();" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-plus"></i> Nuevo Caso
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-600">
+                            <thead class="bg-slate-100 text-slate-800 uppercase font-bold text-[11px] border-b border-slate-200">
+                                <tr>
+                                    <th class="py-3 px-4">Radicado</th>
+                                    <th class="py-3 px-4">Título / Asunto del Caso</th>
+                                    <th class="py-3 px-4">Tipo de Proceso</th>
+                                    <th class="py-3 px-4">Fecha Emisión</th>
+                                    <th class="py-3 px-4">Evidencias</th>
+                                    <th class="py-3 px-4">Estado</th>
+                                    <th class="py-3 px-4 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-casos-historial" class="divide-y divide-slate-100">
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- =============================================================== -->
+            <!-- PESTAÑA 3: NORMAGRAMA DINÁMICO Y VIGENCIAS -->
+            <!-- =============================================================== -->
+            <section id="pane-normagrama" class="space-y-6" style="display: none;">
+                
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 mb-5">
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-book-bookmark text-indigo-600"></i> Normagrama de Educación Superior en Colombia
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Catálogo maestro de normas aplicables, notas de vigencia del Posdoctor Jurídico y desvirtuación de normas derogadas.</p>
+                        </div>
+                        <input type="text" id="filtro-normas" onkeyup="filtrarNormasTabla()" placeholder="Filtrar normas por ley, decreto o materia..." class="text-xs rounded-lg border-slate-300 border px-3 py-2 w-72">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="normagrama-cards-container">
+                        <!-- Tarjetas de normas inyectadas por JS -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- =============================================================== -->
+            <!-- PESTAÑA 4: GENERADOR DE MINUTAS Y ACUERDOS -->
+            <!-- =============================================================== -->
+            <section id="pane-minutas" class="space-y-6" style="display: none;">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Tarjeta 1: Acuerdo de Estatutos -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:border-indigo-400 transition flex flex-col justify-between">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center text-xl mb-4 font-bold">
+                                <i class="fa-solid fa-landmark"></i>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-900 mb-2">Proyecto de Acuerdo: Nuevo Estatuto General (Cambio de Carácter)</h4>
+                            <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+                                Minuta formal para adopción por el Consejo Directivo de INTENALCO, fundamentada en la Ley 749 de 2002, Ley 30 de 1992 y Decreto 2038, adaptando funciones sustantivas y de posgrados.
+                            </p>
+                        </div>
+                        <button type="button" onclick="cargarPlantillaEnConsultorio('estatuto_general')" class="w-full bg-slate-900 hover:bg-indigo-900 text-white font-bold py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-pen-to-square"></i> Cargar Caso para Redacción
+                        </button>
+                    </div>
+
+                    <!-- Tarjeta 2: Recurso de Reposición MEN -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:border-indigo-400 transition flex flex-col justify-between">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center text-xl mb-4 font-bold">
+                                <i class="fa-solid fa-file-signature"></i>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-900 mb-2">Recurso de Reposición contra Auto o Resolución MEN / CONACES</h4>
+                            <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+                                Memorial contundente en el marco del CPACA (Ley 1437 de 2011), Decreto 1075 y Decreto 0529 de 2024, desvirtuando objeciones de pares evaluadores con sustento probatorio.
+                            </p>
+                        </div>
+                        <button type="button" onclick="cargarPlantillaEnConsultorio('recurso_reposicion')" class="w-full bg-slate-900 hover:bg-indigo-900 text-white font-bold py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-pen-to-square"></i> Cargar Caso para Redacción
+                        </button>
+                    </div>
+
+                    <!-- Tarjeta 3: Defensa de Autonomía Universitaria -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:border-indigo-400 transition flex flex-col justify-between">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl mb-4 font-bold">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-900 mb-2">Defensa Jurídica de la Autonomía Institucional (Consejo Directivo)</h4>
+                            <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+                                Dictamen de blindaje constitucional amparado en las Sentencias C-220/97 y C-008/01 frente a extralimitaciones de entes de control o requerimientos no reglados legalmente.
+                            </p>
+                        </div>
+                        <button type="button" onclick="cargarPlantillaEnConsultorio('defensa_autonomia')" class="w-full bg-slate-900 hover:bg-indigo-900 text-white font-bold py-2.5 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-pen-to-square"></i> Cargar Caso para Redacción
+                        </button>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+    <!-- JavaScript del Asesor Jurídico -->
+    <script>
+        let currentProjectData = null;
+        let selectedFiles = [];
+        let activeDictamenMarkdown = "";
+        let currentCasoId = "";
+        let currentCodigoCaso = "";
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', async () => {
+            await cargarDatosJuridicos();
+        });
+
+        async function cargarDatosJuridicos() {
+            try {
+                const res = await fetch('/api/asesor_juridico/data');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    currentProjectData = data.project;
+                    renderExpedientesTable(data.project.casos || []);
+                    renderNormagramaCards(data.normagrama_base || []);
+                    document.getElementById('count-casos').innerText = (data.project.casos || []).length;
+                }
+            } catch (err) {
+                console.error("Error cargando datos jurídicos:", err);
+            }
+        }
+
+        // Navegación por Pestañas
+        function switchJuridicoTab(tabName) {
+            ['consultorio', 'expedientes', 'normagrama', 'minutas'].forEach(t => {
+                const pane = document.getElementById(`pane-${t}`);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (pane) pane.style.display = (t === tabName) ? 'block' : 'none';
+                if (btn) {
+                    if (t === tabName) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+            });
+        }
+
+        // Manejo de Archivos Adjuntos
+        function handleFilesSelected(event) {
+            const files = Array.from(event.target.files);
+            selectedFiles = [...selectedFiles, ...files];
+            renderSelectedFilesList();
+        }
+
+        function renderSelectedFilesList() {
+            const container = document.getElementById('file-list-preview');
+            container.innerHTML = '';
+            selectedFiles.forEach((f, idx) => {
+                const pill = document.createElement('div');
+                pill.className = 'file-pill';
+                pill.innerHTML = `
+                    <i class="fa-solid fa-file-lines text-indigo-500"></i>
+                    <span class="max-w-[180px] truncate">${f.name}</span>
+                    <button type="button" onclick="removeSelectedFile(${idx})" class="text-rose-500 hover:text-rose-700 ml-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                container.appendChild(pill);
+            });
+        }
+
+        function removeSelectedFile(index) {
+            selectedFiles.splice(index, 1);
+            renderSelectedFilesList();
+        }
+
+        function insertarContextoIntenalco() {
+            document.getElementById('caso-estatuto-contexto').value = 
+                "INTENALCO EDUCACIÓN SUPERIOR: Institución Técnica Profesional oficial/pública en proceso de redefinición académica a Institución Universitaria conforme a la Ley 749 de 2002 y Decreto 2038. Órgano de máxima dirección y gobierno: Consejo Directivo.";
+        }
+
+        function resetFormCaso() {
+            document.getElementById('caso-id-hidden').value = '';
+            document.getElementById('caso-titulo').value = '';
+            document.getElementById('caso-pregunta').value = '';
+            document.getElementById('caso-estatuto-contexto').value = '';
+            selectedFiles = [];
+            renderSelectedFilesList();
+            document.getElementById('dictamen-placeholder').style.display = 'block';
+            document.getElementById('dictamen-rendered').style.display = 'none';
+            document.getElementById('dictamen-actions').style.display = 'none';
+            document.getElementById('dictamen-meta-box').style.display = 'none';
+            document.getElementById('dictamen-meta-header').innerText = 'Radicado: PENDIENTE · SKEL 360';
+            activeDictamenMarkdown = '';
+            currentCasoId = '';
+            currentCodigoCaso = '';
+        }
+
+        // Emitir Dictamen Jurídico Vinculante
+        async function emitirDictamenJuridico() {
+            const titulo = document.getElementById('caso-titulo').value.trim();
+            const pregunta = document.getElementById('caso-pregunta').value.trim();
+            const asuntoTipo = document.getElementById('caso-asunto-tipo').value;
+            const contexto = document.getElementById('caso-estatuto-contexto').value.trim();
+            const casoId = document.getElementById('caso-id-hidden').value;
+
+            if (!titulo || !pregunta) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos requeridos',
+                    text: 'Por favor ingrese el título y el problema jurídico a resolver.'
+                });
+                return;
+            }
+
+            const btn = document.getElementById('btn-emitir-dictamen');
+            const originalBtnHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-amber-400"></i> <span>Analizando marco normativo y redactando dictamen...</span>`;
+
+            // Construir FormData con archivos
+            const formData = new FormData();
+            formData.append('titulo', titulo);
+            formData.append('asunto_tipo', asuntoTipo);
+            formData.append('pregunta_caso', pregunta);
+            formData.append('estatuto_contexto', contexto);
+            formData.append('caso_id', casoId);
+
+            // Normas seleccionadas
+            const normasCheckboxes = document.querySelectorAll('input[name="normas"]:checked');
+            const normasArr = Array.from(normasCheckboxes).map(c => c.value);
+            formData.append('normas_seleccionadas', normasArr.join('; '));
+
+            // Archivos adjuntos
+            selectedFiles.forEach(f => {
+                formData.append('evidencias_files', f);
+            });
+
+            try {
+                const res = await fetch('/api/asesor_juridico/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    activeDictamenMarkdown = data.dictamen;
+                    currentCasoId = data.caso_id;
+                    currentCodigoCaso = data.codigo_caso;
+
+                    // Renderizar Markdown
+                    document.getElementById('dictamen-placeholder').style.display = 'none';
+                    const renderDiv = document.getElementById('dictamen-rendered');
+                    renderDiv.innerHTML = marked.parse(data.dictamen);
+                    renderDiv.style.display = 'block';
+
+                    // Actualizar metadatos y barra de acciones
+                    document.getElementById('dictamen-actions').style.display = 'flex';
+                    document.getElementById('dictamen-meta-box').style.display = 'grid';
+                    document.getElementById('dictamen-meta-header').innerText = `Radicado: ${data.codigo_caso} · Emitido`;
+                    document.getElementById('meta-radicado').innerText = data.codigo_caso;
+                    document.getElementById('meta-fecha').innerText = new Date().toLocaleDateString();
+                    document.getElementById('meta-asunto').innerText = asuntoTipo;
+                    document.getElementById('meta-evidencias').innerText = `${data.archivos_procesados} archivo(s)`;
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Dictamen Jurídico Emitido',
+                        text: `El concepto ${data.codigo_caso} ha sido redactado con pleno rigor legal y guardado en los expedientes.`,
+                        timer: 2500,
+                        showConfirmButton: false
+                    });
+
+                    // Recargar expedientes
+                    await cargarDatosJuridicos();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error en el análisis',
+                        text: data.message || 'No fue posible emitir el dictamen jurídico.'
+                    });
+                }
+            } catch (err) {
+                console.error("Error al emitir dictamen:", err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Fallo de conexión',
+                    text: 'Ocurrió un error al contactar al motor jurídico.'
+                });
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
+            }
+        }
+
+        // Exportar a Word / PDF
+        async function exportarDictamen(formato) {
+            if (!activeDictamenMarkdown) {
+                Swal.fire({ icon: 'info', title: 'Sin dictamen', text: 'Primero emita o seleccione un concepto jurídico.' });
+                return;
+            }
+
+            const endpoint = (formato === 'word') ? '/api/asesor_juridico/export_word' : '/api/asesor_juridico/export_pdf';
+            const formData = new FormData();
+            formData.append('titulo', document.getElementById('caso-titulo').value || 'Concepto Jurídico');
+            formData.append('asunto_tipo', document.getElementById('caso-asunto-tipo').value);
+            formData.append('dictamen', activeDictamenMarkdown);
+            formData.append('codigo_caso', currentCodigoCaso || 'CASO-JUR');
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const ext = (formato === 'word') ? 'docx' : 'pdf';
+                    a.download = `Dictamen_${currentCodigoCaso || 'JUR'}_${new Date().toISOString().slice(0,10)}.${ext}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error de exportación', text: 'No se pudo generar el archivo descargable.' });
+                }
+            } catch (err) {
+                console.error("Error exportando:", err);
+            }
+        }
+
+        function copiarDictamen() {
+            if (!activeDictamenMarkdown) return;
+            navigator.clipboard.writeText(activeDictamenMarkdown).then(() => {
+                Swal.fire({ icon: 'success', title: 'Copiado', text: 'El texto del dictamen fue copiado al portapapeles.', timer: 1500, showConfirmButton: false });
+            });
+        }
+
+        // Renderizar Tabla de Expedientes
+        function renderExpedientesTable(casos) {
+            const tbody = document.getElementById('tbody-casos-historial');
+            tbody.innerHTML = '';
+
+            if (!casos || casos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">No hay casos ni expedientes radicados aún.</td></tr>`;
+                return;
+            }
+
+            casos.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition';
+                const fDate = c.fecha_creacion ? new Date(c.fecha_creacion).toLocaleDateString() : '-';
+                const filesCount = (c.archivos || []).length;
+                
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-bold text-indigo-700">${c.codigo_caso || 'CASO-JUR'}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-800 max-w-xs truncate" title="${c.titulo}">${c.titulo}</td>
+                    <td class="py-3 px-4 text-slate-600">${c.asunto_tipo || 'General'}</td>
+                    <td class="py-3 px-4 text-slate-500">${fDate}</td>
+                    <td class="py-3 px-4"><span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold">${filesCount} adjunto(s)</span></td>
+                    <td class="py-3 px-4"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">Emitido</span></td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button type="button" onclick="verCasoEnConsultorio('${c.id}')" class="text-indigo-600 hover:text-indigo-800 p-1" title="Ver / Cargar Dictamen">
+                                <i class="fa-solid fa-eye text-sm"></i>
+                            </button>
+                            <button type="button" onclick="eliminarCaso('${c.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Eliminar Caso">
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function verCasoEnConsultorio(casoId) {
+            const caso = (currentProjectData.casos || []).find(c => c.id === casoId);
+            if (!caso) return;
+
+            document.getElementById('caso-id-hidden').value = caso.id;
+            document.getElementById('caso-titulo').value = caso.titulo || '';
+            document.getElementById('caso-asunto-tipo').value = caso.asunto_tipo || 'Cambio de Carácter y Redefinición';
+            document.getElementById('caso-estatuto-contexto').value = caso.estatuto_contexto || '';
+            document.getElementById('caso-pregunta').value = caso.pregunta_caso || '';
+
+            activeDictamenMarkdown = caso.dictamen || '';
+            currentCasoId = caso.id;
+            currentCodigoCaso = caso.codigo_caso || 'CASO-JUR';
+
+            document.getElementById('dictamen-placeholder').style.display = 'none';
+            const renderDiv = document.getElementById('dictamen-rendered');
+            renderDiv.innerHTML = marked.parse(caso.dictamen || '*Sin dictamen registrado*');
+            renderDiv.style.display = 'block';
+
+            document.getElementById('dictamen-actions').style.display = 'flex';
+            document.getElementById('dictamen-meta-box').style.display = 'grid';
+            document.getElementById('dictamen-meta-header').innerText = `Radicado: ${caso.codigo_caso} · En Consulta`;
+            document.getElementById('meta-radicado').innerText = caso.codigo_caso;
+            document.getElementById('meta-fecha').innerText = new Date(caso.fecha_creacion).toLocaleDateString();
+            document.getElementById('meta-asunto').innerText = caso.asunto_tipo || '-';
+            document.getElementById('meta-evidencias').innerText = `${(caso.archivos || []).length} archivo(s)`;
+
+            switchJuridicoTab('consultorio');
+        }
+
+        async function eliminarCaso(casoId) {
+            const confirm = await Swal.fire({
+                title: '¿Eliminar este caso?',
+                text: 'Esta acción eliminará el dictamen del expediente.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#dc2626'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                const formData = new FormData();
+                formData.append('caso_id', casoId);
+                const res = await fetch('/api/asesor_juridico/delete_case', { method: 'POST', body: formData });
+                const d = await res.json();
+                if (d.status === 'success') {
+                    Swal.fire({ icon: 'success', title: 'Eliminado', timer: 1500, showConfirmButton: false });
+                    await cargarDatosJuridicos();
+                }
+            } catch (err) {
+                console.error("Error eliminando caso:", err);
+            }
+        }
+
+        // Renderizar Normagrama
+        function renderNormagramaCards(normas) {
+            const container = document.getElementById('normagrama-cards-container');
+            container.innerHTML = '';
+
+            normas.forEach(n => {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:bg-white hover:border-indigo-300 transition shadow-sm';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-indigo-900 bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200">${n.norma}</span>
+                            <span class="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">${n.estado}</span>
+                        </div>
+                        <h4 class="text-xs font-extrabold text-slate-800 mb-1.5">${n.titulo}</h4>
+                        <p class="text-[11px] text-slate-600 mb-2 leading-relaxed">${n.alcance}</p>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200 text-[10px] text-slate-500 flex items-center justify-between">
+                        <span><i class="fa-solid fa-landmark"></i> ${n.entidad}</span>
+                        <span class="font-semibold text-indigo-600">${n.fecha}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filtrarNormasTabla() {
+            const query = document.getElementById('filtro-normas').value.toLowerCase();
+            const cards = document.querySelectorAll('#normagrama-cards-container > div');
+            cards.forEach(c => {
+                const txt = c.innerText.toLowerCase();
+                c.style.display = txt.includes(query) ? 'flex' : 'none';
+            });
+        }
+
+        function filtrarCasosTabla() {
+            const query = document.getElementById('filtro-casos').value.toLowerCase();
+            const rows = document.querySelectorAll('#tbody-casos-historial tr');
+            rows.forEach(r => {
+                const txt = r.innerText.toLowerCase();
+                r.style.display = txt.includes(query) ? '' : 'none';
+            });
+        }
+
+        // Cargar Plantillas en Consultorio
+        function cargarPlantillaEnConsultorio(tipo) {
+            resetFormCaso();
+            if (tipo === 'estatuto_general') {
+                document.getElementById('caso-titulo').value = "Adopción de Nuevo Estatuto General para Institución Universitaria (Ley 749 y Dec. 2038)";
+                document.getElementById('caso-asunto-tipo').value = "Creación / Reforma de Estatutos Generales y Reglamentos";
+                document.getElementById('caso-pregunta').value = 
+                    "Formular la minuta articulada del Proyecto de Acuerdo por el cual el Consejo Directivo de INTENALCO adopta el nuevo Estatuto General de la Institución con ocasión del cambio de carácter a Institución Universitaria. Se requiere definir con precisión la misión, funciones sustantivas (docencia con posgrados, investigación y proyección social), órganos de gobierno y régimen docente conforme a la Ley 30 de 1992 y el Decreto 2038.";
+                insertarContextoIntenalco();
+            } else if (tipo === 'recurso_reposicion') {
+                document.getElementById('caso-titulo').value = "Recurso de Reposición contra Requerimiento / Auto de Sala CONACES";
+                document.getElementById('caso-asunto-tipo').value = "Respuesta a Requerimiento / Auto / Recurso de Reposición MEN-CONACES";
+                document.getElementById('caso-pregunta').value = 
+                    "Estructurar un escrito jurídico formal de Recurso de Reposición (art. 74 y ss. CPACA) frente al pronunciamiento de la Sala CONACES, desvirtuando objeciones con base en las evidencias institucionales aportadas y la simplificación probatoria del Decreto 0529 de 2024.";
+                insertarContextoIntenalco();
+            } else if (tipo === 'defensa_autonomia') {
+                document.getElementById('caso-titulo').value = "Dictamen de Amparo de la Autonomía Universitaria en Reglamentos Internos";
+                document.getElementById('caso-asunto-tipo').value = "Régimen de Función Pública en IES Oficiales / Adscritas";
+                document.getElementById('caso-pregunta').value = 
+                    "Analizar la competencia del Consejo Directivo para expedir reglamentos de carrera docente y bienestar institucional frente a los límites de la función pública territorial, con fundamento en las Sentencias C-220 de 1997 y C-008 de 2001 de la Corte Constitucional.";
+                insertarContextoIntenalco();
+            }
+            switchJuridicoTab('consultorio');
+        }
+
+        function logout() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/login.html';
+        }
+    </script>
+</body>
+</html>

@@ -63,6 +63,9 @@ app.register_blueprint(registro_calificado_bp)
 from routes.cambio_caracter import cambio_caracter_bp
 app.register_blueprint(cambio_caracter_bp)
 
+from routes.asesor_juridico import asesor_juridico_bp
+app.register_blueprint(asesor_juridico_bp)
+
 
 
 
