@@ -205,6 +205,21 @@
                                         <input type="file" id="input-evidencias" multiple accept=".pdf,.docx,.doc,.txt" class="hidden" onchange="handleFilesSelected(event)">
                                     </div>
                                     <div id="file-list-preview" class="mt-2 flex flex-wrap gap-1"></div>
+                                    <div id="existing-files-box" class="mt-2" style="display:none;">
+                                        <p class="text-[11px] font-bold text-slate-600 mb-1"><i class="fa-solid fa-box-archive text-indigo-600"></i> Evidencias ya incorporadas al expediente:</p>
+                                        <div id="existing-files-list" class="flex flex-wrap gap-1"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Reestructuración (solo casos guardados) -->
+                                <div id="reestructura-box" style="display:none;" class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                    <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1">
+                                        <i class="fa-solid fa-arrows-rotate"></i> Instrucciones para reestructurar la respuesta
+                                    </label>
+                                    <textarea id="caso-instrucciones" rows="3" class="w-full text-xs rounded-lg border-amber-300 border p-2.5" placeholder="Ej: Integrar el nuevo Acuerdo adjunto, ampliar el análisis de la función pública y redactar la propuesta como articulado de estatuto..."></textarea>
+                                    <p class="text-[10px] text-amber-800 mt-1">Se conservan las evidencias previas y el dictamen anterior queda en el historial de versiones.</p>
+                                </div>
+                                <div style="display:none;">
                                 </div>
 
                                 <!-- Normas Prioritarias -->
@@ -224,7 +239,10 @@
                             </form>
                         </div>
 
-                        <div class="pt-5 border-t border-slate-100">
+                        <div class="pt-5 border-t border-slate-100 space-y-2">
+                            <button type="button" id="btn-guardar-caso" onclick="guardarCaso()" class="w-full bg-white border-2 border-indigo-700 text-indigo-800 hover:bg-indigo-50 font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm transition">
+                                <i class="fa-solid fa-floppy-disk"></i> <span>Guardar Caso (sin emitir)</span>
+                            </button>
                             <button type="button" id="btn-emitir-dictamen" onclick="emitirDictamenJuridico()" class="w-full bg-gradient-to-r from-blue-900 to-indigo-800 hover:from-blue-950 hover:to-indigo-900 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-950/20 flex items-center justify-center gap-2.5 text-sm transition">
                                 <i class="fa-solid fa-gavel text-amber-400"></i>
                                 <span>Emitir Dictamen Jurídico Vinculante (Posdoctor SKEL)</span>
@@ -247,6 +265,9 @@
                             
                             <!-- Acciones de Exportación -->
                             <div class="flex items-center gap-2" id="dictamen-actions" style="display: none;">
+                                <button type="button" id="btn-editar-dictamen" onclick="toggleEditarDictamen()" class="bg-amber-500/90 hover:bg-amber-500 text-slate-900 text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition">
+                                    <i class="fa-solid fa-pen"></i> <span>Editar</span>
+                                </button>
                                 <button type="button" onclick="exportarDictamen('word')" class="bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition">
                                     <i class="fa-solid fa-file-word text-blue-400"></i> Word (.docx)
                                 </button>
@@ -283,6 +304,7 @@
 
                             <!-- Contenido Renderizado -->
                             <div id="dictamen-rendered" class="dictamen-body" style="display: none;"></div>
+                            <textarea id="dictamen-editor" class="w-full font-mono text-xs border border-amber-300 rounded-lg p-3 bg-amber-50/40" style="display:none; min-height:520px;"></textarea>
 
                         </div>
 
@@ -517,6 +539,12 @@
             activeDictamenMarkdown = '';
             currentCasoId = '';
             currentCodigoCaso = '';
+            document.getElementById('reestructura-box').style.display = 'none';
+            document.getElementById('existing-files-box').style.display = 'none';
+            document.getElementById('caso-instrucciones').value = '';
+            document.getElementById('dictamen-editor').style.display = 'none';
+            const bs = document.querySelector('#btn-emitir-dictamen span');
+            if (bs) bs.innerText = 'Emitir Dictamen Jurídico Vinculante (Posdoctor SKEL)';
         }
 
         // Emitir Dictamen Jurídico Vinculante
@@ -548,8 +576,7 @@
             formData.append('pregunta_caso', pregunta);
             formData.append('estatuto_contexto', contexto);
             formData.append('caso_id', casoId);
-
-            // Normas seleccionadas
+            formData.append('instrucciones_reestructura', (document.getElementById('caso-instrucciones') || {}).value || '');
             const normasCheckboxes = document.querySelectorAll('input[name="normas"]:checked');
             const normasArr = Array.from(normasCheckboxes).map(c => c.value);
             formData.append('normas_seleccionadas', normasArr.join('; '));
@@ -585,6 +612,16 @@
                     document.getElementById('meta-fecha').innerText = new Date().toLocaleDateString();
                     document.getElementById('meta-asunto').innerText = asuntoTipo;
                     document.getElementById('meta-evidencias').innerText = `${data.archivos_procesados} archivo(s)`;
+
+                    // Mantener el caso abierto para seguir editando / reestructurando
+                    selectedFiles = [];
+                    renderSelectedFilesList();
+                    if (data.caso) {
+                        document.getElementById('caso-id-hidden').value = data.caso.id;
+                        mostrarModoEdicionCaso(data.caso);
+                    }
+                    const instr = document.getElementById('caso-instrucciones');
+                    if (instr) instr.value = '';
 
                     Swal.fire({
                         icon: 'success',
@@ -682,9 +719,12 @@
                     <td class="py-3 px-4 text-slate-600">${c.asunto_tipo || 'General'}</td>
                     <td class="py-3 px-4 text-slate-500">${fDate}</td>
                     <td class="py-3 px-4"><span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold">${filesCount} adjunto(s)</span></td>
-                    <td class="py-3 px-4"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">Emitido</span></td>
+                    <td class="py-3 px-4"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">${c.estado || 'Emitido'} · v${c.version || 1}</span></td>
                     <td class="py-3 px-4 text-center">
                         <div class="flex items-center justify-center gap-2">
+                            <button type="button" onclick="verCasoEnConsultorio('${c.id}')" class="text-amber-600 hover:text-amber-800 p-1" title="Editar / Adjuntar / Reestructurar">
+                                <i class="fa-solid fa-pen-to-square text-sm"></i>
+                            </button>
                             <button type="button" onclick="verCasoEnConsultorio('${c.id}')" class="text-indigo-600 hover:text-indigo-800 p-1" title="Ver / Cargar Dictamen">
                                 <i class="fa-solid fa-eye text-sm"></i>
                             </button>
@@ -701,6 +741,27 @@
         function verCasoEnConsultorio(casoId) {
             const caso = (currentProjectData.casos || []).find(c => c.id === casoId);
             if (!caso) return;
+            selectedFiles = [];
+            renderSelectedFilesList();
+            mostrarModoEdicionCaso(caso);
+            const norms = (caso.normas_seleccionadas || '').split(';').map(s => s.trim()).filter(Boolean);
+            if (norms.length) {
+                document.querySelectorAll('input[name="normas"]').forEach(cb => { cb.checked = norms.includes(cb.value); });
+            }
+            if (!caso.dictamen) {
+                document.getElementById('dictamen-placeholder').style.display = 'block';
+                document.getElementById('dictamen-rendered').style.display = 'none';
+                document.getElementById('dictamen-actions').style.display = 'none';
+                document.getElementById('dictamen-meta-box').style.display = 'none';
+                document.getElementById('caso-titulo').value = caso.titulo || '';
+                document.getElementById('caso-asunto-tipo').value = caso.asunto_tipo || document.getElementById('caso-asunto-tipo').value;
+                document.getElementById('caso-estatuto-contexto').value = caso.estatuto_contexto || '';
+                document.getElementById('caso-pregunta').value = caso.pregunta_caso || '';
+                document.getElementById('caso-id-hidden').value = caso.id;
+                currentCasoId = caso.id; currentCodigoCaso = caso.codigo_caso;
+                switchJuridicoTab('consultorio');
+                return;
+            }
 
             document.getElementById('caso-id-hidden').value = caso.id;
             document.getElementById('caso-titulo').value = caso.titulo || '';
@@ -822,6 +883,98 @@
                 insertarContextoIntenalco();
             }
             switchJuridicoTab('consultorio');
+        }
+
+        // ================= GUARDAR / EDITAR / REESTRUCTURAR =================
+        function mostrarModoEdicionCaso(caso) {
+            document.getElementById('reestructura-box').style.display = 'block';
+            const box = document.getElementById('existing-files-box');
+            const list = document.getElementById('existing-files-list');
+            const files = caso.archivos || [];
+            list.innerHTML = '';
+            box.style.display = files.length ? 'block' : 'none';
+            files.forEach(a => {
+                const pill = document.createElement('div');
+                pill.className = 'file-pill';
+                pill.style.background = '#dcfce7'; pill.style.color = '#166534';
+                pill.innerHTML = `<i class="fa-solid fa-file-circle-check"></i><span class="max-w-[170px] truncate" title="${a.nombre}">${a.nombre}</span>
+                    <button type="button" onclick="quitarArchivoExistente('${a.id}')" class="text-rose-500 hover:text-rose-700 ml-1" title="Retirar del expediente"><i class="fa-solid fa-xmark"></i></button>`;
+                list.appendChild(pill);
+            });
+            const btn = document.getElementById('btn-emitir-dictamen');
+            if (btn) btn.querySelector('span').innerText = caso.dictamen ? `Reestructurar Dictamen (v${(caso.version || 1) + 1}) con Nuevas Evidencias` : 'Emitir Dictamen Jurídico Vinculante (Posdoctor SKEL)';
+        }
+
+        function buildCasoFormData() {
+            const fd = new FormData();
+            fd.append('caso_id', document.getElementById('caso-id-hidden').value);
+            fd.append('titulo', document.getElementById('caso-titulo').value.trim());
+            fd.append('asunto_tipo', document.getElementById('caso-asunto-tipo').value);
+            fd.append('pregunta_caso', document.getElementById('caso-pregunta').value.trim());
+            fd.append('estatuto_contexto', document.getElementById('caso-estatuto-contexto').value.trim());
+            fd.append('normas_seleccionadas', Array.from(document.querySelectorAll('input[name="normas"]:checked')).map(c => c.value).join('; '));
+            selectedFiles.forEach(f => fd.append('evidencias_files', f));
+            return fd;
+        }
+
+        async function guardarCaso(dictamenEditado) {
+            if (!document.getElementById('caso-titulo').value.trim()) {
+                Swal.fire({ icon: 'warning', title: 'Título requerido', text: 'Ingrese al menos el título del caso para guardarlo.' });
+                return;
+            }
+            const fd = buildCasoFormData();
+            const editor = document.getElementById('dictamen-editor');
+            if (typeof dictamenEditado === 'string') fd.append('dictamen', dictamenEditado);
+            else if (editor && editor.style.display !== 'none') fd.append('dictamen', editor.value);
+            try {
+                const res = await fetch('/api/asesor_juridico/save_case', { method: 'POST', body: fd });
+                const d = await res.json();
+                if (d.status !== 'success') throw new Error(d.message);
+                document.getElementById('caso-id-hidden').value = d.caso_id;
+                currentCasoId = d.caso_id; currentCodigoCaso = d.codigo_caso;
+                selectedFiles = []; renderSelectedFilesList();
+                mostrarModoEdicionCaso(d.caso);
+                if (d.caso.dictamen) {
+                    activeDictamenMarkdown = d.caso.dictamen;
+                    document.getElementById('dictamen-rendered').innerHTML = marked.parse(d.caso.dictamen);
+                }
+                document.getElementById('dictamen-meta-header').innerText = `Radicado: ${d.codigo_caso} · ${d.caso.estado || 'Guardado'}`;
+                await cargarDatosJuridicos();
+                Swal.fire({ icon: 'success', title: 'Caso guardado', text: `${d.codigo_caso} guardado en el expediente. Puede seguir editándolo, adjuntar documentos o reestructurar la respuesta.`, timer: 2200, showConfirmButton: false });
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'No se pudo guardar', text: err.message || 'Error de conexión.' });
+            }
+        }
+
+        async function toggleEditarDictamen() {
+            const editor = document.getElementById('dictamen-editor');
+            const rendered = document.getElementById('dictamen-rendered');
+            const btnSpan = document.querySelector('#btn-editar-dictamen span');
+            if (editor.style.display === 'none') {
+                editor.value = activeDictamenMarkdown || '';
+                editor.style.display = 'block';
+                rendered.style.display = 'none';
+                btnSpan.innerText = 'Guardar edición';
+            } else {
+                activeDictamenMarkdown = editor.value;
+                rendered.innerHTML = marked.parse(editor.value);
+                editor.style.display = 'none';
+                rendered.style.display = 'block';
+                btnSpan.innerText = 'Editar';
+                if (document.getElementById('caso-id-hidden').value) await guardarCaso(editor.value);
+            }
+        }
+
+        async function quitarArchivoExistente(fileId) {
+            const casoId = document.getElementById('caso-id-hidden').value;
+            if (!casoId) return;
+            const ok = await Swal.fire({ title: '¿Retirar esta evidencia?', text: 'No se tendrá en cuenta en la próxima reestructuración.', icon: 'question', showCancelButton: true, confirmButtonText: 'Retirar', cancelButtonText: 'Cancelar' });
+            if (!ok.isConfirmed) return;
+            const fd = new FormData();
+            fd.append('caso_id', casoId); fd.append('file_id', fileId);
+            const res = await fetch('/api/asesor_juridico/remove_file', { method: 'POST', body: fd });
+            const d = await res.json();
+            if (d.status === 'success') { mostrarModoEdicionCaso(d.caso); await cargarDatosJuridicos(); }
         }
 
         function logout() {

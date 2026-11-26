@@ -309,7 +309,19 @@ def api_asesor_juridico_analyze():
                 })
                 # Truncar razonablemente si es extremadamente largo para no desbordar el contexto
                 snippet = text_extracted[:25000] if len(text_extracted) > 25000 else text_extracted
-                archivos_texto_combinado.append(f"=== EVIDENCIA ADJUNTA: {fn} ===\n{snippet}\n")
+                archivos_data[-1]["texto_extraido"] = snippet
+                archivos_texto_combinado.append(f"=== EVIDENCIA NUEVA: {fn} ===\n{snippet}\n")
+
+        # Caso existente: recuperar evidencias previas y dictamen anterior para reestructurar
+        instrucciones_reestructura = request.form.get('instrucciones_reestructura', '').strip()
+        project_prev = get_juridico_project(inst_id)
+        caso_prev = next((c for c in project_prev.get("casos", []) if c.get("id") == caso_id), None) if caso_id else None
+        dictamen_previo = ""
+        if caso_prev:
+            for a_prev in caso_prev.get("archivos", []):
+                if a_prev.get("texto_extraido"):
+                    archivos_texto_combinado.insert(0, f"=== EVIDENCIA PREVIA DEL EXPEDIENTE: {a_prev.get('nombre')} ===\n{a_prev['texto_extraido'][:15000]}\n")
+            dictamen_previo = caso_prev.get("dictamen", "")
 
         evidencias_prompt = "\n".join(archivos_texto_combinado) if archivos_texto_combinado else "No se adjuntaron documentos adicionales. El análisis se realiza con base en el marco normativo y los hechos descritos."
 
@@ -372,6 +384,17 @@ EVIDENCIAS Y DOCUMENTOS APORTADOS AL CASO:
 
 Emita el Concepto Jurídico Vinculante formal, exhaustivo y contundente, con barrido normativo riguroso, desvirtuación de normas derogadas y propuesta articulada aplicable."""
 
+        if dictamen_previo:
+            user_prompt += f"""
+
+DICTAMEN PREVIO EMITIDO EN ESTE EXPEDIENTE (versión anterior a reestructurar):
+{dictamen_previo[:20000]}
+
+INSTRUCCIONES DE REESTRUCTURACIÓN DE LA INSTITUCIÓN:
+{instrucciones_reestructura or 'Integrar las nuevas evidencias aportadas, corregir y profundizar el análisis.'}
+
+Reestructure y emita una NUEVA VERSIÓN completa del dictamen, integrando las evidencias nuevas y previas, conservando lo que siga siendo jurídicamente válido y ajustando lo que corresponda. Indique al inicio una breve nota de los cambios frente a la versión anterior."""
+
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
@@ -415,7 +438,18 @@ Emita el Concepto Jurídico Vinculante formal, exhaustivo y contundente, con bar
                 target["estatuto_contexto"] = estatuto_contexto
                 if archivos_data:
                     target["archivos"] = target.get("archivos", []) + archivos_data
+                hist = target.setdefault("versiones", [])
+                if target.get("dictamen"):
+                    hist.insert(0, {
+                        "version": target.get("version", 1),
+                        "fecha": target.get("fecha_actualizacion", now_iso),
+                        "dictamen": target.get("dictamen", "")
+                    })
+                target["versiones"] = hist[:10]
+                target["version"] = int(target.get("version", 1)) + 1
+                target["instrucciones_reestructura"] = instrucciones_reestructura
                 target["dictamen"] = response_text
+                target["estado"] = "Reestructurado"
                 target["fecha_actualizacion"] = now_iso
                 codigo_caso = target.get("codigo_caso", "CASO-JUR")
             else:
@@ -428,11 +462,96 @@ Emita el Concepto Jurídico Vinculante formal, exhaustivo y contundente, con bar
             "caso_id": caso_id,
             "codigo_caso": codigo_caso,
             "dictamen": response_text,
-            "archivos_procesados": len(archivos_data)
+            "archivos_procesados": len(archivos_data),
+            "caso": next((c for c in project.get("casos", []) if c.get("id") == caso_id), None)
         })
 
     except Exception as e:
         print(f"[Asesor Jurídico Error] {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@asesor_juridico_bp.route('/api/asesor_juridico/save_case', methods=['POST'])
+def api_asesor_juridico_save_case():
+    """Guarda el caso (borrador o edición manual del dictamen) sin invocar el análisis, admitiendo nuevos adjuntos."""
+    try:
+        inst_id = request.form.get('inst_id', get_active_inst_id(), type=int)
+        caso_id = request.form.get('caso_id', '').strip()
+        project = get_juridico_project(inst_id)
+        now_iso = datetime.datetime.now().isoformat()
+
+        nuevos = []
+        for f in request.files.getlist('evidencias_files'):
+            if f and f.filename:
+                txt = extract_text_from_file_storage(f)
+                nuevos.append({
+                    "id": str(uuid.uuid4()),
+                    "nombre": f.filename,
+                    "tamano_kb": len(txt.encode('utf-8')) // 1024,
+                    "fecha_subida": now_iso,
+                    "texto_extraido": txt[:25000]
+                })
+
+        campos = {
+            "titulo": request.form.get('titulo', '').strip() or 'Caso Jurídico (Borrador)',
+            "asunto_tipo": request.form.get('asunto_tipo', '').strip(),
+            "pregunta_caso": request.form.get('pregunta_caso', '').strip(),
+            "normas_seleccionadas": request.form.get('normas_seleccionadas', ''),
+            "estatuto_contexto": request.form.get('estatuto_contexto', '').strip(),
+        }
+        dictamen_editado = request.form.get('dictamen', None)
+
+        target = next((c for c in project.get("casos", []) if c.get("id") == caso_id), None) if caso_id else None
+        if target:
+            target.update(campos)
+            target["archivos"] = target.get("archivos", []) + nuevos
+            if dictamen_editado is not None and dictamen_editado != target.get("dictamen", ""):
+                hist = target.setdefault("versiones", [])
+                if target.get("dictamen"):
+                    hist.insert(0, {"version": target.get("version", 1), "fecha": target.get("fecha_actualizacion", now_iso), "dictamen": target["dictamen"]})
+                target["versiones"] = hist[:10]
+                target["version"] = int(target.get("version", 1)) + 1
+                target["dictamen"] = dictamen_editado
+                target["estado"] = "Editado manualmente"
+            target["fecha_actualizacion"] = now_iso
+        else:
+            caso_id = str(uuid.uuid4())
+            cod_num = len(project.get("casos", [])) + 1
+            target = {
+                "id": caso_id,
+                "codigo_caso": f"CASO-JUR-{datetime.datetime.now().year}-{cod_num:03d}",
+                **campos,
+                "archivos": nuevos,
+                "dictamen": dictamen_editado or "",
+                "version": 1,
+                "versiones": [],
+                "fecha_creacion": now_iso,
+                "fecha_actualizacion": now_iso,
+                "estado": "Borrador"
+            }
+            project.setdefault("casos", []).insert(0, target)
+
+        save_juridico_project(inst_id, project)
+        return jsonify({"status": "success", "caso_id": caso_id, "codigo_caso": target["codigo_caso"], "caso": target})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@asesor_juridico_bp.route('/api/asesor_juridico/remove_file', methods=['POST'])
+def api_asesor_juridico_remove_file():
+    """Retira una evidencia del expediente del caso."""
+    try:
+        inst_id = request.form.get('inst_id', get_active_inst_id(), type=int)
+        caso_id = request.form.get('caso_id', '').strip()
+        file_id = request.form.get('file_id', '').strip()
+        project = get_juridico_project(inst_id)
+        target = next((c for c in project.get("casos", []) if c.get("id") == caso_id), None)
+        if not target:
+            return jsonify({"status": "error", "message": "Caso no encontrado."}), 404
+        target["archivos"] = [a for a in target.get("archivos", []) if a.get("id") != file_id]
+        save_juridico_project(inst_id, project)
+        return jsonify({"status": "success", "caso": target})
+    except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
