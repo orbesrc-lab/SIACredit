@@ -165,7 +165,31 @@ def call_ai(messages, max_tokens=1500, temperature=0.7, inst_id=None):
             response = client.chat.completions.create(**kwargs)
             return response.choices[0].message.content
         except Exception as e:
-            raise Exception(f"{str(e)} [DEBUG: provider={provider}, base_url={base_url}, rows={len(check.data) if check else 'unknown'}, db_error={db_error}]")
+            err_str = str(e)
+            print(f"[AI Primary Call Failed] provider={provider}, model={model}, err={err_str}")
+
+            # Contingencia / Fallback automático si la clave de Gemini falla con 401, 403, 400 o cuota
+            fallback_key = os.getenv("OPENAI_API_KEY")
+            if fallback_key and (fallback_key.startswith("f199") or "." in fallback_key) and provider != 'bigmodel':
+                try:
+                    print("[AI Fallback] Activando motor de contingencia activo (GLM-4 / BigModel)...")
+                    fb_client = OpenAI(api_key=fallback_key, base_url="https://open.bigmodel.cn/api/paas/v4/")
+                    fb_response = fb_client.chat.completions.create(
+                        model="glm-4-flash",
+                        messages=messages,
+                        temperature=temperature,
+                        max_tokens=min(max_tokens or 4096, 8192)
+                    )
+                    return fb_response.choices[0].message.content
+                except Exception as fb_err:
+                    print(f"[AI Fallback Failed] {fb_err}")
+
+            if "403" in err_str or "API key not valid" in err_str or "PERMISSION_DENIED" in err_str:
+                raise Exception("La API Key de Google Gemini configurada no tiene permisos, no es válida o ha expirado (Error 403 de Google). Por favor actualiza tu API Key en el panel de Configuración con una clave vigente de Google AI Studio (inicia con AIzaSy...).")
+            elif "429" in err_str or "quota" in err_str.lower() or "RESOURCE_EXHAUSTED" in err_str:
+                raise Exception("Se ha alcanzado temporalmente el límite de solicitudes por minuto de la IA (Error 429). Por favor espera un minuto y vuelve a presionar el botón.")
+            else:
+                raise Exception(f"{err_str} [DEBUG: provider={provider}, base_url={base_url}, rows={len(check.data) if check else 'unknown'}, db_error={db_error}]")
 
 
 
