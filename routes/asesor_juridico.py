@@ -232,6 +232,84 @@ def set_docx_cell_bg(cell, hex_color):
         pass
 
 
+def set_table_borders(table, color="CBD5E1", sz="4", val="single"):
+    """Aplica bordes sutiles horizontales a una tabla en Word."""
+    try:
+        tblPr = table._tbl.tblPr
+        borders = parse_xml(
+            f'<w:tblBorders {nsdecls("w")}>'
+            f'  <w:top w:val="{val}" w:sz="{sz}" w:space="0" w:color="{color}"/>'
+            f'  <w:bottom w:val="{val}" w:sz="{sz}" w:space="0" w:color="{color}"/>'
+            f'  <w:insideH w:val="{val}" w:sz="{sz}" w:space="0" w:color="{color}"/>'
+            f'  <w:insideV w:val="none"/>'
+            f'  <w:left w:val="none"/>'
+            f'  <w:right w:val="none"/>'
+            f'</w:tblBorders>'
+        )
+        tblPr.append(borders)
+    except Exception:
+        pass
+
+
+def set_cell_margins(cell, top=100, bottom=100, left=140, right=140):
+    """Configura padding interno en twips (20 twips = 1 pt)."""
+    try:
+        tcPr = cell._tc.get_or_add_tcPr()
+        tcMar = parse_xml(
+            f'<w:tcMar {nsdecls("w")}>'
+            f'  <w:top w:w="{top}" w:type="dxa"/>'
+            f'  <w:bottom w:w="{bottom}" w:type="dxa"/>'
+            f'  <w:left w:w="{left}" w:type="dxa"/>'
+            f'  <w:right w:w="{right}" w:type="dxa"/>'
+            f'</w:tcMar>'
+        )
+        tcPr.append(tcMar)
+    except Exception:
+        pass
+
+
+def add_footer_page_number(run):
+    """Inserta el campo nativo PAGE de Word en un run."""
+    try:
+        fld1 = parse_xml(r'<w:fldChar %s w:fldCharType="begin"/>' % nsdecls('w'))
+        instr = parse_xml(r'<w:instrText %s xml:space="preserve"> PAGE </w:instrText>' % nsdecls('w'))
+        fld2 = parse_xml(r'<w:fldChar %s w:fldCharType="separate"/>' % nsdecls('w'))
+        fld3 = parse_xml(r'<w:fldChar %s w:fldCharType="end"/>' % nsdecls('w'))
+        run._r.extend([fld1, instr, fld2, fld3])
+    except Exception:
+        pass
+
+
+def add_formatted_runs_to_paragraph(paragraph, text, base_font_size=Pt(10), base_color=RGBColor(51, 65, 85), italic_all=False):
+    """Divide texto con **negrita** y *cursiva* y lo agrega con formato editorial profesional."""
+    import re
+    tokens = re.split(r'(\*\*.*?\*\*|\*.*?\*|_.*?_)', text)
+    for tok in tokens:
+        if not tok:
+            continue
+        if tok.startswith('**') and tok.endswith('**') and len(tok) >= 4:
+            r = paragraph.add_run(tok[2:-2])
+            r.bold = True
+            r.font.name = 'Calibri'
+            r.font.size = base_font_size
+            r.font.color.rgb = RGBColor(15, 23, 42)
+            if italic_all:
+                r.italic = True
+        elif ((tok.startswith('*') and tok.endswith('*')) or (tok.startswith('_') and tok.endswith('_'))) and len(tok) >= 2:
+            r = paragraph.add_run(tok[1:-1])
+            r.italic = True
+            r.font.name = 'Calibri'
+            r.font.size = base_font_size
+            r.font.color.rgb = base_color
+        else:
+            r = paragraph.add_run(tok)
+            r.font.name = 'Calibri'
+            r.font.size = base_font_size
+            r.font.color.rgb = base_color
+            if italic_all:
+                r.italic = True
+
+
 def clean_latin_pdf(text):
     """Limpia caracteres especiales y comillas curvas para FPDF con fuente core latin-1."""
     if not text:
@@ -250,6 +328,120 @@ def clean_latin_pdf(text):
         return t.encode('latin-1', 'replace').decode('latin-1')
     except Exception:
         return t.encode('ascii', 'replace').decode('ascii')
+
+
+def parse_markdown_blocks(md_text):
+    """Parsea texto Markdown en bloques estructurados: encabezados, tablas, viñetas, listas y párrafos."""
+    if not md_text:
+        return []
+    import re
+    lines = md_text.split('\n')
+    blocks = []
+    i = 0
+    while i < len(lines):
+        line = lines[i].rstrip()
+        line_str = line.strip()
+        if not line_str:
+            i += 1
+            continue
+        
+        # Tabla Markdown (| Col1 | Col2 | ...)
+        if line_str.startswith('|') and '|' in line_str[1:]:
+            tbl_lines = []
+            while i < len(lines) and lines[i].strip().startswith('|'):
+                tbl_lines.append(lines[i].strip())
+                i += 1
+            rows = []
+            for tl in tbl_lines:
+                cleaned = re.sub(r'[\s\-:|]', '', tl)
+                if not cleaned:
+                    continue  # Separador (| --- | --- |)
+                cells = [c.strip() for c in tl.strip().strip('|').split('|')]
+                rows.append(cells)
+            if rows:
+                blocks.append({'type': 'table', 'headers': rows[0], 'rows': rows[1:]})
+            continue
+
+        if line_str.startswith('# '):
+            blocks.append({'type': 'h1', 'text': line_str[2:].strip()})
+        elif line_str.startswith('## '):
+            blocks.append({'type': 'h2', 'text': line_str[3:].strip()})
+        elif line_str.startswith('### '):
+            blocks.append({'type': 'h3', 'text': line_str[4:].strip()})
+        elif line_str.startswith('#### '):
+            blocks.append({'type': 'h4', 'text': line_str[5:].strip()})
+        elif line_str.startswith('- ') or line_str.startswith('* '):
+            blocks.append({'type': 'bullet', 'text': line_str[2:].strip()})
+        elif re.match(r'^\d+\.\s+', line_str):
+            m = re.match(r'^(\d+)\.\s+(.*)$', line_str)
+            blocks.append({'type': 'numbered', 'num': m.group(1), 'text': m.group(2).strip()})
+        elif line_str.startswith('>'):
+            blocks.append({'type': 'quote', 'text': line_str[1:].strip()})
+        elif line_str in ['---', '***', '___']:
+            blocks.append({'type': 'hr'})
+        else:
+            blocks.append({'type': 'p', 'text': line_str})
+        i += 1
+    return blocks
+
+
+def run_juridico_ai_complete(messages, inst_id, max_tokens=16384, max_loops=3):
+    """Ejecuta la llamada a la IA con amplio límite de tokens y detecta si el texto quedó cortado para continuarlo automáticamente hasta completitud total."""
+    full_text = call_ai(messages, max_tokens=max_tokens, temperature=0.3, inst_id=inst_id)
+    if not full_text:
+        return ""
+    
+    for _ in range(max_loops):
+        trimmed = full_text.rstrip()
+        if not trimmed:
+            break
+        last_char = trimmed[-1]
+        
+        palabras_cortadas = [
+            ' de', ' y', ' la', ' el', ' los', ' las', ' en', ' con', ' por', ' para',
+            ' que', ' del', ' al', ' según', ' conforme', ' mediante', ' dicho', ' dicha',
+            ' artículo', ' parágrafo', ' numeral', ' literal', ' inciso', ' acuerdo',
+            ' decreto', ' institución', ' universitaria', ' consejo', ' ministerio', ' conaces'
+        ]
+        parece_incompleto = False
+        
+        if last_char not in ('.', '!', '?', ';', ':', '}', ']', ')') and not trimmed.endswith('**.'):
+            parece_incompleto = True
+        elif any(trimmed.lower().endswith(p) for p in palabras_cortadas):
+            parece_incompleto = True
+        elif trimmed.splitlines()[-1].strip().startswith(('ARTÍCULO', 'CAPÍTULO', 'PARÁGRAFO', 'CONSIDERANDO', 'NUMERAL', 'LITERAL')) and len(trimmed.splitlines()[-1].strip()) < 150 and not trimmed.endswith('.'):
+            parece_incompleto = True
+        elif ('ARTÍCULO' in trimmed or 'ESTATUTO' in trimmed.upper()) and not any(term in trimmed.upper() for term in ['VIGENCIA', 'DEROGATORIA', 'TRANSITORIO', 'TRANSITORIA', 'COMUNÍQUESE', 'PUBLÍQUESE', 'CÚMPLASE', 'FIRMAS', 'DISPOSICIONES FINALES', 'DISPOSICIONES GENERALES Y FINALES']):
+            # Si contiene articulado estatutario pero no ha llegado al cierre formal de vigencia/derogatorias
+            parece_incompleto = True
+        
+        if not parece_incompleto:
+            break
+        
+        last_lines = "\n".join(trimmed.splitlines()[-3:])[-300:]
+        continuation_msg = {
+            "role": "user",
+            "content": (
+                f"El texto del dictamen / estatuto se detuvo antes de su finalización total. Quedó exactamente en:\n"
+                f"\"{last_lines}\"\n\n"
+                "Por favor continúa INMEDIATAMENTE a partir de ese punto exacto, sin repetir lo anterior, desarrollando con total libertad de extensión la totalidad de los artículos faltantes, parágrafos, numerales, capítulos restantes, disposiciones transitorias, vigencia, derogatorias y firmas hasta concluir el 100% del documento oficial."
+            )
+        }
+        next_messages = list(messages) + [
+            {"role": "assistant", "content": full_text},
+            continuation_msg
+        ]
+        try:
+            cont_text = call_ai(next_messages, max_tokens=max_tokens, temperature=0.3, inst_id=inst_id)
+            if cont_text and len(cont_text.strip()) > 30:
+                full_text = full_text.rstrip() + " " + cont_text.lstrip()
+            else:
+                break
+        except Exception as e:
+            print(f"[Juridico Auto-Continuation Warning] {e}")
+            break
+            
+    return full_text
 
 
 # ==============================================================================
@@ -365,6 +557,10 @@ TUS REGLAS INQUEBRANTABLES DE RESPUESTA:
    - ## 4. MARCO JURISPRUDENCIAL Y ALCANCE DE LA AUTONOMÍA INSTITUCIONAL
    - ## 5. TESIS Y DICTAMEN DE FONDO
    - ## 6. PROPUESTA TEXTUAL DE ARTICULADO / MINUTA / MEMORIAL DE RESPUESTA OFICIAL (Texto listo para ser adoptado por Consejo Directivo o presentado al MEN)
+6. LIBERTAD PLENA DE EXTENSIÓN, DESARROLLO INTEGRAL Y COMPLETITUD AL 100%:
+   - Tienes total libertad para utilizar las líneas, párrafos y páginas que sean necesarias para desarrollar la respuesta de manera exhaustiva y sin restricciones de espacio.
+   - Si la consulta solicita la redacción o reforma de estatutos o reglamentos (ej. Estatuto General para el cambio de carácter de INTENALCO a Institución Universitaria bajo Ley 749 de 2002 y Decreto 2038), DEBES REDACTAR EL ESTATUTO COMPLETO ARTÍCULO POR ARTÍCULO (desde el Artículo 1º, Capítulos I al final: Naturaleza, Gobierno Institucional, Órganos Colegiados, Rectoría, Patrimonio, Régimen Docente, Estudiantil, Disciplinario, hasta las Disposiciones Finales, Transitorias, Derogatorias y Vigencia).
+   - ESTÁ COMPLETAMENTE PROHIBIDO cortar la respuesta, dejar artículos inconclusos, usar fórmulas evasivas como "(continúan los demás artículos...)" o resumir con puntos suspensivos. Se exige el articulado íntegro y detallado al 100%.
 
 RESPONDE EXCLUSIVAMENTE EN ESPAÑOL, EN FORMATO MARKDOWN FORMAL Y CONTEXTUALIZADO."""
 
@@ -382,7 +578,8 @@ PROBLEMA JURÍDICO PLANTEADO POR LA INSTITUCIÓN:
 EVIDENCIAS Y DOCUMENTOS APORTADOS AL CASO:
 {evidencias_prompt}
 
-Emita el Concepto Jurídico Vinculante formal, exhaustivo y contundente, con barrido normativo riguroso, desvirtuación de normas derogadas y propuesta articulada aplicable."""
+Emita el Concepto Jurídico Vinculante formal, exhaustivo y contundente, con barrido normativo riguroso, desvirtuación de normas derogadas y propuesta articulada aplicable.
+IMPORTANTE: Desarrolla la respuesta y el articulado en su TOTALIDAD y COMPLETITUD (100%), agotando cada artículo hasta las disposiciones finales y de vigencia, sin omitir ningún capítulo ni suspender la redacción."""
 
         if dictamen_previo:
             user_prompt += f"""
@@ -393,15 +590,15 @@ DICTAMEN PREVIO EMITIDO EN ESTE EXPEDIENTE (versión anterior a reestructurar):
 INSTRUCCIONES DE REESTRUCTURACIÓN DE LA INSTITUCIÓN:
 {instrucciones_reestructura or 'Integrar las nuevas evidencias aportadas, corregir y profundizar el análisis.'}
 
-Reestructure y emita una NUEVA VERSIÓN completa del dictamen, integrando las evidencias nuevas y previas, conservando lo que siga siendo jurídicamente válido y ajustando lo que corresponda. Indique al inicio una breve nota de los cambios frente a la versión anterior."""
+Reestructure y emita una NUEVA VERSIÓN completa del dictamen, integrando las evidencias nuevas y previas, conservando lo que siga siendo jurídicamente válido y ajustando lo que corresponda. Indique al inicio una breve nota de los cambios frente a la versión anterior. Desarrolle el documento con total completitud al 100%."""
 
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ]
 
-        # Llamada a IA
-        response_text = call_ai(messages, max_tokens=3500, temperature=0.3, inst_id=inst_id)
+        # Llamada a IA con soporte de auto-continuación y amplio límite de tokens
+        response_text = run_juridico_ai_complete(messages, inst_id=inst_id, max_tokens=16384, max_loops=3)
 
         # Preparar registro del caso
         project = get_juridico_project(inst_id)
@@ -571,8 +768,9 @@ def api_asesor_juridico_delete_case():
 
 @asesor_juridico_bp.route('/api/asesor_juridico/export_word', methods=['POST'])
 def api_asesor_juridico_export_word():
-    """Exporta el concepto jurídico formal maquetado a Word (.docx)."""
+    """Exporta el concepto jurídico formal maquetado a Word (.docx) listo para impresión directa."""
     try:
+        import re
         inst_id = request.form.get('inst_id', get_active_inst_id(), type=int)
         caso_id = request.form.get('caso_id', '')
         titulo = request.form.get('titulo', 'Concepto Jurídico Especializado')
@@ -581,131 +779,395 @@ def api_asesor_juridico_export_word():
         codigo_caso = request.form.get('codigo_caso', 'CASO-JUR')
 
         doc = docx.Document()
+        
+        # 1. Configuración de Página (Letter estándar, márgenes exactos de 1 pulgada / 2.54 cm)
         for section in doc.sections:
-            section.top_margin = Inches(1)
-            section.bottom_margin = Inches(1)
-            section.left_margin = Inches(1)
-            section.right_margin = Inches(1)
+            section.page_width = Inches(8.5)
+            section.page_height = Inches(11.0)
+            section.top_margin = Inches(1.0)
+            section.bottom_margin = Inches(1.0)
+            section.left_margin = Inches(1.0)
+            section.right_margin = Inches(1.0)
+            section.different_first_page_header_footer = False
+            
+            # --- ENCABEZADO OFICIAL NATIVO ---
+            header = section.header
+            header_p = header.paragraphs[0]
+            header_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            header_p.paragraph_format.space_after = Pt(2)
+            
+            hdr_tbl = header.add_table(rows=1, cols=2, width=Inches(6.5))
+            hdr_tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+            
+            # Celda izquierda del header
+            c_left = hdr_tbl.cell(0, 0)
+            p_hl = c_left.paragraphs[0]
+            p_hl.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            r_hl1 = p_hl.add_run("INTENALCO EDUCACIÓN SUPERIOR\n")
+            r_hl1.font.name = 'Calibri'
+            r_hl1.font.size = Pt(8.5)
+            r_hl1.font.bold = True
+            r_hl1.font.color.rgb = RGBColor(30, 58, 138)
+            
+            r_hl2 = p_hl.add_run("SKEL 360 · DIRECCIÓN JURÍDICA Y REGULATORIA")
+            r_hl2.font.name = 'Calibri'
+            r_hl2.font.size = Pt(7.5)
+            r_hl2.font.color.rgb = RGBColor(100, 116, 139)
+            
+            # Celda derecha del header
+            c_right = hdr_tbl.cell(0, 1)
+            p_hr = c_right.paragraphs[0]
+            p_hr.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            r_hr1 = p_hr.add_run(f"Radicado: {codigo_caso}\n")
+            r_hr1.font.name = 'Calibri'
+            r_hr1.font.size = Pt(8.5)
+            r_hr1.font.bold = True
+            r_hr1.font.color.rgb = RGBColor(30, 41, 59)
+            
+            r_hr2 = p_hr.add_run(f"Expedición: {datetime.datetime.now().strftime('%d/%m/%Y')}")
+            r_hr2.font.name = 'Calibri'
+            r_hr2.font.size = Pt(7.5)
+            r_hr2.font.color.rgb = RGBColor(100, 116, 139)
+            
+            # --- PIE DE PÁGINA OFICIAL NATIVO ---
+            footer = section.footer
+            ftr_tbl = footer.add_table(rows=1, cols=2, width=Inches(6.5))
+            ftr_tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+            
+            c_fl = ftr_tbl.cell(0, 0)
+            p_fl = c_fl.paragraphs[0]
+            p_fl.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            r_fl = p_fl.add_run("Concepto Técnico-Legal Vinculante · Ley 30/1992 · Ley 749/2002 · Dec. 2038/2024")
+            r_fl.font.name = 'Calibri'
+            r_fl.font.size = Pt(7.5)
+            r_fl.font.italic = True
+            r_fl.font.color.rgb = RGBColor(148, 163, 184)
+            
+            c_fr = ftr_tbl.cell(0, 1)
+            p_fr = c_fr.paragraphs[0]
+            p_fr.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            r_fr = p_fr.add_run("Página ")
+            r_fr.font.name = 'Calibri'
+            r_fr.font.size = Pt(8.0)
+            r_fr.font.color.rgb = RGBColor(30, 58, 138)
+            add_footer_page_number(r_fr)
+            r_fr2 = p_fr.add_run(" · Imprimible Oficial")
+            r_fr2.font.name = 'Calibri'
+            r_fr2.font.size = Pt(8.0)
+            r_fr2.font.color.rgb = RGBColor(100, 116, 139)
 
-        # Encabezado institucional
-        hdr_p = doc.add_paragraph()
-        hdr_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        r1 = hdr_p.add_run("SKEL 360 · DIRECCIÓN JURÍDICA Y REGULATORIA\n")
-        r1.font.bold = True
-        r1.font.size = Pt(12)
-        r1.font.color.rgb = RGBColor(30, 58, 138)  # Navy
+        # 2. Carátula Institucional en el Cuerpo
+        p_inst = doc.add_paragraph()
+        p_inst.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_inst.paragraph_format.space_before = Pt(4)
+        p_inst.paragraph_format.space_after = Pt(2)
+        r_inst = p_inst.add_run("INTENALCO EDUCACIÓN SUPERIOR\n")
+        r_inst.font.name = 'Calibri'
+        r_inst.font.size = Pt(11)
+        r_inst.font.bold = True
+        r_inst.font.color.rgb = RGBColor(71, 85, 105)
+        
+        r_subinst = p_inst.add_run("ESTABLECIMIENTO PÚBLICO DE EDUCACIÓN SUPERIOR DEL ORDEN NACIONAL\nCONSEJO DIRECTIVO Y DIRECCIÓN JURÍDICA REGULATORIA")
+        r_subinst.font.name = 'Calibri'
+        r_subinst.font.size = Pt(8.5)
+        r_subinst.font.color.rgb = RGBColor(100, 116, 139)
+        
+        # Línea divisoria decorativa
+        p_div = doc.add_paragraph()
+        p_div.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_div.paragraph_format.space_after = Pt(12)
+        r_div = p_div.add_run("―" * 48)
+        r_div.font.color.rgb = RGBColor(203, 213, 225)
+        r_div.font.size = Pt(9)
 
-        r2 = hdr_p.add_run("CONSULTORÍA JURÍDICA ESPECIALIZADA EN EDUCACIÓN SUPERIOR\n")
-        r2.font.bold = True
-        r2.font.size = Pt(9.5)
-        r2.font.color.rgb = RGBColor(71, 85, 105)
+        # Gran Título
+        p_title = doc.add_paragraph()
+        p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_title.paragraph_format.space_after = Pt(4)
+        r_t1 = p_title.add_run("DICTAMEN JURÍDICO VINCULANTE\n")
+        r_t1.font.name = 'Calibri'
+        r_t1.font.size = Pt(15)
+        r_t1.font.bold = True
+        r_t1.font.color.rgb = RGBColor(30, 58, 138)
+        
+        r_t2 = p_title.add_run(titulo.upper())
+        r_t2.font.name = 'Calibri'
+        r_t2.font.size = Pt(11.5)
+        r_t2.font.bold = True
+        r_t2.font.color.rgb = RGBColor(49, 46, 129)
 
-        r3 = hdr_p.add_run("Régimen Ley 30 de 1992 · Ley 749 de 2002 · Decreto 2038 · Dec. 1075 / 1330 / 0529 · Acuerdo 01 CESU 2025")
-        r3.font.italic = True
-        r3.font.size = Pt(8.5)
-        r3.font.color.rgb = RGBColor(100, 116, 139)
-        hdr_p.paragraph_format.space_after = Pt(14)
-
-        # Título
-        title_p = doc.add_paragraph()
-        title_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        tr = title_p.add_run(f"DICTAMEN JURÍDICO VINCULANTE: {titulo.upper()}")
-        tr.font.bold = True
-        tr.font.size = Pt(14)
-        tr.font.color.rgb = RGBColor(30, 58, 138)
-        title_p.paragraph_format.space_after = Pt(8)
-
-        # Ficha Técnica de Radicación
+        # 3. Ficha Técnica de Radicación (Tabla estilizada)
         meta_table = doc.add_table(rows=2, cols=3)
-        meta_table.style = 'Table Grid'
         meta_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-        cells_r0 = [
-            f"Radicado: {codigo_caso}",
-            f"Fecha: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}",
-            f"Asunto: {asunto_tipo}"
+        set_table_borders(meta_table, color="CBD5E1", sz="6")
+        
+        meta_cols = [
+            ("Nº RADICADO OFICIAL", codigo_caso),
+            ("FECHA DE EXPEDICIÓN", datetime.datetime.now().strftime("%d/%m/%Y")),
+            ("TIPO DE PROCESO", asunto_tipo)
         ]
-        cells_r1 = [
-            "Perito: Posdoctor en Derecho Educativo",
-            "Instancia: Dirección Jurídica SKEL",
-            "Eficacia: Concepto Técnico-Legal Vinculante"
+        meta_cols_sub = [
+            ("AUTORIDAD EMISORA", "Posdoctor en Derecho Educativo"),
+            ("DESPACHO / INSTANCIA", "Dirección JurÍdica SKEL 360"),
+            ("EFICACIA JURÍDICA", "Concepto Vinculante y Blindaje IES")
         ]
-        for c_idx, val in enumerate(cells_r0):
-            c = meta_table.cell(0, c_idx)
-            set_docx_cell_bg(c, 'F1F5F9')
-            p = c.paragraphs[0]
-            r = p.add_run(val)
-            r.font.size = Pt(8.5)
-            r.font.bold = True
-            r.font.color.rgb = RGBColor(30, 41, 59)
+        
+        for i, (k, v) in enumerate(meta_cols):
+            cell = meta_table.cell(0, i)
+            set_docx_cell_bg(cell, "1E3A8A")
+            set_cell_margins(cell, top=100, bottom=100, left=140, right=140)
+            p = cell.paragraphs[0]
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            rk = p.add_run(k + "\n")
+            rk.font.name = 'Calibri'
+            rk.font.size = Pt(7.5)
+            rk.font.bold = True
+            rk.font.color.rgb = RGBColor(224, 231, 255)
+            rv = p.add_run(v)
+            rv.font.name = 'Calibri'
+            rv.font.size = Pt(9.0)
+            rv.font.bold = True
+            rv.font.color.rgb = RGBColor(255, 255, 255)
 
-        for c_idx, val in enumerate(cells_r1):
-            c = meta_table.cell(1, c_idx)
-            set_docx_cell_bg(c, 'F8FAFC')
-            p = c.paragraphs[0]
-            r = p.add_run(val)
-            r.font.size = Pt(8.5)
-            r.font.color.rgb = RGBColor(71, 85, 105)
+        for i, (k, v) in enumerate(meta_cols_sub):
+            cell = meta_table.cell(1, i)
+            set_docx_cell_bg(cell, "F8FAFC")
+            set_cell_margins(cell, top=80, bottom=80, left=140, right=140)
+            p = cell.paragraphs[0]
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            rk = p.add_run(k + "\n")
+            rk.font.name = 'Calibri'
+            rk.font.size = Pt(7.0)
+            rk.font.bold = True
+            rk.font.color.rgb = RGBColor(100, 116, 139)
+            rv = p.add_run(v)
+            rv.font.name = 'Calibri'
+            rv.font.size = Pt(8.0)
+            rv.font.color.rgb = RGBColor(30, 41, 59)
 
-        doc.add_paragraph().paragraph_format.space_after = Pt(12)
+        doc.add_paragraph().paragraph_format.space_after = Pt(14)
 
-        # Parsear Markdown de respuesta
-        for line in dictamen.split('\n'):
-            line_str = line.strip()
-            if not line_str:
-                doc.add_paragraph()
-                continue
-            if line_str.startswith('# '):
+        # 4. Parseo de Bloques Markdown Estructurados
+        blocks = parse_markdown_blocks(dictamen)
+        for b in blocks:
+            b_type = b.get('type')
+            if b_type == 'h1':
                 p = doc.add_paragraph()
-                p.paragraph_format.space_before = Pt(14)
+                p.paragraph_format.space_before = Pt(16)
                 p.paragraph_format.space_after = Pt(6)
-                r = p.add_run(line_str[2:].replace('**', ''))
+                p.paragraph_format.keep_with_next = True
+                r = p.add_run(b.get('text', '').upper())
+                r.font.name = 'Calibri'
                 r.font.size = Pt(13)
                 r.font.bold = True
                 r.font.color.rgb = RGBColor(30, 58, 138)
-            elif line_str.startswith('## '):
+            elif b_type == 'h2':
                 p = doc.add_paragraph()
-                p.paragraph_format.space_before = Pt(10)
+                p.paragraph_format.space_before = Pt(12)
                 p.paragraph_format.space_after = Pt(4)
-                r = p.add_run(line_str[3:].replace('**', ''))
+                p.paragraph_format.keep_with_next = True
+                r = p.add_run(b.get('text', ''))
+                r.font.name = 'Calibri'
                 r.font.size = Pt(11.5)
                 r.font.bold = True
                 r.font.color.rgb = RGBColor(49, 46, 129)
-            elif line_str.startswith('### '):
+            elif b_type == 'h3':
                 p = doc.add_paragraph()
-                p.paragraph_format.space_before = Pt(8)
+                p.paragraph_format.space_before = Pt(9)
                 p.paragraph_format.space_after = Pt(3)
-                r = p.add_run(line_str[4:].replace('**', ''))
+                p.paragraph_format.keep_with_next = True
+                r = p.add_run(b.get('text', ''))
+                r.font.name = 'Calibri'
                 r.font.size = Pt(10.5)
                 r.font.bold = True
                 r.font.color.rgb = RGBColor(30, 41, 59)
-            elif line_str.startswith('- ') or line_str.startswith('* '):
-                p = doc.add_paragraph(style='List Bullet')
-                p.paragraph_format.space_after = Pt(3)
-                parts = line_str[2:].split('**')
-                for i, part in enumerate(parts):
-                    if not part: continue
-                    r = p.add_run(part)
-                    r.font.size = Pt(10)
-                    if i % 2 == 1:
-                        r.font.bold = True
-            elif line_str.startswith('|') and '|' in line_str[1:]:
-                # Fila de tabla
+            elif b_type == 'h4':
                 p = doc.add_paragraph()
+                p.paragraph_format.space_before = Pt(6)
                 p.paragraph_format.space_after = Pt(2)
-                r = p.add_run(line_str)
-                r.font.name = 'Consolas'
-                r.font.size = Pt(8.5)
-            else:
+                p.paragraph_format.keep_with_next = True
+                r = p.add_run(b.get('text', ''))
+                r.font.name = 'Calibri'
+                r.font.size = Pt(10)
+                r.font.bold = True
+                r.font.color.rgb = RGBColor(71, 85, 105)
+            elif b_type == 'p':
+                raw_text = b.get('text', '')
                 p = doc.add_paragraph()
+                p.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
                 p.paragraph_format.line_spacing = 1.15
+                p.paragraph_format.space_after = Pt(5)
+                
+                # Resaltar si empieza con ARTÍCULO, CAPÍTULO, PARÁGRAFO
+                art_match = re.match(r'^(ARTÍCULO\s+[0-9º°\w\.\-]+[\.\:]?)(.*)$', raw_text, re.IGNORECASE)
+                par_match = re.match(r'^(PARÁGRAFO\s+[0-9º°\w\.\-]+[\.\:]?)(.*)$', raw_text, re.IGNORECASE)
+                cap_match = re.match(r'^(CAPÍTULO\s+[IVXLCDM0-9]+[\.\:]?)(.*)$', raw_text, re.IGNORECASE)
+                
+                if art_match:
+                    prefix = art_match.group(1)
+                    rest = art_match.group(2)
+                    r_pre = p.add_run(prefix)
+                    r_pre.font.name = 'Calibri'
+                    r_pre.font.size = Pt(10)
+                    r_pre.font.bold = True
+                    r_pre.font.color.rgb = RGBColor(30, 58, 138)
+                    add_formatted_runs_to_paragraph(p, rest, base_font_size=Pt(10))
+                elif par_match:
+                    prefix = par_match.group(1)
+                    rest = par_match.group(2)
+                    r_pre = p.add_run(prefix)
+                    r_pre.font.name = 'Calibri'
+                    r_pre.font.size = Pt(9.5)
+                    r_pre.font.bold = True
+                    r_pre.font.color.rgb = RGBColor(49, 46, 129)
+                    add_formatted_runs_to_paragraph(p, rest, base_font_size=Pt(9.5))
+                elif cap_match:
+                    prefix = cap_match.group(1)
+                    rest = cap_match.group(2)
+                    p.paragraph_format.space_before = Pt(10)
+                    p.paragraph_format.keep_with_next = True
+                    r_pre = p.add_run(prefix + " ")
+                    r_pre.font.name = 'Calibri'
+                    r_pre.font.size = Pt(11)
+                    r_pre.font.bold = True
+                    r_pre.font.color.rgb = RGBColor(30, 58, 138)
+                    add_formatted_runs_to_paragraph(p, rest, base_font_size=Pt(11))
+                else:
+                    add_formatted_runs_to_paragraph(p, raw_text, base_font_size=Pt(10))
+            elif b_type == 'quote':
+                p = doc.add_paragraph()
+                p.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                p.paragraph_format.left_indent = Inches(0.4)
+                p.paragraph_format.right_indent = Inches(0.2)
+                p.paragraph_format.line_spacing = 1.15
+                p.paragraph_format.space_before = Pt(4)
                 p.paragraph_format.space_after = Pt(6)
-                parts = line_str.split('**')
-                for i, part in enumerate(parts):
-                    if not part: continue
-                    r = p.add_run(part)
-                    r.font.size = Pt(10)
-                    if i % 2 == 1:
+                add_formatted_runs_to_paragraph(p, b.get('text', ''), base_font_size=Pt(9.5), base_color=RGBColor(71, 85, 105), italic_all=True)
+            elif b_type == 'bullet':
+                p = doc.add_paragraph()
+                p.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                p.paragraph_format.left_indent = Inches(0.3)
+                p.paragraph_format.space_after = Pt(3)
+                r_bullet = p.add_run("▪  ")
+                r_bullet.font.name = 'Calibri'
+                r_bullet.font.size = Pt(8.5)
+                r_bullet.font.bold = True
+                r_bullet.font.color.rgb = RGBColor(30, 58, 138)
+                add_formatted_runs_to_paragraph(p, b.get('text', ''), base_font_size=Pt(9.5))
+            elif b_type == 'numbered':
+                p = doc.add_paragraph()
+                p.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                p.paragraph_format.left_indent = Inches(0.3)
+                p.paragraph_format.space_after = Pt(3)
+                r_num = p.add_run(f"{b.get('num', '1')}.  ")
+                r_num.font.name = 'Calibri'
+                r_num.font.size = Pt(9.5)
+                r_num.font.bold = True
+                r_num.font.color.rgb = RGBColor(30, 58, 138)
+                add_formatted_runs_to_paragraph(p, b.get('text', ''), base_font_size=Pt(9.5))
+            elif b_type == 'hr':
+                p = doc.add_paragraph()
+                p.paragraph_format.space_before = Pt(8)
+                p.paragraph_format.space_after = Pt(8)
+                r_hr = p.add_run("―" * 52)
+                r_hr.font.color.rgb = RGBColor(226, 232, 240)
+            elif b_type == 'table':
+                headers = b.get('headers', [])
+                rows = b.get('rows', [])
+                if headers:
+                    tbl = doc.add_table(rows=len(rows) + 1, cols=len(headers))
+                    tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+                    set_table_borders(tbl, color="CBD5E1", sz="4")
+                    
+                    # Header row
+                    header_tr = tbl.rows[0]._tr.get_or_add_trPr()
+                    header_tr.append(parse_xml(r'<w:tblHeader %s/>' % nsdecls('w')))
+                    header_tr.append(parse_xml(r'<w:cantSplit %s/>' % nsdecls('w')))
+                    
+                    for h_idx, h_text in enumerate(headers):
+                        cell = tbl.cell(0, h_idx)
+                        set_docx_cell_bg(cell, "1E3A8A")
+                        set_cell_margins(cell, top=90, bottom=90, left=120, right=120)
+                        p = cell.paragraphs[0]
+                        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                        r = p.add_run(h_text.strip())
+                        r.font.name = 'Calibri'
+                        r.font.size = Pt(8.5)
                         r.font.bold = True
+                        r.font.color.rgb = RGBColor(255, 255, 255)
+                        
+                    # Data rows
+                    for r_idx, row_data in enumerate(rows):
+                        row_tr = tbl.rows[r_idx + 1]._tr.get_or_add_trPr()
+                        row_tr.append(parse_xml(r'<w:cantSplit %s/>' % nsdecls('w')))
+                        bg_color = "F8FAFC" if r_idx % 2 == 1 else "FFFFFF"
+                        
+                        for c_idx, c_text in enumerate(row_data):
+                            if c_idx < len(headers):
+                                cell = tbl.cell(r_idx + 1, c_idx)
+                                set_docx_cell_bg(cell, bg_color)
+                                set_cell_margins(cell, top=80, bottom=80, left=120, right=120)
+                                p = cell.paragraphs[0]
+                                p.paragraph_format.line_spacing = 1.1
+                                p.paragraph_format.space_after = Pt(2)
+                                add_formatted_runs_to_paragraph(p, c_text.strip(), base_font_size=Pt(8.5))
+                                
+                    doc.add_paragraph().paragraph_format.space_after = Pt(8)
+
+        # 5. Bloque Final de Firmas para Impresión Directa
+        doc.add_paragraph().paragraph_format.space_before = Pt(16)
+        
+        p_clausula = doc.add_paragraph()
+        p_clausula.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        p_clausula.paragraph_format.space_after = Pt(20)
+        p_clausula.paragraph_format.keep_with_next = True
+        r_cl = p_clausula.add_run(
+            "El presente Concepto Jurídico Vinculante se expide en derecho, con plena eficacia vinculante para la toma de decisiones institucionales, sustentado en la doctrina constitucional de la Autonomía Universitaria (Art. 69 CP, Sentencias C-220/97 y C-008/01) y en el marco normativo de la Ley 30 de 1992, la Ley 749 de 2002 y el Decreto 2038. Para constancia probatoria, se suscribe en dos (2) ejemplares de igual valor legal."
+        )
+        r_cl.font.name = 'Calibri'
+        r_cl.font.size = Pt(8.5)
+        r_cl.font.italic = True
+        r_cl.font.color.rgb = RGBColor(100, 116, 139)
+        
+        # Tabla de Firmas
+        sign_table = doc.add_table(rows=1, cols=2)
+        sign_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+        sign_trPr = sign_table.rows[0]._tr.get_or_add_trPr()
+        sign_trPr.append(parse_xml(r'<w:cantSplit %s/>' % nsdecls('w')))
+        
+        # Firma 1: Perito Jurídico
+        c_s1 = sign_table.cell(0, 0)
+        set_cell_margins(c_s1, top=140, bottom=140, left=160, right=160)
+        p_s1 = c_s1.paragraphs[0]
+        p_s1.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r_s1_1 = p_s1.add_run("_________________________________________\n")
+        r_s1_1.font.color.rgb = RGBColor(100, 116, 139)
+        r_s1_2 = p_s1.add_run("POSDOCTOR EN DERECHO EDUCATIVO\n")
+        r_s1_2.font.name = 'Calibri'
+        r_s1_2.font.size = Pt(9.5)
+        r_s1_2.font.bold = True
+        r_s1_2.font.color.rgb = RGBColor(30, 58, 138)
+        r_s1_3 = p_s1.add_run("Asesor Jurídico Senior Especializado\nDirección Jurídica SKEL 360\nCriterio CONACES · CNA · MEN")
+        r_s1_3.font.name = 'Calibri'
+        r_s1_3.font.size = Pt(8.0)
+        r_s1_3.font.color.rgb = RGBColor(71, 85, 105)
+
+        # Firma 2: Rectoría / Consejo Directivo
+        c_s2 = sign_table.cell(0, 1)
+        set_cell_margins(c_s2, top=140, bottom=140, left=160, right=160)
+        p_s2 = c_s2.paragraphs[0]
+        p_s2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r_s2_1 = p_s2.add_run("_________________________________________\n")
+        r_s2_1.font.color.rgb = RGBColor(100, 116, 139)
+        r_s2_2 = p_s2.add_run("REPRESENTANTE LEGAL / RECTORÍA\n")
+        r_s2_2.font.name = 'Calibri'
+        r_s2_2.font.size = Pt(9.5)
+        r_s2_2.font.bold = True
+        r_s2_2.font.color.rgb = RGBColor(49, 46, 129)
+        r_s2_3 = p_s2.add_run("INTENALCO EDUCACIÓN SUPERIOR\nÓrgano de Gobierno y Ejecución\nEn mérito de sus facultades legales y estatutarias")
+        r_s2_3.font.name = 'Calibri'
+        r_s2_3.font.size = Pt(8.0)
+        r_s2_3.font.color.rgb = RGBColor(71, 85, 105)
 
         io_stream = io.BytesIO()
         doc.save(io_stream)
